@@ -1,0 +1,6 @@
+@HomeOps.Api_HostAddress = http://localhost:5152
+
+GET {{HomeOps.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

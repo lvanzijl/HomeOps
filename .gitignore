@@ -1,0 +1,23 @@
+# .NET
+bin/
+obj/
+TestResults/
+*.user
+*.suo
+
+# Node
+node_modules/
+dist/
+.vite/
+npm-debug.log*
+
+# Environment
+.env
+
+# OS/editor
+.DS_Store
+.vscode/
+.idea/
+
+# TypeScript
+*.tsbuildinfo

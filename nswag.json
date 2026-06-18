@@ -1,0 +1,20 @@
+{
+  "runtime": "Net100",
+  "documentGenerator": {
+    "aspNetCoreToOpenApi": {
+      "project": "src/HomeOps.Api/HomeOps.Api.csproj",
+      "configuration": "Debug",
+      "targetFramework": "net10.0",
+      "noBuild": false,
+      "aspNetCoreEnvironment": "Development",
+      "output": "src/HomeOps.Contracts/openapi.json"
+    }
+  },
+  "codeGenerators": {
+    "openApiToTypeScriptClient": {
+      "className": "HomeOpsApiClient",
+      "template": "Fetch",
+      "output": "src/HomeOps.Client/src/api/homeOpsApiClient.ts"
+    }
+  }
+}
