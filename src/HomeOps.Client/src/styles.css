@@ -1,0 +1,235 @@
+:root {
+  color: #172033;
+  background: #f5f7fb;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+body {
+  margin: 0;
+}
+
+button {
+  font: inherit;
+}
+
+.app-shell {
+  display: grid;
+  gap: 1.5rem;
+  margin: 0 auto;
+  max-width: 960px;
+  padding: 3rem 1.5rem;
+}
+
+.app-header {
+  max-width: 720px;
+}
+
+.eyebrow {
+  color: #4f46e5;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.workspace-shell {
+  display: grid;
+  gap: 1rem;
+}
+
+.workspace-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.workspace-nav-button,
+.workspace-panel {
+  border: 1px solid #d7ddea;
+  border-radius: 1rem;
+  background: #ffffff;
+  box-shadow: 0 10px 30px rgb(23 32 51 / 8%);
+}
+
+.workspace-nav-button {
+  color: #1f2a44;
+  cursor: pointer;
+  padding: 0.75rem 1rem;
+}
+
+.workspace-nav-button[aria-current="page"] {
+  border-color: #4f46e5;
+  color: #312e81;
+  font-weight: 700;
+}
+
+.workspace-panel {
+  min-height: 18rem;
+  padding: 1.5rem;
+}
+
+.workspace-position,
+.widget-type {
+  color: #5c667a;
+}
+
+.widget-host {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.widget-card {
+  border: 1px solid #d7ddea;
+  border-radius: 0.875rem;
+  background: #fbfcff;
+  padding: 1rem;
+}
+
+.widget-card h3 {
+  margin-top: 0;
+}
+
+.widget-type {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.agenda-widget {
+  display: grid;
+  gap: 1rem;
+}
+
+.agenda-header,
+.agenda-view-toggle,
+.agenda-event {
+  align-items: center;
+  display: flex;
+  gap: 0.75rem;
+}
+
+.agenda-header {
+  justify-content: space-between;
+}
+
+.agenda-view-toggle button {
+  border: 1px solid #d7ddea;
+  border-radius: 999px;
+  background: #ffffff;
+  cursor: pointer;
+  padding: 0.45rem 0.75rem;
+}
+
+.agenda-view-toggle button[aria-pressed="true"] {
+  border-color: #4f46e5;
+  color: #312e81;
+  font-weight: 700;
+}
+
+.source-selector {
+  border: 1px solid #d7ddea;
+  border-radius: 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem 1rem;
+}
+
+.source-selector label {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.4rem;
+}
+
+.source-color {
+  border-radius: 999px;
+  display: inline-block;
+  flex: 0 0 auto;
+  height: 0.75rem;
+  width: 0.75rem;
+}
+
+.agenda-view {
+  display: grid;
+  gap: 1rem;
+}
+
+.agenda-months-view {
+  border-radius: 1rem;
+  background: linear-gradient(135deg, rgb(255 255 255 / 82%), rgb(230 236 255 / 72%));
+  padding: 1rem;
+}
+
+.agenda-group {
+  border-top: 1px solid #d7ddea;
+  padding-top: 0.75rem;
+}
+
+.agenda-event-list {
+  display: grid;
+  gap: 0.65rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.agenda-event small {
+  color: #5c667a;
+  display: block;
+  margin-top: 0.2rem;
+}
+
+.shopping-widget {
+  display: grid;
+  gap: 1rem;
+}
+
+.shopping-add-form,
+.shopping-item,
+.shopping-item label {
+  align-items: center;
+  display: flex;
+  gap: 0.75rem;
+}
+
+.shopping-add-form input {
+  border: 1px solid #d7ddea;
+  border-radius: 0.75rem;
+  padding: 0.65rem 0.75rem;
+}
+
+.shopping-add-form button,
+.shopping-item button {
+  border: 1px solid #d7ddea;
+  border-radius: 999px;
+  background: #ffffff;
+  cursor: pointer;
+  padding: 0.45rem 0.75rem;
+}
+
+.shopping-list {
+  display: grid;
+  gap: 0.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.shopping-item {
+  justify-content: space-between;
+}
+
+.shopping-empty {
+  color: #5c667a;
+}
+
+.visually-hidden {
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
