@@ -2,6 +2,7 @@ using NSwag.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApiDocument();
 
 var app = builder.Build();
