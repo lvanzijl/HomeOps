@@ -11,3 +11,5 @@
 | 1.7 | Google Calendar Adapter | Completed |
 | 1.8 | Birthdays Source | Completed |
 | 1.9 | Shopping List MVP | Completed |
+
+Validation pass: Completed on 2026-06-18.
