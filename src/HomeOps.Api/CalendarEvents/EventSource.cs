@@ -1,6 +1,6 @@
 using HomeOps.Api.Households;
 
-namespace HomeOps.Api.ManualEvents;
+namespace HomeOps.Api.CalendarEvents;
 
 public sealed class EventSource
 {
@@ -12,5 +12,5 @@ public sealed class EventSource
     public bool IsWritable { get; set; }
     public DateTimeOffset CreatedUtc { get; set; }
     public DateTimeOffset UpdatedUtc { get; set; }
-    public ICollection<ManualEvent> Events { get; set; } = new System.Collections.Generic.List<ManualEvent>();
+    public ICollection<EventSeries> EventSeries { get; set; } = new System.Collections.Generic.List<EventSeries>();
 }

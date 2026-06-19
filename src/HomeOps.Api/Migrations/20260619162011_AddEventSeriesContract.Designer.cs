@@ -3,6 +3,7 @@ using System;
 using HomeOps.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace HomeOps.Api.Migrations
 {
     [DbContext(typeof(HomeOpsDbContext))]
-    partial class HomeOpsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260619162011_AddEventSeriesContract")]
+    partial class AddEventSeriesContract
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -60,155 +63,6 @@ namespace HomeOps.Api.Migrations
                     b.ToTable("AgendaLayerSettings", (string)null);
                 });
 
-            modelBuilder.Entity("HomeOps.Api.CalendarEvents.EventSeries", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTimeOffset>("CreatedUtc")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
-
-                    b.Property<DateOnly>("EndDate")
-                        .HasColumnType("date");
-
-                    b.Property<TimeOnly?>("EndTime")
-                        .HasColumnType("time without time zone");
-
-                    b.Property<Guid>("EventSourceId")
-                        .HasColumnType("uuid");
-
-                    b.Property<bool>("IsAllDay")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateOnly>("StartDate")
-                        .HasColumnType("date");
-
-                    b.Property<TimeOnly?>("StartTime")
-                        .HasColumnType("time without time zone");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(240)
-                        .HasColumnType("character varying(240)");
-
-                    b.Property<DateTimeOffset>("UpdatedUtc")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("EventSourceId", "StartDate");
-
-                    b.ToTable("EventSeries", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("13131313-1313-1313-1313-131313131313"),
-                            CreatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            Description = "Routine check-up",
-                            EndDate = new DateOnly(2026, 6, 18),
-                            EndTime = new TimeOnly(10, 15, 0),
-                            EventSourceId = new Guid("12121212-1212-1212-1212-121212121212"),
-                            IsAllDay = false,
-                            StartDate = new DateOnly(2026, 6, 18),
-                            StartTime = new TimeOnly(9, 30, 0),
-                            Title = "Dentist Appointment",
-                            UpdatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
-                        },
-                        new
-                        {
-                            Id = new Guid("14141414-1414-1414-1414-141414141414"),
-                            CreatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            Description = "School hall",
-                            EndDate = new DateOnly(2026, 6, 19),
-                            EndTime = new TimeOnly(20, 0, 0),
-                            EventSourceId = new Guid("12121212-1212-1212-1212-121212121212"),
-                            IsAllDay = false,
-                            StartDate = new DateOnly(2026, 6, 19),
-                            StartTime = new TimeOnly(18, 30, 0),
-                            Title = "Parent Evening",
-                            UpdatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
-                        },
-                        new
-                        {
-                            Id = new Guid("15151515-1515-1515-1515-151515151515"),
-                            CreatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            Description = "Family trip",
-                            EndDate = new DateOnly(2026, 7, 19),
-                            EventSourceId = new Guid("12121212-1212-1212-1212-121212121212"),
-                            IsAllDay = true,
-                            StartDate = new DateOnly(2026, 7, 12),
-                            Title = "Vacation",
-                            UpdatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
-                        },
-                        new
-                        {
-                            Id = new Guid("16161616-1616-1616-1616-161616161616"),
-                            CreatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            EndDate = new DateOnly(2026, 6, 21),
-                            EndTime = new TimeOnly(20, 10, 0),
-                            EventSourceId = new Guid("12121212-1212-1212-1212-121212121212"),
-                            IsAllDay = false,
-                            StartDate = new DateOnly(2026, 6, 21),
-                            StartTime = new TimeOnly(20, 0, 0),
-                            Title = "Put Bins Outside",
-                            UpdatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
-                        });
-                });
-
-            modelBuilder.Entity("HomeOps.Api.CalendarEvents.EventSource", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTimeOffset>("CreatedUtc")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<Guid>("HouseholdId")
-                        .HasColumnType("uuid");
-
-                    b.Property<bool>("IsWritable")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(160)
-                        .HasColumnType("character varying(160)");
-
-                    b.Property<string>("SourceType")
-                        .IsRequired()
-                        .HasMaxLength(80)
-                        .HasColumnType("character varying(80)");
-
-                    b.Property<DateTimeOffset>("UpdatedUtc")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("HouseholdId", "SourceType")
-                        .IsUnique();
-
-                    b.ToTable("EventSources", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("12121212-1212-1212-1212-121212121212"),
-                            CreatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            HouseholdId = new Guid("11111111-1111-1111-1111-111111111111"),
-                            IsWritable = true,
-                            Name = "HomeOps Calendar",
-                            SourceType = "manual",
-                            UpdatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
-                        });
-                });
-
             modelBuilder.Entity("HomeOps.Api.Households.Household", b =>
                 {
                     b.Property<Guid>("Id")
@@ -223,11 +77,6 @@ namespace HomeOps.Api.Migrations
                         .HasMaxLength(120)
                         .HasColumnType("character varying(120)");
 
-                    b.Property<string>("TimeZoneId")
-                        .IsRequired()
-                        .HasMaxLength(80)
-                        .HasColumnType("character varying(80)");
-
                     b.Property<DateTimeOffset>("UpdatedUtc")
                         .HasColumnType("timestamp with time zone");
 
@@ -241,7 +90,6 @@ namespace HomeOps.Api.Migrations
                             Id = new Guid("11111111-1111-1111-1111-111111111111"),
                             CreatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Name = "Home",
-                            TimeZoneId = "Europe/Amsterdam",
                             UpdatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
                         });
                 });
@@ -374,6 +222,164 @@ namespace HomeOps.Api.Migrations
                             IsCompleted = false,
                             ListId = new Guid("33333333-3333-3333-3333-333333333333"),
                             Text = "Swimwear",
+                            UpdatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        });
+                });
+
+            modelBuilder.Entity("HomeOps.Api.ManualEvents.EventSeries", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateOnly>("EndDate")
+                        .HasColumnType("date");
+
+                    b.Property<TimeOnly?>("EndTime")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<Guid>("EventSourceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsAllDay")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date");
+
+                    b.Property<TimeOnly?>("StartTime")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<string>("TimeZoneId")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(240)
+                        .HasColumnType("character varying(240)");
+
+                    b.Property<DateTimeOffset>("UpdatedUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EventSourceId", "StartDate");
+
+                    b.ToTable("EventSeries", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("13131313-1313-1313-1313-131313131313"),
+                            CreatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Description = "Routine check-up",
+                            EndDate = new DateOnly(2026, 6, 18),
+                            EndTime = new TimeOnly(10, 15, 0),
+                            EventSourceId = new Guid("12121212-1212-1212-1212-121212121212"),
+                            IsAllDay = false,
+                            StartDate = new DateOnly(2026, 6, 18),
+                            StartTime = new TimeOnly(9, 30, 0),
+                            TimeZoneId = "Europe/Amsterdam",
+                            Title = "Dentist Appointment",
+                            UpdatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        },
+                        new
+                        {
+                            Id = new Guid("14141414-1414-1414-1414-141414141414"),
+                            CreatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Description = "School hall",
+                            EndDate = new DateOnly(2026, 6, 19),
+                            EndTime = new TimeOnly(20, 0, 0),
+                            EventSourceId = new Guid("12121212-1212-1212-1212-121212121212"),
+                            IsAllDay = false,
+                            StartDate = new DateOnly(2026, 6, 19),
+                            StartTime = new TimeOnly(18, 30, 0),
+                            TimeZoneId = "Europe/Amsterdam",
+                            Title = "Parent Evening",
+                            UpdatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        },
+                        new
+                        {
+                            Id = new Guid("15151515-1515-1515-1515-151515151515"),
+                            CreatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Description = "Family trip",
+                            EndDate = new DateOnly(2026, 7, 19),
+                            EventSourceId = new Guid("12121212-1212-1212-1212-121212121212"),
+                            IsAllDay = true,
+                            StartDate = new DateOnly(2026, 7, 12),
+                            TimeZoneId = "Europe/Amsterdam",
+                            Title = "Vacation",
+                            UpdatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        },
+                        new
+                        {
+                            Id = new Guid("16161616-1616-1616-1616-161616161616"),
+                            CreatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            EndDate = new DateOnly(2026, 6, 21),
+                            EndTime = new TimeOnly(20, 10, 0),
+                            EventSourceId = new Guid("12121212-1212-1212-1212-121212121212"),
+                            IsAllDay = false,
+                            StartDate = new DateOnly(2026, 6, 21),
+                            StartTime = new TimeOnly(20, 0, 0),
+                            TimeZoneId = "Europe/Amsterdam",
+                            Title = "Put Bins Outside",
+                            UpdatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        });
+                });
+
+            modelBuilder.Entity("HomeOps.Api.ManualEvents.EventSource", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("HouseholdId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsWritable")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("character varying(160)");
+
+                    b.Property<string>("SourceType")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<DateTimeOffset>("UpdatedUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HouseholdId", "SourceType")
+                        .IsUnique();
+
+                    b.ToTable("EventSources", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("12121212-1212-1212-1212-121212121212"),
+                            CreatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            HouseholdId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            IsWritable = true,
+                            Name = "HomeOps Manual Events",
+                            SourceType = "manual",
                             UpdatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
                         });
                 });
@@ -530,28 +536,6 @@ namespace HomeOps.Api.Migrations
                         });
                 });
 
-            modelBuilder.Entity("HomeOps.Api.CalendarEvents.EventSeries", b =>
-                {
-                    b.HasOne("HomeOps.Api.CalendarEvents.EventSource", "EventSource")
-                        .WithMany("EventSeries")
-                        .HasForeignKey("EventSourceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("EventSource");
-                });
-
-            modelBuilder.Entity("HomeOps.Api.CalendarEvents.EventSource", b =>
-                {
-                    b.HasOne("HomeOps.Api.Households.Household", "Household")
-                        .WithMany()
-                        .HasForeignKey("HouseholdId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Household");
-                });
-
             modelBuilder.Entity("HomeOps.Api.Lists.List", b =>
                 {
                     b.HasOne("HomeOps.Api.Households.Household", "Household")
@@ -572,6 +556,28 @@ namespace HomeOps.Api.Migrations
                         .IsRequired();
 
                     b.Navigation("List");
+                });
+
+            modelBuilder.Entity("HomeOps.Api.ManualEvents.EventSeries", b =>
+                {
+                    b.HasOne("HomeOps.Api.ManualEvents.EventSource", "EventSource")
+                        .WithMany("EventSeries")
+                        .HasForeignKey("EventSourceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("EventSource");
+                });
+
+            modelBuilder.Entity("HomeOps.Api.ManualEvents.EventSource", b =>
+                {
+                    b.HasOne("HomeOps.Api.Households.Household", "Household")
+                        .WithMany()
+                        .HasForeignKey("HouseholdId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Household");
                 });
 
             modelBuilder.Entity("HomeOps.Api.WidgetLayouts.WidgetPlacement", b =>
@@ -596,14 +602,14 @@ namespace HomeOps.Api.Migrations
                     b.Navigation("Household");
                 });
 
-            modelBuilder.Entity("HomeOps.Api.CalendarEvents.EventSource", b =>
-                {
-                    b.Navigation("EventSeries");
-                });
-
             modelBuilder.Entity("HomeOps.Api.Lists.List", b =>
                 {
                     b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("HomeOps.Api.ManualEvents.EventSource", b =>
+                {
+                    b.Navigation("EventSeries");
                 });
 
             modelBuilder.Entity("HomeOps.Api.WidgetLayouts.WorkspaceLayout", b =>

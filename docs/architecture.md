@@ -43,27 +43,37 @@ Event sources are framework-level ownership records for future normalized events
 Normalized events are generic records owned by an event source. They include source ownership, optional external event identifiers, timing fields, title, optional descriptive metadata, and an editable flag. The model is intentionally not tied to agenda, birthday, TV, or other widget-specific data shapes. Read-only sources represent data HomeOps can display but not modify; writable sources represent data HomeOps may edit in a future slice.
 
 
-## Manual Events Source
-Manual Events are the first persisted writable event source owned by HomeOps. The backend stores household-owned `EventSource` records and `ManualEvent` records in PostgreSQL through EF Core, then normalizes Manual Events into the existing `NormalizedEvent` contract before the Agenda consumes them.
+## HomeOps Calendar Source
+HomeOps Calendar is the writable HomeOps-owned event source. The backend stores household-owned `EventSource` records and non-recurring `EventSeries` records in PostgreSQL through EF Core, then projects EventSeries into the existing `NormalizedEvent` contract before the Agenda consumes them.
 
-Manual Events use the existing single seeded household boundary and do not add household management, users, roles, invites, authentication, or multi-household behavior. The Manual Events API exposes minimal event source retrieval plus event get, create, update, and delete operations for the writable HomeOps-owned source.
+The calendar source uses the existing single seeded household boundary and does not add household management, users, roles, invites, authentication, or multi-household behavior. Existing event APIs expose minimal event source retrieval plus event get, create, update, and delete operations for the writable HomeOps-owned source.
 
-Writable and read-only event sources remain distinct. Manual Events are writable; Birthday, school holiday, media, and Google Calendar-style sources remain read-only display inputs in this slice. The Agenda combines persisted Manual Events with the existing read-only birthday/demo sources, preserving source filtering, week view, and months view behavior.
+Writable and read-only event sources remain distinct. HomeOps Calendar events are writable; Birthday, school holiday, media, and Google Calendar-style sources remain read-only display inputs in this slice. The Agenda combines persisted HomeOps Calendar events with the existing read-only birthday/demo sources, preserving source filtering, week view, and months view behavior.
 
-Recurring events are intentionally out of scope. Manual Events persist concrete single event occurrences only, which keeps the storage model and normalization path simple until recurring rule semantics are explicitly designed.
+Recurring events are intentionally out of scope. EventSeries records are non-recurring in this slice, and generated EventOccurrence values remain derived Agenda projections rather than persisted source-of-truth records.
 
 ## Agenda Widget MVP
-The Agenda Widget is the first widget-framework consumer. It renders through the central widget renderer and now loads persisted Manual Events through the generated NSwag client while retaining read-only birthday/demo sources as validation scaffolding. The remaining demo dataset is centrally defined, reusable, and covers read-only sources, colors, all-day and timed events, current-week events, next-month events, and forward-looking events multiple months ahead.
+The Agenda Widget is the first widget-framework consumer. It renders through the central widget renderer and now loads persisted HomeOps Calendar events through the generated NSwag client while retaining read-only birthday/demo sources as validation scaffolding. The remaining demo dataset is centrally defined, reusable, and covers read-only sources, colors, all-day and timed events, current-week events, next-month events, and forward-looking events multiple months ahead.
 
 Agenda source filtering remains local browser state scoped to the widget. Multiple sources can be enabled or disabled, and the same filtered event set drives both views. Week View groups upcoming events by day from the deterministic demo anchor date. Months View groups events chronologically by month to validate the intended forward-looking glass board concept.
 
 
+## Household Timezone Foundation
+Household stores the V1 calendar timezone as household configuration. The initial timezone is derived automatically when practical and falls back to `Europe/Amsterdam`. There is no timezone configuration UI, per-event timezone support, recurrence expansion, or timezone-specific recurrence policy in this slice.
+
+## EventSeries Calendar Contract
+HomeOps-owned calendar data is persisted as non-recurring EventSeries records. The event API now uses EventSeries contract names while preserving the existing route shape. Each EventSeries belongs to an event source and stores title, optional description, all-day state, date-only start/end dates, optional timed start/end times, audit timestamps, and timing values interpreted through the persisted household timezone.
+
+EventOccurrence is the Agenda-facing projection generated from EventSeries. Occurrences are not persisted and are not authoritative. The Agenda continues to consume normalized concrete event output while event management operates on logical EventSeries records.
+
+All-day events use date-only semantics. Multi-day all-day events use start date plus exclusive end date. Timed events use date plus time fields interpreted under the household timezone. Recurrence, EventException, Google Calendar integration, import/export, ICS, reminders, notifications, authentication, and timezone configuration UI remain out of scope.
+
 ## Event Editing Workflow
-Manual Event editing remains embedded in the Agenda experience. The widget supports creating, editing, and deleting events for the writable Manual Events source only, while read-only sources such as Birthdays remain display-only.
+Event editing remains embedded in the Agenda experience. The widget supports creating, editing, and deleting events for the writable HomeOps event source only, while read-only sources such as Birthdays remain display-only.
 
-Manual Event validation is shared between the UI and API. Titles are required, timed events require an end time in the UI, and submitted end values must be on or after the start value. Backend validation returns consistent validation problem responses for missing titles and invalid date ranges.
+Event validation is shared between the UI and API. Titles are required, timed events require an end time in the UI, and submitted end values must be on or after the start value. Backend validation returns consistent validation problem responses for missing titles and invalid date ranges.
 
-All-day events are edited with date inputs and are submitted as midnight UTC-local date values for concrete single occurrences. Timed events are edited with datetime inputs. Recurring events, dedicated event management screens, and complex form frameworks remain out of scope. Errors are shown inline in the Agenda widget and failed mutations leave the current event list intact.
+All-day events are edited with date inputs and are projected from date-only EventSeries values for Agenda rendering. Timed events are edited with datetime inputs. Recurring events, dedicated event management screens, and complex form frameworks remain out of scope. Errors are shown inline in the Agenda widget and failed mutations leave the current event list intact.
 
 ## Layer Settings Persistence
 Agenda layer settings are device-specific preferences persisted by the backend. Week View and Months View maintain independent enabled event source selections so changing one view does not modify the other. The settings model stores one row per device key, view type, and event source id, and it is intentionally not household-scoped or user-scoped.
@@ -75,7 +85,7 @@ Unknown or newly added event sources default to enabled when no saved setting ex
 ## Event Source Adapter Pattern
 Event source adapters translate provider-specific data into HomeOps contracts before widgets receive it. `IEventSourceAdapter` exposes normalized `EventSource` metadata and normalized events, while provider-specific payloads stay inside adapter implementations.
 
-The Google Calendar Adapter foundation uses fake Google Calendar payloads and does not call Google services, require credentials, implement OAuth, or persist data. Its role is to demonstrate source ownership, Google Calendar source metadata, read-only behavior, all-day and timed event normalization, and the normalization pipeline from Google-specific payloads into `EventSource` and `NormalizedEvent`. Agenda widgets continue to consume normalized events rather than Google Calendar models.
+Google Calendar remains optional integration only; HomeOps Calendar is the source of truth for HomeOps-owned events. The Google Calendar Adapter foundation uses fake Google Calendar payloads and does not call Google services, require credentials, implement OAuth, or persist data. Its role is to demonstrate source ownership, Google Calendar source metadata, read-only behavior, all-day and timed event normalization, and the normalization pipeline from Google-specific payloads into `EventSource` and `NormalizedEvent`. Agenda widgets continue to consume normalized events rather than Google Calendar models.
 
 ## Birthday Source
 Birthdays are modeled as an event source and normalized into all-day `NormalizedEvent` records before any widget consumes them. The Birthday Source foundation uses sample birthday records, a source adapter, and an 18-month generation horizon from the configured anchor date so the generated dataset includes upcoming birthdays, later-year birthdays, and next-year occurrences without introducing persistence or management screens.
@@ -96,6 +106,9 @@ The Lists APIs are intentionally minimal: get lists, get list by id, create list
 - Development database: Docker Compose PostgreSQL.
 - API contract generation: OpenAPI and NSwag.
 - Architecture style: Modular monolith.
+
+## Portability Direction
+JSON is the intended canonical HomeOps export format for future portability and upgrade safety. Import/export implementation is not present in this slice, PostgreSQL backups remain operational recovery, and ICS remains out of scope.
 
 ## Deployment Approach
 The initial repository targets local development with a single ASP.NET Core API, a Vite client, and PostgreSQL through Docker Compose. Deployment remains intentionally simple and does not introduce Kubernetes, microservices, or distributed architecture.

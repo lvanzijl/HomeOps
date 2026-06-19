@@ -5,14 +5,14 @@ import {
   EventSourceColor,
   EventSourceType,
   EventSourceVisibility,
-  ManualEventDto,
+  EventSeriesDto,
   NormalizedEvent as ApiNormalizedEvent,
 } from '../api/homeOpsApiClient';
-import { createManualAgendaEvent, deleteManualAgendaEvent, loadManualAgendaData, toAgendaEventFromManualEvent, updateManualAgendaEvent } from './manualEventsApi';
+import { createCalendarAgendaEvent, deleteCalendarAgendaEvent, loadCalendarAgendaData, toAgendaEventFromEventSeries, updateCalendarAgendaEvent } from './calendarEventsApi';
 
 const apiSource = new ApiEventSource({
   id: 'manual-source',
-  name: 'HomeOps Manual Events',
+  name: 'HomeOps Calendar',
   type: EventSourceType.Manual,
   enabled: true,
   capability: EventSourceCapability.Writable,
@@ -30,7 +30,7 @@ const apiEvent = new ApiNormalizedEvent({
   editable: true,
 });
 
-const manualDto = new ManualEventDto({
+const eventSeriesDto = new EventSeriesDto({
   id: 'created',
   eventSourceId: 'manual-source',
   title: 'Created Event',
@@ -39,14 +39,14 @@ const manualDto = new ManualEventDto({
   isAllDay: false,
 });
 
-describe('manual events API mapping', () => {
+describe('EventSeries API mapping', () => {
   it('loads event sources and normalized events from the generated API client', async () => {
     const client = {
       getEventSources: vi.fn().mockResolvedValue([apiSource]),
       getEvents: vi.fn().mockResolvedValue([apiEvent]),
     } as never;
 
-    const data = await loadManualAgendaData(client);
+    const data = await loadCalendarAgendaData(client);
 
     expect(data.sources[0]).toMatchObject({ id: 'manual-source', type: 'manual', capability: 'writable' });
     expect(data.events[0]).toMatchObject({ id: 'dentist', title: 'Dentist Appointment', editable: true });
@@ -54,14 +54,14 @@ describe('manual events API mapping', () => {
 
   it('creates, updates, and deletes events through generated API methods', async () => {
     const client = {
-      createEvent: vi.fn().mockResolvedValue(manualDto),
-      updateEvent: vi.fn().mockResolvedValue(new ManualEventDto({ ...manualDto, title: 'Updated Event' })),
+      createEvent: vi.fn().mockResolvedValue(eventSeriesDto),
+      updateEvent: vi.fn().mockResolvedValue(new EventSeriesDto({ ...eventSeriesDto, title: 'Updated Event' })),
       deleteEvent: vi.fn().mockResolvedValue(undefined),
     } as never;
 
-    const created = await createManualAgendaEvent({ title: 'Created Event', startsAt: '2026-06-22T09:00', endsAt: '2026-06-22T10:00', allDay: false }, client);
-    const updated = await updateManualAgendaEvent('created', { title: 'Updated Event', startsAt: '2026-06-22T09:00', endsAt: '2026-06-22T10:00', allDay: false }, client);
-    await deleteManualAgendaEvent('created', client);
+    const created = await createCalendarAgendaEvent({ title: 'Created Event', startsAt: '2026-06-22T09:00', endsAt: '2026-06-22T10:00', allDay: false }, client);
+    const updated = await updateCalendarAgendaEvent('created', { title: 'Updated Event', startsAt: '2026-06-22T09:00', endsAt: '2026-06-22T10:00', allDay: false }, client);
+    await deleteCalendarAgendaEvent('created', client);
 
     expect((client as { createEvent: ReturnType<typeof vi.fn> }).createEvent).toHaveBeenCalledTimes(1);
     expect((client as { updateEvent: ReturnType<typeof vi.fn> }).updateEvent).toHaveBeenCalledWith('created', expect.objectContaining({ title: 'Updated Event' }));
@@ -70,8 +70,8 @@ describe('manual events API mapping', () => {
     expect(updated.title).toBe('Updated Event');
   });
 
-  it('normalizes ManualEventDto instances into agenda events', () => {
-    expect(toAgendaEventFromManualEvent(manualDto)).toMatchObject({
+  it('normalizes EventSeriesDto instances into agenda events', () => {
+    expect(toAgendaEventFromEventSeries(eventSeriesDto)).toMatchObject({
       id: 'created',
       sourceId: 'manual-source',
       startsAt: '2026-06-22T09:00:00.000Z',
