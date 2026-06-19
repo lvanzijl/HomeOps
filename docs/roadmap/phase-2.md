@@ -11,9 +11,11 @@
 | 2.7 | Calendar Terminology, Projection, and Timezone Foundation | Completed |
 | 2.8 | Calendar JSON Export and Full Restore Foundation | Completed |
 | 2.9 | Calendar Portability Hardening, Restore Safety, and JSON Contract Freeze | Completed |
-| 2.10 | Real Google Calendar Read-Only Integration | Recommended next |
-| 2.11 | Sensor Dashboard Foundation | Planned |
-| 2.12 | Media/TV Source Foundation | Planned |
+| 2.10 | Calendar Portability UX and Pre-Restore Export | Completed |
+| 2.11 | Calendar Validation, Snapshot Storage, Restore Safety UX, and Documentation Hardening | Completed |
+| 2.12 | Real Google Calendar Read-Only Integration | Recommended next |
+| 2.13 | Sensor Dashboard Foundation | Planned |
+| 2.14 | Media/TV Source Foundation | Planned |
 
 Phase 2 theme: Durable Household Core.
 
@@ -42,11 +44,11 @@ Calendar Terminology, Projection, and Timezone Foundation aligns API contracts a
 Calendar JSON Export and Full Restore Foundation adds a versioned canonical `homeops.calendar.export` JSON backend contract, exports household timezone metadata, event source metadata, and EventSeries source-of-truth records, keeps EventOccurrence out of canonical export data, and adds full restore-only backend behavior that validates before replacing calendar sources and EventSeries. Google Drive remains a future export destination only. ICS, recurrence runtime behavior, EventException runtime behavior, selective import, merge import, and conflict resolution remain out of scope.
 
 ## Completed Slice 2.9 — Calendar Portability Hardening, Restore Safety, and JSON Contract Freeze
-Calendar Portability Hardening freezes the V1 canonical JSON contract, reserves recurrence, exception, and future metadata sections, strengthens schema/version/identifier/ownership/timezone/timing validation, and keeps restore local-only and full-restore-only. Restore validation occurs before destructive actions, rejected exports leave calendar data unchanged, and automatic pre-restore export is documented as a future safety requirement rather than implemented automation.
+Calendar Portability Hardening freezes the V1 canonical JSON contract, reserves recurrence, exception, and future metadata sections, strengthens schema/version/identifier/ownership/timezone/timing validation, and keeps restore local-only and full-restore-only. Restore validation occurs before destructive actions, rejected exports leave calendar data unchanged, and automatic local pre-restore export snapshots now run before calendar full restore replacement.
 
 ## Recommended Next Slice
 Proceed with Real Google Calendar Read-Only Integration only after preserving HomeOps Calendar as source of truth and local-only portability boundaries. Keep any Google Calendar work optional and integration-scoped; do not add two-way sync, authentication beyond an explicitly scoped integration requirement, sensors, media, notifications, recurring event editing, or offline-first synchronization.
 
 
 ## Calendar Portability UX and Pre-Restore Export Update
-Automatic local pre-restore export snapshots now run before calendar full restore replacement. The Settings workspace now exposes simple local export/restore controls with version, timestamp, validation feedback, friendly errors, and a replacement warning. JSON remains the canonical export format; restore remains local-only and full restore only.
+Automatic local pre-restore export snapshots now run before calendar full restore replacement. The snapshot directory is configurable through `CalendarPortability:PreRestoreSnapshotDirectory` and defaults safely to local API storage when unset; Docker/container deployments should mount the configured path to writable persistent storage when snapshots must survive container replacement. The Settings workspace exposes simple local export/restore controls with version, timestamp, validation feedback, friendly errors, an explicit destructive replacement warning, and a required confirmation checkbox. JSON remains the canonical export format; restore remains local-only and full restore only.

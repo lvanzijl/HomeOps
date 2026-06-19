@@ -4,7 +4,7 @@
 Phase 2 — Durable Household Core
 
 ## Current Slice
-Slice 2.10 Calendar Portability UX and Pre-Restore Export — Completed
+Calendar Validation, Snapshot Storage, Restore Safety UX, and Documentation Hardening — Completed
 
 ## Completed Slices
 - 1.1 Repository Bootstrap
@@ -26,6 +26,7 @@ Slice 2.10 Calendar Portability UX and Pre-Restore Export — Completed
 - 2.8 Calendar JSON Export and Full Restore Foundation
 - 2.9 Calendar Portability Hardening, Restore Safety, and JSON Contract Freeze
 - 2.10 Calendar Portability UX and Pre-Restore Export
+- Calendar Validation, Snapshot Storage, Restore Safety UX, and Documentation Hardening
 
 ## Next Slice
 Proceed with Real Google Calendar Read-Only Integration only after preserving HomeOps Calendar source-of-truth and local-only portability boundaries.
@@ -48,7 +49,7 @@ Proceed with Real Google Calendar Read-Only Integration only after preserving Ho
 - Shopping List MVP has been replaced by the generic persisted Lists domain for the Shopping example list.
 - Widgets are presentation units, and shared data models must not be widget-specific.
 - Calendar JSON export is canonical HomeOps portability data.
-- Calendar restore is local-only and full restore only; validation and local pre-restore snapshot creation run before replacement, while selective import, merge import, remote restore, and conflict resolution are not implemented.
+- Calendar restore is local-only and full restore only; validation and local pre-restore snapshot creation run before replacement, while selective import, merge import, remote restore, and conflict resolution are not implemented. The pre-restore snapshot path is configurable with a safe local default, and container deployments should mount the configured path to writable persistent storage when snapshots must survive container replacement.
 - EventOccurrence is projection-only Agenda data and is not canonical export data.
 - Google Drive is a future export destination only; Google Calendar, ICS, recurrence, and EventException runtime behavior remain out of scope.
 - Calendar V1 JSON contract shape is frozen; recurrence, exception, and future metadata sections are reserved without runtime behavior.
@@ -75,8 +76,8 @@ Proceed with Real Google Calendar Read-Only Integration only after preserving Ho
 - Restore is explicitly local-only and full-restore-only.
 - Validation covers schema/version, household ownership, identifiers, source references, timing shape, timezone, recurrence, and exception sections before destructive actions.
 - Invalid exports are rejected before modifying existing calendar data.
-- Automatic pre-restore export is implemented as a local canonical JSON safety snapshot before destructive replacement.
-- Settings exposes a minimal local calendar export/restore UI with version, timestamp, validation feedback, friendly errors, and an explicit replacement warning.
+- Automatic pre-restore export is implemented as a local canonical JSON safety snapshot before destructive replacement, with configurable local snapshot storage and safe default behavior.
+- Settings exposes a minimal local calendar export/restore UI with version, timestamp, validation feedback, friendly errors, an explicit destructive replacement warning, and a required confirmation checkbox.
 
 ## Phase 2 Calendar JSON Export and Full Restore Foundation
 - Calendar export uses a versioned `homeops.calendar.export` JSON document as the canonical HomeOps Calendar portability format.

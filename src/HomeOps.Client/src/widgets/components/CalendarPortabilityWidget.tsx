@@ -20,6 +20,7 @@ export function CalendarPortabilityWidget() {
   const [restoreDocument, setRestoreDocument] = useState<CalendarExportDocument | null>(null);
   const [restoreSummary, setRestoreSummary] = useState<string>('Choose a local JSON export file before restoring.');
   const [status, setStatus] = useState<RestoreStatus | null>(null);
+  const [restoreConfirmed, setRestoreConfirmed] = useState(false);
   const [isBusy, setIsBusy] = useState(false);
 
   async function handleExport() {
@@ -41,6 +42,7 @@ export function CalendarPortabilityWidget() {
     const file = event.target.files?.[0];
     setStatus(null);
     setRestoreDocument(null);
+    setRestoreConfirmed(false);
     if (!file) return;
 
     try {
@@ -55,7 +57,10 @@ export function CalendarPortabilityWidget() {
   }
 
   async function handleRestore() {
-    if (!restoreDocument) return;
+    if (!restoreDocument || !restoreConfirmed) {
+      setStatus({ kind: 'error', message: 'Confirm that restore will replace existing calendar data before continuing.', validationErrors: [] });
+      return;
+    }
     setIsBusy(true);
     setStatus(null);
     try {
@@ -72,7 +77,7 @@ export function CalendarPortabilityWidget() {
     <section className="calendar-portability-widget" aria-label="Calendar export and restore">
       <p className="widget-type">Calendar administration</p>
       <h3>Calendar export / restore</h3>
-      <p className="restore-warning">Warning: restore replaces all local calendar event sources and EventSeries data.</p>
+      <p className="restore-warning">Destructive warning: restore replaces all existing local calendar event sources and EventSeries data with the selected JSON export. This is a full restore, not a merge.</p>
       <div className="calendar-portability-actions">
         <button disabled={isBusy} onClick={handleExport} type="button">Export calendar</button>
         <span>{exportSummary}</span>
@@ -84,7 +89,16 @@ export function CalendarPortabilityWidget() {
         </label>
         <span>{restoreSummary}</span>
       </div>
-      <button disabled={isBusy || !restoreDocument} onClick={handleRestore} type="button">Restore calendar data</button>
+      <label className="restore-confirmation">
+        <input
+          checked={restoreConfirmed}
+          disabled={isBusy || !restoreDocument}
+          onChange={(event) => setRestoreConfirmed(event.target.checked)}
+          type="checkbox"
+        />
+        I understand this full restore replaces existing calendar data.
+      </label>
+      <button disabled={isBusy || !restoreDocument || !restoreConfirmed} onClick={handleRestore} type="button">Restore calendar data</button>
       {status && (
         <div className={`calendar-portability-status ${status.kind}`} role={status.kind === 'error' ? 'alert' : 'status'}>
           <p>{status.message}</p>

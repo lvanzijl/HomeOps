@@ -8,8 +8,17 @@ namespace HomeOps.Api.CalendarEvents;
 public static class CalendarPortabilityService
 {
     private static readonly JsonSerializerOptions SnapshotJsonOptions = new(JsonSerializerDefaults.Web) { WriteIndented = true };
+    private static readonly string DefaultPreRestoreSnapshotDirectory = Path.Combine(AppContext.BaseDirectory, "calendar-restore-snapshots");
 
-    public static string PreRestoreSnapshotDirectory { get; set; } = Path.Combine(AppContext.BaseDirectory, "calendar-restore-snapshots");
+    public static string PreRestoreSnapshotDirectory { get; set; } = DefaultPreRestoreSnapshotDirectory;
+
+    public static void ConfigurePreRestoreSnapshotDirectory(string? configuredDirectory)
+    {
+        PreRestoreSnapshotDirectory = string.IsNullOrWhiteSpace(configuredDirectory)
+            ? DefaultPreRestoreSnapshotDirectory
+            : configuredDirectory.Trim();
+    }
+
     public static async Task<CalendarExportDocument> ExportAsync(HomeOpsDbContext dbContext, CancellationToken cancellationToken = default)
     {
         var household = await dbContext.Households.AsNoTracking().SingleAsync(candidate => candidate.Id == SeedHousehold.Id, cancellationToken);
