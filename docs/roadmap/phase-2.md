@@ -17,6 +17,7 @@
 | 2.13 | Real Google Calendar Read-Only Integration | Recommended next |
 | 2.14 | Sensor Dashboard Foundation | Planned |
 | 2.15 | Media/TV Source Foundation | Planned |
+| 2.16 | Home Hierarchy Tightening | Completed |
 
 Phase 2 theme: Durable Household Core.
 
@@ -59,3 +60,7 @@ Automatic local pre-restore export snapshots now run before calendar full restor
 
 ## Completed Slice 2.13 — Home Dashboard MVP, Family Member MVP, and Home Navigation Flows
 Home Dashboard MVP establishes Home as the primary glassboard-style dashboard with date/time, Family Member strip, quick capture entry points, Agenda summary, and Lists summary. Family Members are minimal household presentation entities only, not users or authentication identities. Home summary content, overflow affordances, and quick capture actions route to dedicated Agenda and Lists pages so Home remains summary-first and existing domain functionality stays on the domain pages.
+
+## Completed Slice 2.16 — Home Hierarchy Tightening
+Home Hierarchy Tightening reduces Home app chrome and marketing-style copy, keeps the top area focused on date/time plus a lightweight weather placeholder, tightens portrait spacing, groups Home Agenda rows under Today/Tomorrow/Later / Next, replaces abstract Lists card naming with concrete Shopping/Boodschappen-oriented list naming when available, and compacts the Family Member strip. Family Members remain placeholder presentation entities only; avatar redesign, avatar modeling/editor/badges, Family Member persistence, ownership, tasks, gamification, notifications, authentication, and profile behavior remain out of scope.
+
