@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { AgendaLayerSettingsDto, HomeOpsApiClient, SaveAgendaLayerSettingsRequest } from '../api/homeOpsApiClient';
 import type { EventSource } from '../events/eventSourceModel';
 
 export type AgendaLayerView = 'week' | 'months';
@@ -17,7 +18,7 @@ export interface KeyValueStorage {
   setItem(key: string, value: string): void;
 }
 
-const storageKey = 'homeops.agenda.layerSettings.v1';
+const deviceKeyStorageKey = 'homeops.deviceKey.v1';
 
 export function createDefaultAgendaLayerSettings(sources: readonly EventSource[]): AgendaLayerSettings {
   const defaults = createDefaultSourceSelection(sources);
@@ -28,34 +29,29 @@ export function createDefaultAgendaLayerSettings(sources: readonly EventSource[]
   };
 }
 
-export function loadAgendaLayerSettings(
-  storage: KeyValueStorage | undefined,
+export async function loadAgendaLayerSettings(
+  client: Pick<HomeOpsApiClient, 'getAgendaLayerSettings'>,
+  deviceKey: string,
   sources: readonly EventSource[],
-): AgendaLayerSettings {
-  const defaults = createDefaultAgendaLayerSettings(sources);
-
-  if (!storage) {
-    return defaults;
-  }
-
-  const storedValue = storage.getItem(storageKey);
-  if (!storedValue) {
-    return defaults;
-  }
-
-  try {
-    return normalizeAgendaLayerSettings(JSON.parse(storedValue), sources, defaults);
-  } catch {
-    return defaults;
-  }
+): Promise<AgendaLayerSettings> {
+  const dto = await client.getAgendaLayerSettings(deviceKey);
+  return normalizeAgendaLayerSettings(dto, sources, createDefaultAgendaLayerSettings(sources));
 }
 
-export function saveAgendaLayerSettings(storage: KeyValueStorage | undefined, settings: AgendaLayerSettings): void {
-  if (!storage) {
-    return;
-  }
+export async function saveAgendaLayerSettings(
+  client: Pick<HomeOpsApiClient, 'saveAgendaLayerSettings'>,
+  deviceKey: string,
+  settings: AgendaLayerSettings,
+): Promise<AgendaLayerSettings> {
+  const dto = await client.saveAgendaLayerSettings(
+    deviceKey,
+    new SaveAgendaLayerSettingsRequest({
+      week: settings.week.enabledSourceIds,
+      months: settings.months.enabledSourceIds,
+    }),
+  );
 
-  storage.setItem(storageKey, JSON.stringify(settings));
+  return normalizeAgendaLayerSettings(dto, [], settings);
 }
 
 export function updateAgendaLayerSource(
@@ -75,32 +71,74 @@ export function updateAgendaLayerSource(
   };
 }
 
-export function getAgendaStorageKey(): string {
-  return storageKey;
+export function getAgendaDeviceKeyStorageKey(): string {
+  return deviceKeyStorageKey;
+}
+
+export function getOrCreateAgendaDeviceKey(storage: KeyValueStorage | undefined): string {
+  if (!storage) {
+    return 'homeops-device-memory';
+  }
+
+  const stored = storage.getItem(deviceKeyStorageKey);
+  if (stored) {
+    return stored;
+  }
+
+  const generated = generateDeviceKey();
+  storage.setItem(deviceKeyStorageKey, generated);
+  return generated;
 }
 
 export function useAgendaLayerSettings(sources: readonly EventSource[]) {
   const storage = getBrowserStorage();
-  const [settings, setSettings] = useState(() => loadAgendaLayerSettings(storage, sources));
+  const client = useMemo(() => new HomeOpsApiClient(), []);
+  const [deviceKey] = useState(() => getOrCreateAgendaDeviceKey(storage));
+  const [settings, setSettings] = useState(() => createDefaultAgendaLayerSettings(sources));
+  const [hasLoaded, setHasLoaded] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
+    let isMounted = true;
     setSettings((current) => normalizeAgendaLayerSettings(current, sources, createDefaultAgendaLayerSettings(sources)));
-  }, [sources]);
 
-  useEffect(() => {
-    saveAgendaLayerSettings(storage, settings);
-  }, [settings, storage]);
+    loadAgendaLayerSettings(client, deviceKey, sources)
+      .then((loaded) => {
+        if (!isMounted) return;
+        setSettings(loaded);
+        setErrorMessage(null);
+      })
+      .catch((error: unknown) => {
+        if (!isMounted) return;
+        setErrorMessage(error instanceof Error ? error.message : 'Agenda layer settings could not be loaded.');
+      })
+      .finally(() => {
+        if (isMounted) setHasLoaded(true);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [client, deviceKey, sources]);
 
   const actions = useMemo(
     () => ({
       setSourceEnabled(view: AgendaLayerView, sourceId: string, enabled: boolean) {
-        setSettings((current) => updateAgendaLayerSource(current, view, sourceId, enabled));
+        setSettings((current) => {
+          const next = updateAgendaLayerSource(current, view, sourceId, enabled);
+          if (hasLoaded) {
+            void saveAgendaLayerSettings(client, deviceKey, next).catch((error: unknown) => {
+              setErrorMessage(error instanceof Error ? error.message : 'Agenda layer settings could not be saved.');
+            });
+          }
+          return next;
+        });
       },
     }),
-    [],
+    [client, deviceKey, hasLoaded],
   );
 
-  return { settings, ...actions };
+  return { settings, deviceKey, errorMessage, ...actions };
 }
 
 function createDefaultSourceSelection(sources: readonly EventSource[]): Record<string, boolean> {
@@ -127,24 +165,34 @@ function normalizeViewSettings(
   sources: readonly EventSource[],
   defaults: AgendaViewLayerSettings,
 ): AgendaViewLayerSettings {
-  if (!isRecord(candidate) || !isRecord(candidate.enabledSourceIds)) {
+  if (!isRecord(candidate)) {
     return defaults;
   }
 
-  const enabledSourceIds = candidate.enabledSourceIds;
+  const enabledSourceIds = isRecord(candidate.enabledSourceIds) ? candidate.enabledSourceIds : candidate;
 
   return {
     enabledSourceIds: Object.fromEntries(
-      sources.map((source) => {
-        const storedValue = enabledSourceIds[source.id];
-        return [source.id, typeof storedValue === 'boolean' ? storedValue : source.enabled];
-      }),
+      sources.length === 0
+        ? Object.entries(enabledSourceIds).filter((entry): entry is [string, boolean] => typeof entry[1] === 'boolean')
+        : sources.map((source) => {
+            const storedValue = enabledSourceIds[source.id];
+            return [source.id, typeof storedValue === 'boolean' ? storedValue : source.enabled];
+          }),
     ),
   };
 }
 
 function getBrowserStorage(): KeyValueStorage | undefined {
   return typeof window === 'undefined' ? undefined : window.localStorage;
+}
+
+function generateDeviceKey(): string {
+  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+    return `homeops-${crypto.randomUUID()}`;
+  }
+
+  return `homeops-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

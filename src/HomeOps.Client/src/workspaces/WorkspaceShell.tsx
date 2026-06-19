@@ -1,6 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { getWidgetDefinition } from '../widgets/widgetCatalog';
 import { WidgetRenderer } from '../widgets/WidgetRenderer';
+import type { WidgetInstance } from '../widgets/widgetModel';
+import { loadWorkspaceLayout } from './workspaceLayout';
 import { WorkspaceDefinition, WorkspaceId, workspaceDefinitions } from './workspaceModel';
 
 function getInitialWorkspace(): WorkspaceDefinition {
@@ -9,13 +11,32 @@ function getInitialWorkspace(): WorkspaceDefinition {
 
 export function WorkspaceShell() {
   const [activeWorkspaceId, setActiveWorkspaceId] = useState<WorkspaceId>(getInitialWorkspace().id);
+  const [widgetInstancesByWorkspace, setWidgetInstancesByWorkspace] = useState<Partial<Record<WorkspaceId, readonly WidgetInstance[]>>>({});
 
   const activeWorkspace = useMemo(
     () => workspaceDefinitions.find((workspace) => workspace.id === activeWorkspaceId) ?? getInitialWorkspace(),
     [activeWorkspaceId],
   );
 
+  useEffect(() => {
+    let ignoreResult = false;
+
+    async function loadLayout() {
+      const layout = await loadWorkspaceLayout(activeWorkspaceId);
+      if (!ignoreResult) {
+        setWidgetInstancesByWorkspace((current) => ({ ...current, [activeWorkspaceId]: layout.widgetInstances }));
+      }
+    }
+
+    void loadLayout();
+
+    return () => {
+      ignoreResult = true;
+    };
+  }, [activeWorkspaceId]);
+
   const activeWorkspaceIndex = workspaceDefinitions.findIndex((workspace) => workspace.id === activeWorkspace.id);
+  const widgetInstances = widgetInstancesByWorkspace[activeWorkspace.id] ?? [];
 
   return (
     <section className="workspace-shell" aria-label="Workspace shell">
@@ -40,7 +61,7 @@ export function WorkspaceShell() {
         <h2 id="active-workspace-title">{activeWorkspace.label}</h2>
         <p>{activeWorkspace.description}</p>
         <div className="widget-host" aria-label={`${activeWorkspace.label} widgets`}>
-          {activeWorkspace.widgetInstances.map((instance) => {
+          {widgetInstances.map((instance) => {
             const definition = getWidgetDefinition(instance.widgetDefinitionId);
 
             if (!definition) {
