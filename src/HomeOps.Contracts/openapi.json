@@ -450,7 +450,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateManualEventRequest"
+                "$ref": "#/components/schemas/CreateEventSeriesRequest"
               }
             }
           },
@@ -463,7 +463,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ManualEventDto"
+                  "$ref": "#/components/schemas/EventSeriesDto"
                 }
               }
             }
@@ -501,7 +501,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ManualEventDto"
+                  "$ref": "#/components/schemas/EventSeriesDto"
                 }
               }
             }
@@ -533,7 +533,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateManualEventRequest"
+                "$ref": "#/components/schemas/UpdateEventSeriesRequest"
               }
             }
           },
@@ -546,7 +546,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ManualEventDto"
+                  "$ref": "#/components/schemas/EventSeriesDto"
                 }
               }
             }
@@ -951,7 +951,7 @@
           }
         }
       },
-      "ManualEventDto": {
+      "EventSeriesDto": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
@@ -992,7 +992,7 @@
           }
         }
       },
-      "CreateManualEventRequest": {
+      "CreateEventSeriesRequest": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
@@ -1017,7 +1017,7 @@
           }
         }
       },
-      "UpdateManualEventRequest": {
+      "UpdateEventSeriesRequest": {
         "type": "object",
         "additionalProperties": false,
         "properties": {

@@ -3,7 +3,7 @@ import type { EventSource, NormalizedEvent } from './eventSourceModel';
 export const exampleEventSources: readonly EventSource[] = [
   {
     id: 'manual-events',
-    name: 'HomeOps Manual Events',
+    name: 'HomeOps Calendar',
     type: 'manual',
     enabled: true,
     capability: 'writable',

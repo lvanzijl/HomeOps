@@ -554,7 +554,7 @@ export class HomeOpsApiClient {
         return Promise.resolve<NormalizedEvent[]>(null as any);
     }
 
-    createEvent(request: CreateManualEventRequest): Promise<ManualEventDto> {
+    createEvent(request: CreateEventSeriesRequest): Promise<EventSeriesDto> {
         let url_ = this.baseUrl + "/api/events";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -574,14 +574,14 @@ export class HomeOpsApiClient {
         });
     }
 
-    protected processCreateEvent(response: Response): Promise<ManualEventDto> {
+    protected processCreateEvent(response: Response): Promise<EventSeriesDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 201) {
             return response.text().then((_responseText) => {
             let result201: any = null;
             let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result201 = ManualEventDto.fromJS(resultData201);
+            result201 = EventSeriesDto.fromJS(resultData201);
             return result201;
             });
         } else if (status === 400) {
@@ -597,10 +597,10 @@ export class HomeOpsApiClient {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<ManualEventDto>(null as any);
+        return Promise.resolve<EventSeriesDto>(null as any);
     }
 
-    getEventById(eventId: string): Promise<ManualEventDto> {
+    getEventById(eventId: string): Promise<EventSeriesDto> {
         let url_ = this.baseUrl + "/api/events/{eventId}";
         if (eventId === undefined || eventId === null)
             throw new globalThis.Error("The parameter 'eventId' must be defined.");
@@ -619,14 +619,14 @@ export class HomeOpsApiClient {
         });
     }
 
-    protected processGetEventById(response: Response): Promise<ManualEventDto> {
+    protected processGetEventById(response: Response): Promise<EventSeriesDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
             let result200: any = null;
             let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = ManualEventDto.fromJS(resultData200);
+            result200 = EventSeriesDto.fromJS(resultData200);
             return result200;
             });
         } else if (status === 404) {
@@ -638,10 +638,10 @@ export class HomeOpsApiClient {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<ManualEventDto>(null as any);
+        return Promise.resolve<EventSeriesDto>(null as any);
     }
 
-    updateEvent(eventId: string, request: UpdateManualEventRequest): Promise<ManualEventDto> {
+    updateEvent(eventId: string, request: UpdateEventSeriesRequest): Promise<EventSeriesDto> {
         let url_ = this.baseUrl + "/api/events/{eventId}";
         if (eventId === undefined || eventId === null)
             throw new globalThis.Error("The parameter 'eventId' must be defined.");
@@ -664,14 +664,14 @@ export class HomeOpsApiClient {
         });
     }
 
-    protected processUpdateEvent(response: Response): Promise<ManualEventDto> {
+    protected processUpdateEvent(response: Response): Promise<EventSeriesDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
             let result200: any = null;
             let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = ManualEventDto.fromJS(resultData200);
+            result200 = EventSeriesDto.fromJS(resultData200);
             return result200;
             });
         } else if (status === 400) {
@@ -687,7 +687,7 @@ export class HomeOpsApiClient {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<ManualEventDto>(null as any);
+        return Promise.resolve<EventSeriesDto>(null as any);
     }
 
     deleteEvent(eventId: string): Promise<void> {
@@ -1546,7 +1546,7 @@ export interface INormalizedEvent {
     location?: string | undefined;
 }
 
-export class ManualEventDto implements IManualEventDto {
+export class EventSeriesDto implements IEventSeriesDto {
     id?: string;
     eventSourceId?: string;
     title?: string;
@@ -1557,7 +1557,7 @@ export class ManualEventDto implements IManualEventDto {
     createdUtc?: Date;
     updatedUtc?: Date;
 
-    constructor(data?: IManualEventDto) {
+    constructor(data?: IEventSeriesDto) {
         if (data) {
             for (var property in data) {
                 if (data.hasOwnProperty(property))
@@ -1580,9 +1580,9 @@ export class ManualEventDto implements IManualEventDto {
         }
     }
 
-    static fromJS(data: any): ManualEventDto {
+    static fromJS(data: any): EventSeriesDto {
         data = typeof data === 'object' ? data : {};
-        let result = new ManualEventDto();
+        let result = new EventSeriesDto();
         result.init(data);
         return result;
     }
@@ -1602,7 +1602,7 @@ export class ManualEventDto implements IManualEventDto {
     }
 }
 
-export interface IManualEventDto {
+export interface IEventSeriesDto {
     id?: string;
     eventSourceId?: string;
     title?: string;
@@ -1614,14 +1614,14 @@ export interface IManualEventDto {
     updatedUtc?: Date;
 }
 
-export class CreateManualEventRequest implements ICreateManualEventRequest {
+export class CreateEventSeriesRequest implements ICreateEventSeriesRequest {
     title?: string;
     description?: string | undefined;
     startUtc?: Date;
     endUtc?: Date | undefined;
     isAllDay?: boolean;
 
-    constructor(data?: ICreateManualEventRequest) {
+    constructor(data?: ICreateEventSeriesRequest) {
         if (data) {
             for (var property in data) {
                 if (data.hasOwnProperty(property))
@@ -1640,9 +1640,9 @@ export class CreateManualEventRequest implements ICreateManualEventRequest {
         }
     }
 
-    static fromJS(data: any): CreateManualEventRequest {
+    static fromJS(data: any): CreateEventSeriesRequest {
         data = typeof data === 'object' ? data : {};
-        let result = new CreateManualEventRequest();
+        let result = new CreateEventSeriesRequest();
         result.init(data);
         return result;
     }
@@ -1658,7 +1658,7 @@ export class CreateManualEventRequest implements ICreateManualEventRequest {
     }
 }
 
-export interface ICreateManualEventRequest {
+export interface ICreateEventSeriesRequest {
     title?: string;
     description?: string | undefined;
     startUtc?: Date;
@@ -1666,14 +1666,14 @@ export interface ICreateManualEventRequest {
     isAllDay?: boolean;
 }
 
-export class UpdateManualEventRequest implements IUpdateManualEventRequest {
+export class UpdateEventSeriesRequest implements IUpdateEventSeriesRequest {
     title?: string;
     description?: string | undefined;
     startUtc?: Date;
     endUtc?: Date | undefined;
     isAllDay?: boolean;
 
-    constructor(data?: IUpdateManualEventRequest) {
+    constructor(data?: IUpdateEventSeriesRequest) {
         if (data) {
             for (var property in data) {
                 if (data.hasOwnProperty(property))
@@ -1692,9 +1692,9 @@ export class UpdateManualEventRequest implements IUpdateManualEventRequest {
         }
     }
 
-    static fromJS(data: any): UpdateManualEventRequest {
+    static fromJS(data: any): UpdateEventSeriesRequest {
         data = typeof data === 'object' ? data : {};
-        let result = new UpdateManualEventRequest();
+        let result = new UpdateEventSeriesRequest();
         result.init(data);
         return result;
     }
@@ -1710,7 +1710,7 @@ export class UpdateManualEventRequest implements IUpdateManualEventRequest {
     }
 }
 
-export interface IUpdateManualEventRequest {
+export interface IUpdateEventSeriesRequest {
     title?: string;
     description?: string | undefined;
     startUtc?: Date;

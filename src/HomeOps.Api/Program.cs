@@ -1,7 +1,7 @@
 using HomeOps.Api.AgendaLayerSettings;
 using HomeOps.Api.Data;
 using HomeOps.Api.Lists;
-using HomeOps.Api.ManualEvents;
+using HomeOps.Api.CalendarEvents;
 using HomeOps.Api.WidgetLayouts;
 using Microsoft.EntityFrameworkCore;
 using NSwag.AspNetCore;
@@ -34,7 +34,7 @@ app.MapGet("/health", () => Results.Ok(new { status = "Healthy" }))
 app.MapAgendaLayerSettingsEndpoints();
 app.MapListEndpoints();
 app.MapWorkspaceLayoutEndpoints();
-app.MapManualEventEndpoints();
+app.MapEventSeriesEndpoints();
 
 app.Run();
 

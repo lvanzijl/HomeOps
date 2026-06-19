@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { groupEventsByDay, groupEventsByMonth, filterEventsBySource, formatEventTime, hydrateAgendaEvents } from '../../agenda/agendaUtils';
 import {
-  createManualAgendaEvent,
-  deleteManualAgendaEvent,
-  loadManualAgendaData,
-  updateManualAgendaEvent,
-  type ManualEventInput,
-} from '../../agenda/manualEventsApi';
+  createCalendarAgendaEvent,
+  deleteCalendarAgendaEvent,
+  loadCalendarAgendaData,
+  updateCalendarAgendaEvent,
+  type EventSeriesInput,
+} from '../../agenda/calendarEventsApi';
 import { useAgendaLayerSettings } from '../../agenda/layerSettings';
 import { demoReadOnlyEvents, demoReadOnlyEventSources, demoToday } from '../../demo/demoAgendaData';
 import type { EventSource, NormalizedEvent } from '../../events/eventSourceModel';
@@ -14,7 +14,7 @@ import type { WidgetRenderProps } from '../WidgetRenderer';
 
 type AgendaView = 'week' | 'months';
 
-type ManualEventFormState = {
+type EventFormState = {
   title: string;
   description: string;
   startsAt: string;
@@ -22,7 +22,7 @@ type ManualEventFormState = {
   allDay: boolean;
 };
 
-const emptyForm: ManualEventFormState = {
+const emptyForm: EventFormState = {
   title: '',
   description: '',
   startsAt: '2026-06-22T09:00',
@@ -32,11 +32,11 @@ const emptyForm: ManualEventFormState = {
 
 export function AgendaWidget({ instance }: WidgetRenderProps) {
   const [activeView, setActiveView] = useState<AgendaView>('week');
-  const [manualEvents, setManualEvents] = useState<NormalizedEvent[]>([]);
-  const [manualSources, setManualSources] = useState<EventSource[]>([]);
+  const [calendarEvents, setCalendarEvents] = useState<NormalizedEvent[]>([]);
+  const [calendarSources, setCalendarSources] = useState<EventSource[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [form, setForm] = useState<ManualEventFormState>(emptyForm);
+  const [form, setForm] = useState<EventFormState>(emptyForm);
   const [editingEventId, setEditingEventId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [deletingEventId, setDeletingEventId] = useState<string | null>(null);
@@ -44,16 +44,16 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
   useEffect(() => {
     let isMounted = true;
 
-    loadManualAgendaData()
+    loadCalendarAgendaData()
       .then((data) => {
         if (!isMounted) return;
-        setManualSources(data.sources);
-        setManualEvents(data.events);
+        setCalendarSources(data.sources);
+        setCalendarEvents(data.events);
         setErrorMessage(null);
       })
       .catch((error: unknown) => {
         if (!isMounted) return;
-        setErrorMessage(error instanceof Error ? error.message : 'Manual Events could not be loaded.');
+        setErrorMessage(error instanceof Error ? error.message : 'HomeOps Calendar events could not be loaded.');
       })
       .finally(() => {
         if (isMounted) setIsLoading(false);
@@ -64,8 +64,8 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
     };
   }, []);
 
-  const eventSources = useMemo(() => [...manualSources, ...demoReadOnlyEventSources], [manualSources]);
-  const events = useMemo(() => [...manualEvents, ...demoReadOnlyEvents], [manualEvents]);
+  const eventSources = useMemo(() => [...calendarSources, ...demoReadOnlyEventSources], [calendarSources]);
+  const events = useMemo(() => [...calendarEvents, ...demoReadOnlyEvents], [calendarEvents]);
   const { settings, setSourceEnabled } = useAgendaLayerSettings(eventSources);
 
   const selectedSources = settings[activeView].enabledSourceIds;
@@ -80,9 +80,9 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const input = toManualEventInput(form);
+    const input = toEventSeriesInput(form);
 
-    const validationError = validateManualEventForm(form);
+    const validationError = validateEventForm(form);
     if (validationError) {
       setErrorMessage(validationError);
       return;
@@ -91,18 +91,18 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
     setIsSaving(true);
     try {
       const savedEvent = editingEventId
-        ? await updateManualAgendaEvent(editingEventId, input)
-        : await createManualAgendaEvent(input);
+        ? await updateCalendarAgendaEvent(editingEventId, input)
+        : await createCalendarAgendaEvent(input);
 
-      setManualEvents((current) => {
-        const withoutSaved = current.filter((manualEvent) => manualEvent.id !== savedEvent.id);
+      setCalendarEvents((current) => {
+        const withoutSaved = current.filter((calendarEvent) => calendarEvent.id !== savedEvent.id);
         return [...withoutSaved, savedEvent];
       });
       setForm(emptyForm);
       setEditingEventId(null);
       setErrorMessage(null);
     } catch (error: unknown) {
-      setErrorMessage(toUserFacingError(error, 'Manual event could not be saved.'));
+      setErrorMessage(toUserFacingError(error, 'Calendar event could not be saved.'));
     } finally {
       setIsSaving(false);
     }
@@ -122,11 +122,11 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
   async function removeEvent(eventId: string) {
     setDeletingEventId(eventId);
     try {
-      await deleteManualAgendaEvent(eventId);
-      setManualEvents((current) => current.filter((event) => event.id !== eventId));
+      await deleteCalendarAgendaEvent(eventId);
+      setCalendarEvents((current) => current.filter((event) => event.id !== eventId));
       setErrorMessage(null);
     } catch (error: unknown) {
-      setErrorMessage(toUserFacingError(error, 'Manual event could not be deleted.'));
+      setErrorMessage(toUserFacingError(error, 'Calendar event could not be deleted.'));
     } finally {
       setDeletingEventId(null);
     }
@@ -149,10 +149,10 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
         </div>
       </div>
 
-      {isLoading ? <p role="status">Loading manual events…</p> : null}
+      {isLoading ? <p role="status">Loading calendar events…</p> : null}
       {errorMessage ? <p role="alert">{errorMessage}</p> : null}
 
-      <ManualEventForm
+      <EventForm
         form={form}
         isEditing={editingEventId !== null}
         isSaving={isSaving}
@@ -184,7 +184,7 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
   );
 }
 
-function ManualEventForm({
+function EventForm({
   form,
   isEditing,
   isSaving,
@@ -192,18 +192,18 @@ function ManualEventForm({
   onChange,
   onSubmit,
 }: {
-  form: ManualEventFormState;
+  form: EventFormState;
   isEditing: boolean;
   isSaving: boolean;
   onCancel: () => void;
-  onChange: (form: ManualEventFormState) => void;
+  onChange: (form: EventFormState) => void;
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
 }) {
   return (
-    <form className="manual-event-form" onSubmit={onSubmit} aria-label="Manual event form">
+    <form className="calendar-event-form" onSubmit={onSubmit} aria-label="Calendar event form">
       <label>
         Title
-        <input value={form.title} onChange={(event) => onChange({ ...form, title: event.target.value })} placeholder="Manual event title" />
+        <input value={form.title} onChange={(event) => onChange({ ...form, title: event.target.value })} placeholder="Calendar event title" />
       </label>
       <label>
         Description
@@ -221,7 +221,7 @@ function ManualEventForm({
         <input type="checkbox" checked={form.allDay} onChange={(event) => onChange(toAllDayState(form, event.target.checked))} />
         All day
       </label>
-      <button type="submit" disabled={isSaving}>{isSaving ? 'Saving…' : isEditing ? 'Update Manual Event' : 'Add Manual Event'}</button>
+      <button type="submit" disabled={isSaving}>{isSaving ? 'Saving…' : isEditing ? 'Update Event' : 'Add Event'}</button>
       {isEditing ? <button type="button" onClick={onCancel}>Cancel Edit</button> : null}
     </form>
   );
@@ -277,7 +277,7 @@ function AgendaEventList({ deletingEventId, events, onDelete, onEdit }: { deleti
   );
 }
 
-function toManualEventInput(form: ManualEventFormState): ManualEventInput {
+function toEventSeriesInput(form: EventFormState): EventSeriesInput {
   return {
     title: form.title.trim(),
     description: form.description.trim() || undefined,
@@ -291,11 +291,11 @@ function toDateTimeLocal(value: string): string {
   return value.slice(0, 16);
 }
 
-function validateManualEventForm(form: ManualEventFormState): string | null {
-  const input = toManualEventInput(form);
+function validateEventForm(form: EventFormState): string | null {
+  const input = toEventSeriesInput(form);
 
   if (!input.title) {
-    return 'Manual event title is required.';
+    return 'Calendar event title is required.';
   }
 
   if (!form.startsAt) {
@@ -313,7 +313,7 @@ function validateManualEventForm(form: ManualEventFormState): string | null {
   return null;
 }
 
-function toAllDayState(form: ManualEventFormState, allDay: boolean): ManualEventFormState {
+function toAllDayState(form: EventFormState, allDay: boolean): EventFormState {
   return {
     ...form,
     allDay,

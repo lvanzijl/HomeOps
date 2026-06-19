@@ -4,7 +4,7 @@
 Phase 2 — Durable Household Core
 
 ## Current Slice
-Slice 2.5 Event Editing UX Hardening — Completed
+Slice 2.7 Calendar Terminology, Projection, and Timezone Foundation — Completed
 
 ## Completed Slices
 - 1.1 Repository Bootstrap
@@ -21,9 +21,11 @@ Slice 2.5 Event Editing UX Hardening — Completed
 - 2.3 Manual Events Source
 - 2.4 Backend-Backed Agenda Layer Settings
 - 2.5 Event Editing UX Hardening
+- 2.6 EventSeries Contract + Migration
+- 2.7 Calendar Terminology, Projection, and Timezone Foundation
 
 ## Next Slice
-Proceed with Slice 2.6 Real Google Calendar Read-Only Integration.
+Proceed with Slice 2.8 Calendar Export/Import Design or Real Google Calendar Read-Only Integration only after preserving HomeOps Calendar source-of-truth boundaries.
 
 ## Key Architectural Decisions
 - HomeOps is a modular monolith.
@@ -59,12 +61,28 @@ Proceed with Slice 2.6 Real Google Calendar Read-Only Integration.
 - The frontend loads workspace layouts through the generated NSwag TypeScript client and falls back to default layouts if the API layout is unavailable or unusable.
 - No drag-and-drop editor, widget marketplace, authentication, multi-household management, or offline-first synchronization has been introduced.
 
+## Phase 2 Calendar Terminology, Projection, and Timezone Foundation
+- Event APIs now use EventSeries contract names while preserving the existing `/api/events` route shape.
+- The frontend Agenda integration uses HomeOps Calendar/EventSeries terminology and keeps compatibility aliases for existing module consumers.
+- EventOccurrence remains generated projection data only; it is not persisted or authoritative.
+- Household timezone is persisted on Household and defaults to `Europe/Amsterdam` when no suitable local household timezone can be derived.
+- EventSeries no longer stores a per-event timezone field; V1 calendar behavior uses the household timezone foundation.
+- Roadmap and architecture docs now reflect HomeOps Calendar as source of truth, Google Calendar as optional integration, JSON as future canonical export, and ICS/export/import implementation as out of scope for this slice.
+
+## Phase 2 EventSeries Contract + Migration
+- HomeOps Calendar events are persisted as non-recurring EventSeries records.
+- EventSeries stores source ownership, title, description, all-day state, date-only start/end dates, optional timed start/end times, persisted household timezone, initially `Europe/Amsterdam`, and audit timestamps.
+- Agenda-facing events are generated dynamically as EventOccurrence projections; EventOccurrence is not persisted or authoritative.
+- Existing event routes preserve create, update, delete, retrieval, and normalized Agenda rendering behavior through EventSeries API contracts and the generated NSwag client.
+- All-day events use date-only semantics, and multi-day all-day events use exclusive end-date ranges.
+- No recurrence, EventException, Google Calendar integration, import/export, ICS, reminders, notifications, authentication, or timezone configuration UI has been introduced.
+
 ## Phase 2 Event Editing UX Hardening
-- Manual Events can be created, edited, and deleted from the embedded Agenda experience.
+- HomeOps Calendar events can be created, edited, and deleted from the embedded Agenda experience.
 - The UI validates required titles, timed event end times, and date ranges before submission.
-- Backend Manual Event APIs return consistent validation problem responses for missing titles and invalid date ranges.
+- Backend event APIs return consistent validation problem responses for missing titles and invalid date ranges.
 - All-day events use date inputs; timed events use datetime inputs.
-- Week View, Months View, birthday visibility, manual event visibility, source filtering, and device-specific layer settings remain preserved.
+- Week View, Months View, birthday visibility, HomeOps Calendar visibility, source filtering, and device-specific layer settings remain preserved.
 - No recurring events, dedicated event management page, Google Calendar integration, OAuth, authentication, notifications, or offline-first synchronization has been introduced.
 
 ## Phase 2 Backend-Backed Agenda Layer Settings
@@ -74,10 +92,10 @@ Proceed with Slice 2.6 Real Google Calendar Read-Only Integration.
 - Unknown or newly added event sources default to enabled when no saved setting exists.
 - No authentication, users, profiles, device registration, device management, or offline-first synchronization has been introduced.
 
-## Phase 2 Manual Events Source
-- Manual Events are the first persisted writable HomeOps-owned event source.
-- The backend stores household-owned event sources and manual events, then normalizes Manual Events into the existing normalized event model used by the Agenda.
+## Phase 2 HomeOps Calendar Source
+- HomeOps Calendar is the writable HomeOps-owned event source.
+- The backend stores household-owned event sources and EventSeries records, then normalizes generated EventOccurrence projections into the existing normalized event model used by the Agenda.
 - Deterministic seed data includes Dentist Appointment, Parent Evening, Vacation, and Put Bins Outside.
-- Minimal event APIs provide event source retrieval plus manual event get, create, update, and delete.
-- The Agenda Widget loads persisted Manual Events through the generated NSwag client and preserves birthday source compatibility, source filtering, week view, and months view.
+- Minimal event APIs provide event source retrieval plus EventSeries get, create, update, and delete.
+- The Agenda Widget loads persisted HomeOps Calendar events through the generated NSwag client and preserves birthday source compatibility, source filtering, week view, and months view.
 - A minimal embedded Agenda form validates event create, update, and delete; no dedicated event management page, recurring events, Google Calendar integration, OAuth, authentication, or notifications have been introduced.

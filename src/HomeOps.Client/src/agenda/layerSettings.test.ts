@@ -13,7 +13,7 @@ import {
 const sources: readonly EventSource[] = [
   {
     id: 'manual-events',
-    name: 'HomeOps Manual Events',
+    name: 'HomeOps Calendar',
     type: 'manual',
     enabled: true,
     capability: 'writable',

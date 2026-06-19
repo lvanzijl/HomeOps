@@ -1,7 +1,7 @@
 using HomeOps.Api.AgendaLayerSettings;
 using HomeOps.Api.Households;
 using HomeOps.Api.Lists;
-using HomeOps.Api.ManualEvents;
+using HomeOps.Api.CalendarEvents;
 using HomeOps.Api.WidgetLayouts;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,8 +13,8 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
     public DbSet<Household> Households => Set<Household>();
     public DbSet<Lists.List> Lists => Set<Lists.List>();
     public DbSet<ListItem> ListItems => Set<ListItem>();
-    public DbSet<ManualEvents.EventSource> EventSources => Set<ManualEvents.EventSource>();
-    public DbSet<ManualEvent> ManualEvents => Set<ManualEvent>();
+    public DbSet<CalendarEvents.EventSource> EventSources => Set<CalendarEvents.EventSource>();
+    public DbSet<EventSeries> EventSeries => Set<EventSeries>();
     public DbSet<WorkspaceLayout> WorkspaceLayouts => Set<WorkspaceLayout>();
     public DbSet<WidgetPlacement> WidgetPlacements => Set<WidgetPlacement>();
 
@@ -41,6 +41,7 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             entity.ToTable("Households");
             entity.HasKey(household => household.Id);
             entity.Property(household => household.Name).HasMaxLength(120).IsRequired();
+            entity.Property(household => household.TimeZoneId).HasMaxLength(80).IsRequired();
             entity.Property(household => household.CreatedUtc).IsRequired();
             entity.Property(household => household.UpdatedUtc).IsRequired();
         });
@@ -75,7 +76,7 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
         });
 
 
-        modelBuilder.Entity<ManualEvents.EventSource>(entity =>
+        modelBuilder.Entity<CalendarEvents.EventSource>(entity =>
         {
             entity.ToTable("EventSources");
             entity.HasKey(source => source.Id);
@@ -91,22 +92,24 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             entity.HasIndex(source => new { source.HouseholdId, source.SourceType }).IsUnique();
         });
 
-        modelBuilder.Entity<ManualEvent>(entity =>
+        modelBuilder.Entity<EventSeries>(entity =>
         {
-            entity.ToTable("ManualEvents");
-            entity.HasKey(manualEvent => manualEvent.Id);
-            entity.Property(manualEvent => manualEvent.Title).HasMaxLength(240).IsRequired();
-            entity.Property(manualEvent => manualEvent.Description).HasMaxLength(1000);
-            entity.Property(manualEvent => manualEvent.StartUtc).IsRequired();
-            entity.Property(manualEvent => manualEvent.EndUtc);
-            entity.Property(manualEvent => manualEvent.IsAllDay).IsRequired();
-            entity.Property(manualEvent => manualEvent.CreatedUtc).IsRequired();
-            entity.Property(manualEvent => manualEvent.UpdatedUtc).IsRequired();
-            entity.HasOne(manualEvent => manualEvent.EventSource)
-                .WithMany(source => source.Events)
-                .HasForeignKey(manualEvent => manualEvent.EventSourceId)
+            entity.ToTable("EventSeries");
+            entity.HasKey(eventSeries => eventSeries.Id);
+            entity.Property(eventSeries => eventSeries.Title).HasMaxLength(240).IsRequired();
+            entity.Property(eventSeries => eventSeries.Description).HasMaxLength(1000);
+            entity.Property(eventSeries => eventSeries.StartDate).HasColumnType("date").IsRequired();
+            entity.Property(eventSeries => eventSeries.StartTime).HasColumnType("time without time zone");
+            entity.Property(eventSeries => eventSeries.EndDate).HasColumnType("date").IsRequired();
+            entity.Property(eventSeries => eventSeries.EndTime).HasColumnType("time without time zone");
+            entity.Property(eventSeries => eventSeries.IsAllDay).IsRequired();
+            entity.Property(eventSeries => eventSeries.CreatedUtc).IsRequired();
+            entity.Property(eventSeries => eventSeries.UpdatedUtc).IsRequired();
+            entity.HasOne(eventSeries => eventSeries.EventSource)
+                .WithMany(source => source.EventSeries)
+                .HasForeignKey(eventSeries => eventSeries.EventSourceId)
                 .OnDelete(DeleteBehavior.Cascade);
-            entity.HasIndex(manualEvent => new { manualEvent.EventSourceId, manualEvent.StartUtc });
+            entity.HasIndex(eventSeries => new { eventSeries.EventSourceId, eventSeries.StartDate });
         });
 
         modelBuilder.Entity<WorkspaceLayout>(entity =>
@@ -148,6 +151,7 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             Id = SeedHousehold.Id,
             Name = SeedHousehold.Name,
             CreatedUtc = SeedLists.SeededUtc,
+            TimeZoneId = SeedHousehold.TimeZoneId,
             UpdatedUtc = SeedLists.SeededUtc,
         });
 
@@ -177,22 +181,22 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             SeedItem(SeedLists.ChargersItemId, SeedLists.VacationPackingListId, "Chargers"),
             SeedItem(SeedLists.SwimwearItemId, SeedLists.VacationPackingListId, "Swimwear"));
 
-        modelBuilder.Entity<ManualEvents.EventSource>().HasData(new ManualEvents.EventSource
+        modelBuilder.Entity<CalendarEvents.EventSource>().HasData(new CalendarEvents.EventSource
         {
-            Id = SeedManualEvents.ManualEventSourceId,
+            Id = SeedCalendarEvents.EventSourceId,
             HouseholdId = SeedHousehold.Id,
-            Name = "HomeOps Manual Events",
+            Name = "HomeOps Calendar",
             SourceType = "manual",
             IsWritable = true,
-            CreatedUtc = SeedManualEvents.SeededUtc,
-            UpdatedUtc = SeedManualEvents.SeededUtc,
+            CreatedUtc = SeedCalendarEvents.SeededUtc,
+            UpdatedUtc = SeedCalendarEvents.SeededUtc,
         });
 
-        modelBuilder.Entity<ManualEvent>().HasData(
-            SeedManualEvent(SeedManualEvents.DentistAppointmentId, "Dentist Appointment", "Routine check-up", new DateTimeOffset(2026, 6, 18, 9, 30, 0, TimeSpan.Zero), new DateTimeOffset(2026, 6, 18, 10, 15, 0, TimeSpan.Zero), false),
-            SeedManualEvent(SeedManualEvents.ParentEveningId, "Parent Evening", "School hall", new DateTimeOffset(2026, 6, 19, 18, 30, 0, TimeSpan.Zero), new DateTimeOffset(2026, 6, 19, 20, 0, 0, TimeSpan.Zero), false),
-            SeedManualEvent(SeedManualEvents.VacationId, "Vacation", "Family trip", new DateTimeOffset(2026, 7, 12, 0, 0, 0, TimeSpan.Zero), new DateTimeOffset(2026, 7, 19, 0, 0, 0, TimeSpan.Zero), true),
-            SeedManualEvent(SeedManualEvents.PutBinsOutsideId, "Put Bins Outside", null, new DateTimeOffset(2026, 6, 21, 20, 0, 0, TimeSpan.Zero), new DateTimeOffset(2026, 6, 21, 20, 10, 0, TimeSpan.Zero), false));
+        modelBuilder.Entity<EventSeries>().HasData(
+            SeedEventSeries(SeedCalendarEvents.DentistAppointmentId, "Dentist Appointment", "Routine check-up", new DateTimeOffset(2026, 6, 18, 9, 30, 0, TimeSpan.Zero), new DateTimeOffset(2026, 6, 18, 10, 15, 0, TimeSpan.Zero), false),
+            SeedEventSeries(SeedCalendarEvents.ParentEveningId, "Parent Evening", "School hall", new DateTimeOffset(2026, 6, 19, 18, 30, 0, TimeSpan.Zero), new DateTimeOffset(2026, 6, 19, 20, 0, 0, TimeSpan.Zero), false),
+            SeedEventSeries(SeedCalendarEvents.VacationId, "Vacation", "Family trip", new DateTimeOffset(2026, 7, 12, 0, 0, 0, TimeSpan.Zero), new DateTimeOffset(2026, 7, 19, 0, 0, 0, TimeSpan.Zero), true),
+            SeedEventSeries(SeedCalendarEvents.PutBinsOutsideId, "Put Bins Outside", null, new DateTimeOffset(2026, 6, 21, 20, 0, 0, TimeSpan.Zero), new DateTimeOffset(2026, 6, 21, 20, 10, 0, TimeSpan.Zero), false));
 
         modelBuilder.Entity<WorkspaceLayout>().HasData(
             SeedLayout(SeedWorkspaceLayouts.HomeLayoutId, "home"),
@@ -220,17 +224,19 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
     };
 
 
-    private static ManualEvent SeedManualEvent(Guid id, string title, string? description, DateTimeOffset startUtc, DateTimeOffset? endUtc, bool isAllDay) => new()
+    private static EventSeries SeedEventSeries(Guid id, string title, string? description, DateTimeOffset startUtc, DateTimeOffset? endUtc, bool isAllDay) => new()
     {
         Id = id,
-        EventSourceId = SeedManualEvents.ManualEventSourceId,
+        EventSourceId = SeedCalendarEvents.EventSourceId,
         Title = title,
         Description = description,
-        StartUtc = startUtc,
-        EndUtc = endUtc,
         IsAllDay = isAllDay,
-        CreatedUtc = SeedManualEvents.SeededUtc,
-        UpdatedUtc = SeedManualEvents.SeededUtc,
+        StartDate = DateOnly.FromDateTime(startUtc.UtcDateTime),
+        StartTime = isAllDay ? null : TimeOnly.FromDateTime(startUtc.UtcDateTime),
+        EndDate = DateOnly.FromDateTime((endUtc ?? startUtc).UtcDateTime),
+        EndTime = isAllDay ? null : TimeOnly.FromDateTime((endUtc ?? startUtc).UtcDateTime),
+        CreatedUtc = SeedCalendarEvents.SeededUtc,
+        UpdatedUtc = SeedCalendarEvents.SeededUtc,
     };
 
     private static WorkspaceLayout SeedLayout(Guid id, string workspaceKey) => new()

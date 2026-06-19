@@ -5,7 +5,7 @@ import { createSourceSelection, filterEventsBySource, groupEventsByDay, groupEve
 
 const manualSource: EventSource = {
   id: 'manual-events',
-  name: 'HomeOps Manual Events',
+  name: 'HomeOps Calendar',
   type: 'manual',
   enabled: true,
   capability: 'writable',
@@ -38,7 +38,7 @@ const eventSources = [manualSource, ...demoReadOnlyEventSources];
 const events = [...manualEvents, ...demoReadOnlyEvents];
 
 describe('agenda source datasets', () => {
-  it('combines API-backed manual events with read-only demo sources', () => {
+  it('combines API-backed calendar events with read-only demo sources', () => {
     expect(demoReadOnlyEventSources.length).toBeGreaterThanOrEqual(3);
     expect(new Set(eventSources.map((source) => source.color.hex)).size).toBeGreaterThanOrEqual(3);
     expect(eventSources.some((source) => source.id === 'birthdays')).toBe(true);

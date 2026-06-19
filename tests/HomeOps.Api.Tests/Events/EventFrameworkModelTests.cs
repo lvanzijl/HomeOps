@@ -9,7 +9,7 @@ public sealed class EventFrameworkModelTests
     {
         var source = new EventSource(
             Id: "manual-events",
-            Name: "HomeOps Manual Events",
+            Name: "HomeOps Calendar",
             Type: EventSourceType.Manual,
             Enabled: true,
             Capability: EventSourceCapability.Writable,

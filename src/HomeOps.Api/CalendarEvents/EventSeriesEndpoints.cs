@@ -3,11 +3,11 @@ using HomeOps.Api.Households;
 using HomeOps.Contracts.Events;
 using Microsoft.EntityFrameworkCore;
 
-namespace HomeOps.Api.ManualEvents;
+namespace HomeOps.Api.CalendarEvents;
 
-public static class ManualEventEndpoints
+public static class EventSeriesEndpoints
 {
-    public static IEndpointRouteBuilder MapManualEventEndpoints(this IEndpointRouteBuilder app)
+    public static IEndpointRouteBuilder MapEventSeriesEndpoints(this IEndpointRouteBuilder app)
     {
         app.MapGet("/api/event-sources", async (HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
         {
@@ -17,34 +17,35 @@ public static class ManualEventEndpoints
                 .OrderBy(source => source.Name)
                 .ToListAsync(cancellationToken);
 
-            return Results.Ok(sources.Select(ManualEventNormalizer.ToContract).ToList());
+            return Results.Ok(sources.Select(EventSeriesNormalizer.ToContract).ToList());
         }).WithName("GetEventSources").Produces<IReadOnlyCollection<HomeOps.Contracts.Events.EventSource>>();
 
         var events = app.MapGroup("/api/events").WithTags("Events");
 
         events.MapGet("/", async (HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
         {
-            var manualEvents = await dbContext.ManualEvents
+            var eventSeries = await dbContext.EventSeries
                 .AsNoTracking()
-                .Where(manualEvent => manualEvent.EventSource!.HouseholdId == SeedHousehold.Id)
-                .OrderBy(manualEvent => manualEvent.StartUtc)
-                .ThenBy(manualEvent => manualEvent.Title)
+                .Where(eventSeries => eventSeries.EventSource!.HouseholdId == SeedHousehold.Id)
+                .OrderBy(eventSeries => eventSeries.StartDate)
+                .ThenBy(eventSeries => eventSeries.StartTime)
+                .ThenBy(eventSeries => eventSeries.Title)
                 .ToListAsync(cancellationToken);
 
-            return Results.Ok(manualEvents.Select(ManualEventNormalizer.ToNormalizedEvent).ToList());
+            return Results.Ok(eventSeries.Select(EventSeriesNormalizer.ToNormalizedEvent).ToList());
         }).WithName("GetEvents").Produces<IReadOnlyCollection<NormalizedEvent>>();
 
         events.MapGet("/{eventId:guid}", async (Guid eventId, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
         {
-            var manualEvent = await dbContext.ManualEvents
+            var eventSeries = await dbContext.EventSeries
                 .AsNoTracking()
                 .Where(candidate => candidate.Id == eventId && candidate.EventSource!.HouseholdId == SeedHousehold.Id)
                 .FirstOrDefaultAsync(cancellationToken);
 
-            return manualEvent is null ? Results.NotFound() : Results.Ok(ManualEventNormalizer.ToDto(manualEvent));
-        }).WithName("GetEventById").Produces<ManualEventDto>().Produces(StatusCodes.Status404NotFound);
+            return eventSeries is null ? Results.NotFound() : Results.Ok(EventSeriesNormalizer.ToDto(eventSeries));
+        }).WithName("GetEventById").Produces<EventSeriesDto>().Produces(StatusCodes.Status404NotFound);
 
-        events.MapPost("/", async (CreateManualEventRequest request, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        events.MapPost("/", async (CreateEventSeriesRequest request, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
         {
             var validationErrors = ValidateEvent(request.Title, request.StartUtc, request.EndUtc);
             if (validationErrors.Count > 0)
@@ -52,33 +53,31 @@ public static class ManualEventEndpoints
                 return Results.ValidationProblem(validationErrors);
             }
 
-            var sourceExists = await dbContext.EventSources.AnyAsync(source => source.Id == SeedManualEvents.ManualEventSourceId && source.HouseholdId == SeedHousehold.Id && source.IsWritable, cancellationToken);
+            var sourceExists = await dbContext.EventSources.AnyAsync(source => source.Id == SeedCalendarEvents.EventSourceId && source.HouseholdId == SeedHousehold.Id && source.IsWritable, cancellationToken);
             if (!sourceExists)
             {
                 return Results.NotFound();
             }
 
             var now = DateTimeOffset.UtcNow;
-            var manualEvent = new ManualEvent
-            {
-                Id = Guid.NewGuid(),
-                EventSourceId = SeedManualEvents.ManualEventSourceId,
-                Title = request.Title.Trim(),
-                Description = NormalizeDescription(request.Description),
-                StartUtc = request.StartUtc,
-                EndUtc = request.EndUtc,
-                IsAllDay = request.IsAllDay,
-                CreatedUtc = now,
-                UpdatedUtc = now,
-            };
+            var eventSeries = EventOccurrenceProjector.FromRequest(
+                Guid.NewGuid(),
+                SeedCalendarEvents.EventSourceId,
+                request.Title.Trim(),
+                NormalizeDescription(request.Description),
+                request.StartUtc,
+                request.EndUtc,
+                request.IsAllDay,
+                now,
+                now);
 
-            dbContext.ManualEvents.Add(manualEvent);
+            dbContext.EventSeries.Add(eventSeries);
             await dbContext.SaveChangesAsync(cancellationToken);
 
-            return Results.Created($"/api/events/{manualEvent.Id}", ManualEventNormalizer.ToDto(manualEvent));
-        }).WithName("CreateEvent").Produces<ManualEventDto>(StatusCodes.Status201Created).Produces(StatusCodes.Status400BadRequest).Produces(StatusCodes.Status404NotFound);
+            return Results.Created($"/api/events/{eventSeries.Id}", EventSeriesNormalizer.ToDto(eventSeries));
+        }).WithName("CreateEvent").Produces<EventSeriesDto>(StatusCodes.Status201Created).Produces(StatusCodes.Status400BadRequest).Produces(StatusCodes.Status404NotFound);
 
-        events.MapPut("/{eventId:guid}", async (Guid eventId, UpdateManualEventRequest request, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        events.MapPut("/{eventId:guid}", async (Guid eventId, UpdateEventSeriesRequest request, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
         {
             var validationErrors = ValidateEvent(request.Title, request.StartUtc, request.EndUtc);
             if (validationErrors.Count > 0)
@@ -86,38 +85,40 @@ public static class ManualEventEndpoints
                 return Results.ValidationProblem(validationErrors);
             }
 
-            var manualEvent = await dbContext.ManualEvents
+            var eventSeries = await dbContext.EventSeries
                 .Include(candidate => candidate.EventSource)
                 .FirstOrDefaultAsync(candidate => candidate.Id == eventId && candidate.EventSource!.HouseholdId == SeedHousehold.Id && candidate.EventSource.IsWritable, cancellationToken);
 
-            if (manualEvent is null)
+            if (eventSeries is null)
             {
                 return Results.NotFound();
             }
 
-            manualEvent.Title = request.Title.Trim();
-            manualEvent.Description = NormalizeDescription(request.Description);
-            manualEvent.StartUtc = request.StartUtc;
-            manualEvent.EndUtc = request.EndUtc;
-            manualEvent.IsAllDay = request.IsAllDay;
-            manualEvent.UpdatedUtc = DateTimeOffset.UtcNow;
+            EventOccurrenceProjector.ApplyRequest(
+                eventSeries,
+                request.Title.Trim(),
+                NormalizeDescription(request.Description),
+                request.StartUtc,
+                request.EndUtc,
+                request.IsAllDay,
+                DateTimeOffset.UtcNow);
             await dbContext.SaveChangesAsync(cancellationToken);
 
-            return Results.Ok(ManualEventNormalizer.ToDto(manualEvent));
-        }).WithName("UpdateEvent").Produces<ManualEventDto>().Produces(StatusCodes.Status400BadRequest).Produces(StatusCodes.Status404NotFound);
+            return Results.Ok(EventSeriesNormalizer.ToDto(eventSeries));
+        }).WithName("UpdateEvent").Produces<EventSeriesDto>().Produces(StatusCodes.Status400BadRequest).Produces(StatusCodes.Status404NotFound);
 
         events.MapDelete("/{eventId:guid}", async (Guid eventId, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
         {
-            var manualEvent = await dbContext.ManualEvents
+            var eventSeries = await dbContext.EventSeries
                 .Include(candidate => candidate.EventSource)
                 .FirstOrDefaultAsync(candidate => candidate.Id == eventId && candidate.EventSource!.HouseholdId == SeedHousehold.Id && candidate.EventSource.IsWritable, cancellationToken);
 
-            if (manualEvent is null)
+            if (eventSeries is null)
             {
                 return Results.NotFound();
             }
 
-            dbContext.ManualEvents.Remove(manualEvent);
+            dbContext.EventSeries.Remove(eventSeries);
             await dbContext.SaveChangesAsync(cancellationToken);
 
             return Results.NoContent();
@@ -132,12 +133,12 @@ public static class ManualEventEndpoints
 
         if (string.IsNullOrWhiteSpace(title))
         {
-            errors[nameof(CreateManualEventRequest.Title)] = ["Event title is required."];
+            errors[nameof(CreateEventSeriesRequest.Title)] = ["Event title is required."];
         }
 
         if (endUtc is not null && endUtc < startUtc)
         {
-            errors[nameof(CreateManualEventRequest.EndUtc)] = ["Event end must be on or after event start."];
+            errors[nameof(CreateEventSeriesRequest.EndUtc)] = ["Event end must be on or after event start."];
         }
 
         return errors;
