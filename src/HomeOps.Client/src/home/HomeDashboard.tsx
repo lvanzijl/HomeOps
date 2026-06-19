@@ -12,6 +12,7 @@ interface HomeDashboardProps {
 
 const visibleAgendaLimit = 5;
 const visibleListLimit = 4;
+const activeMemberCount = familyMembers.length;
 
 export function HomeDashboard({ onNavigate }: HomeDashboardProps) {
   const [now, setNow] = useState(() => new Date());
@@ -68,8 +69,11 @@ export function HomeDashboard({ onNavigate }: HomeDashboardProps) {
         <section className="family-strip" aria-label="Family Members">
           {familyMembers.map((member) => (
             <span className="family-chip" key={member.id} style={{ '--member-color': member.displayColor } as CSSProperties}>
-              <span className="family-avatar" aria-hidden="true">{member.initials}</span>
-              {member.name}
+              <span className="family-avatar" aria-hidden="true"><span>{member.initials}</span></span>
+              <span className="family-member-copy">
+                <strong>{member.name}</strong>
+                <small>On the board</small>
+              </span>
             </span>
           ))}
         </section>
@@ -81,7 +85,7 @@ export function HomeDashboard({ onNavigate }: HomeDashboardProps) {
 
       <div className="home-summary-grid">
         <article className="home-summary-card agenda-summary" onClick={() => onNavigate('agenda')} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && onNavigate('agenda')} aria-label="Agenda summary">
-          <CardHeader title="Agenda" action="View Agenda" />
+          <CardHeader title="Today & next" action="Open agenda" meta={`${visibleAgenda.length} showing`} />
           {agendaError ? <p role="alert">{agendaError}</p> : null}
           <ul className="home-summary-list">
             {visibleAgenda.map((event) => (
@@ -97,7 +101,7 @@ export function HomeDashboard({ onNavigate }: HomeDashboardProps) {
         </article>
 
         <article className="home-summary-card lists-summary" onClick={() => onNavigate('lists')} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && onNavigate('lists')} aria-label="Lists summary">
-          <CardHeader title="Lists" action="View Lists" />
+          <CardHeader title="Remember" action="Open lists" meta={`${activeListItems.length} active`} />
           {listsError ? <p role="alert">{listsError}</p> : null}
           <ul className="home-summary-list">
             {visibleListItems.map((item) => (
@@ -109,14 +113,15 @@ export function HomeDashboard({ onNavigate }: HomeDashboardProps) {
           </ul>
           {visibleListItems.length === 0 && !listsError ? <p className="shopping-empty">No active list items.</p> : null}
           {hiddenListCount > 0 ? <button className="more-link" type="button" onClick={() => onNavigate('lists')}>+{hiddenListCount} more</button> : null}
+          <p className="home-context-note">Shared for {activeMemberCount} household members.</p>
         </article>
       </div>
     </section>
   );
 }
 
-function CardHeader({ title, action }: { title: string; action: string }) {
-  return <div className="home-card-header"><h3>{title}</h3><span>{action}</span></div>;
+function CardHeader({ title, action, meta }: { title: string; action: string; meta?: string }) {
+  return <div className="home-card-header"><div><h3>{title}</h3>{meta ? <small>{meta}</small> : null}</div><span>{action}</span></div>;
 }
 
 function buildAgendaSummary(events: NormalizedEvent[], sources: EventSource[], now: Date) {

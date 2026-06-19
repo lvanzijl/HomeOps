@@ -16,8 +16,8 @@ button {
   display: grid;
   gap: 1.5rem;
   margin: 0 auto;
-  max-width: 960px;
-  padding: 3rem 1.5rem;
+  max-width: 1040px;
+  padding: 2rem 1.5rem;
 }
 
 .app-header {
@@ -64,7 +64,7 @@ button {
 
 .workspace-panel {
   min-height: 18rem;
-  padding: 1.5rem;
+  padding: 1rem;
 }
 
 .workspace-position,
@@ -289,7 +289,6 @@ button {
 .home-dashboard {
   display: grid;
   gap: 1.25rem;
-  margin-top: 1rem;
 }
 
 .home-hero {
@@ -326,21 +325,40 @@ button {
   align-items: center;
   background: color-mix(in srgb, var(--member-color) 45%, white);
   border: 1px solid var(--member-color);
-  border-radius: 999px;
+  border-radius: 1rem;
   display: inline-flex;
   font-weight: 700;
   gap: 0.45rem;
-  padding: 0.4rem 0.75rem 0.4rem 0.45rem;
+  padding: 0.45rem 0.8rem 0.45rem 0.5rem;
 }
 
 .family-avatar {
   align-items: center;
   background: var(--member-color);
-  border-radius: 999px;
+  border: 2px solid rgb(255 255 255 / 80%);
+  border-radius: 42% 58% 48% 52%;
+  box-shadow: 0 5px 12px rgb(23 32 51 / 12%);
   display: inline-flex;
-  height: 2rem;
+  height: 2.25rem;
   justify-content: center;
-  width: 2rem;
+  width: 2.25rem;
+}
+
+.family-avatar span {
+  font-weight: 900;
+}
+
+.family-member-copy {
+  display: grid;
+  line-height: 1.05;
+}
+
+.family-member-copy small,
+.home-card-header small,
+.home-context-note {
+  color: #5c667a;
+  font-size: 0.78rem;
+  font-weight: 600;
 }
 
 .quick-capture {
@@ -361,7 +379,7 @@ button {
 .home-summary-grid {
   display: grid;
   gap: 1rem;
-  grid-template-columns: minmax(0, 1.35fr) minmax(18rem, 0.85fr);
+  grid-template-columns: minmax(0, 1.55fr) minmax(18rem, 0.75fr);
 }
 
 .home-summary-card {
@@ -384,6 +402,13 @@ button {
   color: #7c3aed;
 }
 
+.home-card-header span {
+  background: #f5f3ff;
+  border-radius: 999px;
+  font-weight: 800;
+  padding: 0.45rem 0.7rem;
+}
+
 .home-summary-list {
   display: grid;
   gap: 0.75rem;
@@ -400,11 +425,20 @@ button {
   padding: 0.75rem;
 }
 
+.agenda-summary .home-summary-list li:first-child {
+  border-left: 0.35rem solid #7c3aed;
+  padding-left: 0.9rem;
+}
+
+.lists-summary .home-summary-list li {
+  border-left: 0.3rem solid #f59e0b;
+}
+
 .home-summary-list small {
   color: #5c667a;
 }
 
-@media (max-width: 760px) {
+@media (max-width: 900px) {
   .home-hero,
   .home-summary-grid {
     grid-template-columns: 1fr;

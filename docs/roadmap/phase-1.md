@@ -30,3 +30,6 @@ Phase 2 now includes the V1 HomeOps Calendar recurrence runtime foundation. Even
 Phase 2 now includes a Home Dashboard MVP that consumes the existing Agenda and Lists foundations as bounded summaries. The Phase 1 Agenda Widget MVP and Shopping List MVP remain preserved as full domain-page functionality behind Home navigation.
 Local development uses the ASP.NET Core launch profile on `http://localhost:5152`, and the Vite client proxy should target that API origin so Home summary data loads during local startup.
 The API also applies pending EF Core migrations on non-testing startup so the seeded household, agenda, and lists data are available during local visual review without a separate manual migration step.
+
+## Home Dashboard Visual Hardening Follow-up
+Phase 2 now includes a limited Home Dashboard visual hardening pass. Home chrome is less framework-oriented, Agenda remains the primary summary, Lists loads active item details for useful Home visibility, and Family Members use lightweight visual identity without becoming users, profiles, task owners, or authentication identities. Phase 1 Agenda and Shopping/List page functionality remains preserved behind Home navigation.

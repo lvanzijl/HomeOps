@@ -8,8 +8,8 @@ function App() {
     <main className="app-shell">
       <header className="app-header">
         <p className="eyebrow">HomeOps</p>
-        <h1>Household Information Hub</h1>
-        <p>Workspace framework foundation for future widget-driven household information surfaces.</p>
+        <h1>Today at Home</h1>
+        <p>Your family plan, shared lists, and what is coming up next.</p>
       </header>
       <WorkspaceShell />
     </main>
