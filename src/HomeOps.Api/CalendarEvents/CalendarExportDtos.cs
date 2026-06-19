@@ -51,4 +51,4 @@ public sealed record CalendarExportRecurrenceSection(IReadOnlyCollection<Calenda
 
 public sealed record CalendarExportRecurrence(string RuleType, string Value);
 
-public sealed record CalendarExportEventException(Guid Id, Guid EventSeriesId, string ExceptionType);
+public sealed record CalendarExportEventException(Guid Id, Guid EventSeriesId, DateOnly OccurrenceDate, string ExceptionType, string? Title = null, string? Description = null, DateOnly? StartDate = null, TimeOnly? StartTime = null, DateOnly? EndDate = null, TimeOnly? EndTime = null);

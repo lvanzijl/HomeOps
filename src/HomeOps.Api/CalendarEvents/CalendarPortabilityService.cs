@@ -44,9 +44,15 @@ public static class CalendarPortabilityService
                 candidate.StartTime,
                 candidate.EndDate,
                 candidate.EndTime,
-                null,
+                new CalendarExportRecurrence(candidate.RecurrenceType.ToString(), string.Empty),
                 candidate.CreatedUtc,
                 candidate.UpdatedUtc))
+            .ToListAsync(cancellationToken);
+        var exceptions = await dbContext.EventExceptions
+            .AsNoTracking()
+            .Where(exception => exception.EventSeries!.EventSource!.HouseholdId == SeedHousehold.Id)
+            .OrderBy(exception => exception.OccurrenceDate)
+            .Select(exception => new CalendarExportEventException(exception.Id, exception.EventSeriesId, exception.OccurrenceDate, exception.IsSkipped ? "Skipped" : "Modified", exception.Title, exception.Description, exception.StartDate, exception.StartTime, exception.EndDate, exception.EndTime))
             .ToListAsync(cancellationToken);
 
         return new CalendarExportDocument(
@@ -54,7 +60,7 @@ public static class CalendarPortabilityService
             CalendarExportDocument.CurrentSchemaVersion,
             DateTimeOffset.UtcNow,
             new CalendarExportHousehold(household.Id, household.TimeZoneId),
-            new CalendarExportPayload(CalendarExportPayload.CurrentVersion, sources, series, new CalendarExportRecurrenceSection([]), [], new Dictionary<string, string>()),
+            new CalendarExportPayload(CalendarExportPayload.CurrentVersion, sources, series, new CalendarExportRecurrenceSection([]), exceptions, new Dictionary<string, string>()),
             new Dictionary<string, string>());
     }
 
@@ -113,8 +119,24 @@ public static class CalendarPortabilityService
             StartTime = series.IsAllDay ? null : series.StartTime,
             EndDate = series.EndDate,
             EndTime = series.IsAllDay ? null : series.EndTime,
+            RecurrenceType = ParseRecurrenceType(series.Recurrence),
             CreatedUtc = series.CreatedUtc,
             UpdatedUtc = series.UpdatedUtc,
+        }));
+        dbContext.EventExceptions.AddRange(document.Calendar.Exceptions.Select(exception => new EventException
+        {
+            Id = exception.Id,
+            EventSeriesId = exception.EventSeriesId,
+            OccurrenceDate = exception.OccurrenceDate,
+            IsSkipped = string.Equals(exception.ExceptionType, "Skipped", StringComparison.OrdinalIgnoreCase),
+            Title = string.IsNullOrWhiteSpace(exception.Title) ? null : exception.Title.Trim(),
+            Description = string.IsNullOrWhiteSpace(exception.Description) ? null : exception.Description.Trim(),
+            StartDate = exception.StartDate,
+            StartTime = exception.StartTime,
+            EndDate = exception.EndDate,
+            EndTime = exception.EndTime,
+            CreatedUtc = DateTimeOffset.UtcNow,
+            UpdatedUtc = DateTimeOffset.UtcNow,
         }));
         await dbContext.SaveChangesAsync(cancellationToken);
 
@@ -175,12 +197,17 @@ public static class CalendarPortabilityService
         if (requiredEventSeries.Any(series => series.EndDate < series.StartDate)) errors["Calendar.EventSeries.Range"] = ["EventSeries end date must be on or after start date."];
         if (requiredEventSeries.Any(series => !series.IsAllDay && series.StartDate == series.EndDate && series.EndTime < series.StartTime)) errors["Calendar.EventSeries.TimeRange"] = ["Timed EventSeries end time must be on or after start time on the same date."];
         if (requiredRecurrence.Rules is null) errors["Calendar.Recurrence.Rules"] = ["Recurrence rules collection is required."];
-        else if (requiredRecurrence.Rules.Count > 0) errors["Calendar.Recurrence"] = ["Recurrence restore is reserved for a future recurrence slice."];
-        if (requiredExceptions.Any(exception => exception.Id == Guid.Empty || exception.EventSeriesId == Guid.Empty || !seriesIds.Contains(exception.EventSeriesId) || string.IsNullOrWhiteSpace(exception.ExceptionType))) errors["Calendar.Exceptions.Required"] = ["EventException records require id, type, and a valid EventSeries reference owned by this export."];
-        if (requiredExceptions.Count > 0) errors["Calendar.Exceptions"] = ["EventException restore is reserved for a future recurrence slice."];
-        if (requiredEventSeries.Any(series => series.Recurrence is not null)) errors["Calendar.EventSeries.Recurrence"] = ["Recurrence restore is reserved for a future recurrence slice."];
+        else if (requiredRecurrence.Rules.Any(rule => !IsSupportedRecurrence(rule))) errors["Calendar.Recurrence"] = ["Recurrence rules must use None, Daily, Weekly, Monthly, or Yearly."];
+        if (requiredExceptions.Any(exception => exception.Id == Guid.Empty || exception.EventSeriesId == Guid.Empty || !seriesIds.Contains(exception.EventSeriesId) || exception.OccurrenceDate == default || !IsSupportedExceptionType(exception.ExceptionType))) errors["Calendar.Exceptions.Required"] = ["EventException records require id, supported type, occurrence date, and a valid EventSeries reference owned by this export."];
+        if (requiredEventSeries.Any(series => series.Recurrence is not null && !IsSupportedRecurrence(series.Recurrence))) errors["Calendar.EventSeries.Recurrence"] = ["EventSeries recurrence must use None, Daily, Weekly, Monthly, or Yearly."];
         return errors;
     }
+
+    private static RecurrenceType ParseRecurrenceType(CalendarExportRecurrence? recurrence) => Enum.TryParse<RecurrenceType>(recurrence?.RuleType, true, out var value) ? value : RecurrenceType.None;
+
+    private static bool IsSupportedRecurrence(CalendarExportRecurrence? recurrence) => recurrence is not null && Enum.TryParse<RecurrenceType>(recurrence.RuleType, true, out _);
+
+    private static bool IsSupportedExceptionType(string? exceptionType) => string.Equals(exceptionType, "Skipped", StringComparison.OrdinalIgnoreCase) || string.Equals(exceptionType, "Modified", StringComparison.OrdinalIgnoreCase);
 
     private static bool IsValidTimeZone(string timeZoneId)
     {

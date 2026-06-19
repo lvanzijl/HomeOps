@@ -15,6 +15,7 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
     public DbSet<ListItem> ListItems => Set<ListItem>();
     public DbSet<CalendarEvents.EventSource> EventSources => Set<CalendarEvents.EventSource>();
     public DbSet<EventSeries> EventSeries => Set<EventSeries>();
+    public DbSet<EventException> EventExceptions => Set<EventException>();
     public DbSet<WorkspaceLayout> WorkspaceLayouts => Set<WorkspaceLayout>();
     public DbSet<WidgetPlacement> WidgetPlacements => Set<WidgetPlacement>();
 
@@ -103,6 +104,7 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             entity.Property(eventSeries => eventSeries.EndDate).HasColumnType("date").IsRequired();
             entity.Property(eventSeries => eventSeries.EndTime).HasColumnType("time without time zone");
             entity.Property(eventSeries => eventSeries.IsAllDay).IsRequired();
+            entity.Property(eventSeries => eventSeries.RecurrenceType).HasConversion<string>().HasMaxLength(16).IsRequired();
             entity.Property(eventSeries => eventSeries.CreatedUtc).IsRequired();
             entity.Property(eventSeries => eventSeries.UpdatedUtc).IsRequired();
             entity.HasOne(eventSeries => eventSeries.EventSource)
@@ -110,6 +112,27 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
                 .HasForeignKey(eventSeries => eventSeries.EventSourceId)
                 .OnDelete(DeleteBehavior.Cascade);
             entity.HasIndex(eventSeries => new { eventSeries.EventSourceId, eventSeries.StartDate });
+        });
+
+        modelBuilder.Entity<EventException>(entity =>
+        {
+            entity.ToTable("EventExceptions");
+            entity.HasKey(exception => exception.Id);
+            entity.Property(exception => exception.OccurrenceDate).HasColumnType("date").IsRequired();
+            entity.Property(exception => exception.IsSkipped).IsRequired();
+            entity.Property(exception => exception.Title).HasMaxLength(240);
+            entity.Property(exception => exception.Description).HasMaxLength(1000);
+            entity.Property(exception => exception.StartDate).HasColumnType("date");
+            entity.Property(exception => exception.StartTime).HasColumnType("time without time zone");
+            entity.Property(exception => exception.EndDate).HasColumnType("date");
+            entity.Property(exception => exception.EndTime).HasColumnType("time without time zone");
+            entity.Property(exception => exception.CreatedUtc).IsRequired();
+            entity.Property(exception => exception.UpdatedUtc).IsRequired();
+            entity.HasOne(exception => exception.EventSeries)
+                .WithMany(series => series.Exceptions)
+                .HasForeignKey(exception => exception.EventSeriesId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasIndex(exception => new { exception.EventSeriesId, exception.OccurrenceDate }).IsUnique();
         });
 
         modelBuilder.Entity<WorkspaceLayout>(entity =>

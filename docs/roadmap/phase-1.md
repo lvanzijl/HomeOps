@@ -21,3 +21,7 @@ Phase 2 follow-up note: Calendar JSON export, full restore foundations, and V1 c
 Automatic local pre-restore export snapshots now run before calendar full restore replacement. The Settings workspace now exposes simple local export/restore controls with version, timestamp, validation feedback, friendly errors, and a replacement warning. JSON remains the canonical export format; restore remains local-only and full restore only.
 
 Phase 2 validation hardening note: Calendar portability validation, snapshot storage, and restore safety UX are tracked in Phase 2 documentation; Phase 1 slice statuses remain historical and unchanged.
+
+
+## Calendar Recurrence Runtime Follow-up
+Phase 2 now includes the V1 HomeOps Calendar recurrence runtime foundation. EventSeries owns supported recurrence metadata, EventException owns skipped/modified occurrence overrides, EventOccurrence remains projection-only, and household timezone local wall-clock semantics are documented for future UI work.

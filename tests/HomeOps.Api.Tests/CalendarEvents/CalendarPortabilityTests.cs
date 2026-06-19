@@ -200,16 +200,28 @@ public sealed class CalendarPortabilityTests
     }
 
     [Fact]
-    public async Task RestoreRejectsUnstableV1ContractShape()
+    public async Task ExportRestoreSupportsRecurrenceAndExceptionCompatibility()
     {
-        await using var dbContext = CreateDbContext("contract-shape");
+        await using var dbContext = CreateDbContext("recurrence-export");
+        var series = await dbContext.EventSeries.FirstAsync();
+        series.RecurrenceType = RecurrenceType.Weekly;
+        dbContext.EventExceptions.Add(new EventException
+        {
+            Id = Guid.Parse("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee"),
+            EventSeriesId = series.Id,
+            OccurrenceDate = series.StartDate.AddDays(7),
+            IsSkipped = true,
+            CreatedUtc = SeedCalendarEvents.SeededUtc,
+            UpdatedUtc = SeedCalendarEvents.SeededUtc,
+        });
+        await dbContext.SaveChangesAsync();
+
         var export = await CalendarPortabilityService.ExportAsync(dbContext);
-        var invalid = export with { Calendar = export.Calendar with { Recurrence = new CalendarExportRecurrenceSection([new CalendarExportRecurrence("reserved", "future")]) } };
+        var result = await CalendarPortabilityService.RestoreAsync(dbContext, export);
 
-        var result = await CalendarPortabilityService.RestoreAsync(dbContext, invalid);
-
-        Assert.False(result.Succeeded);
-        Assert.Contains("Calendar.Recurrence", result.ValidationErrors.Keys);
+        Assert.True(result.Succeeded);
+        Assert.Contains(export.Calendar.EventSeries, candidate => candidate.Recurrence?.RuleType == nameof(RecurrenceType.Weekly));
+        Assert.Contains(export.Calendar.Exceptions, candidate => candidate.ExceptionType == "Skipped");
     }
 
     [Fact]

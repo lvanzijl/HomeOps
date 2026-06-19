@@ -4,7 +4,7 @@
 Phase 2 — Durable Household Core
 
 ## Current Slice
-Calendar Validation, Snapshot Storage, Restore Safety UX, and Documentation Hardening — Completed
+Calendar Recurrence, EventException, and Occurrence Generation Runtime — Completed
 
 ## Completed Slices
 - 1.1 Repository Bootstrap
@@ -27,9 +27,10 @@ Calendar Validation, Snapshot Storage, Restore Safety UX, and Documentation Hard
 - 2.9 Calendar Portability Hardening, Restore Safety, and JSON Contract Freeze
 - 2.10 Calendar Portability UX and Pre-Restore Export
 - Calendar Validation, Snapshot Storage, Restore Safety UX, and Documentation Hardening
+- Calendar Recurrence, EventException, and Occurrence Generation Runtime
 
 ## Next Slice
-Proceed with Real Google Calendar Read-Only Integration only after preserving HomeOps Calendar source-of-truth and local-only portability boundaries.
+Proceed with a recurrence/occurrence editing UX slice or Real Google Calendar Read-Only Integration only after preserving HomeOps Calendar source-of-truth, local-only portability, household-timezone, and EventOccurrence projection-only boundaries.
 
 ## Key Architectural Decisions
 - HomeOps is a modular monolith.
@@ -51,7 +52,7 @@ Proceed with Real Google Calendar Read-Only Integration only after preserving Ho
 - Calendar JSON export is canonical HomeOps portability data.
 - Calendar restore is local-only and full restore only; validation and local pre-restore snapshot creation run before replacement, while selective import, merge import, remote restore, and conflict resolution are not implemented. The pre-restore snapshot path is configurable with a safe local default, and container deployments should mount the configured path to writable persistent storage when snapshots must survive container replacement.
 - EventOccurrence is projection-only Agenda data and is not canonical export data.
-- Google Drive is a future export destination only; Google Calendar, ICS, recurrence, and EventException runtime behavior remain out of scope.
+- Google Drive is a future export destination only; Google Calendar and ICS remain out of scope. Recurrence and EventException runtime foundations are implemented for HomeOps Calendar only.
 - Calendar V1 JSON contract shape is frozen; recurrence, exception, and future metadata sections are reserved without runtime behavior.
 
 ## Phase 2 Durable Lists Foundation
@@ -124,3 +125,11 @@ Proceed with Real Google Calendar Read-Only Integration only after preserving Ho
 - Minimal event APIs provide event source retrieval plus EventSeries get, create, update, and delete.
 - The Agenda Widget loads persisted HomeOps Calendar events through the generated NSwag client and preserves birthday source compatibility, source filtering, week view, and months view.
 - A minimal embedded Agenda form validates event create, update, and delete; no dedicated event management page, recurring events, Google Calendar integration, OAuth, authentication, or notifications have been introduced.
+
+## Phase 2 Calendar Recurrence Runtime
+- EventSeries now stores V1 recurrence metadata using only None, Daily, Weekly, Monthly, and Yearly.
+- EventException records support skipped and modified generated occurrences for future edit/delete occurrence workflows.
+- Agenda still consumes generated EventOccurrence/NormalizedEvent output only; EventOccurrence is not persisted.
+- Occurrence generation uses the household timezone and local wall-clock semantics, so recurring timed events keep the same local time across DST transitions.
+- All-day and multi-day all-day recurrence preserve date-only and exclusive end-date semantics.
+- Advanced recurrence rules, ICS, Google Calendar, reminders, notifications, authentication, per-event timezone support, timezone UI, and series splitting UI remain out of scope.
