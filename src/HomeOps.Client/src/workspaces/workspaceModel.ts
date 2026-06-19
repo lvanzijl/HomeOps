@@ -1,4 +1,4 @@
-export type WorkspaceId = 'home' | 'house' | 'media' | 'settings';
+export type WorkspaceId = 'home' | 'agenda' | 'lists' | 'house' | 'media' | 'settings';
 
 export interface WorkspaceDefinition {
   id: WorkspaceId;
@@ -11,6 +11,16 @@ export const workspaceDefinitions: readonly WorkspaceDefinition[] = [
     id: 'home',
     label: 'Home',
     description: 'Primary household overview workspace.',
+  },
+  {
+    id: 'agenda',
+    label: 'Agenda',
+    description: 'Full agenda page for calendar browsing and event management.',
+  },
+  {
+    id: 'lists',
+    label: 'Lists',
+    description: 'Full lists page for household list management.',
   },
   {
     id: 'house',

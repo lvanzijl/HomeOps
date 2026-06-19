@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { HomeDashboard } from '../home/HomeDashboard';
 import { getWidgetDefinition } from '../widgets/widgetCatalog';
 import { WidgetRenderer } from '../widgets/WidgetRenderer';
 import type { WidgetInstance } from '../widgets/widgetModel';
@@ -36,7 +37,11 @@ export function WorkspaceShell() {
   }, [activeWorkspaceId]);
 
   const activeWorkspaceIndex = workspaceDefinitions.findIndex((workspace) => workspace.id === activeWorkspace.id);
-  const widgetInstances = widgetInstancesByWorkspace[activeWorkspace.id] ?? [];
+  const widgetInstances = activeWorkspace.id === 'agenda'
+    ? [{ id: 'agenda-page', widgetDefinitionId: 'agenda-mvp', title: 'Agenda', settings: {} }]
+    : activeWorkspace.id === 'lists'
+      ? [{ id: 'lists-page', widgetDefinitionId: 'shopping-list-mvp', title: 'Lists', settings: {} }]
+      : widgetInstancesByWorkspace[activeWorkspace.id] ?? [];
 
   return (
     <section className="workspace-shell" aria-label="Workspace shell">
@@ -60,6 +65,9 @@ export function WorkspaceShell() {
         </p>
         <h2 id="active-workspace-title">{activeWorkspace.label}</h2>
         <p>{activeWorkspace.description}</p>
+        {activeWorkspace.id === 'home' ? (
+          <HomeDashboard onNavigate={setActiveWorkspaceId} />
+        ) : (
         <div className="widget-host" aria-label={`${activeWorkspace.label} widgets`}>
           {activeWorkspace.id === 'settings' && (
             <WidgetRenderer
@@ -82,6 +90,7 @@ export function WorkspaceShell() {
             return <WidgetRenderer definition={definition} instance={instance} key={instance.id} />;
           })}
         </div>
+        )}
       </section>
     </section>
   );

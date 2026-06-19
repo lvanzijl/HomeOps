@@ -7,6 +7,12 @@ vi.mock('./workspaceLayout', () => ({
   loadWorkspaceLayout: vi.fn(),
 }));
 
+vi.mock('../home/HomeDashboard', () => ({
+  HomeDashboard: ({ onNavigate }: { onNavigate: (destination: 'agenda' | 'lists') => void }) => (
+    <section aria-label="Home dashboard"><button onClick={() => onNavigate('agenda')} type="button">Open Agenda</button></section>
+  ),
+}));
+
 vi.mock('../widgets/WidgetRenderer', () => ({
   WidgetRenderer: ({ instance }: { instance: { title: string } }) => <article>{instance.title}</article>,
 }));
@@ -37,8 +43,8 @@ describe('WorkspaceShell API-backed layouts', () => {
 
     render(<WorkspaceShell />);
 
-    expect(await screen.findByText('Agenda')).not.toBeNull();
-    expect(screen.getByText('Shopping List')).not.toBeNull();
+    expect(await screen.findByText('Open Agenda')).not.toBeNull();
+    expect(screen.getByLabelText('Home dashboard')).not.toBeNull();
     expect(workspaceLayout.loadWorkspaceLayout).toHaveBeenCalledWith('home');
   });
 
@@ -47,7 +53,7 @@ describe('WorkspaceShell API-backed layouts', () => {
     const workspaceLayout = await mockedWorkspaceLayout();
     render(<WorkspaceShell />);
 
-    await screen.findByText('Agenda');
+    await screen.findByText('Open Agenda');
     await user.click(screen.getByRole('button', { name: 'House' }));
 
     await waitFor(() => expect(workspaceLayout.loadWorkspaceLayout).toHaveBeenCalledWith('house'));

@@ -285,3 +285,132 @@ button {
   background: #ecfdf5;
   color: #065f46;
 }
+
+.home-dashboard {
+  display: grid;
+  gap: 1.25rem;
+  margin-top: 1rem;
+}
+
+.home-hero {
+  align-items: center;
+  background: linear-gradient(135deg, #fff7ed, #ecfeff 55%, #fdf2f8);
+  border: 1px solid #ead7c7;
+  border-radius: 1.5rem;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr auto;
+  padding: 1.25rem;
+}
+
+.home-hero h2,
+.home-card-header h3 {
+  margin: 0;
+}
+
+.home-time {
+  font-size: 2rem;
+  font-weight: 800;
+  margin: 0.35rem 0 0;
+}
+
+.family-strip,
+.quick-capture {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  justify-content: flex-end;
+}
+
+.family-chip {
+  align-items: center;
+  background: color-mix(in srgb, var(--member-color) 45%, white);
+  border: 1px solid var(--member-color);
+  border-radius: 999px;
+  display: inline-flex;
+  font-weight: 700;
+  gap: 0.45rem;
+  padding: 0.4rem 0.75rem 0.4rem 0.45rem;
+}
+
+.family-avatar {
+  align-items: center;
+  background: var(--member-color);
+  border-radius: 999px;
+  display: inline-flex;
+  height: 2rem;
+  justify-content: center;
+  width: 2rem;
+}
+
+.quick-capture {
+  grid-column: 1 / -1;
+}
+
+.quick-capture button,
+.more-link {
+  border: 1px solid #d7ddea;
+  border-radius: 999px;
+  background: #ffffff;
+  cursor: pointer;
+  font-weight: 700;
+  min-height: 2.75rem;
+  padding: 0.65rem 1rem;
+}
+
+.home-summary-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1.35fr) minmax(18rem, 0.85fr);
+}
+
+.home-summary-card {
+  background: #fffdf8;
+  border: 1px solid #eadfd1;
+  border-radius: 1.25rem;
+  box-shadow: 0 12px 32px rgb(120 90 60 / 10%);
+  cursor: pointer;
+  padding: 1.25rem;
+}
+
+.home-card-header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.home-card-header span,
+.more-link {
+  color: #7c3aed;
+}
+
+.home-summary-list {
+  display: grid;
+  gap: 0.75rem;
+  list-style: none;
+  margin: 1rem 0;
+  padding: 0;
+}
+
+.home-summary-list li {
+  background: rgb(255 255 255 / 72%);
+  border-radius: 0.9rem;
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.75rem;
+}
+
+.home-summary-list small {
+  color: #5c667a;
+}
+
+@media (max-width: 760px) {
+  .home-hero,
+  .home-summary-grid {
+    grid-template-columns: 1fr;
+  }
+  .family-strip,
+  .quick-capture {
+    justify-content: flex-start;
+  }
+}

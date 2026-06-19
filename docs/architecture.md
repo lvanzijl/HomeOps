@@ -126,3 +126,10 @@ HomeOps Calendar now supports a narrow V1 recurrence runtime on persisted EventS
 EventException records are persisted as children of EventSeries to support skipped and modified occurrences. Skipped exceptions suppress a generated occurrence, and modified exceptions may override the generated occurrence title, description, local date, and local time values. Series splitting, detached recurring hierarchies, and occurrence editing UI remain future work.
 
 EventOccurrence remains projection-only Agenda output and is not persisted. The Agenda API expands EventSeries at runtime using the household timezone, recurrence type, and EventException records, then returns normalized concrete occurrences. Timed recurrence uses local wall-clock semantics: a weekly Wednesday 18:00 Europe/Amsterdam event remains Wednesday 18:00 local time after daylight saving time changes. All-day and multi-day all-day recurring events preserve date-only start plus exclusive end-date duration semantics.
+
+## Home Dashboard MVP
+Home is now the primary summary-first household dashboard rather than a full management workspace. The client renders a glassboard-style Home surface with current date/time, a minimal Family Member strip, quick-capture entry points, a today-first Agenda summary with tomorrow/next preview overflow, and an active Lists summary with bounded visible items. Home summary cards and overflow affordances navigate to dedicated Agenda and Lists pages for full management.
+
+Family Members are currently client-side household presentation entities with name, display color, and initials only. They are not users, profiles, login identities, permissions, owners, point accounts, or authentication subjects. This supports Home presentation while preserving future persistence and ownership decisions.
+
+Dedicated Agenda and Lists pages remain the places for existing full Agenda and Lists functionality. Home quick capture routes to those pages instead of adding advanced Home-native forms, keeping Home summary-only and preserving Calendar, EventSeries, Lists, and export/restore boundaries.
