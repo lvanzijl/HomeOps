@@ -8,6 +8,9 @@ using NSwag.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+CalendarPortabilityService.ConfigurePreRestoreSnapshotDirectory(
+    builder.Configuration["CalendarPortability:PreRestoreSnapshotDirectory"]);
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApiDocument();
 if (!builder.Environment.IsEnvironment("Testing"))

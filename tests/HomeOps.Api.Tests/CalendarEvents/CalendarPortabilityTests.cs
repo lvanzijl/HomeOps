@@ -153,6 +153,27 @@ public sealed class CalendarPortabilityTests
         }
     }
 
+
+    [Fact]
+    public void SnapshotDirectoryConfigurationUsesSafeDefaultWhenUnset()
+    {
+        var previousDirectory = CalendarPortabilityService.PreRestoreSnapshotDirectory;
+
+        try
+        {
+            CalendarPortabilityService.ConfigurePreRestoreSnapshotDirectory("  " );
+            Assert.EndsWith(Path.Combine("calendar-restore-snapshots"), CalendarPortabilityService.PreRestoreSnapshotDirectory);
+
+            var configured = Path.Combine(Path.GetTempPath(), "homeops-configured-snapshots");
+            CalendarPortabilityService.ConfigurePreRestoreSnapshotDirectory(configured);
+            Assert.Equal(configured, CalendarPortabilityService.PreRestoreSnapshotDirectory);
+        }
+        finally
+        {
+            CalendarPortabilityService.PreRestoreSnapshotDirectory = previousDirectory;
+        }
+    }
+
     [Fact]
     public async Task RestoreRejectsInvalidExportBeforeModifyingExistingCalendarData()
     {
