@@ -101,6 +101,58 @@ public sealed class CalendarPortabilityTests
     }
 
 
+
+    [Fact]
+    public async Task RestoreCreatesPreRestoreSnapshotBeforeReplacingCalendarData()
+    {
+        await using var dbContext = CreateDbContext("pre-restore-snapshot");
+        using var snapshotDirectory = UseSnapshotDirectory();
+        var export = await CalendarPortabilityService.ExportAsync(dbContext);
+        var replacement = export with
+        {
+            Calendar = export.Calendar with
+            {
+                EventSeries =
+                [
+                    export.Calendar.EventSeries.First() with { Id = Guid.Parse("dddddddd-dddd-dddd-dddd-dddddddddddd"), Title = "Snapshot Restore" }
+                ]
+            }
+        };
+
+        var result = await CalendarPortabilityService.RestoreAsync(dbContext, replacement);
+
+        Assert.True(result.Succeeded);
+        var snapshotPath = Assert.Single(Directory.GetFiles(CalendarPortabilityService.PreRestoreSnapshotDirectory, "calendar-pre-restore-*.json"));
+        var snapshotJson = await File.ReadAllTextAsync(snapshotPath);
+        Assert.Contains(CalendarExportDocument.CurrentFormat, snapshotJson);
+        Assert.Contains("Dentist Appointment", snapshotJson);
+        Assert.Equal("Snapshot Restore", (await dbContext.EventSeries.SingleAsync()).Title);
+    }
+
+    [Fact]
+    public async Task RestoreAbortsWhenPreRestoreSnapshotCannotBeCreated()
+    {
+        await using var dbContext = CreateDbContext("pre-restore-failure");
+        var before = await dbContext.EventSeries.OrderBy(series => series.Id).Select(series => series.Title).ToListAsync();
+        var export = await CalendarPortabilityService.ExportAsync(dbContext);
+        var previousDirectory = CalendarPortabilityService.PreRestoreSnapshotDirectory;
+        CalendarPortabilityService.PreRestoreSnapshotDirectory = string.Empty;
+
+        try
+        {
+            var result = await CalendarPortabilityService.RestoreAsync(dbContext, export);
+
+            Assert.False(result.Succeeded);
+            Assert.Contains("PreRestoreExport", result.ValidationErrors.Keys);
+            var after = await dbContext.EventSeries.OrderBy(series => series.Id).Select(series => series.Title).ToListAsync();
+            Assert.Equal(before, after);
+        }
+        finally
+        {
+            CalendarPortabilityService.PreRestoreSnapshotDirectory = previousDirectory;
+        }
+    }
+
     [Fact]
     public async Task RestoreRejectsInvalidExportBeforeModifyingExistingCalendarData()
     {
@@ -154,6 +206,26 @@ public sealed class CalendarPortabilityTests
         var events = await client.GetFromJsonAsync<NormalizedEvent[]>("/api/events");
         Assert.NotNull(events);
         Assert.Contains(events!, candidate => candidate.Title == "Parent Evening");
+    }
+
+    private static IDisposable UseSnapshotDirectory()
+    {
+        var previousDirectory = CalendarPortabilityService.PreRestoreSnapshotDirectory;
+        var snapshotDirectory = Path.Combine(Path.GetTempPath(), "homeops-calendar-snapshots", Guid.NewGuid().ToString());
+        CalendarPortabilityService.PreRestoreSnapshotDirectory = snapshotDirectory;
+        return new SnapshotDirectoryScope(previousDirectory, snapshotDirectory);
+    }
+
+    private sealed class SnapshotDirectoryScope(string previousDirectory, string snapshotDirectory) : IDisposable
+    {
+        public void Dispose()
+        {
+            CalendarPortabilityService.PreRestoreSnapshotDirectory = previousDirectory;
+            if (Directory.Exists(snapshotDirectory))
+            {
+                Directory.Delete(snapshotDirectory, recursive: true);
+            }
+        }
     }
 
     private static object EventProjection(NormalizedEvent normalizedEvent) => new

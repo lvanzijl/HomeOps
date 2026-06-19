@@ -1,4 +1,5 @@
 import { AgendaWidget } from './components/AgendaWidget';
+import { CalendarPortabilityWidget } from './components/CalendarPortabilityWidget';
 import { PlaceholderWidget } from './components/PlaceholderWidget';
 import { ShoppingListWidget } from './components/ShoppingListWidget';
 import { TextWidget } from './components/TextWidget';
@@ -14,6 +15,7 @@ type WidgetComponent = ComponentType<WidgetRenderProps>;
 
 const widgetRegistry: Record<WidgetType, WidgetComponent> = {
   agenda: AgendaWidget,
+  calendarPortability: CalendarPortabilityWidget,
   placeholder: PlaceholderWidget,
   shoppingList: ShoppingListWidget,
   text: TextWidget,

@@ -40,6 +40,12 @@ export const widgetDefinitions: readonly WidgetDefinition[] = [
     },
   },
   {
+    id: 'calendar-portability-admin',
+    type: 'calendarPortability',
+    title: 'Calendar Export / Restore',
+    settings: {},
+  },
+  {
     id: 'settings-placeholder',
     type: 'placeholder',
     title: 'Settings Placeholder',
