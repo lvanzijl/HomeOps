@@ -4,7 +4,7 @@
 Phase 2 — Durable Household Core
 
 ## Current Slice
-Home Dashboard MVP, Family Member MVP, and Home Navigation Flows — Completed
+Phase 1 Roadmap Protection Rule — Completed
 
 ## Completed Slices
 - 1.1 Repository Bootstrap
@@ -29,9 +29,13 @@ Home Dashboard MVP, Family Member MVP, and Home Navigation Flows — Completed
 - Calendar Validation, Snapshot Storage, Restore Safety UX, and Documentation Hardening
 - Calendar Recurrence, EventException, and Occurrence Generation Runtime
 - Home Dashboard MVP, Family Member MVP, and Home Navigation Flows
+- Phase 1 Roadmap Protection Rule
 
 ## Next Slice
 Proceed with recurrence/occurrence editing UX or Real Google Calendar Read-Only Integration only after preserving Home as summary-first, Family Members as non-authentication household entities, and HomeOps Calendar source-of-truth/local-only portability boundaries.
+
+## Repository Governance
+- Phase 1 is historical. Future Phase 2, Phase 3, and later-phase feature work updates the current phase roadmap instead of `docs/roadmap/phase-1.md`; Phase 1 roadmap edits are reserved for factual corrections, incorrect history fixes, or broken reference repairs.
 
 ## Key Architectural Decisions
 - HomeOps is a modular monolith.

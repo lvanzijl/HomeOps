@@ -11,7 +11,10 @@
 - Do not claim validation that was not performed.
 - Stop when requirements are ambiguous.
 - Avoid speculative refactoring and future-slice implementation.
-- Update `docs/roadmap/phase-1.md` and `docs/state/current-state.md` after implementation work.
+- Update `docs/state/current-state.md` after implementation work. Update the current phase roadmap for normal feature work.
+
+## Documentation Governance
+- Phase 1 is historical. Future work targeting Phase 2, Phase 3, or later phases must not modify `docs/roadmap/phase-1.md` unless correcting factual mistakes, fixing incorrect history, or repairing broken references. Normal feature work must update the current phase roadmap instead.
 
 ## Architecture Guardrails
 - Backend: ASP.NET Core with C#.
