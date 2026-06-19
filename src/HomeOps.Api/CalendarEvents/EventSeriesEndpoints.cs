@@ -20,6 +20,20 @@ public static class EventSeriesEndpoints
             return Results.Ok(sources.Select(EventSeriesNormalizer.ToContract).ToList());
         }).WithName("GetEventSources").Produces<IReadOnlyCollection<HomeOps.Contracts.Events.EventSource>>();
 
+        var calendar = app.MapGroup("/api/calendar").WithTags("Calendar");
+
+        calendar.MapGet("/export", async (HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        {
+            var export = await CalendarPortabilityService.ExportAsync(dbContext, cancellationToken);
+            return Results.Ok(export);
+        }).WithName("ExportCalendar").Produces<CalendarExportDocument>();
+
+        calendar.MapPost("/restore", async (CalendarExportDocument document, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        {
+            var result = await CalendarPortabilityService.RestoreAsync(dbContext, document, cancellationToken);
+            return result.Succeeded ? Results.NoContent() : Results.ValidationProblem(result.ValidationErrors);
+        }).WithName("RestoreCalendar").Produces(StatusCodes.Status204NoContent).ProducesValidationProblem();
+
         var events = app.MapGroup("/api/events").WithTags("Events");
 
         events.MapGet("/", async (HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>

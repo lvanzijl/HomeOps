@@ -1,0 +1,49 @@
+namespace HomeOps.Api.CalendarEvents;
+
+public sealed record CalendarExportDocument(
+    string Format,
+    int SchemaVersion,
+    DateTimeOffset ExportedUtc,
+    CalendarExportHousehold Household,
+    CalendarExportPayload Calendar)
+{
+    public const string CurrentFormat = "homeops.calendar.export";
+    public const int CurrentSchemaVersion = 1;
+}
+
+public sealed record CalendarExportHousehold(Guid Id, string TimeZoneId);
+
+public sealed record CalendarExportPayload(
+    int Version,
+    IReadOnlyCollection<CalendarExportEventSource> EventSources,
+    IReadOnlyCollection<CalendarExportEventSeries> EventSeries,
+    IReadOnlyCollection<CalendarExportEventException> Exceptions)
+{
+    public const int CurrentVersion = 1;
+}
+
+public sealed record CalendarExportEventSource(
+    Guid Id,
+    string Name,
+    string SourceType,
+    bool IsWritable,
+    DateTimeOffset CreatedUtc,
+    DateTimeOffset UpdatedUtc);
+
+public sealed record CalendarExportEventSeries(
+    Guid Id,
+    Guid EventSourceId,
+    string Title,
+    string? Description,
+    bool IsAllDay,
+    DateOnly StartDate,
+    TimeOnly? StartTime,
+    DateOnly EndDate,
+    TimeOnly? EndTime,
+    CalendarExportRecurrence? Recurrence,
+    DateTimeOffset CreatedUtc,
+    DateTimeOffset UpdatedUtc);
+
+public sealed record CalendarExportRecurrence(string RuleType, string Value);
+
+public sealed record CalendarExportEventException(Guid Id, Guid EventSeriesId, string ExceptionType);

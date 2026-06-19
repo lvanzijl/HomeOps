@@ -513,6 +513,81 @@ export class HomeOpsApiClient {
         return Promise.resolve<WorkspaceLayoutDto>(null as any);
     }
 
+    exportCalendar(): Promise<CalendarExportDocument> {
+        let url_ = this.baseUrl + "/api/calendar/export";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processExportCalendar(_response);
+        });
+    }
+
+    protected processExportCalendar(response: Response): Promise<CalendarExportDocument> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = CalendarExportDocument.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<CalendarExportDocument>(null as any);
+    }
+
+    restoreCalendar(document: CalendarExportDocument): Promise<void> {
+        let url_ = this.baseUrl + "/api/calendar/restore";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(document);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRestoreCalendar(_response);
+        });
+    }
+
+    protected processRestoreCalendar(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = HttpValidationProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
     getEvents(): Promise<NormalizedEvent[]> {
         let url_ = this.baseUrl + "/api/events";
         url_ = url_.replace(/[?&]$/, "");
@@ -1474,6 +1549,511 @@ export interface ISaveWidgetPlacementRequest {
     configurationJson?: string | undefined;
 }
 
+export class CalendarExportDocument implements ICalendarExportDocument {
+    format?: string;
+    schemaVersion?: number;
+    exportedUtc?: Date;
+    household?: CalendarExportHousehold;
+    calendar?: CalendarExportPayload;
+
+    constructor(data?: ICalendarExportDocument) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.format = _data["format"];
+            this.schemaVersion = _data["schemaVersion"];
+            this.exportedUtc = _data["exportedUtc"] ? new Date(_data["exportedUtc"].toString()) : undefined as any;
+            this.household = _data["household"] ? CalendarExportHousehold.fromJS(_data["household"]) : undefined as any;
+            this.calendar = _data["calendar"] ? CalendarExportPayload.fromJS(_data["calendar"]) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): CalendarExportDocument {
+        data = typeof data === 'object' ? data : {};
+        let result = new CalendarExportDocument();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["format"] = this.format;
+        data["schemaVersion"] = this.schemaVersion;
+        data["exportedUtc"] = this.exportedUtc ? this.exportedUtc.toISOString() : undefined as any;
+        data["household"] = this.household ? this.household.toJSON() : undefined as any;
+        data["calendar"] = this.calendar ? this.calendar.toJSON() : undefined as any;
+        return data;
+    }
+}
+
+export interface ICalendarExportDocument {
+    format?: string;
+    schemaVersion?: number;
+    exportedUtc?: Date;
+    household?: CalendarExportHousehold;
+    calendar?: CalendarExportPayload;
+}
+
+export class CalendarExportHousehold implements ICalendarExportHousehold {
+    id?: string;
+    timeZoneId?: string;
+
+    constructor(data?: ICalendarExportHousehold) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.timeZoneId = _data["timeZoneId"];
+        }
+    }
+
+    static fromJS(data: any): CalendarExportHousehold {
+        data = typeof data === 'object' ? data : {};
+        let result = new CalendarExportHousehold();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["timeZoneId"] = this.timeZoneId;
+        return data;
+    }
+}
+
+export interface ICalendarExportHousehold {
+    id?: string;
+    timeZoneId?: string;
+}
+
+export class CalendarExportPayload implements ICalendarExportPayload {
+    version?: number;
+    eventSources?: CalendarExportEventSource[];
+    eventSeries?: CalendarExportEventSeries[];
+    exceptions?: CalendarExportEventException[];
+
+    constructor(data?: ICalendarExportPayload) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.version = _data["version"];
+            if (Array.isArray(_data["eventSources"])) {
+                this.eventSources = [] as any;
+                for (let item of _data["eventSources"])
+                    this.eventSources!.push(CalendarExportEventSource.fromJS(item));
+            }
+            if (Array.isArray(_data["eventSeries"])) {
+                this.eventSeries = [] as any;
+                for (let item of _data["eventSeries"])
+                    this.eventSeries!.push(CalendarExportEventSeries.fromJS(item));
+            }
+            if (Array.isArray(_data["exceptions"])) {
+                this.exceptions = [] as any;
+                for (let item of _data["exceptions"])
+                    this.exceptions!.push(CalendarExportEventException.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): CalendarExportPayload {
+        data = typeof data === 'object' ? data : {};
+        let result = new CalendarExportPayload();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["version"] = this.version;
+        if (Array.isArray(this.eventSources)) {
+            data["eventSources"] = [];
+            for (let item of this.eventSources)
+                data["eventSources"].push(item ? item.toJSON() : undefined as any);
+        }
+        if (Array.isArray(this.eventSeries)) {
+            data["eventSeries"] = [];
+            for (let item of this.eventSeries)
+                data["eventSeries"].push(item ? item.toJSON() : undefined as any);
+        }
+        if (Array.isArray(this.exceptions)) {
+            data["exceptions"] = [];
+            for (let item of this.exceptions)
+                data["exceptions"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface ICalendarExportPayload {
+    version?: number;
+    eventSources?: CalendarExportEventSource[];
+    eventSeries?: CalendarExportEventSeries[];
+    exceptions?: CalendarExportEventException[];
+}
+
+export class CalendarExportEventSource implements ICalendarExportEventSource {
+    id?: string;
+    name?: string;
+    sourceType?: string;
+    isWritable?: boolean;
+    createdUtc?: Date;
+    updatedUtc?: Date;
+
+    constructor(data?: ICalendarExportEventSource) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.name = _data["name"];
+            this.sourceType = _data["sourceType"];
+            this.isWritable = _data["isWritable"];
+            this.createdUtc = _data["createdUtc"] ? new Date(_data["createdUtc"].toString()) : undefined as any;
+            this.updatedUtc = _data["updatedUtc"] ? new Date(_data["updatedUtc"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): CalendarExportEventSource {
+        data = typeof data === 'object' ? data : {};
+        let result = new CalendarExportEventSource();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["name"] = this.name;
+        data["sourceType"] = this.sourceType;
+        data["isWritable"] = this.isWritable;
+        data["createdUtc"] = this.createdUtc ? this.createdUtc.toISOString() : undefined as any;
+        data["updatedUtc"] = this.updatedUtc ? this.updatedUtc.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface ICalendarExportEventSource {
+    id?: string;
+    name?: string;
+    sourceType?: string;
+    isWritable?: boolean;
+    createdUtc?: Date;
+    updatedUtc?: Date;
+}
+
+export class CalendarExportEventSeries implements ICalendarExportEventSeries {
+    id?: string;
+    eventSourceId?: string;
+    title?: string;
+    description?: string | undefined;
+    isAllDay?: boolean;
+    startDate?: Date;
+    startTime?: string | undefined;
+    endDate?: Date;
+    endTime?: string | undefined;
+    recurrence?: CalendarExportRecurrence | undefined;
+    createdUtc?: Date;
+    updatedUtc?: Date;
+
+    constructor(data?: ICalendarExportEventSeries) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.eventSourceId = _data["eventSourceId"];
+            this.title = _data["title"];
+            this.description = _data["description"];
+            this.isAllDay = _data["isAllDay"];
+            this.startDate = _data["startDate"] ? new Date(_data["startDate"].toString()) : undefined as any;
+            this.startTime = _data["startTime"];
+            this.endDate = _data["endDate"] ? new Date(_data["endDate"].toString()) : undefined as any;
+            this.endTime = _data["endTime"];
+            this.recurrence = _data["recurrence"] ? CalendarExportRecurrence.fromJS(_data["recurrence"]) : undefined as any;
+            this.createdUtc = _data["createdUtc"] ? new Date(_data["createdUtc"].toString()) : undefined as any;
+            this.updatedUtc = _data["updatedUtc"] ? new Date(_data["updatedUtc"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): CalendarExportEventSeries {
+        data = typeof data === 'object' ? data : {};
+        let result = new CalendarExportEventSeries();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["eventSourceId"] = this.eventSourceId;
+        data["title"] = this.title;
+        data["description"] = this.description;
+        data["isAllDay"] = this.isAllDay;
+        data["startDate"] = this.startDate ? formatDate(this.startDate) : undefined as any;
+        data["startTime"] = this.startTime;
+        data["endDate"] = this.endDate ? formatDate(this.endDate) : undefined as any;
+        data["endTime"] = this.endTime;
+        data["recurrence"] = this.recurrence ? this.recurrence.toJSON() : undefined as any;
+        data["createdUtc"] = this.createdUtc ? this.createdUtc.toISOString() : undefined as any;
+        data["updatedUtc"] = this.updatedUtc ? this.updatedUtc.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface ICalendarExportEventSeries {
+    id?: string;
+    eventSourceId?: string;
+    title?: string;
+    description?: string | undefined;
+    isAllDay?: boolean;
+    startDate?: Date;
+    startTime?: string | undefined;
+    endDate?: Date;
+    endTime?: string | undefined;
+    recurrence?: CalendarExportRecurrence | undefined;
+    createdUtc?: Date;
+    updatedUtc?: Date;
+}
+
+export class CalendarExportRecurrence implements ICalendarExportRecurrence {
+    ruleType?: string;
+    value?: string;
+
+    constructor(data?: ICalendarExportRecurrence) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.ruleType = _data["ruleType"];
+            this.value = _data["value"];
+        }
+    }
+
+    static fromJS(data: any): CalendarExportRecurrence {
+        data = typeof data === 'object' ? data : {};
+        let result = new CalendarExportRecurrence();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["ruleType"] = this.ruleType;
+        data["value"] = this.value;
+        return data;
+    }
+}
+
+export interface ICalendarExportRecurrence {
+    ruleType?: string;
+    value?: string;
+}
+
+export class CalendarExportEventException implements ICalendarExportEventException {
+    id?: string;
+    eventSeriesId?: string;
+    exceptionType?: string;
+
+    constructor(data?: ICalendarExportEventException) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.eventSeriesId = _data["eventSeriesId"];
+            this.exceptionType = _data["exceptionType"];
+        }
+    }
+
+    static fromJS(data: any): CalendarExportEventException {
+        data = typeof data === 'object' ? data : {};
+        let result = new CalendarExportEventException();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["eventSeriesId"] = this.eventSeriesId;
+        data["exceptionType"] = this.exceptionType;
+        return data;
+    }
+}
+
+export interface ICalendarExportEventException {
+    id?: string;
+    eventSeriesId?: string;
+    exceptionType?: string;
+}
+
+export class ProblemDetails implements IProblemDetails {
+    type?: string | undefined;
+    title?: string | undefined;
+    status?: number | undefined;
+    detail?: string | undefined;
+    instance?: string | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: IProblemDetails) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.type = _data["type"];
+            this.title = _data["title"];
+            this.status = _data["status"];
+            this.detail = _data["detail"];
+            this.instance = _data["instance"];
+        }
+    }
+
+    static fromJS(data: any): ProblemDetails {
+        data = typeof data === 'object' ? data : {};
+        let result = new ProblemDetails();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["type"] = this.type;
+        data["title"] = this.title;
+        data["status"] = this.status;
+        data["detail"] = this.detail;
+        data["instance"] = this.instance;
+        return data;
+    }
+}
+
+export interface IProblemDetails {
+    type?: string | undefined;
+    title?: string | undefined;
+    status?: number | undefined;
+    detail?: string | undefined;
+    instance?: string | undefined;
+
+    [key: string]: any;
+}
+
+export class HttpValidationProblemDetails extends ProblemDetails implements IHttpValidationProblemDetails {
+    errors?: { [key: string]: string[]; };
+
+    [key: string]: any;
+
+    constructor(data?: IHttpValidationProblemDetails) {
+        super(data);
+    }
+
+    override init(_data?: any) {
+        super.init(_data);
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            if (_data["errors"]) {
+                this.errors = {} as any;
+                for (let key in _data["errors"]) {
+                    if (_data["errors"].hasOwnProperty(key))
+                        (this.errors as any)![key] = _data["errors"][key] !== undefined ? _data["errors"][key] : [];
+                }
+            }
+        }
+    }
+
+    static override fromJS(data: any): HttpValidationProblemDetails {
+        data = typeof data === 'object' ? data : {};
+        let result = new HttpValidationProblemDetails();
+        result.init(data);
+        return result;
+    }
+
+    override toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        if (this.errors) {
+            data["errors"] = {};
+            for (let key in this.errors) {
+                if (this.errors.hasOwnProperty(key))
+                    (data["errors"] as any)[key] = (this.errors as any)[key];
+            }
+        }
+        super.toJSON(data);
+        return data;
+    }
+}
+
+export interface IHttpValidationProblemDetails extends IProblemDetails {
+    errors?: { [key: string]: string[]; };
+
+    [key: string]: any;
+}
+
 export class NormalizedEvent implements INormalizedEvent {
     id?: string;
     sourceId?: string;
@@ -1716,6 +2296,12 @@ export interface IUpdateEventSeriesRequest {
     startUtc?: Date;
     endUtc?: Date | undefined;
     isAllDay?: boolean;
+}
+
+function formatDate(d: Date) {
+    return d.getFullYear() + '-' + 
+        (d.getMonth() < 9 ? ('0' + (d.getMonth()+1)) : (d.getMonth()+1)) + '-' +
+        (d.getDate() < 10 ? ('0' + d.getDate()) : d.getDate());
 }
 
 export class ApiException extends Error {
