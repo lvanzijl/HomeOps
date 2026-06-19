@@ -1,6 +1,14 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import { AgendaLayerSettingsDto } from '../api/homeOpsApiClient';
 import type { EventSource } from '../events/eventSourceModel';
-import { createDefaultAgendaLayerSettings, getAgendaStorageKey, loadAgendaLayerSettings, saveAgendaLayerSettings, updateAgendaLayerSource } from './layerSettings';
+import {
+  createDefaultAgendaLayerSettings,
+  getAgendaDeviceKeyStorageKey,
+  getOrCreateAgendaDeviceKey,
+  loadAgendaLayerSettings,
+  saveAgendaLayerSettings,
+  updateAgendaLayerSource,
+} from './layerSettings';
 
 const sources: readonly EventSource[] = [
   {
@@ -31,13 +39,34 @@ describe('agenda layer settings persistence', () => {
     expect(settings.months.enabledSourceIds).toEqual({ 'manual-events': true, 'school-holidays': false });
   });
 
-  it('saves and loads settings through storage', () => {
-    const storage = createMemoryStorage();
+  it('loads settings through the generated API client and defaults unknown new sources', async () => {
+    const client = {
+      getAgendaLayerSettings: vi.fn().mockResolvedValue(new AgendaLayerSettingsDto({
+        week: { 'manual-events': false },
+        months: { 'manual-events': true },
+      })),
+    };
+
+    const loaded = await loadAgendaLayerSettings(client, 'device-a', sources);
+
+    expect(client.getAgendaLayerSettings).toHaveBeenCalledWith('device-a');
+    expect(loaded.week.enabledSourceIds).toEqual({ 'manual-events': false, 'school-holidays': false });
+    expect(loaded.months.enabledSourceIds).toEqual({ 'manual-events': true, 'school-holidays': false });
+  });
+
+  it('saves settings through the generated API client', async () => {
     const settings = updateAgendaLayerSource(createDefaultAgendaLayerSettings(sources), 'week', 'manual-events', false);
+    const client = {
+      saveAgendaLayerSettings: vi.fn().mockResolvedValue(new AgendaLayerSettingsDto({
+        week: settings.week.enabledSourceIds,
+        months: settings.months.enabledSourceIds,
+      })),
+    };
 
-    saveAgendaLayerSettings(storage, settings);
+    const saved = await saveAgendaLayerSettings(client, 'device-a', settings);
 
-    expect(loadAgendaLayerSettings(storage, sources)).toEqual(settings);
+    expect(client.saveAgendaLayerSettings).toHaveBeenCalledWith('device-a', expect.objectContaining({ week: settings.week.enabledSourceIds }));
+    expect(saved).toEqual(settings);
   });
 
   it('keeps week and months view settings isolated', () => {
@@ -47,40 +76,15 @@ describe('agenda layer settings persistence', () => {
     expect(settings.months.enabledSourceIds['manual-events']).toBe(true);
   });
 
-  it('recovers defaults from corrupt storage', () => {
+  it('persists a generated device key locally without storing layer settings locally', () => {
     const storage = createMemoryStorage();
-    storage.setItem(getAgendaStorageKey(), '{not-json');
 
-    expect(loadAgendaLayerSettings(storage, sources)).toEqual(createDefaultAgendaLayerSettings(sources));
-  });
+    const deviceKey = getOrCreateAgendaDeviceKey(storage);
+    const loadedAgain = getOrCreateAgendaDeviceKey(storage);
 
-  it('keeps existing settings and defaults new sources when sources are added', () => {
-    const storage = createMemoryStorage();
-    storage.setItem(
-      getAgendaStorageKey(),
-      JSON.stringify({
-        week: { enabledSourceIds: { 'manual-events': false } },
-        months: { enabledSourceIds: { 'manual-events': true } },
-      }),
-    );
-
-    const expandedSources: readonly EventSource[] = [
-      ...sources,
-      {
-        id: 'tv-series',
-        name: 'TV Series',
-        type: 'tvSeries',
-        enabled: true,
-        capability: 'readOnly',
-        visibility: { visibleByDefault: true },
-        color: { hex: '#db2777' },
-      },
-    ];
-
-    const loaded = loadAgendaLayerSettings(storage, expandedSources);
-
-    expect(loaded.week.enabledSourceIds).toEqual({ 'manual-events': false, 'school-holidays': false, 'tv-series': true });
-    expect(loaded.months.enabledSourceIds).toEqual({ 'manual-events': true, 'school-holidays': false, 'tv-series': true });
+    expect(deviceKey).toMatch(/^homeops-/);
+    expect(loadedAgain).toBe(deviceKey);
+    expect(storage.getItem(getAgendaDeviceKeyStorageKey())).toBe(deviceKey);
   });
 });
 

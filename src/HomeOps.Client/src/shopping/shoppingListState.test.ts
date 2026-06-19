@@ -1,46 +1,32 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
-import { demoShoppingListItems } from '../demo/demoShoppingListData';
-import { addShoppingListItem, getActiveShoppingListItems, getCompletedShoppingListItems, removeShoppingListItem, toggleShoppingListItem } from './shoppingListState';
+import { describe, expect, it } from 'vitest';
+import { getActiveShoppingListItems, getCompletedShoppingListItems, removeShoppingListItemById, upsertShoppingListItem } from './shoppingListState';
 
-afterEach(() => {
-  vi.restoreAllMocks();
-});
-
-describe('demo shopping list dataset', () => {
-  it('contains representative active and completed items', () => {
-    expect(demoShoppingListItems.map((item) => item.label)).toEqual([
-      'Bread',
-      'Milk',
-      'Bananas',
-      'Coffee',
-      'Dishwasher tablets',
-    ]);
-    expect(getActiveShoppingListItems(demoShoppingListItems).length).toBeGreaterThan(0);
-    expect(getCompletedShoppingListItems(demoShoppingListItems).length).toBeGreaterThan(0);
-  });
-});
+const shoppingItems = [
+  { id: 'bread', label: 'Bread', completed: false },
+  { id: 'milk', label: 'Milk', completed: false },
+  { id: 'coffee', label: 'Coffee', completed: true },
+];
 
 describe('shopping list state helpers', () => {
-  it('creates and adds an active item', () => {
-    vi.spyOn(Date, 'now').mockReturnValue(1_234_567);
-
-    const items = addShoppingListItem([], ' Apples ');
-
-    expect(items).toEqual([{ id: 'apples-qglj', label: 'Apples', completed: false }]);
+  it('groups active and completed items', () => {
+    expect(getActiveShoppingListItems(shoppingItems).map((item) => item.label)).toEqual(['Bread', 'Milk']);
+    expect(getCompletedShoppingListItems(shoppingItems).map((item) => item.label)).toEqual(['Coffee']);
   });
 
-  it('does not add blank items', () => {
-    expect(addShoppingListItem(demoShoppingListItems, '   ')).toBe(demoShoppingListItems);
+  it('upserts a created item', () => {
+    const items = upsertShoppingListItem(shoppingItems, { id: 'apples', label: 'Apples', completed: false });
+
+    expect(items.map((item) => item.label)).toEqual(['Bread', 'Milk', 'Coffee', 'Apples']);
   });
 
-  it('toggles item completion', () => {
-    const items = toggleShoppingListItem(demoShoppingListItems, 'bread');
+  it('upserts an updated item', () => {
+    const items = upsertShoppingListItem(shoppingItems, { id: 'milk', label: 'Milk', completed: true });
 
-    expect(items.find((item) => item.id === 'bread')?.completed).toBe(true);
+    expect(items.find((item) => item.id === 'milk')?.completed).toBe(true);
   });
 
   it('removes an item', () => {
-    const items = removeShoppingListItem(demoShoppingListItems, 'milk');
+    const items = removeShoppingListItemById(shoppingItems, 'milk');
 
     expect(items.some((item) => item.id === 'milk')).toBe(false);
   });

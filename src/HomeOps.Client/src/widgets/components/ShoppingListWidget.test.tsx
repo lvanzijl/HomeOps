@@ -1,0 +1,92 @@
+import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { ShoppingListWidget } from './ShoppingListWidget';
+
+const apiClient = {} as never;
+
+vi.mock('../../shopping/listsApi', () => ({
+  createListsApiClient: () => apiClient,
+  loadShoppingList: vi.fn(),
+  addShoppingListItem: vi.fn(),
+  toggleShoppingListItem: vi.fn(),
+  removeShoppingListItem: vi.fn(),
+}));
+
+async function mockedListsApi() {
+  return await import('../../shopping/listsApi');
+}
+
+const widgetProps = {
+  definition: {
+    id: 'shopping-list-mvp',
+    type: 'shoppingList' as const,
+    title: 'Shopping List',
+    settings: {},
+  },
+  instance: {
+    id: 'home-shopping-list-widget',
+    widgetDefinitionId: 'shopping-list-mvp',
+    title: 'Shopping List',
+    settings: {},
+  },
+};
+
+afterEach(() => cleanup());
+
+describe('ShoppingListWidget API-backed behavior', () => {
+  beforeEach(async () => {
+    vi.clearAllMocks();
+    const listsApi = await mockedListsApi();
+    vi.mocked(listsApi.loadShoppingList).mockResolvedValue({
+      listId: 'shopping-list-id',
+      items: [
+        { id: 'bread', label: 'Bread', completed: false },
+        { id: 'coffee', label: 'Coffee', completed: true },
+      ],
+    });
+    vi.mocked(listsApi.addShoppingListItem).mockResolvedValue({ id: 'apples', label: 'Apples', completed: false });
+    vi.mocked(listsApi.toggleShoppingListItem).mockResolvedValue({ id: 'bread', label: 'Bread', completed: true });
+    vi.mocked(listsApi.removeShoppingListItem).mockResolvedValue(undefined);
+  });
+
+  it('loads shopping list items from the API-backed list service', async () => {
+    const listsApi = await mockedListsApi();
+
+    render(<ShoppingListWidget {...widgetProps} />);
+
+    expect(await screen.findByText('Bread')).not.toBeNull();
+    expect(screen.getByText('Coffee')).not.toBeNull();
+    expect(listsApi.loadShoppingList).toHaveBeenCalledWith(apiClient);
+  });
+
+  it('adds an item through the API-backed list service', async () => {
+    const user = userEvent.setup();
+    const listsApi = await mockedListsApi();
+    render(<ShoppingListWidget {...widgetProps} />);
+
+    await screen.findByText('Bread');
+    await user.type(screen.getByPlaceholderText('Add an item'), 'Apples');
+    await user.click(screen.getByRole('button', { name: 'Add' }));
+
+    expect(listsApi.addShoppingListItem).toHaveBeenCalledWith(apiClient, 'shopping-list-id', 'Apples');
+    expect(await screen.findByText('Apples')).not.toBeNull();
+  });
+
+  it('toggles and removes items through the API-backed list service', async () => {
+    const user = userEvent.setup();
+    const listsApi = await mockedListsApi();
+    render(<ShoppingListWidget {...widgetProps} />);
+
+    const bread = await screen.findByText('Bread');
+    await user.click(within(bread.closest('label')!).getByRole('checkbox'));
+
+    await waitFor(() => expect(listsApi.toggleShoppingListItem).toHaveBeenCalledWith(apiClient, 'shopping-list-id', 'bread'));
+
+    const breadAfterToggle = await screen.findByText('Bread');
+    await user.click(within(breadAfterToggle.closest('li')!).getByRole('button', { name: 'Remove' }));
+
+    expect(listsApi.removeShoppingListItem).toHaveBeenCalledWith(apiClient, 'shopping-list-id', 'bread');
+    await waitFor(() => expect(screen.queryByText('Bread')).toBeNull());
+  });
+});

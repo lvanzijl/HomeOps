@@ -1,50 +1,126 @@
-import { FormEvent, useState } from 'react';
-import { demoShoppingListItems } from '../../demo/demoShoppingListData';
-import { addShoppingListItem, getActiveShoppingListItems, getCompletedShoppingListItems, removeShoppingListItem, toggleShoppingListItem } from '../../shopping/shoppingListState';
+import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { addShoppingListItem, createListsApiClient, loadShoppingList, removeShoppingListItem, toggleShoppingListItem } from '../../shopping/listsApi';
 import type { ShoppingListItem } from '../../shopping/shoppingListModel';
+import { getActiveShoppingListItems, getCompletedShoppingListItems, removeShoppingListItemById, upsertShoppingListItem } from '../../shopping/shoppingListState';
 import type { WidgetRenderProps } from '../WidgetRenderer';
 
 export function ShoppingListWidget({ instance }: WidgetRenderProps) {
-  const [items, setItems] = useState<readonly ShoppingListItem[]>(demoShoppingListItems);
+  const apiClient = useMemo(() => createListsApiClient(), []);
+  const [listId, setListId] = useState<string | null>(null);
+  const [items, setItems] = useState<readonly ShoppingListItem[]>([]);
   const [newItemLabel, setNewItemLabel] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let ignoreResult = false;
+
+    async function loadItems() {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const shoppingList = await loadShoppingList(apiClient);
+
+        if (!ignoreResult) {
+          setListId(shoppingList.listId);
+          setItems(shoppingList.items);
+        }
+      } catch {
+        if (!ignoreResult) {
+          setError('Shopping list could not be loaded.');
+        }
+      } finally {
+        if (!ignoreResult) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    void loadItems();
+
+    return () => {
+      ignoreResult = true;
+    };
+  }, [apiClient]);
 
   const activeItems = getActiveShoppingListItems(items);
   const completedItems = getCompletedShoppingListItems(items);
 
-  function addItem(event: FormEvent<HTMLFormElement>) {
+  async function addItem(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setItems((current) => addShoppingListItem(current, newItemLabel));
-    setNewItemLabel('');
+
+    if (!listId) {
+      return;
+    }
+
+    try {
+      const createdItem = await addShoppingListItem(apiClient, listId, newItemLabel);
+      if (createdItem) {
+        setItems((current) => upsertShoppingListItem(current, createdItem));
+      }
+      setNewItemLabel('');
+    } catch {
+      setError('Shopping item could not be added.');
+    }
+  }
+
+  async function toggleItem(itemId: string) {
+    if (!listId) {
+      return;
+    }
+
+    try {
+      const updatedItem = await toggleShoppingListItem(apiClient, listId, itemId);
+      setItems((current) => upsertShoppingListItem(current, updatedItem));
+    } catch {
+      setError('Shopping item could not be updated.');
+    }
+  }
+
+  async function removeItem(itemId: string) {
+    if (!listId) {
+      return;
+    }
+
+    try {
+      await removeShoppingListItem(apiClient, listId, itemId);
+      setItems((current) => removeShoppingListItemById(current, itemId));
+    } catch {
+      setError('Shopping item could not be removed.');
+    }
   }
 
   return (
     <article className="widget-card shopping-widget" aria-label={instance.title}>
       <p className="widget-type">Shopping List Widget</p>
       <h3>{instance.title}</h3>
+      {isLoading ? <p className="shopping-empty">Loading shopping list…</p> : null}
+      {error ? <p className="shopping-empty" role="alert">{error}</p> : null}
       <form className="shopping-add-form" onSubmit={addItem}>
         <label>
           <span className="visually-hidden">New shopping item</span>
           <input
+            disabled={isLoading || !listId}
             onChange={(event) => setNewItemLabel(event.target.value)}
             placeholder="Add an item"
             type="text"
             value={newItemLabel}
           />
         </label>
-        <button type="submit">Add</button>
+        <button disabled={isLoading || !listId} type="submit">Add</button>
       </form>
       <ShoppingListSection
         emptyLabel="No active items."
         items={activeItems}
-        onRemove={(itemId) => setItems((current) => removeShoppingListItem(current, itemId))}
-        onToggle={(itemId) => setItems((current) => toggleShoppingListItem(current, itemId))}
+        onRemove={removeItem}
+        onToggle={toggleItem}
         title="Active"
       />
       <ShoppingListSection
         emptyLabel="No completed items."
         items={completedItems}
-        onRemove={(itemId) => setItems((current) => removeShoppingListItem(current, itemId))}
-        onToggle={(itemId) => setItems((current) => toggleShoppingListItem(current, itemId))}
+        onRemove={removeItem}
+        onToggle={toggleItem}
         title="Completed"
       />
     </article>

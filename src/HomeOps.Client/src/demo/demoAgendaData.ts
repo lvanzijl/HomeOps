@@ -2,16 +2,7 @@ import type { EventSource, NormalizedEvent } from '../events/eventSourceModel';
 
 export const demoToday = '2026-06-18';
 
-export const demoEventSources: readonly EventSource[] = [
-  {
-    id: 'manual-events',
-    name: 'HomeOps Manual Events',
-    type: 'manual',
-    enabled: true,
-    capability: 'writable',
-    visibility: { visibleByDefault: true, groupName: 'Household' },
-    color: { hex: '#4f46e5' },
-  },
+export const demoReadOnlyEventSources: readonly EventSource[] = [
   {
     id: 'school-holidays',
     name: 'School Holidays',
@@ -37,22 +28,13 @@ export const demoEventSources: readonly EventSource[] = [
     name: 'Birthdays',
     type: 'birthdays',
     enabled: true,
-    capability: 'writable',
+    capability: 'readOnly',
     visibility: { visibleByDefault: true, groupName: 'Household' },
     color: { hex: '#f97316' },
   },
 ] as const;
 
-export const demoEvents: readonly NormalizedEvent[] = [
-  {
-    id: 'today-school-breakfast',
-    sourceId: 'manual-events',
-    title: 'Pack lunches and review school pickup plan',
-    startsAt: '2026-06-18T07:30:00Z',
-    endsAt: '2026-06-18T08:00:00Z',
-    allDay: false,
-    editable: true,
-  },
+export const demoReadOnlyEvents: readonly NormalizedEvent[] = [
   {
     id: 'today-holiday-reminder',
     sourceId: 'school-holidays',
@@ -61,15 +43,6 @@ export const demoEvents: readonly NormalizedEvent[] = [
     allDay: true,
     editable: false,
     externalEventId: 'school-2026-06-18',
-  },
-  {
-    id: 'tomorrow-family-call',
-    sourceId: 'manual-events',
-    title: 'Family planning call',
-    startsAt: '2026-06-19T18:00:00Z',
-    endsAt: '2026-06-19T18:45:00Z',
-    allDay: false,
-    editable: true,
   },
   {
     id: 'tomorrow-tv-premiere',
@@ -82,15 +55,6 @@ export const demoEvents: readonly NormalizedEvent[] = [
     externalEventId: 'tv-episode-1001',
   },
   {
-    id: 'later-this-week-library',
-    sourceId: 'manual-events',
-    title: 'Library books due',
-    startsAt: '2026-06-21T16:00:00Z',
-    endsAt: '2026-06-21T16:15:00Z',
-    allDay: false,
-    editable: true,
-  },
-  {
     id: 'next-month-camp',
     sourceId: 'school-holidays',
     title: 'Summer camp registration confirmation day',
@@ -98,15 +62,6 @@ export const demoEvents: readonly NormalizedEvent[] = [
     allDay: true,
     editable: false,
     externalEventId: 'school-2026-07-10',
-  },
-  {
-    id: 'future-long-title',
-    sourceId: 'manual-events',
-    title: 'Quarterly household planning session with extended agenda title for layout validation',
-    startsAt: '2026-08-15T10:00:00Z',
-    endsAt: '2026-08-15T12:00:00Z',
-    allDay: false,
-    editable: true,
   },
   {
     id: 'future-tv-marathon',

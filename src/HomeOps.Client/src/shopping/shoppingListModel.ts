@@ -5,5 +5,6 @@ export interface ShoppingListItem {
 }
 
 export interface ShoppingListState {
+  listId: string | null;
   items: readonly ShoppingListItem[];
 }
