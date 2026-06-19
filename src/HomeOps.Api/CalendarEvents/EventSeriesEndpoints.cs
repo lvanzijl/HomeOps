@@ -38,15 +38,26 @@ public static class EventSeriesEndpoints
 
         events.MapGet("/", async (HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
         {
+            var household = await dbContext.Households.AsNoTracking().SingleAsync(candidate => candidate.Id == SeedHousehold.Id, cancellationToken);
+            var startsOn = DateOnly.FromDateTime(DateTimeOffset.UtcNow.UtcDateTime).AddYears(-1);
+            var endsOn = startsOn.AddMonths(30);
             var eventSeries = await dbContext.EventSeries
                 .AsNoTracking()
+                .Include(eventSeries => eventSeries.Exceptions)
                 .Where(eventSeries => eventSeries.EventSource!.HouseholdId == SeedHousehold.Id)
                 .OrderBy(eventSeries => eventSeries.StartDate)
                 .ThenBy(eventSeries => eventSeries.StartTime)
                 .ThenBy(eventSeries => eventSeries.Title)
                 .ToListAsync(cancellationToken);
 
-            return Results.Ok(eventSeries.Select(EventSeriesNormalizer.ToNormalizedEvent).ToList());
+            var occurrences = eventSeries
+                .SelectMany(series => EventOccurrenceGenerator.Generate(series, household.TimeZoneId, startsOn, endsOn))
+                .OrderBy(occurrence => occurrence.StartsAt)
+                .ThenBy(occurrence => occurrence.Title)
+                .Select(occurrence => occurrence.ToNormalizedEvent())
+                .ToList();
+
+            return Results.Ok(occurrences);
         }).WithName("GetEvents").Produces<IReadOnlyCollection<NormalizedEvent>>();
 
         events.MapGet("/{eventId:guid}", async (Guid eventId, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>

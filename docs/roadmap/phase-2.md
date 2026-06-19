@@ -13,9 +13,10 @@
 | 2.9 | Calendar Portability Hardening, Restore Safety, and JSON Contract Freeze | Completed |
 | 2.10 | Calendar Portability UX and Pre-Restore Export | Completed |
 | 2.11 | Calendar Validation, Snapshot Storage, Restore Safety UX, and Documentation Hardening | Completed |
-| 2.12 | Real Google Calendar Read-Only Integration | Recommended next |
-| 2.13 | Sensor Dashboard Foundation | Planned |
-| 2.14 | Media/TV Source Foundation | Planned |
+| 2.12 | Calendar Recurrence, EventException, and Occurrence Generation Runtime | Completed |
+| 2.13 | Real Google Calendar Read-Only Integration | Recommended next |
+| 2.14 | Sensor Dashboard Foundation | Planned |
+| 2.15 | Media/TV Source Foundation | Planned |
 
 Phase 2 theme: Durable Household Core.
 
@@ -45,6 +46,9 @@ Calendar JSON Export and Full Restore Foundation adds a versioned canonical `hom
 
 ## Completed Slice 2.9 — Calendar Portability Hardening, Restore Safety, and JSON Contract Freeze
 Calendar Portability Hardening freezes the V1 canonical JSON contract, reserves recurrence, exception, and future metadata sections, strengthens schema/version/identifier/ownership/timezone/timing validation, and keeps restore local-only and full-restore-only. Restore validation occurs before destructive actions, rejected exports leave calendar data unchanged, and automatic local pre-restore export snapshots now run before calendar full restore replacement.
+
+## Completed Slice 2.12 — Calendar Recurrence, EventException, and Occurrence Generation Runtime
+Calendar Recurrence adds V1 recurrence metadata to EventSeries, supports None/Daily/Weekly/Monthly/Yearly only, persists EventException records for skipped and modified occurrences, and expands Agenda-facing EventOccurrence output at runtime with household timezone local wall-clock semantics. EventOccurrence remains projection-only and is not persisted. Advanced recurrence rules, ICS, recurrence UI, occurrence edit UI, per-event timezones, notifications, reminders, and authentication remain out of scope.
 
 ## Recommended Next Slice
 Proceed with Real Google Calendar Read-Only Integration only after preserving HomeOps Calendar as source of truth and local-only portability boundaries. Keep any Google Calendar work optional and integration-scoped; do not add two-way sync, authentication beyond an explicitly scoped integration requirement, sensors, media, notifications, recurring event editing, or offline-first synchronization.

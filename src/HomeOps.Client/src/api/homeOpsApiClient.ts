@@ -1972,7 +1972,14 @@ export interface ICalendarExportRecurrenceSection {
 export class CalendarExportEventException implements ICalendarExportEventException {
     id?: string;
     eventSeriesId?: string;
+    occurrenceDate?: Date;
     exceptionType?: string;
+    title?: string | undefined;
+    description?: string | undefined;
+    startDate?: Date | undefined;
+    startTime?: string | undefined;
+    endDate?: Date | undefined;
+    endTime?: string | undefined;
 
     constructor(data?: ICalendarExportEventException) {
         if (data) {
@@ -1987,7 +1994,14 @@ export class CalendarExportEventException implements ICalendarExportEventExcepti
         if (_data) {
             this.id = _data["id"];
             this.eventSeriesId = _data["eventSeriesId"];
+            this.occurrenceDate = _data["occurrenceDate"] ? new Date(_data["occurrenceDate"].toString()) : undefined as any;
             this.exceptionType = _data["exceptionType"];
+            this.title = _data["title"];
+            this.description = _data["description"];
+            this.startDate = _data["startDate"] ? new Date(_data["startDate"].toString()) : undefined as any;
+            this.startTime = _data["startTime"];
+            this.endDate = _data["endDate"] ? new Date(_data["endDate"].toString()) : undefined as any;
+            this.endTime = _data["endTime"];
         }
     }
 
@@ -2002,7 +2016,14 @@ export class CalendarExportEventException implements ICalendarExportEventExcepti
         data = typeof data === 'object' ? data : {};
         data["id"] = this.id;
         data["eventSeriesId"] = this.eventSeriesId;
+        data["occurrenceDate"] = this.occurrenceDate ? formatDate(this.occurrenceDate) : undefined as any;
         data["exceptionType"] = this.exceptionType;
+        data["title"] = this.title;
+        data["description"] = this.description;
+        data["startDate"] = this.startDate ? formatDate(this.startDate) : undefined as any;
+        data["startTime"] = this.startTime;
+        data["endDate"] = this.endDate ? formatDate(this.endDate) : undefined as any;
+        data["endTime"] = this.endTime;
         return data;
     }
 }
@@ -2010,7 +2031,14 @@ export class CalendarExportEventException implements ICalendarExportEventExcepti
 export interface ICalendarExportEventException {
     id?: string;
     eventSeriesId?: string;
+    occurrenceDate?: Date;
     exceptionType?: string;
+    title?: string | undefined;
+    description?: string | undefined;
+    startDate?: Date | undefined;
+    startTime?: string | undefined;
+    endDate?: Date | undefined;
+    endTime?: string | undefined;
 }
 
 export class ProblemDetails implements IProblemDetails {

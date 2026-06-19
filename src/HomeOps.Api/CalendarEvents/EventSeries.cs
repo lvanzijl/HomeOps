@@ -12,6 +12,8 @@ public sealed class EventSeries
     public TimeOnly? StartTime { get; set; }
     public DateOnly EndDate { get; set; }
     public TimeOnly? EndTime { get; set; }
+    public RecurrenceType RecurrenceType { get; set; } = RecurrenceType.None;
+    public ICollection<EventException> Exceptions { get; set; } = new List<EventException>();
     public DateTimeOffset CreatedUtc { get; set; }
     public DateTimeOffset UpdatedUtc { get; set; }
 }

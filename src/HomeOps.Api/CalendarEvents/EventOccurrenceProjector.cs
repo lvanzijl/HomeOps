@@ -2,18 +2,9 @@ namespace HomeOps.Api.CalendarEvents;
 
 public static class EventOccurrenceProjector
 {
-    private static readonly TimeOnly Midnight = new(0, 0, 0);
+    private const string DefaultTimeZoneId = "Europe/Amsterdam";
 
-    public static EventOccurrence Project(EventSeries series) => new(
-        series.Id,
-        series.Id,
-        series.EventSourceId,
-        series.Title,
-        series.Description,
-        ToDateTimeOffset(series.StartDate, series.StartTime ?? Midnight),
-        ToOptionalEnd(series),
-        series.IsAllDay,
-        true);
+    public static EventOccurrence Project(EventSeries series) => EventOccurrenceGenerator.Generate(series, DefaultTimeZoneId, series.StartDate, series.StartDate).Single();
 
     public static EventSeries FromRequest(Guid id, Guid eventSourceId, string title, string? description, DateTimeOffset startUtc, DateTimeOffset? endUtc, bool isAllDay, DateTimeOffset createdUtc, DateTimeOffset updatedUtc) => new()
     {
@@ -26,6 +17,7 @@ public static class EventOccurrenceProjector
         StartTime = isAllDay ? null : TimeOnly.FromDateTime(startUtc.UtcDateTime),
         EndDate = DateOnly.FromDateTime((endUtc ?? startUtc).UtcDateTime),
         EndTime = isAllDay ? null : TimeOnly.FromDateTime((endUtc ?? startUtc).UtcDateTime),
+        RecurrenceType = RecurrenceType.None,
         CreatedUtc = createdUtc,
         UpdatedUtc = updatedUtc,
     };
@@ -42,15 +34,4 @@ public static class EventOccurrenceProjector
         series.UpdatedUtc = updatedUtc;
     }
 
-    private static DateTimeOffset? ToOptionalEnd(EventSeries series)
-    {
-        if (series.EndDate == default)
-        {
-            return null;
-        }
-
-        return ToDateTimeOffset(series.EndDate, series.EndTime ?? Midnight);
-    }
-
-    private static DateTimeOffset ToDateTimeOffset(DateOnly date, TimeOnly time) => new(date.ToDateTime(time), TimeSpan.Zero);
 }

@@ -80,8 +80,8 @@ public sealed class EventSeriesApiTests
         var created = await response.Content.ReadFromJsonAsync<EventSeriesDto>();
         Assert.NotNull(created);
         Assert.True(created.IsAllDay);
-        Assert.Equal(start, created.StartUtc);
-        Assert.Equal(exclusiveEnd, created.EndUtc);
+        Assert.Equal(new DateTimeOffset(2026, 7, 12, 0, 0, 0, TimeSpan.FromHours(2)), created.StartUtc);
+        Assert.Equal(new DateTimeOffset(2026, 7, 19, 0, 0, 0, TimeSpan.FromHours(2)), created.EndUtc);
     }
 
     [Fact]
