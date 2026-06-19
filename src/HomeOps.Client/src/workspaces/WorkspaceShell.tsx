@@ -61,6 +61,12 @@ export function WorkspaceShell() {
         <h2 id="active-workspace-title">{activeWorkspace.label}</h2>
         <p>{activeWorkspace.description}</p>
         <div className="widget-host" aria-label={`${activeWorkspace.label} widgets`}>
+          {activeWorkspace.id === 'settings' && (
+            <WidgetRenderer
+              definition={getWidgetDefinition('calendar-portability-admin')!}
+              instance={{ id: 'calendar-portability-admin-instance', widgetDefinitionId: 'calendar-portability-admin', title: 'Calendar Export / Restore', settings: {} }}
+            />
+          )}
           {widgetInstances.map((instance) => {
             const definition = getWidgetDefinition(instance.widgetDefinitionId);
 

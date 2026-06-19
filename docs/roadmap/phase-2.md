@@ -45,4 +45,8 @@ Calendar JSON Export and Full Restore Foundation adds a versioned canonical `hom
 Calendar Portability Hardening freezes the V1 canonical JSON contract, reserves recurrence, exception, and future metadata sections, strengthens schema/version/identifier/ownership/timezone/timing validation, and keeps restore local-only and full-restore-only. Restore validation occurs before destructive actions, rejected exports leave calendar data unchanged, and automatic pre-restore export is documented as a future safety requirement rather than implemented automation.
 
 ## Recommended Next Slice
-Proceed with Real Google Calendar Read-Only Integration or automatic pre-restore export only after preserving HomeOps Calendar as source of truth. Keep any Google Calendar work optional and integration-scoped; do not add two-way sync, authentication beyond an explicitly scoped integration requirement, sensors, media, notifications, recurring event editing, or offline-first synchronization.
+Proceed with Real Google Calendar Read-Only Integration only after preserving HomeOps Calendar as source of truth and local-only portability boundaries. Keep any Google Calendar work optional and integration-scoped; do not add two-way sync, authentication beyond an explicitly scoped integration requirement, sensors, media, notifications, recurring event editing, or offline-first synchronization.
+
+
+## Calendar Portability UX and Pre-Restore Export Update
+Automatic local pre-restore export snapshots now run before calendar full restore replacement. The Settings workspace now exposes simple local export/restore controls with version, timestamp, validation feedback, friendly errors, and a replacement warning. JSON remains the canonical export format; restore remains local-only and full restore only.

@@ -1,11 +1,15 @@
 using HomeOps.Api.Data;
 using HomeOps.Api.Households;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 namespace HomeOps.Api.CalendarEvents;
 
 public static class CalendarPortabilityService
 {
+    private static readonly JsonSerializerOptions SnapshotJsonOptions = new(JsonSerializerDefaults.Web) { WriteIndented = true };
+
+    public static string PreRestoreSnapshotDirectory { get; set; } = Path.Combine(AppContext.BaseDirectory, "calendar-restore-snapshots");
     public static async Task<CalendarExportDocument> ExportAsync(HomeOpsDbContext dbContext, CancellationToken cancellationToken = default)
     {
         var household = await dbContext.Households.AsNoTracking().SingleAsync(candidate => candidate.Id == SeedHousehold.Id, cancellationToken);
@@ -53,6 +57,19 @@ public static class CalendarPortabilityService
             return new CalendarRestoreResult(false, validationErrors);
         }
 
+        try
+        {
+            var snapshot = await ExportAsync(dbContext, cancellationToken);
+            await WritePreRestoreSnapshotAsync(snapshot, cancellationToken);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or NotSupportedException or ArgumentException or System.Security.SecurityException)
+        {
+            return new CalendarRestoreResult(false, new Dictionary<string, string[]>
+            {
+                ["PreRestoreExport"] = [$"Restore was cancelled because the local pre-restore export snapshot could not be created: {exception.Message}"]
+            });
+        }
+
         var household = await dbContext.Households.SingleAsync(candidate => candidate.Id == SeedHousehold.Id, cancellationToken);
         if (!string.IsNullOrWhiteSpace(document!.Household.TimeZoneId) && IsValidTimeZone(document.Household.TimeZoneId))
         {
@@ -93,6 +110,15 @@ public static class CalendarPortabilityService
         await dbContext.SaveChangesAsync(cancellationToken);
 
         return new CalendarRestoreResult(true, new Dictionary<string, string[]>());
+    }
+
+    private static async Task WritePreRestoreSnapshotAsync(CalendarExportDocument snapshot, CancellationToken cancellationToken)
+    {
+        Directory.CreateDirectory(PreRestoreSnapshotDirectory);
+        var timestamp = DateTimeOffset.UtcNow.ToString("yyyyMMddHHmmssfff");
+        var path = Path.Combine(PreRestoreSnapshotDirectory, $"calendar-pre-restore-{timestamp}.json");
+        await using var stream = File.Create(path);
+        await JsonSerializer.SerializeAsync(stream, snapshot, SnapshotJsonOptions, cancellationToken);
     }
 
     private static Dictionary<string, string[]> Validate(CalendarExportDocument? document)

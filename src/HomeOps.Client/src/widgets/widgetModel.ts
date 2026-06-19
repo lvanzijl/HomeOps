@@ -1,4 +1,4 @@
-export type WidgetType = 'agenda' | 'placeholder' | 'shoppingList' | 'text';
+export type WidgetType = 'agenda' | 'calendarPortability' | 'placeholder' | 'shoppingList' | 'text';
 
 export type WidgetSettings = Record<string, string | number | boolean | null>;
 

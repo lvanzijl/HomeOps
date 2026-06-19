@@ -15,3 +15,7 @@
 Validation pass: Completed on 2026-06-18.
 
 Phase 2 follow-up note: Calendar JSON export, full restore foundations, and V1 contract hardening now preserve the Phase 1 Agenda, Birthday, source filtering, and widget framework boundaries by keeping EventOccurrence projection-only and exporting EventSeries as canonical calendar data.
+
+
+## Calendar Portability UX and Pre-Restore Export Update
+Automatic local pre-restore export snapshots now run before calendar full restore replacement. The Settings workspace now exposes simple local export/restore controls with version, timestamp, validation feedback, friendly errors, and a replacement warning. JSON remains the canonical export format; restore remains local-only and full restore only.
