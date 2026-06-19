@@ -4,7 +4,7 @@
 Phase 2 — Durable Household Core
 
 ## Current Slice
-Slice 2.8 Calendar JSON Export and Full Restore Foundation — Completed
+Slice 2.9 Calendar Portability Hardening, Restore Safety, and JSON Contract Freeze — Completed
 
 ## Completed Slices
 - 1.1 Repository Bootstrap
@@ -24,9 +24,10 @@ Slice 2.8 Calendar JSON Export and Full Restore Foundation — Completed
 - 2.6 EventSeries Contract + Migration
 - 2.7 Calendar Terminology, Projection, and Timezone Foundation
 - 2.8 Calendar JSON Export and Full Restore Foundation
+- 2.9 Calendar Portability Hardening, Restore Safety, and JSON Contract Freeze
 
 ## Next Slice
-Proceed with Calendar portability hardening or Real Google Calendar Read-Only Integration only after preserving HomeOps Calendar source-of-truth boundaries.
+Proceed with Real Google Calendar Read-Only Integration or automatic pre-restore export only after preserving HomeOps Calendar source-of-truth and local-only portability boundaries.
 
 ## Key Architectural Decisions
 - HomeOps is a modular monolith.
@@ -46,9 +47,10 @@ Proceed with Calendar portability hardening or Real Google Calendar Read-Only In
 - Shopping List MVP has been replaced by the generic persisted Lists domain for the Shopping example list.
 - Widgets are presentation units, and shared data models must not be widget-specific.
 - Calendar JSON export is canonical HomeOps portability data.
-- Calendar restore is full restore only; selective import, merge import, and conflict resolution are not implemented.
+- Calendar restore is local-only and full restore only; selective import, merge import, remote restore, and conflict resolution are not implemented.
 - EventOccurrence is projection-only Agenda data and is not canonical export data.
 - Google Drive is a future export destination only; Google Calendar, ICS, recurrence, and EventException runtime behavior remain out of scope.
+- Calendar V1 JSON contract shape is frozen; recurrence, exception, and future metadata sections are reserved without runtime behavior.
 
 ## Phase 2 Durable Lists Foundation
 - EF Core persistence is configured for PostgreSQL with Supabase-compatible standard PostgreSQL behavior.
@@ -65,6 +67,14 @@ Proceed with Calendar portability hardening or Real Google Calendar Read-Only In
 - Seeded default layouts preserve the validated Home, House, Media, and Settings workspace experience.
 - The frontend loads workspace layouts through the generated NSwag TypeScript client and falls back to default layouts if the API layout is unavailable or unusable.
 - No drag-and-drop editor, widget marketplace, authentication, multi-household management, or offline-first synchronization has been introduced.
+
+## Phase 2 Calendar Portability Hardening, Restore Safety, and JSON Contract Freeze
+- Calendar V1 JSON export contract is frozen and remains logical rather than database-shaped.
+- The contract reserves recurrence, exception, and future metadata sections without implementing recurrence or EventException runtime behavior.
+- Restore is explicitly local-only and full-restore-only.
+- Validation covers schema/version, household ownership, identifiers, source references, timing shape, timezone, recurrence, and exception sections before destructive actions.
+- Invalid exports are rejected before modifying existing calendar data.
+- Automatic pre-restore export is documented as a future safety requirement.
 
 ## Phase 2 Calendar JSON Export and Full Restore Foundation
 - Calendar export uses a versioned `homeops.calendar.export` JSON document as the canonical HomeOps Calendar portability format.

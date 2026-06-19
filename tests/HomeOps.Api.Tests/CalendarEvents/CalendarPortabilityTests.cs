@@ -24,7 +24,10 @@ public sealed class CalendarPortabilityTests
         Assert.Equal(HouseholdTimeZone.DefaultTimeZoneId, export.Household.TimeZoneId);
         Assert.Contains(export.Calendar.EventSeries, candidate => candidate.Id == SeedCalendarEvents.DentistAppointmentId);
         Assert.Contains(export.Calendar.EventSources, candidate => candidate.Id == SeedCalendarEvents.EventSourceId);
+        Assert.Empty(export.Calendar.Recurrence.Rules);
         Assert.Empty(export.Calendar.Exceptions);
+        Assert.Empty(export.Calendar.Metadata);
+        Assert.Empty(export.Metadata);
         Assert.DoesNotContain(export.GetType().GetProperties(), property => property.Name.Contains("Occurrence", StringComparison.OrdinalIgnoreCase));
         Assert.DoesNotContain(export.Calendar.GetType().GetProperties(), property => property.Name.Contains("Occurrence", StringComparison.OrdinalIgnoreCase));
     }
@@ -95,6 +98,45 @@ public sealed class CalendarPortabilityTests
         Assert.True(result.Succeeded);
         var after = await dbContext.EventSeries.OrderBy(series => series.Id).Select(series => EventSeriesNormalizer.ToNormalizedEvent(series)).ToListAsync();
         Assert.Equal(before.Select(EventProjection), after.Select(EventProjection));
+    }
+
+
+    [Fact]
+    public async Task RestoreRejectsInvalidExportBeforeModifyingExistingCalendarData()
+    {
+        await using var dbContext = CreateDbContext("invalid-rollback");
+        var before = await dbContext.EventSeries.OrderBy(series => series.Id).Select(series => series.Title).ToListAsync();
+        var export = await CalendarPortabilityService.ExportAsync(dbContext);
+        var invalid = export with
+        {
+            Calendar = export.Calendar with
+            {
+                EventSeries =
+                [
+                    export.Calendar.EventSeries.First() with { EventSourceId = Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc") }
+                ]
+            }
+        };
+
+        var result = await CalendarPortabilityService.RestoreAsync(dbContext, invalid);
+
+        Assert.False(result.Succeeded);
+        Assert.Contains("Calendar.EventSeries.Required", result.ValidationErrors.Keys);
+        var after = await dbContext.EventSeries.OrderBy(series => series.Id).Select(series => series.Title).ToListAsync();
+        Assert.Equal(before, after);
+    }
+
+    [Fact]
+    public async Task RestoreRejectsUnstableV1ContractShape()
+    {
+        await using var dbContext = CreateDbContext("contract-shape");
+        var export = await CalendarPortabilityService.ExportAsync(dbContext);
+        var invalid = export with { Calendar = export.Calendar with { Recurrence = new CalendarExportRecurrenceSection([new CalendarExportRecurrence("reserved", "future")]) } };
+
+        var result = await CalendarPortabilityService.RestoreAsync(dbContext, invalid);
+
+        Assert.False(result.Succeeded);
+        Assert.Contains("Calendar.Recurrence", result.ValidationErrors.Keys);
     }
 
     [Fact]

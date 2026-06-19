@@ -1555,6 +1555,7 @@ export class CalendarExportDocument implements ICalendarExportDocument {
     exportedUtc?: Date;
     household?: CalendarExportHousehold;
     calendar?: CalendarExportPayload;
+    metadata?: { [key: string]: string; };
 
     constructor(data?: ICalendarExportDocument) {
         if (data) {
@@ -1572,6 +1573,13 @@ export class CalendarExportDocument implements ICalendarExportDocument {
             this.exportedUtc = _data["exportedUtc"] ? new Date(_data["exportedUtc"].toString()) : undefined as any;
             this.household = _data["household"] ? CalendarExportHousehold.fromJS(_data["household"]) : undefined as any;
             this.calendar = _data["calendar"] ? CalendarExportPayload.fromJS(_data["calendar"]) : undefined as any;
+            if (_data["metadata"]) {
+                this.metadata = {} as any;
+                for (let key in _data["metadata"]) {
+                    if (_data["metadata"].hasOwnProperty(key))
+                        (this.metadata as any)![key] = _data["metadata"][key];
+                }
+            }
         }
     }
 
@@ -1589,6 +1597,13 @@ export class CalendarExportDocument implements ICalendarExportDocument {
         data["exportedUtc"] = this.exportedUtc ? this.exportedUtc.toISOString() : undefined as any;
         data["household"] = this.household ? this.household.toJSON() : undefined as any;
         data["calendar"] = this.calendar ? this.calendar.toJSON() : undefined as any;
+        if (this.metadata) {
+            data["metadata"] = {};
+            for (let key in this.metadata) {
+                if (this.metadata.hasOwnProperty(key))
+                    (data["metadata"] as any)[key] = (this.metadata as any)[key];
+            }
+        }
         return data;
     }
 }
@@ -1599,6 +1614,7 @@ export interface ICalendarExportDocument {
     exportedUtc?: Date;
     household?: CalendarExportHousehold;
     calendar?: CalendarExportPayload;
+    metadata?: { [key: string]: string; };
 }
 
 export class CalendarExportHousehold implements ICalendarExportHousehold {
@@ -1645,7 +1661,9 @@ export class CalendarExportPayload implements ICalendarExportPayload {
     version?: number;
     eventSources?: CalendarExportEventSource[];
     eventSeries?: CalendarExportEventSeries[];
+    recurrence?: CalendarExportRecurrenceSection;
     exceptions?: CalendarExportEventException[];
+    metadata?: { [key: string]: string; };
 
     constructor(data?: ICalendarExportPayload) {
         if (data) {
@@ -1669,10 +1687,18 @@ export class CalendarExportPayload implements ICalendarExportPayload {
                 for (let item of _data["eventSeries"])
                     this.eventSeries!.push(CalendarExportEventSeries.fromJS(item));
             }
+            this.recurrence = _data["recurrence"] ? CalendarExportRecurrenceSection.fromJS(_data["recurrence"]) : undefined as any;
             if (Array.isArray(_data["exceptions"])) {
                 this.exceptions = [] as any;
                 for (let item of _data["exceptions"])
                     this.exceptions!.push(CalendarExportEventException.fromJS(item));
+            }
+            if (_data["metadata"]) {
+                this.metadata = {} as any;
+                for (let key in _data["metadata"]) {
+                    if (_data["metadata"].hasOwnProperty(key))
+                        (this.metadata as any)![key] = _data["metadata"][key];
+                }
             }
         }
     }
@@ -1697,10 +1723,18 @@ export class CalendarExportPayload implements ICalendarExportPayload {
             for (let item of this.eventSeries)
                 data["eventSeries"].push(item ? item.toJSON() : undefined as any);
         }
+        data["recurrence"] = this.recurrence ? this.recurrence.toJSON() : undefined as any;
         if (Array.isArray(this.exceptions)) {
             data["exceptions"] = [];
             for (let item of this.exceptions)
                 data["exceptions"].push(item ? item.toJSON() : undefined as any);
+        }
+        if (this.metadata) {
+            data["metadata"] = {};
+            for (let key in this.metadata) {
+                if (this.metadata.hasOwnProperty(key))
+                    (data["metadata"] as any)[key] = (this.metadata as any)[key];
+            }
         }
         return data;
     }
@@ -1710,7 +1744,9 @@ export interface ICalendarExportPayload {
     version?: number;
     eventSources?: CalendarExportEventSource[];
     eventSeries?: CalendarExportEventSeries[];
+    recurrence?: CalendarExportRecurrenceSection;
     exceptions?: CalendarExportEventException[];
+    metadata?: { [key: string]: string; };
 }
 
 export class CalendarExportEventSource implements ICalendarExportEventSource {
@@ -1887,6 +1923,50 @@ export class CalendarExportRecurrence implements ICalendarExportRecurrence {
 export interface ICalendarExportRecurrence {
     ruleType?: string;
     value?: string;
+}
+
+export class CalendarExportRecurrenceSection implements ICalendarExportRecurrenceSection {
+    rules?: CalendarExportRecurrence[];
+
+    constructor(data?: ICalendarExportRecurrenceSection) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            if (Array.isArray(_data["rules"])) {
+                this.rules = [] as any;
+                for (let item of _data["rules"])
+                    this.rules!.push(CalendarExportRecurrence.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): CalendarExportRecurrenceSection {
+        data = typeof data === 'object' ? data : {};
+        let result = new CalendarExportRecurrenceSection();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        if (Array.isArray(this.rules)) {
+            data["rules"] = [];
+            for (let item of this.rules)
+                data["rules"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface ICalendarExportRecurrenceSection {
+    rules?: CalendarExportRecurrence[];
 }
 
 export class CalendarExportEventException implements ICalendarExportEventException {

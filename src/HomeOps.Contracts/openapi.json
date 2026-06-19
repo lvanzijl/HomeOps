@@ -984,6 +984,12 @@
           },
           "calendar": {
             "$ref": "#/components/schemas/CalendarExportPayload"
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
           }
         }
       },
@@ -1020,10 +1026,19 @@
               "$ref": "#/components/schemas/CalendarExportEventSeries"
             }
           },
+          "recurrence": {
+            "$ref": "#/components/schemas/CalendarExportRecurrenceSection"
+          },
           "exceptions": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/CalendarExportEventException"
+            }
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
             }
           }
         }
@@ -1122,6 +1137,18 @@
           },
           "value": {
             "type": "string"
+          }
+        }
+      },
+      "CalendarExportRecurrenceSection": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "rules": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CalendarExportRecurrence"
+            }
           }
         }
       },

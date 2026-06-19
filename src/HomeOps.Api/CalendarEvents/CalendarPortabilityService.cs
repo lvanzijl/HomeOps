@@ -41,7 +41,8 @@ public static class CalendarPortabilityService
             CalendarExportDocument.CurrentSchemaVersion,
             DateTimeOffset.UtcNow,
             new CalendarExportHousehold(household.Id, household.TimeZoneId),
-            new CalendarExportPayload(CalendarExportPayload.CurrentVersion, sources, series, []));
+            new CalendarExportPayload(CalendarExportPayload.CurrentVersion, sources, series, new CalendarExportRecurrenceSection([]), [], new Dictionary<string, string>()),
+            new Dictionary<string, string>());
     }
 
     public static async Task<CalendarRestoreResult> RestoreAsync(HomeOpsDbContext dbContext, CalendarExportDocument? document, CancellationToken cancellationToken = default)
@@ -65,8 +66,6 @@ public static class CalendarPortabilityService
         dbContext.EventSeries.RemoveRange(existingSeries);
         var existingSources = await dbContext.EventSources.Where(source => source.HouseholdId == SeedHousehold.Id).ToListAsync(cancellationToken);
         dbContext.EventSources.RemoveRange(existingSources);
-        await dbContext.SaveChangesAsync(cancellationToken);
-
         dbContext.EventSources.AddRange(document.Calendar.EventSources.Select(source => new EventSource
         {
             Id = source.Id,
@@ -112,21 +111,37 @@ public static class CalendarPortabilityService
         if (!IsValidTimeZone(household!.TimeZoneId)) errors["Household.TimeZoneId"] = ["Household timezone is invalid."];
         var eventSources = calendar.EventSources;
         var eventSeries = calendar.EventSeries;
+        var recurrence = calendar.Recurrence;
         var exceptions = calendar.Exceptions;
+        var documentMetadata = document.Metadata;
+        var calendarMetadata = calendar.Metadata;
         if (eventSources is null) errors["Calendar.EventSources"] = ["Event sources are required."];
         if (eventSeries is null) errors["Calendar.EventSeries"] = ["EventSeries records are required."];
+        if (recurrence is null) errors["Calendar.Recurrence"] = ["Recurrence section is required for V1 contract stability."];
         if (exceptions is null) errors["Calendar.Exceptions"] = ["EventException collection is required."];
+        if (documentMetadata is null) errors["Metadata"] = ["Document metadata section is required for V1 contract stability."];
+        if (calendarMetadata is null) errors["Calendar.Metadata"] = ["Calendar metadata section is required for V1 contract stability."];
         if (errors.Count > 0) return errors;
 
         var requiredEventSources = eventSources!;
         var requiredEventSeries = eventSeries!;
+        var requiredRecurrence = recurrence!;
         var requiredExceptions = exceptions!;
         var sourceIds = requiredEventSources.Select(source => source.Id).ToHashSet();
+        var seriesIds = requiredEventSeries.Select(series => series.Id).ToHashSet();
+        if (household!.Id == Guid.Empty) errors["Household.Id"] = ["Household identifier is required."];
+        if (household.Id != SeedHousehold.Id) errors["Household.Id"] = ["Calendar restore only supports the local seeded household."];
         if (sourceIds.Count != requiredEventSources.Count) errors["Calendar.EventSources"] = ["Event source identifiers must be unique."];
+        if (seriesIds.Count != requiredEventSeries.Count) errors["Calendar.EventSeries"] = ["EventSeries identifiers must be unique."];
         if (requiredEventSources.Any(source => source.Id == Guid.Empty || string.IsNullOrWhiteSpace(source.Name) || string.IsNullOrWhiteSpace(source.SourceType))) errors["Calendar.EventSources.Required"] = ["Event sources require id, name, and source type."];
-        if (requiredEventSeries.Any(series => series.Id == Guid.Empty || string.IsNullOrWhiteSpace(series.Title) || !sourceIds.Contains(series.EventSourceId))) errors["Calendar.EventSeries.Required"] = ["EventSeries records require id, title, and a valid event source reference."];
+        if (requiredEventSeries.Any(series => series.Id == Guid.Empty || string.IsNullOrWhiteSpace(series.Title) || !sourceIds.Contains(series.EventSourceId))) errors["Calendar.EventSeries.Required"] = ["EventSeries records require id, title, and a valid event source reference owned by this export."];
+        if (requiredEventSeries.Any(series => series.IsAllDay && (series.StartTime is not null || series.EndTime is not null))) errors["Calendar.EventSeries.AllDay"] = ["All-day EventSeries must not include start or end times."];
+        if (requiredEventSeries.Any(series => !series.IsAllDay && (series.StartTime is null || series.EndTime is null))) errors["Calendar.EventSeries.Timed"] = ["Timed EventSeries require start and end times."];
         if (requiredEventSeries.Any(series => series.EndDate < series.StartDate)) errors["Calendar.EventSeries.Range"] = ["EventSeries end date must be on or after start date."];
         if (requiredEventSeries.Any(series => !series.IsAllDay && series.StartDate == series.EndDate && series.EndTime < series.StartTime)) errors["Calendar.EventSeries.TimeRange"] = ["Timed EventSeries end time must be on or after start time on the same date."];
+        if (requiredRecurrence.Rules is null) errors["Calendar.Recurrence.Rules"] = ["Recurrence rules collection is required."];
+        else if (requiredRecurrence.Rules.Count > 0) errors["Calendar.Recurrence"] = ["Recurrence restore is reserved for a future recurrence slice."];
+        if (requiredExceptions.Any(exception => exception.Id == Guid.Empty || exception.EventSeriesId == Guid.Empty || !seriesIds.Contains(exception.EventSeriesId) || string.IsNullOrWhiteSpace(exception.ExceptionType))) errors["Calendar.Exceptions.Required"] = ["EventException records require id, type, and a valid EventSeries reference owned by this export."];
         if (requiredExceptions.Count > 0) errors["Calendar.Exceptions"] = ["EventException restore is reserved for a future recurrence slice."];
         if (requiredEventSeries.Any(series => series.Recurrence is not null)) errors["Calendar.EventSeries.Recurrence"] = ["Recurrence restore is reserved for a future recurrence slice."];
         return errors;
