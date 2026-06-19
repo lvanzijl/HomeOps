@@ -4,7 +4,7 @@
 Phase 2 — Durable Household Core
 
 ## Current Slice
-Slice 2.7 Calendar Terminology, Projection, and Timezone Foundation — Completed
+Slice 2.8 Calendar JSON Export and Full Restore Foundation — Completed
 
 ## Completed Slices
 - 1.1 Repository Bootstrap
@@ -23,9 +23,10 @@ Slice 2.7 Calendar Terminology, Projection, and Timezone Foundation — Complete
 - 2.5 Event Editing UX Hardening
 - 2.6 EventSeries Contract + Migration
 - 2.7 Calendar Terminology, Projection, and Timezone Foundation
+- 2.8 Calendar JSON Export and Full Restore Foundation
 
 ## Next Slice
-Proceed with Slice 2.8 Calendar Export/Import Design or Real Google Calendar Read-Only Integration only after preserving HomeOps Calendar source-of-truth boundaries.
+Proceed with Calendar portability hardening or Real Google Calendar Read-Only Integration only after preserving HomeOps Calendar source-of-truth boundaries.
 
 ## Key Architectural Decisions
 - HomeOps is a modular monolith.
@@ -44,6 +45,10 @@ Proceed with Slice 2.8 Calendar Export/Import Design or Real Google Calendar Rea
 - Birthdays are generated as annual all-day normalized events within an 18-month horizon and are read-only in the current client experience.
 - Shopping List MVP has been replaced by the generic persisted Lists domain for the Shopping example list.
 - Widgets are presentation units, and shared data models must not be widget-specific.
+- Calendar JSON export is canonical HomeOps portability data.
+- Calendar restore is full restore only; selective import, merge import, and conflict resolution are not implemented.
+- EventOccurrence is projection-only Agenda data and is not canonical export data.
+- Google Drive is a future export destination only; Google Calendar, ICS, recurrence, and EventException runtime behavior remain out of scope.
 
 ## Phase 2 Durable Lists Foundation
 - EF Core persistence is configured for PostgreSQL with Supabase-compatible standard PostgreSQL behavior.
@@ -60,6 +65,13 @@ Proceed with Slice 2.8 Calendar Export/Import Design or Real Google Calendar Rea
 - Seeded default layouts preserve the validated Home, House, Media, and Settings workspace experience.
 - The frontend loads workspace layouts through the generated NSwag TypeScript client and falls back to default layouts if the API layout is unavailable or unusable.
 - No drag-and-drop editor, widget marketplace, authentication, multi-household management, or offline-first synchronization has been introduced.
+
+## Phase 2 Calendar JSON Export and Full Restore Foundation
+- Calendar export uses a versioned `homeops.calendar.export` JSON document as the canonical HomeOps Calendar portability format.
+- Export includes schema/version metadata, exported timestamp, household timezone, event source metadata, EventSeries data, and reserved future recurrence/exception structure.
+- EventOccurrence remains generated projection-only Agenda data and is not exported as source-of-truth data.
+- Full restore validates the entire export before applying changes, rejects unsupported schema/version data and invalid timezones, replaces existing calendar source/EventSeries contents, preserves safe source and EventSeries identifiers, and updates valid household timezone metadata.
+- No selective import, merge import, conflict resolution, Google Drive upload, Google Calendar import, ICS, recurrence runtime behavior, EventException runtime behavior, notifications, reminders, authentication, or timezone UI has been introduced.
 
 ## Phase 2 Calendar Terminology, Projection, and Timezone Foundation
 - Event APIs now use EventSeries contract names while preserving the existing `/api/events` route shape.

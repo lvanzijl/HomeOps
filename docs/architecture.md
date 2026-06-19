@@ -112,3 +112,10 @@ JSON is the intended canonical HomeOps export format for future portability and 
 
 ## Deployment Approach
 The initial repository targets local development with a single ASP.NET Core API, a Vite client, and PostgreSQL through Docker Compose. Deployment remains intentionally simple and does not introduce Kubernetes, microservices, or distributed architecture.
+
+## Calendar JSON Portability
+Calendar portability uses a versioned `homeops.calendar.export` JSON document as the canonical HomeOps calendar export format. The export is logical rather than database-shaped: it contains schema metadata, household timezone metadata, event source metadata, EventSeries records, and reserved recurrence/exception slots for future schema evolution.
+
+EventSeries is the canonical persisted calendar entity for HomeOps-owned events. EventOccurrence remains projection-only Agenda output and is not exported as source-of-truth data. Restore regenerates Agenda output from restored EventSeries data rather than importing occurrence snapshots.
+
+Calendar restore is full restore only. The backend validates the entire export document before applying it, rejects unsupported format/schema versions, rejects invalid timezones, replaces existing calendar event sources and EventSeries for the seeded household, and preserves supplied identifiers when restoring valid source and series records. Selective import, merge import, conflict resolution, Google Drive upload, Google Calendar import, ICS, recurrence runtime behavior, EventException runtime behavior, notifications, reminders, authentication, and timezone UI remain out of scope.

@@ -13,3 +13,5 @@
 | 1.9 | Shopping List MVP | Completed |
 
 Validation pass: Completed on 2026-06-18.
+
+Phase 2 follow-up note: Calendar JSON export and full restore foundations now preserve the Phase 1 Agenda, Birthday, source filtering, and widget framework boundaries by keeping EventOccurrence projection-only and exporting EventSeries as canonical calendar data.

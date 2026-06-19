@@ -9,9 +9,10 @@
 | 2.5 | Event Editing UX Hardening | Completed |
 | 2.6 | EventSeries Contract + Migration | Completed |
 | 2.7 | Calendar Terminology, Projection, and Timezone Foundation | Completed |
-| 2.8 | Real Google Calendar Read-Only Integration | Recommended next |
-| 2.9 | Sensor Dashboard Foundation | Planned |
-| 2.10 | Media/TV Source Foundation | Planned |
+| 2.8 | Calendar JSON Export and Full Restore Foundation | Completed |
+| 2.9 | Real Google Calendar Read-Only Integration | Recommended next |
+| 2.10 | Sensor Dashboard Foundation | Planned |
+| 2.11 | Media/TV Source Foundation | Planned |
 
 Phase 2 theme: Durable Household Core.
 
@@ -35,6 +36,9 @@ EventSeries Contract + Migration replaces occurrence-shaped local calendar persi
 
 ## Completed Slice 2.7 — Calendar Terminology, Projection, and Timezone Foundation
 Calendar Terminology, Projection, and Timezone Foundation aligns API contracts and UI wording around EventSeries/HomeOps Calendar terminology, hardens EventOccurrence as projection-only output, persists household timezone on Household with initial `Europe/Amsterdam` fallback behavior, and realigns roadmap documentation around HomeOps Calendar as source of truth, Google Calendar as optional integration, and JSON export as the future canonical portability format.
+
+## Completed Slice 2.8 — Calendar JSON Export and Full Restore Foundation
+Calendar JSON Export and Full Restore Foundation adds a versioned canonical `homeops.calendar.export` JSON backend contract, exports household timezone metadata, event source metadata, and EventSeries source-of-truth records, keeps EventOccurrence out of canonical export data, and adds full restore-only backend behavior that validates before replacing calendar sources and EventSeries. Google Drive remains a future export destination only. ICS, recurrence runtime behavior, EventException runtime behavior, selective import, merge import, and conflict resolution remain out of scope.
 
 ## Recommended Next Slice
 Proceed with Calendar Export/Import Design or Real Google Calendar Read-Only Integration only after preserving HomeOps Calendar as source of truth. Keep any Google Calendar work optional and integration-scoped; do not add two-way sync, authentication beyond an explicitly scoped integration requirement, sensors, media, notifications, recurring event editing, or offline-first synchronization.
