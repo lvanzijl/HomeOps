@@ -143,3 +143,5 @@ Proceed with recurrence/occurrence editing UX or Real Google Calendar Read-Only 
 - Family Members are minimal household presentation entities with name, display color, and initials; they are not users, logins, profiles, permissions, task owners, or point accounts.
 - Home quick capture routes to Agenda or Lists rather than implementing advanced Home-native forms.
 - Existing Agenda, Lists, EventSeries, Calendar, and export/restore functionality remains on dedicated pages and existing widgets.
+- Local development relies on the ASP.NET Core API launch profile at `http://localhost:5152`; the Vite client dev proxy targets that origin so Home summary cards load successfully during startup review.
+- The API applies pending EF Core migrations on non-testing startup so local development surfaces seeded dashboard data without a separate manual migration step.

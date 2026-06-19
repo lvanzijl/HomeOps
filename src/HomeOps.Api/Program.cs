@@ -26,6 +26,13 @@ if (!builder.Environment.IsEnvironment("Testing"))
 
 var app = builder.Build();
 
+if (!app.Environment.IsEnvironment("Testing"))
+{
+    using var scope = app.Services.CreateScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<HomeOpsDbContext>();
+    dbContext.Database.Migrate();
+}
+
 if (app.Environment.IsDevelopment())
 {
     app.UseOpenApi(settings => settings.Path = "/openapi/{documentName}.json");
