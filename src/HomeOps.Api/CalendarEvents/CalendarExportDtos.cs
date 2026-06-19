@@ -5,7 +5,8 @@ public sealed record CalendarExportDocument(
     int SchemaVersion,
     DateTimeOffset ExportedUtc,
     CalendarExportHousehold Household,
-    CalendarExportPayload Calendar)
+    CalendarExportPayload Calendar,
+    IReadOnlyDictionary<string, string> Metadata)
 {
     public const string CurrentFormat = "homeops.calendar.export";
     public const int CurrentSchemaVersion = 1;
@@ -17,7 +18,9 @@ public sealed record CalendarExportPayload(
     int Version,
     IReadOnlyCollection<CalendarExportEventSource> EventSources,
     IReadOnlyCollection<CalendarExportEventSeries> EventSeries,
-    IReadOnlyCollection<CalendarExportEventException> Exceptions)
+    CalendarExportRecurrenceSection Recurrence,
+    IReadOnlyCollection<CalendarExportEventException> Exceptions,
+    IReadOnlyDictionary<string, string> Metadata)
 {
     public const int CurrentVersion = 1;
 }
@@ -43,6 +46,8 @@ public sealed record CalendarExportEventSeries(
     CalendarExportRecurrence? Recurrence,
     DateTimeOffset CreatedUtc,
     DateTimeOffset UpdatedUtc);
+
+public sealed record CalendarExportRecurrenceSection(IReadOnlyCollection<CalendarExportRecurrence> Rules);
 
 public sealed record CalendarExportRecurrence(string RuleType, string Value);
 
