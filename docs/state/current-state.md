@@ -4,7 +4,7 @@
 Phase 2 — Durable Household Core
 
 ## Current Slice
-Calendar Recurrence, EventException, and Occurrence Generation Runtime — Completed
+Home Dashboard MVP, Family Member MVP, and Home Navigation Flows — Completed
 
 ## Completed Slices
 - 1.1 Repository Bootstrap
@@ -28,9 +28,10 @@ Calendar Recurrence, EventException, and Occurrence Generation Runtime — Compl
 - 2.10 Calendar Portability UX and Pre-Restore Export
 - Calendar Validation, Snapshot Storage, Restore Safety UX, and Documentation Hardening
 - Calendar Recurrence, EventException, and Occurrence Generation Runtime
+- Home Dashboard MVP, Family Member MVP, and Home Navigation Flows
 
 ## Next Slice
-Proceed with a recurrence/occurrence editing UX slice or Real Google Calendar Read-Only Integration only after preserving HomeOps Calendar source-of-truth, local-only portability, household-timezone, and EventOccurrence projection-only boundaries.
+Proceed with recurrence/occurrence editing UX or Real Google Calendar Read-Only Integration only after preserving Home as summary-first, Family Members as non-authentication household entities, and HomeOps Calendar source-of-truth/local-only portability boundaries.
 
 ## Key Architectural Decisions
 - HomeOps is a modular monolith.
@@ -133,3 +134,12 @@ Proceed with a recurrence/occurrence editing UX slice or Real Google Calendar Re
 - Occurrence generation uses the household timezone and local wall-clock semantics, so recurring timed events keep the same local time across DST transitions.
 - All-day and multi-day all-day recurrence preserve date-only and exclusive end-date semantics.
 - Advanced recurrence rules, ICS, Google Calendar, reminders, notifications, authentication, per-event timezone support, timezone UI, and series splitting UI remain out of scope.
+
+## Phase 2 Home Dashboard MVP
+- Home is now the primary summary-first dashboard and glassboard-style surface.
+- Home renders date, time, a minimal Family Member strip, quick capture actions, an Agenda summary card, and a Lists summary card.
+- Agenda summary remains today-first with tomorrow/next preview, limited visible rows, overflow routing, and navigation to the dedicated Agenda page.
+- Lists summary shows active list items only, limits visible rows, provides overflow routing, and navigates to the dedicated Lists page.
+- Family Members are minimal household presentation entities with name, display color, and initials; they are not users, logins, profiles, permissions, task owners, or point accounts.
+- Home quick capture routes to Agenda or Lists rather than implementing advanced Home-native forms.
+- Existing Agenda, Lists, EventSeries, Calendar, and export/restore functionality remains on dedicated pages and existing widgets.

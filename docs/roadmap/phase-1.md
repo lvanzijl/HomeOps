@@ -25,3 +25,6 @@ Phase 2 validation hardening note: Calendar portability validation, snapshot sto
 
 ## Calendar Recurrence Runtime Follow-up
 Phase 2 now includes the V1 HomeOps Calendar recurrence runtime foundation. EventSeries owns supported recurrence metadata, EventException owns skipped/modified occurrence overrides, EventOccurrence remains projection-only, and household timezone local wall-clock semantics are documented for future UI work.
+
+## Home Dashboard Follow-up
+Phase 2 now includes a Home Dashboard MVP that consumes the existing Agenda and Lists foundations as bounded summaries. The Phase 1 Agenda Widget MVP and Shopping List MVP remain preserved as full domain-page functionality behind Home navigation.

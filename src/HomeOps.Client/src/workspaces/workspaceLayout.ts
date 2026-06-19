@@ -29,6 +29,22 @@ export const defaultWorkspaceLayouts: Record<WorkspaceId, readonly WidgetInstanc
       settings: {},
     },
   ],
+  agenda: [
+    {
+      id: 'agenda-page-widget',
+      widgetDefinitionId: 'agenda-mvp',
+      title: 'Agenda',
+      settings: {},
+    },
+  ],
+  lists: [
+    {
+      id: 'lists-page-widget',
+      widgetDefinitionId: 'shopping-list-mvp',
+      title: 'Lists',
+      settings: {},
+    },
+  ],
   house: [
     {
       id: 'house-placeholder-widget',
