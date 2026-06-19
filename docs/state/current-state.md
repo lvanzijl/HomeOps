@@ -165,3 +165,10 @@ Proceed with recurrence/occurrence editing UX or Real Google Calendar Read-Only 
 - Family Members remain temporary presentation placeholders with name, initials, and color only; avatar redesign, avatar models, editors, badges, ownership, profiles, persistence, points, and permissions remain deferred.
 - Tablet portrait spacing is tightened to bring Agenda and Lists closer to the first viewport without reducing key touch targets.
 
+
+## Phase 2 Family Member Avatar MVP
+- Home now renders Family Members with frontend-only friendly configurable avatars instead of initials-only color chips.
+- The local avatar model includes family member id, name, display color, initials, age group, presentation, skin tone, hair color, hair style, glasses, and shirt color.
+- Clicking a Family Member avatar opens a compact household avatar editor with live preview and in-memory changes only.
+- Family Members remain household presentation entities only; they are not users, authentication identities, profiles, permissions, ownership records, task owners, or point accounts.
+- Avatar badges for tasks, points, warnings, or today involvement remain future scope and were not implemented.

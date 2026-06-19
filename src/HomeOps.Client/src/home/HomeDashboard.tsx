@@ -4,6 +4,8 @@ import { formatEventTime, hydrateAgendaEvents } from '../agenda/agendaUtils';
 import { demoReadOnlyEvents, demoReadOnlyEventSources } from '../demo/demoAgendaData';
 import type { EventSource, NormalizedEvent } from '../events/eventSourceModel';
 import { loadListSummaries, type ListSummary } from '../shopping/listsSummaryApi';
+import { FamilyAvatar } from './FamilyAvatar';
+import { FamilyAvatarEditor } from './FamilyAvatarEditor';
 import { familyMembers } from './familyMembers';
 
 interface HomeDashboardProps {
@@ -15,7 +17,7 @@ type AgendaSummaryItem = ReturnType<typeof hydrateAgendaEvents>[number] & { buck
 
 const visibleAgendaLimit = 5;
 const visibleListLimit = 4;
-const activeMemberCount = familyMembers.length;
+
 const agendaBucketOrder: readonly AgendaBucket[] = ['Today', 'Tomorrow', 'Later / Next'];
 
 export function HomeDashboard({ onNavigate }: HomeDashboardProps) {
@@ -25,6 +27,8 @@ export function HomeDashboard({ onNavigate }: HomeDashboardProps) {
   const [lists, setLists] = useState<ListSummary[]>([]);
   const [agendaError, setAgendaError] = useState<string | null>(null);
   const [listsError, setListsError] = useState<string | null>(null);
+  const [members, setMembers] = useState(() => [...familyMembers]);
+  const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
 
   useEffect(() => {
     const timer = window.setInterval(() => setNow(new Date()), 30_000);
@@ -63,6 +67,7 @@ export function HomeDashboard({ onNavigate }: HomeDashboardProps) {
   const visibleListItems = activeListItems.slice(0, visibleListLimit);
   const hiddenListCount = Math.max(0, activeListItems.length - visibleListItems.length);
   const primaryListName = getPrimaryListName(lists);
+  const editingMember = members.find((member) => member.id === editingMemberId) ?? null;
 
   return (
     <section className="home-dashboard" aria-label="Home dashboard">
@@ -74,11 +79,11 @@ export function HomeDashboard({ onNavigate }: HomeDashboardProps) {
           <p className="weather-placeholder">Weather ready when connected</p>
         </div>
         <section className="family-strip" aria-label="Family Members">
-          {familyMembers.map((member) => (
-            <span className="family-chip" key={member.id} style={{ '--member-color': member.displayColor } as CSSProperties}>
-              <span className="family-avatar" aria-hidden="true"><span>{member.initials}</span></span>
+          {members.map((member) => (
+            <button className="family-chip" key={member.id} type="button" style={{ '--member-color': member.displayColor } as CSSProperties} onClick={() => setEditingMemberId(member.id)} aria-label={`Edit ${member.name} household avatar`}>
+              <FamilyAvatar member={member} />
               <strong>{member.name}</strong>
-            </span>
+            </button>
           ))}
         </section>
         <section className="quick-capture" aria-label="Quick capture">
@@ -123,9 +128,10 @@ export function HomeDashboard({ onNavigate }: HomeDashboardProps) {
           </ul>
           {visibleListItems.length === 0 && !listsError ? <p className="shopping-empty">No active list items.</p> : null}
           {hiddenListCount > 0 ? <button className="more-link" type="button" onClick={() => onNavigate('lists')}>+{hiddenListCount} more</button> : null}
-          <p className="home-context-note">Shared for {activeMemberCount} household members.</p>
+          <p className="home-context-note">Shared for {members.length} household members.</p>
         </article>
       </div>
+      {editingMember ? <FamilyAvatarEditor member={editingMember} onChange={(updated) => setMembers((current) => current.map((member) => member.id === updated.id ? updated : member))} onClose={() => setEditingMemberId(null)} /> : null}
     </section>
   );
 }
