@@ -9,7 +9,13 @@ export function createListsSummaryApiClient(): HomeOpsApiClient {
 
 export async function loadListSummaries(client = createListsSummaryApiClient()): Promise<ListSummary[]> {
   const lists = await client.getLists();
-  return lists.map(toListSummary).filter((list) => list.activeItems.length > 0);
+  const listDetails = await Promise.all(
+    lists
+      .filter((list) => (list.itemCount ?? 0) > 0)
+      .map((list) => client.getListById(requireValue(list.id, 'list id'))),
+  );
+
+  return listDetails.map(toListSummary).filter((list) => list.activeItems.length > 0);
 }
 
 function toListSummary(list: ListDto): ListSummary {

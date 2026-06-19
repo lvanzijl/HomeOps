@@ -145,3 +145,10 @@ Proceed with recurrence/occurrence editing UX or Real Google Calendar Read-Only 
 - Existing Agenda, Lists, EventSeries, Calendar, and export/restore functionality remains on dedicated pages and existing widgets.
 - Local development relies on the ASP.NET Core API launch profile at `http://localhost:5152`; the Vite client dev proxy targets that origin so Home summary cards load successfully during startup review.
 - The API applies pending EF Core migrations on non-testing startup so local development surfaces seeded dashboard data without a separate manual migration step.
+
+## Phase 2 Home Dashboard Visual Hardening
+- Home chrome is reduced so the dashboard no longer surfaces framework-oriented copy such as workspace counts or workspace descriptions on the Home view.
+- Home keeps the existing summary-first structure while making Agenda visually dominant, Lists useful with active item detail loading, and Family Members more household-contextual through lightweight avatar cards.
+- Lists summary now fetches list details after the list index so active Shopping and Vacation Packing items can render on Home while preserving item limits and overflow routing to Lists.
+- Tablet portrait behavior now stacks the Home summary cards at a wider breakpoint for easier touch-first reading.
+- Existing Agenda, Lists, Family Member MVP, Calendar, navigation, and export/restore boundaries remain preserved; no authentication, profiles, ownership logic, reminders, notifications, Google Calendar, tasks, gamification, house status, or media functionality has been introduced.

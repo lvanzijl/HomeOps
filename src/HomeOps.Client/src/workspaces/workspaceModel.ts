@@ -10,7 +10,7 @@ export const workspaceDefinitions: readonly WorkspaceDefinition[] = [
   {
     id: 'home',
     label: 'Home',
-    description: 'Primary household overview workspace.',
+    description: 'Today’s family overview.',
   },
   {
     id: 'agenda',

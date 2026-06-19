@@ -60,11 +60,15 @@ export function WorkspaceShell() {
       </nav>
 
       <section className="workspace-panel" aria-labelledby="active-workspace-title">
-        <p className="workspace-position">
-          Workspace {activeWorkspaceIndex + 1} of {workspaceDefinitions.length}
-        </p>
-        <h2 id="active-workspace-title">{activeWorkspace.label}</h2>
-        <p>{activeWorkspace.description}</p>
+        {activeWorkspace.id === 'home' ? <h2 className="visually-hidden" id="active-workspace-title">Home</h2> : (
+          <>
+            <p className="workspace-position">
+              Page {activeWorkspaceIndex + 1} of {workspaceDefinitions.length}
+            </p>
+            <h2 id="active-workspace-title">{activeWorkspace.label}</h2>
+            <p>{activeWorkspace.description}</p>
+          </>
+        )}
         {activeWorkspace.id === 'home' ? (
           <HomeDashboard onNavigate={setActiveWorkspaceId} />
         ) : (
