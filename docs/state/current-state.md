@@ -156,3 +156,12 @@ Proceed with recurrence/occurrence editing UX or Real Google Calendar Read-Only 
 - Lists summary now fetches list details after the list index so active Shopping and Vacation Packing items can render on Home while preserving item limits and overflow routing to Lists.
 - Tablet portrait behavior now stacks the Home summary cards at a wider breakpoint for easier touch-first reading.
 - Existing Agenda, Lists, Family Member MVP, Calendar, navigation, and export/restore boundaries remain preserved; no authentication, profiles, ownership logic, reminders, notifications, Google Calendar, tasks, gamification, house status, or media functionality has been introduced.
+
+## Phase 2 Home Hierarchy Tightening
+- Home chrome is further reduced by removing the global marketing-style header copy and tightening app-shell spacing so the board content starts sooner.
+- Home's top area now focuses on date, time, and a lightweight weather placeholder while preserving workspace navigation and quick capture routes.
+- Home Agenda summary groups visible items under Today, Tomorrow, and Later / Next without repeating the group label per item; summary limits, overflow routing, and dedicated Agenda behavior remain preserved.
+- Home Lists summary uses concrete list-oriented naming, prioritizing Shopping/Boodschappen when that list is present, while preserving multiple list labels, active item rendering, and overflow routing.
+- Family Members remain temporary presentation placeholders with name, initials, and color only; avatar redesign, avatar models, editors, badges, ownership, profiles, persistence, points, and permissions remain deferred.
+- Tablet portrait spacing is tightened to bring Agenda and Lists closer to the first viewport without reducing key touch targets.
+

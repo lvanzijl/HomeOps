@@ -10,9 +10,13 @@ interface HomeDashboardProps {
   onNavigate: (destination: 'agenda' | 'lists') => void;
 }
 
+type AgendaBucket = 'Today' | 'Tomorrow' | 'Later / Next';
+type AgendaSummaryItem = ReturnType<typeof hydrateAgendaEvents>[number] & { bucket: AgendaBucket };
+
 const visibleAgendaLimit = 5;
 const visibleListLimit = 4;
 const activeMemberCount = familyMembers.length;
+const agendaBucketOrder: readonly AgendaBucket[] = ['Today', 'Tomorrow', 'Later / Next'];
 
 export function HomeDashboard({ onNavigate }: HomeDashboardProps) {
   const [now, setNow] = useState(() => new Date());
@@ -53,27 +57,27 @@ export function HomeDashboard({ onNavigate }: HomeDashboardProps) {
 
   const agendaItems = useMemo(() => buildAgendaSummary(events, sources, now), [events, sources, now]);
   const visibleAgenda = agendaItems.slice(0, visibleAgendaLimit);
+  const agendaGroups = groupAgendaItems(visibleAgenda);
   const hiddenAgendaCount = Math.max(0, agendaItems.length - visibleAgenda.length);
   const activeListItems = lists.flatMap((list) => list.activeItems.map((item) => ({ ...item, listId: list.id, listName: list.name })));
   const visibleListItems = activeListItems.slice(0, visibleListLimit);
   const hiddenListCount = Math.max(0, activeListItems.length - visibleListItems.length);
+  const primaryListName = getPrimaryListName(lists);
 
   return (
     <section className="home-dashboard" aria-label="Home dashboard">
       <header className="home-hero">
-        <div>
-          <p className="eyebrow">Home glassboard</p>
+        <div className="home-date-card" aria-label="Home date and time">
+          <p className="eyebrow">Today</p>
           <h2>{now.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</h2>
           <p className="home-time" aria-label="Current time">{now.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}</p>
+          <p className="weather-placeholder">Weather ready when connected</p>
         </div>
         <section className="family-strip" aria-label="Family Members">
           {familyMembers.map((member) => (
             <span className="family-chip" key={member.id} style={{ '--member-color': member.displayColor } as CSSProperties}>
               <span className="family-avatar" aria-hidden="true"><span>{member.initials}</span></span>
-              <span className="family-member-copy">
-                <strong>{member.name}</strong>
-                <small>On the board</small>
-              </span>
+              <strong>{member.name}</strong>
             </span>
           ))}
         </section>
@@ -85,27 +89,33 @@ export function HomeDashboard({ onNavigate }: HomeDashboardProps) {
 
       <div className="home-summary-grid">
         <article className="home-summary-card agenda-summary" onClick={() => onNavigate('agenda')} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && onNavigate('agenda')} aria-label="Agenda summary">
-          <CardHeader title="Today & next" action="Open agenda" meta={`${visibleAgenda.length} showing`} />
+          <CardHeader title="Agenda" action="Open agenda" meta={`${visibleAgenda.length} showing`} />
           {agendaError ? <p role="alert">{agendaError}</p> : null}
-          <ul className="home-summary-list">
-            {visibleAgenda.map((event) => (
-              <li key={event.id}>
-                <strong>{event.bucket}</strong>
-                <span>{event.title}</span>
-                <small>{formatEventTime(event)}</small>
-              </li>
+          <div className="agenda-group-list">
+            {agendaGroups.map((group) => (
+              <section className="agenda-summary-group" key={group.bucket} aria-label={group.bucket}>
+                <h4>{group.bucket}</h4>
+                <ul className="home-summary-list">
+                  {group.items.map((event) => (
+                    <li key={event.id}>
+                      <span>{event.title}</span>
+                      <small>{formatEventTime(event)}</small>
+                    </li>
+                  ))}
+                </ul>
+              </section>
             ))}
-          </ul>
+          </div>
           {visibleAgenda.length === 0 && !agendaError ? <p className="shopping-empty">Nothing scheduled for today or tomorrow.</p> : null}
           {hiddenAgendaCount > 0 ? <button className="more-link" type="button" onClick={() => onNavigate('agenda')}>+{hiddenAgendaCount} more</button> : null}
         </article>
 
         <article className="home-summary-card lists-summary" onClick={() => onNavigate('lists')} role="button" tabIndex={0} onKeyDown={(e) => e.key === 'Enter' && onNavigate('lists')} aria-label="Lists summary">
-          <CardHeader title="Remember" action="Open lists" meta={`${activeListItems.length} active`} />
+          <CardHeader title={primaryListName ? `${primaryListName} lists` : 'Lists'} action="Open lists" meta={`${activeListItems.length} active`} />
           {listsError ? <p role="alert">{listsError}</p> : null}
           <ul className="home-summary-list">
             {visibleListItems.map((item) => (
-              <li key={item.id}>
+              <li key={`${item.listId}-${item.id}`}>
                 <strong>{item.listName}</strong>
                 <span>{item.text}</span>
               </li>
@@ -124,13 +134,24 @@ function CardHeader({ title, action, meta }: { title: string; action: string; me
   return <div className="home-card-header"><div><h3>{title}</h3>{meta ? <small>{meta}</small> : null}</div><span>{action}</span></div>;
 }
 
-function buildAgendaSummary(events: NormalizedEvent[], sources: EventSource[], now: Date) {
+function buildAgendaSummary(events: NormalizedEvent[], sources: EventSource[], now: Date): AgendaSummaryItem[] {
   const hydrated = hydrateAgendaEvents(events, sources).filter((event) => new Date(event.startsAt) >= startOfDay(now));
   const tomorrow = addDays(startOfDay(now), 1);
   const afterTomorrow = addDays(startOfDay(now), 2);
   return hydrated
     .sort((a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime())
-    .map((event) => ({ ...event, bucket: new Date(event.startsAt) < tomorrow ? 'Today' : new Date(event.startsAt) < afterTomorrow ? 'Tomorrow' : 'Next' }));
+    .map((event) => ({ ...event, bucket: new Date(event.startsAt) < tomorrow ? 'Today' : new Date(event.startsAt) < afterTomorrow ? 'Tomorrow' : 'Later / Next' }));
 }
+
+function groupAgendaItems(items: AgendaSummaryItem[]) {
+  return agendaBucketOrder
+    .map((bucket) => ({ bucket, items: items.filter((item) => item.bucket === bucket) }))
+    .filter((group) => group.items.length > 0);
+}
+
+function getPrimaryListName(lists: ListSummary[]) {
+  return lists.find((list) => ['shopping', 'boodschappen'].includes(list.name.trim().toLowerCase()))?.name ?? lists[0]?.name;
+}
+
 function startOfDay(date: Date) { const next = new Date(date); next.setHours(0, 0, 0, 0); return next; }
 function addDays(date: Date, days: number) { const next = new Date(date); next.setDate(next.getDate() + days); return next; }

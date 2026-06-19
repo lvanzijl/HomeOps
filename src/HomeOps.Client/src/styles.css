@@ -14,14 +14,10 @@ button {
 
 .app-shell {
   display: grid;
-  gap: 1.5rem;
+  gap: 0.75rem;
   margin: 0 auto;
   max-width: 1040px;
-  padding: 2rem 1.5rem;
-}
-
-.app-header {
-  max-width: 720px;
+  padding: 1rem 1.25rem;
 }
 
 .eyebrow {
@@ -33,13 +29,14 @@ button {
 
 .workspace-shell {
   display: grid;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 .workspace-nav {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: 0.5rem;
+  justify-content: flex-end;
 }
 
 .workspace-nav-button,
@@ -53,7 +50,8 @@ button {
 .workspace-nav-button {
   color: #1f2a44;
   cursor: pointer;
-  padding: 0.75rem 1rem;
+  min-height: 2.75rem;
+  padding: 0.55rem 0.9rem;
 }
 
 .workspace-nav-button[aria-current="page"] {
@@ -64,7 +62,7 @@ button {
 
 .workspace-panel {
   min-height: 18rem;
-  padding: 1rem;
+  padding: 0.65rem 0.75rem;
 }
 
 .workspace-position,
@@ -288,18 +286,24 @@ button {
 
 .home-dashboard {
   display: grid;
-  gap: 1.25rem;
+  gap: 0.8rem;
 }
 
 .home-hero {
   align-items: center;
   background: linear-gradient(135deg, #fff7ed, #ecfeff 55%, #fdf2f8);
   border: 1px solid #ead7c7;
-  border-radius: 1.5rem;
+  border-radius: 1.25rem;
   display: grid;
-  gap: 1rem;
-  grid-template-columns: 1fr auto;
-  padding: 1.25rem;
+  gap: 0.75rem;
+  grid-template-columns: minmax(14rem, 1fr) auto auto;
+  padding: 0.8rem 1rem;
+}
+
+.home-date-card .eyebrow,
+.home-date-card h2,
+.home-date-card p {
+  margin: 0;
 }
 
 .home-hero h2,
@@ -308,28 +312,34 @@ button {
 }
 
 .home-time {
-  font-size: 2rem;
+  font-size: 1.75rem;
   font-weight: 800;
-  margin: 0.35rem 0 0;
+}
+
+.weather-placeholder {
+  color: #5c667a;
+  font-size: 0.8rem;
+  font-weight: 700;
 }
 
 .family-strip,
 .quick-capture {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.65rem;
+  gap: 0.45rem;
   justify-content: flex-end;
 }
 
 .family-chip {
   align-items: center;
-  background: color-mix(in srgb, var(--member-color) 45%, white);
+  background: color-mix(in srgb, var(--member-color) 35%, white);
   border: 1px solid var(--member-color);
-  border-radius: 1rem;
+  border-radius: 999px;
   display: inline-flex;
-  font-weight: 700;
-  gap: 0.45rem;
-  padding: 0.45rem 0.8rem 0.45rem 0.5rem;
+  font-weight: 800;
+  gap: 0.35rem;
+  min-height: 2.35rem;
+  padding: 0.25rem 0.65rem 0.25rem 0.3rem;
 }
 
 .family-avatar {
@@ -339,9 +349,9 @@ button {
   border-radius: 42% 58% 48% 52%;
   box-shadow: 0 5px 12px rgb(23 32 51 / 12%);
   display: inline-flex;
-  height: 2.25rem;
+  height: 1.85rem;
   justify-content: center;
-  width: 2.25rem;
+  width: 1.85rem;
 }
 
 .family-avatar span {
@@ -361,9 +371,6 @@ button {
   font-weight: 600;
 }
 
-.quick-capture {
-  grid-column: 1 / -1;
-}
 
 .quick-capture button,
 .more-link {
@@ -388,7 +395,7 @@ button {
   border-radius: 1.25rem;
   box-shadow: 0 12px 32px rgb(120 90 60 / 10%);
   cursor: pointer;
-  padding: 1.25rem;
+  padding: 1rem;
 }
 
 .home-card-header {
@@ -409,12 +416,30 @@ button {
   padding: 0.45rem 0.7rem;
 }
 
+.agenda-group-list {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0.8rem 0;
+}
+
+.agenda-summary-group h4 {
+  color: #5c667a;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  margin: 0 0 0.35rem;
+  text-transform: uppercase;
+}
+
 .home-summary-list {
   display: grid;
-  gap: 0.75rem;
+  gap: 0.55rem;
   list-style: none;
-  margin: 1rem 0;
+  margin: 0.8rem 0;
   padding: 0;
+}
+
+.agenda-summary-group .home-summary-list {
+  margin: 0;
 }
 
 .home-summary-list li {
@@ -439,12 +464,39 @@ button {
 }
 
 @media (max-width: 900px) {
-  .home-hero,
+  .home-hero {
+    grid-template-columns: minmax(12rem, 1fr) auto;
+  }
+
+  .quick-capture {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+
   .home-summary-grid {
+    gap: 0.75rem;
     grid-template-columns: 1fr;
   }
-  .family-strip,
-  .quick-capture {
+
+  .family-strip {
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 680px) {
+  .app-shell {
+    padding: 0.75rem;
+  }
+
+  .workspace-nav {
+    justify-content: flex-start;
+  }
+
+  .home-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .family-strip {
     justify-content: flex-start;
   }
 }
