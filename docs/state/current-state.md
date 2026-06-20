@@ -195,3 +195,9 @@ Proceed with recurrence/occurrence editing UX or Real Google Calendar Read-Only 
 - Tasks now uses the shared Tasks color family for a warmer household responsibility surface without changing task grouping, task creation fields, completion, reopening, or ownership behavior.
 - House Status, Media, and Gamification now have dedicated placeholder pages reachable from navigation.
 - Placeholder pages only provide title, short future-purpose copy, and a coming-later status; they do not implement sensors, device state, media integrations, points, rewards, badges, or gamification logic.
+
+## Phase 2 Home Quick Capture
+- Home now supports direct Shopping quick capture with one text field and one Add action that writes to the seeded Shopping list without requiring list selection.
+- Home now supports lightweight Calendar quick capture with What and When fields; When supports Today, Tomorrow, and Pick date, while advanced event editing remains on the Agenda page.
+- Shopping history suggestions are available while typing from browser-local captured item names and currently active list item names. No AI, store selection, store grouping, store icons, reminders, notifications, Google Calendar behavior, or shopping intelligence were added.
+- Future store-learning remains a later direction: preferred store per item may be learned later from the history foundation without changing Home into a store-planning surface.

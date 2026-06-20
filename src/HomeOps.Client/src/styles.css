@@ -836,3 +836,48 @@ button {
   background: rgba(255, 255, 255, 0.92);
   border-color: var(--domain-border, #99f6e4);
 }
+
+.home-quick-form {
+  background: rgb(255 255 255 / 74%);
+  border: 1px solid rgb(215 221 234 / 80%);
+  border-radius: 0.9rem;
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.55rem;
+}
+
+.home-quick-form label {
+  color: #5c667a;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.home-quick-row {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.home-quick-row input,
+.home-quick-row select {
+  border: 1px solid #d7ddea;
+  border-radius: 999px;
+  min-height: 2.25rem;
+  padding: 0.35rem 0.7rem;
+}
+
+.home-quick-row input:not([type="date"]) {
+  min-width: 8.5rem;
+}
+
+.home-quick-status {
+  color: #065f46;
+  flex-basis: 100%;
+  font-size: 0.82rem;
+  font-weight: 700;
+  margin: 0;
+  text-align: right;
+}
