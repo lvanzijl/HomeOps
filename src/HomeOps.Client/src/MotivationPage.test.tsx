@@ -4,13 +4,16 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { familyMembers } from './home/familyMembers';
 import { FamilyCelebrationStatus } from './api/homeOpsApiClient';
 import { MotivationPage } from './MotivationPage';
-import { createFamilyGoal, loadMotivationSnapshot, markFamilyGoalCelebrated, updateFamilyGoal } from './motivationData';
+import { archiveIndividualGoal, createFamilyGoal, createIndividualGoal, loadMotivationSnapshot, markFamilyGoalCelebrated, updateFamilyGoal, updateIndividualGoal } from './motivationData';
 
 vi.mock('./motivationData', async (importOriginal) => ({
   ...(await importOriginal<typeof import('./motivationData')>()),
   loadMotivationSnapshot: vi.fn(),
   createFamilyGoal: vi.fn(),
   updateFamilyGoal: vi.fn(),
+  createIndividualGoal: vi.fn(),
+  updateIndividualGoal: vi.fn(),
+  archiveIndividualGoal: vi.fn(),
   markFamilyGoalCelebrated: vi.fn(),
 }));
 
@@ -21,6 +24,9 @@ describe('MotivationPage', () => {
     vi.mocked(createFamilyGoal).mockReset();
     vi.mocked(updateFamilyGoal).mockReset();
     vi.mocked(markFamilyGoalCelebrated).mockReset();
+    vi.mocked(createIndividualGoal).mockReset();
+    vi.mocked(updateIndividualGoal).mockReset();
+    vi.mocked(archiveIndividualGoal).mockReset();
     vi.mocked(loadMotivationSnapshot).mockResolvedValue({
       familyGoal: {
         id: 'family-goal',
@@ -143,4 +149,66 @@ describe('MotivationPage', () => {
     expect(screen.getByText('13/15')).not.toBeNull();
     expect(screen.queryByText(/coins?|tokens?|shop|leaderboard|negative points/i)).toBeNull();
   });
+
+  it('creates a personal goal for a family member', async () => {
+    const user = userEvent.setup();
+    vi.mocked(createIndividualGoal).mockResolvedValueOnce({ id: 'read-goal', familyMemberId: 'alex', familyMemberName: 'Alex', title: 'Read books', targetCount: 4, currentProgress: 0, unitLabel: 'books', visualKind: 'stars' });
+
+    render(<MotivationPage members={familyMembers} />);
+
+    expect(await screen.findByText('Personal goals this week')).not.toBeNull();
+    await user.click(screen.getByRole('button', { name: 'Add personal goal' }));
+    const createForm = screen.getByLabelText('Create individual goal form');
+    await user.selectOptions(within(createForm).getByLabelText('Family member'), 'alex');
+    await user.type(within(createForm).getByLabelText('Goal title'), 'Read books');
+    await user.clear(within(createForm).getByLabelText('Target count'));
+    await user.type(within(createForm).getByLabelText('Target count'), '4');
+    await user.clear(within(createForm).getByLabelText('Unit label'));
+    await user.type(within(createForm).getByLabelText('Unit label'), 'books');
+    await user.click(screen.getByRole('button', { name: 'Save personal goal' }));
+
+    expect(createIndividualGoal).toHaveBeenCalledWith({ familyMemberId: 'alex', title: 'Read books', targetCount: 4, unitLabel: 'books' });
+    expect(await screen.findByText('Read books')).not.toBeNull();
+  });
+
+  it('edits a personal goal and preserves returned progress', async () => {
+    const user = userEvent.setup();
+    vi.mocked(updateIndividualGoal).mockResolvedValueOnce({ id: 'alex-goal', familyMemberId: 'sam', familyMemberName: 'Sam', title: 'Bedtime routine', targetCount: 2, currentProgress: 2, unitLabel: 'nights', visualKind: 'stars' });
+
+    render(<MotivationPage members={familyMembers} />);
+
+    expect(await screen.findByText('Finish morning routine')).not.toBeNull();
+    const alexCard = screen.getByText('Finish morning routine').closest('article')!;
+    await user.click(within(alexCard).getByRole('button', { name: 'Edit' }));
+    const editForm = screen.getByLabelText('Edit individual goal form');
+    await user.selectOptions(within(editForm).getByLabelText('Family member'), 'sam');
+    await user.clear(within(editForm).getByLabelText('Goal title'));
+    await user.type(within(editForm).getByLabelText('Goal title'), 'Bedtime routine');
+    await user.clear(within(editForm).getByLabelText('Target count'));
+    await user.type(within(editForm).getByLabelText('Target count'), '2');
+    await user.clear(within(editForm).getByLabelText('Unit label'));
+    await user.type(within(editForm).getByLabelText('Unit label'), 'nights');
+    await user.click(screen.getByRole('button', { name: 'Save personal goal' }));
+
+    expect(updateIndividualGoal).toHaveBeenCalledWith('alex-goal', { familyMemberId: 'sam', title: 'Bedtime routine', targetCount: 2, unitLabel: 'nights' });
+    expect(await screen.findByText('Bedtime routine')).not.toBeNull();
+    expect(screen.getByLabelText('2 of 2 nights')).not.toBeNull();
+  });
+
+  it('retires a personal goal from active motivation display', async () => {
+    const user = userEvent.setup();
+    vi.mocked(archiveIndividualGoal).mockResolvedValueOnce(undefined);
+
+    render(<MotivationPage members={familyMembers} />);
+
+    expect(await screen.findByText('Finish morning routine')).not.toBeNull();
+    const alexCard = screen.getByText('Finish morning routine').closest('article')!;
+    await user.click(within(alexCard).getByRole('button', { name: 'Edit' }));
+    await user.click(screen.getByRole('button', { name: 'Retire goal' }));
+
+    expect(archiveIndividualGoal).toHaveBeenCalledWith('alex-goal');
+    expect(screen.queryByText('Finish morning routine')).toBeNull();
+    expect(screen.getByText('Help with dinner')).not.toBeNull();
+  });
+
 });

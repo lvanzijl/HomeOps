@@ -1,4 +1,4 @@
-import { FamilyCelebrationStatus, HomeOpsApiClient, UpsertMotivationFamilyGoalRequest, type MotivationFamilyGoalDto, type MotivationIndividualGoalDto, type MotivationSnapshotDto } from './api/homeOpsApiClient';
+import { FamilyCelebrationStatus, HomeOpsApiClient, UpsertMotivationFamilyGoalRequest, UpsertMotivationIndividualGoalRequest, type MotivationFamilyGoalDto, type MotivationIndividualGoalDto, type MotivationSnapshotDto } from './api/homeOpsApiClient';
 import type { FamilyMember } from './home/familyMembers';
 
 export interface MotivationFamilyCelebration {
@@ -38,6 +38,13 @@ export interface UpsertMotivationFamilyGoalInput {
   unitLabel: string;
   celebrationTitle?: string;
   celebrationDescription?: string;
+}
+
+export interface UpsertMotivationIndividualGoalInput {
+  familyMemberId: string;
+  title: string;
+  targetCount: number;
+  unitLabel: string;
 }
 
 const apiBaseUrl = import.meta.env.VITE_HOMEOPS_API_BASE_URL ?? '';
@@ -94,6 +101,18 @@ export async function createFamilyGoal(input: UpsertMotivationFamilyGoalInput): 
 
 export async function updateFamilyGoal(id: string, input: UpsertMotivationFamilyGoalInput): Promise<MotivationFamilyGoal> {
   return familyGoalFromApi(await client.updateMotivationFamilyGoal(id, UpsertMotivationFamilyGoalRequest.fromJS(input)))!;
+}
+
+export async function createIndividualGoal(input: UpsertMotivationIndividualGoalInput): Promise<MotivationIndividualGoal> {
+  return individualGoalFromApi(await client.createMotivationIndividualGoal(UpsertMotivationIndividualGoalRequest.fromJS(input)));
+}
+
+export async function updateIndividualGoal(id: string, input: UpsertMotivationIndividualGoalInput): Promise<MotivationIndividualGoal> {
+  return individualGoalFromApi(await client.updateMotivationIndividualGoal(id, UpsertMotivationIndividualGoalRequest.fromJS(input)));
+}
+
+export async function archiveIndividualGoal(id: string): Promise<void> {
+  await client.archiveMotivationIndividualGoal(id);
 }
 
 export async function markFamilyGoalCelebrated(id: string): Promise<MotivationFamilyGoal> {

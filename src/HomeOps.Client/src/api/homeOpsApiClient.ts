@@ -122,6 +122,140 @@ export class HomeOpsApiClient {
         return Promise.resolve<MotivationSnapshotDto>(null as any);
     }
 
+    createMotivationIndividualGoal(request: UpsertMotivationIndividualGoalRequest): Promise<MotivationIndividualGoalDto> {
+        let url_ = this.baseUrl + "/api/motivation/individual-goals";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCreateMotivationIndividualGoal(_response);
+        });
+    }
+
+    protected processCreateMotivationIndividualGoal(response: Response): Promise<MotivationIndividualGoalDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 201) {
+            return response.text().then((_responseText) => {
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result201 = MotivationIndividualGoalDto.fromJS(resultData201);
+            return result201;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = HttpValidationProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<MotivationIndividualGoalDto>(null as any);
+    }
+
+    updateMotivationIndividualGoal(id: string, request: UpsertMotivationIndividualGoalRequest): Promise<MotivationIndividualGoalDto> {
+        let url_ = this.baseUrl + "/api/motivation/individual-goals/{id}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateMotivationIndividualGoal(_response);
+        });
+    }
+
+    protected processUpdateMotivationIndividualGoal(response: Response): Promise<MotivationIndividualGoalDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = MotivationIndividualGoalDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = HttpValidationProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<MotivationIndividualGoalDto>(null as any);
+    }
+
+    archiveMotivationIndividualGoal(id: string): Promise<void> {
+        let url_ = this.baseUrl + "/api/motivation/individual-goals/{id}/archive";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processArchiveMotivationIndividualGoal(_response);
+        });
+    }
+
+    protected processArchiveMotivationIndividualGoal(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
     createMotivationFamilyGoal(request: UpsertMotivationFamilyGoalRequest): Promise<MotivationFamilyGoalDto> {
         let url_ = this.baseUrl + "/api/motivation/family-goals";
         url_ = url_.replace(/[?&]$/, "");
@@ -2014,6 +2148,54 @@ export interface IHttpValidationProblemDetails extends IProblemDetails {
     errors?: { [key: string]: string[]; };
 
     [key: string]: any;
+}
+
+export class UpsertMotivationIndividualGoalRequest implements IUpsertMotivationIndividualGoalRequest {
+    familyMemberId?: string;
+    title?: string;
+    targetCount?: number;
+    unitLabel?: string;
+
+    constructor(data?: IUpsertMotivationIndividualGoalRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.familyMemberId = _data["familyMemberId"];
+            this.title = _data["title"];
+            this.targetCount = _data["targetCount"];
+            this.unitLabel = _data["unitLabel"];
+        }
+    }
+
+    static fromJS(data: any): UpsertMotivationIndividualGoalRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpsertMotivationIndividualGoalRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["familyMemberId"] = this.familyMemberId;
+        data["title"] = this.title;
+        data["targetCount"] = this.targetCount;
+        data["unitLabel"] = this.unitLabel;
+        return data;
+    }
+}
+
+export interface IUpsertMotivationIndividualGoalRequest {
+    familyMemberId?: string;
+    title?: string;
+    targetCount?: number;
+    unitLabel?: string;
 }
 
 export class UpsertMotivationFamilyGoalRequest implements IUpsertMotivationFamilyGoalRequest {

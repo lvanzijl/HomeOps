@@ -35,6 +35,65 @@ public static class MotivationEndpoints
 
 
 
+
+
+        app.MapPost("/api/motivation/individual-goals", async (UpsertMotivationIndividualGoalRequest request, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        {
+            var validation = await ValidateIndividualGoalRequest(request, dbContext, cancellationToken);
+            if (validation is not null) return validation;
+
+            var member = await dbContext.FamilyMembers.AsNoTracking()
+                .FirstAsync(item => item.HouseholdId == SeedHousehold.Id && item.Id == request.FamilyMemberId && !item.IsDeleted, cancellationToken);
+            var goal = new MotivationIndividualGoal
+            {
+                Id = Guid.NewGuid(),
+                HouseholdId = SeedHousehold.Id,
+                FamilyMemberId = member.Id,
+                Title = request.Title.Trim(),
+                TargetCount = request.TargetCount,
+                CurrentProgress = 0,
+                UnitLabel = request.UnitLabel.Trim(),
+                VisualKind = "stars",
+                IsActive = true
+            };
+            dbContext.MotivationIndividualGoals.Add(goal);
+            await dbContext.SaveChangesAsync(cancellationToken);
+            goal.FamilyMember = member;
+            return Results.Created($"/api/motivation/individual-goals/{goal.Id}", ToIndividualGoalDto(goal));
+        }).WithName("CreateMotivationIndividualGoal").Produces<MotivationIndividualGoalDto>(StatusCodes.Status201Created).ProducesValidationProblem();
+
+        app.MapPut("/api/motivation/individual-goals/{id:guid}", async (Guid id, UpsertMotivationIndividualGoalRequest request, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        {
+            var validation = await ValidateIndividualGoalRequest(request, dbContext, cancellationToken);
+            if (validation is not null) return validation;
+
+            var goal = await dbContext.MotivationIndividualGoals
+                .Include(item => item.FamilyMember)
+                .Where(item => item.HouseholdId == SeedHousehold.Id && item.Id == id && item.IsActive)
+                .FirstOrDefaultAsync(cancellationToken);
+            if (goal is null) return Results.NotFound();
+
+            goal.FamilyMemberId = request.FamilyMemberId.Trim();
+            goal.Title = request.Title.Trim();
+            goal.TargetCount = request.TargetCount;
+            goal.CurrentProgress = Math.Min(goal.CurrentProgress, goal.TargetCount);
+            goal.UnitLabel = request.UnitLabel.Trim();
+            await dbContext.SaveChangesAsync(cancellationToken);
+            await dbContext.Entry(goal).Reference(item => item.FamilyMember).LoadAsync(cancellationToken);
+            return Results.Ok(ToIndividualGoalDto(goal));
+        }).WithName("UpdateMotivationIndividualGoal").Produces<MotivationIndividualGoalDto>().Produces(StatusCodes.Status404NotFound).ProducesValidationProblem();
+
+        app.MapPost("/api/motivation/individual-goals/{id:guid}/archive", async (Guid id, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        {
+            var goal = await dbContext.MotivationIndividualGoals
+                .Where(item => item.HouseholdId == SeedHousehold.Id && item.Id == id && item.IsActive)
+                .FirstOrDefaultAsync(cancellationToken);
+            if (goal is null) return Results.NotFound();
+            goal.IsActive = false;
+            await dbContext.SaveChangesAsync(cancellationToken);
+            return Results.NoContent();
+        }).WithName("ArchiveMotivationIndividualGoal").Produces(StatusCodes.Status204NoContent).Produces(StatusCodes.Status404NotFound);
+
         app.MapPost("/api/motivation/family-goals", async (UpsertMotivationFamilyGoalRequest request, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
         {
             var validation = ValidateFamilyGoalRequest(request);
@@ -115,6 +174,28 @@ public static class MotivationEndpoints
         }).WithName("MarkFamilyGoalCelebrated").Produces<MotivationFamilyGoalDto>().Produces(StatusCodes.Status404NotFound).ProducesValidationProblem();
 
         return app;
+    }
+
+
+    private static MotivationIndividualGoalDto ToIndividualGoalDto(MotivationIndividualGoal goal) =>
+        new(goal.Id, goal.FamilyMemberId, goal.FamilyMember?.Name ?? string.Empty, goal.Title, goal.TargetCount, goal.CurrentProgress, goal.UnitLabel, goal.VisualKind);
+
+    private static async Task<IResult?> ValidateIndividualGoalRequest(UpsertMotivationIndividualGoalRequest request, HomeOpsDbContext dbContext, CancellationToken cancellationToken)
+    {
+        var errors = new Dictionary<string, string[]>();
+        if (string.IsNullOrWhiteSpace(request.FamilyMemberId)) errors[nameof(request.FamilyMemberId)] = ["Choose who this goal is for."];
+        if (string.IsNullOrWhiteSpace(request.Title)) errors[nameof(request.Title)] = ["Goal title is required."];
+        if (request.Title?.Length > 240) errors[nameof(request.Title)] = ["Goal title must be 240 characters or fewer."];
+        if (request.TargetCount < 1) errors[nameof(request.TargetCount)] = ["Target count must be at least 1."];
+        if (request.TargetCount > 99) errors[nameof(request.TargetCount)] = ["Target count must be 99 or fewer."];
+        if (string.IsNullOrWhiteSpace(request.UnitLabel)) errors[nameof(request.UnitLabel)] = ["Unit label is required."];
+        if (request.UnitLabel?.Length > 80) errors[nameof(request.UnitLabel)] = ["Unit label must be 80 characters or fewer."];
+        if (!string.IsNullOrWhiteSpace(request.FamilyMemberId))
+        {
+            var exists = await dbContext.FamilyMembers.AsNoTracking().AnyAsync(item => item.HouseholdId == SeedHousehold.Id && item.Id == request.FamilyMemberId.Trim() && !item.IsDeleted, cancellationToken);
+            if (!exists) errors[nameof(request.FamilyMemberId)] = ["Choose an active family member."];
+        }
+        return errors.Count == 0 ? null : Results.ValidationProblem(errors);
     }
 
     private static MotivationFamilyGoalDto ToDto(MotivationFamilyGoal goal) =>

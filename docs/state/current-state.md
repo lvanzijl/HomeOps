@@ -266,3 +266,11 @@ Family Goal Creation closes the final functional P0 blocker for Motivation. Hous
 - Motivation displays celebration context without replacing progress or encouragement as the primary page focus.
 - Home shows only compact celebration context in the Motivation tile when useful.
 - Reward Economy remains deferred: no gems, tokens, coins, shops, purchases, avatar unlocks, badges, leaderboards, or individual rewards were introduced.
+
+
+### Individual Goal Management — Completed 2026-06-20
+- Parents can now create, edit, reassign, and archive individual Motivation goals from the Motivation page.
+- Individual goal editing preserves progress where possible and caps progress when a lowered target would otherwise be exceeded.
+- Archived individual goals are retired from active Motivation and Child Progress displays without hard deletion, preserving persisted history.
+- Child Progress pages continue to consume the Motivation snapshot, so newly created active goals appear automatically and archived goals disappear.
+- Reward Economy remains deferred: no gems, tokens, shops, purchases, avatar unlocks, badges, leaderboards, negative points, notifications, recurrence, or goal templates were added.
