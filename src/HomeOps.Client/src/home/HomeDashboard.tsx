@@ -35,6 +35,7 @@ interface HomeDashboardProps {
   members: readonly FamilyMember[];
   onNavigate: (destination: "agenda" | "lists" | "tasks" | "motivation") => void;
   onSelectFamilyMember: (memberId: string) => void;
+  onAddFamilyMember: () => void;
 }
 
 type AgendaBucket = "Today" | "Tomorrow" | "Later / Next";
@@ -56,6 +57,7 @@ export function HomeDashboard({
   members,
   onNavigate,
   onSelectFamilyMember,
+  onAddFamilyMember,
 }: HomeDashboardProps) {
   const [now, setNow] = useState(() => new Date());
   const [motivationFamilyGoal, setMotivationFamilyGoal] = useState<MotivationFamilyGoal | undefined>();
@@ -270,6 +272,7 @@ export function HomeDashboard({
               <strong>{member.name}</strong>
             </button>
           ))}
+        <button className="family-chip add-family-chip" type="button" onClick={onAddFamilyMember} aria-label="Add Family Member"><span aria-hidden="true">＋</span><strong>Add</strong></button>
         </section>
         <section className="quick-capture" aria-label="Quick capture">
           <form className="home-quick-form" onSubmit={handleShoppingSubmit}>

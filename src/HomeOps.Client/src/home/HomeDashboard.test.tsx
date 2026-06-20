@@ -195,7 +195,7 @@ describe("HomeDashboard", () => {
       <HomeDashboard
         members={familyMembers}
         onNavigate={vi.fn()}
-        onSelectFamilyMember={vi.fn()}
+        onSelectFamilyMember={vi.fn()} onAddFamilyMember={vi.fn()}
       />,
     );
 
@@ -228,7 +228,7 @@ describe("HomeDashboard", () => {
       <HomeDashboard
         members={familyMembers}
         onNavigate={onNavigate}
-        onSelectFamilyMember={vi.fn()}
+        onSelectFamilyMember={vi.fn()} onAddFamilyMember={vi.fn()}
       />,
     );
 
@@ -250,7 +250,7 @@ describe("HomeDashboard", () => {
       <HomeDashboard
         members={familyMembers}
         onNavigate={vi.fn()}
-        onSelectFamilyMember={onSelectFamilyMember}
+        onSelectFamilyMember={onSelectFamilyMember} onAddFamilyMember={vi.fn()}
       />,
     );
 
@@ -269,7 +269,7 @@ describe("HomeDashboard", () => {
       <HomeDashboard
         members={familyMembers}
         onNavigate={onNavigate}
-        onSelectFamilyMember={vi.fn()}
+        onSelectFamilyMember={vi.fn()} onAddFamilyMember={vi.fn()}
       />,
     );
     await screen.findByText("Event 1");
@@ -300,7 +300,7 @@ describe("HomeDashboard", () => {
       <HomeDashboard
         members={familyMembers}
         onNavigate={vi.fn()}
-        onSelectFamilyMember={vi.fn()}
+        onSelectFamilyMember={vi.fn()} onAddFamilyMember={vi.fn()}
       />,
     );
     await screen.findByText("Event 1");

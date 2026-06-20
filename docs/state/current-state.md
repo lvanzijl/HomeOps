@@ -228,3 +228,11 @@ Home now surfaces the three core household domains on the dashboard: Agenda, Sho
 
 ## Motivation Progress Foundation
 Motivation progress now derives from task completion while Motivation remains a read model. Completing a Shared Household task advances the active family goal, and reopening it reverses that progress. Completing a task assigned to a Family Member advances that member's active individual goals, and reopening it reverses that progress. Progress is persisted on Motivation goal records and bounded by each goal's target count. Helpful Moments, Reward Economy, Gems, Tokens, Shop, avatar unlocks, badges, leaderboards, negative points, task recurrence, task approval, authentication, permissions, and roles remain deferred.
+
+## Phase 2 Family Member Management Foundation
+- Family Members now have a management foundation for household-maintained members without developer involvement.
+- The domain stores an explicit `MemberKind` (`Adult` or `Child`) separate from avatar age group so avatar editing remains presentation-only.
+- `DateOfBirth` is persisted; it is required for children and optional for adults.
+- Home exposes lightweight add-member management, and the Family Member page supports editing name, member type, date of birth, display color, avatar configuration, and confirmed removal.
+- Removal is soft delete only. Deleted members are filtered from normal Family Member lists and new Task assignment, while existing Task and Motivation references remain intact.
+- Family Members remain household entities only; no users, authentication identities, profiles, permissions, roles, onboarding wizard, goals, rewards, or gamification management were introduced.

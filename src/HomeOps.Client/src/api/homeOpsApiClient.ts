@@ -877,6 +877,48 @@ export class HomeOpsApiClient {
         return Promise.resolve<FamilyMemberDto[]>(null as any);
     }
 
+    createFamilyMember(request: CreateFamilyMemberRequest): Promise<FamilyMemberDto> {
+        let url_ = this.baseUrl + "/api/family-members";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCreateFamilyMember(_response);
+        });
+    }
+
+    protected processCreateFamilyMember(response: Response): Promise<FamilyMemberDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 201) {
+            return response.text().then((_responseText) => {
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result201 = FamilyMemberDto.fromJS(resultData201);
+            return result201;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FamilyMemberDto>(null as any);
+    }
+
     getFamilyMember(memberId: string): Promise<FamilyMemberDto> {
         let url_ = this.baseUrl + "/api/family-members/{memberId}";
         if (memberId === undefined || memberId === null)
@@ -965,6 +1007,43 @@ export class HomeOpsApiClient {
             });
         }
         return Promise.resolve<FamilyMemberDto>(null as any);
+    }
+
+    deleteFamilyMember(memberId: string): Promise<void> {
+        let url_ = this.baseUrl + "/api/family-members/{memberId}";
+        if (memberId === undefined || memberId === null)
+            throw new globalThis.Error("The parameter 'memberId' must be defined.");
+        url_ = url_.replace("{memberId}", encodeURIComponent("" + memberId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDeleteFamilyMember(_response);
+        });
+    }
+
+    protected processDeleteFamilyMember(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
     }
 
     getTasks(): Promise<HouseholdTaskDto[]> {
@@ -2909,6 +2988,8 @@ export class FamilyMemberDto implements IFamilyMemberDto {
     name?: string;
     displayColor?: string;
     initials?: string;
+    memberKind?: FamilyMemberKind;
+    dateOfBirth?: Date | undefined;
     avatar?: FamilyMemberAvatarDto;
 
     constructor(data?: IFamilyMemberDto) {
@@ -2926,6 +3007,8 @@ export class FamilyMemberDto implements IFamilyMemberDto {
             this.name = _data["name"];
             this.displayColor = _data["displayColor"];
             this.initials = _data["initials"];
+            this.memberKind = _data["memberKind"];
+            this.dateOfBirth = _data["dateOfBirth"] ? new Date(_data["dateOfBirth"].toString()) : undefined as any;
             this.avatar = _data["avatar"] ? FamilyMemberAvatarDto.fromJS(_data["avatar"]) : undefined as any;
         }
     }
@@ -2943,6 +3026,8 @@ export class FamilyMemberDto implements IFamilyMemberDto {
         data["name"] = this.name;
         data["displayColor"] = this.displayColor;
         data["initials"] = this.initials;
+        data["memberKind"] = this.memberKind;
+        data["dateOfBirth"] = this.dateOfBirth ? formatDate(this.dateOfBirth) : undefined as any;
         data["avatar"] = this.avatar ? this.avatar.toJSON() : undefined as any;
         return data;
     }
@@ -2953,7 +3038,14 @@ export interface IFamilyMemberDto {
     name?: string;
     displayColor?: string;
     initials?: string;
+    memberKind?: FamilyMemberKind;
+    dateOfBirth?: Date | undefined;
     avatar?: FamilyMemberAvatarDto;
+}
+
+export enum FamilyMemberKind {
+    Child = 0,
+    Adult = 1,
 }
 
 export class FamilyMemberAvatarDto implements IFamilyMemberAvatarDto {
@@ -3035,10 +3127,68 @@ export enum FamilyMemberHairStyle {
     Top = 4,
 }
 
+export class CreateFamilyMemberRequest implements ICreateFamilyMemberRequest {
+    name?: string;
+    memberKind?: FamilyMemberKind;
+    dateOfBirth?: Date | undefined;
+    displayColor?: string | undefined;
+    initials?: string | undefined;
+    avatar?: FamilyMemberAvatarDto | undefined;
+
+    constructor(data?: ICreateFamilyMemberRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.name = _data["name"];
+            this.memberKind = _data["memberKind"];
+            this.dateOfBirth = _data["dateOfBirth"] ? new Date(_data["dateOfBirth"].toString()) : undefined as any;
+            this.displayColor = _data["displayColor"];
+            this.initials = _data["initials"];
+            this.avatar = _data["avatar"] ? FamilyMemberAvatarDto.fromJS(_data["avatar"]) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): CreateFamilyMemberRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreateFamilyMemberRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["name"] = this.name;
+        data["memberKind"] = this.memberKind;
+        data["dateOfBirth"] = this.dateOfBirth ? formatDate(this.dateOfBirth) : undefined as any;
+        data["displayColor"] = this.displayColor;
+        data["initials"] = this.initials;
+        data["avatar"] = this.avatar ? this.avatar.toJSON() : undefined as any;
+        return data;
+    }
+}
+
+export interface ICreateFamilyMemberRequest {
+    name?: string;
+    memberKind?: FamilyMemberKind;
+    dateOfBirth?: Date | undefined;
+    displayColor?: string | undefined;
+    initials?: string | undefined;
+    avatar?: FamilyMemberAvatarDto | undefined;
+}
+
 export class UpdateFamilyMemberRequest implements IUpdateFamilyMemberRequest {
     name?: string;
     displayColor?: string;
     initials?: string;
+    memberKind?: FamilyMemberKind;
+    dateOfBirth?: Date | undefined;
     avatar?: FamilyMemberAvatarDto;
 
     constructor(data?: IUpdateFamilyMemberRequest) {
@@ -3055,6 +3205,8 @@ export class UpdateFamilyMemberRequest implements IUpdateFamilyMemberRequest {
             this.name = _data["name"];
             this.displayColor = _data["displayColor"];
             this.initials = _data["initials"];
+            this.memberKind = _data["memberKind"];
+            this.dateOfBirth = _data["dateOfBirth"] ? new Date(_data["dateOfBirth"].toString()) : undefined as any;
             this.avatar = _data["avatar"] ? FamilyMemberAvatarDto.fromJS(_data["avatar"]) : undefined as any;
         }
     }
@@ -3071,6 +3223,8 @@ export class UpdateFamilyMemberRequest implements IUpdateFamilyMemberRequest {
         data["name"] = this.name;
         data["displayColor"] = this.displayColor;
         data["initials"] = this.initials;
+        data["memberKind"] = this.memberKind;
+        data["dateOfBirth"] = this.dateOfBirth ? formatDate(this.dateOfBirth) : undefined as any;
         data["avatar"] = this.avatar ? this.avatar.toJSON() : undefined as any;
         return data;
     }
@@ -3080,6 +3234,8 @@ export interface IUpdateFamilyMemberRequest {
     name?: string;
     displayColor?: string;
     initials?: string;
+    memberKind?: FamilyMemberKind;
+    dateOfBirth?: Date | undefined;
     avatar?: FamilyMemberAvatarDto;
 }
 

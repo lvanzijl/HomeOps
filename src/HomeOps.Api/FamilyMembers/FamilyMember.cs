@@ -10,6 +10,10 @@ public sealed class FamilyMember
     public string Name { get; set; } = string.Empty;
     public string DisplayColor { get; set; } = string.Empty;
     public string Initials { get; set; } = string.Empty;
+    public FamilyMemberKind MemberKind { get; set; } = FamilyMemberKind.Child;
+    public DateOnly? DateOfBirth { get; set; }
+    public bool IsDeleted { get; set; }
+    public DateTimeOffset? DeletedUtc { get; set; }
     public FamilyMemberAgeGroup AgeGroup { get; set; } = FamilyMemberAgeGroup.Child;
     public FamilyMemberPresentation Presentation { get; set; } = FamilyMemberPresentation.Neutral;
     public string SkinTone { get; set; } = string.Empty;

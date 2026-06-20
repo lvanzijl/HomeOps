@@ -679,6 +679,39 @@
             }
           }
         }
+      },
+      "post": {
+        "tags": [
+          "Family Members"
+        ],
+        "operationId": "CreateFamilyMember",
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateFamilyMemberRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FamilyMemberDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": ""
+          }
+        }
       }
     },
     "/api/family-members/{memberId}": {
@@ -754,6 +787,31 @@
             }
           },
           "400": {
+            "description": ""
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Family Members"
+        ],
+        "operationId": "DeleteFamilyMember",
+        "parameters": [
+          {
+            "name": "memberId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "204": {
             "description": ""
           },
           "404": {
@@ -1731,10 +1789,30 @@
           "initials": {
             "type": "string"
           },
+          "memberKind": {
+            "$ref": "#/components/schemas/FamilyMemberKind"
+          },
+          "dateOfBirth": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
           "avatar": {
             "$ref": "#/components/schemas/FamilyMemberAvatarDto"
           }
         }
+      },
+      "FamilyMemberKind": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "Child",
+          "Adult"
+        ],
+        "enum": [
+          0,
+          1
+        ]
       },
       "FamilyMemberAvatarDto": {
         "type": "object",
@@ -1807,6 +1885,39 @@
           4
         ]
       },
+      "CreateFamilyMemberRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "memberKind": {
+            "$ref": "#/components/schemas/FamilyMemberKind"
+          },
+          "dateOfBirth": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "displayColor": {
+            "type": "string",
+            "nullable": true
+          },
+          "initials": {
+            "type": "string",
+            "nullable": true
+          },
+          "avatar": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/FamilyMemberAvatarDto"
+              }
+            ]
+          }
+        }
+      },
       "UpdateFamilyMemberRequest": {
         "type": "object",
         "additionalProperties": false,
@@ -1819,6 +1930,14 @@
           },
           "initials": {
             "type": "string"
+          },
+          "memberKind": {
+            "$ref": "#/components/schemas/FamilyMemberKind"
+          },
+          "dateOfBirth": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
           },
           "avatar": {
             "$ref": "#/components/schemas/FamilyMemberAvatarDto"
