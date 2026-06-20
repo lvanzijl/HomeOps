@@ -2,6 +2,7 @@ export interface ShoppingListItem {
   id: string;
   label: string;
   completed: boolean;
+  preferredStore?: string | null;
 }
 
 export interface ShoppingListState {

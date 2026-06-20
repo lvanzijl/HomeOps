@@ -8,7 +8,7 @@ describe('lists API mapping', () => {
       id: 'shopping-list-id',
       name: 'Shopping',
       items: [
-        new ListItemDto({ id: 'bread', listId: 'shopping-list-id', text: 'Bread', isCompleted: false }),
+        new ListItemDto({ id: 'bread', listId: 'shopping-list-id', text: 'Bread', isCompleted: false, preferredStore: 'Bakery' }),
         new ListItemDto({ id: 'coffee', listId: 'shopping-list-id', text: 'Coffee', isCompleted: true }),
       ],
     }));
@@ -16,8 +16,8 @@ describe('lists API mapping', () => {
     expect(state).toEqual({
       listId: 'shopping-list-id',
       items: [
-        { id: 'bread', label: 'Bread', completed: false },
-        { id: 'coffee', label: 'Coffee', completed: true },
+        { id: 'bread', label: 'Bread', completed: false, preferredStore: 'Bakery' },
+        { id: 'coffee', label: 'Coffee', completed: true, preferredStore: null },
       ],
     });
   });

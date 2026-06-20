@@ -74,12 +74,15 @@ public static class ListEndpoints
             }
 
             var now = DateTimeOffset.UtcNow;
+            var preference = await dbContext.ShoppingItemPreferences.AsNoTracking()
+                .FirstOrDefaultAsync(pref => pref.HouseholdId == SeedHousehold.Id && pref.NormalizedText == NormalizeItemText(trimmedText), cancellationToken);
             var item = new ListItem
             {
                 Id = Guid.NewGuid(),
                 ListId = listId,
                 Text = trimmedText,
                 IsCompleted = false,
+                PreferredStore = preference?.PreferredStore,
                 CreatedUtc = now,
                 UpdatedUtc = now,
             };
@@ -89,6 +92,30 @@ public static class ListEndpoints
 
             return Results.Created($"/api/lists/{listId}/items/{item.Id}", ToDto(item));
         }).WithName("AddListItem").Produces<ListItemDto>(StatusCodes.Status201Created).Produces(StatusCodes.Status400BadRequest).Produces(StatusCodes.Status404NotFound);
+
+        group.MapPatch("/{listId:guid}/items/{itemId:guid}/store", async (Guid listId, Guid itemId, UpdateListItemStoreRequest request, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        {
+            var item = await dbContext.ListItems
+                .Include(listItem => listItem.List)
+                .FirstOrDefaultAsync(listItem => listItem.Id == itemId && listItem.ListId == listId && listItem.List!.HouseholdId == SeedHousehold.Id, cancellationToken);
+
+            if (item is null)
+            {
+                return Results.NotFound();
+            }
+
+            var store = NormalizeStore(request.PreferredStore);
+            item.PreferredStore = store;
+            item.UpdatedUtc = DateTimeOffset.UtcNow;
+
+            if (store is not null)
+            {
+                await RememberStorePreference(dbContext, item.Text, store, item.UpdatedUtc, cancellationToken);
+            }
+
+            await dbContext.SaveChangesAsync(cancellationToken);
+            return Results.Ok(ToDto(item));
+        }).WithName("UpdateListItemStore").Produces<ListItemDto>().Produces(StatusCodes.Status404NotFound);
 
         group.MapPost("/{listId:guid}/items/{itemId:guid}/toggle", async (Guid listId, Guid itemId, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
         {
@@ -147,5 +174,41 @@ public static class ListEndpoints
             .FirstOrDefaultAsync(cancellationToken);
     }
 
-    private static ListItemDto ToDto(ListItem item) => new(item.Id, item.ListId, item.Text, item.IsCompleted, item.CreatedUtc, item.UpdatedUtc);
+    private static ListItemDto ToDto(ListItem item) => new(item.Id, item.ListId, item.Text, item.IsCompleted, item.PreferredStore, item.CreatedUtc, item.UpdatedUtc);
+
+    private static string NormalizeItemText(string text) => text.Trim().ToUpperInvariant();
+
+    private static string? NormalizeStore(string? store)
+    {
+        var trimmed = store?.Trim();
+        return string.IsNullOrWhiteSpace(trimmed) ? null : trimmed;
+    }
+
+    private static async Task RememberStorePreference(HomeOpsDbContext dbContext, string itemText, string store, DateTimeOffset now, CancellationToken cancellationToken)
+    {
+        var normalizedText = NormalizeItemText(itemText);
+        var preference = await dbContext.ShoppingItemPreferences
+            .FirstOrDefaultAsync(pref => pref.HouseholdId == SeedHousehold.Id && pref.NormalizedText == normalizedText, cancellationToken);
+
+        if (preference is null)
+        {
+            dbContext.ShoppingItemPreferences.Add(new ShoppingItemPreference
+            {
+                Id = Guid.NewGuid(),
+                HouseholdId = SeedHousehold.Id,
+                NormalizedText = normalizedText,
+                ItemText = itemText.Trim(),
+                PreferredStore = store,
+                StoreObservationCount = 1,
+                CreatedUtc = now,
+                UpdatedUtc = now,
+            });
+            return;
+        }
+
+        preference.ItemText = itemText.Trim();
+        preference.PreferredStore = store;
+        preference.StoreObservationCount += 1;
+        preference.UpdatedUtc = now;
+    }
 }

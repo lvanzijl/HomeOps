@@ -16,6 +16,7 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
     public DbSet<Household> Households => Set<Household>();
     public DbSet<Lists.List> Lists => Set<Lists.List>();
     public DbSet<ListItem> ListItems => Set<ListItem>();
+    public DbSet<ShoppingItemPreference> ShoppingItemPreferences => Set<ShoppingItemPreference>();
     public DbSet<CalendarEvents.EventSource> EventSources => Set<CalendarEvents.EventSource>();
     public DbSet<EventSeries> EventSeries => Set<EventSeries>();
     public DbSet<EventException> EventExceptions => Set<EventException>();
@@ -79,6 +80,7 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             entity.HasKey(item => item.Id);
             entity.Property(item => item.Text).HasMaxLength(240).IsRequired();
             entity.Property(item => item.IsCompleted).IsRequired();
+            entity.Property(item => item.PreferredStore).HasMaxLength(120);
             entity.Property(item => item.CreatedUtc).IsRequired();
             entity.Property(item => item.UpdatedUtc).IsRequired();
             entity.HasOne(item => item.List)
@@ -86,6 +88,20 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
                 .HasForeignKey(item => item.ListId)
                 .OnDelete(DeleteBehavior.Cascade);
             entity.HasIndex(item => new { item.ListId, item.CreatedUtc });
+        });
+
+
+        modelBuilder.Entity<ShoppingItemPreference>(entity =>
+        {
+            entity.ToTable("ShoppingItemPreferences");
+            entity.HasKey(preference => preference.Id);
+            entity.Property(preference => preference.NormalizedText).HasMaxLength(240).IsRequired();
+            entity.Property(preference => preference.ItemText).HasMaxLength(240).IsRequired();
+            entity.Property(preference => preference.PreferredStore).HasMaxLength(120).IsRequired();
+            entity.Property(preference => preference.StoreObservationCount).IsRequired();
+            entity.Property(preference => preference.CreatedUtc).IsRequired();
+            entity.Property(preference => preference.UpdatedUtc).IsRequired();
+            entity.HasIndex(preference => new { preference.HouseholdId, preference.NormalizedText }).IsUnique();
         });
 
 

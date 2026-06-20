@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
-import { addShoppingListItem, createListsApiClient, createShoppingList, loadShoppingList, removeShoppingListItem, toggleShoppingListItem } from '../../shopping/listsApi';
+import { addShoppingListItem, createListsApiClient, createShoppingList, loadShoppingList, removeShoppingListItem, toggleShoppingListItem, updateShoppingListItemStore } from '../../shopping/listsApi';
 import type { ShoppingListItem } from '../../shopping/shoppingListModel';
 import { getActiveShoppingListItems, getCompletedShoppingListItems, removeShoppingListItemById, upsertShoppingListItem } from '../../shopping/shoppingListState';
 import type { WidgetRenderProps } from '../WidgetRenderer';
@@ -78,6 +78,19 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
     }
   }
 
+  async function updateItemStore(itemId: string, preferredStore: string | null) {
+    if (!listId) {
+      return;
+    }
+
+    try {
+      const updatedItem = await updateShoppingListItemStore(apiClient, listId, itemId, preferredStore);
+      setItems((current) => upsertShoppingListItem(current, updatedItem));
+    } catch {
+      setError('Shopping store could not be updated.');
+    }
+  }
+
   async function removeItem(itemId: string) {
     if (!listId) {
       return;
@@ -136,6 +149,7 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
         emptyLabel="No active items."
         items={activeItems}
         onRemove={removeItem}
+        onStoreChange={updateItemStore}
         onToggle={toggleItem}
         title="Active"
       />
@@ -143,6 +157,7 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
         emptyLabel="No completed items."
         items={completedItems}
         onRemove={removeItem}
+        onStoreChange={updateItemStore}
         onToggle={toggleItem}
         title="Completed"
       />
@@ -154,31 +169,58 @@ interface ShoppingListSectionProps {
   emptyLabel: string;
   items: readonly ShoppingListItem[];
   onRemove(itemId: string): void;
+  onStoreChange(itemId: string, preferredStore: string | null): void;
   onToggle(itemId: string): void;
   title: string;
 }
 
-function ShoppingListSection({ emptyLabel, items, onRemove, onToggle, title }: ShoppingListSectionProps) {
+function ShoppingListSection({ emptyLabel, items, onRemove, onStoreChange, onToggle, title }: ShoppingListSectionProps) {
   return (
     <section className="shopping-section">
       <h4>{title}</h4>
       {items.length === 0 ? (
         <p className="shopping-empty">{emptyLabel}</p>
       ) : (
-        <ul className="shopping-list">
-          {items.map((item) => (
-            <li className="shopping-item" key={item.id}>
-              <label>
-                <input checked={item.completed} onChange={() => onToggle(item.id)} type="checkbox" />
-                <span>{item.label}</span>
-              </label>
-              <button onClick={() => onRemove(item.id)} type="button">
-                Remove
-              </button>
-            </li>
+        <div className="shopping-store-groups">
+          {groupItemsByStore(items).map((group) => (
+            <div className="shopping-store-group" key={group.store ?? 'uncategorized'}>
+              <h5>{group.store ?? 'Uncategorized'}</h5>
+              <ul className="shopping-list">
+                {group.items.map((item) => (
+                  <li className="shopping-item" key={item.id}>
+                    <label>
+                      <input checked={item.completed} onChange={() => onToggle(item.id)} type="checkbox" />
+                      <span>{item.label}</span>
+                      {item.preferredStore ? <small>({item.preferredStore})</small> : null}
+                    </label>
+                    <label className="shopping-store-field">
+                      <span>Store</span>
+                      <input
+                        aria-label={`Store for ${item.label}`}
+                        onBlur={(event) => onStoreChange(item.id, event.target.value || null)}
+                        placeholder="Optional"
+                        type="text"
+                        defaultValue={item.preferredStore ?? ''}
+                      />
+                    </label>
+                    <button onClick={() => onRemove(item.id)} type="button">
+                      Remove
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
           ))}
-        </ul>
+        </div>
       )}
     </section>
   );
+}
+
+
+function groupItemsByStore(items: readonly ShoppingListItem[]): { store: string | null; items: readonly ShoppingListItem[] }[] {
+  const stores = Array.from(new Set(items.map((item) => item.preferredStore).filter((store): store is string => Boolean(store)))).sort((a, b) => a.localeCompare(b));
+  const grouped = stores.map((store) => ({ store, items: items.filter((item) => item.preferredStore === store) }));
+  const uncategorized = items.filter((item) => !item.preferredStore);
+  return uncategorized.length > 0 ? [...grouped, { store: null, items: uncategorized }] : grouped;
 }

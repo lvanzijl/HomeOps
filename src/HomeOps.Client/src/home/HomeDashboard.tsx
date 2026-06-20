@@ -298,7 +298,7 @@ export function HomeDashboard({
                 )
                 .slice(0, 6)
                 .map((item) => (
-                  <option key={item} value={item} />
+                  <option key={item} value={item} label={getShoppingSuggestionLabel(item, activeListItems)} />
                 ))}
             </datalist>
           </form>
@@ -414,7 +414,7 @@ export function HomeDashboard({
             {visibleListItems.map((item) => (
               <li key={`${item.listId}-${item.id}`}>
                 <strong>{item.listName}</strong>
-                <span>{item.text}</span>
+                <span>{item.text}{item.preferredStore ? ` (${item.preferredStore})` : ""}</span>
               </li>
             ))}
           </ul>
@@ -692,4 +692,10 @@ function formatTaskOwner(
 function formatTaskDue(task: HouseholdTask) {
   if (!task.dueDate) return "No due date";
   return `Due ${task.dueDate}`;
+}
+
+
+function getShoppingSuggestionLabel(item: string, activeItems: { text: string; preferredStore?: string | null }[]): string {
+  const match = activeItems.find((activeItem) => activeItem.text.toLowerCase() === item.toLowerCase());
+  return match?.preferredStore ? `${item} (${match.preferredStore})` : item;
 }

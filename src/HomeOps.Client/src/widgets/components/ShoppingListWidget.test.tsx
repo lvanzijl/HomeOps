@@ -11,6 +11,7 @@ vi.mock('../../shopping/listsApi', () => ({
   createShoppingList: vi.fn(),
   addShoppingListItem: vi.fn(),
   toggleShoppingListItem: vi.fn(),
+  updateShoppingListItemStore: vi.fn(),
   removeShoppingListItem: vi.fn(),
 }));
 
@@ -32,13 +33,14 @@ describe('ShoppingListWidget API-backed behavior', () => {
     vi.mocked(listsApi.loadShoppingList).mockResolvedValue({
       listId: 'shopping-list-id',
       items: [
-        { id: 'bread', label: 'Bread', completed: false },
-        { id: 'coffee', label: 'Coffee', completed: true },
+        { id: 'bread', label: 'Bread', completed: false, preferredStore: 'Supermarket' },
+        { id: 'coffee', label: 'Coffee', completed: true, preferredStore: null },
       ],
     });
     vi.mocked(listsApi.createShoppingList).mockResolvedValue({ listId: 'shopping-list-id', items: [] });
-    vi.mocked(listsApi.addShoppingListItem).mockResolvedValue({ id: 'apples', label: 'Apples', completed: false });
-    vi.mocked(listsApi.toggleShoppingListItem).mockResolvedValue({ id: 'bread', label: 'Bread', completed: true });
+    vi.mocked(listsApi.addShoppingListItem).mockResolvedValue({ id: 'apples', label: 'Apples', completed: false, preferredStore: null });
+    vi.mocked(listsApi.toggleShoppingListItem).mockResolvedValue({ id: 'bread', label: 'Bread', completed: true, preferredStore: 'Supermarket' });
+    vi.mocked(listsApi.updateShoppingListItemStore).mockResolvedValue({ id: 'coffee', label: 'Coffee', completed: true, preferredStore: 'Drugstore' });
     vi.mocked(listsApi.removeShoppingListItem).mockResolvedValue(undefined);
   });
 
@@ -72,6 +74,24 @@ describe('ShoppingListWidget API-backed behavior', () => {
     await user.click(within(breadAfterToggle.closest('li')!).getByRole('button', { name: 'Remove' }));
     expect(listsApi.removeShoppingListItem).toHaveBeenCalledWith(apiClient, 'shopping-list-id', 'bread');
     await waitFor(() => expect(screen.queryByText('Bread')).toBeNull());
+  });
+
+
+  it('groups items by store and allows store overrides', async () => {
+    const user = userEvent.setup();
+    const listsApi = await mockedListsApi();
+    render(<ShoppingListWidget {...widgetProps} />);
+
+    expect(await screen.findByRole('heading', { name: 'Supermarket' })).not.toBeNull();
+    expect(screen.getByRole('heading', { name: 'Uncategorized' })).not.toBeNull();
+
+    const coffeeStore = screen.getByLabelText('Store for Coffee');
+    await user.clear(coffeeStore);
+    await user.type(coffeeStore, 'Drugstore');
+    await user.tab();
+
+    expect(listsApi.updateShoppingListItemStore).toHaveBeenCalledWith(apiClient, 'shopping-list-id', 'coffee', 'Drugstore');
+    expect(await screen.findByText('(Drugstore)')).not.toBeNull();
   });
 
   it('guides households when the first list has no items yet', async () => {

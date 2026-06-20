@@ -157,3 +157,7 @@ Family Goal Creation and Editing removes the final functional P0 blocker for Mot
 - Template items with no recurrence create normal Household Tasks; template items with Daily, Weekly, or Monthly recurrence create Recurring Task Series and generated task occurrences using the existing recurring task model.
 - Seeded starter templates are Morning Routine, Bedtime Routine, Homework Routine, Pet Care, and Kitchen Reset, and remain household-editable/archiveable after seeding.
 - This slice intentionally does not add Goal Templates, Reward Economy, gems, shop, notifications, sharing, marketplace, import/export, or AI-generated templates.
+
+
+### Shopping Intelligence Foundation — Completed 2026-06-20
+Shopping Intelligence Foundation reduces shopping-list administration without adding capture friction. Shopping items now have optional preferred-store metadata, deterministic household item-name preferences, inherited stores for future matching additions, per-item store overrides, grouped Shopping presentation, and store context in suggestions/summaries. Home quick capture and Shopping capture remain item-name only. Store selection is not required, uncategorized items remain visible, and AI classification, OCR, barcode scanning, notifications, shopping automation, and Reward Economy remain out of scope.

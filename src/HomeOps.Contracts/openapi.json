@@ -527,6 +527,63 @@
         }
       }
     },
+    "/api/lists/{listId}/items/{itemId}/store": {
+      "patch": {
+        "tags": [
+          "Lists"
+        ],
+        "operationId": "UpdateListItemStore",
+        "parameters": [
+          {
+            "name": "listId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 2
+          }
+        ],
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateListItemStoreRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 3
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListItemDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
     "/api/lists/{listId}/items/{itemId}/toggle": {
       "post": {
         "tags": [
@@ -2002,6 +2059,10 @@
           "isCompleted": {
             "type": "boolean"
           },
+          "preferredStore": {
+            "type": "string",
+            "nullable": true
+          },
           "createdUtc": {
             "type": "string",
             "format": "date-time"
@@ -2027,6 +2088,16 @@
         "properties": {
           "text": {
             "type": "string"
+          }
+        }
+      },
+      "UpdateListItemStoreRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "preferredStore": {
+            "type": "string",
+            "nullable": true
           }
         }
       },

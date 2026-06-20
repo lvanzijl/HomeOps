@@ -61,4 +61,30 @@ public sealed class ListApiTests(HomeOpsWebApplicationFactory factory) : IClassF
         Assert.NotNull(list);
         Assert.DoesNotContain(list.Items, item => item.Id == added.Id);
     }
+    [Fact]
+    public async Task StorePreferenceIsLearnedInheritedAndOverridden()
+    {
+        var firstResponse = await _client.PostAsJsonAsync($"/api/lists/{SeedLists.ShoppingListId}/items", new AddListItemRequest("Shampoo"));
+        var first = await firstResponse.Content.ReadFromJsonAsync<ListItemDto>();
+        Assert.NotNull(first);
+        Assert.Null(first.PreferredStore);
+
+        var learnResponse = await _client.PatchAsJsonAsync($"/api/lists/{SeedLists.ShoppingListId}/items/{first.Id}/store", new UpdateListItemStoreRequest("Drugstore"));
+        Assert.Equal(HttpStatusCode.OK, learnResponse.StatusCode);
+        var learned = await learnResponse.Content.ReadFromJsonAsync<ListItemDto>();
+        Assert.NotNull(learned);
+        Assert.Equal("Drugstore", learned.PreferredStore);
+
+        var secondResponse = await _client.PostAsJsonAsync($"/api/lists/{SeedLists.ShoppingListId}/items", new AddListItemRequest("shampoo"));
+        var inherited = await secondResponse.Content.ReadFromJsonAsync<ListItemDto>();
+        Assert.NotNull(inherited);
+        Assert.Equal("Drugstore", inherited.PreferredStore);
+
+        var overrideResponse = await _client.PatchAsJsonAsync($"/api/lists/{SeedLists.ShoppingListId}/items/{inherited.Id}/store", new UpdateListItemStoreRequest("Supermarket"));
+        Assert.Equal(HttpStatusCode.OK, overrideResponse.StatusCode);
+        var overridden = await overrideResponse.Content.ReadFromJsonAsync<ListItemDto>();
+        Assert.NotNull(overridden);
+        Assert.Equal("Supermarket", overridden.PreferredStore);
+    }
+
 }
