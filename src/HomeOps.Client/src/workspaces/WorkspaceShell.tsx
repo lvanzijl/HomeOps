@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { FamilyMemberPage } from '../home/FamilyMemberPage';
 import { HomeDashboard } from '../home/HomeDashboard';
 import { familyMembers, type FamilyMember } from '../home/familyMembers';
+import { loadFamilyMembers, saveFamilyMember } from '../home/familyMembersApi';
 import { TasksPage } from '../tasks/TasksPage';
 import { DomainPlaceholderPage } from './DomainPlaceholderPage';
 import { getDomainColorClass } from './domainColors';
@@ -44,6 +45,12 @@ export function WorkspaceShell() {
   }, [activeWorkspaceId]);
 
   const activeWorkspaceIndex = workspaceDefinitions.findIndex((workspace) => workspace.id === activeWorkspace.id);
+  useEffect(() => {
+    let ignore = false;
+    loadFamilyMembers().then((loaded) => { if (!ignore) setMembers([...loaded]); }).catch(() => { if (!ignore) setMembers([...familyMembers]); });
+    return () => { ignore = true; };
+  }, []);
+
   const activeFamilyMember = members.find((member) => member.id === activeFamilyMemberId) ?? null;
   const activeDomainClass = activeFamilyMember ? 'domain-home' : getDomainColorClass(activeWorkspace.id);
 
@@ -54,6 +61,9 @@ export function WorkspaceShell() {
 
   function updateFamilyMember(updated: FamilyMember) {
     setMembers((current) => current.map((member) => member.id === updated.id ? updated : member));
+    void saveFamilyMember(updated).then((saved) => {
+      setMembers((current) => current.map((member) => member.id === saved.id ? saved : member));
+    }).catch(() => undefined);
   }
   const widgetInstances = activeWorkspace.id === 'agenda'
     ? [{ id: 'agenda-page', widgetDefinitionId: 'agenda-mvp', title: 'Agenda', settings: {} }]
@@ -92,7 +102,7 @@ export function WorkspaceShell() {
         ) : activeWorkspace.id === 'home' ? (
           <HomeDashboard members={members} onNavigate={navigateWorkspace} onSelectFamilyMember={setActiveFamilyMemberId} />
         ) : activeWorkspace.id === 'tasks' ? (
-          <TasksPage />
+          <TasksPage members={members} />
         ) : activeWorkspace.id === 'house' ? (
           <DomainPlaceholderPage title="House Status" purpose="For home alerts, sensors, and device state." />
         ) : activeWorkspace.id === 'media' ? (

@@ -802,6 +802,137 @@ export class HomeOpsApiClient {
         return Promise.resolve<void>(null as any);
     }
 
+    getFamilyMembers(): Promise<FamilyMemberDto[]> {
+        let url_ = this.baseUrl + "/api/family-members";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetFamilyMembers(_response);
+        });
+    }
+
+    protected processGetFamilyMembers(response: Response): Promise<FamilyMemberDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(FamilyMemberDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FamilyMemberDto[]>(null as any);
+    }
+
+    getFamilyMember(memberId: string): Promise<FamilyMemberDto> {
+        let url_ = this.baseUrl + "/api/family-members/{memberId}";
+        if (memberId === undefined || memberId === null)
+            throw new globalThis.Error("The parameter 'memberId' must be defined.");
+        url_ = url_.replace("{memberId}", encodeURIComponent("" + memberId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetFamilyMember(_response);
+        });
+    }
+
+    protected processGetFamilyMember(response: Response): Promise<FamilyMemberDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = FamilyMemberDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FamilyMemberDto>(null as any);
+    }
+
+    updateFamilyMember(memberId: string, request: UpdateFamilyMemberRequest): Promise<FamilyMemberDto> {
+        let url_ = this.baseUrl + "/api/family-members/{memberId}";
+        if (memberId === undefined || memberId === null)
+            throw new globalThis.Error("The parameter 'memberId' must be defined.");
+        url_ = url_.replace("{memberId}", encodeURIComponent("" + memberId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateFamilyMember(_response);
+        });
+    }
+
+    protected processUpdateFamilyMember(response: Response): Promise<FamilyMemberDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = FamilyMemberDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FamilyMemberDto>(null as any);
+    }
+
     getTasks(): Promise<HouseholdTaskDto[]> {
         let url_ = this.baseUrl + "/api/tasks";
         url_ = url_.replace(/[?&]$/, "");
@@ -2569,6 +2700,185 @@ export interface IUpdateEventSeriesRequest {
     startUtc?: Date;
     endUtc?: Date | undefined;
     isAllDay?: boolean;
+}
+
+export class FamilyMemberDto implements IFamilyMemberDto {
+    id?: string;
+    name?: string;
+    displayColor?: string;
+    initials?: string;
+    avatar?: FamilyMemberAvatarDto;
+
+    constructor(data?: IFamilyMemberDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.name = _data["name"];
+            this.displayColor = _data["displayColor"];
+            this.initials = _data["initials"];
+            this.avatar = _data["avatar"] ? FamilyMemberAvatarDto.fromJS(_data["avatar"]) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): FamilyMemberDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new FamilyMemberDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["name"] = this.name;
+        data["displayColor"] = this.displayColor;
+        data["initials"] = this.initials;
+        data["avatar"] = this.avatar ? this.avatar.toJSON() : undefined as any;
+        return data;
+    }
+}
+
+export interface IFamilyMemberDto {
+    id?: string;
+    name?: string;
+    displayColor?: string;
+    initials?: string;
+    avatar?: FamilyMemberAvatarDto;
+}
+
+export class FamilyMemberAvatarDto implements IFamilyMemberAvatarDto {
+    ageGroup?: FamilyMemberAgeGroup;
+    presentation?: FamilyMemberPresentation;
+    skinTone?: string;
+    hairColor?: string;
+    hairStyle?: FamilyMemberHairStyle;
+    glasses?: boolean;
+    shirtColor?: string;
+
+    constructor(data?: IFamilyMemberAvatarDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.ageGroup = _data["ageGroup"];
+            this.presentation = _data["presentation"];
+            this.skinTone = _data["skinTone"];
+            this.hairColor = _data["hairColor"];
+            this.hairStyle = _data["hairStyle"];
+            this.glasses = _data["glasses"];
+            this.shirtColor = _data["shirtColor"];
+        }
+    }
+
+    static fromJS(data: any): FamilyMemberAvatarDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new FamilyMemberAvatarDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["ageGroup"] = this.ageGroup;
+        data["presentation"] = this.presentation;
+        data["skinTone"] = this.skinTone;
+        data["hairColor"] = this.hairColor;
+        data["hairStyle"] = this.hairStyle;
+        data["glasses"] = this.glasses;
+        data["shirtColor"] = this.shirtColor;
+        return data;
+    }
+}
+
+export interface IFamilyMemberAvatarDto {
+    ageGroup?: FamilyMemberAgeGroup;
+    presentation?: FamilyMemberPresentation;
+    skinTone?: string;
+    hairColor?: string;
+    hairStyle?: FamilyMemberHairStyle;
+    glasses?: boolean;
+    shirtColor?: string;
+}
+
+export enum FamilyMemberAgeGroup {
+    Child = 0,
+    Adult = 1,
+}
+
+export enum FamilyMemberPresentation {
+    Neutral = 0,
+    Masculine = 1,
+    Feminine = 2,
+}
+
+export enum FamilyMemberHairStyle {
+    Short = 0,
+    Curly = 1,
+    Bob = 2,
+    Long = 3,
+    Top = 4,
+}
+
+export class UpdateFamilyMemberRequest implements IUpdateFamilyMemberRequest {
+    name?: string;
+    displayColor?: string;
+    initials?: string;
+    avatar?: FamilyMemberAvatarDto;
+
+    constructor(data?: IUpdateFamilyMemberRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.name = _data["name"];
+            this.displayColor = _data["displayColor"];
+            this.initials = _data["initials"];
+            this.avatar = _data["avatar"] ? FamilyMemberAvatarDto.fromJS(_data["avatar"]) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): UpdateFamilyMemberRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpdateFamilyMemberRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["name"] = this.name;
+        data["displayColor"] = this.displayColor;
+        data["initials"] = this.initials;
+        data["avatar"] = this.avatar ? this.avatar.toJSON() : undefined as any;
+        return data;
+    }
+}
+
+export interface IUpdateFamilyMemberRequest {
+    name?: string;
+    displayColor?: string;
+    initials?: string;
+    avatar?: FamilyMemberAvatarDto;
 }
 
 export class HouseholdTaskDto implements IHouseholdTaskDto {

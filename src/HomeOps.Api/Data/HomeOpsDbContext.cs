@@ -2,6 +2,7 @@ using HomeOps.Api.AgendaLayerSettings;
 using HomeOps.Api.Households;
 using HomeOps.Api.Lists;
 using HomeOps.Api.CalendarEvents;
+using HomeOps.Api.FamilyMembers;
 using HomeOps.Api.WidgetLayouts;
 using HomeOps.Api.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -20,6 +21,7 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
     public DbSet<WorkspaceLayout> WorkspaceLayouts => Set<WorkspaceLayout>();
     public DbSet<WidgetPlacement> WidgetPlacements => Set<WidgetPlacement>();
     public DbSet<HouseholdTask> HouseholdTasks => Set<HouseholdTask>();
+    public DbSet<FamilyMember> FamilyMembers => Set<FamilyMember>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -138,6 +140,30 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
         });
 
 
+        modelBuilder.Entity<FamilyMember>(entity =>
+        {
+            entity.ToTable("FamilyMembers");
+            entity.HasKey(member => member.Id);
+            entity.Property(member => member.Id).HasMaxLength(120);
+            entity.Property(member => member.Name).HasMaxLength(120).IsRequired();
+            entity.Property(member => member.DisplayColor).HasMaxLength(32).IsRequired();
+            entity.Property(member => member.Initials).HasMaxLength(8).IsRequired();
+            entity.Property(member => member.AgeGroup).HasConversion<string>().HasMaxLength(16).IsRequired();
+            entity.Property(member => member.Presentation).HasConversion<string>().HasMaxLength(16).IsRequired();
+            entity.Property(member => member.SkinTone).HasMaxLength(32).IsRequired();
+            entity.Property(member => member.HairColor).HasMaxLength(32).IsRequired();
+            entity.Property(member => member.HairStyle).HasConversion<string>().HasMaxLength(16).IsRequired();
+            entity.Property(member => member.Glasses).IsRequired();
+            entity.Property(member => member.ShirtColor).HasMaxLength(32).IsRequired();
+            entity.Property(member => member.CreatedUtc).IsRequired();
+            entity.Property(member => member.UpdatedUtc).IsRequired();
+            entity.HasOne(member => member.Household)
+                .WithMany()
+                .HasForeignKey(member => member.HouseholdId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(member => new { member.HouseholdId, member.Name }).IsUnique();
+        });
+
         modelBuilder.Entity<HouseholdTask>(entity =>
         {
             entity.ToTable("HouseholdTasks");
@@ -152,6 +178,10 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             entity.HasOne(task => task.Household)
                 .WithMany()
                 .HasForeignKey(task => task.HouseholdId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<FamilyMember>()
+                .WithMany()
+                .HasForeignKey(task => task.FamilyMemberId)
                 .OnDelete(DeleteBehavior.Restrict);
             entity.HasIndex(task => new { task.HouseholdId, task.IsCompleted, task.DueDate });
         });
@@ -225,6 +255,12 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             SeedItem(SeedLists.ChargersItemId, SeedLists.VacationPackingListId, "Chargers"),
             SeedItem(SeedLists.SwimwearItemId, SeedLists.VacationPackingListId, "Swimwear"));
 
+        modelBuilder.Entity<FamilyMember>().HasData(
+            SeedFamilyMember("alex", "Alex", "#f8c8dc", "A", FamilyMemberAgeGroup.Adult, FamilyMemberPresentation.Feminine, "#c68642", "#3b2416", FamilyMemberHairStyle.Long, false, "#f472b6"),
+            SeedFamilyMember("sam", "Sam", "#c7d2fe", "S", FamilyMemberAgeGroup.Adult, FamilyMemberPresentation.Masculine, "#f1c27d", "#4b5563", FamilyMemberHairStyle.Short, true, "#60a5fa"),
+            SeedFamilyMember("riley", "Riley", "#bbf7d0", "R", FamilyMemberAgeGroup.Child, FamilyMemberPresentation.Neutral, "#8d5524", "#111827", FamilyMemberHairStyle.Curly, false, "#34d399"),
+            SeedFamilyMember("jordan", "Jordan", "#fde68a", "J", FamilyMemberAgeGroup.Child, FamilyMemberPresentation.Neutral, "#ffdbac", "#92400e", FamilyMemberHairStyle.Top, true, "#fbbf24"));
+
         modelBuilder.Entity<CalendarEvents.EventSource>().HasData(new CalendarEvents.EventSource
         {
             Id = SeedCalendarEvents.EventSourceId,
@@ -256,6 +292,24 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             SeedPlacement(SeedWorkspaceLayouts.MediaPlaceholderPlacementId, SeedWorkspaceLayouts.MediaLayoutId, "media-placeholder", 0, "medium"),
             SeedPlacement(SeedWorkspaceLayouts.SettingsPlaceholderPlacementId, SeedWorkspaceLayouts.SettingsLayoutId, "settings-placeholder", 0, "medium"));
     }
+
+    private static FamilyMember SeedFamilyMember(string id, string name, string displayColor, string initials, FamilyMemberAgeGroup ageGroup, FamilyMemberPresentation presentation, string skinTone, string hairColor, FamilyMemberHairStyle hairStyle, bool glasses, string shirtColor) => new()
+    {
+        Id = id,
+        HouseholdId = SeedHousehold.Id,
+        Name = name,
+        DisplayColor = displayColor,
+        Initials = initials,
+        AgeGroup = ageGroup,
+        Presentation = presentation,
+        SkinTone = skinTone,
+        HairColor = hairColor,
+        HairStyle = hairStyle,
+        Glasses = glasses,
+        ShirtColor = shirtColor,
+        CreatedUtc = SeedFamilyMembers.SeededUtc,
+        UpdatedUtc = SeedFamilyMembers.SeededUtc,
+    };
 
     private static ListItem SeedItem(Guid id, Guid listId, string text) => new()
     {

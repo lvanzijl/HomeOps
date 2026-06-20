@@ -201,3 +201,10 @@ Proceed with recurrence/occurrence editing UX or Real Google Calendar Read-Only 
 - Home now supports lightweight Calendar quick capture with What and When fields; When supports Today, Tomorrow, and Pick date, while advanced event editing remains on the Agenda page.
 - Shopping history suggestions are available while typing from browser-local captured item names and currently active list item names. No AI, store selection, store grouping, store icons, reminders, notifications, Google Calendar behavior, or shopping intelligence were added.
 - Future store-learning remains a later direction: preferred store per item may be learned later from the history foundation without changing Home into a store-planning surface.
+## Phase 2 Family Member Persistence
+- Family Members are now durable household-owned records in the backend, seeded for the single household and exposed through minimal retrieval/update APIs.
+- Family Members remain presentation/household entities only; they are not users, authentication identities, profiles, roles, permission principals, or login accounts.
+- Avatar configuration is persisted with each Family Member, so avatar editor updates survive reloads while existing frontend fallback values remain available when API loading fails.
+- Home, the Family Member page, and Tasks consume the loaded Family Member collection from the workspace shell.
+- Task ownership now validates assigned Family Member references against persisted household Family Members while preserving Unassigned and Shared Household ownership states.
+
