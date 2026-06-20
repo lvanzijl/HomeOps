@@ -184,7 +184,7 @@ describe("HomeDashboard", () => {
         targetCount: 20,
         currentProgress: 13,
         unitLabel: "helpful actions",
-        rewardLabel: "Board game night together",
+        celebration: { title: "Board game night together", status: 0 },
       },
       individualGoals: [],
     });

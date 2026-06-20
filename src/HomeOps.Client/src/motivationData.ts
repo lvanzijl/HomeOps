@@ -1,5 +1,11 @@
-import { HomeOpsApiClient, UpsertMotivationFamilyGoalRequest, type MotivationFamilyGoalDto, type MotivationIndividualGoalDto, type MotivationSnapshotDto } from './api/homeOpsApiClient';
+import { FamilyCelebrationStatus, HomeOpsApiClient, UpsertMotivationFamilyGoalRequest, type MotivationFamilyGoalDto, type MotivationIndividualGoalDto, type MotivationSnapshotDto } from './api/homeOpsApiClient';
 import type { FamilyMember } from './home/familyMembers';
+
+export interface MotivationFamilyCelebration {
+  title: string;
+  description?: string;
+  status: FamilyCelebrationStatus;
+}
 
 export interface MotivationFamilyGoal {
   id: string;
@@ -7,7 +13,7 @@ export interface MotivationFamilyGoal {
   targetCount: number;
   currentProgress: number;
   unitLabel: string;
-  rewardLabel?: string;
+  celebration?: MotivationFamilyCelebration;
 }
 
 export interface MotivationIndividualGoal {
@@ -30,7 +36,8 @@ export interface UpsertMotivationFamilyGoalInput {
   title: string;
   targetCount: number;
   unitLabel: string;
-  rewardLabel?: string;
+  celebrationTitle?: string;
+  celebrationDescription?: string;
 }
 
 const apiBaseUrl = import.meta.env.VITE_HOMEOPS_API_BASE_URL ?? '';
@@ -49,7 +56,11 @@ function familyGoalFromApi(goal?: MotivationFamilyGoalDto): MotivationFamilyGoal
     targetCount: goal.targetCount ?? 0,
     currentProgress: goal.currentProgress ?? 0,
     unitLabel: goal.unitLabel ?? 'steps',
-    rewardLabel: goal.rewardLabel,
+    celebration: goal.celebration?.title ? {
+      title: goal.celebration.title,
+      description: goal.celebration.description,
+      status: goal.celebration.status ?? FamilyCelebrationStatus.Planned,
+    } : undefined,
   };
 }
 
@@ -83,6 +94,10 @@ export async function createFamilyGoal(input: UpsertMotivationFamilyGoalInput): 
 
 export async function updateFamilyGoal(id: string, input: UpsertMotivationFamilyGoalInput): Promise<MotivationFamilyGoal> {
   return familyGoalFromApi(await client.updateMotivationFamilyGoal(id, UpsertMotivationFamilyGoalRequest.fromJS(input)))!;
+}
+
+export async function markFamilyGoalCelebrated(id: string): Promise<MotivationFamilyGoal> {
+  return familyGoalFromApi(await client.markFamilyGoalCelebrated(id))!;
 }
 
 export function goalsForMembers(snapshot: MotivationSnapshot, members: readonly FamilyMember[]) {

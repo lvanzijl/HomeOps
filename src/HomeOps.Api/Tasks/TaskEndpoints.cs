@@ -1,5 +1,6 @@
 using HomeOps.Api.Data;
 using HomeOps.Api.Households;
+using HomeOps.Api.Motivation;
 using Microsoft.EntityFrameworkCore;
 
 namespace HomeOps.Api.Tasks;
@@ -117,6 +118,12 @@ public static class TaskEndpoints
             if (familyGoal is not null)
             {
                 familyGoal.CurrentProgress = ClampProgress(familyGoal.CurrentProgress + delta, familyGoal.TargetCount);
+                if (!string.IsNullOrWhiteSpace(familyGoal.CelebrationTitle) && familyGoal.CelebrationStatus != FamilyCelebrationStatus.Celebrated)
+                {
+                    familyGoal.CelebrationStatus = familyGoal.CurrentProgress >= familyGoal.TargetCount
+                        ? FamilyCelebrationStatus.ReadyToCelebrate
+                        : FamilyCelebrationStatus.Planned;
+                }
             }
             return;
         }

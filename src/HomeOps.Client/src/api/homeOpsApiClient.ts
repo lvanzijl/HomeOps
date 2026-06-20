@@ -219,6 +219,54 @@ export class HomeOpsApiClient {
         return Promise.resolve<MotivationFamilyGoalDto>(null as any);
     }
 
+    markFamilyGoalCelebrated(id: string): Promise<MotivationFamilyGoalDto> {
+        let url_ = this.baseUrl + "/api/motivation/family-goals/{id}/celebration/celebrated";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processMarkFamilyGoalCelebrated(_response);
+        });
+    }
+
+    protected processMarkFamilyGoalCelebrated(response: Response): Promise<MotivationFamilyGoalDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = MotivationFamilyGoalDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = HttpValidationProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<MotivationFamilyGoalDto>(null as any);
+    }
+
     getAgendaLayerSettings(deviceKey: string | null | undefined): Promise<AgendaLayerSettingsDto> {
         let url_ = this.baseUrl + "/api/agenda/layer-settings";
         url_ = url_.replace(/[?&]$/, "");
@@ -1683,7 +1731,7 @@ export class MotivationFamilyGoalDto implements IMotivationFamilyGoalDto {
     targetCount?: number;
     currentProgress?: number;
     unitLabel?: string;
-    rewardLabel?: string | undefined;
+    celebration?: MotivationFamilyCelebrationDto | undefined;
 
     constructor(data?: IMotivationFamilyGoalDto) {
         if (data) {
@@ -1701,7 +1749,7 @@ export class MotivationFamilyGoalDto implements IMotivationFamilyGoalDto {
             this.targetCount = _data["targetCount"];
             this.currentProgress = _data["currentProgress"];
             this.unitLabel = _data["unitLabel"];
-            this.rewardLabel = _data["rewardLabel"];
+            this.celebration = _data["celebration"] ? MotivationFamilyCelebrationDto.fromJS(_data["celebration"]) : undefined as any;
         }
     }
 
@@ -1719,7 +1767,7 @@ export class MotivationFamilyGoalDto implements IMotivationFamilyGoalDto {
         data["targetCount"] = this.targetCount;
         data["currentProgress"] = this.currentProgress;
         data["unitLabel"] = this.unitLabel;
-        data["rewardLabel"] = this.rewardLabel;
+        data["celebration"] = this.celebration ? this.celebration.toJSON() : undefined as any;
         return data;
     }
 }
@@ -1730,7 +1778,57 @@ export interface IMotivationFamilyGoalDto {
     targetCount?: number;
     currentProgress?: number;
     unitLabel?: string;
-    rewardLabel?: string | undefined;
+    celebration?: MotivationFamilyCelebrationDto | undefined;
+}
+
+export class MotivationFamilyCelebrationDto implements IMotivationFamilyCelebrationDto {
+    title?: string;
+    description?: string | undefined;
+    status?: FamilyCelebrationStatus;
+
+    constructor(data?: IMotivationFamilyCelebrationDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.title = _data["title"];
+            this.description = _data["description"];
+            this.status = _data["status"];
+        }
+    }
+
+    static fromJS(data: any): MotivationFamilyCelebrationDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new MotivationFamilyCelebrationDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["title"] = this.title;
+        data["description"] = this.description;
+        data["status"] = this.status;
+        return data;
+    }
+}
+
+export interface IMotivationFamilyCelebrationDto {
+    title?: string;
+    description?: string | undefined;
+    status?: FamilyCelebrationStatus;
+}
+
+export enum FamilyCelebrationStatus {
+    Planned = 0,
+    ReadyToCelebrate = 1,
+    Celebrated = 2,
 }
 
 export class MotivationIndividualGoalDto implements IMotivationIndividualGoalDto {
@@ -1922,7 +2020,8 @@ export class UpsertMotivationFamilyGoalRequest implements IUpsertMotivationFamil
     title?: string;
     targetCount?: number;
     unitLabel?: string;
-    rewardLabel?: string | undefined;
+    celebrationTitle?: string | undefined;
+    celebrationDescription?: string | undefined;
 
     constructor(data?: IUpsertMotivationFamilyGoalRequest) {
         if (data) {
@@ -1938,7 +2037,8 @@ export class UpsertMotivationFamilyGoalRequest implements IUpsertMotivationFamil
             this.title = _data["title"];
             this.targetCount = _data["targetCount"];
             this.unitLabel = _data["unitLabel"];
-            this.rewardLabel = _data["rewardLabel"];
+            this.celebrationTitle = _data["celebrationTitle"];
+            this.celebrationDescription = _data["celebrationDescription"];
         }
     }
 
@@ -1954,7 +2054,8 @@ export class UpsertMotivationFamilyGoalRequest implements IUpsertMotivationFamil
         data["title"] = this.title;
         data["targetCount"] = this.targetCount;
         data["unitLabel"] = this.unitLabel;
-        data["rewardLabel"] = this.rewardLabel;
+        data["celebrationTitle"] = this.celebrationTitle;
+        data["celebrationDescription"] = this.celebrationDescription;
         return data;
     }
 }
@@ -1963,7 +2064,8 @@ export interface IUpsertMotivationFamilyGoalRequest {
     title?: string;
     targetCount?: number;
     unitLabel?: string;
-    rewardLabel?: string | undefined;
+    celebrationTitle?: string | undefined;
+    celebrationDescription?: string | undefined;
 }
 
 export class AgendaLayerSettingsDto implements IAgendaLayerSettingsDto {

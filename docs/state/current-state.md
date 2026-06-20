@@ -258,3 +258,11 @@ Family Goal Creation closes the final functional P0 blocker for Motivation. Hous
 - Helpful Moments capture a Family Member, short title, optional note, simple recognition tag, and creation time.
 - Motivation shows a warm recent Helpful Moments feed with lightweight creation, and Family Member pages show member-specific moments.
 - Helpful Moments are recognition-only in this slice: no points, balances, reward economy linkage, leaderboards, or automatic Motivation progress changes were introduced.
+
+### Family Goal Celebration Foundation — Completed 2026-06-20
+- Family Goals now use a structured Family Celebration concept with a title, optional description, and lightweight status.
+- Celebration status values are `Planned`, `ReadyToCelebrate`, and `Celebrated`.
+- Completing an active family goal moves its celebration from `Planned` to `ReadyToCelebrate`; a parent can mark the celebration as `Celebrated` after it happens.
+- Motivation displays celebration context without replacing progress or encouragement as the primary page focus.
+- Home shows only compact celebration context in the Motivation tile when useful.
+- Reward Economy remains deferred: no gems, tokens, coins, shops, purchases, avatar unlocks, badges, leaderboards, or individual rewards were introduced.

@@ -15,7 +15,7 @@ afterEach(cleanup);
 describe('FamilyMemberPage', () => {
   beforeEach(() => {
     vi.mocked(loadMotivationSnapshot).mockResolvedValue({
-      familyGoal: { id: 'family-goal', title: 'Fill the family helper path', targetCount: 20, currentProgress: 13, unitLabel: 'helpful steps', rewardLabel: 'Board game night' },
+      familyGoal: { id: 'family-goal', title: 'Fill the family helper path', targetCount: 20, currentProgress: 13, unitLabel: 'helpful steps', celebration: { title: 'Board game night', status: 0 } },
       individualGoals: [
         { id: 'riley-goal', familyMemberId: 'riley', familyMemberName: 'Riley', title: 'Read before bed', targetCount: 5, currentProgress: 3, unitLabel: 'stars', visualKind: 'stars' },
         { id: 'jordan-goal', familyMemberId: 'jordan', familyMemberName: 'Jordan', title: 'Brush teeth', targetCount: 4, currentProgress: 2, unitLabel: 'checks', visualKind: 'stars' },
