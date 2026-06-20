@@ -8,6 +8,7 @@ const apiClient = {} as never;
 vi.mock('../../shopping/listsApi', () => ({
   createListsApiClient: () => apiClient,
   loadShoppingList: vi.fn(),
+  createShoppingList: vi.fn(),
   addShoppingListItem: vi.fn(),
   toggleShoppingListItem: vi.fn(),
   removeShoppingListItem: vi.fn(),
@@ -18,18 +19,8 @@ async function mockedListsApi() {
 }
 
 const widgetProps = {
-  definition: {
-    id: 'shopping-list-mvp',
-    type: 'shoppingList' as const,
-    title: 'Shopping List',
-    settings: {},
-  },
-  instance: {
-    id: 'home-shopping-list-widget',
-    widgetDefinitionId: 'shopping-list-mvp',
-    title: 'Shopping List',
-    settings: {},
-  },
+  definition: { id: 'shopping-list-mvp', type: 'shoppingList' as const, title: 'Shopping List', settings: {} },
+  instance: { id: 'home-shopping-list-widget', widgetDefinitionId: 'shopping-list-mvp', title: 'Shopping List', settings: {} },
 };
 
 afterEach(() => cleanup());
@@ -45,6 +36,7 @@ describe('ShoppingListWidget API-backed behavior', () => {
         { id: 'coffee', label: 'Coffee', completed: true },
       ],
     });
+    vi.mocked(listsApi.createShoppingList).mockResolvedValue({ listId: 'shopping-list-id', items: [] });
     vi.mocked(listsApi.addShoppingListItem).mockResolvedValue({ id: 'apples', label: 'Apples', completed: false });
     vi.mocked(listsApi.toggleShoppingListItem).mockResolvedValue({ id: 'bread', label: 'Bread', completed: true });
     vi.mocked(listsApi.removeShoppingListItem).mockResolvedValue(undefined);
@@ -52,9 +44,7 @@ describe('ShoppingListWidget API-backed behavior', () => {
 
   it('loads shopping list items from the API-backed list service', async () => {
     const listsApi = await mockedListsApi();
-
     render(<ShoppingListWidget {...widgetProps} />);
-
     expect(await screen.findByText('Bread')).not.toBeNull();
     expect(screen.getByText('Coffee')).not.toBeNull();
     expect(listsApi.loadShoppingList).toHaveBeenCalledWith(apiClient);
@@ -64,11 +54,9 @@ describe('ShoppingListWidget API-backed behavior', () => {
     const user = userEvent.setup();
     const listsApi = await mockedListsApi();
     render(<ShoppingListWidget {...widgetProps} />);
-
     await screen.findByText('Bread');
     await user.type(screen.getByPlaceholderText('Add an item'), 'Apples');
     await user.click(screen.getByRole('button', { name: 'Add' }));
-
     expect(listsApi.addShoppingListItem).toHaveBeenCalledWith(apiClient, 'shopping-list-id', 'Apples');
     expect(await screen.findByText('Apples')).not.toBeNull();
   });
@@ -77,16 +65,33 @@ describe('ShoppingListWidget API-backed behavior', () => {
     const user = userEvent.setup();
     const listsApi = await mockedListsApi();
     render(<ShoppingListWidget {...widgetProps} />);
-
     const bread = await screen.findByText('Bread');
     await user.click(within(bread.closest('label')!).getByRole('checkbox'));
-
     await waitFor(() => expect(listsApi.toggleShoppingListItem).toHaveBeenCalledWith(apiClient, 'shopping-list-id', 'bread'));
-
     const breadAfterToggle = await screen.findByText('Bread');
     await user.click(within(breadAfterToggle.closest('li')!).getByRole('button', { name: 'Remove' }));
-
     expect(listsApi.removeShoppingListItem).toHaveBeenCalledWith(apiClient, 'shopping-list-id', 'bread');
     await waitFor(() => expect(screen.queryByText('Bread')).toBeNull());
+  });
+
+  it('guides households when the first list has no items yet', async () => {
+    const listsApi = await mockedListsApi();
+    vi.mocked(listsApi.loadShoppingList).mockResolvedValueOnce({ listId: 'shopping-list-id', items: [] });
+    render(<ShoppingListWidget {...widgetProps} />);
+    expect(await screen.findByText('Create your first list')).not.toBeNull();
+    expect(screen.getByText('Lists help remember shopping, packing, and household items.')).not.toBeNull();
+    expect(screen.getByRole('link', { name: 'Start by adding one item.' })).not.toBeNull();
+  });
+
+  it('can create the first Shopping list when no lists exist', async () => {
+    const user = userEvent.setup();
+    const listsApi = await mockedListsApi();
+    vi.mocked(listsApi.loadShoppingList).mockResolvedValueOnce({ listId: null, items: [] });
+    render(<ShoppingListWidget {...widgetProps} />);
+
+    await user.click(await screen.findByRole('button', { name: 'Create Shopping list' }));
+
+    expect(listsApi.createShoppingList).toHaveBeenCalledWith(apiClient);
+    expect(await screen.findByRole('link', { name: 'Start by adding one item.' })).not.toBeNull();
   });
 });

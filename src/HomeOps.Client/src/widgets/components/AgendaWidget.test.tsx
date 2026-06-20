@@ -4,6 +4,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { EventSource, NormalizedEvent } from '../../events/eventSourceModel';
 import { AgendaWidget } from './AgendaWidget';
 
+vi.mock('../../demo/demoAgendaData', () => ({ demoReadOnlyEvents: [], demoReadOnlyEventSources: [], demoToday: '2026-06-18' }));
+
 vi.mock('../../agenda/calendarEventsApi', () => ({
   loadCalendarAgendaData: vi.fn(),
   createCalendarAgendaEvent: vi.fn(),
@@ -78,7 +80,7 @@ describe('AgendaWidget HomeOps Calendar event integration', () => {
     render(<AgendaWidget {...widgetProps} />);
 
     expect(await screen.findByText('Dentist Appointment')).not.toBeNull();
-    expect(screen.getByText('Avery birthday')).not.toBeNull();
+    expect(screen.queryByText('Avery birthday')).toBeNull();
   });
 
   it('creates, updates, and deletes calendar events through the API-backed widget UI', async () => {
@@ -179,7 +181,17 @@ describe('AgendaWidget HomeOps Calendar event integration', () => {
     expect((await screen.findByRole('alert')).textContent).toContain('Delete failed');
   });
 
-  it('keeps source filtering functional for persisted calendar and birthday sources', async () => {
+  it('shows agenda empty guidance when no events exist', async () => {
+    const calendarEventsApi = await mockedCalendarEventsApi();
+    vi.mocked(calendarEventsApi.loadCalendarAgendaData).mockResolvedValueOnce({ sources: [calendarSource], events: [] });
+    render(<AgendaWidget {...widgetProps} />);
+
+    expect(await screen.findByText('Create your first event')).not.toBeNull();
+    expect(screen.getByText('Events help the household remember important dates and activities.')).not.toBeNull();
+    expect(screen.getByRole('link', { name: 'Start with one household event.' })).not.toBeNull();
+  });
+
+  it('keeps source filtering functional for persisted calendar sources', async () => {
     const user = userEvent.setup();
     render(<AgendaWidget {...widgetProps} />);
 
@@ -187,6 +199,5 @@ describe('AgendaWidget HomeOps Calendar event integration', () => {
     await user.click(screen.getByLabelText(/HomeOps Calendar/));
 
     expect(screen.queryByText('Dentist Appointment')).toBeNull();
-    expect(screen.getByText('Avery birthday')).not.toBeNull();
   });
 });

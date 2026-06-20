@@ -60,7 +60,8 @@ describe('MotivationPage', () => {
 
     render(<MotivationPage members={familyMembers} />);
 
-    expect(await screen.findByText('No active family goal yet')).not.toBeNull();
+    expect(await screen.findByText('Create your first family goal')).not.toBeNull();
+    expect(screen.getByText('Family goals help everyone work toward something together.')).not.toBeNull();
     expect(screen.getByText('No active personal encouragement goals yet.')).not.toBeNull();
   });
 });
