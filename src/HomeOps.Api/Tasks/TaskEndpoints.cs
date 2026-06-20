@@ -71,10 +71,15 @@ public static class TaskEndpoints
         {
             var task = await LoadTask(dbContext, taskId, cancellationToken);
             if (task is null) return Results.NotFound();
+            var wasCompleted = task.IsCompleted;
             var now = DateTimeOffset.UtcNow;
             task.IsCompleted = true;
             task.CompletedUtc ??= now;
             task.UpdatedUtc = now;
+            if (!wasCompleted)
+            {
+                await ApplyMotivationProgress(dbContext, task, 1, cancellationToken);
+            }
             await dbContext.SaveChangesAsync(cancellationToken);
             return Results.Ok(ToDto(task));
         }).WithName("CompleteTask").Produces<HouseholdTaskDto>().Produces(StatusCodes.Status404NotFound);
@@ -83,9 +88,14 @@ public static class TaskEndpoints
         {
             var task = await LoadTask(dbContext, taskId, cancellationToken);
             if (task is null) return Results.NotFound();
+            var wasCompleted = task.IsCompleted;
             task.IsCompleted = false;
             task.CompletedUtc = null;
             task.UpdatedUtc = DateTimeOffset.UtcNow;
+            if (wasCompleted)
+            {
+                await ApplyMotivationProgress(dbContext, task, -1, cancellationToken);
+            }
             await dbContext.SaveChangesAsync(cancellationToken);
             return Results.Ok(ToDto(task));
         }).WithName("ReopenTask").Produces<HouseholdTaskDto>().Produces(StatusCodes.Status404NotFound);
@@ -95,6 +105,35 @@ public static class TaskEndpoints
 
     private static Task<HouseholdTask?> LoadTask(HomeOpsDbContext dbContext, Guid taskId, CancellationToken cancellationToken) =>
         dbContext.HouseholdTasks.FirstOrDefaultAsync(task => task.Id == taskId && task.HouseholdId == SeedHousehold.Id, cancellationToken);
+
+    private static async Task ApplyMotivationProgress(HomeOpsDbContext dbContext, HouseholdTask task, int delta, CancellationToken cancellationToken)
+    {
+        if (task.OwnershipKind == TaskOwnershipKind.SharedHousehold)
+        {
+            var familyGoal = await dbContext.MotivationFamilyGoals
+                .Where(goal => goal.HouseholdId == SeedHousehold.Id && goal.IsActive)
+                .OrderBy(goal => goal.Id)
+                .FirstOrDefaultAsync(cancellationToken);
+            if (familyGoal is not null)
+            {
+                familyGoal.CurrentProgress = ClampProgress(familyGoal.CurrentProgress + delta, familyGoal.TargetCount);
+            }
+            return;
+        }
+
+        if (task.OwnershipKind == TaskOwnershipKind.FamilyMember && task.FamilyMemberId is not null)
+        {
+            var individualGoals = await dbContext.MotivationIndividualGoals
+                .Where(goal => goal.HouseholdId == SeedHousehold.Id && goal.IsActive && goal.FamilyMemberId == task.FamilyMemberId)
+                .ToListAsync(cancellationToken);
+            foreach (var goal in individualGoals)
+            {
+                goal.CurrentProgress = ClampProgress(goal.CurrentProgress + delta, goal.TargetCount);
+            }
+        }
+    }
+
+    private static int ClampProgress(int progress, int targetCount) => Math.Min(Math.Max(progress, 0), targetCount);
 
     private static HouseholdTaskDto ToDto(HouseholdTask task) => new(task.Id, task.Title, task.DueDate, task.OwnershipKind, task.FamilyMemberId, task.IsCompleted, task.CompletedUtc, task.CreatedUtc, task.UpdatedUtc);
 }
