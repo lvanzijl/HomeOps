@@ -281,3 +281,11 @@ Family Goal Creation closes the final functional P0 blocker for Motivation. Hous
 - Recurring task generation creates dated task occurrences from the reusable series so parents do not need to recreate routine chores manually.
 - Completing one generated occurrence keeps the recurring definition intact and continues to contribute to Motivation progress using the existing Shared Household and Family Member task completion rules.
 - Editing a recurring task updates the simple series fields: title, owner, due/start date, and frequency. Deleting uses explicit Delete Series behavior and removes pending occurrences while preserving already completed task history.
+
+### Task Templates Foundation — Completed 2026-06-20
+- Added persisted, household-owned Task Templates with active/archive lifecycle and ordered template task items.
+- Templates support simple task definitions with title, owner, optional recurrence, and optional due timing offset.
+- Parents can create, edit, archive, and apply templates from the Tasks page.
+- Applying a template creates new normal tasks for non-recurring items and recurring task series plus generated occurrences for recurring items.
+- Seeded starter templates include Morning Routine, Bedtime Routine, Homework Routine, Pet Care, and Kitchen Reset; households can edit or archive them later.
+- Goal Templates, Reward Economy, gems, shop, notifications, sharing, marketplace, import/export, and AI-generated templates remain deferred.

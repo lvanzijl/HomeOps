@@ -23,6 +23,8 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
     public DbSet<WidgetPlacement> WidgetPlacements => Set<WidgetPlacement>();
     public DbSet<HouseholdTask> HouseholdTasks => Set<HouseholdTask>();
     public DbSet<RecurringTaskSeries> RecurringTaskSeries => Set<RecurringTaskSeries>();
+    public DbSet<TaskTemplate> TaskTemplates => Set<TaskTemplate>();
+    public DbSet<TaskTemplateItem> TaskTemplateItems => Set<TaskTemplateItem>();
     public DbSet<FamilyMember> FamilyMembers => Set<FamilyMember>();
     public DbSet<MotivationFamilyGoal> MotivationFamilyGoals => Set<MotivationFamilyGoal>();
     public DbSet<MotivationIndividualGoal> MotivationIndividualGoals => Set<MotivationIndividualGoal>();
@@ -196,6 +198,45 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
                 .HasForeignKey(series => series.FamilyMemberId)
                 .OnDelete(DeleteBehavior.Restrict);
             entity.HasIndex(series => new { series.HouseholdId, series.IsDeleted, series.StartDate });
+        });
+
+
+
+        modelBuilder.Entity<TaskTemplate>(entity =>
+        {
+            entity.ToTable("TaskTemplates");
+            entity.HasKey(template => template.Id);
+            entity.Property(template => template.Name).HasMaxLength(160).IsRequired();
+            entity.Property(template => template.Description).HasMaxLength(500);
+            entity.Property(template => template.IsArchived).IsRequired();
+            entity.Property(template => template.CreatedUtc).IsRequired();
+            entity.Property(template => template.UpdatedUtc).IsRequired();
+            entity.HasOne(template => template.Household)
+                .WithMany()
+                .HasForeignKey(template => template.HouseholdId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(template => new { template.HouseholdId, template.IsArchived, template.Name });
+        });
+
+        modelBuilder.Entity<TaskTemplateItem>(entity =>
+        {
+            entity.ToTable("TaskTemplateItems");
+            entity.HasKey(item => item.Id);
+            entity.Property(item => item.Title).HasMaxLength(240).IsRequired();
+            entity.Property(item => item.OwnershipKind).HasConversion<string>().HasMaxLength(32).IsRequired();
+            entity.Property(item => item.FamilyMemberId).HasMaxLength(120);
+            entity.Property(item => item.RecurrenceFrequency).HasConversion<string>().HasMaxLength(16).IsRequired();
+            entity.Property(item => item.DueOffsetDays);
+            entity.Property(item => item.Position).IsRequired();
+            entity.HasOne(item => item.TaskTemplate)
+                .WithMany(template => template.Items)
+                .HasForeignKey(item => item.TaskTemplateId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<FamilyMember>()
+                .WithMany()
+                .HasForeignKey(item => item.FamilyMemberId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(item => new { item.TaskTemplateId, item.Position }).IsUnique();
         });
 
         modelBuilder.Entity<HouseholdTask>(entity =>
@@ -386,6 +427,31 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             SeedIndividualMotivationGoal(SeedMotivation.RileyGoalId, "riley", "Tidy bedroom corner", 4, 2, "steps", "progress"),
             SeedIndividualMotivationGoal(SeedMotivation.JordanGoalId, "jordan", "Notice one helpful thing", 3, 1, "stars", "stars"));
 
+
+
+        var templateIds = new[]
+        {
+            Guid.Parse("b0010000-0000-0000-0000-000000000001"), Guid.Parse("b0010000-0000-0000-0000-000000000002"), Guid.Parse("b0010000-0000-0000-0000-000000000003"), Guid.Parse("b0010000-0000-0000-0000-000000000004"), Guid.Parse("b0010000-0000-0000-0000-000000000005")
+        };
+        modelBuilder.Entity<TaskTemplate>().HasData(
+            SeedTaskTemplate(templateIds[0], "Morning Routine", "Simple school-morning preparation."),
+            SeedTaskTemplate(templateIds[1], "Bedtime Routine", "Simple end-of-day reset."),
+            SeedTaskTemplate(templateIds[2], "Homework Routine", "Homework and reading basics."),
+            SeedTaskTemplate(templateIds[3], "Pet Care", "Basic pet care tasks."),
+            SeedTaskTemplate(templateIds[4], "Kitchen Reset", "Quick kitchen cleanup."));
+        modelBuilder.Entity<TaskTemplateItem>().HasData(
+            SeedTaskTemplateItem("b1010000-0000-0000-0000-000000000001", templateIds[0], "Brush teeth", 0),
+            SeedTaskTemplateItem("b1010000-0000-0000-0000-000000000002", templateIds[0], "Get dressed", 1),
+            SeedTaskTemplateItem("b1010000-0000-0000-0000-000000000003", templateIds[0], "Pack school bag", 2),
+            SeedTaskTemplateItem("b1010000-0000-0000-0000-000000000004", templateIds[1], "Brush teeth", 0),
+            SeedTaskTemplateItem("b1010000-0000-0000-0000-000000000005", templateIds[1], "Put on pajamas", 1),
+            SeedTaskTemplateItem("b1010000-0000-0000-0000-000000000006", templateIds[1], "Tidy room", 2),
+            SeedTaskTemplateItem("b1010000-0000-0000-0000-000000000007", templateIds[2], "Homework", 0),
+            SeedTaskTemplateItem("b1010000-0000-0000-0000-000000000008", templateIds[2], "Reading", 1),
+            SeedTaskTemplateItem("b1010000-0000-0000-0000-000000000009", templateIds[3], "Feed pet", 0),
+            SeedTaskTemplateItem("b1010000-0000-0000-0000-000000000010", templateIds[4], "Empty dishwasher", 0),
+            SeedTaskTemplateItem("b1010000-0000-0000-0000-000000000011", templateIds[4], "Wipe counters", 1));
+
         modelBuilder.Entity<CalendarEvents.EventSource>().HasData(new CalendarEvents.EventSource
         {
             Id = SeedCalendarEvents.EventSourceId,
@@ -462,6 +528,17 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
         UpdatedUtc = SeedLists.SeededUtc,
     };
 
+
+
+    private static TaskTemplate SeedTaskTemplate(Guid id, string name, string description) => new()
+    {
+        Id = id, HouseholdId = SeedHousehold.Id, Name = name, Description = description, IsArchived = false, CreatedUtc = SeedLists.SeededUtc, UpdatedUtc = SeedLists.SeededUtc,
+    };
+
+    private static TaskTemplateItem SeedTaskTemplateItem(string id, Guid templateId, string title, int position) => new()
+    {
+        Id = Guid.Parse(id), TaskTemplateId = templateId, Title = title, OwnershipKind = TaskOwnershipKind.Unassigned, RecurrenceFrequency = TaskRecurrenceFrequency.None, Position = position,
+    };
 
     private static EventSeries SeedEventSeries(Guid id, string title, string? description, DateTimeOffset startUtc, DateTimeOffset? endUtc, bool isAllDay) => new()
     {

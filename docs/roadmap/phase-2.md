@@ -149,3 +149,11 @@ Family Goal Creation and Editing removes the final functional P0 blocker for Mot
 - Recurring task editing covers title, owner, due/start date, and recurrence frequency for the whole simple series.
 - Recurring task deletion is explicit series deletion; occurrence-only deletion, exceptions, series splitting, task templates, advanced scheduling, notifications, and calendar reminders remain deferred.
 - Motivation compatibility is preserved: recurring task occurrences still advance family goals and individual goals through existing task completion behavior.
+
+### Task Templates Foundation — Completed 2026-06-20
+- Added persisted Task Templates so parents can reuse common household task collections without recreating each task manually.
+- Template CRUD supports create, edit, and soft archive; archived templates disappear from the normal Tasks page selection.
+- Applying a template is repeatable and creates fresh tasks each time.
+- Template items with no recurrence create normal Household Tasks; template items with Daily, Weekly, or Monthly recurrence create Recurring Task Series and generated task occurrences using the existing recurring task model.
+- Seeded starter templates are Morning Routine, Bedtime Routine, Homework Routine, Pet Care, and Kitchen Reset, and remain household-editable/archiveable after seeding.
+- This slice intentionally does not add Goal Templates, Reward Economy, gems, shop, notifications, sharing, marketplace, import/export, or AI-generated templates.
