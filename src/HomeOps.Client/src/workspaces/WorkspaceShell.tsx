@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { FamilyMemberPage } from '../home/FamilyMemberPage';
 import { HomeDashboard } from '../home/HomeDashboard';
+import { MotivationPage } from '../MotivationPage';
 import { familyMembers, type FamilyMember } from '../home/familyMembers';
 import { loadFamilyMembers, saveFamilyMember } from '../home/familyMembersApi';
 import { TasksPage } from '../tasks/TasksPage';
@@ -103,6 +104,8 @@ export function WorkspaceShell() {
           <HomeDashboard members={members} onNavigate={navigateWorkspace} onSelectFamilyMember={setActiveFamilyMemberId} />
         ) : activeWorkspace.id === 'tasks' ? (
           <TasksPage members={members} />
+        ) : activeWorkspace.id === 'motivation' ? (
+          <MotivationPage members={members} />
         ) : activeWorkspace.id === 'house' ? (
           <DomainPlaceholderPage title="House Status" purpose="For home alerts, sensors, and device state." />
         ) : activeWorkspace.id === 'media' ? (

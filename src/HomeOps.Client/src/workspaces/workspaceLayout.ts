@@ -46,6 +46,7 @@ export const defaultWorkspaceLayouts: Record<WorkspaceId, readonly WidgetInstanc
     },
   ],
   tasks: [],
+  motivation: [],
   house: [
     {
       id: 'house-placeholder-widget',

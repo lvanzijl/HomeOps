@@ -1,4 +1,4 @@
-export type WorkspaceId = 'home' | 'agenda' | 'lists' | 'tasks' | 'house' | 'media' | 'gamification' | 'settings';
+export type WorkspaceId = 'home' | 'agenda' | 'lists' | 'tasks' | 'motivation' | 'house' | 'media' | 'gamification' | 'settings';
 
 export interface WorkspaceDefinition {
   id: WorkspaceId;
@@ -26,6 +26,11 @@ export const workspaceDefinitions: readonly WorkspaceDefinition[] = [
     id: 'tasks',
     label: 'Tasks',
     description: 'Urgency-first page for ad-hoc household tasks.',
+  },
+  {
+    id: 'motivation',
+    label: 'Motivation',
+    description: 'Family encouragement goals and warm progress.',
   },
   {
     id: 'house',
