@@ -1,4 +1,4 @@
-import { HomeOpsApiClient, type MotivationFamilyGoalDto, type MotivationIndividualGoalDto, type MotivationSnapshotDto } from './api/homeOpsApiClient';
+import { HomeOpsApiClient, UpsertMotivationFamilyGoalRequest, type MotivationFamilyGoalDto, type MotivationIndividualGoalDto, type MotivationSnapshotDto } from './api/homeOpsApiClient';
 import type { FamilyMember } from './home/familyMembers';
 
 export interface MotivationFamilyGoal {
@@ -24,6 +24,13 @@ export interface MotivationIndividualGoal {
 export interface MotivationSnapshot {
   familyGoal?: MotivationFamilyGoal;
   individualGoals: readonly MotivationIndividualGoal[];
+}
+
+export interface UpsertMotivationFamilyGoalInput {
+  title: string;
+  targetCount: number;
+  unitLabel: string;
+  rewardLabel?: string;
 }
 
 const apiBaseUrl = import.meta.env.VITE_HOMEOPS_API_BASE_URL ?? '';
@@ -68,6 +75,14 @@ export function motivationSnapshotFromApi(snapshot: MotivationSnapshotDto): Moti
 
 export async function loadMotivationSnapshot(): Promise<MotivationSnapshot> {
   return motivationSnapshotFromApi(await client.getMotivationSnapshot());
+}
+
+export async function createFamilyGoal(input: UpsertMotivationFamilyGoalInput): Promise<MotivationFamilyGoal> {
+  return familyGoalFromApi(await client.createMotivationFamilyGoal(UpsertMotivationFamilyGoalRequest.fromJS(input)))!;
+}
+
+export async function updateFamilyGoal(id: string, input: UpsertMotivationFamilyGoalInput): Promise<MotivationFamilyGoal> {
+  return familyGoalFromApi(await client.updateMotivationFamilyGoal(id, UpsertMotivationFamilyGoalRequest.fromJS(input)))!;
 }
 
 export function goalsForMembers(snapshot: MotivationSnapshot, members: readonly FamilyMember[]) {

@@ -247,3 +247,7 @@ Motivation progress now derives from task completion while Motivation remains a 
 
 ## Completed Slice 2.28 — Empty State UX Foundation
 Empty State UX Foundation completes the remaining P0 onboarding gap by making empty Home, Tasks, Lists, Motivation, and Agenda surfaces self-guiding. New households now see friendly first actions for creating a first task, adding a first shopping/list item, creating a first event, and creating a first family goal, with navigation to the owning domain page or existing creation entry. Empty states stay lightweight and do not introduce tutorials, goal editing, rewards, reward economy, gems, shop, notifications, gamification, Google Calendar, or new integrations.
+
+
+## Family Goal Creation and Editing
+Family Goal Creation closes the final functional P0 blocker for Motivation. Households can create their first active family goal from the Motivation empty state using title, target count, progress wording, and an optional family celebration label. The active family goal can be edited in place while preserving existing progress and capping progress if the target is lowered. Home continues to show the active family goal through the Motivation tile after the household returns to Home. Individual goal creation, Helpful Moments, Gems, Reward Economy, Shop, badges, leaderboards, negative points, goal templates, recurrence, notifications, Google Calendar, authentication, permissions, and roles remain deferred.
