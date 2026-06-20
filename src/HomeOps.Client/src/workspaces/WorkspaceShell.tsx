@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
+import { FamilyMemberPage } from '../home/FamilyMemberPage';
 import { HomeDashboard } from '../home/HomeDashboard';
+import { familyMembers, type FamilyMember } from '../home/familyMembers';
 import { getWidgetDefinition } from '../widgets/widgetCatalog';
 import { WidgetRenderer } from '../widgets/WidgetRenderer';
 import type { WidgetInstance } from '../widgets/widgetModel';
@@ -12,6 +14,8 @@ function getInitialWorkspace(): WorkspaceDefinition {
 
 export function WorkspaceShell() {
   const [activeWorkspaceId, setActiveWorkspaceId] = useState<WorkspaceId>(getInitialWorkspace().id);
+  const [activeFamilyMemberId, setActiveFamilyMemberId] = useState<string | null>(null);
+  const [members, setMembers] = useState<FamilyMember[]>(() => [...familyMembers]);
   const [widgetInstancesByWorkspace, setWidgetInstancesByWorkspace] = useState<Partial<Record<WorkspaceId, readonly WidgetInstance[]>>>({});
 
   const activeWorkspace = useMemo(
@@ -37,6 +41,16 @@ export function WorkspaceShell() {
   }, [activeWorkspaceId]);
 
   const activeWorkspaceIndex = workspaceDefinitions.findIndex((workspace) => workspace.id === activeWorkspace.id);
+  const activeFamilyMember = members.find((member) => member.id === activeFamilyMemberId) ?? null;
+
+  function navigateWorkspace(workspaceId: WorkspaceId) {
+    setActiveFamilyMemberId(null);
+    setActiveWorkspaceId(workspaceId);
+  }
+
+  function updateFamilyMember(updated: FamilyMember) {
+    setMembers((current) => current.map((member) => member.id === updated.id ? updated : member));
+  }
   const widgetInstances = activeWorkspace.id === 'agenda'
     ? [{ id: 'agenda-page', widgetDefinitionId: 'agenda-mvp', title: 'Agenda', settings: {} }]
     : activeWorkspace.id === 'lists'
@@ -51,7 +65,7 @@ export function WorkspaceShell() {
             aria-current={workspace.id === activeWorkspace.id ? 'page' : undefined}
             className="workspace-nav-button"
             key={workspace.id}
-            onClick={() => setActiveWorkspaceId(workspace.id)}
+            onClick={() => navigateWorkspace(workspace.id)}
             type="button"
           >
             {workspace.label}
@@ -60,7 +74,7 @@ export function WorkspaceShell() {
       </nav>
 
       <section className="workspace-panel" aria-labelledby="active-workspace-title">
-        {activeWorkspace.id === 'home' ? <h2 className="visually-hidden" id="active-workspace-title">Home</h2> : (
+        {activeWorkspace.id === 'home' && !activeFamilyMember ? <h2 className="visually-hidden" id="active-workspace-title">Home</h2> : activeFamilyMember ? <h2 className="visually-hidden" id="active-workspace-title">{activeFamilyMember.name}</h2> : (
           <>
             <p className="workspace-position">
               Page {activeWorkspaceIndex + 1} of {workspaceDefinitions.length}
@@ -69,8 +83,10 @@ export function WorkspaceShell() {
             <p>{activeWorkspace.description}</p>
           </>
         )}
-        {activeWorkspace.id === 'home' ? (
-          <HomeDashboard onNavigate={setActiveWorkspaceId} />
+        {activeFamilyMember ? (
+          <FamilyMemberPage member={activeFamilyMember} onBack={() => setActiveFamilyMemberId(null)} onChange={updateFamilyMember} />
+        ) : activeWorkspace.id === 'home' ? (
+          <HomeDashboard members={members} onNavigate={navigateWorkspace} onSelectFamilyMember={setActiveFamilyMemberId} />
         ) : (
         <div className="widget-host" aria-label={`${activeWorkspace.label} widgets`}>
           {activeWorkspace.id === 'settings' && (

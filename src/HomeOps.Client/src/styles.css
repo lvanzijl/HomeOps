@@ -507,6 +507,68 @@ button {
   font: inherit;
 }
 
+.family-member-page {
+  display: grid;
+  gap: 1rem;
+}
+
+.back-link,
+.family-member-hero button {
+  background: #ffffff;
+  border: 1px solid #d7ddea;
+  border-radius: 999px;
+  color: #7c3aed;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+  min-height: 2.75rem;
+  padding: 0.65rem 1rem;
+  width: fit-content;
+}
+
+.family-member-hero {
+  align-items: center;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--member-color) 35%, white), #fffaf3);
+  border: 1px solid var(--member-color);
+  border-radius: 1.5rem;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: auto minmax(0, 1fr);
+  padding: 1rem;
+}
+
+.family-member-hero h2,
+.family-member-hero p {
+  margin: 0.2rem 0;
+}
+
+.family-member-hero-avatar {
+  display: flex;
+  justify-content: center;
+}
+
+.family-member-detail-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.family-member-detail-card {
+  background: #fffdf8;
+  border: 1px solid #eadfd1;
+  border-radius: 1.25rem;
+  box-shadow: 0 12px 32px rgb(120 90 60 / 10%);
+  padding: 1rem;
+}
+
+.family-member-detail-card h3 { margin-top: 0; }
+.family-member-detail-list { display: grid; gap: 0.65rem; margin: 0; }
+.family-member-detail-list div { align-items: center; display: flex; justify-content: space-between; gap: 1rem; }
+.family-member-detail-list dt { color: #5c667a; font-weight: 800; }
+.family-member-detail-list dd { align-items: center; display: inline-flex; gap: 0.4rem; margin: 0; text-align: right; }
+.color-swatch { border: 1px solid #ffffff; border-radius: 999px; box-shadow: 0 0 0 1px #d7ddea; display: inline-block; height: 1rem; width: 1rem; }
+.muted-card { background: #f8fafc; color: #5c667a; }
+
 .family-avatar-portrait,
 .family-avatar-fallback {
   align-items: center;
@@ -584,5 +646,9 @@ button {
 .icon-button { background: #ffffff; border: 1px solid #d7ddea; border-radius: 999px; cursor: pointer; font-size: 1.3rem; height: 2.5rem; width: 2.5rem; }
 
 @media (max-width: 680px) {
+  .family-member-hero,
+  .family-member-detail-grid { grid-template-columns: 1fr; }
+  .family-member-detail-list div { align-items: flex-start; flex-direction: column; gap: 0.2rem; }
+  .family-member-detail-list dd { text-align: left; }
   .avatar-editor-grid { grid-template-columns: 1fr; }
 }

@@ -2,6 +2,7 @@ import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { HomeDashboard } from './HomeDashboard';
+import { familyMembers } from './familyMembers';
 
 vi.mock('../agenda/calendarEventsApi', () => ({ loadCalendarAgendaData: vi.fn() }));
 vi.mock('../shopping/listsSummaryApi', () => ({ loadListSummaries: vi.fn() }));
@@ -45,7 +46,7 @@ describe('HomeDashboard', () => {
   });
 
   it('renders the Home dashboard, family members, agenda summary, lists summary, and overflow', async () => {
-    render(<HomeDashboard onNavigate={vi.fn()} />);
+    render(<HomeDashboard members={familyMembers} onNavigate={vi.fn()} onSelectFamilyMember={vi.fn()} />);
 
     expect(screen.getByLabelText('Home dashboard')).not.toBeNull();
     expect(screen.getByLabelText('Family Members')).not.toBeNull();
@@ -60,27 +61,21 @@ describe('HomeDashboard', () => {
 
 
 
-  it('opens the household avatar editor and changes avatar parts without profile wording', async () => {
+  it('selects a family member instead of opening the avatar editor on Home', async () => {
     const user = userEvent.setup();
-    render(<HomeDashboard onNavigate={vi.fn()} />);
+    const onSelectFamilyMember = vi.fn();
+    render(<HomeDashboard members={familyMembers} onNavigate={vi.fn()} onSelectFamilyMember={onSelectFamilyMember} />);
 
-    await user.click(screen.getByRole('button', { name: 'Edit Alex household avatar' }));
+    await user.click(screen.getByRole('button', { name: 'Open Alex family member page' }));
 
-    expect(screen.getByRole('dialog', { name: 'Alex household member avatar editor' })).not.toBeNull();
-    expect(screen.getByText('This changes only the friendly Home avatar. It is not a login, account, security, or profile setting.')).not.toBeNull();
-    expect(screen.queryByText(/task count|points|rewards|permissions/i)).toBeNull();
-
-    await user.selectOptions(screen.getByLabelText('Hair style'), 'curly');
-    await user.selectOptions(screen.getByLabelText('Shirt color'), '#34d399');
-
-    expect(screen.getByLabelText('Hair style')).toHaveProperty('value', 'curly');
-    expect(screen.getByLabelText('Shirt color')).toHaveProperty('value', '#34d399');
+    expect(onSelectFamilyMember).toHaveBeenCalledWith('alex');
+    expect(screen.queryByRole('dialog', { name: /avatar editor/i })).toBeNull();
   });
 
   it('navigates from summary content, overflow, and quick capture actions', async () => {
     const user = userEvent.setup();
     const onNavigate = vi.fn();
-    render(<HomeDashboard onNavigate={onNavigate} />);
+    render(<HomeDashboard members={familyMembers} onNavigate={onNavigate} onSelectFamilyMember={vi.fn()} />);
     await screen.findByText('Event 1');
 
     await user.click(screen.getByText('Event 1'));
