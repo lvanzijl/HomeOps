@@ -820,6 +820,46 @@
         }
       }
     },
+    "/api/onboarding/status": {
+      "get": {
+        "tags": [
+          "Onboarding"
+        ],
+        "operationId": "GetOnboardingStatus",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OnboardingStatusDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/onboarding/complete": {
+      "post": {
+        "tags": [
+          "Onboarding"
+        ],
+        "operationId": "CompleteOnboarding",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OnboardingStatusDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/tasks": {
       "get": {
         "tags": [
@@ -1941,6 +1981,21 @@
           },
           "avatar": {
             "$ref": "#/components/schemas/FamilyMemberAvatarDto"
+          }
+        }
+      },
+      "OnboardingStatusDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "onboardingCompleted": {
+            "type": "boolean"
+          },
+          "hasActiveFamilyMembers": {
+            "type": "boolean"
+          },
+          "requiresOnboarding": {
+            "type": "boolean"
           }
         }
       },

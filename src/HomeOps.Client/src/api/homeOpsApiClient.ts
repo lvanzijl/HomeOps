@@ -1046,6 +1046,74 @@ export class HomeOpsApiClient {
         return Promise.resolve<void>(null as any);
     }
 
+    getOnboardingStatus(): Promise<OnboardingStatusDto> {
+        let url_ = this.baseUrl + "/api/onboarding/status";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetOnboardingStatus(_response);
+        });
+    }
+
+    protected processGetOnboardingStatus(response: Response): Promise<OnboardingStatusDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = OnboardingStatusDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<OnboardingStatusDto>(null as any);
+    }
+
+    completeOnboarding(): Promise<OnboardingStatusDto> {
+        let url_ = this.baseUrl + "/api/onboarding/complete";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCompleteOnboarding(_response);
+        });
+    }
+
+    protected processCompleteOnboarding(response: Response): Promise<OnboardingStatusDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = OnboardingStatusDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<OnboardingStatusDto>(null as any);
+    }
+
     getTasks(): Promise<HouseholdTaskDto[]> {
         let url_ = this.baseUrl + "/api/tasks";
         url_ = url_.replace(/[?&]$/, "");
@@ -3237,6 +3305,50 @@ export interface IUpdateFamilyMemberRequest {
     memberKind?: FamilyMemberKind;
     dateOfBirth?: Date | undefined;
     avatar?: FamilyMemberAvatarDto;
+}
+
+export class OnboardingStatusDto implements IOnboardingStatusDto {
+    onboardingCompleted?: boolean;
+    hasActiveFamilyMembers?: boolean;
+    requiresOnboarding?: boolean;
+
+    constructor(data?: IOnboardingStatusDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.onboardingCompleted = _data["onboardingCompleted"];
+            this.hasActiveFamilyMembers = _data["hasActiveFamilyMembers"];
+            this.requiresOnboarding = _data["requiresOnboarding"];
+        }
+    }
+
+    static fromJS(data: any): OnboardingStatusDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new OnboardingStatusDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["onboardingCompleted"] = this.onboardingCompleted;
+        data["hasActiveFamilyMembers"] = this.hasActiveFamilyMembers;
+        data["requiresOnboarding"] = this.requiresOnboarding;
+        return data;
+    }
+}
+
+export interface IOnboardingStatusDto {
+    onboardingCompleted?: boolean;
+    hasActiveFamilyMembers?: boolean;
+    requiresOnboarding?: boolean;
 }
 
 export class HouseholdTaskDto implements IHouseholdTaskDto {

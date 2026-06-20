@@ -933,3 +933,96 @@ button {
 .family-member-form select { border: 1px solid rgba(15, 23, 42, 0.16); border-radius: 0.75rem; padding: 0.65rem 0.75rem; }
 .family-member-actions { display: flex; flex-wrap: wrap; gap: 0.65rem; }
 .danger-button { background: #fee2e2; color: #991b1b; }
+
+.first-run-wizard {
+  min-height: 100vh;
+  padding: 2rem;
+  display: grid;
+  place-items: center;
+  background: var(--domain-bg, #f8fafc);
+}
+
+.wizard-card {
+  width: min(760px, 100%);
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 28px;
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.12);
+  padding: 2rem;
+}
+
+.wizard-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0;
+  margin: 0 0 1.5rem;
+  list-style: none;
+}
+
+.wizard-steps li {
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #475569;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.wizard-steps li.active {
+  background: var(--domain-accent, #c7d2fe);
+  color: #111827;
+}
+
+.wizard-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  align-items: end;
+  margin: 1rem 0;
+}
+
+.wizard-form label {
+  display: grid;
+  gap: 0.35rem;
+  font-weight: 700;
+}
+
+.wizard-form input {
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  padding: 0.65rem 0.75rem;
+}
+
+.wizard-member-list {
+  display: grid;
+  gap: 0.65rem;
+  padding: 0;
+  margin: 1rem 0;
+  list-style: none;
+}
+
+.wizard-member-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 0.75rem 1rem;
+}
+
+.wizard-member-list span {
+  color: #64748b;
+}
+
+.wizard-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.form-error {
+  color: #b91c1c;
+  font-weight: 700;
+}

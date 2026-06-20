@@ -1,6 +1,7 @@
 using HomeOps.Api.AgendaLayerSettings;
 using HomeOps.Api.Data;
 using HomeOps.Api.Lists;
+using HomeOps.Api.Households;
 using HomeOps.Api.CalendarEvents;
 using HomeOps.Api.FamilyMembers;
 using HomeOps.Api.Motivation;
@@ -53,6 +54,7 @@ app.MapListEndpoints();
 app.MapWorkspaceLayoutEndpoints();
 app.MapEventSeriesEndpoints();
 app.MapFamilyMemberEndpoints();
+app.MapOnboardingEndpoints();
 app.MapTaskEndpoints();
 app.MapMotivationEndpoints();
 

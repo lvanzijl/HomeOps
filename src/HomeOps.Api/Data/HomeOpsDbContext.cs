@@ -50,6 +50,7 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             entity.HasKey(household => household.Id);
             entity.Property(household => household.Name).HasMaxLength(120).IsRequired();
             entity.Property(household => household.TimeZoneId).HasMaxLength(80).IsRequired();
+            entity.Property(household => household.OnboardingCompleted).IsRequired();
             entity.Property(household => household.CreatedUtc).IsRequired();
             entity.Property(household => household.UpdatedUtc).IsRequired();
         });
@@ -274,6 +275,7 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             Name = SeedHousehold.Name,
             CreatedUtc = SeedLists.SeededUtc,
             TimeZoneId = SeedHousehold.TimeZoneId,
+            OnboardingCompleted = true,
             UpdatedUtc = SeedLists.SeededUtc,
         });
 
