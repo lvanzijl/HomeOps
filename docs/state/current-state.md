@@ -225,3 +225,6 @@ Home now surfaces the three core household domains on the dashboard: Agenda, Sho
 - The read-only Motivation API returns the active family goal, active individual goals, and Family Member linkage needed by the frontend, with a neutral empty response when no records exist.
 - The Motivation page and Home Motivation tile now consume generated NSwag client data instead of the previous hardcoded frontend snapshot.
 - Goal editing, goal creation UI, Helpful Moments, gems, tokens, coins, reward shop, spend/redeem flows, avatar unlocks, leaderboards, negative points, task recurrence, task approval, authentication, permissions, and roles remain deferred.
+
+## Motivation Progress Foundation
+Motivation progress now derives from task completion while Motivation remains a read model. Completing a Shared Household task advances the active family goal, and reopening it reverses that progress. Completing a task assigned to a Family Member advances that member's active individual goals, and reopening it reverses that progress. Progress is persisted on Motivation goal records and bounded by each goal's target count. Helpful Moments, Reward Economy, Gems, Tokens, Shop, avatar unlocks, badges, leaderboards, negative points, task recurrence, task approval, authentication, permissions, and roles remain deferred.

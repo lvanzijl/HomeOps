@@ -91,3 +91,11 @@ Motivation Page Foundation adds a dedicated family encouragement surface separat
 
 ## Completed Slice 2.25 — Motivation Domain Foundation
 Motivation Domain Foundation promotes the Motivation surface from frontend-only seeded data to a persisted read-only household read model. The backend stores an active family goal and individual goals linked to persisted Family Members, exposes a read-only snapshot API, and generates NSwag client support. The Motivation page and Home Motivation tile now load API-backed data and handle loading, empty, and error states without adding editing or reward mechanics. Goal editing, Helpful Moments, gems, tokens, coins, reward shop, spend/redeem flows, avatar unlocks, leaderboards, negative points, task recurrence, task approval, authentication, permissions, and roles remain deferred.
+
+### Motivation Progress Foundation — Completed 2026-06-20
+- Motivation now consumes completed Tasks as a downstream read model.
+- Family goal progress counts completed Shared Household tasks only.
+- Individual goal progress counts completed tasks assigned to the matching Family Member only.
+- Reopening eligible tasks reverses previously applied progress, with progress bounded by target count.
+- Motivation page and Home Motivation tile continue reading from the Motivation API; no editing screens were added.
+- Helpful Moments, Reward Economy, Gems, Tokens, Shop, avatar unlocks, badges, leaderboards, negative points, task recurrence, task approval, authentication, permissions, and roles remain deferred.
