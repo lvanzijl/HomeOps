@@ -24,12 +24,15 @@ import {
   loadListSummaries,
   type ListSummary,
 } from "../shopping/listsSummaryApi";
+import { loadTasks } from "../tasks/tasksApi";
+import { groupTasksByUrgency } from "../tasks/taskGrouping";
+import type { HouseholdTask } from "../tasks/tasksModel";
 import { FamilyAvatar } from "./FamilyAvatar";
 import type { FamilyMember } from "./familyMembers";
 
 interface HomeDashboardProps {
   members: readonly FamilyMember[];
-  onNavigate: (destination: "agenda" | "lists") => void;
+  onNavigate: (destination: "agenda" | "lists" | "tasks") => void;
   onSelectFamilyMember: (memberId: string) => void;
 }
 
@@ -40,6 +43,7 @@ type AgendaSummaryItem = ReturnType<typeof hydrateAgendaEvents>[number] & {
 
 const visibleAgendaLimit = 5;
 const visibleListLimit = 4;
+const visibleTaskLimit = 4;
 
 const agendaBucketOrder: readonly AgendaBucket[] = [
   "Today",
@@ -58,8 +62,10 @@ export function HomeDashboard({
     ...demoReadOnlyEventSources,
   ]);
   const [lists, setLists] = useState<ListSummary[]>([]);
+  const [tasks, setTasks] = useState<readonly HouseholdTask[]>([]);
   const [agendaError, setAgendaError] = useState<string | null>(null);
   const [listsError, setListsError] = useState<string | null>(null);
+  const [tasksError, setTasksError] = useState<string | null>(null);
   const [shoppingText, setShoppingText] = useState("");
   const [eventTitle, setEventTitle] = useState("");
   const [eventWhen, setEventWhen] = useState<"today" | "tomorrow" | "pick">(
@@ -105,21 +111,34 @@ export function HomeDashboard({
         .catch(() => {
           if (!ignore) setListsError("Lists summary could not be loaded.");
         });
+    const refreshTasks = () =>
+      loadTasks()
+        .then((data) => {
+          if (ignore) return;
+          setTasks(data);
+          setTasksError(null);
+        })
+        .catch(() => {
+          if (!ignore) setTasksError("Tasks summary could not be loaded.");
+        });
     refreshAgenda();
     refreshLists();
+    refreshTasks();
     return () => {
       ignore = true;
     };
   }, []);
 
   async function refreshHomeData() {
-    const [agendaData, listData] = await Promise.all([
+    const [agendaData, listData, taskData] = await Promise.all([
       loadCalendarAgendaData(),
       loadListSummaries(),
+      loadTasks(),
     ]);
     setSources([...agendaData.sources, ...demoReadOnlyEventSources]);
     setEvents([...agendaData.events, ...demoReadOnlyEvents]);
     setLists(listData);
+    setTasks(taskData);
   }
 
   async function handleShoppingSubmit(event: FormEvent) {
@@ -185,6 +204,17 @@ export function HomeDashboard({
     activeListItems.length - visibleListItems.length,
   );
   const primaryListName = getPrimaryListName(lists);
+  const taskGroups = groupTasksByUrgency(tasks, toDateInputValue(now)).filter(
+    (group) => ["overdue", "today", "upcoming"].includes(group.id),
+  );
+  const summaryTasks = taskGroups.flatMap((group) =>
+    group.tasks.map((task) => ({ ...task, groupTitle: group.title })),
+  );
+  const visibleTasks = summaryTasks.slice(0, visibleTaskLimit);
+  const hiddenTaskCount = Math.max(
+    0,
+    summaryTasks.length - visibleTasks.length,
+  );
 
   return (
     <section className="home-dashboard" aria-label="Home dashboard">
@@ -378,6 +408,70 @@ export function HomeDashboard({
             Shared for {members.length} household members.
           </p>
         </article>
+
+        <article
+          className="home-summary-card tasks-summary"
+          onClick={() => onNavigate("tasks")}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => e.key === "Enter" && onNavigate("tasks")}
+          aria-label="Tasks summary"
+        >
+          <CardHeader
+            title="Tasks"
+            action="Open tasks"
+            meta={`${summaryTasks.length} due soon`}
+          />
+          {tasksError ? <p role="alert">{tasksError}</p> : null}
+          <div className="task-summary-groups">
+            {taskGroups.map((group) => {
+              const groupVisibleTasks = visibleTasks.filter(
+                (task) => task.groupTitle === group.title,
+              );
+              if (groupVisibleTasks.length === 0) return null;
+              return (
+                <section
+                  className="task-summary-group"
+                  key={group.id}
+                  aria-label={group.title}
+                >
+                  <h4>{group.title}</h4>
+                  <ul className="home-summary-list task-summary-list">
+                    {groupVisibleTasks.map((task) => (
+                      <li key={task.id}>
+                        <span>{task.title}</span>
+                        <small>
+                          {formatTaskOwner(task, members)} ·{" "}
+                          {formatTaskDue(task)}
+                        </small>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              );
+            })}
+          </div>
+          {visibleTasks.length === 0 && !tasksError ? (
+            <p className="shopping-empty">No overdue or upcoming tasks.</p>
+          ) : null}
+          {hiddenTaskCount > 0 ? (
+            <button
+              className="more-link"
+              type="button"
+              onClick={() => onNavigate("tasks")}
+            >
+              +{hiddenTaskCount} more
+            </button>
+          ) : (
+            <button
+              className="more-link"
+              type="button"
+              onClick={() => onNavigate("tasks")}
+            >
+              View Tasks
+            </button>
+          )}
+        </article>
       </div>
     </section>
   );
@@ -515,4 +609,23 @@ function toDateInputValue(date: Date): string {
 function localDateFromInput(value: string): Date {
   const [year, month, day] = value.split("-").map(Number);
   return new Date(year, month - 1, day);
+}
+
+function formatTaskOwner(
+  task: HouseholdTask,
+  members: readonly FamilyMember[],
+) {
+  if (task.ownershipKind === "SharedHousehold") return "Shared Household";
+  if (task.ownershipKind === "FamilyMember") {
+    return (
+      members.find((member) => member.id === task.familyMemberId)?.name ??
+      "Family Member"
+    );
+  }
+  return "Unassigned";
+}
+
+function formatTaskDue(task: HouseholdTask) {
+  if (!task.dueDate) return "No due date";
+  return `Due ${task.dueDate}`;
 }

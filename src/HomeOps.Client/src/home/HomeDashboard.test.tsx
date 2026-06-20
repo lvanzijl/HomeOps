@@ -1,4 +1,10 @@
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import {
+  cleanup,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { HomeDashboard } from "./HomeDashboard";
@@ -14,6 +20,7 @@ vi.mock("../shopping/listsApi", () => ({
   addShoppingListItem: vi.fn(),
 }));
 vi.mock("../shopping/listsSummaryApi", () => ({ loadListSummaries: vi.fn() }));
+vi.mock("../tasks/tasksApi", () => ({ loadTasks: vi.fn() }));
 vi.mock("../demo/demoAgendaData", () => ({
   demoReadOnlyEvents: [],
   demoReadOnlyEventSources: [],
@@ -27,6 +34,9 @@ async function listsSummaryApi() {
 }
 async function listsApi() {
   return await import("../shopping/listsApi");
+}
+async function tasksApi() {
+  return await import("../tasks/tasksApi");
 }
 
 afterEach(() => {
@@ -92,6 +102,65 @@ describe("HomeDashboard", () => {
       label: "Milk",
       completed: false,
     });
+
+    const tasks = await tasksApi();
+    vi.mocked(tasks.loadTasks).mockResolvedValue([
+      {
+        id: "overdue-task",
+        title: "Empty dishwasher",
+        dueDate: "2026-06-18",
+        ownershipKind: "FamilyMember",
+        familyMemberId: "alex",
+        isCompleted: false,
+        completedUtc: null,
+        createdUtc: "2026-06-17T08:00:00.000Z",
+        updatedUtc: "2026-06-17T08:00:00.000Z",
+      },
+      {
+        id: "today-task",
+        title: "Take recycling out",
+        dueDate: "2026-06-19",
+        ownershipKind: "SharedHousehold",
+        familyMemberId: null,
+        isCompleted: false,
+        completedUtc: null,
+        createdUtc: "2026-06-18T08:00:00.000Z",
+        updatedUtc: "2026-06-18T08:00:00.000Z",
+      },
+      {
+        id: "upcoming-task",
+        title: "Water plants",
+        dueDate: "2026-06-21",
+        ownershipKind: "Unassigned",
+        familyMemberId: null,
+        isCompleted: false,
+        completedUtc: null,
+        createdUtc: "2026-06-18T09:00:00.000Z",
+        updatedUtc: "2026-06-18T09:00:00.000Z",
+      },
+      {
+        id: "hidden-task",
+        title: "Pack library books",
+        dueDate: "2026-06-22",
+        ownershipKind: "FamilyMember",
+        familyMemberId: "sam",
+        isCompleted: false,
+        completedUtc: null,
+        createdUtc: "2026-06-18T10:00:00.000Z",
+        updatedUtc: "2026-06-18T10:00:00.000Z",
+      },
+      {
+        id: "hidden-task-2",
+        title: "Charge tablet",
+        dueDate: "2026-06-23",
+        ownershipKind: "Unassigned",
+        familyMemberId: null,
+        isCompleted: false,
+        completedUtc: null,
+        createdUtc: "2026-06-18T11:00:00.000Z",
+        updatedUtc: "2026-06-18T11:00:00.000Z",
+      },
+    ]);
     vi.mocked(agenda.createCalendarAgendaEvent).mockResolvedValue({
       id: "new-event",
       sourceId: "calendar",
@@ -119,7 +188,18 @@ describe("HomeDashboard", () => {
     expect(screen.getByText("Milk")).not.toBeNull();
     expect(screen.getByText("Vacation Packing")).not.toBeNull();
     expect(screen.getByText("+2 more")).not.toBeNull();
-    expect(screen.getByText("+1 more")).not.toBeNull();
+    expect(screen.getAllByText("+1 more")).toHaveLength(2);
+    expect(screen.getByText("Tasks")).not.toBeNull();
+    expect(screen.getByText("Overdue")).not.toBeNull();
+    expect(screen.getByText("Due Today")).not.toBeNull();
+    expect(screen.getByText("Upcoming")).not.toBeNull();
+    expect(screen.getByText("Empty dishwasher")).not.toBeNull();
+    expect(screen.getByText("Take recycling out")).not.toBeNull();
+    expect(screen.getByText("Water plants")).not.toBeNull();
+    expect(screen.getByText("Alex · Due 2026-06-18")).not.toBeNull();
+    expect(
+      screen.getByText("Shared Household · Due 2026-06-19"),
+    ).not.toBeNull();
   });
 
   it("selects a family member instead of opening the avatar editor on Home", async () => {
@@ -156,8 +236,22 @@ describe("HomeDashboard", () => {
     await user.click(screen.getByText("Event 1"));
     expect(onNavigate).toHaveBeenCalledWith("agenda");
 
-    await user.click(screen.getByRole("button", { name: "+1 more" }));
+    await user.click(
+      within(screen.getByLabelText("Lists summary")).getByRole("button", {
+        name: "+1 more",
+      }),
+    );
     await waitFor(() => expect(onNavigate).toHaveBeenCalledWith("lists"));
+
+    await user.click(screen.getByLabelText("Tasks summary"));
+    expect(onNavigate).toHaveBeenCalledWith("tasks");
+
+    await user.click(
+      within(screen.getByLabelText("Tasks summary")).getByRole("button", {
+        name: "+1 more",
+      }),
+    );
+    expect(onNavigate).toHaveBeenCalledWith("tasks");
   });
   it("adds shopping items and calendar events directly from Home quick capture", async () => {
     const user = userEvent.setup();
