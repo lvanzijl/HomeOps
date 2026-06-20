@@ -3,6 +3,8 @@ import { FamilyMemberPage } from '../home/FamilyMemberPage';
 import { HomeDashboard } from '../home/HomeDashboard';
 import { familyMembers, type FamilyMember } from '../home/familyMembers';
 import { TasksPage } from '../tasks/TasksPage';
+import { DomainPlaceholderPage } from './DomainPlaceholderPage';
+import { getDomainColorClass } from './domainColors';
 import { getWidgetDefinition } from '../widgets/widgetCatalog';
 import { WidgetRenderer } from '../widgets/WidgetRenderer';
 import type { WidgetInstance } from '../widgets/widgetModel';
@@ -43,6 +45,7 @@ export function WorkspaceShell() {
 
   const activeWorkspaceIndex = workspaceDefinitions.findIndex((workspace) => workspace.id === activeWorkspace.id);
   const activeFamilyMember = members.find((member) => member.id === activeFamilyMemberId) ?? null;
+  const activeDomainClass = activeFamilyMember ? 'domain-home' : getDomainColorClass(activeWorkspace.id);
 
   function navigateWorkspace(workspaceId: WorkspaceId) {
     setActiveFamilyMemberId(null);
@@ -59,12 +62,12 @@ export function WorkspaceShell() {
       : widgetInstancesByWorkspace[activeWorkspace.id] ?? [];
 
   return (
-    <section className="workspace-shell" aria-label="Workspace shell">
+    <section className={`workspace-shell ${activeDomainClass}`} aria-label="Workspace shell">
       <nav className="workspace-nav" aria-label="Workspace navigation">
         {workspaceDefinitions.map((workspace) => (
           <button
             aria-current={workspace.id === activeWorkspace.id ? 'page' : undefined}
-            className="workspace-nav-button"
+            className={`workspace-nav-button ${getDomainColorClass(workspace.id)}`}
             key={workspace.id}
             onClick={() => navigateWorkspace(workspace.id)}
             type="button"
@@ -90,6 +93,12 @@ export function WorkspaceShell() {
           <HomeDashboard members={members} onNavigate={navigateWorkspace} onSelectFamilyMember={setActiveFamilyMemberId} />
         ) : activeWorkspace.id === 'tasks' ? (
           <TasksPage />
+        ) : activeWorkspace.id === 'house' ? (
+          <DomainPlaceholderPage title="House Status" purpose="For home alerts, sensors, and device state." />
+        ) : activeWorkspace.id === 'media' ? (
+          <DomainPlaceholderPage title="Media" purpose="For media reminders and future household media context." />
+        ) : activeWorkspace.id === 'gamification' ? (
+          <DomainPlaceholderPage title="Gamification" purpose="For points, rewards, and family progress after Tasks mature." />
         ) : (
         <div className="widget-host" aria-label={`${activeWorkspace.label} widgets`}>
           {activeWorkspace.id === 'settings' && (
