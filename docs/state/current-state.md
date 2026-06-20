@@ -298,3 +298,9 @@ Family Goal Creation closes the final functional P0 blocker for Motivation. Hous
 - Shopping views group items by preferred store when present and keep uncategorized items visible.
 - Shopping suggestions and Home list summaries may show store context for recognition, without requiring store selection during capture.
 - No mandatory store selection, AI classification, OCR, barcode scanning, notifications, shopping automation, or Reward Economy behavior was introduced.
+
+### Child Workspace Foundation — Completed 2026-06-20
+- Child Family Member pages now behave as a warm Child Workspace that prioritizes avatar identity, goal progress, family teamwork, encouragement, and recent Helpful Moments before administration.
+- The workspace uses DateOfBirth for age-aware presentation: younger children get simpler star/checkmark language while school-age children get richer progress and celebration detail.
+- Existing Motivation data supplies active individual goals, active family goal progress, and family celebration context without adding Reward Economy, gems, shops, balances, badges, leaderboards, or notifications.
+- Existing Helpful Moments appear as positive recognition cards on the child workspace, while existing Family Member persistence, avatar editing, Motivation, Family Goals, Individual Goals, Tasks, and Home flows remain preserved.

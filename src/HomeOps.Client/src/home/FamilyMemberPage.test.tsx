@@ -4,10 +4,16 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { FamilyMemberPage } from './FamilyMemberPage';
 import { familyMembers } from './familyMembers';
 import { loadMotivationSnapshot } from '../motivationData';
+import { loadHelpfulMoments } from '../helpfulMomentsData';
 
 vi.mock('../motivationData', async () => {
   const actual = await vi.importActual<typeof import('../motivationData')>('../motivationData');
   return { ...actual, loadMotivationSnapshot: vi.fn() };
+});
+
+vi.mock('../helpfulMomentsData', async () => {
+  const actual = await vi.importActual<typeof import('../helpfulMomentsData')>('../helpfulMomentsData');
+  return { ...actual, loadHelpfulMoments: vi.fn() };
 });
 
 afterEach(cleanup);
@@ -15,12 +21,15 @@ afterEach(cleanup);
 describe('FamilyMemberPage', () => {
   beforeEach(() => {
     vi.mocked(loadMotivationSnapshot).mockResolvedValue({
-      familyGoal: { id: 'family-goal', title: 'Fill the family helper path', targetCount: 20, currentProgress: 13, unitLabel: 'helpful steps', celebration: { title: 'Board game night', status: 0 } },
+      familyGoal: { id: 'family-goal', title: 'Fill the family helper path', targetCount: 20, currentProgress: 13, unitLabel: 'helpful steps', celebration: { title: 'Board game night', description: 'A cozy game after teamwork.', status: 0 } },
       individualGoals: [
         { id: 'riley-goal', familyMemberId: 'riley', familyMemberName: 'Riley', title: 'Read before bed', targetCount: 5, currentProgress: 3, unitLabel: 'stars', visualKind: 'stars' },
         { id: 'jordan-goal', familyMemberId: 'jordan', familyMemberName: 'Jordan', title: 'Brush teeth', targetCount: 4, currentProgress: 2, unitLabel: 'checks', visualKind: 'stars' },
       ],
     });
+    vi.mocked(loadHelpfulMoments).mockResolvedValue([
+      { id: 'moment-1', householdId: 'household', familyMemberId: 'riley', familyMemberName: 'Riley', familyMemberDisplayColor: '#bbf7d0', familyMemberInitials: 'R', title: 'Helped set the table', description: 'Noticed dinner was almost ready and jumped in.', recognitionTag: 'Initiative', createdUtc: '2026-06-20T12:00:00Z' },
+    ]);
   });
 
   it('renders member management details and avatar configuration', () => {
@@ -38,7 +47,11 @@ describe('FamilyMemberPage', () => {
     expect(screen.getByLabelText('Riley progress view')).not.toBeNull();
     expect(await screen.findByText('Fill the family helper path')).not.toBeNull();
     expect(screen.getByText('Read before bed')).not.toBeNull();
+    expect(screen.getByLabelText('Family celebration')).not.toBeNull();
+    expect(screen.getByText('Board game night')).not.toBeNull();
     expect(screen.getByText(/2 stars to go/)).not.toBeNull();
+    expect(await screen.findByText('Helped set the table')).not.toBeNull();
+    expect(screen.getByText('Initiative')).not.toBeNull();
     expect(screen.queryByText(/Gems|Shop|Leaderboard|balance/i)).toBeNull();
   });
 
@@ -46,7 +59,7 @@ describe('FamilyMemberPage', () => {
     render(<FamilyMemberPage member={familyMembers[3]} onBack={vi.fn()} onChange={vi.fn()} onRemove={vi.fn()} />);
 
     expect(await screen.findByText('Stars to collect')).not.toBeNull();
-    expect(screen.getByText(/Brush teeth/)).not.toBeNull();
+    expect(await screen.findByText(/Brush teeth/)).not.toBeNull();
   });
 
   it('uses richer progress language for school-age children', async () => {
