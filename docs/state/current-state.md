@@ -274,3 +274,10 @@ Family Goal Creation closes the final functional P0 blocker for Motivation. Hous
 - Archived individual goals are retired from active Motivation and Child Progress displays without hard deletion, preserving persisted history.
 - Child Progress pages continue to consume the Motivation snapshot, so newly created active goals appear automatically and archived goals disappear.
 - Reward Economy remains deferred: no gems, tokens, shops, purchases, avatar unlocks, badges, leaderboards, negative points, notifications, recurrence, or goal templates were added.
+
+### Recurring Tasks Foundation — Completed 2026-06-20
+- Tasks now support a simple recurring series foundation for routine household chores.
+- Supported recurrence frequencies are Daily, Weekly, and Monthly; no custom schedules, cron rules, reminders, notifications, approval, templates, reward economy, gems, or shop behavior were added.
+- Recurring task generation creates dated task occurrences from the reusable series so parents do not need to recreate routine chores manually.
+- Completing one generated occurrence keeps the recurring definition intact and continues to contribute to Motivation progress using the existing Shared Household and Family Member task completion rules.
+- Editing a recurring task updates the simple series fields: title, owner, due/start date, and frequency. Deleting uses explicit Delete Series behavior and removes pending occurrences while preserving already completed task history.

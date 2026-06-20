@@ -31,6 +31,7 @@ export async function createTask(input: CreateTaskInput): Promise<HouseholdTask 
       dueDate: input.dueDate || null,
       ownershipKind: input.ownershipKind ?? 'Unassigned',
       familyMemberId: input.familyMemberId || null,
+      recurrenceFrequency: input.recurrenceFrequency ?? 'None',
     }),
   }));
 }
@@ -41,4 +42,25 @@ export async function completeTask(taskId: string): Promise<HouseholdTask> {
 
 export async function reopenTask(taskId: string): Promise<HouseholdTask> {
   return readTaskResponse(await fetch(`${apiBaseUrl}/api/tasks/${taskId}/reopen`, { method: 'POST', headers: { Accept: 'application/json' } }));
+}
+
+
+export async function updateTask(taskId: string, input: CreateTaskInput): Promise<HouseholdTask> {
+  const title = input.title.trim();
+  return readTaskResponse(await fetch(`${apiBaseUrl}/api/tasks/${taskId}`, {
+    method: 'PUT',
+    headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      title,
+      dueDate: input.dueDate || null,
+      ownershipKind: input.ownershipKind ?? 'Unassigned',
+      familyMemberId: input.familyMemberId || null,
+      recurrenceFrequency: input.recurrenceFrequency ?? 'None',
+    }),
+  }));
+}
+
+export async function deleteRecurringTaskSeries(taskId: string): Promise<void> {
+  const response = await fetch(`${apiBaseUrl}/api/tasks/${taskId}/series`, { method: 'DELETE', headers: { Accept: 'application/json' } });
+  if (!response.ok) throw new Error('Recurring task series could not be deleted.');
 }

@@ -1476,6 +1476,92 @@ export class HomeOpsApiClient {
         return Promise.resolve<HouseholdTaskDto>(null as any);
     }
 
+    updateTask(taskId: string, request: UpdateHouseholdTaskRequest): Promise<HouseholdTaskDto> {
+        let url_ = this.baseUrl + "/api/tasks/{taskId}";
+        if (taskId === undefined || taskId === null)
+            throw new globalThis.Error("The parameter 'taskId' must be defined.");
+        url_ = url_.replace("{taskId}", encodeURIComponent("" + taskId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateTask(_response);
+        });
+    }
+
+    protected processUpdateTask(response: Response): Promise<HouseholdTaskDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = HouseholdTaskDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<HouseholdTaskDto>(null as any);
+    }
+
+    deleteRecurringTaskSeries(taskId: string): Promise<void> {
+        let url_ = this.baseUrl + "/api/tasks/{taskId}/series";
+        if (taskId === undefined || taskId === null)
+            throw new globalThis.Error("The parameter 'taskId' must be defined.");
+        url_ = url_.replace("{taskId}", encodeURIComponent("" + taskId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDeleteRecurringTaskSeries(_response);
+        });
+    }
+
+    protected processDeleteRecurringTaskSeries(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
     completeTask(taskId: string): Promise<HouseholdTaskDto> {
         let url_ = this.baseUrl + "/api/tasks/{taskId}/complete";
         if (taskId === undefined || taskId === null)
@@ -3880,6 +3966,8 @@ export class HouseholdTaskDto implements IHouseholdTaskDto {
     completedUtc?: Date | undefined;
     createdUtc?: Date;
     updatedUtc?: Date;
+    recurringTaskSeriesId?: string | undefined;
+    recurrenceFrequency?: TaskRecurrenceFrequency;
 
     constructor(data?: IHouseholdTaskDto) {
         if (data) {
@@ -3901,6 +3989,8 @@ export class HouseholdTaskDto implements IHouseholdTaskDto {
             this.completedUtc = _data["completedUtc"] ? new Date(_data["completedUtc"].toString()) : undefined as any;
             this.createdUtc = _data["createdUtc"] ? new Date(_data["createdUtc"].toString()) : undefined as any;
             this.updatedUtc = _data["updatedUtc"] ? new Date(_data["updatedUtc"].toString()) : undefined as any;
+            this.recurringTaskSeriesId = _data["recurringTaskSeriesId"];
+            this.recurrenceFrequency = _data["recurrenceFrequency"];
         }
     }
 
@@ -3922,6 +4012,8 @@ export class HouseholdTaskDto implements IHouseholdTaskDto {
         data["completedUtc"] = this.completedUtc ? this.completedUtc.toISOString() : undefined as any;
         data["createdUtc"] = this.createdUtc ? this.createdUtc.toISOString() : undefined as any;
         data["updatedUtc"] = this.updatedUtc ? this.updatedUtc.toISOString() : undefined as any;
+        data["recurringTaskSeriesId"] = this.recurringTaskSeriesId;
+        data["recurrenceFrequency"] = this.recurrenceFrequency;
         return data;
     }
 }
@@ -3936,6 +4028,8 @@ export interface IHouseholdTaskDto {
     completedUtc?: Date | undefined;
     createdUtc?: Date;
     updatedUtc?: Date;
+    recurringTaskSeriesId?: string | undefined;
+    recurrenceFrequency?: TaskRecurrenceFrequency;
 }
 
 export enum TaskOwnershipKind {
@@ -3944,11 +4038,19 @@ export enum TaskOwnershipKind {
     SharedHousehold = "SharedHousehold",
 }
 
+export enum TaskRecurrenceFrequency {
+    None = "None",
+    Daily = "Daily",
+    Weekly = "Weekly",
+    Monthly = "Monthly",
+}
+
 export class CreateHouseholdTaskRequest implements ICreateHouseholdTaskRequest {
     title?: string;
     dueDate?: Date | undefined;
     ownershipKind?: TaskOwnershipKind | undefined;
     familyMemberId?: string | undefined;
+    recurrenceFrequency?: TaskRecurrenceFrequency | undefined;
 
     constructor(data?: ICreateHouseholdTaskRequest) {
         if (data) {
@@ -3965,6 +4067,7 @@ export class CreateHouseholdTaskRequest implements ICreateHouseholdTaskRequest {
             this.dueDate = _data["dueDate"] ? new Date(_data["dueDate"].toString()) : undefined as any;
             this.ownershipKind = _data["ownershipKind"];
             this.familyMemberId = _data["familyMemberId"];
+            this.recurrenceFrequency = _data["recurrenceFrequency"];
         }
     }
 
@@ -3981,6 +4084,7 @@ export class CreateHouseholdTaskRequest implements ICreateHouseholdTaskRequest {
         data["dueDate"] = this.dueDate ? formatDate(this.dueDate) : undefined as any;
         data["ownershipKind"] = this.ownershipKind;
         data["familyMemberId"] = this.familyMemberId;
+        data["recurrenceFrequency"] = this.recurrenceFrequency;
         return data;
     }
 }
@@ -3990,6 +4094,59 @@ export interface ICreateHouseholdTaskRequest {
     dueDate?: Date | undefined;
     ownershipKind?: TaskOwnershipKind | undefined;
     familyMemberId?: string | undefined;
+    recurrenceFrequency?: TaskRecurrenceFrequency | undefined;
+}
+
+export class UpdateHouseholdTaskRequest implements IUpdateHouseholdTaskRequest {
+    title?: string;
+    dueDate?: Date | undefined;
+    ownershipKind?: TaskOwnershipKind | undefined;
+    familyMemberId?: string | undefined;
+    recurrenceFrequency?: TaskRecurrenceFrequency | undefined;
+
+    constructor(data?: IUpdateHouseholdTaskRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.title = _data["title"];
+            this.dueDate = _data["dueDate"] ? new Date(_data["dueDate"].toString()) : undefined as any;
+            this.ownershipKind = _data["ownershipKind"];
+            this.familyMemberId = _data["familyMemberId"];
+            this.recurrenceFrequency = _data["recurrenceFrequency"];
+        }
+    }
+
+    static fromJS(data: any): UpdateHouseholdTaskRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpdateHouseholdTaskRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["title"] = this.title;
+        data["dueDate"] = this.dueDate ? formatDate(this.dueDate) : undefined as any;
+        data["ownershipKind"] = this.ownershipKind;
+        data["familyMemberId"] = this.familyMemberId;
+        data["recurrenceFrequency"] = this.recurrenceFrequency;
+        return data;
+    }
+}
+
+export interface IUpdateHouseholdTaskRequest {
+    title?: string;
+    dueDate?: Date | undefined;
+    ownershipKind?: TaskOwnershipKind | undefined;
+    familyMemberId?: string | undefined;
+    recurrenceFrequency?: TaskRecurrenceFrequency | undefined;
 }
 
 export class HelpfulMomentDto implements IHelpfulMomentDto {

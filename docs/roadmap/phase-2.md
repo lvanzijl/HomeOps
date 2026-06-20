@@ -141,3 +141,11 @@ Family Goal Creation and Editing removes the final functional P0 blocker for Mot
 - Supports archiving goals so retired goals disappear from active Motivation and Child Progress views while history remains persisted.
 - Child Progress and Motivation displays now reflect active individual goal changes automatically through the Motivation snapshot.
 - Kept Reward Economy, gems, tokens, shops, purchases, avatar unlocks, badges, leaderboards, negative points, notifications, recurrence, and templates out of scope.
+
+### Recurring Tasks Foundation — Completed 2026-06-20
+- Added the first major P2 recurring task slice so parents can configure common chores once instead of recreating them repeatedly.
+- Supports Daily, Weekly, and Monthly recurrence with a human-readable model only.
+- Recurring task generation creates future task occurrences while keeping the recurring series definition separate from individual completion.
+- Recurring task editing covers title, owner, due/start date, and recurrence frequency for the whole simple series.
+- Recurring task deletion is explicit series deletion; occurrence-only deletion, exceptions, series splitting, task templates, advanced scheduling, notifications, and calendar reminders remain deferred.
+- Motivation compatibility is preserved: recurring task occurrences still advance family goals and individual goals through existing task completion behavior.
