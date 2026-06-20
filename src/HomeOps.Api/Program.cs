@@ -56,6 +56,7 @@ app.MapEventSeriesEndpoints();
 app.MapFamilyMemberEndpoints();
 app.MapOnboardingEndpoints();
 app.MapTaskEndpoints();
+app.MapTaskTemplateEndpoints();
 app.MapMotivationEndpoints();
 app.MapHelpfulMomentEndpoints();
 

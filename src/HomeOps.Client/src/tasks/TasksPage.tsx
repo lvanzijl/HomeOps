@@ -1,17 +1,21 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { familyMembers as fallbackFamilyMembers, type FamilyMember } from '../home/familyMembers';
-import { completeTask, createTask, deleteRecurringTaskSeries, loadTasks, reopenTask, updateTask as saveTask } from './tasksApi';
+import { applyTaskTemplate, archiveTaskTemplate, completeTask, createTask, createTaskTemplate, deleteRecurringTaskSeries, loadTaskTemplates, loadTasks, reopenTask, updateTask as saveTask, updateTaskTemplate } from './tasksApi';
 import { groupTasksByUrgency } from './taskGrouping';
-import type { HouseholdTask, TaskOwnershipKind, TaskRecurrenceFrequency } from './tasksModel';
+import type { HouseholdTask, TaskOwnershipKind, TaskRecurrenceFrequency, TaskTemplate } from './tasksModel';
 
 export function TasksPage({ members = fallbackFamilyMembers }: { members?: readonly FamilyMember[] }) {
   const [tasks, setTasks] = useState<readonly HouseholdTask[]>([]);
+  const [templates, setTemplates] = useState<readonly TaskTemplate[]>([]);
   const [title, setTitle] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [ownership, setOwnership] = useState<TaskOwnershipKind>('Unassigned');
   const [familyMemberId, setFamilyMemberId] = useState(members[0]?.id ?? '');
   const [recurrenceFrequency, setRecurrenceFrequency] = useState<TaskRecurrenceFrequency>('None');
   const [editingTask, setEditingTask] = useState<HouseholdTask | null>(null);
+  const [templateName, setTemplateName] = useState('');
+  const [templateDescription, setTemplateDescription] = useState('');
+  const [editingTemplate, setEditingTemplate] = useState<TaskTemplate | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const groups = useMemo(() => groupTasksByUrgency(tasks), [tasks]);
@@ -27,6 +31,7 @@ export function TasksPage({ members = fallbackFamilyMembers }: { members?: reado
     async function run() {
       try {
         setTasks(await loadTasks());
+        setTemplates(await loadTaskTemplates());
       } catch {
         if (!ignore) setError('Tasks could not be loaded.');
       } finally {
@@ -47,6 +52,34 @@ export function TasksPage({ members = fallbackFamilyMembers }: { members?: reado
     } catch {
       setError('Task could not be saved.');
     }
+  }
+
+
+  async function onSaveTemplate(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    try {
+      const input = { name: templateName, description: templateDescription || null, items: [{ title, dueDate: dueDate || null, ownershipKind: ownership, familyMemberId: ownership === 'FamilyMember' ? familyMemberId : null, recurrenceFrequency, dueOffsetDays: dueDate ? 0 : null }] };
+      if (editingTemplate) await updateTaskTemplate(editingTemplate.id, input);
+      else await createTaskTemplate(input);
+      setTemplates(await loadTaskTemplates());
+      setTemplateName(''); setTemplateDescription(''); setEditingTemplate(null);
+    } catch {
+      setError('Task template could not be saved.');
+    }
+  }
+
+  function startEditingTemplate(template: TaskTemplate) {
+    const first = template.items[0];
+    setEditingTemplate(template); setTemplateName(template.name); setTemplateDescription(template.description ?? '');
+    if (first) { setTitle(first.title); setOwnership(first.ownershipKind); setFamilyMemberId(first.familyMemberId ?? members[0]?.id ?? ''); setRecurrenceFrequency(first.recurrenceFrequency ?? 'None'); }
+  }
+
+  async function applyTemplate(templateId: string) {
+    try { await applyTaskTemplate(templateId); setTasks(await loadTasks()); } catch { setError('Task template could not be applied.'); }
+  }
+
+  async function archiveTemplate(templateId: string) {
+    try { await archiveTaskTemplate(templateId); setTemplates(await loadTaskTemplates()); } catch { setError('Task template could not be archived.'); }
   }
 
   function startEditing(task: HouseholdTask) {
@@ -78,6 +111,16 @@ export function TasksPage({ members = fallbackFamilyMembers }: { members?: reado
         <label><span>Repeats</span><select onChange={(event) => setRecurrenceFrequency(event.target.value as TaskRecurrenceFrequency)} value={recurrenceFrequency}><option value="None">Does not repeat</option><option value="Daily">Daily</option><option value="Weekly">Weekly</option><option value="Monthly">Monthly</option></select></label>
         <button type="submit">{editingTask ? 'Save task series' : 'Add task'}</button>
       </form>
+
+      <section className="task-templates-panel" aria-label="Task templates">
+        <div><p className="widget-type">Templates</p><h4>Reusable task templates</h4><p>Create a lightweight template from the task form, then apply it whenever the routine is needed.</p></div>
+        <form className="task-create-form" onSubmit={onSaveTemplate}>
+          <label><span>Template name</span><input onChange={(event) => setTemplateName(event.target.value)} placeholder="Morning routine" required type="text" value={templateName} /></label>
+          <label><span>Description</span><input onChange={(event) => setTemplateDescription(event.target.value)} placeholder="Optional notes" type="text" value={templateDescription} /></label>
+          <button type="submit">{editingTemplate ? 'Save template' : 'Save current task as template'}</button>
+        </form>
+        {templates.length === 0 ? <p className="shopping-empty">No active templates.</p> : <ul className="task-list">{templates.map((template) => <li className="task-item" key={template.id}><div><strong>{template.name}</strong><span>{template.description ?? 'Reusable household tasks'} · {template.items.length} task{template.items.length === 1 ? '' : 's'}</span></div><button onClick={() => applyTemplate(template.id)} type="button">Apply</button><button onClick={() => startEditingTemplate(template)} type="button">Edit</button><button onClick={() => archiveTemplate(template.id)} type="button">Archive</button></li>)}</ul>}
+      </section>
       {isLoading ? <p className="shopping-empty">Loading tasks…</p> : tasks.length === 0 ? (
         <div className="empty-state-card page-empty-state">
           <strong>Create your first task</strong>

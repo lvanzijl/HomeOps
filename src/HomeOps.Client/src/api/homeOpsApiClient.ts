@@ -1644,6 +1644,220 @@ export class HomeOpsApiClient {
         return Promise.resolve<HouseholdTaskDto>(null as any);
     }
 
+    getTaskTemplates(): Promise<TaskTemplateDto[]> {
+        let url_ = this.baseUrl + "/api/task-templates";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetTaskTemplates(_response);
+        });
+    }
+
+    protected processGetTaskTemplates(response: Response): Promise<TaskTemplateDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(TaskTemplateDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<TaskTemplateDto[]>(null as any);
+    }
+
+    createTaskTemplate(request: CreateTaskTemplateRequest): Promise<TaskTemplateDto> {
+        let url_ = this.baseUrl + "/api/task-templates";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCreateTaskTemplate(_response);
+        });
+    }
+
+    protected processCreateTaskTemplate(response: Response): Promise<TaskTemplateDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 201) {
+            return response.text().then((_responseText) => {
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result201 = TaskTemplateDto.fromJS(resultData201);
+            return result201;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<TaskTemplateDto>(null as any);
+    }
+
+    updateTaskTemplate(templateId: string, request: UpdateTaskTemplateRequest): Promise<TaskTemplateDto> {
+        let url_ = this.baseUrl + "/api/task-templates/{templateId}";
+        if (templateId === undefined || templateId === null)
+            throw new globalThis.Error("The parameter 'templateId' must be defined.");
+        url_ = url_.replace("{templateId}", encodeURIComponent("" + templateId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateTaskTemplate(_response);
+        });
+    }
+
+    protected processUpdateTaskTemplate(response: Response): Promise<TaskTemplateDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = TaskTemplateDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<TaskTemplateDto>(null as any);
+    }
+
+    archiveTaskTemplate(templateId: string): Promise<void> {
+        let url_ = this.baseUrl + "/api/task-templates/{templateId}/archive";
+        if (templateId === undefined || templateId === null)
+            throw new globalThis.Error("The parameter 'templateId' must be defined.");
+        url_ = url_.replace("{templateId}", encodeURIComponent("" + templateId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processArchiveTaskTemplate(_response);
+        });
+    }
+
+    protected processArchiveTaskTemplate(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    applyTaskTemplate(templateId: string, request: ApplyTaskTemplateRequest): Promise<ApplyTaskTemplateResponse> {
+        let url_ = this.baseUrl + "/api/task-templates/{templateId}/apply";
+        if (templateId === undefined || templateId === null)
+            throw new globalThis.Error("The parameter 'templateId' must be defined.");
+        url_ = url_.replace("{templateId}", encodeURIComponent("" + templateId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processApplyTaskTemplate(_response);
+        });
+    }
+
+    protected processApplyTaskTemplate(response: Response): Promise<ApplyTaskTemplateResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ApplyTaskTemplateResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ApplyTaskTemplateResponse>(null as any);
+    }
+
     getHelpfulMoments(familyMemberId: string | null | undefined, limit: number | null | undefined): Promise<HelpfulMomentDto[]> {
         let url_ = this.baseUrl + "/api/helpful-moments?";
         if (familyMemberId !== undefined && familyMemberId !== null)
@@ -4147,6 +4361,378 @@ export interface IUpdateHouseholdTaskRequest {
     ownershipKind?: TaskOwnershipKind | undefined;
     familyMemberId?: string | undefined;
     recurrenceFrequency?: TaskRecurrenceFrequency | undefined;
+}
+
+export class TaskTemplateDto implements ITaskTemplateDto {
+    id?: string;
+    name?: string;
+    description?: string | undefined;
+    active?: boolean;
+    createdUtc?: Date;
+    updatedUtc?: Date;
+    items?: TaskTemplateItemDto[];
+
+    constructor(data?: ITaskTemplateDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.name = _data["name"];
+            this.description = _data["description"];
+            this.active = _data["active"];
+            this.createdUtc = _data["createdUtc"] ? new Date(_data["createdUtc"].toString()) : undefined as any;
+            this.updatedUtc = _data["updatedUtc"] ? new Date(_data["updatedUtc"].toString()) : undefined as any;
+            if (Array.isArray(_data["items"])) {
+                this.items = [] as any;
+                for (let item of _data["items"])
+                    this.items!.push(TaskTemplateItemDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): TaskTemplateDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new TaskTemplateDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["name"] = this.name;
+        data["description"] = this.description;
+        data["active"] = this.active;
+        data["createdUtc"] = this.createdUtc ? this.createdUtc.toISOString() : undefined as any;
+        data["updatedUtc"] = this.updatedUtc ? this.updatedUtc.toISOString() : undefined as any;
+        if (Array.isArray(this.items)) {
+            data["items"] = [];
+            for (let item of this.items)
+                data["items"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface ITaskTemplateDto {
+    id?: string;
+    name?: string;
+    description?: string | undefined;
+    active?: boolean;
+    createdUtc?: Date;
+    updatedUtc?: Date;
+    items?: TaskTemplateItemDto[];
+}
+
+export class TaskTemplateItemDto implements ITaskTemplateItemDto {
+    id?: string;
+    title?: string;
+    ownershipKind?: TaskOwnershipKind;
+    familyMemberId?: string | undefined;
+    recurrenceFrequency?: TaskRecurrenceFrequency;
+    dueOffsetDays?: number | undefined;
+    position?: number;
+
+    constructor(data?: ITaskTemplateItemDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.title = _data["title"];
+            this.ownershipKind = _data["ownershipKind"];
+            this.familyMemberId = _data["familyMemberId"];
+            this.recurrenceFrequency = _data["recurrenceFrequency"];
+            this.dueOffsetDays = _data["dueOffsetDays"];
+            this.position = _data["position"];
+        }
+    }
+
+    static fromJS(data: any): TaskTemplateItemDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new TaskTemplateItemDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["title"] = this.title;
+        data["ownershipKind"] = this.ownershipKind;
+        data["familyMemberId"] = this.familyMemberId;
+        data["recurrenceFrequency"] = this.recurrenceFrequency;
+        data["dueOffsetDays"] = this.dueOffsetDays;
+        data["position"] = this.position;
+        return data;
+    }
+}
+
+export interface ITaskTemplateItemDto {
+    id?: string;
+    title?: string;
+    ownershipKind?: TaskOwnershipKind;
+    familyMemberId?: string | undefined;
+    recurrenceFrequency?: TaskRecurrenceFrequency;
+    dueOffsetDays?: number | undefined;
+    position?: number;
+}
+
+export class CreateTaskTemplateRequest implements ICreateTaskTemplateRequest {
+    name?: string;
+    description?: string | undefined;
+    items?: TaskTemplateItemRequest[];
+
+    constructor(data?: ICreateTaskTemplateRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.name = _data["name"];
+            this.description = _data["description"];
+            if (Array.isArray(_data["items"])) {
+                this.items = [] as any;
+                for (let item of _data["items"])
+                    this.items!.push(TaskTemplateItemRequest.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): CreateTaskTemplateRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreateTaskTemplateRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["name"] = this.name;
+        data["description"] = this.description;
+        if (Array.isArray(this.items)) {
+            data["items"] = [];
+            for (let item of this.items)
+                data["items"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface ICreateTaskTemplateRequest {
+    name?: string;
+    description?: string | undefined;
+    items?: TaskTemplateItemRequest[];
+}
+
+export class TaskTemplateItemRequest implements ITaskTemplateItemRequest {
+    title?: string;
+    ownershipKind?: TaskOwnershipKind | undefined;
+    familyMemberId?: string | undefined;
+    recurrenceFrequency?: TaskRecurrenceFrequency | undefined;
+    dueOffsetDays?: number | undefined;
+
+    constructor(data?: ITaskTemplateItemRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.title = _data["title"];
+            this.ownershipKind = _data["ownershipKind"];
+            this.familyMemberId = _data["familyMemberId"];
+            this.recurrenceFrequency = _data["recurrenceFrequency"];
+            this.dueOffsetDays = _data["dueOffsetDays"];
+        }
+    }
+
+    static fromJS(data: any): TaskTemplateItemRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new TaskTemplateItemRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["title"] = this.title;
+        data["ownershipKind"] = this.ownershipKind;
+        data["familyMemberId"] = this.familyMemberId;
+        data["recurrenceFrequency"] = this.recurrenceFrequency;
+        data["dueOffsetDays"] = this.dueOffsetDays;
+        return data;
+    }
+}
+
+export interface ITaskTemplateItemRequest {
+    title?: string;
+    ownershipKind?: TaskOwnershipKind | undefined;
+    familyMemberId?: string | undefined;
+    recurrenceFrequency?: TaskRecurrenceFrequency | undefined;
+    dueOffsetDays?: number | undefined;
+}
+
+export class UpdateTaskTemplateRequest implements IUpdateTaskTemplateRequest {
+    name?: string;
+    description?: string | undefined;
+    active?: boolean | undefined;
+    items?: TaskTemplateItemRequest[];
+
+    constructor(data?: IUpdateTaskTemplateRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.name = _data["name"];
+            this.description = _data["description"];
+            this.active = _data["active"];
+            if (Array.isArray(_data["items"])) {
+                this.items = [] as any;
+                for (let item of _data["items"])
+                    this.items!.push(TaskTemplateItemRequest.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): UpdateTaskTemplateRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpdateTaskTemplateRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["name"] = this.name;
+        data["description"] = this.description;
+        data["active"] = this.active;
+        if (Array.isArray(this.items)) {
+            data["items"] = [];
+            for (let item of this.items)
+                data["items"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IUpdateTaskTemplateRequest {
+    name?: string;
+    description?: string | undefined;
+    active?: boolean | undefined;
+    items?: TaskTemplateItemRequest[];
+}
+
+export class ApplyTaskTemplateResponse implements IApplyTaskTemplateResponse {
+    templateId?: string;
+    createdTasks?: HouseholdTaskDto[];
+
+    constructor(data?: IApplyTaskTemplateResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.templateId = _data["templateId"];
+            if (Array.isArray(_data["createdTasks"])) {
+                this.createdTasks = [] as any;
+                for (let item of _data["createdTasks"])
+                    this.createdTasks!.push(HouseholdTaskDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): ApplyTaskTemplateResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new ApplyTaskTemplateResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["templateId"] = this.templateId;
+        if (Array.isArray(this.createdTasks)) {
+            data["createdTasks"] = [];
+            for (let item of this.createdTasks)
+                data["createdTasks"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IApplyTaskTemplateResponse {
+    templateId?: string;
+    createdTasks?: HouseholdTaskDto[];
+}
+
+export class ApplyTaskTemplateRequest implements IApplyTaskTemplateRequest {
+    startDate?: Date | undefined;
+
+    constructor(data?: IApplyTaskTemplateRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.startDate = _data["startDate"] ? new Date(_data["startDate"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): ApplyTaskTemplateRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new ApplyTaskTemplateRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["startDate"] = this.startDate ? formatDate(this.startDate) : undefined as any;
+        return data;
+    }
+}
+
+export interface IApplyTaskTemplateRequest {
+    startDate?: Date | undefined;
 }
 
 export class HelpfulMomentDto implements IHelpfulMomentDto {

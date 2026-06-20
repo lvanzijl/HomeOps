@@ -1317,6 +1317,187 @@
         }
       }
     },
+    "/api/task-templates": {
+      "get": {
+        "tags": [
+          "Task Templates"
+        ],
+        "operationId": "GetTaskTemplates",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TaskTemplateDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Task Templates"
+        ],
+        "operationId": "CreateTaskTemplate",
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTaskTemplateRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskTemplateDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/task-templates/{templateId}": {
+      "put": {
+        "tags": [
+          "Task Templates"
+        ],
+        "operationId": "UpdateTaskTemplate",
+        "parameters": [
+          {
+            "name": "templateId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTaskTemplateRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TaskTemplateDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": ""
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/task-templates/{templateId}/archive": {
+      "post": {
+        "tags": [
+          "Task Templates"
+        ],
+        "operationId": "ArchiveTaskTemplate",
+        "parameters": [
+          {
+            "name": "templateId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/task-templates/{templateId}/apply": {
+      "post": {
+        "tags": [
+          "Task Templates"
+        ],
+        "operationId": "ApplyTaskTemplate",
+        "parameters": [
+          {
+            "name": "templateId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplyTaskTemplateRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplyTaskTemplateResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
     "/api/helpful-moments": {
       "get": {
         "tags": [
@@ -2635,6 +2816,175 @@
                 "$ref": "#/components/schemas/TaskRecurrenceFrequency"
               }
             ]
+          }
+        }
+      },
+      "TaskTemplateDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "createdUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TaskTemplateItemDto"
+            }
+          }
+        }
+      },
+      "TaskTemplateItemDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "ownershipKind": {
+            "$ref": "#/components/schemas/TaskOwnershipKind"
+          },
+          "familyMemberId": {
+            "type": "string",
+            "nullable": true
+          },
+          "recurrenceFrequency": {
+            "$ref": "#/components/schemas/TaskRecurrenceFrequency"
+          },
+          "dueOffsetDays": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "position": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "CreateTaskTemplateRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TaskTemplateItemRequest"
+            }
+          }
+        }
+      },
+      "TaskTemplateItemRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "ownershipKind": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/TaskOwnershipKind"
+              }
+            ]
+          },
+          "familyMemberId": {
+            "type": "string",
+            "nullable": true
+          },
+          "recurrenceFrequency": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/TaskRecurrenceFrequency"
+              }
+            ]
+          },
+          "dueOffsetDays": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        }
+      },
+      "UpdateTaskTemplateRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "active": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TaskTemplateItemRequest"
+            }
+          }
+        }
+      },
+      "ApplyTaskTemplateResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "templateId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "createdTasks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HouseholdTaskDto"
+            }
+          }
+        }
+      },
+      "ApplyTaskTemplateRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "startDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
           }
         }
       },

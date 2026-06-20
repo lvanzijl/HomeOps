@@ -30,3 +30,36 @@ export interface TaskUrgencyGroup {
   title: string;
   tasks: readonly HouseholdTask[];
 }
+
+
+export interface TaskTemplateItem {
+  id: string;
+  title: string;
+  ownershipKind: TaskOwnershipKind;
+  familyMemberId: string | null;
+  recurrenceFrequency: TaskRecurrenceFrequency;
+  dueOffsetDays: number | null;
+  position: number;
+}
+
+export interface TaskTemplate {
+  id: string;
+  name: string;
+  description: string | null;
+  active: boolean;
+  createdUtc: string;
+  updatedUtc: string;
+  items: readonly TaskTemplateItem[];
+}
+
+export interface TaskTemplateInput {
+  name: string;
+  description?: string | null;
+  items: readonly {
+    title: string;
+    ownershipKind?: TaskOwnershipKind;
+    familyMemberId?: string | null;
+    recurrenceFrequency?: TaskRecurrenceFrequency;
+    dueOffsetDays?: number | null;
+  }[];
+}
