@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
-import { addShoppingListItem, createListsApiClient, loadShoppingList, removeShoppingListItem, toggleShoppingListItem } from '../../shopping/listsApi';
+import { addShoppingListItem, createListsApiClient, createShoppingList, loadShoppingList, removeShoppingListItem, toggleShoppingListItem } from '../../shopping/listsApi';
 import type { ShoppingListItem } from '../../shopping/shoppingListModel';
 import { getActiveShoppingListItems, getCompletedShoppingListItems, removeShoppingListItemById, upsertShoppingListItem } from '../../shopping/shoppingListState';
 import type { WidgetRenderProps } from '../WidgetRenderer';
@@ -11,6 +11,7 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
   const [newItemLabel, setNewItemLabel] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isCreatingList, setIsCreatingList] = useState(false);
 
   useEffect(() => {
     let ignoreResult = false;
@@ -27,7 +28,7 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
         }
       } catch {
         if (!ignoreResult) {
-          setError('Shopping list could not be loaded.');
+          setError('Lists could not be loaded.');
         }
       } finally {
         if (!ignoreResult) {
@@ -90,6 +91,20 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
     }
   }
 
+  async function createFirstList() {
+    try {
+      setIsCreatingList(true);
+      const created = await createShoppingList(apiClient);
+      setListId(created.listId);
+      setItems(created.items);
+      setError(null);
+    } catch {
+      setError('List could not be created.');
+    } finally {
+      setIsCreatingList(false);
+    }
+  }
+
   return (
     <article className="widget-card shopping-widget" aria-label={instance.title}>
       <p className="widget-type">Shopping List Widget</p>
@@ -102,6 +117,7 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
           <input
             disabled={isLoading || !listId}
             onChange={(event) => setNewItemLabel(event.target.value)}
+            id="shopping-new-item"
             placeholder="Add an item"
             type="text"
             value={newItemLabel}
@@ -109,6 +125,13 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
         </label>
         <button disabled={isLoading || !listId} type="submit">Add</button>
       </form>
+      {!isLoading && !error && activeItems.length === 0 && completedItems.length === 0 ? (
+        <div className="empty-state-card page-empty-state">
+          <strong>Create your first list</strong>
+          <p>Lists help remember shopping, packing, and household items.</p>
+          {listId ? <a href="#shopping-new-item">Start by adding one item.</a> : <button disabled={isCreatingList} onClick={createFirstList} type="button">Create Shopping list</button>}
+        </div>
+      ) : null}
       <ShoppingListSection
         emptyLabel="No active items."
         items={activeItems}

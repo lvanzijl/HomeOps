@@ -179,7 +179,13 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
         ))}
       </fieldset>
 
-      {activeView === 'week' ? <WeekView deletingEventId={deletingEventId} groups={weekGroups} onDelete={removeEvent} onEdit={startEditing} /> : <MonthsView deletingEventId={deletingEventId} groups={monthGroups} onDelete={removeEvent} onEdit={startEditing} />}
+      {agendaEvents.length === 0 && !isLoading && !errorMessage ? (
+        <div className="empty-state-card page-empty-state">
+          <strong>Create your first event</strong>
+          <p>Events help the household remember important dates and activities.</p>
+          <a href="#calendar-event-title">Start with one household event.</a>
+        </div>
+      ) : activeView === 'week' ? <WeekView deletingEventId={deletingEventId} groups={weekGroups} onDelete={removeEvent} onEdit={startEditing} /> : <MonthsView deletingEventId={deletingEventId} groups={monthGroups} onDelete={removeEvent} onEdit={startEditing} />}
     </article>
   );
 }
@@ -203,7 +209,7 @@ function EventForm({
     <form className="calendar-event-form" onSubmit={onSubmit} aria-label="Calendar event form">
       <label>
         Title
-        <input value={form.title} onChange={(event) => onChange({ ...form, title: event.target.value })} placeholder="Calendar event title" />
+        <input value={form.title} onChange={(event) => onChange({ ...form, title: event.target.value })} id="calendar-event-title" placeholder="Calendar event title" />
       </label>
       <label>
         Description

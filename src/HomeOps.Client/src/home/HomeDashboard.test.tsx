@@ -332,3 +332,28 @@ describe("HomeDashboard", () => {
     ).not.toBeNull();
   });
 });
+
+describe("HomeDashboard empty states", () => {
+  beforeEach(async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    vi.clearAllMocks();
+    vi.setSystemTime(new Date("2026-06-19T08:30:00Z"));
+    vi.mocked((await agendaApi()).loadCalendarAgendaData).mockResolvedValue({ sources: [], events: [] });
+    vi.mocked((await listsSummaryApi()).loadListSummaries).mockResolvedValue([]);
+    vi.mocked((await tasksApi()).loadTasks).mockResolvedValue([]);
+    vi.mocked((await motivationApi()).loadMotivationSnapshot).mockResolvedValue({ individualGoals: [] });
+  });
+
+  it("shows lightweight first actions for empty household data", async () => {
+    render(<HomeDashboard members={familyMembers} onNavigate={vi.fn()} onSelectFamilyMember={vi.fn()} onAddFamilyMember={vi.fn()} />);
+
+    expect(await screen.findByText("Create your first event")).not.toBeNull();
+    expect(screen.getByText("Add your first shopping item")).not.toBeNull();
+    expect(screen.getByText("Create your first family goal")).not.toBeNull();
+    expect(screen.getByText("Create your first task")).not.toBeNull();
+    expect(screen.getByRole("button", { name: "Open Agenda" })).not.toBeNull();
+    expect(screen.getByRole("button", { name: "Open Lists" })).not.toBeNull();
+    expect(screen.getByRole("button", { name: "Open Motivation" })).not.toBeNull();
+    expect(screen.getByRole("button", { name: "Open Tasks" })).not.toBeNull();
+  });
+});

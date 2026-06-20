@@ -41,10 +41,10 @@ export function MotivationPage({ members }: MotivationPageProps) {
 
       <article className="family-goal-card" aria-label="Active family goal">
         {!familyGoal ? (
-          <div>
-            <p className="eyebrow">{status === 'error' ? 'Motivation is unavailable' : 'Loading motivation'}</p>
-            <h3>No active family goal yet</h3>
-            <p className="motivation-copy">This encouragement space is ready when a family goal is available.</p>
+          <div className="empty-state-card page-empty-state">
+            <p className="eyebrow">{status === 'error' ? 'Motivation is unavailable' : 'Family goal'}</p>
+            <h3>Create your first family goal</h3>
+            <p>Family goals help everyone work toward something together.</p>
           </div>
         ) : (
         <>

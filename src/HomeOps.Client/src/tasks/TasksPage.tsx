@@ -60,13 +60,19 @@ export function TasksPage({ members = fallbackFamilyMembers }: { members?: reado
       <header className="tasks-header"><p className="widget-type">Tasks</p><h3>Household Tasks</h3><p>Urgency-first ad-hoc tasks for the household.</p></header>
       {error ? <p className="shopping-empty" role="alert">{error}</p> : null}
       <form className="task-create-form" onSubmit={onCreate}>
-        <label><span>Title</span><input onChange={(event) => setTitle(event.target.value)} placeholder="Add a task" required type="text" value={title} /></label>
+        <label><span>Title</span><input id="task-title" onChange={(event) => setTitle(event.target.value)} placeholder="Add a task" required type="text" value={title} /></label>
         <label><span>Owner</span><select onChange={(event) => setOwnership(event.target.value as TaskOwnershipKind)} value={ownership}><option value="Unassigned">Unassigned</option><option value="SharedHousehold">Shared household</option><option value="FamilyMember">Family member</option></select></label>
         {ownership === 'FamilyMember' ? <label><span>Family member</span><select onChange={(event) => setFamilyMemberId(event.target.value)} value={familyMemberId}>{members.map((member) => <option key={member.id} value={member.id}>{member.name}</option>)}</select></label> : null}
         <label><span>Due date</span><input onChange={(event) => setDueDate(event.target.value)} type="date" value={dueDate} /></label>
         <button type="submit">Add task</button>
       </form>
-      {isLoading ? <p className="shopping-empty">Loading tasks…</p> : groups.map((group) => <TaskGroup groupTitle={group.title} key={group.id} members={members} tasks={group.tasks} onUpdate={updateTask} />)}
+      {isLoading ? <p className="shopping-empty">Loading tasks…</p> : tasks.length === 0 ? (
+        <div className="empty-state-card page-empty-state">
+          <strong>Create your first task</strong>
+          <p>Tasks help organize household responsibilities.</p>
+          <a href="#task-title">Start with one household task.</a>
+        </div>
+      ) : groups.map((group) => <TaskGroup groupTitle={group.title} key={group.id} members={members} tasks={group.tasks} onUpdate={updateTask} />)}
     </article>
   );
 }

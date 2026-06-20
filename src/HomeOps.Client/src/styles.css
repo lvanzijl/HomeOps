@@ -1026,3 +1026,37 @@ button {
   color: #b91c1c;
   font-weight: 700;
 }
+
+.empty-state-card {
+  border: 1px dashed rgba(88, 75, 63, 0.28);
+  border-radius: 18px;
+  background: rgba(255, 250, 240, 0.72);
+  padding: 0.85rem;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.empty-state-card strong {
+  color: #3f3328;
+}
+
+.empty-state-card p {
+  margin: 0;
+  color: #6b5c4b;
+}
+
+.empty-state-card button,
+.empty-state-card a {
+  justify-self: start;
+  border: 0;
+  border-radius: 999px;
+  background: #fff7ed;
+  color: #7c2d12;
+  font-weight: 800;
+  padding: 0.55rem 0.8rem;
+  text-decoration: none;
+}
+
+.page-empty-state {
+  margin: 1rem 0;
+}

@@ -1,4 +1,4 @@
-import { AddListItemRequest, HomeOpsApiClient, ListDto, ListItemDto } from '../api/homeOpsApiClient';
+import { AddListItemRequest, CreateListRequest, HomeOpsApiClient, ListDto, ListItemDto } from '../api/homeOpsApiClient';
 import type { ShoppingListItem, ShoppingListState } from './shoppingListModel';
 
 const shoppingListName = 'Shopping';
@@ -12,11 +12,16 @@ export async function loadShoppingList(client = createListsApiClient()): Promise
   const shoppingList = lists.find((list) => list.name === shoppingListName);
 
   if (!shoppingList?.id) {
-    throw new Error('Shopping list was not found.');
+    return { listId: null, items: [] };
   }
 
   const list = await client.getListById(shoppingList.id);
   return toShoppingListState(list);
+}
+
+export async function createShoppingList(client: HomeOpsApiClient): Promise<ShoppingListState> {
+  const created = await client.createList(new CreateListRequest({ name: shoppingListName }));
+  return toShoppingListState(created);
 }
 
 export async function addShoppingListItem(client: HomeOpsApiClient, listId: string, label: string): Promise<ShoppingListItem | null> {

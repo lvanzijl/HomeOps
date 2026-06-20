@@ -378,9 +378,11 @@ export function HomeDashboard({
             ))}
           </div>
           {visibleAgenda.length === 0 && !agendaError ? (
-            <p className="shopping-empty">
-              Nothing scheduled for today or tomorrow.
-            </p>
+            <div className="empty-state-card">
+              <strong>Create your first event</strong>
+              <p>Events help the household remember important dates and activities.</p>
+              <button type="button" onClick={() => onNavigate("agenda")}>Open Agenda</button>
+            </div>
           ) : null}
           {hiddenAgendaCount > 0 ? (
             <button
@@ -416,7 +418,11 @@ export function HomeDashboard({
             ))}
           </ul>
           {visibleListItems.length === 0 && !listsError ? (
-            <p className="shopping-empty">No active list items.</p>
+            <div className="empty-state-card">
+              <strong>Add your first shopping item</strong>
+              <p>Lists help remember shopping, packing, and household items.</p>
+              <button type="button" onClick={() => onNavigate("lists")}>Open Lists</button>
+            </div>
           ) : null}
           {hiddenListCount > 0 ? (
             <button
@@ -445,11 +451,21 @@ export function HomeDashboard({
             action="View Motivation"
             meta={motivationFamilyGoal ? `${motivationFamilyGoal.currentProgress}/${motivationFamilyGoal.targetCount} ${motivationFamilyGoal.unitLabel}` : motivationStatus === "error" ? "Unavailable" : "Loading"}
           />
-          <p className="motivation-tile-title">{motivationFamilyGoal?.title ?? "No active family goal yet"}</p>
-          <div className="progress-bar" aria-label={motivationFamilyGoal ? `Family goal progress ${motivationFamilyGoal.currentProgress} of ${motivationFamilyGoal.targetCount}` : "Family goal progress unavailable"}>
-            <span style={{ width: `${motivationProgress}%` }} />
-          </div>
-          <p className="home-context-note">A shared encouragement goal for the household.</p>
+          {motivationFamilyGoal ? (
+            <>
+              <p className="motivation-tile-title">{motivationFamilyGoal.title}</p>
+              <div className="progress-bar" aria-label={`Family goal progress ${motivationFamilyGoal.currentProgress} of ${motivationFamilyGoal.targetCount}`}>
+                <span style={{ width: `${motivationProgress}%` }} />
+              </div>
+              <p className="home-context-note">A shared encouragement goal for the household.</p>
+            </>
+          ) : (
+            <div className="empty-state-card">
+              <strong>Create your first family goal</strong>
+              <p>Family goals help everyone work toward something together.</p>
+              <button type="button" onClick={() => onNavigate("motivation")}>Open Motivation</button>
+            </div>
+          )}
         </article>
 
         <article
@@ -495,7 +511,11 @@ export function HomeDashboard({
             })}
           </div>
           {visibleTasks.length === 0 && !tasksError ? (
-            <p className="shopping-empty">No overdue or upcoming tasks.</p>
+            <div className="empty-state-card">
+              <strong>Create your first task</strong>
+              <p>Tasks help organize household responsibilities.</p>
+              <button type="button" onClick={() => onNavigate("tasks")}>Open Tasks</button>
+            </div>
           ) : null}
           {hiddenTaskCount > 0 ? (
             <button

@@ -244,3 +244,6 @@ Motivation progress now derives from task completion while Motivation remains a 
 - Adult and child setup uses the existing Family Member creation path; children require date of birth.
 - Completion persists the household onboarding flag and returns users to Home; configured households with active Family Members do not repeatedly see the wizard.
 - Existing Family Member Management, Home, Tasks, Lists, Agenda, Motivation, and navigation remain available after onboarding.
+
+## Completed Slice 2.28 — Empty State UX Foundation
+Empty State UX Foundation completes the remaining P0 onboarding gap by making empty Home, Tasks, Lists, Motivation, and Agenda surfaces self-guiding. New households now see friendly first actions for creating a first task, adding a first shopping/list item, creating a first event, and creating a first family goal, with navigation to the owning domain page or existing creation entry. Empty states stay lightweight and do not introduce tutorials, goal editing, rewards, reward economy, gems, shop, notifications, gamification, Google Calendar, or new integrations.

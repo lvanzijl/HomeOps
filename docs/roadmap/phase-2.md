@@ -105,3 +105,9 @@ Family Member Management Foundation makes persisted household Family Members man
 
 ## Completed Slice 2.27 — First Run Wizard
 First Run Wizard completes the second P0 onboarding slice by adding household first-run detection, a guided initial household setup flow, household review, and persisted onboarding completion. The wizard appears when the seeded household has no active Family Members or has not completed onboarding, then guides users through Welcome, Add Adults, Add Children, Review Household, and Finish. Adults and children use the existing Family Member creation capability, children require date of birth, and all household members remain editable later through existing Family Member Management. Successful completion stores the household onboarding flag and opens Home so configured households do not repeatedly see onboarding. Empty State UX, Goals, Rewards, Motivation editing, Gamification, permissions, authentication, roles, notifications, and Google Calendar remain out of scope.
+
+### Completed Slice 2.28 — Empty State UX Foundation
+- Added guided empty states across Home, Tasks, Lists, Motivation, and Agenda.
+- Empty pages now explain the value of the domain and expose a clear first action.
+- This closes the P0 onboarding completion gap identified by user research after First Run Wizard.
+- Kept empty states lightweight and out of tutorial, rewards, Google Calendar, notification, and gamification scope.
