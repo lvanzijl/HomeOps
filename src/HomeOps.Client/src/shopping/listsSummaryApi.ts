@@ -1,6 +1,6 @@
 import { HomeOpsApiClient, ListDto } from '../api/homeOpsApiClient';
 
-export interface ListSummaryItem { id: string; text: string; }
+export interface ListSummaryItem { id: string; text: string; preferredStore?: string | null; }
 export interface ListSummary { id: string; name: string; activeItems: ListSummaryItem[]; }
 
 export function createListsSummaryApiClient(): HomeOpsApiClient {
@@ -24,7 +24,7 @@ function toListSummary(list: ListDto): ListSummary {
     name: list.name ?? 'Untitled list',
     activeItems: (list.items ?? [])
       .filter((item) => item.isCompleted === false)
-      .map((item) => ({ id: requireValue(item.id, 'list item id'), text: item.text ?? 'Untitled item' })),
+      .map((item) => ({ id: requireValue(item.id, 'list item id'), text: item.text ?? 'Untitled item', preferredStore: item.preferredStore ?? null })),
   };
 }
 

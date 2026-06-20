@@ -289,3 +289,12 @@ Family Goal Creation closes the final functional P0 blocker for Motivation. Hous
 - Applying a template creates new normal tasks for non-recurring items and recurring task series plus generated occurrences for recurring items.
 - Seeded starter templates include Morning Routine, Bedtime Routine, Homework Routine, Pet Care, and Kitchen Reset; households can edit or archive them later.
 - Goal Templates, Reward Economy, gems, shop, notifications, sharing, marketplace, import/export, and AI-generated templates remain deferred.
+
+
+### Shopping Intelligence Foundation — Completed 2026-06-20
+- Shopping items now support optional preferred-store metadata while preserving existing list items and item-name-only capture.
+- Store learning is deterministic: assigning a store to an item records a household preference by normalized item name, and later additions inherit that preferred store automatically.
+- Users can override the store later per item, which updates the learned preference for future matching additions.
+- Shopping views group items by preferred store when present and keep uncategorized items visible.
+- Shopping suggestions and Home list summaries may show store context for recognition, without requiring store selection during capture.
+- No mandatory store selection, AI classification, OCR, barcode scanning, notifications, shopping automation, or Reward Economy behavior was introduced.

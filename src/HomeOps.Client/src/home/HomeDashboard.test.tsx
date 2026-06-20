@@ -85,7 +85,7 @@ describe("HomeDashboard", () => {
         id: "shopping",
         name: "Shopping",
         activeItems: [
-          { id: "milk", text: "Milk" },
+          { id: "milk", text: "Milk", preferredStore: "Supermarket" },
           { id: "bread", text: "Bread" },
           { id: "apples", text: "Apples" },
         ],
@@ -204,7 +204,7 @@ describe("HomeDashboard", () => {
     expect(screen.getByText("Alex")).not.toBeNull();
     expect(await screen.findByText("Event 1")).not.toBeNull();
     expect(screen.getAllByText("Tomorrow").length).toBeGreaterThan(0);
-    expect(screen.getByText("Milk")).not.toBeNull();
+    expect(screen.getByText("Milk (Supermarket)")).not.toBeNull();
     expect(screen.getByText("Vacation Packing")).not.toBeNull();
     expect(screen.getByText("+2 more")).not.toBeNull();
     expect(screen.getAllByText("+1 more")).toHaveLength(2);

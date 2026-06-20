@@ -1,4 +1,4 @@
-import { AddListItemRequest, CreateListRequest, HomeOpsApiClient, ListDto, ListItemDto } from '../api/homeOpsApiClient';
+import { AddListItemRequest, CreateListRequest, HomeOpsApiClient, ListDto, ListItemDto, UpdateListItemStoreRequest } from '../api/homeOpsApiClient';
 import type { ShoppingListItem, ShoppingListState } from './shoppingListModel';
 
 const shoppingListName = 'Shopping';
@@ -39,6 +39,10 @@ export async function toggleShoppingListItem(client: HomeOpsApiClient, listId: s
   return toShoppingListItem(await client.toggleListItemCompletion(listId, itemId));
 }
 
+export async function updateShoppingListItemStore(client: HomeOpsApiClient, listId: string, itemId: string, preferredStore: string | null): Promise<ShoppingListItem> {
+  return toShoppingListItem(await client.updateListItemStore(listId, itemId, new UpdateListItemStoreRequest({ preferredStore: preferredStore ?? undefined })));
+}
+
 export async function removeShoppingListItem(client: HomeOpsApiClient, listId: string, itemId: string): Promise<void> {
   await client.removeListItem(listId, itemId);
 }
@@ -63,5 +67,6 @@ function toShoppingListItem(item: ListItemDto): ShoppingListItem {
     id: item.id,
     label: item.text,
     completed: item.isCompleted,
+    preferredStore: item.preferredStore ?? null,
   };
 }

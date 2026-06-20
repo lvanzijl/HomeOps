@@ -20,7 +20,7 @@ describe('lists summary API mapping', () => {
     };
 
     await expect(loadListSummaries(client as never)).resolves.toEqual([
-      { id: 'shopping-list-id', name: 'Shopping', activeItems: [{ id: 'milk', text: 'Milk' }] },
+      { id: 'shopping-list-id', name: 'Shopping', activeItems: [{ id: 'milk', text: 'Milk', preferredStore: null }] },
     ]);
     expect(client.getListById).toHaveBeenCalledTimes(1);
     expect(client.getListById).toHaveBeenCalledWith('shopping-list-id');

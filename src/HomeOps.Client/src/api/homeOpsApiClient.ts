@@ -656,6 +656,54 @@ export class HomeOpsApiClient {
         return Promise.resolve<ListItemDto>(null as any);
     }
 
+    updateListItemStore(listId: string, itemId: string, request: UpdateListItemStoreRequest): Promise<ListItemDto> {
+        let url_ = this.baseUrl + "/api/lists/{listId}/items/{itemId}/store";
+        if (listId === undefined || listId === null)
+            throw new globalThis.Error("The parameter 'listId' must be defined.");
+        url_ = url_.replace("{listId}", encodeURIComponent("" + listId));
+        if (itemId === undefined || itemId === null)
+            throw new globalThis.Error("The parameter 'itemId' must be defined.");
+        url_ = url_.replace("{itemId}", encodeURIComponent("" + itemId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateListItemStore(_response);
+        });
+    }
+
+    protected processUpdateListItemStore(response: Response): Promise<ListItemDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ListItemDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ListItemDto>(null as any);
+    }
+
     toggleListItemCompletion(listId: string, itemId: string): Promise<ListItemDto> {
         let url_ = this.baseUrl + "/api/lists/{listId}/items/{itemId}/toggle";
         if (listId === undefined || listId === null)
@@ -2803,6 +2851,7 @@ export class ListItemDto implements IListItemDto {
     listId?: string;
     text?: string;
     isCompleted?: boolean;
+    preferredStore?: string | undefined;
     createdUtc?: Date;
     updatedUtc?: Date;
 
@@ -2821,6 +2870,7 @@ export class ListItemDto implements IListItemDto {
             this.listId = _data["listId"];
             this.text = _data["text"];
             this.isCompleted = _data["isCompleted"];
+            this.preferredStore = _data["preferredStore"];
             this.createdUtc = _data["createdUtc"] ? new Date(_data["createdUtc"].toString()) : undefined as any;
             this.updatedUtc = _data["updatedUtc"] ? new Date(_data["updatedUtc"].toString()) : undefined as any;
         }
@@ -2839,6 +2889,7 @@ export class ListItemDto implements IListItemDto {
         data["listId"] = this.listId;
         data["text"] = this.text;
         data["isCompleted"] = this.isCompleted;
+        data["preferredStore"] = this.preferredStore;
         data["createdUtc"] = this.createdUtc ? this.createdUtc.toISOString() : undefined as any;
         data["updatedUtc"] = this.updatedUtc ? this.updatedUtc.toISOString() : undefined as any;
         return data;
@@ -2850,6 +2901,7 @@ export interface IListItemDto {
     listId?: string;
     text?: string;
     isCompleted?: boolean;
+    preferredStore?: string | undefined;
     createdUtc?: Date;
     updatedUtc?: Date;
 }
@@ -2924,6 +2976,42 @@ export class AddListItemRequest implements IAddListItemRequest {
 
 export interface IAddListItemRequest {
     text?: string;
+}
+
+export class UpdateListItemStoreRequest implements IUpdateListItemStoreRequest {
+    preferredStore?: string | undefined;
+
+    constructor(data?: IUpdateListItemStoreRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.preferredStore = _data["preferredStore"];
+        }
+    }
+
+    static fromJS(data: any): UpdateListItemStoreRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpdateListItemStoreRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["preferredStore"] = this.preferredStore;
+        return data;
+    }
+}
+
+export interface IUpdateListItemStoreRequest {
+    preferredStore?: string | undefined;
 }
 
 export class WorkspaceLayoutDto implements IWorkspaceLayoutDto {
