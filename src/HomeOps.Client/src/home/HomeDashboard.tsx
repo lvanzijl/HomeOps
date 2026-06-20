@@ -5,11 +5,12 @@ import { demoReadOnlyEvents, demoReadOnlyEventSources } from '../demo/demoAgenda
 import type { EventSource, NormalizedEvent } from '../events/eventSourceModel';
 import { loadListSummaries, type ListSummary } from '../shopping/listsSummaryApi';
 import { FamilyAvatar } from './FamilyAvatar';
-import { FamilyAvatarEditor } from './FamilyAvatarEditor';
-import { familyMembers } from './familyMembers';
+import type { FamilyMember } from './familyMembers';
 
 interface HomeDashboardProps {
+  members: readonly FamilyMember[];
   onNavigate: (destination: 'agenda' | 'lists') => void;
+  onSelectFamilyMember: (memberId: string) => void;
 }
 
 type AgendaBucket = 'Today' | 'Tomorrow' | 'Later / Next';
@@ -20,15 +21,13 @@ const visibleListLimit = 4;
 
 const agendaBucketOrder: readonly AgendaBucket[] = ['Today', 'Tomorrow', 'Later / Next'];
 
-export function HomeDashboard({ onNavigate }: HomeDashboardProps) {
+export function HomeDashboard({ members, onNavigate, onSelectFamilyMember }: HomeDashboardProps) {
   const [now, setNow] = useState(() => new Date());
   const [events, setEvents] = useState<NormalizedEvent[]>([]);
   const [sources, setSources] = useState<EventSource[]>([...demoReadOnlyEventSources]);
   const [lists, setLists] = useState<ListSummary[]>([]);
   const [agendaError, setAgendaError] = useState<string | null>(null);
   const [listsError, setListsError] = useState<string | null>(null);
-  const [members, setMembers] = useState(() => [...familyMembers]);
-  const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
 
   useEffect(() => {
     const timer = window.setInterval(() => setNow(new Date()), 30_000);
@@ -67,7 +66,6 @@ export function HomeDashboard({ onNavigate }: HomeDashboardProps) {
   const visibleListItems = activeListItems.slice(0, visibleListLimit);
   const hiddenListCount = Math.max(0, activeListItems.length - visibleListItems.length);
   const primaryListName = getPrimaryListName(lists);
-  const editingMember = members.find((member) => member.id === editingMemberId) ?? null;
 
   return (
     <section className="home-dashboard" aria-label="Home dashboard">
@@ -80,7 +78,7 @@ export function HomeDashboard({ onNavigate }: HomeDashboardProps) {
         </div>
         <section className="family-strip" aria-label="Family Members">
           {members.map((member) => (
-            <button className="family-chip" key={member.id} type="button" style={{ '--member-color': member.displayColor } as CSSProperties} onClick={() => setEditingMemberId(member.id)} aria-label={`Edit ${member.name} household avatar`}>
+            <button className="family-chip" key={member.id} type="button" style={{ '--member-color': member.displayColor } as CSSProperties} onClick={() => onSelectFamilyMember(member.id)} aria-label={`Open ${member.name} family member page`}>
               <FamilyAvatar member={member} />
               <strong>{member.name}</strong>
             </button>
@@ -131,7 +129,6 @@ export function HomeDashboard({ onNavigate }: HomeDashboardProps) {
           <p className="home-context-note">Shared for {members.length} household members.</p>
         </article>
       </div>
-      {editingMember ? <FamilyAvatarEditor member={editingMember} onChange={(updated) => setMembers((current) => current.map((member) => member.id === updated.id ? updated : member))} onClose={() => setEditingMemberId(null)} /> : null}
     </section>
   );
 }

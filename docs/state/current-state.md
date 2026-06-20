@@ -169,6 +169,13 @@ Proceed with recurrence/occurrence editing UX or Real Google Calendar Read-Only 
 ## Phase 2 Family Member Avatar MVP
 - Home now renders Family Members with frontend-only friendly configurable avatars instead of initials-only color chips.
 - The local avatar model includes family member id, name, display color, initials, age group, presentation, skin tone, hair color, hair style, glasses, and shirt color.
-- Clicking a Family Member avatar opens a compact household avatar editor with live preview and in-memory changes only.
+- Avatar editing uses the compact household avatar editor with live preview and in-memory changes only; current navigation opens the dedicated Family Member page first.
 - Family Members remain household presentation entities only; they are not users, authentication identities, profiles, permissions, ownership records, task owners, or point accounts.
 - Avatar badges for tasks, points, warnings, or today involvement remain future scope and were not implemented.
+
+## Phase 2 Family Member Page and Avatar Relocation
+- Family Members now have a dedicated frontend page reached by selecting a Family Member from Home.
+- The Family Member page shows the member avatar, name, display color, current avatar configuration, and explicitly non-functional future placeholders for Tasks and Points.
+- Avatar editing has moved off Home and is owned by the Family Member page; the existing live preview and avatar controls remain frontend-only and in-memory.
+- Home remains a summary-first dashboard: the Family Member strip is navigational/contextual only and no longer opens avatar editing directly.
+- Family Members remain household entities only; no users, authentication identities, profiles, permissions, ownership, tasks, gamification, points, badges, notifications, or persistence were introduced.
