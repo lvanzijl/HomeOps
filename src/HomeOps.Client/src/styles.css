@@ -571,6 +571,7 @@ button {
 
 .family-member-detail-grid {
   display: grid;
+  opacity: .86;
   gap: 1rem;
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -1077,6 +1078,9 @@ button {
 .child-progress-card h3, .child-goal-card h4 { color: #7c2d12; margin: .15rem 0 .55rem; }
 .child-progress-card p { color: #64748b; }
 .family-goal-participation { display: grid; gap: .55rem; }
+.family-celebration-card { align-items: center; background: linear-gradient(135deg, #fff7ed, #fef3c7); border: 1px solid rgba(251, 146, 60, 0.24); border-radius: 1rem; display: grid; gap: .7rem; grid-template-columns: auto 1fr; margin-top: .35rem; padding: .8rem; }
+.family-celebration-card > span { font-size: 2rem; }
+.family-celebration-card h4, .family-celebration-card p { margin: 0; }
 .family-goal-participation strong { color: #9a3412; font-size: 1.15rem; }
 .child-goal-list { display: grid; gap: .75rem; }
 .child-goal-card { background: color-mix(in srgb, var(--member-color, #facc15) 12%, #ffffff); border: 1px solid color-mix(in srgb, var(--member-color, #facc15) 40%, #ffffff); border-radius: 1rem; padding: .85rem; }

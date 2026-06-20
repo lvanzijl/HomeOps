@@ -1,5 +1,6 @@
 import { HelpfulMomentsSection } from '../HelpfulMoments';
 import { type CSSProperties, type FormEvent, useEffect, useState } from 'react';
+import { FamilyCelebrationStatus } from '../api/homeOpsApiClient';
 import { clampProgress, goalsForMembers, loadMotivationSnapshot, type MotivationFamilyGoal, type MotivationIndividualGoal, type MotivationSnapshot } from '../motivationData';
 import { FamilyAvatar } from './FamilyAvatar';
 import { FamilyAvatarEditor } from './FamilyAvatarEditor';
@@ -61,7 +62,7 @@ export function FamilyMemberPage({ member, onBack, onChange, onRemove }: FamilyM
       <header className="family-member-hero child-progress-hero" style={{ '--member-color': member.displayColor } as CSSProperties}>
         <div className="family-member-hero-avatar"><FamilyAvatar member={member} size="large" /></div>
         <div>
-          <p className="eyebrow">{member.memberKind === 'child' ? 'Progress page' : 'Household member'}</p>
+          <p className="eyebrow">{member.memberKind === 'child' ? 'Child workspace' : 'Household member'}</p>
           <h2>{member.name}</h2>
           <p>{ageContext(member, age)}</p>
           <button type="button" onClick={() => setIsEditingAvatar(true)}>Edit avatar</button>
@@ -70,7 +71,7 @@ export function FamilyMemberPage({ member, onBack, onChange, onRemove }: FamilyM
 
       {member.memberKind === 'child' ? (
         <section className={`child-progress-view ${ageBand}`} aria-label={`${member.name} progress view`}>
-          <FamilyGoalParticipation familyGoal={motivationSnapshot.familyGoal} status={motivationStatus} />
+          <FamilyGoalParticipation familyGoal={motivationSnapshot.familyGoal} status={motivationStatus} ageBand={ageBand} />
           <IndividualGoalProgress goals={memberGoals} ageBand={ageBand} member={member} />
           <HelpfulMomentsSection members={[member]} familyMemberId={member.id} title={`${member.name}'s Helpful Moments`} />
         </section>
@@ -111,7 +112,7 @@ export function FamilyMemberPage({ member, onBack, onChange, onRemove }: FamilyM
   );
 }
 
-function FamilyGoalParticipation({ familyGoal, status }: { familyGoal?: MotivationFamilyGoal; status: 'loading' | 'ready' | 'error' }) {
+function FamilyGoalParticipation({ familyGoal, status, ageBand }: { familyGoal?: MotivationFamilyGoal; status: 'loading' | 'ready' | 'error'; ageBand: 'early-child' | 'school-age' }) {
   if (status === 'loading') return <article className="child-progress-card"><p className="eyebrow">Family goal</p><h3>Finding today’s team goal…</h3></article>;
   if (!familyGoal) return <article className="child-progress-card"><p className="eyebrow">Family goal</p><h3>{status === 'error' ? 'Family goal is resting right now' : 'No team goal yet'}</h3><p>When your family starts a shared goal, this page will show how everyone is helping together.</p></article>;
   const percent = clampProgress(familyGoal.currentProgress, familyGoal.targetCount);
@@ -123,7 +124,29 @@ function FamilyGoalParticipation({ familyGoal, status }: { familyGoal?: Motivati
       <p>{remaining > 0 ? `Every kind step helps. ${remaining} more ${familyGoal.unitLabel} and the family reaches it together.` : 'You did it together — time to celebrate the teamwork!'}</p>
       <div className="progress-bar" aria-label={`${familyGoal.currentProgress} of ${familyGoal.targetCount} ${familyGoal.unitLabel}`}><span style={{ width: `${percent}%` }} /></div>
       <strong>{familyGoal.currentProgress}/{familyGoal.targetCount} {familyGoal.unitLabel}</strong>
+      {familyGoal.celebration ? <FamilyCelebrationCard familyGoal={familyGoal} ageBand={ageBand} /> : null}
     </article>
+  );
+}
+
+function FamilyCelebrationCard({ familyGoal, ageBand }: { familyGoal: MotivationFamilyGoal; ageBand: 'early-child' | 'school-age' }) {
+  const celebration = familyGoal.celebration;
+  if (!celebration) return null;
+  const complete = familyGoal.currentProgress >= familyGoal.targetCount;
+  const statusText = celebration.status === FamilyCelebrationStatus.Celebrated
+    ? 'Celebrated together'
+    : celebration.status === FamilyCelebrationStatus.ReadyToCelebrate || complete
+      ? 'Ready to celebrate'
+      : 'When we finish';
+  return (
+    <aside className="family-celebration-card" aria-label="Family celebration">
+      <span aria-hidden="true">{ageBand === 'early-child' ? '🎉' : '✨'}</span>
+      <div>
+        <p className="eyebrow">{statusText}</p>
+        <h4>{celebration.title}</h4>
+        {ageBand === 'school-age' && celebration.description ? <p>{celebration.description}</p> : null}
+      </div>
+    </aside>
   );
 }
 
