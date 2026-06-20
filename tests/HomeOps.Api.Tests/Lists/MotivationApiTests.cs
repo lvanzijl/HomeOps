@@ -144,6 +144,34 @@ public sealed class MotivationApiTests(HomeOpsWebApplicationFactory factory) : I
         Assert.Equal(after.FamilyGoal.TargetCount, after.FamilyGoal.CurrentProgress);
     }
 
+    [Fact]
+    public async Task GoalCompletionMovesFamilyCelebrationToReadyAndParentCanMarkCelebrated()
+    {
+        await using var isolatedFactory = new HomeOpsWebApplicationFactory();
+        var client = isolatedFactory.CreateClient();
+        using (var scope = isolatedFactory.Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<HomeOpsDbContext>();
+            var familyGoal = dbContext.MotivationFamilyGoals.Single(goal => goal.HouseholdId == SeedHousehold.Id && goal.IsActive);
+            familyGoal.CurrentProgress = familyGoal.TargetCount - 1;
+            familyGoal.CelebrationTitle = "Movie night";
+            familyGoal.CelebrationStatus = FamilyCelebrationStatus.Planned;
+            await dbContext.SaveChangesAsync();
+        }
+
+        var task = await CreateTask(client, "Final helper step", TaskOwnershipKind.SharedHousehold, null);
+        await client.PostAsync($"/api/tasks/{task.Id}/complete", null);
+
+        var ready = await client.GetFromJsonAsync<MotivationSnapshotDto>("/api/motivation");
+        Assert.Equal(FamilyCelebrationStatus.ReadyToCelebrate, ready?.FamilyGoal?.Celebration?.Status);
+
+        var response = await client.PostAsync($"/api/motivation/family-goals/{ready!.FamilyGoal!.Id}/celebration/celebrated", null);
+
+        response.EnsureSuccessStatusCode();
+        var celebrated = await response.Content.ReadFromJsonAsync<MotivationFamilyGoalDto>();
+        Assert.Equal(FamilyCelebrationStatus.Celebrated, celebrated?.Celebration?.Status);
+    }
+
     private static async Task<HouseholdTaskDto> CreateTask(HttpClient client, string title, TaskOwnershipKind ownershipKind, string? familyMemberId)
     {
         var response = await client.PostAsJsonAsync("/api/tasks", new CreateHouseholdTaskRequest(title, null, ownershipKind, familyMemberId));
@@ -170,13 +198,18 @@ public sealed class MotivationApiTests(HomeOpsWebApplicationFactory factory) : I
             "Complete 10 helpful household tasks",
             10,
             "helpful tasks",
-            "Movie night together"));
+            "Movie night together",
+            "Pick a movie as a family."));
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         var created = await response.Content.ReadFromJsonAsync<MotivationFamilyGoalDto>();
         Assert.NotNull(created);
         Assert.Equal("Complete 10 helpful household tasks", created.Title);
         Assert.Equal(0, created.CurrentProgress);
+        Assert.NotNull(created.Celebration);
+        Assert.Equal("Movie night together", created.Celebration.Title);
+        Assert.Equal("Pick a movie as a family.", created.Celebration.Description);
+        Assert.Equal(FamilyCelebrationStatus.Planned, created.Celebration.Status);
         var snapshot = await client.GetFromJsonAsync<MotivationSnapshotDto>("/api/motivation");
         Assert.Equal(created.Id, snapshot?.FamilyGoal?.Id);
     }
@@ -193,6 +226,7 @@ public sealed class MotivationApiTests(HomeOpsWebApplicationFactory factory) : I
             "Complete 5 helpful household tasks",
             5,
             "helpful tasks",
+            null,
             null));
 
         response.EnsureSuccessStatusCode();
@@ -201,7 +235,7 @@ public sealed class MotivationApiTests(HomeOpsWebApplicationFactory factory) : I
         Assert.Equal("Complete 5 helpful household tasks", updated.Title);
         Assert.Equal(5, updated.TargetCount);
         Assert.Equal(5, updated.CurrentProgress);
-        Assert.Null(updated.RewardLabel);
+        Assert.Null(updated.Celebration);
     }
 
     [Fact]
@@ -215,7 +249,11 @@ public sealed class MotivationApiTests(HomeOpsWebApplicationFactory factory) : I
             title = "Finish weekend reset together",
             targetCount = 4,
             unitLabel = "helpful tasks",
-            rewardLabel = "Pancake breakfast",
+            celebrationTitle = "Pancake breakfast",
+            celebrationDescription = "Cook together on Sunday",
+            gems = 10,
+            tokens = 3,
+            coins = 4,
             points = 50,
             shop = "Prize shelf",
             negativePoints = true
@@ -224,6 +262,8 @@ public sealed class MotivationApiTests(HomeOpsWebApplicationFactory factory) : I
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         var created = await response.Content.ReadFromJsonAsync<MotivationFamilyGoalDto>();
         Assert.NotNull(created);
-        Assert.Equal("Pancake breakfast", created.RewardLabel);
+        Assert.NotNull(created.Celebration);
+        Assert.Equal("Pancake breakfast", created.Celebration.Title);
+        Assert.Equal("Cook together on Sunday", created.Celebration.Description);
     }
 }

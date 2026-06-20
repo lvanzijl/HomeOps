@@ -125,3 +125,10 @@ Family Goal Creation and Editing removes the final functional P0 blocker for Mot
 - Added persisted, household-owned Helpful Moments for parent-entered recognition of kindness, initiative, teamwork, responsibility, and routines.
 - Added lightweight creation and recent-feed display on Motivation, plus member-specific recognition on Family Member pages.
 - Kept Helpful Moments separate from Tasks and Reward Economy: no points, gems, tokens, shop, leaderboard, negative points, or automatic goal progress linkage were added.
+
+### Family Goal Celebration Foundation — Completed 2026-06-20
+- Replaced the loose family-goal reward label with a structured Family Celebration attached to family goals.
+- Added `Planned`, `ReadyToCelebrate`, and `Celebrated` celebration states with lightweight parent confirmation after goal completion.
+- Motivation now communicates what the family is working toward and what happens when the goal succeeds while keeping progress and encouragement primary.
+- Home Motivation tile includes compact celebration context only when it helps summarize the active family goal.
+- Reward Economy remains deferred: no gems, tokens, coins, shops, purchases, avatar unlocks, badges, leaderboards, notifications, individual rewards, or goal templates were added.

@@ -28,6 +28,7 @@ import { loadTasks } from "../tasks/tasksApi";
 import { groupTasksByUrgency } from "../tasks/taskGrouping";
 import type { HouseholdTask } from "../tasks/tasksModel";
 import { FamilyAvatar } from "./FamilyAvatar";
+import { FamilyCelebrationStatus } from "../api/homeOpsApiClient";
 import { clampProgress, loadMotivationSnapshot, type MotivationFamilyGoal } from "../motivationData";
 import type { FamilyMember } from "./familyMembers";
 
@@ -457,7 +458,7 @@ export function HomeDashboard({
               <div className="progress-bar" aria-label={`Family goal progress ${motivationFamilyGoal.currentProgress} of ${motivationFamilyGoal.targetCount}`}>
                 <span style={{ width: `${motivationProgress}%` }} />
               </div>
-              <p className="home-context-note">A shared encouragement goal for the household.</p>
+              {motivationFamilyGoal.celebration ? <p className="home-context-note">{motivationFamilyGoal.celebration.status === FamilyCelebrationStatus.ReadyToCelebrate ? "Ready to celebrate" : motivationFamilyGoal.celebration.status === FamilyCelebrationStatus.Celebrated ? "Celebrated" : "When we finish"}: {motivationFamilyGoal.celebration.title}</p> : <p className="home-context-note">A shared encouragement goal for the household.</p>}
             </>
           ) : (
             <div className="empty-state-card">

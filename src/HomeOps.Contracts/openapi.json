@@ -146,6 +146,48 @@
         }
       }
     },
+    "/api/motivation/family-goals/{id}/celebration/celebrated": {
+      "post": {
+        "operationId": "MarkFamilyGoalCelebrated",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MotivationFamilyGoalDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/agenda/layer-settings": {
       "get": {
         "tags": [
@@ -1300,11 +1342,45 @@
           "unitLabel": {
             "type": "string"
           },
-          "rewardLabel": {
-            "type": "string",
-            "nullable": true
+          "celebration": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/MotivationFamilyCelebrationDto"
+              }
+            ]
           }
         }
+      },
+      "MotivationFamilyCelebrationDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "$ref": "#/components/schemas/FamilyCelebrationStatus"
+          }
+        }
+      },
+      "FamilyCelebrationStatus": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "Planned",
+          "ReadyToCelebrate",
+          "Celebrated"
+        ],
+        "enum": [
+          0,
+          1,
+          2
+        ]
       },
       "MotivationIndividualGoalDto": {
         "type": "object",
@@ -1406,7 +1482,11 @@
           "unitLabel": {
             "type": "string"
           },
-          "rewardLabel": {
+          "celebrationTitle": {
+            "type": "string",
+            "nullable": true
+          },
+          "celebrationDescription": {
             "type": "string",
             "nullable": true
           }

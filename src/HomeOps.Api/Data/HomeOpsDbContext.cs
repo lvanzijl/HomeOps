@@ -204,7 +204,9 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             entity.Property(goal => goal.TargetCount).IsRequired();
             entity.Property(goal => goal.CurrentProgress).IsRequired();
             entity.Property(goal => goal.UnitLabel).HasMaxLength(80).IsRequired();
-            entity.Property(goal => goal.RewardLabel).HasMaxLength(240);
+            entity.Property(goal => goal.CelebrationTitle).HasMaxLength(240);
+            entity.Property(goal => goal.CelebrationDescription).HasMaxLength(500);
+            entity.Property(goal => goal.CelebrationStatus).HasConversion<string>().HasMaxLength(40).IsRequired();
             entity.Property(goal => goal.IsActive).IsRequired();
             entity.HasOne(goal => goal.Household)
                 .WithMany()
@@ -341,7 +343,9 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             TargetCount = 20,
             CurrentProgress = 13,
             UnitLabel = "helpful actions",
-            RewardLabel = "Board game night together",
+            CelebrationTitle = "Board game night together",
+            CelebrationDescription = "Choose a board game and celebrate helping as a family.",
+            CelebrationStatus = FamilyCelebrationStatus.Planned,
             IsActive = true,
         });
 

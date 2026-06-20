@@ -11,6 +11,8 @@ public sealed class MotivationFamilyGoal
     public int TargetCount { get; set; }
     public int CurrentProgress { get; set; }
     public string UnitLabel { get; set; } = string.Empty;
-    public string? RewardLabel { get; set; }
+    public string? CelebrationTitle { get; set; }
+    public string? CelebrationDescription { get; set; }
+    public FamilyCelebrationStatus CelebrationStatus { get; set; } = FamilyCelebrationStatus.Planned;
     public bool IsActive { get; set; }
 }

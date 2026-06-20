@@ -10,11 +10,11 @@ public static class MotivationEndpoints
     {
         app.MapGet("/api/motivation", async (HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
         {
-            var familyGoal = await dbContext.MotivationFamilyGoals.AsNoTracking()
+            var familyGoalEntity = await dbContext.MotivationFamilyGoals.AsNoTracking()
                 .Where(goal => goal.HouseholdId == SeedHousehold.Id && goal.IsActive)
                 .OrderBy(goal => goal.Id)
-                .Select(goal => new MotivationFamilyGoalDto(goal.Id, goal.Title, goal.TargetCount, goal.CurrentProgress, goal.UnitLabel, goal.RewardLabel))
                 .FirstOrDefaultAsync(cancellationToken);
+            var familyGoal = familyGoalEntity is null ? null : ToDto(familyGoalEntity);
 
             var individualGoals = await dbContext.MotivationIndividualGoals.AsNoTracking()
                 .Where(goal => goal.HouseholdId == SeedHousehold.Id && goal.IsActive && goal.FamilyMember != null && !goal.FamilyMember.IsDeleted)
@@ -56,7 +56,9 @@ public static class MotivationEndpoints
                 TargetCount = request.TargetCount,
                 CurrentProgress = 0,
                 UnitLabel = request.UnitLabel.Trim(),
-                RewardLabel = NormalizeOptionalLabel(request.RewardLabel),
+                CelebrationTitle = NormalizeOptionalLabel(request.CelebrationTitle),
+                CelebrationDescription = NormalizeOptionalLabel(request.CelebrationDescription),
+                CelebrationStatus = FamilyCelebrationStatus.Planned,
                 IsActive = true
             };
             dbContext.MotivationFamilyGoals.Add(goal);
@@ -80,17 +82,49 @@ public static class MotivationEndpoints
             goal.TargetCount = request.TargetCount;
             goal.CurrentProgress = Math.Min(goal.CurrentProgress, goal.TargetCount);
             goal.UnitLabel = request.UnitLabel.Trim();
-            goal.RewardLabel = NormalizeOptionalLabel(request.RewardLabel);
+            goal.CelebrationTitle = NormalizeOptionalLabel(request.CelebrationTitle);
+            goal.CelebrationDescription = NormalizeOptionalLabel(request.CelebrationDescription);
+            if (goal.CelebrationTitle is null)
+            {
+                goal.CelebrationDescription = null;
+                goal.CelebrationStatus = FamilyCelebrationStatus.Planned;
+            }
+            else if (goal.CelebrationStatus != FamilyCelebrationStatus.Celebrated)
+            {
+                goal.CelebrationStatus = goal.CurrentProgress >= goal.TargetCount ? FamilyCelebrationStatus.ReadyToCelebrate : FamilyCelebrationStatus.Planned;
+            }
             await dbContext.SaveChangesAsync(cancellationToken);
 
             return Results.Ok(ToDto(goal));
         }).WithName("UpdateMotivationFamilyGoal").Produces<MotivationFamilyGoalDto>().Produces(StatusCodes.Status404NotFound).ProducesValidationProblem();
 
+        app.MapPost("/api/motivation/family-goals/{id:guid}/celebration/celebrated", async (Guid id, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        {
+            var goal = await dbContext.MotivationFamilyGoals
+                .Where(item => item.HouseholdId == SeedHousehold.Id && item.Id == id && item.IsActive)
+                .FirstOrDefaultAsync(cancellationToken);
+            if (goal is null) return Results.NotFound();
+            if (string.IsNullOrWhiteSpace(goal.CelebrationTitle) || goal.CurrentProgress < goal.TargetCount)
+            {
+                return Results.ValidationProblem(new Dictionary<string, string[]> { ["Celebration"] = ["The family celebration is not ready yet."] });
+            }
+
+            goal.CelebrationStatus = FamilyCelebrationStatus.Celebrated;
+            await dbContext.SaveChangesAsync(cancellationToken);
+            return Results.Ok(ToDto(goal));
+        }).WithName("MarkFamilyGoalCelebrated").Produces<MotivationFamilyGoalDto>().Produces(StatusCodes.Status404NotFound).ProducesValidationProblem();
+
         return app;
     }
 
     private static MotivationFamilyGoalDto ToDto(MotivationFamilyGoal goal) =>
-        new(goal.Id, goal.Title, goal.TargetCount, goal.CurrentProgress, goal.UnitLabel, goal.RewardLabel);
+        new(goal.Id, goal.Title, goal.TargetCount, goal.CurrentProgress, goal.UnitLabel, ToCelebrationDto(goal));
+
+    private static MotivationFamilyCelebrationDto? ToCelebrationDto(MotivationFamilyGoal goal)
+    {
+        var title = NormalizeOptionalLabel(goal.CelebrationTitle);
+        return title is null ? null : new MotivationFamilyCelebrationDto(title, NormalizeOptionalLabel(goal.CelebrationDescription), goal.CelebrationStatus);
+    }
 
     private static string? NormalizeOptionalLabel(string? value)
     {
@@ -107,7 +141,8 @@ public static class MotivationEndpoints
         if (request.TargetCount > 999) errors[nameof(request.TargetCount)] = ["Target count must be 999 or fewer."];
         if (string.IsNullOrWhiteSpace(request.UnitLabel)) errors[nameof(request.UnitLabel)] = ["Unit label is required."];
         if (request.UnitLabel?.Length > 80) errors[nameof(request.UnitLabel)] = ["Unit label must be 80 characters or fewer."];
-        if (request.RewardLabel?.Length > 240) errors[nameof(request.RewardLabel)] = ["Reward label must be 240 characters or fewer."];
+        if (request.CelebrationTitle?.Length > 240) errors[nameof(request.CelebrationTitle)] = ["Celebration title must be 240 characters or fewer."];
+        if (request.CelebrationDescription?.Length > 500) errors[nameof(request.CelebrationDescription)] = ["Celebration description must be 500 characters or fewer."];
         return errors.Count == 0 ? null : Results.ValidationProblem(errors);
     }
 }

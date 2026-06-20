@@ -2,7 +2,8 @@ import { useEffect, useState, type CSSProperties, type FormEvent } from 'react';
 import { FamilyAvatar } from './home/FamilyAvatar';
 import { HelpfulMomentsSection } from './HelpfulMoments';
 import type { FamilyMember } from './home/familyMembers';
-import { clampProgress, createFamilyGoal, goalsForMembers, loadMotivationSnapshot, updateFamilyGoal, type MotivationFamilyGoal, type MotivationSnapshot } from './motivationData';
+import { FamilyCelebrationStatus } from './api/homeOpsApiClient';
+import { clampProgress, createFamilyGoal, goalsForMembers, loadMotivationSnapshot, markFamilyGoalCelebrated, updateFamilyGoal, type MotivationFamilyGoal, type MotivationSnapshot } from './motivationData';
 
 interface MotivationPageProps {
   members: readonly FamilyMember[];
@@ -62,7 +63,7 @@ export function MotivationPage({ members }: MotivationPageProps) {
           <p className="eyebrow">Together we are working on</p>
           <h3>{familyGoal.title}</h3>
           <p className="motivation-copy">{Math.max(0, familyGoal.targetCount - familyGoal.currentProgress)} more {familyGoal.unitLabel} to reach this family goal.</p>
-          {familyGoal.rewardLabel ? <p className="reward-label">When we finish: {familyGoal.rewardLabel}</p> : null}
+          <FamilyCelebrationDisplay familyGoal={familyGoal} onCelebrated={handleFormSaved} />
           <button type="button" className="secondary-action" onClick={() => setFormMode('edit')}>Edit family goal</button>
         </div>
         <div className="family-progress" aria-label={`${familyGoal.currentProgress} of ${familyGoal.targetCount} ${familyGoal.unitLabel}`}>
@@ -122,18 +123,56 @@ export function MotivationPage({ members }: MotivationPageProps) {
   );
 }
 
+
+function FamilyCelebrationDisplay({ familyGoal, onCelebrated }: { familyGoal: MotivationFamilyGoal; onCelebrated: (goal: MotivationFamilyGoal) => void }) {
+  const [saving, setSaving] = useState(false);
+  const celebration = familyGoal.celebration;
+  if (!celebration) return null;
+
+  const label = celebration.status === FamilyCelebrationStatus.ReadyToCelebrate
+    ? 'Ready to celebrate'
+    : celebration.status === FamilyCelebrationStatus.Celebrated
+      ? 'Celebrated'
+      : 'When we finish';
+
+  return (
+    <div className="celebration-label">
+      <p><strong>{label}:</strong> {celebration.title}</p>
+      {celebration.description ? <span>{celebration.description}</span> : null}
+      {celebration.status === FamilyCelebrationStatus.ReadyToCelebrate ? (
+        <button
+          type="button"
+          className="secondary-action compact-action"
+          disabled={saving}
+          onClick={async () => {
+            setSaving(true);
+            try {
+              onCelebrated(await markFamilyGoalCelebrated(familyGoal.id));
+            } finally {
+              setSaving(false);
+            }
+          }}
+        >
+          {saving ? 'Saving…' : 'Mark celebrated'}
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
 interface FamilyGoalFormProps {
   familyGoal?: MotivationFamilyGoal;
   error: string | null;
   onCancel: () => void;
-  onSubmit: (values: { title: string; targetCount: number; unitLabel: string; rewardLabel?: string }) => Promise<void>;
+  onSubmit: (values: { title: string; targetCount: number; unitLabel: string; celebrationTitle?: string; celebrationDescription?: string }) => Promise<void>;
 }
 
 function FamilyGoalForm({ familyGoal, error, onCancel, onSubmit }: FamilyGoalFormProps) {
   const [title, setTitle] = useState(familyGoal?.title ?? '');
   const [targetCount, setTargetCount] = useState(String(familyGoal?.targetCount ?? 10));
   const [unitLabel, setUnitLabel] = useState(familyGoal?.unitLabel ?? 'helpful tasks');
-  const [rewardLabel, setRewardLabel] = useState(familyGoal?.rewardLabel ?? '');
+  const [celebrationTitle, setCelebrationTitle] = useState(familyGoal?.celebration?.title ?? '');
+  const [celebrationDescription, setCelebrationDescription] = useState(familyGoal?.celebration?.description ?? '');
   const [saving, setSaving] = useState(false);
 
   async function handleSubmit(event: FormEvent) {
@@ -141,7 +180,7 @@ function FamilyGoalForm({ familyGoal, error, onCancel, onSubmit }: FamilyGoalFor
     const parsedTarget = Number.parseInt(targetCount, 10);
     if (!title.trim() || !unitLabel.trim() || !Number.isFinite(parsedTarget) || parsedTarget < 1) return;
     setSaving(true);
-    await onSubmit({ title: title.trim(), targetCount: parsedTarget, unitLabel: unitLabel.trim(), rewardLabel: rewardLabel.trim() || undefined });
+    await onSubmit({ title: title.trim(), targetCount: parsedTarget, unitLabel: unitLabel.trim(), celebrationTitle: celebrationTitle.trim() || undefined, celebrationDescription: celebrationDescription.trim() || undefined });
     setSaving(false);
   }
 
@@ -155,7 +194,8 @@ function FamilyGoalForm({ familyGoal, error, onCancel, onSubmit }: FamilyGoalFor
       <label>Goal title<input value={title} maxLength={240} onChange={(event) => setTitle(event.target.value)} placeholder="Complete 20 helpful household tasks" required /></label>
       <label>Target count<input type="number" min="1" max="999" value={targetCount} onChange={(event) => setTargetCount(event.target.value)} required /></label>
       <label>Progress words<input value={unitLabel} maxLength={80} onChange={(event) => setUnitLabel(event.target.value)} placeholder="helpful tasks" required /></label>
-      <label>Family celebration, optional<input value={rewardLabel} maxLength={240} onChange={(event) => setRewardLabel(event.target.value)} placeholder="Movie night together" /></label>
+      <label>Family celebration title, optional<input value={celebrationTitle} maxLength={240} onChange={(event) => setCelebrationTitle(event.target.value)} placeholder="Movie night together" /></label>
+      <label>Celebration description, optional<input value={celebrationDescription} maxLength={500} onChange={(event) => setCelebrationDescription(event.target.value)} placeholder="Choose a movie and make popcorn together" /></label>
       {error ? <p className="form-error">{error}</p> : null}
       <div className="form-actions"><button type="submit" disabled={saving}>{saving ? 'Saving…' : 'Save family goal'}</button><button type="button" onClick={onCancel}>Cancel</button></div>
     </form>
