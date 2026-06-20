@@ -3,6 +3,7 @@ using HomeOps.Api.Data;
 using HomeOps.Api.Lists;
 using HomeOps.Api.CalendarEvents;
 using HomeOps.Api.FamilyMembers;
+using HomeOps.Api.Motivation;
 using HomeOps.Api.WidgetLayouts;
 using HomeOps.Api.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -53,6 +54,7 @@ app.MapWorkspaceLayoutEndpoints();
 app.MapEventSeriesEndpoints();
 app.MapFamilyMemberEndpoints();
 app.MapTaskEndpoints();
+app.MapMotivationEndpoints();
 
 app.Run();
 

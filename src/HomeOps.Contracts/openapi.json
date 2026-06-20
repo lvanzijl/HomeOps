@@ -36,6 +36,23 @@
         }
       }
     },
+    "/api/motivation": {
+      "get": {
+        "operationId": "GetMotivationSnapshot",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MotivationSnapshotDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/agenda/layer-settings": {
       "get": {
         "tags": [
@@ -963,6 +980,87 @@
           "hex": {
             "type": "string",
             "nullable": true
+          }
+        }
+      },
+      "MotivationSnapshotDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "familyGoal": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/MotivationFamilyGoalDto"
+              }
+            ]
+          },
+          "individualGoals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MotivationIndividualGoalDto"
+            }
+          }
+        }
+      },
+      "MotivationFamilyGoalDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "targetCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "currentProgress": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "unitLabel": {
+            "type": "string"
+          },
+          "rewardLabel": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "MotivationIndividualGoalDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "familyMemberId": {
+            "type": "string"
+          },
+          "familyMemberName": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "targetCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "currentProgress": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "unitLabel": {
+            "type": "string"
+          },
+          "visualKind": {
+            "type": "string"
           }
         }
       },

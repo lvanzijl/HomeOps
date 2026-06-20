@@ -1,16 +1,35 @@
-import type { CSSProperties } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import { FamilyAvatar } from './home/FamilyAvatar';
 import type { FamilyMember } from './home/familyMembers';
-import { clampProgress, goalsForMembers, motivationSnapshot } from './motivationData';
+import { clampProgress, goalsForMembers, loadMotivationSnapshot, type MotivationSnapshot } from './motivationData';
 
 interface MotivationPageProps {
   members: readonly FamilyMember[];
 }
 
 export function MotivationPage({ members }: MotivationPageProps) {
-  const { familyGoal } = motivationSnapshot;
-  const percent = clampProgress(familyGoal.currentProgress, familyGoal.targetCount);
-  const individualGoals = goalsForMembers(members);
+  const [snapshot, setSnapshot] = useState<MotivationSnapshot>({ individualGoals: [] });
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+
+  useEffect(() => {
+    let ignore = false;
+    setStatus('loading');
+    loadMotivationSnapshot()
+      .then((loaded) => {
+        if (!ignore) {
+          setSnapshot(loaded);
+          setStatus('ready');
+        }
+      })
+      .catch(() => {
+        if (!ignore) setStatus('error');
+      });
+    return () => { ignore = true; };
+  }, []);
+
+  const { familyGoal } = snapshot;
+  const percent = familyGoal ? clampProgress(familyGoal.currentProgress, familyGoal.targetCount) : 0;
+  const individualGoals = goalsForMembers(snapshot, members);
 
   return (
     <section className="motivation-page" aria-label="Motivation page">
@@ -21,10 +40,18 @@ export function MotivationPage({ members }: MotivationPageProps) {
       </header>
 
       <article className="family-goal-card" aria-label="Active family goal">
+        {!familyGoal ? (
+          <div>
+            <p className="eyebrow">{status === 'error' ? 'Motivation is unavailable' : 'Loading motivation'}</p>
+            <h3>No active family goal yet</h3>
+            <p className="motivation-copy">This encouragement space is ready when a family goal is available.</p>
+          </div>
+        ) : (
+        <>
         <div>
           <p className="eyebrow">Together we are working on</p>
           <h3>{familyGoal.title}</h3>
-          <p className="motivation-copy">{familyGoal.targetCount - familyGoal.currentProgress} more helpful actions to reach this family goal.</p>
+          <p className="motivation-copy">{Math.max(0, familyGoal.targetCount - familyGoal.currentProgress)} more {familyGoal.unitLabel} to reach this family goal.</p>
           {familyGoal.rewardLabel ? <p className="reward-label">When we finish: {familyGoal.rewardLabel}</p> : null}
         </div>
         <div className="family-progress" aria-label={`${familyGoal.currentProgress} of ${familyGoal.targetCount} ${familyGoal.unitLabel}`}>
@@ -32,11 +59,14 @@ export function MotivationPage({ members }: MotivationPageProps) {
           <span>{familyGoal.unitLabel}</span>
           <div className="progress-bar"><span style={{ width: `${percent}%` }} /></div>
         </div>
+        </>
+        )}
       </article>
 
       <section className="individual-goals" aria-label="Individual encouragement goals">
         <h3>Personal goals this week</h3>
         <div className="individual-goal-grid">
+          {individualGoals.length === 0 ? <p className="motivation-copy">No active personal encouragement goals yet.</p> : null}
           {individualGoals.map((goal) => {
             const member = members.find((item) => item.id === goal.familyMemberId);
             if (!member) return null;

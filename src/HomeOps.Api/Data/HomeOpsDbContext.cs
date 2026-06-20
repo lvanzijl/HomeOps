@@ -3,6 +3,7 @@ using HomeOps.Api.Households;
 using HomeOps.Api.Lists;
 using HomeOps.Api.CalendarEvents;
 using HomeOps.Api.FamilyMembers;
+using HomeOps.Api.Motivation;
 using HomeOps.Api.WidgetLayouts;
 using HomeOps.Api.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -22,6 +23,8 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
     public DbSet<WidgetPlacement> WidgetPlacements => Set<WidgetPlacement>();
     public DbSet<HouseholdTask> HouseholdTasks => Set<HouseholdTask>();
     public DbSet<FamilyMember> FamilyMembers => Set<FamilyMember>();
+    public DbSet<MotivationFamilyGoal> MotivationFamilyGoals => Set<MotivationFamilyGoal>();
+    public DbSet<MotivationIndividualGoal> MotivationIndividualGoals => Set<MotivationIndividualGoal>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -186,6 +189,46 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             entity.HasIndex(task => new { task.HouseholdId, task.IsCompleted, task.DueDate });
         });
 
+        modelBuilder.Entity<MotivationFamilyGoal>(entity =>
+        {
+            entity.ToTable("MotivationFamilyGoals");
+            entity.HasKey(goal => goal.Id);
+            entity.Property(goal => goal.Title).HasMaxLength(240).IsRequired();
+            entity.Property(goal => goal.TargetCount).IsRequired();
+            entity.Property(goal => goal.CurrentProgress).IsRequired();
+            entity.Property(goal => goal.UnitLabel).HasMaxLength(80).IsRequired();
+            entity.Property(goal => goal.RewardLabel).HasMaxLength(240);
+            entity.Property(goal => goal.IsActive).IsRequired();
+            entity.HasOne(goal => goal.Household)
+                .WithMany()
+                .HasForeignKey(goal => goal.HouseholdId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(goal => new { goal.HouseholdId, goal.IsActive });
+        });
+
+        modelBuilder.Entity<MotivationIndividualGoal>(entity =>
+        {
+            entity.ToTable("MotivationIndividualGoals");
+            entity.HasKey(goal => goal.Id);
+            entity.Property(goal => goal.FamilyMemberId).HasMaxLength(120).IsRequired();
+            entity.Property(goal => goal.Title).HasMaxLength(240).IsRequired();
+            entity.Property(goal => goal.TargetCount).IsRequired();
+            entity.Property(goal => goal.CurrentProgress).IsRequired();
+            entity.Property(goal => goal.UnitLabel).HasMaxLength(80).IsRequired();
+            entity.Property(goal => goal.VisualKind).HasMaxLength(40).IsRequired();
+            entity.Property(goal => goal.IsActive).IsRequired();
+            entity.HasOne(goal => goal.Household)
+                .WithMany()
+                .HasForeignKey(goal => goal.HouseholdId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(goal => goal.FamilyMember)
+                .WithMany()
+                .HasForeignKey(goal => goal.FamilyMemberId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(goal => new { goal.HouseholdId, goal.IsActive });
+            entity.HasIndex(goal => new { goal.HouseholdId, goal.FamilyMemberId, goal.IsActive });
+        });
+
         modelBuilder.Entity<WorkspaceLayout>(entity =>
         {
             entity.ToTable("WorkspaceLayouts");
@@ -261,6 +304,24 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             SeedFamilyMember("riley", "Riley", "#bbf7d0", "R", FamilyMemberAgeGroup.Child, FamilyMemberPresentation.Neutral, "#8d5524", "#111827", FamilyMemberHairStyle.Curly, false, "#34d399"),
             SeedFamilyMember("jordan", "Jordan", "#fde68a", "J", FamilyMemberAgeGroup.Child, FamilyMemberPresentation.Neutral, "#ffdbac", "#92400e", FamilyMemberHairStyle.Top, true, "#fbbf24"));
 
+        modelBuilder.Entity<MotivationFamilyGoal>().HasData(new MotivationFamilyGoal
+        {
+            Id = SeedMotivation.FamilyGoalId,
+            HouseholdId = SeedHousehold.Id,
+            Title = "Fill the family helper path",
+            TargetCount = 20,
+            CurrentProgress = 13,
+            UnitLabel = "helpful actions",
+            RewardLabel = "Board game night together",
+            IsActive = true,
+        });
+
+        modelBuilder.Entity<MotivationIndividualGoal>().HasData(
+            SeedIndividualMotivationGoal(SeedMotivation.AlexGoalId, "alex", "Finish morning routine", 5, 3, "checkmarks", "checkmarks"),
+            SeedIndividualMotivationGoal(SeedMotivation.SamGoalId, "sam", "Help with dinner", 3, 2, "stars", "stars"),
+            SeedIndividualMotivationGoal(SeedMotivation.RileyGoalId, "riley", "Tidy bedroom corner", 4, 2, "steps", "progress"),
+            SeedIndividualMotivationGoal(SeedMotivation.JordanGoalId, "jordan", "Notice one helpful thing", 3, 1, "stars", "stars"));
+
         modelBuilder.Entity<CalendarEvents.EventSource>().HasData(new CalendarEvents.EventSource
         {
             Id = SeedCalendarEvents.EventSourceId,
@@ -309,6 +370,19 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
         ShirtColor = shirtColor,
         CreatedUtc = SeedFamilyMembers.SeededUtc,
         UpdatedUtc = SeedFamilyMembers.SeededUtc,
+    };
+
+    private static MotivationIndividualGoal SeedIndividualMotivationGoal(Guid id, string familyMemberId, string title, int targetCount, int currentProgress, string unitLabel, string visualKind) => new()
+    {
+        Id = id,
+        HouseholdId = SeedHousehold.Id,
+        FamilyMemberId = familyMemberId,
+        Title = title,
+        TargetCount = targetCount,
+        CurrentProgress = currentProgress,
+        UnitLabel = unitLabel,
+        VisualKind = visualKind,
+        IsActive = true,
     };
 
     private static ListItem SeedItem(Guid id, Guid listId, string text) => new()
