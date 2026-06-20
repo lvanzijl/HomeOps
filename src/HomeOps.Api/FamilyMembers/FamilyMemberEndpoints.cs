@@ -6,6 +6,8 @@ namespace HomeOps.Api.FamilyMembers;
 
 public static class FamilyMemberEndpoints
 {
+    private static readonly string[] DefaultColors = ["#f8c8dc", "#c7d2fe", "#bbf7d0", "#fde68a", "#fed7aa", "#ddd6fe"];
+
     public static IEndpointRouteBuilder MapFamilyMemberEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/api/family-members").WithTags("Family Members");
@@ -13,7 +15,7 @@ public static class FamilyMemberEndpoints
         group.MapGet("/", async (HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
         {
             var members = await dbContext.FamilyMembers.AsNoTracking()
-                .Where(member => member.HouseholdId == SeedHousehold.Id)
+                .Where(member => member.HouseholdId == SeedHousehold.Id && !member.IsDeleted)
                 .OrderBy(member => member.Name)
                 .Select(member => ToDto(member))
                 .ToListAsync(cancellationToken);
@@ -27,15 +29,50 @@ public static class FamilyMemberEndpoints
             return member is null ? Results.NotFound() : Results.Ok(ToDto(member));
         }).WithName("GetFamilyMember").Produces<FamilyMemberDto>().Produces(StatusCodes.Status404NotFound);
 
+        group.MapPost("/", async (CreateFamilyMemberRequest request, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        {
+            var validation = Validate(request.Name, request.MemberKind, request.DateOfBirth);
+            if (validation is not null) return validation;
+            var now = DateTimeOffset.UtcNow;
+            var name = request.Name.Trim();
+            var initials = string.IsNullOrWhiteSpace(request.Initials) ? BuildInitials(name) : request.Initials.Trim();
+            var count = await dbContext.FamilyMembers.CountAsync(member => member.HouseholdId == SeedHousehold.Id, cancellationToken);
+            var avatar = request.Avatar ?? DefaultAvatar(request.MemberKind);
+            var member = new FamilyMember
+            {
+                Id = await BuildMemberId(dbContext, name, cancellationToken),
+                HouseholdId = SeedHousehold.Id,
+                Name = name,
+                DisplayColor = string.IsNullOrWhiteSpace(request.DisplayColor) ? DefaultColors[count % DefaultColors.Length] : request.DisplayColor.Trim(),
+                Initials = initials,
+                MemberKind = request.MemberKind,
+                DateOfBirth = request.DateOfBirth,
+                AgeGroup = request.MemberKind == FamilyMemberKind.Adult ? FamilyMemberAgeGroup.Adult : FamilyMemberAgeGroup.Child,
+                Presentation = avatar.Presentation,
+                SkinTone = avatar.SkinTone.Trim(),
+                HairColor = avatar.HairColor.Trim(),
+                HairStyle = avatar.HairStyle,
+                Glasses = avatar.Glasses,
+                ShirtColor = avatar.ShirtColor.Trim(),
+                CreatedUtc = now,
+                UpdatedUtc = now,
+            };
+            dbContext.FamilyMembers.Add(member);
+            await dbContext.SaveChangesAsync(cancellationToken);
+            return Results.Created($"/api/family-members/{member.Id}", ToDto(member));
+        }).WithName("CreateFamilyMember").Produces<FamilyMemberDto>(StatusCodes.Status201Created).Produces(StatusCodes.Status400BadRequest);
+
         group.MapPut("/{memberId}", async (string memberId, UpdateFamilyMemberRequest request, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
         {
             var member = await dbContext.FamilyMembers.FirstOrDefaultAsync(member => member.Id == memberId && member.HouseholdId == SeedHousehold.Id, cancellationToken);
             if (member is null) return Results.NotFound();
-            var name = request.Name.Trim();
+            var validation = Validate(request.Name, request.MemberKind, request.DateOfBirth);
+            if (validation is not null) return validation;
             var displayColor = request.DisplayColor.Trim();
             var initials = request.Initials.Trim();
-            if (name.Length == 0 || displayColor.Length == 0 || initials.Length == 0) return Results.BadRequest(new { error = "Name, display color, and initials are required." });
-            member.Name = name; member.DisplayColor = displayColor; member.Initials = initials;
+            if (displayColor.Length == 0 || initials.Length == 0) return Results.BadRequest(new { error = "Display color and initials are required." });
+            member.Name = request.Name.Trim(); member.DisplayColor = displayColor; member.Initials = initials;
+            member.MemberKind = request.MemberKind; member.DateOfBirth = request.DateOfBirth;
             member.AgeGroup = request.Avatar.AgeGroup; member.Presentation = request.Avatar.Presentation;
             member.SkinTone = request.Avatar.SkinTone.Trim(); member.HairColor = request.Avatar.HairColor.Trim();
             member.HairStyle = request.Avatar.HairStyle; member.Glasses = request.Avatar.Glasses; member.ShirtColor = request.Avatar.ShirtColor.Trim();
@@ -44,9 +81,44 @@ public static class FamilyMemberEndpoints
             return Results.Ok(ToDto(member));
         }).WithName("UpdateFamilyMember").Produces<FamilyMemberDto>().Produces(StatusCodes.Status400BadRequest).Produces(StatusCodes.Status404NotFound);
 
+        group.MapDelete("/{memberId}", async (string memberId, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        {
+            var member = await dbContext.FamilyMembers.FirstOrDefaultAsync(member => member.Id == memberId && member.HouseholdId == SeedHousehold.Id, cancellationToken);
+            if (member is null) return Results.NotFound();
+            if (!member.IsDeleted)
+            {
+                member.IsDeleted = true;
+                member.DeletedUtc = DateTimeOffset.UtcNow;
+                member.UpdatedUtc = member.DeletedUtc.Value;
+                await dbContext.SaveChangesAsync(cancellationToken);
+            }
+            return Results.NoContent();
+        }).WithName("DeleteFamilyMember").Produces(StatusCodes.Status204NoContent).Produces(StatusCodes.Status404NotFound);
+
         return app;
     }
 
-    private static FamilyMemberDto ToDto(FamilyMember member) => new(member.Id, member.Name, member.DisplayColor, member.Initials,
+    private static IResult? Validate(string name, FamilyMemberKind kind, DateOnly? dob)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return Results.BadRequest(new { error = "Name is required." });
+        if (kind == FamilyMemberKind.Child && dob is null) return Results.BadRequest(new { error = "Date of birth is required for children." });
+        return null;
+    }
+
+    private static async Task<string> BuildMemberId(HomeOpsDbContext dbContext, string name, CancellationToken cancellationToken)
+    {
+        var slug = new string(name.Trim().ToLowerInvariant().Select(ch => char.IsLetterOrDigit(ch) ? ch : '-').ToArray()).Trim('-');
+        if (string.IsNullOrWhiteSpace(slug)) slug = "member";
+        var candidate = slug;
+        var suffix = 2;
+        while (await dbContext.FamilyMembers.AnyAsync(member => member.Id == candidate, cancellationToken)) candidate = $"{slug}-{suffix++}";
+        return candidate;
+    }
+
+    private static string BuildInitials(string name) => string.Concat(name.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(part => char.ToUpperInvariant(part[0])))[..Math.Min(2, string.Concat(name.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(part => char.ToUpperInvariant(part[0]))).Length)];
+
+    private static FamilyMemberAvatarDto DefaultAvatar(FamilyMemberKind kind) => new(kind == FamilyMemberKind.Adult ? FamilyMemberAgeGroup.Adult : FamilyMemberAgeGroup.Child, FamilyMemberPresentation.Neutral, "#f1c27d", "#111827", FamilyMemberHairStyle.Short, false, "#60a5fa");
+
+    private static FamilyMemberDto ToDto(FamilyMember member) => new(member.Id, member.Name, member.DisplayColor, member.Initials, member.MemberKind, member.DateOfBirth,
         new FamilyMemberAvatarDto(member.AgeGroup, member.Presentation, member.SkinTone, member.HairColor, member.HairStyle, member.Glasses, member.ShirtColor));
 }

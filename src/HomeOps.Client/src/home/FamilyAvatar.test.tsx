@@ -8,6 +8,8 @@ const member: FamilyMember = {
   name: 'Taylor',
   displayColor: '#c7d2fe',
   initials: 'T',
+  memberKind: 'adult',
+  dateOfBirth: null,
   avatar: { ageGroup: 'adult', presentation: 'neutral', skinTone: '#f1c27d', hairColor: '#111827', hairStyle: 'short', glasses: false, shirtColor: '#60a5fa' },
 };
 
@@ -19,7 +21,7 @@ describe('FamilyAvatar', () => {
   });
 
   it('falls back to initials when avatar configuration is missing', () => {
-    render(<FamilyAvatar member={{ id: 'fallback', name: 'Casey', displayColor: '#fde68a', initials: 'C' }} />);
+    render(<FamilyAvatar member={{ id: 'fallback', name: 'Casey', displayColor: '#fde68a', initials: 'C', memberKind: 'adult', dateOfBirth: null }} />);
 
     expect(screen.getByLabelText('Casey avatar fallback')).not.toBeNull();
     expect(screen.getByText('C')).not.toBeNull();

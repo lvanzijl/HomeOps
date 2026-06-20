@@ -924,3 +924,12 @@ button {
 .star-row span.filled { background: color-mix(in srgb, var(--member-color, #facc15) 30%, #fff7ed); border-color: var(--member-color, #facc15); color: #92400e; }
 .motivation-summary .motivation-tile-title { color: #9a3412; font-weight: 900; margin: .4rem 0; }
 @media (max-width: 760px) { .family-goal-card, .individual-goal-grid { grid-template-columns: 1fr; } }
+
+.add-family-chip { border-style: dashed; }
+.add-family-chip span { font-size: 1.6rem; line-height: 1; }
+.family-member-form { display: grid; gap: 0.8rem; }
+.family-member-form label { display: grid; gap: 0.3rem; font-weight: 700; }
+.family-member-form input,
+.family-member-form select { border: 1px solid rgba(15, 23, 42, 0.16); border-radius: 0.75rem; padding: 0.65rem 0.75rem; }
+.family-member-actions { display: flex; flex-wrap: wrap; gap: 0.65rem; }
+.danger-button { background: #fee2e2; color: #991b1b; }

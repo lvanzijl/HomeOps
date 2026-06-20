@@ -99,3 +99,6 @@ Motivation Domain Foundation promotes the Motivation surface from frontend-only 
 - Reopening eligible tasks reverses previously applied progress, with progress bounded by target count.
 - Motivation page and Home Motivation tile continue reading from the Motivation API; no editing screens were added.
 - Helpful Moments, Reward Economy, Gems, Tokens, Shop, avatar unlocks, badges, leaderboards, negative points, task recurrence, task approval, authentication, permissions, and roles remain deferred.
+
+## Completed Slice 2.26 — Family Member Management Foundation
+Family Member Management Foundation makes persisted household Family Members manageable without developer involvement. The backend adds explicit Adult/Child member kind, nullable date of birth with child-required validation, create/update APIs, and soft delete. Home adds a lightweight add-member flow, while the Family Member page becomes the management location for name, member type, date of birth, display color, avatar editing, and confirmed removal. Deleted members disappear from normal Family Member lists and new Task assignment while existing Task and Motivation references remain preserved. First Run Wizard, Empty State UX, Goals, Rewards, Motivation editing, Gamification, permissions, authentication, roles, notifications, and Google Calendar remain out of scope.

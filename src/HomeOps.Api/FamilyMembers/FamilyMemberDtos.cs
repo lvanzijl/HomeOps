@@ -14,10 +14,22 @@ public sealed record FamilyMemberDto(
     string Name,
     string DisplayColor,
     string Initials,
+    FamilyMemberKind MemberKind,
+    DateOnly? DateOfBirth,
     FamilyMemberAvatarDto Avatar);
+
+public sealed record CreateFamilyMemberRequest(
+    string Name,
+    FamilyMemberKind MemberKind,
+    DateOnly? DateOfBirth,
+    string? DisplayColor,
+    string? Initials,
+    FamilyMemberAvatarDto? Avatar);
 
 public sealed record UpdateFamilyMemberRequest(
     string Name,
     string DisplayColor,
     string Initials,
+    FamilyMemberKind MemberKind,
+    DateOnly? DateOfBirth,
     FamilyMemberAvatarDto Avatar);

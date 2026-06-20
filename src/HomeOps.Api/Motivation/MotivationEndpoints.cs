@@ -17,7 +17,7 @@ public static class MotivationEndpoints
                 .FirstOrDefaultAsync(cancellationToken);
 
             var individualGoals = await dbContext.MotivationIndividualGoals.AsNoTracking()
-                .Where(goal => goal.HouseholdId == SeedHousehold.Id && goal.IsActive)
+                .Where(goal => goal.HouseholdId == SeedHousehold.Id && goal.IsActive && goal.FamilyMember != null && !goal.FamilyMember.IsDeleted)
                 .OrderBy(goal => goal.FamilyMemberId)
                 .Select(goal => new MotivationIndividualGoalDto(
                     goal.Id,

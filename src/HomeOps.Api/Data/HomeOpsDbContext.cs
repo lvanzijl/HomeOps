@@ -151,6 +151,10 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             entity.Property(member => member.Name).HasMaxLength(120).IsRequired();
             entity.Property(member => member.DisplayColor).HasMaxLength(32).IsRequired();
             entity.Property(member => member.Initials).HasMaxLength(8).IsRequired();
+            entity.Property(member => member.MemberKind).HasConversion<string>().HasMaxLength(16).IsRequired();
+            entity.Property(member => member.DateOfBirth).HasColumnType("date");
+            entity.Property(member => member.IsDeleted).IsRequired();
+            entity.Property(member => member.DeletedUtc);
             entity.Property(member => member.AgeGroup).HasConversion<string>().HasMaxLength(16).IsRequired();
             entity.Property(member => member.Presentation).HasConversion<string>().HasMaxLength(16).IsRequired();
             entity.Property(member => member.SkinTone).HasMaxLength(32).IsRequired();
@@ -164,7 +168,8 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
                 .WithMany()
                 .HasForeignKey(member => member.HouseholdId)
                 .OnDelete(DeleteBehavior.Restrict);
-            entity.HasIndex(member => new { member.HouseholdId, member.Name }).IsUnique();
+            entity.HasIndex(member => new { member.HouseholdId, member.Name });
+            entity.HasIndex(member => new { member.HouseholdId, member.IsDeleted, member.Name });
         });
 
         modelBuilder.Entity<HouseholdTask>(entity =>
@@ -299,10 +304,10 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             SeedItem(SeedLists.SwimwearItemId, SeedLists.VacationPackingListId, "Swimwear"));
 
         modelBuilder.Entity<FamilyMember>().HasData(
-            SeedFamilyMember("alex", "Alex", "#f8c8dc", "A", FamilyMemberAgeGroup.Adult, FamilyMemberPresentation.Feminine, "#c68642", "#3b2416", FamilyMemberHairStyle.Long, false, "#f472b6"),
-            SeedFamilyMember("sam", "Sam", "#c7d2fe", "S", FamilyMemberAgeGroup.Adult, FamilyMemberPresentation.Masculine, "#f1c27d", "#4b5563", FamilyMemberHairStyle.Short, true, "#60a5fa"),
-            SeedFamilyMember("riley", "Riley", "#bbf7d0", "R", FamilyMemberAgeGroup.Child, FamilyMemberPresentation.Neutral, "#8d5524", "#111827", FamilyMemberHairStyle.Curly, false, "#34d399"),
-            SeedFamilyMember("jordan", "Jordan", "#fde68a", "J", FamilyMemberAgeGroup.Child, FamilyMemberPresentation.Neutral, "#ffdbac", "#92400e", FamilyMemberHairStyle.Top, true, "#fbbf24"));
+            SeedFamilyMember("alex", "Alex", "#f8c8dc", "A", FamilyMemberKind.Adult, null, FamilyMemberAgeGroup.Adult, FamilyMemberPresentation.Feminine, "#c68642", "#3b2416", FamilyMemberHairStyle.Long, false, "#f472b6"),
+            SeedFamilyMember("sam", "Sam", "#c7d2fe", "S", FamilyMemberKind.Adult, null, FamilyMemberAgeGroup.Adult, FamilyMemberPresentation.Masculine, "#f1c27d", "#4b5563", FamilyMemberHairStyle.Short, true, "#60a5fa"),
+            SeedFamilyMember("riley", "Riley", "#bbf7d0", "R", FamilyMemberKind.Child, new DateOnly(2018, 4, 12), FamilyMemberAgeGroup.Child, FamilyMemberPresentation.Neutral, "#8d5524", "#111827", FamilyMemberHairStyle.Curly, false, "#34d399"),
+            SeedFamilyMember("jordan", "Jordan", "#fde68a", "J", FamilyMemberKind.Child, new DateOnly(2020, 9, 3), FamilyMemberAgeGroup.Child, FamilyMemberPresentation.Neutral, "#ffdbac", "#92400e", FamilyMemberHairStyle.Top, true, "#fbbf24"));
 
         modelBuilder.Entity<MotivationFamilyGoal>().HasData(new MotivationFamilyGoal
         {
@@ -354,13 +359,16 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             SeedPlacement(SeedWorkspaceLayouts.SettingsPlaceholderPlacementId, SeedWorkspaceLayouts.SettingsLayoutId, "settings-placeholder", 0, "medium"));
     }
 
-    private static FamilyMember SeedFamilyMember(string id, string name, string displayColor, string initials, FamilyMemberAgeGroup ageGroup, FamilyMemberPresentation presentation, string skinTone, string hairColor, FamilyMemberHairStyle hairStyle, bool glasses, string shirtColor) => new()
+    private static FamilyMember SeedFamilyMember(string id, string name, string displayColor, string initials, FamilyMemberKind memberKind, DateOnly? dateOfBirth, FamilyMemberAgeGroup ageGroup, FamilyMemberPresentation presentation, string skinTone, string hairColor, FamilyMemberHairStyle hairStyle, bool glasses, string shirtColor) => new()
     {
         Id = id,
         HouseholdId = SeedHousehold.Id,
         Name = name,
         DisplayColor = displayColor,
         Initials = initials,
+        MemberKind = memberKind,
+        DateOfBirth = dateOfBirth,
+        IsDeleted = false,
         AgeGroup = ageGroup,
         Presentation = presentation,
         SkinTone = skinTone,

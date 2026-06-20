@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { FamilyMemberPage } from '../home/FamilyMemberPage';
 import { HomeDashboard } from '../home/HomeDashboard';
 import { MotivationPage } from '../MotivationPage';
 import { familyMembers, type FamilyMember } from '../home/familyMembers';
-import { loadFamilyMembers, saveFamilyMember } from '../home/familyMembersApi';
+import { createFamilyMember, loadFamilyMembers, removeFamilyMember, saveFamilyMember } from '../home/familyMembersApi';
 import { TasksPage } from '../tasks/TasksPage';
 import { DomainPlaceholderPage } from './DomainPlaceholderPage';
 import { getDomainColorClass } from './domainColors';
@@ -21,6 +21,7 @@ export function WorkspaceShell() {
   const [activeWorkspaceId, setActiveWorkspaceId] = useState<WorkspaceId>(getInitialWorkspace().id);
   const [activeFamilyMemberId, setActiveFamilyMemberId] = useState<string | null>(null);
   const [members, setMembers] = useState<FamilyMember[]>(() => [...familyMembers]);
+  const [isAddingMember, setIsAddingMember] = useState(false);
   const [widgetInstancesByWorkspace, setWidgetInstancesByWorkspace] = useState<Partial<Record<WorkspaceId, readonly WidgetInstance[]>>>({});
 
   const activeWorkspace = useMemo(
@@ -66,6 +67,21 @@ export function WorkspaceShell() {
       setMembers((current) => current.map((member) => member.id === saved.id ? saved : member));
     }).catch(() => undefined);
   }
+
+  function addFamilyMember(member: Omit<FamilyMember, 'id'>) {
+    void createFamilyMember(member).then((created) => {
+      setMembers((current) => [...current, created].sort((a, b) => a.name.localeCompare(b.name)));
+      setActiveFamilyMemberId(created.id);
+      setIsAddingMember(false);
+    }).catch(() => undefined);
+  }
+
+  function deleteFamilyMember(member: FamilyMember) {
+    void removeFamilyMember(member.id).then(() => {
+      setMembers((current) => current.filter((item) => item.id !== member.id));
+      setActiveFamilyMemberId(null);
+    }).catch(() => undefined);
+  }
   const widgetInstances = activeWorkspace.id === 'agenda'
     ? [{ id: 'agenda-page', widgetDefinitionId: 'agenda-mvp', title: 'Agenda', settings: {} }]
     : activeWorkspace.id === 'lists'
@@ -99,9 +115,9 @@ export function WorkspaceShell() {
           </>
         )}
         {activeFamilyMember ? (
-          <FamilyMemberPage member={activeFamilyMember} onBack={() => setActiveFamilyMemberId(null)} onChange={updateFamilyMember} />
+          <FamilyMemberPage member={activeFamilyMember} onBack={() => setActiveFamilyMemberId(null)} onChange={updateFamilyMember} onRemove={deleteFamilyMember} />
         ) : activeWorkspace.id === 'home' ? (
-          <HomeDashboard members={members} onNavigate={navigateWorkspace} onSelectFamilyMember={setActiveFamilyMemberId} />
+          <HomeDashboard members={members} onNavigate={navigateWorkspace} onSelectFamilyMember={setActiveFamilyMemberId} onAddFamilyMember={() => setIsAddingMember(true)} />
         ) : activeWorkspace.id === 'tasks' ? (
           <TasksPage members={members} />
         ) : activeWorkspace.id === 'motivation' ? (
@@ -137,6 +153,25 @@ export function WorkspaceShell() {
         </div>
         )}
       </section>
+      {isAddingMember ? <AddFamilyMemberDialog onCancel={() => setIsAddingMember(false)} onCreate={addFamilyMember} /> : null}
     </section>
   );
+}
+
+
+function AddFamilyMemberDialog({ onCancel, onCreate }: { onCancel: () => void; onCreate: (member: Omit<FamilyMember, 'id'>) => void }) {
+  const [name, setName] = useState('');
+  const [memberKind, setMemberKind] = useState<FamilyMember['memberKind']>('adult');
+  const [dateOfBirth, setDateOfBirth] = useState('');
+  const [displayColor, setDisplayColor] = useState('#c7d2fe');
+  function submit(event: FormEvent) {
+    event.preventDefault();
+    if (!name.trim() || (memberKind === 'child' && !dateOfBirth)) return;
+    onCreate({ name: name.trim(), initials: buildInitials(name), memberKind, dateOfBirth: dateOfBirth || null, displayColor, avatar: { ageGroup: memberKind, presentation: 'neutral', skinTone: '#f1c27d', hairColor: '#111827', hairStyle: 'short', glasses: false, shirtColor: '#60a5fa' } });
+  }
+  return <div className="avatar-editor-backdrop" role="presentation"><section className="avatar-editor" role="dialog" aria-modal="true" aria-label="Add family member"><header><div><p className="eyebrow">Family member management</p><h3>Add Family Member</h3><p>Add a household member without creating an account or login.</p></div><button type="button" className="icon-button" onClick={onCancel} aria-label="Close add family member">×</button></header><form className="avatar-editor-grid" onSubmit={submit}><label>Name<input value={name} onChange={(event) => setName(event.target.value)} required /></label><label>Member type<select value={memberKind} onChange={(event) => setMemberKind(event.target.value as FamilyMember['memberKind'])}><option value="adult">Adult</option><option value="child">Child</option></select></label><label>Date of birth<input type="date" value={dateOfBirth} onChange={(event) => setDateOfBirth(event.target.value)} aria-required={memberKind === 'child'} /></label><label>Display color<input type="color" value={displayColor} onChange={(event) => setDisplayColor(event.target.value)} /></label><div className="family-member-actions"><button type="submit">Add member</button><button type="button" onClick={onCancel}>Cancel</button></div></form></section></div>;
+}
+
+function buildInitials(name: string) {
+  return name.trim().split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join('') || 'M';
 }
