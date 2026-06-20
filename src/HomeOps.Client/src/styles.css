@@ -928,7 +928,8 @@ button {
 .secondary-action { margin-top: .75rem; }
 .family-goal-form { display: grid; gap: .75rem; }
 .family-goal-form label { color: #475569; display: grid; font-size: .9rem; font-weight: 800; gap: .35rem; }
-.family-goal-form input { border: 1px solid #fed7aa; border-radius: .8rem; font: inherit; padding: .65rem .75rem; }
+.family-goal-form input, .family-goal-form select { border: 1px solid #fed7aa; border-radius: .8rem; font: inherit; padding: .65rem .75rem; }
+.section-heading-row { align-items: center; display: flex; flex-wrap: wrap; gap: .75rem; justify-content: space-between; }
 .form-actions { display: flex; flex-wrap: wrap; gap: .6rem; }
 .form-error { color: #b91c1c; font-weight: 800; margin: 0; }
 .motivation-summary .motivation-tile-title { color: #9a3412; font-weight: 900; margin: .4rem 0; }

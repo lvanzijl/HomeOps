@@ -132,3 +132,12 @@ Family Goal Creation and Editing removes the final functional P0 blocker for Mot
 - Motivation now communicates what the family is working toward and what happens when the goal succeeds while keeping progress and encouragement primary.
 - Home Motivation tile includes compact celebration context only when it helps summarize the active family goal.
 - Reward Economy remains deferred: no gems, tokens, coins, shops, purchases, avatar unlocks, badges, leaderboards, notifications, individual rewards, or goal templates were added.
+
+
+### Individual Goal Management — Completed 2026-06-20
+- Added parent-managed individual Motivation goals for persisted Family Members.
+- Supports creating goals with Family Member, title, target count, and unit label.
+- Supports editing title, target count, unit label, and assigned Family Member while preserving/capping progress.
+- Supports archiving goals so retired goals disappear from active Motivation and Child Progress views while history remains persisted.
+- Child Progress and Motivation displays now reflect active individual goal changes automatically through the Motivation snapshot.
+- Kept Reward Economy, gems, tokens, shops, purchases, avatar unlocks, badges, leaderboards, negative points, notifications, recurrence, and templates out of scope.

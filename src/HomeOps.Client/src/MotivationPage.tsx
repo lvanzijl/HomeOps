@@ -3,7 +3,7 @@ import { FamilyAvatar } from './home/FamilyAvatar';
 import { HelpfulMomentsSection } from './HelpfulMoments';
 import type { FamilyMember } from './home/familyMembers';
 import { FamilyCelebrationStatus } from './api/homeOpsApiClient';
-import { clampProgress, createFamilyGoal, goalsForMembers, loadMotivationSnapshot, markFamilyGoalCelebrated, updateFamilyGoal, type MotivationFamilyGoal, type MotivationSnapshot } from './motivationData';
+import { archiveIndividualGoal, clampProgress, createFamilyGoal, createIndividualGoal, goalsForMembers, loadMotivationSnapshot, markFamilyGoalCelebrated, updateFamilyGoal, updateIndividualGoal, type MotivationFamilyGoal, type MotivationIndividualGoal, type MotivationSnapshot } from './motivationData';
 
 interface MotivationPageProps {
   members: readonly FamilyMember[];
@@ -13,6 +13,7 @@ export function MotivationPage({ members }: MotivationPageProps) {
   const [snapshot, setSnapshot] = useState<MotivationSnapshot>({ individualGoals: [] });
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [formMode, setFormMode] = useState<'closed' | 'create' | 'edit'>('closed');
+  const [individualFormGoal, setIndividualFormGoal] = useState<MotivationIndividualGoal | undefined>();
   const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -38,6 +39,17 @@ export function MotivationPage({ members }: MotivationPageProps) {
   function handleFormSaved(goal: MotivationFamilyGoal) {
     setSnapshot((current) => ({ ...current, familyGoal: goal }));
     setFormMode('closed');
+    setFormError(null);
+  }
+
+  function handleIndividualGoalSaved(goal: MotivationIndividualGoal) {
+    setSnapshot((current) => ({
+      ...current,
+      individualGoals: current.individualGoals.some((item) => item.id === goal.id)
+        ? current.individualGoals.map((item) => item.id === goal.id ? goal : item)
+        : [...current.individualGoals, goal],
+    }));
+    setIndividualFormGoal(undefined);
     setFormError(null);
   }
 
@@ -96,17 +108,39 @@ export function MotivationPage({ members }: MotivationPageProps) {
       <HelpfulMomentsSection members={members} showCreate title="Recent Helpful Moments" />
 
       <section className="individual-goals" aria-label="Individual encouragement goals">
-        <h3>Personal goals this week</h3>
+        <div className="section-heading-row"><h3>Personal goals this week</h3><button type="button" className="secondary-action" onClick={() => setIndividualFormGoal({ id: "", familyMemberId: members[0]?.id ?? "", familyMemberName: members[0]?.name ?? "", title: "", targetCount: 4, currentProgress: 0, unitLabel: "times", visualKind: "stars" })}>Add personal goal</button></div>
+        {individualFormGoal ? (
+          <IndividualGoalForm
+            goal={individualFormGoal.id ? individualFormGoal : undefined}
+            members={members}
+            error={formError}
+            onCancel={() => { setIndividualFormGoal(undefined); setFormError(null); }}
+            onArchive={individualFormGoal.id ? async () => {
+              try {
+                await archiveIndividualGoal(individualFormGoal.id);
+                setSnapshot((current) => ({ ...current, individualGoals: current.individualGoals.filter((goal) => goal.id !== individualFormGoal.id) }));
+                setIndividualFormGoal(undefined);
+              } catch { setFormError("We could not retire this goal. Please try again."); }
+            } : undefined}
+            onSubmit={async (values) => {
+              try {
+                const saved = individualFormGoal.id ? await updateIndividualGoal(individualFormGoal.id, values) : await createIndividualGoal(values);
+                handleIndividualGoalSaved(saved);
+              } catch { setFormError("We could not save this personal goal. Please try again."); }
+            }}
+          />
+        ) : null}
         <div className="individual-goal-grid">
           {individualGoals.length === 0 ? <p className="motivation-copy">No active personal encouragement goals yet.</p> : null}
           {individualGoals.map((goal) => {
             const member = members.find((item) => item.id === goal.familyMemberId);
             if (!member) return null;
             return (
-              <article className="individual-goal-card" key={goal.familyMemberId} style={{ '--member-color': member.displayColor } as CSSProperties}>
+              <article className="individual-goal-card" key={goal.id} style={{ '--member-color': member.displayColor } as CSSProperties}>
                 <div className="individual-goal-heading">
                   <FamilyAvatar member={member} />
                   <div><strong>{member.name}</strong><span>{goal.title}</span></div>
+                  <button type="button" className="secondary-action compact-action" onClick={() => setIndividualFormGoal(goal)}>Edit</button>
                 </div>
                 <div className="star-row" aria-label={`${goal.currentProgress} of ${goal.targetCount} ${goal.unitLabel}`}>
                   {Array.from({ length: goal.targetCount }, (_, index) => (
@@ -123,6 +157,44 @@ export function MotivationPage({ members }: MotivationPageProps) {
   );
 }
 
+
+interface IndividualGoalFormProps {
+  goal?: MotivationIndividualGoal;
+  members: readonly FamilyMember[];
+  error: string | null;
+  onCancel: () => void;
+  onSubmit: (values: { familyMemberId: string; title: string; targetCount: number; unitLabel: string }) => Promise<void>;
+  onArchive?: () => Promise<void>;
+}
+
+function IndividualGoalForm({ goal, members, error, onCancel, onSubmit, onArchive }: IndividualGoalFormProps) {
+  const [familyMemberId, setFamilyMemberId] = useState(goal?.familyMemberId ?? members[0]?.id ?? "");
+  const [title, setTitle] = useState(goal?.title ?? "");
+  const [targetCount, setTargetCount] = useState(String(goal?.targetCount ?? 4));
+  const [unitLabel, setUnitLabel] = useState(goal?.unitLabel ?? "times");
+  const [saving, setSaving] = useState(false);
+
+  async function handleSubmit(event: FormEvent) {
+    event.preventDefault();
+    const parsedTarget = Number.parseInt(targetCount, 10);
+    if (!familyMemberId || !title.trim() || !unitLabel.trim() || !Number.isFinite(parsedTarget) || parsedTarget < 1) return;
+    setSaving(true);
+    await onSubmit({ familyMemberId, title: title.trim(), targetCount: parsedTarget, unitLabel: unitLabel.trim() });
+    setSaving(false);
+  }
+
+  return (
+    <form className="family-goal-form" aria-label={goal ? "Edit individual goal form" : "Create individual goal form"} onSubmit={handleSubmit}>
+      <div><p className="eyebrow">Personal encouragement</p><h3>{goal ? "Edit personal goal" : "Add personal goal"}</h3><p className="motivation-copy">Choose one family member and a simple target like reading books, feeding a pet, or bedtime routine steps.</p></div>
+      <label>Family member<select value={familyMemberId} onChange={(event) => setFamilyMemberId(event.target.value)} required>{members.map((member) => <option key={member.id} value={member.id}>{member.name}</option>)}</select></label>
+      <label>Goal title<input value={title} maxLength={240} onChange={(event) => setTitle(event.target.value)} placeholder="Read books" required /></label>
+      <label>Target count<input type="number" min="1" max="99" value={targetCount} onChange={(event) => setTargetCount(event.target.value)} required /></label>
+      <label>Unit label<input value={unitLabel} maxLength={80} onChange={(event) => setUnitLabel(event.target.value)} placeholder="books" required /></label>
+      {error ? <p className="form-error">{error}</p> : null}
+      <div className="form-actions"><button type="submit" disabled={saving}>{saving ? "Saving…" : "Save personal goal"}</button>{onArchive ? <button type="button" className="secondary-action" onClick={onArchive}>Retire goal</button> : null}<button type="button" onClick={onCancel}>Cancel</button></div>
+    </form>
+  );
+}
 
 function FamilyCelebrationDisplay({ familyGoal, onCelebrated }: { familyGoal: MotivationFamilyGoal; onCelebrated: (goal: MotivationFamilyGoal) => void }) {
   const [saving, setSaving] = useState(false);

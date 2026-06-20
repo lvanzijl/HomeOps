@@ -238,6 +238,72 @@ public sealed class MotivationApiTests(HomeOpsWebApplicationFactory factory) : I
         Assert.Null(updated.Celebration);
     }
 
+
+    [Fact]
+    public async Task CreateIndividualGoalAddsActiveGoalToMotivationSnapshot()
+    {
+        await using var isolatedFactory = new HomeOpsWebApplicationFactory();
+        var client = isolatedFactory.CreateClient();
+
+        var response = await client.PostAsJsonAsync("/api/motivation/individual-goals", new UpsertMotivationIndividualGoalRequest("riley", "Read books", 4, "books"));
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var created = await response.Content.ReadFromJsonAsync<MotivationIndividualGoalDto>();
+        Assert.NotNull(created);
+        Assert.Equal("riley", created.FamilyMemberId);
+        Assert.Equal("Read books", created.Title);
+        Assert.Equal(0, created.CurrentProgress);
+        var snapshot = await client.GetFromJsonAsync<MotivationSnapshotDto>("/api/motivation");
+        Assert.Contains(snapshot!.IndividualGoals, goal => goal.Id == created.Id && goal.Title == "Read books");
+    }
+
+    [Fact]
+    public async Task EditIndividualGoalPreservesAndCapsProgressAndReassignsMember()
+    {
+        await using var isolatedFactory = new HomeOpsWebApplicationFactory();
+        var client = isolatedFactory.CreateClient();
+        MotivationIndividualGoalDto existing;
+        using (var scope = isolatedFactory.Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<HomeOpsDbContext>();
+            var entity = dbContext.MotivationIndividualGoals.First(goal => goal.HouseholdId == SeedHousehold.Id && goal.FamilyMemberId == "riley" && goal.IsActive);
+            entity.CurrentProgress = 3;
+            await dbContext.SaveChangesAsync();
+            existing = new MotivationIndividualGoalDto(entity.Id, entity.FamilyMemberId, string.Empty, entity.Title, entity.TargetCount, entity.CurrentProgress, entity.UnitLabel, entity.VisualKind);
+        }
+
+        var response = await client.PutAsJsonAsync($"/api/motivation/individual-goals/{existing.Id}", new UpsertMotivationIndividualGoalRequest("alex", "Homework sessions", 2, "sessions"));
+
+        response.EnsureSuccessStatusCode();
+        var updated = await response.Content.ReadFromJsonAsync<MotivationIndividualGoalDto>();
+        Assert.NotNull(updated);
+        Assert.Equal("alex", updated.FamilyMemberId);
+        Assert.Equal("Alex", updated.FamilyMemberName);
+        Assert.Equal("Homework sessions", updated.Title);
+        Assert.Equal(2, updated.TargetCount);
+        Assert.Equal(2, updated.CurrentProgress);
+        Assert.Equal("sessions", updated.UnitLabel);
+    }
+
+    [Fact]
+    public async Task ArchiveIndividualGoalRemovesItFromActiveMotivationSnapshotButKeepsHistory()
+    {
+        await using var isolatedFactory = new HomeOpsWebApplicationFactory();
+        var client = isolatedFactory.CreateClient();
+        var createdResponse = await client.PostAsJsonAsync("/api/motivation/individual-goals", new UpsertMotivationIndividualGoalRequest("riley", "Feed pet", 5, "feedings"));
+        var created = await createdResponse.Content.ReadFromJsonAsync<MotivationIndividualGoalDto>();
+        Assert.NotNull(created);
+
+        var archiveResponse = await client.PostAsync($"/api/motivation/individual-goals/{created.Id}/archive", null);
+
+        Assert.Equal(HttpStatusCode.NoContent, archiveResponse.StatusCode);
+        var snapshot = await client.GetFromJsonAsync<MotivationSnapshotDto>("/api/motivation");
+        Assert.DoesNotContain(snapshot!.IndividualGoals, goal => goal.Id == created.Id);
+        using var scope = isolatedFactory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<HomeOpsDbContext>();
+        Assert.Contains(dbContext.MotivationIndividualGoals, goal => goal.Id == created.Id && !goal.IsActive);
+    }
+
     [Fact]
     public async Task FamilyGoalCreationRejectsRewardEconomyFieldsByIgnoringUnknownJson()
     {
