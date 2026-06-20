@@ -386,7 +386,7 @@ button {
 .home-summary-grid {
   display: grid;
   gap: 1rem;
-  grid-template-columns: minmax(0, 1.55fr) minmax(18rem, 0.75fr);
+  grid-template-columns: minmax(0, 1.55fr) minmax(16rem, 0.72fr) minmax(16rem, 0.72fr);
 }
 
 .home-summary-card {
@@ -457,6 +457,28 @@ button {
 
 .lists-summary .home-summary-list li {
   border-left: 0.3rem solid #f59e0b;
+}
+
+.tasks-summary .home-summary-list li {
+  border-left: 0.3rem solid #14b8a6;
+}
+
+.task-summary-groups {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0.8rem 0;
+}
+
+.task-summary-group h4 {
+  color: #0f766e;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  margin: 0 0 0.35rem;
+  text-transform: uppercase;
+}
+
+.task-summary-list {
+  margin: 0;
 }
 
 .home-summary-list small {

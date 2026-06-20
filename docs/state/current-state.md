@@ -4,7 +4,7 @@
 Phase 2 — Durable Household Core
 
 ## Current Slice
-Phase 1 Roadmap Protection Rule — Completed
+Home Task Summary — Completed
 
 ## Completed Slices
 - 1.1 Repository Bootstrap
@@ -30,6 +30,7 @@ Phase 1 Roadmap Protection Rule — Completed
 - Calendar Recurrence, EventException, and Occurrence Generation Runtime
 - Home Dashboard MVP, Family Member MVP, and Home Navigation Flows
 - Phase 1 Roadmap Protection Rule
+- 2.23 Home Task Summary
 
 ## Next Slice
 Proceed with recurrence/occurrence editing UX or Real Google Calendar Read-Only Integration only after preserving Home as summary-first, Family Members as non-authentication household entities, and HomeOps Calendar source-of-truth/local-only portability boundaries.
@@ -208,3 +209,5 @@ Proceed with recurrence/occurrence editing UX or Real Google Calendar Read-Only 
 - Home, the Family Member page, and Tasks consume the loaded Family Member collection from the workspace shell.
 - Task ownership now validates assigned Family Member references against persisted household Family Members while preserving Unassigned and Shared Household ownership states.
 
+## Home Task Summary
+Home now surfaces the three core household domains on the dashboard: Agenda, Shopping/Lists, and Tasks. The Tasks summary is bounded to overdue, due today, and upcoming active tasks with title, owner/shared household indicator, and due information only. Home remains summary-only: task creation, editing, completion, recurrence, approval, points, categories, notifications, reminders, and configuration stay off Home and remain owned by the dedicated Tasks page or future slices.

@@ -18,6 +18,7 @@
 | 2.14 | Sensor Dashboard Foundation | Planned |
 | 2.15 | Media/TV Source Foundation | Planned |
 | 2.16 | Home Hierarchy Tightening | Completed |
+| 2.23 | Home Task Summary | Completed |
 
 Phase 2 theme: Durable Household Core.
 
@@ -82,3 +83,5 @@ Home Quick Capture makes Home behave more like the household glassboard by addin
 ## Completed Slice 2.22 — Family Member Persistence
 Family Member Persistence promotes Family Members from temporary frontend-only presentation data to durable household-owned records. The backend stores member identity fields and avatar configuration, exposes minimal retrieval/update APIs, and seeds the existing household members. Home, the Family Member page, and Tasks now load Family Members from persistence with existing frontend fallback behavior preserved. Task ownership validates assigned Family Member references against persisted household members while keeping Unassigned and Shared Household ownership supported. Family Members remain non-user, non-profile, non-authentication, non-permission household entities; points, badges, gamification, approval, recurrence, authentication, roles, permissions, notifications, reminders, Google Calendar, House Status, and Media remain out of scope.
 
+## Completed Slice 2.23 — Home Task Summary
+Home Task Summary completes the dashboard's three core household pillars by adding a compact Tasks summary beside Agenda and Shopping/Lists. Home shows only overdue, due today, and upcoming active tasks with title, ownership/shared household indicator, and due information, and all card/header/overflow interactions navigate to the dedicated Tasks page. Home remains summary-only and does not add task creation, editing, completion, recurrence, approval, points, categories, notifications, reminders, or configuration behavior.
