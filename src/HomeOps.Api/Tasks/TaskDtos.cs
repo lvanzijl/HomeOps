@@ -9,10 +9,20 @@ public sealed record HouseholdTaskDto(
     bool IsCompleted,
     DateTimeOffset? CompletedUtc,
     DateTimeOffset CreatedUtc,
-    DateTimeOffset UpdatedUtc);
+    DateTimeOffset UpdatedUtc,
+    Guid? RecurringTaskSeriesId,
+    TaskRecurrenceFrequency RecurrenceFrequency);
 
 public sealed record CreateHouseholdTaskRequest(
     string Title,
     DateOnly? DueDate,
     TaskOwnershipKind? OwnershipKind,
-    string? FamilyMemberId);
+    string? FamilyMemberId,
+    TaskRecurrenceFrequency? RecurrenceFrequency = null);
+
+public sealed record UpdateHouseholdTaskRequest(
+    string Title,
+    DateOnly? DueDate,
+    TaskOwnershipKind? OwnershipKind,
+    string? FamilyMemberId,
+    TaskRecurrenceFrequency? RecurrenceFrequency = null);

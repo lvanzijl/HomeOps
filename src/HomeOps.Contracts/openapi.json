@@ -1169,6 +1169,84 @@
         }
       }
     },
+    "/api/tasks/{taskId}": {
+      "put": {
+        "tags": [
+          "Tasks"
+        ],
+        "operationId": "UpdateTask",
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateHouseholdTaskRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HouseholdTaskDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": ""
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/tasks/{taskId}/series": {
+      "delete": {
+        "tags": [
+          "Tasks"
+        ],
+        "operationId": "DeleteRecurringTaskSeries",
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
     "/api/tasks/{taskId}/complete": {
       "post": {
         "tags": [
@@ -2451,6 +2529,14 @@
           "updatedUtc": {
             "type": "string",
             "format": "date-time"
+          },
+          "recurringTaskSeriesId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "recurrenceFrequency": {
+            "$ref": "#/components/schemas/TaskRecurrenceFrequency"
           }
         }
       },
@@ -2466,6 +2552,22 @@
           "Unassigned",
           "FamilyMember",
           "SharedHousehold"
+        ]
+      },
+      "TaskRecurrenceFrequency": {
+        "type": "string",
+        "description": "",
+        "x-enumNames": [
+          "None",
+          "Daily",
+          "Weekly",
+          "Monthly"
+        ],
+        "enum": [
+          "None",
+          "Daily",
+          "Weekly",
+          "Monthly"
         ]
       },
       "CreateHouseholdTaskRequest": {
@@ -2491,6 +2593,48 @@
           "familyMemberId": {
             "type": "string",
             "nullable": true
+          },
+          "recurrenceFrequency": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/TaskRecurrenceFrequency"
+              }
+            ]
+          }
+        }
+      },
+      "UpdateHouseholdTaskRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "ownershipKind": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/TaskOwnershipKind"
+              }
+            ]
+          },
+          "familyMemberId": {
+            "type": "string",
+            "nullable": true
+          },
+          "recurrenceFrequency": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/TaskRecurrenceFrequency"
+              }
+            ]
           }
         }
       },

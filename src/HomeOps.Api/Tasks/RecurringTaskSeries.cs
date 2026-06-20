@@ -2,20 +2,18 @@ using HomeOps.Api.Households;
 
 namespace HomeOps.Api.Tasks;
 
-public sealed class HouseholdTask
+public sealed class RecurringTaskSeries
 {
     public Guid Id { get; set; }
     public Guid HouseholdId { get; set; }
     public Household? Household { get; set; }
     public string Title { get; set; } = string.Empty;
-    public DateOnly? DueDate { get; set; }
+    public DateOnly StartDate { get; set; }
+    public TaskRecurrenceFrequency Frequency { get; set; } = TaskRecurrenceFrequency.None;
     public TaskOwnershipKind OwnershipKind { get; set; } = TaskOwnershipKind.Unassigned;
     public string? FamilyMemberId { get; set; }
-    public Guid? RecurringTaskSeriesId { get; set; }
-    public RecurringTaskSeries? RecurringTaskSeries { get; set; }
-    public TaskRecurrenceFrequency RecurrenceFrequency { get; set; } = TaskRecurrenceFrequency.None;
-    public bool IsCompleted { get; set; }
-    public DateTimeOffset? CompletedUtc { get; set; }
+    public bool IsDeleted { get; set; }
     public DateTimeOffset CreatedUtc { get; set; }
     public DateTimeOffset UpdatedUtc { get; set; }
+    public ICollection<HouseholdTask> Tasks { get; set; } = new List<HouseholdTask>();
 }
