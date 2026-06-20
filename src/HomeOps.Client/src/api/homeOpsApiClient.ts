@@ -88,6 +88,40 @@ export class HomeOpsApiClient {
         return Promise.resolve<EventSource[]>(null as any);
     }
 
+    getMotivationSnapshot(): Promise<MotivationSnapshotDto> {
+        let url_ = this.baseUrl + "/api/motivation";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetMotivationSnapshot(_response);
+        });
+    }
+
+    protected processGetMotivationSnapshot(response: Response): Promise<MotivationSnapshotDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = MotivationSnapshotDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<MotivationSnapshotDto>(null as any);
+    }
+
     getAgendaLayerSettings(deviceKey: string | null | undefined): Promise<AgendaLayerSettingsDto> {
         let url_ = this.baseUrl + "/api/agenda/layer-settings";
         url_ = url_.replace(/[?&]$/, "");
@@ -1259,6 +1293,174 @@ export class EventSourceColor implements IEventSourceColor {
 
 export interface IEventSourceColor {
     hex?: string | undefined;
+}
+
+export class MotivationSnapshotDto implements IMotivationSnapshotDto {
+    familyGoal?: MotivationFamilyGoalDto | undefined;
+    individualGoals?: MotivationIndividualGoalDto[];
+
+    constructor(data?: IMotivationSnapshotDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.familyGoal = _data["familyGoal"] ? MotivationFamilyGoalDto.fromJS(_data["familyGoal"]) : undefined as any;
+            if (Array.isArray(_data["individualGoals"])) {
+                this.individualGoals = [] as any;
+                for (let item of _data["individualGoals"])
+                    this.individualGoals!.push(MotivationIndividualGoalDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): MotivationSnapshotDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new MotivationSnapshotDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["familyGoal"] = this.familyGoal ? this.familyGoal.toJSON() : undefined as any;
+        if (Array.isArray(this.individualGoals)) {
+            data["individualGoals"] = [];
+            for (let item of this.individualGoals)
+                data["individualGoals"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IMotivationSnapshotDto {
+    familyGoal?: MotivationFamilyGoalDto | undefined;
+    individualGoals?: MotivationIndividualGoalDto[];
+}
+
+export class MotivationFamilyGoalDto implements IMotivationFamilyGoalDto {
+    id?: string;
+    title?: string;
+    targetCount?: number;
+    currentProgress?: number;
+    unitLabel?: string;
+    rewardLabel?: string | undefined;
+
+    constructor(data?: IMotivationFamilyGoalDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.title = _data["title"];
+            this.targetCount = _data["targetCount"];
+            this.currentProgress = _data["currentProgress"];
+            this.unitLabel = _data["unitLabel"];
+            this.rewardLabel = _data["rewardLabel"];
+        }
+    }
+
+    static fromJS(data: any): MotivationFamilyGoalDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new MotivationFamilyGoalDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["title"] = this.title;
+        data["targetCount"] = this.targetCount;
+        data["currentProgress"] = this.currentProgress;
+        data["unitLabel"] = this.unitLabel;
+        data["rewardLabel"] = this.rewardLabel;
+        return data;
+    }
+}
+
+export interface IMotivationFamilyGoalDto {
+    id?: string;
+    title?: string;
+    targetCount?: number;
+    currentProgress?: number;
+    unitLabel?: string;
+    rewardLabel?: string | undefined;
+}
+
+export class MotivationIndividualGoalDto implements IMotivationIndividualGoalDto {
+    id?: string;
+    familyMemberId?: string;
+    familyMemberName?: string;
+    title?: string;
+    targetCount?: number;
+    currentProgress?: number;
+    unitLabel?: string;
+    visualKind?: string;
+
+    constructor(data?: IMotivationIndividualGoalDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.familyMemberId = _data["familyMemberId"];
+            this.familyMemberName = _data["familyMemberName"];
+            this.title = _data["title"];
+            this.targetCount = _data["targetCount"];
+            this.currentProgress = _data["currentProgress"];
+            this.unitLabel = _data["unitLabel"];
+            this.visualKind = _data["visualKind"];
+        }
+    }
+
+    static fromJS(data: any): MotivationIndividualGoalDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new MotivationIndividualGoalDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["familyMemberId"] = this.familyMemberId;
+        data["familyMemberName"] = this.familyMemberName;
+        data["title"] = this.title;
+        data["targetCount"] = this.targetCount;
+        data["currentProgress"] = this.currentProgress;
+        data["unitLabel"] = this.unitLabel;
+        data["visualKind"] = this.visualKind;
+        return data;
+    }
+}
+
+export interface IMotivationIndividualGoalDto {
+    id?: string;
+    familyMemberId?: string;
+    familyMemberName?: string;
+    title?: string;
+    targetCount?: number;
+    currentProgress?: number;
+    unitLabel?: string;
+    visualKind?: string;
 }
 
 export class AgendaLayerSettingsDto implements IAgendaLayerSettingsDto {

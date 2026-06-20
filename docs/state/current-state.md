@@ -218,3 +218,10 @@ Home now surfaces the three core household domains on the dashboard: Agenda, Sho
 - Individual goal cards are linked to loaded Family Members and show member avatar/name plus star/checkmark progress without ranking, comparison, balances, or punitive states.
 - Home includes a compact Motivation tile that shows only the active family goal title and progress and navigates to the Motivation page.
 - Reward Economy, gems, shop, spend/redeem flows, avatar unlocks, leaderboards, Helpful Moments, task approval, task recurrence, authentication, permissions, and roles remain deferred.
+
+## Phase 2 Motivation Domain Foundation
+- Motivation now has a persisted read-only domain foundation for the seeded household.
+- The backend stores one active family goal and active individual goals linked to persisted Family Members; progress remains seeded and is not derived from Tasks yet.
+- The read-only Motivation API returns the active family goal, active individual goals, and Family Member linkage needed by the frontend, with a neutral empty response when no records exist.
+- The Motivation page and Home Motivation tile now consume generated NSwag client data instead of the previous hardcoded frontend snapshot.
+- Goal editing, goal creation UI, Helpful Moments, gems, tokens, coins, reward shop, spend/redeem flows, avatar unlocks, leaderboards, negative points, task recurrence, task approval, authentication, permissions, and roles remain deferred.

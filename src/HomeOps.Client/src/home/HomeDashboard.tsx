@@ -28,7 +28,7 @@ import { loadTasks } from "../tasks/tasksApi";
 import { groupTasksByUrgency } from "../tasks/taskGrouping";
 import type { HouseholdTask } from "../tasks/tasksModel";
 import { FamilyAvatar } from "./FamilyAvatar";
-import { clampProgress, motivationSnapshot } from "../motivationData";
+import { clampProgress, loadMotivationSnapshot, type MotivationFamilyGoal } from "../motivationData";
 import type { FamilyMember } from "./familyMembers";
 
 interface HomeDashboardProps {
@@ -58,6 +58,8 @@ export function HomeDashboard({
   onSelectFamilyMember,
 }: HomeDashboardProps) {
   const [now, setNow] = useState(() => new Date());
+  const [motivationFamilyGoal, setMotivationFamilyGoal] = useState<MotivationFamilyGoal | undefined>();
+  const [motivationStatus, setMotivationStatus] = useState<"loading" | "ready" | "error">("loading");
   const [events, setEvents] = useState<NormalizedEvent[]>([]);
   const [sources, setSources] = useState<EventSource[]>([
     ...demoReadOnlyEventSources,
@@ -81,6 +83,22 @@ export function HomeDashboard({
   useEffect(() => {
     const timer = window.setInterval(() => setNow(new Date()), 30_000);
     return () => window.clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    let ignore = false;
+    setMotivationStatus("loading");
+    loadMotivationSnapshot()
+      .then((snapshot) => {
+        if (!ignore) {
+          setMotivationFamilyGoal(snapshot.familyGoal);
+          setMotivationStatus("ready");
+        }
+      })
+      .catch(() => {
+        if (!ignore) setMotivationStatus("error");
+      });
+    return () => { ignore = true; };
   }, []);
 
   useEffect(() => {
@@ -216,7 +234,7 @@ export function HomeDashboard({
     0,
     summaryTasks.length - visibleTasks.length,
   );
-  const motivationProgress = clampProgress(motivationSnapshot.familyGoal.currentProgress, motivationSnapshot.familyGoal.targetCount);
+  const motivationProgress = motivationFamilyGoal ? clampProgress(motivationFamilyGoal.currentProgress, motivationFamilyGoal.targetCount) : 0;
 
   return (
     <section className="home-dashboard" aria-label="Home dashboard">
@@ -422,10 +440,10 @@ export function HomeDashboard({
           <CardHeader
             title="Motivation"
             action="View Motivation"
-            meta={`${motivationSnapshot.familyGoal.currentProgress}/${motivationSnapshot.familyGoal.targetCount} ${motivationSnapshot.familyGoal.unitLabel}`}
+            meta={motivationFamilyGoal ? `${motivationFamilyGoal.currentProgress}/${motivationFamilyGoal.targetCount} ${motivationFamilyGoal.unitLabel}` : motivationStatus === "error" ? "Unavailable" : "Loading"}
           />
-          <p className="motivation-tile-title">{motivationSnapshot.familyGoal.title}</p>
-          <div className="progress-bar" aria-label={`Family goal progress ${motivationSnapshot.familyGoal.currentProgress} of ${motivationSnapshot.familyGoal.targetCount}`}>
+          <p className="motivation-tile-title">{motivationFamilyGoal?.title ?? "No active family goal yet"}</p>
+          <div className="progress-bar" aria-label={motivationFamilyGoal ? `Family goal progress ${motivationFamilyGoal.currentProgress} of ${motivationFamilyGoal.targetCount}` : "Family goal progress unavailable"}>
             <span style={{ width: `${motivationProgress}%` }} />
           </div>
           <p className="home-context-note">A shared encouragement goal for the household.</p>

@@ -21,6 +21,10 @@ vi.mock("../shopping/listsApi", () => ({
 }));
 vi.mock("../shopping/listsSummaryApi", () => ({ loadListSummaries: vi.fn() }));
 vi.mock("../tasks/tasksApi", () => ({ loadTasks: vi.fn() }));
+vi.mock("../motivationData", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../motivationData")>()),
+  loadMotivationSnapshot: vi.fn(),
+}));
 vi.mock("../demo/demoAgendaData", () => ({
   demoReadOnlyEvents: [],
   demoReadOnlyEventSources: [],
@@ -37,6 +41,9 @@ async function listsApi() {
 }
 async function tasksApi() {
   return await import("../tasks/tasksApi");
+}
+async function motivationApi() {
+  return await import("../motivationData");
 }
 
 afterEach(() => {
@@ -169,6 +176,18 @@ describe("HomeDashboard", () => {
       allDay: true,
       editable: true,
     });
+    const motivation = await motivationApi();
+    vi.mocked(motivation.loadMotivationSnapshot).mockResolvedValue({
+      familyGoal: {
+        id: "family-goal",
+        title: "Fill the family helper path",
+        targetCount: 20,
+        currentProgress: 13,
+        unitLabel: "helpful actions",
+        rewardLabel: "Board game night together",
+      },
+      individualGoals: [],
+    });
   });
 
   it("renders the Home dashboard, family members, agenda summary, lists summary, and overflow", async () => {
@@ -214,7 +233,7 @@ describe("HomeDashboard", () => {
     );
 
     const tile = screen.getByLabelText("Motivation summary");
-    expect(within(tile).getByText("Fill the family helper path")).not.toBeNull();
+    expect(await within(tile).findByText("Fill the family helper path")).not.toBeNull();
     expect(within(tile).getByText("13/20 helpful actions")).not.toBeNull();
     expect(within(tile).queryByText(/shop/i)).toBeNull();
     expect(within(tile).queryByText(/^gems?$/i)).toBeNull();
