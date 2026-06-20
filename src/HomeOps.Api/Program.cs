@@ -3,6 +3,7 @@ using HomeOps.Api.Data;
 using HomeOps.Api.Lists;
 using HomeOps.Api.CalendarEvents;
 using HomeOps.Api.WidgetLayouts;
+using HomeOps.Api.Tasks;
 using Microsoft.EntityFrameworkCore;
 using NSwag.AspNetCore;
 
@@ -13,7 +14,11 @@ CalendarPortabilityService.ConfigurePreRestoreSnapshotDirectory(
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApiDocument();
-if (!builder.Environment.IsEnvironment("Testing"))
+if (builder.Environment.IsEnvironment("Testing"))
+{
+    builder.Services.AddDbContext<HomeOpsDbContext>();
+}
+else
 {
     builder.Services.AddDbContext<HomeOpsDbContext>(options =>
     {
@@ -45,6 +50,7 @@ app.MapAgendaLayerSettingsEndpoints();
 app.MapListEndpoints();
 app.MapWorkspaceLayoutEndpoints();
 app.MapEventSeriesEndpoints();
+app.MapTaskEndpoints();
 
 app.Run();
 

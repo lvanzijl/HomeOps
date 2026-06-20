@@ -179,3 +179,12 @@ Proceed with recurrence/occurrence editing UX or Real Google Calendar Read-Only 
 - Avatar editing has moved off Home and is owned by the Family Member page; the existing live preview and avatar controls remain frontend-only and in-memory.
 - Home remains a summary-first dashboard: the Family Member strip is navigational/contextual only and no longer opens avatar editing directly.
 - Family Members remain household entities only; no users, authentication identities, profiles, permissions, ownership, tasks, gamification, points, badges, notifications, or persistence were introduced.
+
+## Phase 2 Task Page Foundation
+- Tasks are now a dedicated household domain separate from Lists, Calendar, and Gamification.
+- The task model supports title, optional due date, ownership state, completion state, completion timestamp, and household ownership.
+- Ownership states are `Unassigned`, `FamilyMember`, and `SharedHousehold`; Family Member owners reference existing household presentation member identifiers and do not introduce users, authentication, permissions, profiles, or roles.
+- The current task lifecycle is `Available` and `Completed`; completed tasks can be reopened.
+- The client includes a dedicated Tasks page organized urgency-first into Overdue, Due Today, Upcoming, No Due Date, and Completed Recently groups.
+- Task creation remains lightweight with title, optional ownership, and optional due date only.
+- No recurrence, approval, points, gamification, categories, notifications, reminders, Calendar integration, Google Calendar integration, House Status, Media, authentication, permissions, or roles were introduced.

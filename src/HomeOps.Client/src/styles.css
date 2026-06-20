@@ -652,3 +652,86 @@ button {
   .family-member-detail-list dd { text-align: left; }
   .avatar-editor-grid { grid-template-columns: 1fr; }
 }
+
+.tasks-page {
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 28px;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.12);
+  padding: 1.25rem;
+}
+
+.tasks-header p:last-child {
+  color: #64748b;
+  margin-top: 0.25rem;
+}
+
+.task-create-form {
+  align-items: end;
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: minmax(12rem, 2fr) repeat(3, minmax(9rem, 1fr)) auto;
+  margin: 1rem 0;
+}
+
+.task-create-form label {
+  color: #475569;
+  display: grid;
+  font-size: 0.8rem;
+  font-weight: 700;
+  gap: 0.25rem;
+}
+
+.task-create-form input,
+.task-create-form select {
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  border-radius: 12px;
+  font: inherit;
+  padding: 0.7rem 0.8rem;
+}
+
+.task-create-form button,
+.task-item button {
+  background: #0f172a;
+  border: 0;
+  border-radius: 999px;
+  color: white;
+  font-weight: 800;
+  padding: 0.75rem 1rem;
+}
+
+.task-group {
+  border-top: 1px solid rgba(148, 163, 184, 0.22);
+  padding: 1rem 0 0.5rem;
+}
+
+.task-list {
+  display: grid;
+  gap: 0.65rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.task-item {
+  align-items: center;
+  background: rgba(248, 250, 252, 0.9);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 18px;
+  display: flex;
+  justify-content: space-between;
+  padding: 0.85rem;
+}
+
+.task-item span {
+  color: #64748b;
+  display: block;
+  font-size: 0.9rem;
+  margin-top: 0.2rem;
+}
+
+@media (max-width: 900px) {
+  .task-create-form {
+    grid-template-columns: 1fr 1fr;
+  }
+}
