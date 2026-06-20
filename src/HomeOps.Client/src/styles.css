@@ -1066,3 +1066,18 @@ button {
 .page-empty-state {
   margin: 1rem 0;
 }
+
+.child-progress-hero h2 { font-size: clamp(2rem, 4vw, 3.25rem); }
+.child-progress-view { display: grid; gap: 1rem; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); }
+.child-progress-card { background: rgba(255,255,255,.92); border: 1px solid color-mix(in srgb, var(--member-color, #facc15) 35%, #eadfd1); border-radius: 1.35rem; box-shadow: 0 16px 40px rgb(120 90 60 / 10%); padding: 1rem; }
+.child-progress-card h3, .child-goal-card h4 { color: #7c2d12; margin: .15rem 0 .55rem; }
+.child-progress-card p { color: #64748b; }
+.family-goal-participation { display: grid; gap: .55rem; }
+.family-goal-participation strong { color: #9a3412; font-size: 1.15rem; }
+.child-goal-list { display: grid; gap: .75rem; }
+.child-goal-card { background: color-mix(in srgb, var(--member-color, #facc15) 12%, #ffffff); border: 1px solid color-mix(in srgb, var(--member-color, #facc15) 40%, #ffffff); border-radius: 1rem; padding: .85rem; }
+.child-goal-card .progress-bar { margin-top: .75rem; }
+.child-progress-view.early-child .star-row span { font-size: 1.35rem; height: 2.4rem; width: 2.4rem; }
+.child-progress-view.early-child .child-progress-card h3 { font-size: 1.6rem; }
+.child-progress-view.school-age .child-goal-card p { margin-bottom: 0; }
+@media (max-width: 760px) { .child-progress-view { grid-template-columns: 1fr; } }
