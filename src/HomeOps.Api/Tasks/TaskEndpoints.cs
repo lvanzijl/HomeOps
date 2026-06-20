@@ -43,6 +43,10 @@ public static class TaskEndpoints
             {
                 return Results.BadRequest(new { error = "Family member id is required for assigned tasks." });
             }
+            else if (!await dbContext.FamilyMembers.AnyAsync(member => member.Id == familyMemberId && member.HouseholdId == SeedHousehold.Id, cancellationToken))
+            {
+                return Results.BadRequest(new { error = "Family member id must reference an existing family member." });
+            }
 
             var now = DateTimeOffset.UtcNow;
             var task = new HouseholdTask

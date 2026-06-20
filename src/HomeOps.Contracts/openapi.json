@@ -641,6 +641,110 @@
         }
       }
     },
+    "/api/family-members": {
+      "get": {
+        "tags": [
+          "Family Members"
+        ],
+        "operationId": "GetFamilyMembers",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FamilyMemberDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/family-members/{memberId}": {
+      "get": {
+        "tags": [
+          "Family Members"
+        ],
+        "operationId": "GetFamilyMember",
+        "parameters": [
+          {
+            "name": "memberId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FamilyMemberDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Family Members"
+        ],
+        "operationId": "UpdateFamilyMember",
+        "parameters": [
+          {
+            "name": "memberId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateFamilyMemberRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FamilyMemberDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": ""
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
     "/api/tasks": {
       "get": {
         "tags": [
@@ -1510,6 +1614,116 @@
           },
           "isAllDay": {
             "type": "boolean"
+          }
+        }
+      },
+      "FamilyMemberDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "displayColor": {
+            "type": "string"
+          },
+          "initials": {
+            "type": "string"
+          },
+          "avatar": {
+            "$ref": "#/components/schemas/FamilyMemberAvatarDto"
+          }
+        }
+      },
+      "FamilyMemberAvatarDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "ageGroup": {
+            "$ref": "#/components/schemas/FamilyMemberAgeGroup"
+          },
+          "presentation": {
+            "$ref": "#/components/schemas/FamilyMemberPresentation"
+          },
+          "skinTone": {
+            "type": "string"
+          },
+          "hairColor": {
+            "type": "string"
+          },
+          "hairStyle": {
+            "$ref": "#/components/schemas/FamilyMemberHairStyle"
+          },
+          "glasses": {
+            "type": "boolean"
+          },
+          "shirtColor": {
+            "type": "string"
+          }
+        }
+      },
+      "FamilyMemberAgeGroup": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "Child",
+          "Adult"
+        ],
+        "enum": [
+          0,
+          1
+        ]
+      },
+      "FamilyMemberPresentation": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "Neutral",
+          "Masculine",
+          "Feminine"
+        ],
+        "enum": [
+          0,
+          1,
+          2
+        ]
+      },
+      "FamilyMemberHairStyle": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "Short",
+          "Curly",
+          "Bob",
+          "Long",
+          "Top"
+        ],
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "UpdateFamilyMemberRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "displayColor": {
+            "type": "string"
+          },
+          "initials": {
+            "type": "string"
+          },
+          "avatar": {
+            "$ref": "#/components/schemas/FamilyMemberAvatarDto"
           }
         }
       },
