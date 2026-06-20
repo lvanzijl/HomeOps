@@ -1,4 +1,4 @@
-export type WorkspaceId = 'home' | 'agenda' | 'lists' | 'tasks' | 'house' | 'media' | 'settings';
+export type WorkspaceId = 'home' | 'agenda' | 'lists' | 'tasks' | 'house' | 'media' | 'gamification' | 'settings';
 
 export interface WorkspaceDefinition {
   id: WorkspaceId;
@@ -29,13 +29,18 @@ export const workspaceDefinitions: readonly WorkspaceDefinition[] = [
   },
   {
     id: 'house',
-    label: 'House',
-    description: 'House operations and environment workspace placeholder.',
+    label: 'House Status',
+    description: 'For home alerts, sensors, and device state.',
   },
   {
     id: 'media',
     label: 'Media',
-    description: 'Media and shared entertainment workspace placeholder.',
+    description: 'For media reminders and future household media context.',
+  },
+  {
+    id: 'gamification',
+    label: 'Gamification',
+    description: 'For points, rewards, and family progress after Tasks mature.',
   },
   {
     id: 'settings',

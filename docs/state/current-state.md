@@ -188,3 +188,10 @@ Proceed with recurrence/occurrence editing UX or Real Google Calendar Read-Only 
 - The client includes a dedicated Tasks page organized urgency-first into Overdue, Due Today, Upcoming, No Due Date, and Completed Recently groups.
 - Task creation remains lightweight with title, optional ownership, and optional due date only.
 - No recurrence, approval, points, gamification, categories, notifications, reminders, Calendar integration, Google Calendar integration, House Status, Media, authentication, permissions, or roles were introduced.
+
+## Phase 2 Domain Color System and Future Domain Placeholders
+- HomeOps now has a centralized frontend domain color system that assigns each major workspace a pastel color family for navigation accents, active navigation state, and subtle page background tints.
+- Existing Home, Agenda, Lists, Tasks, Family Member, and Settings surfaces retain white or near-white cards for readability while the surrounding page background and navigation communicate domain identity.
+- Tasks now uses the shared Tasks color family for a warmer household responsibility surface without changing task grouping, task creation fields, completion, reopening, or ownership behavior.
+- House Status, Media, and Gamification now have dedicated placeholder pages reachable from navigation.
+- Placeholder pages only provide title, short future-purpose copy, and a coming-later status; they do not implement sensors, device state, media integrations, points, rewards, badges, or gamification logic.
