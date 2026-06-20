@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { FamilyMemberPage } from '../home/FamilyMemberPage';
 import { HomeDashboard } from '../home/HomeDashboard';
 import { familyMembers, type FamilyMember } from '../home/familyMembers';
+import { TasksPage } from '../tasks/TasksPage';
 import { getWidgetDefinition } from '../widgets/widgetCatalog';
 import { WidgetRenderer } from '../widgets/WidgetRenderer';
 import type { WidgetInstance } from '../widgets/widgetModel';
@@ -87,6 +88,8 @@ export function WorkspaceShell() {
           <FamilyMemberPage member={activeFamilyMember} onBack={() => setActiveFamilyMemberId(null)} onChange={updateFamilyMember} />
         ) : activeWorkspace.id === 'home' ? (
           <HomeDashboard members={members} onNavigate={navigateWorkspace} onSelectFamilyMember={setActiveFamilyMemberId} />
+        ) : activeWorkspace.id === 'tasks' ? (
+          <TasksPage />
         ) : (
         <div className="widget-host" aria-label={`${activeWorkspace.label} widgets`}>
           {activeWorkspace.id === 'settings' && (

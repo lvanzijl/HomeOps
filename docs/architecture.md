@@ -133,3 +133,8 @@ Home is now the primary summary-first household dashboard rather than a full man
 Family Members are currently client-side household presentation entities with name, display color, and initials only. They are not users, profiles, login identities, permissions, owners, point accounts, or authentication subjects. This supports Home presentation while preserving future persistence and ownership decisions.
 
 Dedicated Agenda and Lists pages remain the places for existing full Agenda and Lists functionality. Home quick capture routes to those pages instead of adding advanced Home-native forms, keeping Home summary-only and preserving Calendar, EventSeries, Lists, and export/restore boundaries.
+
+## Tasks Domain Foundation
+Tasks are a household-owned domain separate from Lists, Calendar, and Gamification. A task stores a title, optional due date, ownership state, optional Family Member reference, completion state, optional completion timestamp, and audit timestamps. Ownership supports unassigned tasks, tasks assigned to one existing Family Member presentation entity, and shared household tasks. Family Members remain household entities rather than users, accounts, permissions subjects, or roles.
+
+The initial lifecycle is intentionally small: available tasks can be completed, and completed tasks can be reopened. The dedicated Tasks page organizes tasks by urgency first: Overdue, Due Today, Upcoming, No Due Date, and Completed Recently. Recurrence, approval, points, gamification, categories, notifications, reminders, Calendar integration, Google Calendar integration, authentication, permissions, and roles remain out of scope.

@@ -3,6 +3,7 @@ using HomeOps.Api.Households;
 using HomeOps.Api.Lists;
 using HomeOps.Api.CalendarEvents;
 using HomeOps.Api.WidgetLayouts;
+using HomeOps.Api.Tasks;
 using Microsoft.EntityFrameworkCore;
 
 namespace HomeOps.Api.Data;
@@ -18,6 +19,7 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
     public DbSet<EventException> EventExceptions => Set<EventException>();
     public DbSet<WorkspaceLayout> WorkspaceLayouts => Set<WorkspaceLayout>();
     public DbSet<WidgetPlacement> WidgetPlacements => Set<WidgetPlacement>();
+    public DbSet<HouseholdTask> HouseholdTasks => Set<HouseholdTask>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -133,6 +135,25 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
                 .HasForeignKey(exception => exception.EventSeriesId)
                 .OnDelete(DeleteBehavior.Cascade);
             entity.HasIndex(exception => new { exception.EventSeriesId, exception.OccurrenceDate }).IsUnique();
+        });
+
+
+        modelBuilder.Entity<HouseholdTask>(entity =>
+        {
+            entity.ToTable("HouseholdTasks");
+            entity.HasKey(task => task.Id);
+            entity.Property(task => task.Title).HasMaxLength(240).IsRequired();
+            entity.Property(task => task.DueDate).HasColumnType("date");
+            entity.Property(task => task.OwnershipKind).HasConversion<string>().HasMaxLength(32).IsRequired();
+            entity.Property(task => task.FamilyMemberId).HasMaxLength(120);
+            entity.Property(task => task.IsCompleted).IsRequired();
+            entity.Property(task => task.CreatedUtc).IsRequired();
+            entity.Property(task => task.UpdatedUtc).IsRequired();
+            entity.HasOne(task => task.Household)
+                .WithMany()
+                .HasForeignKey(task => task.HouseholdId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(task => new { task.HouseholdId, task.IsCompleted, task.DueDate });
         });
 
         modelBuilder.Entity<WorkspaceLayout>(entity =>

@@ -801,6 +801,171 @@ export class HomeOpsApiClient {
         }
         return Promise.resolve<void>(null as any);
     }
+
+    getTasks(): Promise<HouseholdTaskDto[]> {
+        let url_ = this.baseUrl + "/api/tasks";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetTasks(_response);
+        });
+    }
+
+    protected processGetTasks(response: Response): Promise<HouseholdTaskDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(HouseholdTaskDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<HouseholdTaskDto[]>(null as any);
+    }
+
+    createTask(request: CreateHouseholdTaskRequest): Promise<HouseholdTaskDto> {
+        let url_ = this.baseUrl + "/api/tasks";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCreateTask(_response);
+        });
+    }
+
+    protected processCreateTask(response: Response): Promise<HouseholdTaskDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 201) {
+            return response.text().then((_responseText) => {
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result201 = HouseholdTaskDto.fromJS(resultData201);
+            return result201;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<HouseholdTaskDto>(null as any);
+    }
+
+    completeTask(taskId: string): Promise<HouseholdTaskDto> {
+        let url_ = this.baseUrl + "/api/tasks/{taskId}/complete";
+        if (taskId === undefined || taskId === null)
+            throw new globalThis.Error("The parameter 'taskId' must be defined.");
+        url_ = url_.replace("{taskId}", encodeURIComponent("" + taskId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCompleteTask(_response);
+        });
+    }
+
+    protected processCompleteTask(response: Response): Promise<HouseholdTaskDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = HouseholdTaskDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<HouseholdTaskDto>(null as any);
+    }
+
+    reopenTask(taskId: string): Promise<HouseholdTaskDto> {
+        let url_ = this.baseUrl + "/api/tasks/{taskId}/reopen";
+        if (taskId === undefined || taskId === null)
+            throw new globalThis.Error("The parameter 'taskId' must be defined.");
+        url_ = url_.replace("{taskId}", encodeURIComponent("" + taskId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processReopenTask(_response);
+        });
+    }
+
+    protected processReopenTask(response: Response): Promise<HouseholdTaskDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = HouseholdTaskDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<HouseholdTaskDto>(null as any);
+    }
 }
 
 export class EventSource implements IEventSource {
@@ -2404,6 +2569,128 @@ export interface IUpdateEventSeriesRequest {
     startUtc?: Date;
     endUtc?: Date | undefined;
     isAllDay?: boolean;
+}
+
+export class HouseholdTaskDto implements IHouseholdTaskDto {
+    id?: string;
+    title?: string;
+    dueDate?: Date | undefined;
+    ownershipKind?: TaskOwnershipKind;
+    familyMemberId?: string | undefined;
+    isCompleted?: boolean;
+    completedUtc?: Date | undefined;
+    createdUtc?: Date;
+    updatedUtc?: Date;
+
+    constructor(data?: IHouseholdTaskDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.title = _data["title"];
+            this.dueDate = _data["dueDate"] ? new Date(_data["dueDate"].toString()) : undefined as any;
+            this.ownershipKind = _data["ownershipKind"];
+            this.familyMemberId = _data["familyMemberId"];
+            this.isCompleted = _data["isCompleted"];
+            this.completedUtc = _data["completedUtc"] ? new Date(_data["completedUtc"].toString()) : undefined as any;
+            this.createdUtc = _data["createdUtc"] ? new Date(_data["createdUtc"].toString()) : undefined as any;
+            this.updatedUtc = _data["updatedUtc"] ? new Date(_data["updatedUtc"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): HouseholdTaskDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new HouseholdTaskDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["title"] = this.title;
+        data["dueDate"] = this.dueDate ? formatDate(this.dueDate) : undefined as any;
+        data["ownershipKind"] = this.ownershipKind;
+        data["familyMemberId"] = this.familyMemberId;
+        data["isCompleted"] = this.isCompleted;
+        data["completedUtc"] = this.completedUtc ? this.completedUtc.toISOString() : undefined as any;
+        data["createdUtc"] = this.createdUtc ? this.createdUtc.toISOString() : undefined as any;
+        data["updatedUtc"] = this.updatedUtc ? this.updatedUtc.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface IHouseholdTaskDto {
+    id?: string;
+    title?: string;
+    dueDate?: Date | undefined;
+    ownershipKind?: TaskOwnershipKind;
+    familyMemberId?: string | undefined;
+    isCompleted?: boolean;
+    completedUtc?: Date | undefined;
+    createdUtc?: Date;
+    updatedUtc?: Date;
+}
+
+export enum TaskOwnershipKind {
+    Unassigned = "Unassigned",
+    FamilyMember = "FamilyMember",
+    SharedHousehold = "SharedHousehold",
+}
+
+export class CreateHouseholdTaskRequest implements ICreateHouseholdTaskRequest {
+    title?: string;
+    dueDate?: Date | undefined;
+    ownershipKind?: TaskOwnershipKind | undefined;
+    familyMemberId?: string | undefined;
+
+    constructor(data?: ICreateHouseholdTaskRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.title = _data["title"];
+            this.dueDate = _data["dueDate"] ? new Date(_data["dueDate"].toString()) : undefined as any;
+            this.ownershipKind = _data["ownershipKind"];
+            this.familyMemberId = _data["familyMemberId"];
+        }
+    }
+
+    static fromJS(data: any): CreateHouseholdTaskRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreateHouseholdTaskRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["title"] = this.title;
+        data["dueDate"] = this.dueDate ? formatDate(this.dueDate) : undefined as any;
+        data["ownershipKind"] = this.ownershipKind;
+        data["familyMemberId"] = this.familyMemberId;
+        return data;
+    }
+}
+
+export interface ICreateHouseholdTaskRequest {
+    title?: string;
+    dueDate?: Date | undefined;
+    ownershipKind?: TaskOwnershipKind | undefined;
+    familyMemberId?: string | undefined;
 }
 
 function formatDate(d: Date) {

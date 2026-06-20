@@ -6,7 +6,7 @@
       "configuration": "Debug",
       "targetFramework": "net10.0",
       "noBuild": false,
-      "aspNetCoreEnvironment": "Development",
+      "aspNetCoreEnvironment": "Testing",
       "output": "src/HomeOps.Contracts/openapi.json"
     }
   },
