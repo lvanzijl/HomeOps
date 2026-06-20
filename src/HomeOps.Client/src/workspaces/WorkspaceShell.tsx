@@ -5,6 +5,8 @@ import { MotivationPage } from '../MotivationPage';
 import { familyMembers, type FamilyMember } from '../home/familyMembers';
 import { createFamilyMember, loadFamilyMembers, removeFamilyMember, saveFamilyMember } from '../home/familyMembersApi';
 import { TasksPage } from '../tasks/TasksPage';
+import { FirstRunWizard } from '../FirstRunWizard';
+import { loadOnboardingStatus } from '../onboardingApi';
 import { DomainPlaceholderPage } from './DomainPlaceholderPage';
 import { getDomainColorClass } from './domainColors';
 import { getWidgetDefinition } from '../widgets/widgetCatalog';
@@ -23,6 +25,8 @@ export function WorkspaceShell() {
   const [members, setMembers] = useState<FamilyMember[]>(() => [...familyMembers]);
   const [isAddingMember, setIsAddingMember] = useState(false);
   const [widgetInstancesByWorkspace, setWidgetInstancesByWorkspace] = useState<Partial<Record<WorkspaceId, readonly WidgetInstance[]>>>({});
+  const [requiresOnboarding, setRequiresOnboarding] = useState(false);
+  const [checkedOnboarding, setCheckedOnboarding] = useState(false);
 
   const activeWorkspace = useMemo(
     () => workspaceDefinitions.find((workspace) => workspace.id === activeWorkspaceId) ?? getInitialWorkspace(),
@@ -49,7 +53,7 @@ export function WorkspaceShell() {
   const activeWorkspaceIndex = workspaceDefinitions.findIndex((workspace) => workspace.id === activeWorkspace.id);
   useEffect(() => {
     let ignore = false;
-    loadFamilyMembers().then((loaded) => { if (!ignore) setMembers([...loaded]); }).catch(() => { if (!ignore) setMembers([...familyMembers]); });
+    loadFamilyMembers().then((loaded) => { if (!ignore) setMembers([...loaded]); }).catch(() => { if (!ignore) setMembers([]); });
     return () => { ignore = true; };
   }, []);
 
@@ -82,6 +86,31 @@ export function WorkspaceShell() {
       setActiveFamilyMemberId(null);
     }).catch(() => undefined);
   }
+
+  useEffect(() => {
+    let ignore = false;
+    loadOnboardingStatus().then((status) => {
+      if (!ignore) {
+        setRequiresOnboarding(status.requiresOnboarding);
+        setCheckedOnboarding(true);
+      }
+    }).catch(() => {
+      if (!ignore) {
+        setRequiresOnboarding(false);
+        setCheckedOnboarding(true);
+      }
+    });
+    return () => { ignore = true; };
+  }, []);
+
+  if (!checkedOnboarding) {
+    return <section className="workspace-shell domain-home" aria-label="Workspace shell"><section className="workspace-panel"><p>Loading household setup…</p></section></section>;
+  }
+
+  if (requiresOnboarding) {
+    return <FirstRunWizard initialMembers={members} onComplete={(updatedMembers) => { setMembers([...updatedMembers]); setRequiresOnboarding(false); setActiveWorkspaceId('home'); setActiveFamilyMemberId(null); }} />;
+  }
+
   const widgetInstances = activeWorkspace.id === 'agenda'
     ? [{ id: 'agenda-page', widgetDefinitionId: 'agenda-mvp', title: 'Agenda', settings: {} }]
     : activeWorkspace.id === 'lists'

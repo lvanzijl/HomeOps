@@ -236,3 +236,11 @@ Motivation progress now derives from task completion while Motivation remains a 
 - Home exposes lightweight add-member management, and the Family Member page supports editing name, member type, date of birth, display color, avatar configuration, and confirmed removal.
 - Removal is soft delete only. Deleted members are filtered from normal Family Member lists and new Task assignment, while existing Task and Motivation references remain intact.
 - Family Members remain household entities only; no users, authentication identities, profiles, permissions, roles, onboarding wizard, goals, rewards, or gamification management were introduced.
+
+## Phase 2 First Run Wizard
+- First Run Wizard is implemented as the second P0 onboarding slice.
+- New or reset households require onboarding when the household has no active Family Members or onboarding completion has not been persisted.
+- The wizard guides a household through Welcome, Add Adults, Add Children, Review Household, and Finish.
+- Adult and child setup uses the existing Family Member creation path; children require date of birth.
+- Completion persists the household onboarding flag and returns users to Home; configured households with active Family Members do not repeatedly see the wizard.
+- Existing Family Member Management, Home, Tasks, Lists, Agenda, Motivation, and navigation remain available after onboarding.
