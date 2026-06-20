@@ -25,6 +25,7 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
     public DbSet<FamilyMember> FamilyMembers => Set<FamilyMember>();
     public DbSet<MotivationFamilyGoal> MotivationFamilyGoals => Set<MotivationFamilyGoal>();
     public DbSet<MotivationIndividualGoal> MotivationIndividualGoals => Set<MotivationIndividualGoal>();
+    public DbSet<HelpfulMoment> HelpfulMoments => Set<HelpfulMoment>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -233,6 +234,27 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
                 .OnDelete(DeleteBehavior.Restrict);
             entity.HasIndex(goal => new { goal.HouseholdId, goal.IsActive });
             entity.HasIndex(goal => new { goal.HouseholdId, goal.FamilyMemberId, goal.IsActive });
+        });
+
+        modelBuilder.Entity<HelpfulMoment>(entity =>
+        {
+            entity.ToTable("HelpfulMoments");
+            entity.HasKey(moment => moment.Id);
+            entity.Property(moment => moment.FamilyMemberId).HasMaxLength(120).IsRequired();
+            entity.Property(moment => moment.Title).HasMaxLength(160).IsRequired();
+            entity.Property(moment => moment.Description).HasMaxLength(500);
+            entity.Property(moment => moment.RecognitionTag).HasMaxLength(40).IsRequired();
+            entity.Property(moment => moment.CreatedUtc).IsRequired();
+            entity.HasOne(moment => moment.Household)
+                .WithMany()
+                .HasForeignKey(moment => moment.HouseholdId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(moment => moment.FamilyMember)
+                .WithMany()
+                .HasForeignKey(moment => moment.FamilyMemberId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(moment => new { moment.HouseholdId, moment.CreatedUtc });
+            entity.HasIndex(moment => new { moment.HouseholdId, moment.FamilyMemberId, moment.CreatedUtc });
         });
 
         modelBuilder.Entity<WorkspaceLayout>(entity =>

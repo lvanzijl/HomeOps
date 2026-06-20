@@ -1078,6 +1078,90 @@
           }
         }
       }
+    },
+    "/api/helpful-moments": {
+      "get": {
+        "tags": [
+          "Helpful Moments"
+        ],
+        "operationId": "GetHelpfulMoments",
+        "parameters": [
+          {
+            "name": "familyMemberId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 1
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "nullable": true
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/HelpfulMomentDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Helpful Moments"
+        ],
+        "operationId": "CreateHelpfulMoment",
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateHelpfulMomentRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HelpfulMomentDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -2188,6 +2272,65 @@
             ]
           },
           "familyMemberId": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "HelpfulMomentDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "householdId": {
+            "type": "string"
+          },
+          "familyMemberId": {
+            "type": "string"
+          },
+          "familyMemberName": {
+            "type": "string"
+          },
+          "familyMemberDisplayColor": {
+            "type": "string"
+          },
+          "familyMemberInitials": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "recognitionTag": {
+            "type": "string"
+          },
+          "createdUtc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CreateHelpfulMomentRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "familyMemberId": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "recognitionTag": {
             "type": "string",
             "nullable": true
           }

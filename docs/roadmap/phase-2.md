@@ -120,3 +120,8 @@ Family Goal Creation and Editing removes the final functional P0 blocker for Mot
 - Family Member child pages now surface avatar, name, age-aware context, active family goal participation, and individual Motivation goals in a warm progress presentation.
 - The slice remains encouragement-only: no Reward Economy, gems, shops, badges, leaderboards, negative points, notifications, recurrence, or goal templates were introduced.
 - Existing Family Member persistence, avatar editing, Motivation, Tasks, Home, and navigation flows remain preserved.
+
+### Helpful Moments Foundation — Completed 2026-06-20
+- Added persisted, household-owned Helpful Moments for parent-entered recognition of kindness, initiative, teamwork, responsibility, and routines.
+- Added lightweight creation and recent-feed display on Motivation, plus member-specific recognition on Family Member pages.
+- Kept Helpful Moments separate from Tasks and Reward Economy: no points, gems, tokens, shop, leaderboard, negative points, or automatic goal progress linkage were added.
