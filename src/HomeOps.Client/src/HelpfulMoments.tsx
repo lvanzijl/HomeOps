@@ -1,0 +1,20 @@
+import { useEffect, useState, type CSSProperties, type FormEvent } from 'react';
+import type { FamilyMember } from './home/familyMembers';
+import { createHelpfulMoment, loadHelpfulMoments, recognitionTags, type HelpfulMoment, type RecognitionTag } from './helpfulMomentsData';
+
+export function HelpfulMomentsSection({ members, familyMemberId, showCreate = false, title = 'Helpful Moments' }: { members: readonly FamilyMember[]; familyMemberId?: string; showCreate?: boolean; title?: string }) {
+  const [moments, setMoments] = useState<HelpfulMoment[]>([]);
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
+  useEffect(() => { let ignore = false; setStatus('loading'); loadHelpfulMoments(familyMemberId, 8).then((loaded) => { if (!ignore) { setMoments(loaded); setStatus('ready'); } }).catch(() => { if (!ignore) setStatus('error'); }); return () => { ignore = true; }; }, [familyMemberId]);
+  return <section className="helpful-moments-section" aria-label={title}><div className="section-heading"><div><p className="eyebrow">Recognition first</p><h3>{title}</h3><p>Warm notes for kindness, initiative, teamwork, responsibility, and routines as pure recognition.</p></div></div>{showCreate ? <HelpfulMomentForm members={members} onCreated={(moment) => setMoments((current) => [moment, ...current].slice(0, 8))} /> : null}{status === 'loading' ? <p>Finding recent helpful moments…</p> : null}{status === 'error' ? <p>Helpful Moments are unavailable right now.</p> : null}{status === 'ready' && moments.length === 0 ? <p>No helpful moments recorded yet. Notice one small kindness when it happens.</p> : null}<div className="helpful-moment-feed">{moments.map((moment) => <article className="helpful-moment-card" key={moment.id} style={{ '--member-color': moment.familyMemberDisplayColor } as CSSProperties}><div className="moment-avatar" aria-hidden="true">{moment.familyMemberInitials}</div><div><div className="moment-card-heading"><strong>{moment.familyMemberName}</strong><span>{moment.recognitionTag}</span></div><h4>{moment.title}</h4>{moment.description ? <p>{moment.description}</p> : null}</div></article>)}</div></section>;
+}
+
+function HelpfulMomentForm({ members, onCreated }: { members: readonly FamilyMember[]; onCreated: (moment: HelpfulMoment) => void }) {
+  const [familyMemberId, setFamilyMemberId] = useState(members[0]?.id ?? '');
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [recognitionTag, setRecognitionTag] = useState<RecognitionTag>('Kindness');
+  const [error, setError] = useState<string | null>(null);
+  async function submit(event: FormEvent) { event.preventDefault(); if (!familyMemberId || !title.trim()) return; try { const moment = await createHelpfulMoment({ familyMemberId, title: title.trim(), description: description.trim() || undefined, recognitionTag }); onCreated(moment); setTitle(''); setDescription(''); setError(null); } catch { setError('We could not save that helpful moment.'); } }
+  return <form className="helpful-moment-form" aria-label="Create helpful moment" onSubmit={submit}><label>Family member<select value={familyMemberId} onChange={(event) => setFamilyMemberId(event.target.value)} required>{members.map((member) => <option key={member.id} value={member.id}>{member.name}</option>)}</select></label><label>What happened?<input value={title} maxLength={160} onChange={(event) => setTitle(event.target.value)} placeholder="Helped without being asked" required /></label><label>Recognition tag<select value={recognitionTag} onChange={(event) => setRecognitionTag(event.target.value as RecognitionTag)}>{recognitionTags.map((tag) => <option key={tag} value={tag}>{tag}</option>)}</select></label><label>Optional note<textarea value={description} maxLength={500} onChange={(event) => setDescription(event.target.value)} placeholder="A short warm note" /></label>{error ? <p className="form-error">{error}</p> : null}<button type="submit">Save Helpful Moment</button></form>;
+}

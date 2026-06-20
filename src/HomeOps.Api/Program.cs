@@ -57,6 +57,7 @@ app.MapFamilyMemberEndpoints();
 app.MapOnboardingEndpoints();
 app.MapTaskEndpoints();
 app.MapMotivationEndpoints();
+app.MapHelpfulMomentEndpoints();
 
 app.Run();
 

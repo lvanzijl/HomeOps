@@ -1081,3 +1081,33 @@ button {
 .child-progress-view.early-child .child-progress-card h3 { font-size: 1.6rem; }
 .child-progress-view.school-age .child-goal-card p { margin-bottom: 0; }
 @media (max-width: 760px) { .child-progress-view { grid-template-columns: 1fr; } }
+
+.helpful-moments-section { margin-top: 1.25rem; padding: 1rem; border-radius: 24px; background: rgba(255, 247, 237, 0.78); border: 1px solid rgba(251, 191, 36, 0.22); box-shadow: 0 18px 40px rgba(120, 53, 15, 0.08); }
+.section-heading { display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start; }
+.helpful-moment-form { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.75rem; margin: 1rem 0; align-items: end; }
+.helpful-moment-form label { display: flex; flex-direction: column; gap: 0.35rem; font-weight: 700; color: #6b3f12; }
+.helpful-moment-form input, .helpful-moment-form select, .helpful-moment-form textarea { border: 1px solid rgba(180, 83, 9, 0.18); border-radius: 14px; padding: 0.65rem 0.75rem; font: inherit; background: rgba(255, 255, 255, 0.85); }
+.helpful-moment-form textarea { min-height: 2.75rem; resize: vertical; }
+.helpful-moment-feed { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.85rem; }
+.helpful-moment-card { display: grid; grid-template-columns: auto 1fr; gap: 0.75rem; padding: 0.9rem; border-radius: 20px; background: rgba(255, 255, 255, 0.86); border: 1px solid rgba(251, 191, 36, 0.18); }
+.moment-avatar { width: 2.5rem; height: 2.5rem; border-radius: 999px; display: grid; place-items: center; background: var(--member-color, #fde68a); color: #3f2d0b; font-weight: 900; }
+.moment-card-heading { display: flex; justify-content: space-between; gap: 0.5rem; align-items: center; }
+.moment-card-heading span { border-radius: 999px; background: #fef3c7; color: #92400e; padding: 0.2rem 0.55rem; font-size: 0.78rem; font-weight: 800; }
+.helpful-moment-card h4 { margin: 0.25rem 0; }
+.helpful-moment-card p { margin: 0; color: #6b7280; }
+@media (max-width: 760px) { .helpful-moment-form { grid-template-columns: 1fr; } }
+
+.helpful-moments-section { margin-top: 1.25rem; padding: 1rem; border-radius: 24px; background: rgba(255, 247, 237, 0.78); border: 1px solid rgba(251, 191, 36, 0.22); box-shadow: 0 18px 40px rgba(120, 53, 15, 0.08); }
+.section-heading { display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start; }
+.helpful-moment-form { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.75rem; margin: 1rem 0; align-items: end; }
+.helpful-moment-form label { display: flex; flex-direction: column; gap: 0.35rem; font-weight: 700; color: #6b3f12; }
+.helpful-moment-form input, .helpful-moment-form select, .helpful-moment-form textarea { border: 1px solid rgba(180, 83, 9, 0.18); border-radius: 14px; padding: 0.65rem 0.75rem; font: inherit; background: rgba(255, 255, 255, 0.85); }
+.helpful-moment-form textarea { min-height: 2.75rem; resize: vertical; }
+.helpful-moment-feed { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.85rem; }
+.helpful-moment-card { display: grid; grid-template-columns: auto 1fr; gap: 0.75rem; padding: 0.9rem; border-radius: 20px; background: rgba(255, 255, 255, 0.86); border: 1px solid rgba(251, 191, 36, 0.18); }
+.moment-avatar { width: 2.5rem; height: 2.5rem; border-radius: 999px; display: grid; place-items: center; background: var(--member-color, #fde68a); color: #3f2d0b; font-weight: 900; }
+.moment-card-heading { display: flex; justify-content: space-between; gap: 0.5rem; align-items: center; }
+.moment-card-heading span { border-radius: 999px; background: #fef3c7; color: #92400e; padding: 0.2rem 0.55rem; font-size: 0.78rem; font-weight: 800; }
+.helpful-moment-card h4 { margin: 0.25rem 0; }
+.helpful-moment-card p { margin: 0; color: #6b7280; }
+@media (max-width: 760px) { .helpful-moment-form { grid-template-columns: 1fr; } }

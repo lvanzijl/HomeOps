@@ -1375,6 +1375,96 @@ export class HomeOpsApiClient {
         }
         return Promise.resolve<HouseholdTaskDto>(null as any);
     }
+
+    getHelpfulMoments(familyMemberId: string | null | undefined, limit: number | null | undefined): Promise<HelpfulMomentDto[]> {
+        let url_ = this.baseUrl + "/api/helpful-moments?";
+        if (familyMemberId !== undefined && familyMemberId !== null)
+            url_ += "familyMemberId=" + encodeURIComponent("" + familyMemberId) + "&";
+        if (limit !== undefined && limit !== null)
+            url_ += "limit=" + encodeURIComponent("" + limit) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetHelpfulMoments(_response);
+        });
+    }
+
+    protected processGetHelpfulMoments(response: Response): Promise<HelpfulMomentDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(HelpfulMomentDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<HelpfulMomentDto[]>(null as any);
+    }
+
+    createHelpfulMoment(request: CreateHelpfulMomentRequest): Promise<HelpfulMomentDto> {
+        let url_ = this.baseUrl + "/api/helpful-moments";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCreateHelpfulMoment(_response);
+        });
+    }
+
+    protected processCreateHelpfulMoment(response: Response): Promise<HelpfulMomentDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 201) {
+            return response.text().then((_responseText) => {
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result201 = HelpfulMomentDto.fromJS(resultData201);
+            return result201;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = HttpValidationProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<HelpfulMomentDto>(null as any);
+    }
 }
 
 export class EventSource implements IEventSource {
@@ -3616,6 +3706,126 @@ export interface ICreateHouseholdTaskRequest {
     dueDate?: Date | undefined;
     ownershipKind?: TaskOwnershipKind | undefined;
     familyMemberId?: string | undefined;
+}
+
+export class HelpfulMomentDto implements IHelpfulMomentDto {
+    id?: string;
+    householdId?: string;
+    familyMemberId?: string;
+    familyMemberName?: string;
+    familyMemberDisplayColor?: string;
+    familyMemberInitials?: string;
+    title?: string;
+    description?: string | undefined;
+    recognitionTag?: string;
+    createdUtc?: Date;
+
+    constructor(data?: IHelpfulMomentDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.householdId = _data["householdId"];
+            this.familyMemberId = _data["familyMemberId"];
+            this.familyMemberName = _data["familyMemberName"];
+            this.familyMemberDisplayColor = _data["familyMemberDisplayColor"];
+            this.familyMemberInitials = _data["familyMemberInitials"];
+            this.title = _data["title"];
+            this.description = _data["description"];
+            this.recognitionTag = _data["recognitionTag"];
+            this.createdUtc = _data["createdUtc"] ? new Date(_data["createdUtc"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): HelpfulMomentDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new HelpfulMomentDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["householdId"] = this.householdId;
+        data["familyMemberId"] = this.familyMemberId;
+        data["familyMemberName"] = this.familyMemberName;
+        data["familyMemberDisplayColor"] = this.familyMemberDisplayColor;
+        data["familyMemberInitials"] = this.familyMemberInitials;
+        data["title"] = this.title;
+        data["description"] = this.description;
+        data["recognitionTag"] = this.recognitionTag;
+        data["createdUtc"] = this.createdUtc ? this.createdUtc.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface IHelpfulMomentDto {
+    id?: string;
+    householdId?: string;
+    familyMemberId?: string;
+    familyMemberName?: string;
+    familyMemberDisplayColor?: string;
+    familyMemberInitials?: string;
+    title?: string;
+    description?: string | undefined;
+    recognitionTag?: string;
+    createdUtc?: Date;
+}
+
+export class CreateHelpfulMomentRequest implements ICreateHelpfulMomentRequest {
+    familyMemberId?: string;
+    title?: string;
+    description?: string | undefined;
+    recognitionTag?: string | undefined;
+
+    constructor(data?: ICreateHelpfulMomentRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.familyMemberId = _data["familyMemberId"];
+            this.title = _data["title"];
+            this.description = _data["description"];
+            this.recognitionTag = _data["recognitionTag"];
+        }
+    }
+
+    static fromJS(data: any): CreateHelpfulMomentRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreateHelpfulMomentRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["familyMemberId"] = this.familyMemberId;
+        data["title"] = this.title;
+        data["description"] = this.description;
+        data["recognitionTag"] = this.recognitionTag;
+        return data;
+    }
+}
+
+export interface ICreateHelpfulMomentRequest {
+    familyMemberId?: string;
+    title?: string;
+    description?: string | undefined;
+    recognitionTag?: string | undefined;
 }
 
 function formatDate(d: Date) {

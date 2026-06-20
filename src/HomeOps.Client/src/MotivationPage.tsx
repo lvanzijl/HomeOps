@@ -1,5 +1,6 @@
 import { useEffect, useState, type CSSProperties, type FormEvent } from 'react';
 import { FamilyAvatar } from './home/FamilyAvatar';
+import { HelpfulMomentsSection } from './HelpfulMoments';
 import type { FamilyMember } from './home/familyMembers';
 import { clampProgress, createFamilyGoal, goalsForMembers, loadMotivationSnapshot, updateFamilyGoal, type MotivationFamilyGoal, type MotivationSnapshot } from './motivationData';
 
@@ -90,6 +91,8 @@ export function MotivationPage({ members }: MotivationPageProps) {
           }}
         />
       ) : null}
+
+      <HelpfulMomentsSection members={members} showCreate title="Recent Helpful Moments" />
 
       <section className="individual-goals" aria-label="Individual encouragement goals">
         <h3>Personal goals this week</h3>

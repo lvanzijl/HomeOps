@@ -1,3 +1,4 @@
+import { HelpfulMomentsSection } from '../HelpfulMoments';
 import { type CSSProperties, type FormEvent, useEffect, useState } from 'react';
 import { clampProgress, goalsForMembers, loadMotivationSnapshot, type MotivationFamilyGoal, type MotivationIndividualGoal, type MotivationSnapshot } from '../motivationData';
 import { FamilyAvatar } from './FamilyAvatar';
@@ -71,8 +72,9 @@ export function FamilyMemberPage({ member, onBack, onChange, onRemove }: FamilyM
         <section className={`child-progress-view ${ageBand}`} aria-label={`${member.name} progress view`}>
           <FamilyGoalParticipation familyGoal={motivationSnapshot.familyGoal} status={motivationStatus} />
           <IndividualGoalProgress goals={memberGoals} ageBand={ageBand} member={member} />
+          <HelpfulMomentsSection members={[member]} familyMemberId={member.id} title={`${member.name}'s Helpful Moments`} />
         </section>
-      ) : null}
+      ) : <HelpfulMomentsSection members={[member]} familyMemberId={member.id} title={`${member.name}'s Helpful Moments`} />}
 
       <div className="family-member-detail-grid">
         <article className="family-member-detail-card">

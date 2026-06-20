@@ -252,3 +252,9 @@ Empty State UX Foundation completes the remaining P0 onboarding gap by making em
 
 ## Family Goal Creation and Editing
 Family Goal Creation closes the final functional P0 blocker for Motivation. Households can create their first active family goal from the Motivation empty state using title, target count, progress wording, and an optional family celebration label. The active family goal can be edited in place while preserving existing progress and capping progress if the target is lowered. Home continues to show the active family goal through the Motivation tile after the household returns to Home. Individual goal creation, Helpful Moments, Gems, Reward Economy, Shop, badges, leaderboards, negative points, goal templates, recurrence, notifications, Google Calendar, authentication, permissions, and roles remain deferred.
+
+### Helpful Moments Foundation — Completed
+- Helpful Moments now persist parent-entered recognition for positive household behavior that does not fit naturally into Tasks.
+- Helpful Moments capture a Family Member, short title, optional note, simple recognition tag, and creation time.
+- Motivation shows a warm recent Helpful Moments feed with lightweight creation, and Family Member pages show member-specific moments.
+- Helpful Moments are recognition-only in this slice: no points, balances, reward economy linkage, leaderboards, or automatic Motivation progress changes were introduced.
