@@ -111,3 +111,7 @@ First Run Wizard completes the second P0 onboarding slice by adding household fi
 - Empty pages now explain the value of the domain and expose a clear first action.
 - This closes the P0 onboarding completion gap identified by user research after First Run Wizard.
 - Kept empty states lightweight and out of tutorial, rewards, Google Calendar, notification, and gamification scope.
+
+
+## Completed Slice 2.29 — Family Goal Creation and Editing
+Family Goal Creation and Editing removes the final functional P0 blocker for Motivation by letting a newly onboarded household create its first active family goal without developer assistance. The Motivation empty state now explains family goals and opens a minimal create form for title, target count, progress wording, and an optional family celebration label. The active family goal can be edited in place, preserving progress and capping progress when the target is lowered. Home continues to surface the active family goal through the existing Motivation tile after navigation back to Home. Individual goal creation, Helpful Moments, Gems, Reward Economy, Shop, badges, leaderboards, negative points, templates, recurrence, notifications, Google Calendar, authentication, permissions, and roles remain out of scope.

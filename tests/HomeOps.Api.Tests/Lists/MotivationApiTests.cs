@@ -154,13 +154,76 @@ public sealed class MotivationApiTests(HomeOpsWebApplicationFactory factory) : I
     }
 
 
-    [Theory]
-    [InlineData("/api/motivation")]
-    [InlineData("/api/motivation/family-goals")]
-    public async Task MotivationMutationEndpointsAreNotAvailable(string url)
+    [Fact]
+    public async Task CreateFamilyGoalCreatesFirstActiveFamilyGoal()
     {
-        var response = await _client.PostAsJsonAsync(url, new { title = "New goal" });
+        await using var isolatedFactory = new HomeOpsWebApplicationFactory();
+        var client = isolatedFactory.CreateClient();
+        using (var scope = isolatedFactory.Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<HomeOpsDbContext>();
+            dbContext.MotivationFamilyGoals.RemoveRange(dbContext.MotivationFamilyGoals);
+            await dbContext.SaveChangesAsync();
+        }
 
-        Assert.Contains(response.StatusCode, new[] { HttpStatusCode.MethodNotAllowed, HttpStatusCode.NotFound });
+        var response = await client.PostAsJsonAsync("/api/motivation/family-goals", new UpsertMotivationFamilyGoalRequest(
+            "Complete 10 helpful household tasks",
+            10,
+            "helpful tasks",
+            "Movie night together"));
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var created = await response.Content.ReadFromJsonAsync<MotivationFamilyGoalDto>();
+        Assert.NotNull(created);
+        Assert.Equal("Complete 10 helpful household tasks", created.Title);
+        Assert.Equal(0, created.CurrentProgress);
+        var snapshot = await client.GetFromJsonAsync<MotivationSnapshotDto>("/api/motivation");
+        Assert.Equal(created.Id, snapshot?.FamilyGoal?.Id);
+    }
+
+    [Fact]
+    public async Task EditActiveFamilyGoalPreservesAndCapsProgress()
+    {
+        await using var isolatedFactory = new HomeOpsWebApplicationFactory();
+        var client = isolatedFactory.CreateClient();
+        var before = await client.GetFromJsonAsync<MotivationSnapshotDto>("/api/motivation");
+        Assert.NotNull(before?.FamilyGoal);
+
+        var response = await client.PutAsJsonAsync($"/api/motivation/family-goals/{before.FamilyGoal.Id}", new UpsertMotivationFamilyGoalRequest(
+            "Complete 5 helpful household tasks",
+            5,
+            "helpful tasks",
+            null));
+
+        response.EnsureSuccessStatusCode();
+        var updated = await response.Content.ReadFromJsonAsync<MotivationFamilyGoalDto>();
+        Assert.NotNull(updated);
+        Assert.Equal("Complete 5 helpful household tasks", updated.Title);
+        Assert.Equal(5, updated.TargetCount);
+        Assert.Equal(5, updated.CurrentProgress);
+        Assert.Null(updated.RewardLabel);
+    }
+
+    [Fact]
+    public async Task FamilyGoalCreationRejectsRewardEconomyFieldsByIgnoringUnknownJson()
+    {
+        await using var isolatedFactory = new HomeOpsWebApplicationFactory();
+        var client = isolatedFactory.CreateClient();
+
+        var response = await client.PostAsJsonAsync("/api/motivation/family-goals", new
+        {
+            title = "Finish weekend reset together",
+            targetCount = 4,
+            unitLabel = "helpful tasks",
+            rewardLabel = "Pancake breakfast",
+            points = 50,
+            shop = "Prize shelf",
+            negativePoints = true
+        });
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var created = await response.Content.ReadFromJsonAsync<MotivationFamilyGoalDto>();
+        Assert.NotNull(created);
+        Assert.Equal("Pancake breakfast", created.RewardLabel);
     }
 }
