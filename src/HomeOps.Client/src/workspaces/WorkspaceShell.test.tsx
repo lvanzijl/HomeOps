@@ -8,7 +8,7 @@ vi.mock('./workspaceLayout', () => ({
 }));
 
 vi.mock('../home/HomeDashboard', () => ({
-  HomeDashboard: ({ onNavigate }: { onNavigate: (destination: 'agenda' | 'lists' | 'tasks' | 'house' | 'media' | 'gamification' | 'settings') => void }) => (
+  HomeDashboard: ({ onNavigate }: { onNavigate: (destination: 'agenda' | 'lists' | 'tasks' | 'motivation' | 'house' | 'media' | 'gamification' | 'settings') => void }) => (
     <section aria-label="Home dashboard"><button onClick={() => onNavigate('agenda')} type="button">Open Agenda</button></section>
   ),
 }));
@@ -73,6 +73,10 @@ describe('WorkspaceShell API-backed layouts', () => {
     const gamificationButton = screen.getByRole('button', { name: 'Gamification' });
     expect(mediaButton.className).toContain('domain-media');
     expect(gamificationButton.className).toContain('domain-gamification');
+    expect(screen.getByRole('button', { name: 'Motivation' }).className).toContain('domain-motivation');
+
+    await user.click(screen.getByRole('button', { name: 'Motivation' }));
+    expect(await screen.findByLabelText('Motivation page')).not.toBeNull();
 
     await user.click(mediaButton);
     const mediaPlaceholder = await screen.findByLabelText('Media placeholder page');

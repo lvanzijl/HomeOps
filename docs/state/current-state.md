@@ -211,3 +211,10 @@ Proceed with recurrence/occurrence editing UX or Real Google Calendar Read-Only 
 
 ## Home Task Summary
 Home now surfaces the three core household domains on the dashboard: Agenda, Shopping/Lists, and Tasks. The Tasks summary is bounded to overdue, due today, and upcoming active tasks with title, owner/shared household indicator, and due information only. Home remains summary-only: task creation, editing, completion, recurrence, approval, points, categories, notifications, reminders, and configuration stay off Home and remain owned by the dedicated Tasks page or future slices.
+
+## Phase 2 Motivation Page Foundation
+- Motivation is now a dedicated encouragement page separate from Tasks, Gamification, and the future Reward Economy.
+- The first foundation uses lightweight seeded client data for one active family goal with title, target, current progress, optional shared reward label, and warm progress copy.
+- Individual goal cards are linked to loaded Family Members and show member avatar/name plus star/checkmark progress without ranking, comparison, balances, or punitive states.
+- Home includes a compact Motivation tile that shows only the active family goal title and progress and navigates to the Motivation page.
+- Reward Economy, gems, shop, spend/redeem flows, avatar unlocks, leaderboards, Helpful Moments, task approval, task recurrence, authentication, permissions, and roles remain deferred.

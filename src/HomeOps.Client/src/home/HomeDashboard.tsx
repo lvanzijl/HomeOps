@@ -28,11 +28,12 @@ import { loadTasks } from "../tasks/tasksApi";
 import { groupTasksByUrgency } from "../tasks/taskGrouping";
 import type { HouseholdTask } from "../tasks/tasksModel";
 import { FamilyAvatar } from "./FamilyAvatar";
+import { clampProgress, motivationSnapshot } from "../motivationData";
 import type { FamilyMember } from "./familyMembers";
 
 interface HomeDashboardProps {
   members: readonly FamilyMember[];
-  onNavigate: (destination: "agenda" | "lists" | "tasks") => void;
+  onNavigate: (destination: "agenda" | "lists" | "tasks" | "motivation") => void;
   onSelectFamilyMember: (memberId: string) => void;
 }
 
@@ -215,6 +216,7 @@ export function HomeDashboard({
     0,
     summaryTasks.length - visibleTasks.length,
   );
+  const motivationProgress = clampProgress(motivationSnapshot.familyGoal.currentProgress, motivationSnapshot.familyGoal.targetCount);
 
   return (
     <section className="home-dashboard" aria-label="Home dashboard">
@@ -407,6 +409,26 @@ export function HomeDashboard({
           <p className="home-context-note">
             Shared for {members.length} household members.
           </p>
+        </article>
+
+        <article
+          className="home-summary-card motivation-summary"
+          onClick={() => onNavigate("motivation")}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => e.key === "Enter" && onNavigate("motivation")}
+          aria-label="Motivation summary"
+        >
+          <CardHeader
+            title="Motivation"
+            action="View Motivation"
+            meta={`${motivationSnapshot.familyGoal.currentProgress}/${motivationSnapshot.familyGoal.targetCount} ${motivationSnapshot.familyGoal.unitLabel}`}
+          />
+          <p className="motivation-tile-title">{motivationSnapshot.familyGoal.title}</p>
+          <div className="progress-bar" aria-label={`Family goal progress ${motivationSnapshot.familyGoal.currentProgress} of ${motivationSnapshot.familyGoal.targetCount}`}>
+            <span style={{ width: `${motivationProgress}%` }} />
+          </div>
+          <p className="home-context-note">A shared encouragement goal for the household.</p>
         </article>
 
         <article

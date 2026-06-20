@@ -7,6 +7,7 @@ export const domainColorClassByWorkspace: Record<WorkspaceId, string> = {
   agenda: 'domain-agenda',
   lists: 'domain-lists',
   tasks: 'domain-tasks',
+  motivation: 'domain-motivation',
   house: 'domain-house',
   media: 'domain-media',
   gamification: 'domain-gamification',

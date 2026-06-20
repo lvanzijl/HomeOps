@@ -202,6 +202,28 @@ describe("HomeDashboard", () => {
     ).not.toBeNull();
   });
 
+  it("renders and navigates from the Home Motivation tile", async () => {
+    const user = userEvent.setup();
+    const onNavigate = vi.fn();
+    render(
+      <HomeDashboard
+        members={familyMembers}
+        onNavigate={onNavigate}
+        onSelectFamilyMember={vi.fn()}
+      />,
+    );
+
+    const tile = screen.getByLabelText("Motivation summary");
+    expect(within(tile).getByText("Fill the family helper path")).not.toBeNull();
+    expect(within(tile).getByText("13/20 helpful actions")).not.toBeNull();
+    expect(within(tile).queryByText(/shop/i)).toBeNull();
+    expect(within(tile).queryByText(/^gems?$/i)).toBeNull();
+    expect(within(tile).queryByText(/leaderboard/i)).toBeNull();
+
+    await user.click(tile);
+    expect(onNavigate).toHaveBeenCalledWith("motivation");
+  });
+
   it("selects a family member instead of opening the avatar editor on Home", async () => {
     const user = userEvent.setup();
     const onSelectFamilyMember = vi.fn();
