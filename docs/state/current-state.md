@@ -4,7 +4,7 @@
 Phase 2 — Durable Household Core
 
 ## Current Slice
-Child Hero Area — Completed
+Product Experience Review Round 4 — Completed
 
 ## Completed Slices
 - 1.1 Repository Bootstrap
@@ -33,6 +33,7 @@ Child Hero Area — Completed
 - 2.23 Home Task Summary
 - Child Progress View
 - Child Hero Area
+- Product Experience Review Round 4
 
 ## Next Slice
 Proceed with the next Phase 2 household-core slice only after preserving Home as summary-first, Family Members as non-authentication household entities, Motivation progress as encouragement-only, and HomeOps Calendar source-of-truth/local-only portability boundaries.
