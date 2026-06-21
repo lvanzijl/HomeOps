@@ -317,3 +317,11 @@ Family Goal Creation closes the final functional P0 blocker for Motivation. Hous
 - The hero-first hierarchy intentionally reads as identity, current goal, progress, family contribution, then celebration so children can answer “Who am I?”, “How am I doing?”, “What am I working on?”, and “How am I helping?” without scanning multiple cards.
 - Family contribution visibility connects the child to the shared active family goal with together-language and no rankings, comparisons, leaderboards, gems, shops, purchases, or Reward Economy behavior.
 - Existing Child Workspace, Child Mode, Motivation, Family Goals, Individual Goals, Helpful Moments, Family Celebrations, and avatar editing remain preserved.
+
+### Child Journey — Completed 2026-06-21
+- Child Mode now reads as a guided Child Journey: Hero, Today, This Week, Family Goal, Helpful Moments, then secondary Parent Mode access.
+- Today shows active child-owned tasks with friendly action copy and a small count summary, without task administration controls.
+- This Week shows active individual Motivation goals with visual progress and encouraging status language.
+- Family Goal shows active shared family progress, belonging-oriented contribution context, and Family Celebration context when available.
+- Existing Child Mode, Child Hero Area, Motivation, Family Goals, Individual Goals, Helpful Moments, Family Celebrations, Parent Mode, Tasks, and avatar editing remain preserved.
+- Reward Economy, gems, shops, purchases, notifications, Google Calendar, dashboard customization, household settings, rankings, comparisons, and leaderboards remain out of scope.

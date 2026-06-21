@@ -1,4 +1,6 @@
 import { HelpfulMomentsSection } from "../HelpfulMoments";
+import { loadTasks } from "../tasks/tasksApi";
+import type { HouseholdTask } from "../tasks/tasksModel";
 import { type CSSProperties, type FormEvent, useEffect, useState } from "react";
 import { FamilyCelebrationStatus } from "../api/homeOpsApiClient";
 import {
@@ -37,6 +39,10 @@ export function FamilyMemberPage({
   );
   const [motivationSnapshot, setMotivationSnapshot] =
     useState<MotivationSnapshot>({ individualGoals: [] });
+  const [tasks, setTasks] = useState<readonly HouseholdTask[]>([]);
+  const [tasksStatus, setTasksStatus] = useState<
+    "loading" | "ready" | "error"
+  >("loading");
 
   useEffect(() => {
     setDraft(member);
@@ -55,6 +61,24 @@ export function FamilyMemberPage({
       })
       .catch(() => {
         if (!ignore) setMotivationStatus("error");
+      });
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    let ignore = false;
+    setTasksStatus("loading");
+    loadTasks()
+      .then((loadedTasks) => {
+        if (!ignore) {
+          setTasks(loadedTasks);
+          setTasksStatus("ready");
+        }
+      })
+      .catch(() => {
+        if (!ignore) setTasksStatus("error");
       });
     return () => {
       ignore = true;
@@ -136,15 +160,20 @@ export function FamilyMemberPage({
                 status={motivationStatus}
                 ageBand={ageBand}
               />
-              <FamilyGoalParticipation
-                familyGoal={motivationSnapshot.familyGoal}
-                status={motivationStatus}
-                ageBand={ageBand}
+              <TodaySection
+                member={member}
+                tasks={tasks}
+                status={tasksStatus}
               />
               <IndividualGoalProgress
                 goals={memberGoals}
                 ageBand={ageBand}
                 member={member}
+              />
+              <FamilyGoalParticipation
+                familyGoal={motivationSnapshot.familyGoal}
+                status={motivationStatus}
+                ageBand={ageBand}
               />
               <HelpfulMomentsSection
                 members={[member]}
@@ -531,6 +560,79 @@ function ChildHeroArea({
   );
 }
 
+function TodaySection({
+  member,
+  tasks,
+  status,
+}: {
+  member: FamilyMember;
+  tasks: readonly HouseholdTask[];
+  status: "loading" | "ready" | "error";
+}) {
+  const childTasks = tasks
+    .filter(
+      (task) =>
+        !task.isCompleted &&
+        task.ownershipKind === "FamilyMember" &&
+        task.familyMemberId === member.id,
+    )
+    .sort(
+      (a, b) =>
+        (a.dueDate ?? "9999-12-31").localeCompare(
+          b.dueDate ?? "9999-12-31",
+        ) || a.createdUtc.localeCompare(b.createdUtc),
+    );
+  const visibleTasks = childTasks.slice(0, 3);
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const dueTodayCount = childTasks.filter(
+    (task) => task.dueDate === null || task.dueDate <= todayIso,
+  ).length;
+
+  return (
+    <article
+      className="child-progress-card child-journey-today"
+      aria-label="Today"
+    >
+      <p className="eyebrow">Today</p>
+      <h3>What should I do today?</h3>
+      {status === "loading" ? <p>Finding your helpful jobs…</p> : null}
+      {status === "error" ? (
+        <p>Your tasks are resting right now. Try again in a little bit.</p>
+      ) : null}
+      {status === "ready" && childTasks.length === 0 ? (
+        <p>
+          No child-owned tasks are active right now. Enjoy helping when a grown-up
+          adds one for you.
+        </p>
+      ) : null}
+      {childTasks.length > 0 ? (
+        <>
+          <p className="child-journey-summary">
+            {dueTodayCount > 0
+              ? `${dueTodayCount} ${
+                  dueTodayCount === 1 ? "thing" : "things"
+                } to try today.`
+              : `${childTasks.length} active ${
+                  childTasks.length === 1 ? "task" : "tasks"
+                } waiting for you.`}
+          </p>
+          <ul className="child-task-list">
+            {visibleTasks.map((task) => (
+              <li key={task.id}>
+                <span aria-hidden="true">✓</span>
+                <div>
+                  <strong>{task.title}</strong>
+                  <p>{friendlyTaskDue(task)}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : null}
+    </article>
+  );
+}
+
 function FamilyGoalParticipation({
   familyGoal,
   status,
@@ -575,7 +677,7 @@ function FamilyGoalParticipation({
       className="child-progress-card family-goal-participation"
       aria-label="Family goal participation"
     >
-      <p className="eyebrow">Helping the family goal</p>
+      <p className="eyebrow">Family Goal</p>
       <h3>{familyGoal.title}</h3>
       <p>
         {remaining > 0
@@ -617,7 +719,10 @@ function FamilyCelebrationCard({
         ? "Ready to celebrate"
         : "When we finish";
   return (
-    <aside className="family-celebration-card" aria-label="Family celebration">
+    <aside
+      className="family-celebration-card"
+      aria-label="Family celebration"
+    >
       <span aria-hidden="true">{ageBand === "early-child" ? "🎉" : "✨"}</span>
       <div>
         <p className="eyebrow">{statusText}</p>
@@ -640,8 +745,8 @@ function IndividualGoalProgress({
   member: FamilyMember;
 }) {
   return (
-    <article className="child-progress-card" aria-label="Individual goals">
-      <p className="eyebrow">My goals</p>
+    <article className="child-progress-card" aria-label="This Week">
+      <p className="eyebrow">This Week</p>
       <h3>
         {ageBand === "early-child"
           ? "Stars to collect"
@@ -700,6 +805,14 @@ function IndividualGoalProgress({
       </div>
     </article>
   );
+}
+
+function friendlyTaskDue(task: HouseholdTask) {
+  const todayIso = new Date().toISOString().slice(0, 10);
+  if (!task.dueDate) return "Ready when you are.";
+  if (task.dueDate < todayIso) return "This one is waiting for you.";
+  if (task.dueDate === todayIso) return "For today.";
+  return `Coming up on ${task.dueDate}.`;
 }
 
 function calculateAge(dateOfBirth?: string | null) {
