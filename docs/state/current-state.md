@@ -453,3 +453,9 @@ Semantic Icon Layer now resolves Helpful Moment recognition categories to existi
 
 ### Child Ownership Asset Integration — Completed 2026-06-21
 Semantic Icon Layer now resolves Child Ownership semantic names to existing HomeOps-owned SVG assets for My Progress, My Help Mattered, Family Participation, Today, and This Week. Child Workspace and Motivation surfaces render ownership, contribution, participation, Today, and This Week visuals through semantic icon names instead of Unicode/symbol-based visuals. Ownership remains non-competitive and family-centered: assets support “I helped,” “My progress,” and “We did this together” without rankings, scores, rewards, leaderboards, or behavior changes.
+
+## Phase 2 Visual Review Fixture Pack
+- Visual review fixtures are explicitly selectable through `/api/visual-review-fixtures` and are not part of normal EF production seed data or application startup.
+- Supported scenarios are `visual-full`, `visual-mixed`, `visual-empty`, `visual-child-young`, `visual-child-older`, `visual-weekly-reset`, and `visual-shopping-lifecycle`.
+- Resetting a scenario clears review runtime data and reloads deterministic fixture data with stable identifiers and a fixed `2026-06-21T09:00:00Z` anchor timestamp for repeatable screenshot and Playwright review workflows.
+- Fixture scenarios cover rich household, child workspace, motivation, celebration, shopping lifecycle, weekly reset, and empty-state review surfaces without adding production functionality.

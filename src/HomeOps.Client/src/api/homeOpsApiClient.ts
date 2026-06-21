@@ -2492,6 +2492,88 @@ export class HomeOpsApiClient {
         }
         return Promise.resolve<void>(null as any);
     }
+
+    getVisualReviewFixtureScenarios(): Promise<VisualReviewScenarioDto[]> {
+        let url_ = this.baseUrl + "/api/visual-review-fixtures/scenarios";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetVisualReviewFixtureScenarios(_response);
+        });
+    }
+
+    protected processGetVisualReviewFixtureScenarios(response: Response): Promise<VisualReviewScenarioDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(VisualReviewScenarioDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<VisualReviewScenarioDto[]>(null as any);
+    }
+
+    resetVisualReviewFixtureScenario(scenarioName: string): Promise<ApplyVisualReviewScenarioResponse> {
+        let url_ = this.baseUrl + "/api/visual-review-fixtures/{scenarioName}/reset";
+        if (scenarioName === undefined || scenarioName === null)
+            throw new globalThis.Error("The parameter 'scenarioName' must be defined.");
+        url_ = url_.replace("{scenarioName}", encodeURIComponent("" + scenarioName));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processResetVisualReviewFixtureScenario(_response);
+        });
+    }
+
+    protected processResetVisualReviewFixtureScenario(response: Response): Promise<ApplyVisualReviewScenarioResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ApplyVisualReviewScenarioResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ApplyVisualReviewScenarioResponse>(null as any);
+    }
 }
 
 export class EventSource implements IEventSource {
@@ -5930,6 +6012,118 @@ export interface IWeeklyContributionRecapDto {
     individualGoals?: MotivationIndividualGoalDto[];
     helpfulMoments?: HelpfulMomentDto[];
     celebrationMemories?: MotivationFamilyCelebrationMemoryDto[];
+}
+
+export class VisualReviewScenarioDto implements IVisualReviewScenarioDto {
+    name?: string;
+    purpose?: string;
+
+    constructor(data?: IVisualReviewScenarioDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.name = _data["name"];
+            this.purpose = _data["purpose"];
+        }
+    }
+
+    static fromJS(data: any): VisualReviewScenarioDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new VisualReviewScenarioDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["name"] = this.name;
+        data["purpose"] = this.purpose;
+        return data;
+    }
+}
+
+export interface IVisualReviewScenarioDto {
+    name?: string;
+    purpose?: string;
+}
+
+export class ApplyVisualReviewScenarioResponse implements IApplyVisualReviewScenarioResponse {
+    scenarioName?: string;
+    anchorUtc?: Date;
+    familyMembers?: number;
+    tasks?: number;
+    lists?: number;
+    listItems?: number;
+    familyGoals?: number;
+    individualGoals?: number;
+    helpfulMoments?: number;
+    events?: number;
+
+    constructor(data?: IApplyVisualReviewScenarioResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.scenarioName = _data["scenarioName"];
+            this.anchorUtc = _data["anchorUtc"] ? new Date(_data["anchorUtc"].toString()) : undefined as any;
+            this.familyMembers = _data["familyMembers"];
+            this.tasks = _data["tasks"];
+            this.lists = _data["lists"];
+            this.listItems = _data["listItems"];
+            this.familyGoals = _data["familyGoals"];
+            this.individualGoals = _data["individualGoals"];
+            this.helpfulMoments = _data["helpfulMoments"];
+            this.events = _data["events"];
+        }
+    }
+
+    static fromJS(data: any): ApplyVisualReviewScenarioResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new ApplyVisualReviewScenarioResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["scenarioName"] = this.scenarioName;
+        data["anchorUtc"] = this.anchorUtc ? this.anchorUtc.toISOString() : undefined as any;
+        data["familyMembers"] = this.familyMembers;
+        data["tasks"] = this.tasks;
+        data["lists"] = this.lists;
+        data["listItems"] = this.listItems;
+        data["familyGoals"] = this.familyGoals;
+        data["individualGoals"] = this.individualGoals;
+        data["helpfulMoments"] = this.helpfulMoments;
+        data["events"] = this.events;
+        return data;
+    }
+}
+
+export interface IApplyVisualReviewScenarioResponse {
+    scenarioName?: string;
+    anchorUtc?: Date;
+    familyMembers?: number;
+    tasks?: number;
+    lists?: number;
+    listItems?: number;
+    familyGoals?: number;
+    individualGoals?: number;
+    helpfulMoments?: number;
+    events?: number;
 }
 
 function formatDate(d: Date) {

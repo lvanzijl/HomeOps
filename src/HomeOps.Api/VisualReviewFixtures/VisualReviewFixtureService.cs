@@ -1,0 +1,108 @@
+using HomeOps.Api.CalendarEvents;
+using HomeOps.Api.Data;
+using HomeOps.Api.FamilyMembers;
+using HomeOps.Api.Households;
+using HomeOps.Api.Lists;
+using HomeOps.Api.Motivation;
+using HomeOps.Api.Tasks;
+using Microsoft.EntityFrameworkCore;
+
+namespace HomeOps.Api.VisualReviewFixtures;
+
+public static class VisualReviewFixtureService
+{
+    private static readonly DateTimeOffset AnchorUtc = new(2026, 6, 21, 9, 0, 0, TimeSpan.Zero);
+    private static readonly DateOnly Today = new(2026, 6, 21);
+    private static readonly Guid CalendarSourceId = Guid.Parse("77000000-0000-0000-0000-000000000001");
+    public static readonly IReadOnlyCollection<VisualReviewScenarioDto> Scenarios =
+    [
+        new("visual-full", "Rich showcase state for full UX, asset, layout, shopping, motivation, celebration, memory, and weekly reset review."),
+        new("visual-mixed", "Typical household state with active items, completed items, empty sections, and partial progress."),
+        new("visual-empty", "Empty-state UX review for Home, Motivation, Lists, and Tasks surfaces."),
+        new("visual-child-young", "Younger child workspace review with child tasks, helpful moments, goal progress, and celebration context."),
+        new("visual-child-older", "Older child workspace review with a personal goal, contributions, helpful moments, and celebration context."),
+        new("visual-weekly-reset", "Weekly Reset review with candidates, goal confirmation, shopping review, and contribution recap."),
+        new("visual-shopping-lifecycle", "Shopping lifecycle review with active, completed, deleted, store-suggested, and archived list states."),
+    ];
+
+    public static async Task<ApplyVisualReviewScenarioResponse?> ApplyScenario(HomeOpsDbContext db, string scenarioName, CancellationToken ct)
+    {
+        if (!Scenarios.Any(s => string.Equals(s.Name, scenarioName, StringComparison.OrdinalIgnoreCase))) return null;
+        await ClearReviewData(db, ct);
+        await EnsureHousehold(db, ct);
+        if (scenarioName != "visual-empty") AddFamily(db);
+        AddCalendarSource(db);
+        switch (scenarioName)
+        {
+            case "visual-full": AddFull(db); break;
+            case "visual-mixed": AddMixed(db); break;
+            case "visual-child-young": AddChildYoung(db); break;
+            case "visual-child-older": AddChildOlder(db); break;
+            case "visual-weekly-reset": AddWeeklyReset(db); break;
+            case "visual-shopping-lifecycle": AddShoppingLifecycle(db); break;
+        }
+        await db.SaveChangesAsync(ct);
+        return new(scenarioName, AnchorUtc, db.FamilyMembers.Local.Count, db.HouseholdTasks.Local.Count, db.Lists.Local.Count, db.ListItems.Local.Count, db.MotivationFamilyGoals.Local.Count, db.MotivationIndividualGoals.Local.Count, db.HelpfulMoments.Local.Count, db.EventSeries.Local.Count);
+    }
+
+    private static async Task ClearReviewData(HomeOpsDbContext db, CancellationToken ct)
+    {
+        db.EventExceptions.RemoveRange(await db.EventExceptions.ToListAsync(ct));
+        db.EventSeries.RemoveRange(await db.EventSeries.ToListAsync(ct));
+        db.EventSources.RemoveRange(await db.EventSources.ToListAsync(ct));
+        db.HelpfulMoments.RemoveRange(await db.HelpfulMoments.ToListAsync(ct));
+        db.MotivationIndividualGoals.RemoveRange(await db.MotivationIndividualGoals.ToListAsync(ct));
+        db.MotivationFamilyGoals.RemoveRange(await db.MotivationFamilyGoals.ToListAsync(ct));
+        db.HouseholdTasks.RemoveRange(await db.HouseholdTasks.ToListAsync(ct));
+        db.RecurringTaskSeries.RemoveRange(await db.RecurringTaskSeries.ToListAsync(ct));
+        db.TaskTemplateItems.RemoveRange(await db.TaskTemplateItems.ToListAsync(ct));
+        db.TaskTemplates.RemoveRange(await db.TaskTemplates.ToListAsync(ct));
+        db.ListItems.RemoveRange(await db.ListItems.ToListAsync(ct));
+        db.ShoppingPurchaseHistories.RemoveRange(await db.ShoppingPurchaseHistories.ToListAsync(ct));
+        db.Lists.RemoveRange(await db.Lists.ToListAsync(ct));
+        db.FamilyMembers.RemoveRange(await db.FamilyMembers.ToListAsync(ct));
+        await db.SaveChangesAsync(ct);
+    }
+
+    private static async Task EnsureHousehold(HomeOpsDbContext db, CancellationToken ct)
+    {
+        var household = await db.Households.FirstOrDefaultAsync(h => h.Id == SeedHousehold.Id, ct);
+        if (household is null) db.Households.Add(new() { Id = SeedHousehold.Id, Name = "Visual Review Household", TimeZoneId = "Europe/Amsterdam", OnboardingCompleted = true, CreatedUtc = AnchorUtc, UpdatedUtc = AnchorUtc });
+        else { household.Name = "Visual Review Household"; household.OnboardingCompleted = true; household.UpdatedUtc = AnchorUtc; }
+    }
+
+    private static void AddFamily(HomeOpsDbContext db) => db.FamilyMembers.AddRange(Member("alex", "Alex", FamilyMemberKind.Adult, "#f8c8dc", "A"), Member("sam", "Sam", FamilyMemberKind.Adult, "#c7d2fe", "S"), Member("riley", "Riley", FamilyMemberKind.Child, "#bbf7d0", "R"), Member("jordan", "Jordan", FamilyMemberKind.Child, "#fde68a", "J"));
+    private static FamilyMember Member(string id, string name, FamilyMemberKind kind, string color, string initials) => new() { Id = id, HouseholdId = SeedHousehold.Id, Name = name, DisplayColor = color, Initials = initials, MemberKind = kind, DateOfBirth = kind == FamilyMemberKind.Child ? new DateOnly(id == "riley" ? 2017 : 2012, 4, 12) : null, AgeGroup = kind == FamilyMemberKind.Child ? FamilyMemberAgeGroup.Child : FamilyMemberAgeGroup.Adult, Presentation = FamilyMemberPresentation.Neutral, SkinTone = "#f1c27d", HairColor = "#4b5563", HairStyle = FamilyMemberHairStyle.Short, ShirtColor = color, CreatedUtc = AnchorUtc, UpdatedUtc = AnchorUtc };
+    private static void AddCalendarSource(HomeOpsDbContext db) => db.EventSources.Add(new() { Id = CalendarSourceId, HouseholdId = SeedHousehold.Id, Name = "Visual Review Calendar", SourceType = "manual", IsWritable = true, CreatedUtc = AnchorUtc, UpdatedUtc = AnchorUtc });
+    private static Guid Id(int i) => Guid.Parse($"77000000-0000-0000-0000-{i:000000000000}");
+
+    private static void AddFull(HomeOpsDbContext db) { AddTasks(db, 10); AddShopping(db, true); AddGoals(db, FamilyCelebrationStatus.Celebrated); AddMoments(db, 5); AddEvents(db); }
+    private static void AddMixed(HomeOpsDbContext db) { AddTasks(db, 5); AddShopping(db, false); AddGoals(db, FamilyCelebrationStatus.Planned); AddMoments(db, 2); }
+    private static void AddChildYoung(HomeOpsDbContext db) { AddTasks(db, 4, "riley"); AddGoals(db, FamilyCelebrationStatus.Planned, "riley"); AddMoments(db, 3, "riley"); }
+    private static void AddChildOlder(HomeOpsDbContext db) { AddTasks(db, 4, "jordan"); AddGoals(db, FamilyCelebrationStatus.ReadyToCelebrate, "jordan"); AddMoments(db, 3, "jordan"); }
+    private static void AddWeeklyReset(HomeOpsDbContext db) { AddTasks(db, 8); AddShopping(db, true); AddGoals(db, FamilyCelebrationStatus.Celebrated); AddMoments(db, 4); }
+    private static void AddShoppingLifecycle(HomeOpsDbContext db) { AddShopping(db, true); }
+
+    private static void AddTasks(HomeOpsDbContext db, int count, string? member = null)
+    {
+        for (var i = 1; i <= count; i++) db.HouseholdTasks.Add(new() { Id = Id(100 + i), HouseholdId = SeedHousehold.Id, Title = i % 3 == 0 ? "Reset backpack station" : i % 2 == 0 ? "Fold laundry basket" : "Put breakfast dishes away", DueDate = i % 4 == 0 ? null : Today.AddDays(i - 3), OwnershipKind = member is null ? TaskOwnershipKind.SharedHousehold : TaskOwnershipKind.FamilyMember, FamilyMemberId = member, IsCompleted = i % 5 == 0, CompletedUtc = i % 5 == 0 ? AnchorUtc.AddDays(-1) : null, NoDateReviewState = i % 4 == 0 ? NoDateTaskReviewState.NeedsReview : NoDateTaskReviewState.Active, CreatedUtc = AnchorUtc.AddDays(-30 + i), UpdatedUtc = AnchorUtc.AddDays(-7 + i), NoDateLastReviewedUtc = i % 4 == 0 ? AnchorUtc.AddDays(-22) : null });
+    }
+
+    private static void AddShopping(HomeOpsDbContext db, bool lifecycle)
+    {
+        var shopping = Id(200); db.Lists.Add(new() { Id = shopping, HouseholdId = SeedHousehold.Id, Name = "Shopping", CreatedUtc = AnchorUtc.AddDays(-10), UpdatedUtc = AnchorUtc });
+        string[] items = ["Milk", "Apples", "Pasta", "Dish soap", "Yogurt", "Coffee beans"];
+        for (var i = 0; i < items.Length; i++) db.ListItems.Add(new() { Id = Id(201 + i), ListId = shopping, Text = items[i], PreferredStore = i % 2 == 0 ? "Market" : "Supermarket", IsCompleted = lifecycle && i is 2 or 4, CompletedUtc = lifecycle && i is 2 or 4 ? AnchorUtc.AddDays(-1) : null, IsDeleted = lifecycle && i == 5, DeletedUtc = lifecycle && i == 5 ? AnchorUtc.AddHours(-4) : null, CreatedUtc = AnchorUtc.AddDays(-6 + i), UpdatedUtc = AnchorUtc.AddDays(-1) });
+        if (lifecycle) { db.Lists.Add(new() { Id = Id(220), HouseholdId = SeedHousehold.Id, Name = "Archived party shop", IsArchived = true, ArchivedUtc = AnchorUtc.AddDays(-2), CreatedUtc = AnchorUtc.AddDays(-45), UpdatedUtc = AnchorUtc.AddDays(-35) }); db.ShoppingPurchaseHistories.Add(new() { Id = Id(230), HouseholdId = SeedHousehold.Id, NormalizedText = "milk", ItemText = "Milk", Store = "Market", PurchaseCount = 4, CreatedUtc = AnchorUtc.AddDays(-40), UpdatedUtc = AnchorUtc.AddDays(-2) }); }
+    }
+
+    private static void AddGoals(HomeOpsDbContext db, FamilyCelebrationStatus status, string? focusMember = null)
+    {
+        db.MotivationFamilyGoals.Add(new() { Id = Id(300), HouseholdId = SeedHousehold.Id, Title = "Fill the kindness path", TargetCount = 20, CurrentProgress = status == FamilyCelebrationStatus.ReadyToCelebrate ? 20 : 14, UnitLabel = "helpful actions", CelebrationTitle = "Pancake breakfast", CelebrationDescription = "Celebrate a week of helping together.", CelebrationStatus = status, CelebrationCelebratedUtc = status == FamilyCelebrationStatus.Celebrated ? AnchorUtc.AddDays(-2) : null, IsActive = true });
+        foreach (var member in new[] { focusMember ?? "riley", "jordan" }.Distinct()) db.MotivationIndividualGoals.Add(new() { Id = Id(member == "riley" ? 301 : 302), HouseholdId = SeedHousehold.Id, FamilyMemberId = member, Title = member == "riley" ? "Morning wins" : "Independent homework streak", TargetCount = 5, CurrentProgress = member == focusMember ? 4 : 2, UnitLabel = "steps", VisualKind = "stars", IsActive = true });
+    }
+
+    private static void AddMoments(HomeOpsDbContext db, int count, string? member = null)
+    { for (var i = 1; i <= count; i++) db.HelpfulMoments.Add(new() { Id = Id(400 + i), HouseholdId = SeedHousehold.Id, FamilyMemberId = member ?? (i % 2 == 0 ? "jordan" : "riley"), Title = i % 2 == 0 ? "Helped without being asked" : "Kind reset moment", Description = "Deterministic visual review recognition card.", RecognitionTag = i % 2 == 0 ? HelpfulMomentTags.Initiative : HelpfulMomentTags.Kindness, CreatedUtc = AnchorUtc.AddDays(-i) }); }
+    private static void AddEvents(HomeOpsDbContext db) => db.EventSeries.AddRange(new EventSeries { Id = Id(500), EventSourceId = CalendarSourceId, Title = "Family reset", Description = "Weekly household reset", IsAllDay = false, StartDate = Today, StartTime = new TimeOnly(16, 0), EndDate = Today, EndTime = new TimeOnly(16, 45), CreatedUtc = AnchorUtc, UpdatedUtc = AnchorUtc }, new EventSeries { Id = Id(501), EventSourceId = CalendarSourceId, Title = "School picnic", IsAllDay = true, StartDate = Today.AddDays(2), EndDate = Today.AddDays(2), CreatedUtc = AnchorUtc, UpdatedUtc = AnchorUtc });
+}
