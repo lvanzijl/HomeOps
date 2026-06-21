@@ -338,3 +338,10 @@ Celebration Surface makes Family Celebrations visible as meaningful family momen
 
 ### Completed Slice 2.36 — Celebration Memory
 Celebration Memory makes completed Family Celebrations part of family history instead of disappearing after completion. When a celebration is marked Celebrated, HomeOps now preserves the celebration title, optional description, and celebrated date, and the Motivation snapshot exposes recent celebration memories. Motivation presents those memories as warm family history in the Goal → Progress → Celebration → Memory story, while Child Mode shows recent memories so children can see what the family already achieved and celebrated together. The slice intentionally avoids audit-log presentation, timeline engines, social feeds, comments, reactions, Reward Economy, gems, shop, purchases, individual rewards, notifications, rankings, and dashboard customization. Existing Family Goals, Family Celebrations, Celebration Surface, Motivation, Child Workspace, Child Journey, Helpful Moments, and Tasks remain preserved.
+
+### Celebration Anticipation Moment — Completed 2026-06-21
+- Planned Family Celebrations now use anticipation copy that names the upcoming fun thing and ties remaining family progress directly to getting closer to it.
+- Motivation strengthens the Goal → Progress → Celebration story with progress-to-celebration language and a ReadyToCelebrate arrival moment that says “We did it” instead of only showing a status.
+- Child Mode now highlights how close the family is to the celebration in the hero and Family Goal journey surfaces, including child-facing copy about how today’s help moves the family closer.
+- Home’s Motivation tile summarizes planned celebrations as getting closer and ReadyToCelebrate moments as ready now, preserving the compact dashboard shape.
+- Existing Family Goals, Motivation, Child Workspace, Child Journey, Helpful Moments, Celebration Surface, and Celebration Memory remain preserved. Reward Economy, gems, shops, purchases, notifications, photos, comments, reactions, social feeds, voting, and new persistence models remain out of scope.

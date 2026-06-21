@@ -161,9 +161,12 @@ describe("FamilyMemberPage", () => {
       0,
     );
     expect(screen.getByLabelText("Family celebration")).not.toBeNull();
+    expect(screen.getByText(/Today's help brings it closer/)).not.toBeNull();
     expect(screen.getAllByText("Board game night").length).toBeGreaterThan(
       0,
     );
+    expect(screen.getAllByText(/Only 7 more helpful steps until Board game night/).length).toBeGreaterThan(0);
+    expect(screen.getByText(/Your help moves the family closer/)).not.toBeNull();
     expect(screen.getAllByText(/2 stars to go/).length).toBeGreaterThan(
       0,
     );
@@ -224,6 +227,7 @@ describe("FamilyMemberPage", () => {
     ).not.toBeNull();
     expect(screen.getByText("Family Goal")).not.toBeNull();
     expect(screen.getByLabelText("Family celebration")).not.toBeNull();
+    expect(screen.getByText(/Today's help brings it closer/)).not.toBeNull();
     expect(screen.getAllByText("Board game night").length).toBeGreaterThan(
       0,
     );

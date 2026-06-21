@@ -462,8 +462,8 @@ export function HomeDashboard({
                 <div className={`home-celebration-surface ${motivationFamilyGoal.celebration.status === FamilyCelebrationStatus.ReadyToCelebrate ? "ready" : motivationFamilyGoal.celebration.status === FamilyCelebrationStatus.Celebrated ? "celebrated" : "planned"}`} aria-label="Home celebration">
                   <span aria-hidden="true">🎉</span>
                   <div>
-                    <strong>{motivationFamilyGoal.celebration.status === FamilyCelebrationStatus.ReadyToCelebrate ? "Ready to celebrate" : motivationFamilyGoal.celebration.status === FamilyCelebrationStatus.Celebrated ? "Celebrated together" : "Celebration ahead"}</strong>
-                    <p>{motivationFamilyGoal.celebration.title}</p>
+                    <strong>{motivationFamilyGoal.celebration.status === FamilyCelebrationStatus.ReadyToCelebrate ? "We did it — ready to celebrate" : motivationFamilyGoal.celebration.status === FamilyCelebrationStatus.Celebrated ? "Celebrated together" : "Getting closer"}</strong>
+                    <p>{homeCelebrationMessage(motivationFamilyGoal)}</p>
                   </div>
                 </div>
               ) : <p className="home-context-note">A shared encouragement goal for the household.</p>}
@@ -547,6 +547,17 @@ export function HomeDashboard({
       </div>
     </section>
   );
+}
+
+function homeCelebrationMessage(goal: MotivationFamilyGoal) {
+  const celebration = goal.celebration;
+  if (!celebration) return goal.title;
+  const remaining = Math.max(0, goal.targetCount - goal.currentProgress);
+  if (celebration.status === FamilyCelebrationStatus.ReadyToCelebrate || remaining === 0) return `${celebration.title} is ready now.`;
+  if (celebration.status === FamilyCelebrationStatus.Celebrated) return celebration.title;
+  return remaining === 1
+    ? `Only 1 more ${goal.unitLabel} until ${celebration.title}.`
+    : `Only ${remaining} more ${goal.unitLabel} until ${celebration.title}.`;
 }
 
 function CardHeader({

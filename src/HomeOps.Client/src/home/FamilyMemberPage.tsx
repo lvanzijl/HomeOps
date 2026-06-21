@@ -464,7 +464,7 @@ function ChildHeroArea({
       ? "Celebrated together"
       : celebration.status === FamilyCelebrationStatus.ReadyToCelebrate ||
           celebrationComplete
-        ? "Ready to celebrate"
+        ? "We did it — ready to celebrate"
         : "When we finish"
     : undefined;
 
@@ -501,7 +501,7 @@ function ChildHeroArea({
               <div>
                 <p className="hero-progress-copy">
                   {remaining > 0
-                    ? `${remaining} ${progressGoal.unitLabel} to go — every step counts.`
+                    ? childAnticipationMessage(progressGoal, familyGoal)
                     : "Goal reached — your effort helped make this happen!"}
                 </p>
                 {ageBand === "school-age" ? (
@@ -559,10 +559,12 @@ function ChildHeroArea({
               <strong>{celebration.title}</strong>
               <p>
                 {celebration.status === FamilyCelebrationStatus.ReadyToCelebrate || celebrationComplete
-                  ? "The family did it — this celebration is ready now."
+                  ? `We did it — ${celebration.title} is ready now.`
                   : celebration.status === FamilyCelebrationStatus.Celebrated
                     ? "A proud family moment already shared."
-                    : "This is what your family is working toward."}
+                    : familyGoal
+                      ? `Every helpful step brings ${celebration.title} closer.`
+                      : "This is what your family is working toward."}
               </p>
             </div>
           </div>
@@ -570,6 +572,16 @@ function ChildHeroArea({
       </aside>
     </section>
   );
+}
+
+function childAnticipationMessage(progressGoal: MotivationIndividualGoal | MotivationFamilyGoal, familyGoal?: MotivationFamilyGoal) {
+  const remaining = Math.max(0, progressGoal.targetCount - progressGoal.currentProgress);
+  const celebration = familyGoal?.celebration;
+  if (celebration && familyGoal && familyGoal.currentProgress < familyGoal.targetCount) {
+    const familyRemaining = familyGoal.targetCount - familyGoal.currentProgress;
+    return `${familyRemaining === 1 ? "Only 1 more" : `Only ${familyRemaining} more`} ${familyGoal.unitLabel} until ${celebration.title}. Your help moves the family closer.`;
+  }
+  return `${remaining} ${progressGoal.unitLabel} to go — every step counts.`;
 }
 
 function TodaySection({
@@ -693,8 +705,10 @@ function FamilyGoalParticipation({
       <h3>{familyGoal.title}</h3>
       <p>
         {remaining > 0
-          ? `Every kind step helps. ${remaining} more ${familyGoal.unitLabel} and the family reaches it together.`
-          : "You did it together — time to celebrate the teamwork!"}
+          ? familyGoal.celebration
+            ? `${remaining === 1 ? "Only 1 more" : `Only ${remaining} more`} ${familyGoal.unitLabel} until ${familyGoal.celebration.title}. Today's help brings it closer.`
+            : `Every kind step helps. ${remaining} more ${familyGoal.unitLabel} and the family reaches it together.`
+          : "We did it together — time to celebrate the teamwork!"}
       </p>
       <div
         className="progress-bar"
@@ -728,13 +742,13 @@ function FamilyCelebrationCard({
       ? "Celebrated together"
       : celebration.status === FamilyCelebrationStatus.ReadyToCelebrate ||
           complete
-        ? "Ready to celebrate"
+        ? "We did it — ready to celebrate"
         : "When we finish";
   const detail = celebration.status === FamilyCelebrationStatus.ReadyToCelebrate || complete
-    ? "You helped the family get here. This celebration is ready now."
+    ? `We did it. ${celebration.title} is ready because the family finished together.`
     : celebration.status === FamilyCelebrationStatus.Celebrated
       ? "Your family already shared this proud moment."
-      : "Keep helping — this is the family moment waiting at the end.";
+      : `Keep helping — every step brings ${celebration.title} closer.`;
   const statusClass = celebration.status === FamilyCelebrationStatus.ReadyToCelebrate || complete
     ? "ready"
     : celebration.status === FamilyCelebrationStatus.Celebrated
@@ -753,7 +767,7 @@ function FamilyCelebrationCard({
           {ageBand === "early-child"
             ? celebration.status === FamilyCelebrationStatus.ReadyToCelebrate || complete
               ? "Ready now!"
-              : "Coming soon."
+              : "Getting closer."
             : detail}
         </p>
         {ageBand === "school-age" && celebration.description ? (

@@ -55,7 +55,8 @@ describe('MotivationPage', () => {
     expect(within(familyGoal).getByText('13/20')).not.toBeNull();
     expect(within(familyGoal).getByLabelText('Goal progress celebration story')).not.toBeNull();
     expect(within(familyGoal).getByLabelText('Celebration surface')).not.toBeNull();
-    expect(within(familyGoal).getByText(/Board game night together/)).not.toBeNull();
+    expect(within(familyGoal).getAllByText(/Board game night together/).length).toBeGreaterThan(0);
+    expect(within(familyGoal).getByText('Only 7 more helpful actions until Board game night together.')).not.toBeNull();
     expect(screen.getByLabelText('Celebration memories')).not.toBeNull();
     expect(screen.getByText('Celebrations we remember')).not.toBeNull();
     expect(screen.getByText('Ice Cream')).not.toBeNull();
@@ -81,7 +82,7 @@ describe('MotivationPage', () => {
     render(<MotivationPage members={familyMembers} />);
 
     expect(await screen.findByLabelText('Celebration surface')).not.toBeNull();
-    expect(screen.getByText('Ready to celebrate')).not.toBeNull();
+    expect(screen.getByText('We did it — ready to celebrate')).not.toBeNull();
     await user.click(screen.getByRole('button', { name: 'Mark celebrated' }));
 
     expect(markFamilyGoalCelebrated).toHaveBeenCalledWith('family-goal');
