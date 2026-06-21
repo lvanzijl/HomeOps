@@ -420,3 +420,8 @@ Celebration Memory makes completed Family Celebrations part of family history in
 
 ### Completed Slice 2.41 — Weekly Household Reset & Recap
 Weekly Household Reset & Recap adds an optional parent-facing maintenance pass designed to take roughly 2–5 minutes. The reset batches only likely review candidates instead of reviewing everything: no-date tasks already in Needs Review, older active no-date tasks, stale Someday items, active family and child goals, and shopping lists that are archived, old, or duplicate-looking. The reset ends with a contribution recap from existing completed tasks, Helpful Moments, goal progress, celebrations, and memories so the family can answer “What went well this week?” without new data entry. Existing Tasks, No-Date Lifecycle, Goal Hygiene, Shopping Lifecycle, Child Workspace, Helpful Moments, Celebrations, and Family Contribution Story remain preserved. Reward Economy, notifications, Google Calendar, dashboard customization, household settings, project management, and new social systems remain out of scope.
+
+### Copy Cleanup Slice 1 — Completed 2026-06-21
+- Motivation now uses shorter, state-first copy for Family Goal progress, celebration status, memories, Helpful Moments, Personal Goals, and empty states.
+- Child Workspace now uses simpler child-facing copy in the hero, Today, This Week, Family Goal, celebration, memory, and Helpful Moments areas.
+- User-facing terminology is more consistent around Family Goal and Personal Goal, while existing behavior, workflows, data models, and visual structure remain unchanged.

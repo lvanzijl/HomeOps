@@ -63,33 +63,24 @@ export function MotivationPage({ members }: MotivationPageProps) {
     <section className="motivation-page" aria-label="Motivation page">
       <header className="motivation-header">
         <p className="widget-type">Motivation</p>
-        <h3>Family encouragement</h3>
-        <p>Celebrate cooperation, routines, and progress without comparison or competition.</p>
+        <h3>Family goals</h3>
+        <p>Progress, appreciation, and celebrations.</p>
       </header>
 
       <article className="family-goal-card" aria-label="Active family goal">
         {!familyGoal ? (
           <div className="empty-state-card page-empty-state">
             <p className="eyebrow">{status === 'error' ? 'Motivation is unavailable' : 'Family goal'}</p>
-            <h3>Create your first family goal</h3>
-            <p>Family goals help everyone work toward something together. Pick one shared target, then let completed household tasks move the progress forward.</p>
+            <h3>No family goal yet.</h3>
+            <p>Create one shared goal.</p>
             <button type="button" onClick={() => setFormMode('create')}>Create family goal</button>
           </div>
         ) : (
         <>
         <div>
-          <p className="eyebrow">Family contribution story</p>
+          <p className="eyebrow">Family goal</p>
           <h3>{familyGoal.title}</h3>
           <p className="motivation-copy">{familyGoalAnticipationMessage(familyGoal)}</p>
-          <div className="motivation-story" aria-label="Contribution progress celebration memory story">
-            <span>Contribution</span>
-            <span aria-hidden="true">→</span>
-            <span>Progress</span>
-            <span aria-hidden="true">→</span>
-            <span>Celebration</span>
-            <span aria-hidden="true">→</span>
-            <span>Memory</span>
-          </div>
           <FamilyCelebrationDisplay familyGoal={familyGoal} onCelebrated={handleFormSaved} />
           <button type="button" className="secondary-action" onClick={() => setFormMode('edit')}>Edit family goal</button>
         </div>
@@ -148,7 +139,7 @@ export function MotivationPage({ members }: MotivationPageProps) {
           />
         ) : null}
         <div className="individual-goal-grid">
-          {individualGoals.length === 0 ? <p className="motivation-copy">No active personal encouragement goals yet.</p> : null}
+          {individualGoals.length === 0 ? <p className="motivation-copy">No personal goals yet.</p> : null}
           {individualGoals.map((goal) => {
             const member = members.find((item) => item.id === goal.familyMemberId);
             if (!member) return null;
@@ -179,15 +170,15 @@ function familyGoalAnticipationMessage(familyGoal: MotivationFamilyGoal) {
   const celebrationTitle = familyGoal.celebration?.title;
   if (familyGoal.celebration?.status === FamilyCelebrationStatus.ReadyToCelebrate || remaining === 0) {
     return celebrationTitle
-      ? `We did it — ${celebrationTitle} is ready because the family finished together.`
-      : 'We did it — the family goal is complete.';
+      ? `${celebrationTitle} is ready.`
+      : 'Family goal complete.';
   }
   if (celebrationTitle) {
     return remaining === 1
-      ? `We helped, we got closer — only 1 more ${familyGoal.unitLabel} until ${celebrationTitle}.`
-      : `We helped, we got closer — only ${remaining} more ${familyGoal.unitLabel} until ${celebrationTitle}.`;
+      ? `Only 1 more ${familyGoal.unitLabel} until ${celebrationTitle}.`
+      : `Only ${remaining} more ${familyGoal.unitLabel} until ${celebrationTitle}.`;
   }
-  return `We helped, we got closer — ${remaining} more ${familyGoal.unitLabel} to reach this family goal.`;
+  return `${remaining} more ${familyGoal.unitLabel} to reach this family goal.`;
 }
 
 interface IndividualGoalFormProps {
@@ -217,7 +208,7 @@ function IndividualGoalForm({ goal, members, error, onCancel, onSubmit, onArchiv
 
   return (
     <form className="family-goal-form" aria-label={goal ? "Edit individual goal form" : "Create individual goal form"} onSubmit={handleSubmit}>
-      <div><p className="eyebrow">Personal encouragement</p><h3>{goal ? "Edit personal goal" : "Add personal goal"}</h3><p className="motivation-copy">Choose one family member and a simple target like reading books, feeding a pet, or bedtime routine steps.</p></div>
+      <div><p className="eyebrow">Personal goal</p><h3>{goal ? "Edit personal goal" : "Add personal goal"}</h3><p className="motivation-copy">Choose one family member and one simple target.</p></div>
       <label>Family member<select value={familyMemberId} onChange={(event) => setFamilyMemberId(event.target.value)} required>{members.map((member) => <option key={member.id} value={member.id}>{member.name}</option>)}</select></label>
       <label>Goal title<input value={title} maxLength={240} onChange={(event) => setTitle(event.target.value)} placeholder="Read books" required /></label>
       <label>Target count<input type="number" min="1" max="99" value={targetCount} onChange={(event) => setTargetCount(event.target.value)} required /></label>
@@ -240,12 +231,12 @@ function FamilyCelebrationDisplay({ familyGoal, onCelebrated }: { familyGoal: Mo
       ? 'Celebrated together'
       : 'Coming up when we finish';
   const message = celebration.status === FamilyCelebrationStatus.ReadyToCelebrate
-    ? `We did it. ${celebration.title} is ready now because the family finished the goal together.`
+    ? `${celebration.title} is ready now.`
     : celebration.status === FamilyCelebrationStatus.Celebrated
-      ? 'This family-created moment happened because everyone helped the goal become real.'
+      ? 'Celebrated together.'
       : remaining === 1
-        ? `Only 1 more ${familyGoal.unitLabel} until ${celebration.title}. Helpful moments show how the family got this close.`
-        : `Only ${remaining} more ${familyGoal.unitLabel} until ${celebration.title}. Helpful moments show how the family got this close.`;
+        ? `Only 1 more ${familyGoal.unitLabel} until ${celebration.title}.`
+        : `Only ${remaining} more ${familyGoal.unitLabel} until ${celebration.title}.`;
   const statusClass = celebration.status === FamilyCelebrationStatus.ReadyToCelebrate
     ? 'ready'
     : celebration.status === FamilyCelebrationStatus.Celebrated
@@ -311,11 +302,11 @@ function FamilyGoalForm({ familyGoal, error, onCancel, onSubmit }: FamilyGoalFor
       <div>
         <p className="eyebrow">{familyGoal ? 'Update the shared target' : 'Start a shared target'}</p>
         <h3>{familyGoal ? 'Edit family goal' : 'Create a family goal'}</h3>
-        <p className="motivation-copy">Keep it simple and encouraging. Progress from completed shared household tasks is preserved when you edit.</p>
+        <p className="motivation-copy">Use one clear target. Existing progress is kept when you edit.</p>
       </div>
       <label>Goal title<input value={title} maxLength={240} onChange={(event) => setTitle(event.target.value)} placeholder="Complete 20 helpful household tasks" required /></label>
       <label>Target count<input type="number" min="1" max="999" value={targetCount} onChange={(event) => setTargetCount(event.target.value)} required /></label>
-      <label>Progress words<input value={unitLabel} maxLength={80} onChange={(event) => setUnitLabel(event.target.value)} placeholder="helpful tasks" required /></label>
+      <label>Progress label<input value={unitLabel} maxLength={80} onChange={(event) => setUnitLabel(event.target.value)} placeholder="helpful tasks" required /></label>
       <label>Family celebration title, optional<input value={celebrationTitle} maxLength={240} onChange={(event) => setCelebrationTitle(event.target.value)} placeholder="Movie night together" /></label>
       <label>Celebration description, optional<input value={celebrationDescription} maxLength={500} onChange={(event) => setCelebrationDescription(event.target.value)} placeholder="Choose a movie and make popcorn together" /></label>
       {error ? <p className="form-error">{error}</p> : null}
@@ -344,7 +335,7 @@ function CelebrationMemorySection({ memories }: { memories: readonly MotivationC
           <p className="eyebrow">Family memories</p>
           <h3>Celebrations we remember</h3>
         </div>
-        <span>Contribution → Progress → Celebration → Memory</span>
+        <span>Recent celebrations</span>
       </div>
       <div className="celebration-memory-grid">
         {memories.map((memory) => (
@@ -352,7 +343,7 @@ function CelebrationMemorySection({ memories }: { memories: readonly MotivationC
             <span aria-hidden="true">💛</span>
             <div>
               <h4>{memory.title}</h4>
-              <p>We remember why: the family helped, made progress, and created this celebration together.</p>
+              <p>We made this happen together.</p>
               {memory.description ? <small>{memory.description}</small> : null}
             </div>
           </article>
