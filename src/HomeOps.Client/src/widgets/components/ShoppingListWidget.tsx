@@ -1,7 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
-import { addShoppingListItem, createListsApiClient, createShoppingList, loadShoppingList, removeShoppingListItem, toggleShoppingListItem, updateShoppingListItemStore } from '../../shopping/listsApi';
+import { addShoppingListItem, archiveShoppingList, createListsApiClient, createShoppingList, deleteShoppingList, loadShoppingList, removeShoppingListItem, renameShoppingList, toggleShoppingListItem, undoShoppingListItem, updateShoppingListItemStore } from '../../shopping/listsApi';
 import type { ShoppingListItem } from '../../shopping/shoppingListModel';
-import { getActiveShoppingListItems, getCompletedShoppingListItems, removeShoppingListItemById, upsertShoppingListItem } from '../../shopping/shoppingListState';
+import { getActiveShoppingListItems, getCompletedShoppingListItems, getDeletedShoppingListItems, upsertShoppingListItem } from '../../shopping/shoppingListState';
 import type { WidgetRenderProps } from '../WidgetRenderer';
 
 export function ShoppingListWidget({ instance }: WidgetRenderProps) {
@@ -9,6 +9,7 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
   const [listId, setListId] = useState<string | null>(null);
   const [items, setItems] = useState<readonly ShoppingListItem[]>([]);
   const [newItemLabel, setNewItemLabel] = useState('');
+  const [listName, setListName] = useState('Shopping');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isCreatingList, setIsCreatingList] = useState(false);
@@ -24,6 +25,7 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
 
         if (!ignoreResult) {
           setListId(shoppingList.listId);
+          setListName(shoppingList.name ?? 'Shopping');
           setItems(shoppingList.items);
         }
       } catch {
@@ -46,6 +48,7 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
 
   const activeItems = getActiveShoppingListItems(items);
   const completedItems = getCompletedShoppingListItems(items);
+  const deletedItems = getDeletedShoppingListItems(items);
 
   async function addItem(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -91,16 +94,74 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
     }
   }
 
+  async function renameList(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!listId) {
+      return;
+    }
+
+    try {
+      const updated = await renameShoppingList(apiClient, listId, listName);
+      setItems(updated.items);
+      setError(null);
+    } catch {
+      setError('Shopping list could not be renamed.');
+    }
+  }
+
+  async function archiveList() {
+    if (!listId) {
+      return;
+    }
+
+    try {
+      await archiveShoppingList(apiClient, listId);
+      setListId(null);
+      setItems([]);
+      setError(null);
+    } catch {
+      setError('Shopping list could not be archived.');
+    }
+  }
+
+  async function deleteList() {
+    if (!listId) {
+      return;
+    }
+
+    try {
+      await deleteShoppingList(apiClient, listId);
+      setListId(null);
+      setItems([]);
+      setError(null);
+    } catch {
+      setError('Shopping list could not be deleted.');
+    }
+  }
+
   async function removeItem(itemId: string) {
     if (!listId) {
       return;
     }
 
     try {
-      await removeShoppingListItem(apiClient, listId, itemId);
-      setItems((current) => removeShoppingListItemById(current, itemId));
+      const updatedItem = await removeShoppingListItem(apiClient, listId, itemId);
+      setItems((current) => upsertShoppingListItem(current, updatedItem));
     } catch {
       setError('Shopping item could not be removed.');
+    }
+  }
+
+  async function undoItem(itemId: string) {
+    if (!listId) {
+      return;
+    }
+
+    try {
+      const updatedItem = await undoShoppingListItem(apiClient, listId, itemId);
+      setItems((current) => upsertShoppingListItem(current, updatedItem));
+    } catch {
+      setError('Shopping item could not be restored.');
     }
   }
 
@@ -109,6 +170,7 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
       setIsCreatingList(true);
       const created = await createShoppingList(apiClient);
       setListId(created.listId);
+      setListName(created.name ?? 'Shopping');
       setItems(created.items);
       setError(null);
     } catch {
@@ -124,6 +186,15 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
       <h3>{instance.title}</h3>
       {isLoading ? <p className="shopping-empty">Loading shopping list…</p> : null}
       {error ? <p className="shopping-empty" role="alert">{error}</p> : null}
+      <form className="shopping-add-form shopping-list-name-form" onSubmit={renameList}>
+        <label>
+          <span>List name</span>
+          <input disabled={isLoading || !listId} onChange={(event) => setListName(event.target.value)} type="text" value={listName} />
+        </label>
+        <button disabled={isLoading || !listId} type="submit">Rename</button>
+        <button disabled={isLoading || !listId} onClick={archiveList} type="button">Archive</button>
+        <button disabled={isLoading || !listId} onClick={deleteList} type="button">Delete</button>
+      </form>
       <form className="shopping-add-form" onSubmit={addItem}>
         <label>
           <span className="visually-hidden">New shopping item</span>
@@ -138,7 +209,7 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
         </label>
         <button disabled={isLoading || !listId} type="submit">Add</button>
       </form>
-      {!isLoading && !error && activeItems.length === 0 && completedItems.length === 0 ? (
+      {!isLoading && !error && activeItems.length === 0 && completedItems.length === 0 && deletedItems.length === 0 ? (
         <div className="empty-state-card page-empty-state">
           <strong>Create your first list</strong>
           <p>Lists help remember shopping, packing, and household items.</p>
@@ -159,7 +230,17 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
         onRemove={removeItem}
         onStoreChange={updateItemStore}
         onToggle={toggleItem}
+        onUndo={undoItem}
         title="Completed"
+      />
+      <ShoppingListSection
+        emptyLabel="No recently deleted items."
+        items={deletedItems}
+        onRemove={removeItem}
+        onStoreChange={updateItemStore}
+        onToggle={toggleItem}
+        onUndo={undoItem}
+        title="Recently deleted"
       />
     </article>
   );
@@ -171,10 +252,11 @@ interface ShoppingListSectionProps {
   onRemove(itemId: string): void;
   onStoreChange(itemId: string, preferredStore: string | null): void;
   onToggle(itemId: string): void;
+  onUndo?(itemId: string): void;
   title: string;
 }
 
-function ShoppingListSection({ emptyLabel, items, onRemove, onStoreChange, onToggle, title }: ShoppingListSectionProps) {
+function ShoppingListSection({ emptyLabel, items, onRemove, onStoreChange, onToggle, onUndo, title }: ShoppingListSectionProps) {
   return (
     <section className="shopping-section">
       <h4>{title}</h4>
@@ -187,10 +269,11 @@ function ShoppingListSection({ emptyLabel, items, onRemove, onStoreChange, onTog
               <h5>{group.store ?? 'Uncategorized'}</h5>
               <ul className="shopping-list">
                 {group.items.map((item) => (
-                  <li className="shopping-item" key={item.id}>
+                  <li className={`shopping-item${item.deleted ? ' shopping-item-deleted' : ''}`} key={item.id}>
                     <label>
                       <input checked={item.completed} onChange={() => onToggle(item.id)} type="checkbox" />
                       <span>{item.label}</span>
+                      {item.deleted ? <small>Deleted</small> : null}
                       {item.preferredStore ? <small>({item.preferredStore})</small> : null}
                     </label>
                     <label className="shopping-store-field">
@@ -203,9 +286,10 @@ function ShoppingListSection({ emptyLabel, items, onRemove, onStoreChange, onTog
                         defaultValue={item.preferredStore ?? ''}
                       />
                     </label>
-                    <button onClick={() => onRemove(item.id)} type="button">
+                    {onUndo ? <button onClick={() => onUndo(item.id)} type="button">Undo</button> : null}
+                    {!item.deleted ? <button onClick={() => onRemove(item.id)} type="button">
                       Remove
-                    </button>
+                    </button> : null}
                   </li>
                 ))}
               </ul>

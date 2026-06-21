@@ -14,15 +14,17 @@ public static class ListEndpoints
         {
             var lists = await dbContext.Lists
                 .AsNoTracking()
-                .Where(list => list.HouseholdId == SeedHousehold.Id)
+                .Where(list => list.HouseholdId == SeedHousehold.Id && !list.IsArchived && !list.IsDeleted)
                 .OrderBy(list => list.Name)
                 .Select(list => new ListSummaryDto(
                     list.Id,
                     list.Name,
+                    list.IsArchived,
+                    list.IsDeleted,
                     list.CreatedUtc,
                     list.UpdatedUtc,
                     list.HouseholdId,
-                    list.Items.Count))
+                    list.Items.Count(item => !item.IsDeleted && (!item.IsCompleted || item.CompletedUtc == null || item.CompletedUtc >= DateTimeOffset.UtcNow.AddHours(-24)))))
                 .ToListAsync(cancellationToken);
 
             return Results.Ok(lists);
@@ -59,6 +61,58 @@ public static class ListEndpoints
             return Results.Created($"/api/lists/{list.Id}", dto);
         }).WithName("CreateList").Produces<ListDto>(StatusCodes.Status201Created).Produces(StatusCodes.Status400BadRequest);
 
+        group.MapPatch("/{listId:guid}/name", async (Guid listId, RenameListRequest request, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        {
+            var trimmedName = request.Name.Trim();
+            if (trimmedName.Length == 0)
+            {
+                return Results.BadRequest(new { error = "List name is required." });
+            }
+
+            var list = await dbContext.Lists.FirstOrDefaultAsync(candidate => candidate.Id == listId && candidate.HouseholdId == SeedHousehold.Id && !candidate.IsDeleted, cancellationToken);
+            if (list is null)
+            {
+                return Results.NotFound();
+            }
+
+            list.Name = trimmedName;
+            list.UpdatedUtc = DateTimeOffset.UtcNow;
+            await dbContext.SaveChangesAsync(cancellationToken);
+            return Results.Ok(await LoadList(dbContext, list.Id, cancellationToken));
+        }).WithName("RenameList").Produces<ListDto>().Produces(StatusCodes.Status400BadRequest).Produces(StatusCodes.Status404NotFound);
+
+        group.MapPost("/{listId:guid}/archive", async (Guid listId, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        {
+            var list = await dbContext.Lists.FirstOrDefaultAsync(candidate => candidate.Id == listId && candidate.HouseholdId == SeedHousehold.Id && !candidate.IsDeleted, cancellationToken);
+            if (list is null)
+            {
+                return Results.NotFound();
+            }
+
+            var now = DateTimeOffset.UtcNow;
+            list.IsArchived = true;
+            list.ArchivedUtc = now;
+            list.UpdatedUtc = now;
+            await dbContext.SaveChangesAsync(cancellationToken);
+            return Results.Ok(await LoadList(dbContext, list.Id, cancellationToken, includeInactiveList: true));
+        }).WithName("ArchiveList").Produces<ListDto>().Produces(StatusCodes.Status404NotFound);
+
+        group.MapDelete("/{listId:guid}", async (Guid listId, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        {
+            var list = await dbContext.Lists.FirstOrDefaultAsync(candidate => candidate.Id == listId && candidate.HouseholdId == SeedHousehold.Id && !candidate.IsDeleted, cancellationToken);
+            if (list is null)
+            {
+                return Results.NotFound();
+            }
+
+            var now = DateTimeOffset.UtcNow;
+            list.IsDeleted = true;
+            list.DeletedUtc = now;
+            list.UpdatedUtc = now;
+            await dbContext.SaveChangesAsync(cancellationToken);
+            return Results.NoContent();
+        }).WithName("DeleteList").Produces(StatusCodes.Status204NoContent).Produces(StatusCodes.Status404NotFound);
+
         group.MapPost("/{listId:guid}/items", async (Guid listId, AddListItemRequest request, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
         {
             var trimmedText = request.Text.Trim();
@@ -67,7 +121,7 @@ public static class ListEndpoints
                 return Results.BadRequest(new { error = "Item text is required." });
             }
 
-            var listExists = await dbContext.Lists.AnyAsync(list => list.Id == listId && list.HouseholdId == SeedHousehold.Id, cancellationToken);
+            var listExists = await dbContext.Lists.AnyAsync(list => list.Id == listId && list.HouseholdId == SeedHousehold.Id && !list.IsArchived && !list.IsDeleted, cancellationToken);
             if (!listExists)
             {
                 return Results.NotFound();
@@ -82,6 +136,7 @@ public static class ListEndpoints
                 ListId = listId,
                 Text = trimmedText,
                 IsCompleted = false,
+                IsDeleted = false,
                 PreferredStore = preference?.PreferredStore,
                 CreatedUtc = now,
                 UpdatedUtc = now,
@@ -128,8 +183,10 @@ public static class ListEndpoints
                 return Results.NotFound();
             }
 
+            var now = DateTimeOffset.UtcNow;
             item.IsCompleted = !item.IsCompleted;
-            item.UpdatedUtc = DateTimeOffset.UtcNow;
+            item.CompletedUtc = item.IsCompleted ? now : null;
+            item.UpdatedUtc = now;
             await dbContext.SaveChangesAsync(cancellationToken);
 
             return Results.Ok(ToDto(item));
@@ -146,35 +203,64 @@ public static class ListEndpoints
                 return Results.NotFound();
             }
 
-            dbContext.ListItems.Remove(item);
+            var now = DateTimeOffset.UtcNow;
+            item.IsDeleted = true;
+            item.DeletedUtc = now;
+            item.UpdatedUtc = now;
             await dbContext.SaveChangesAsync(cancellationToken);
 
-            return Results.NoContent();
-        }).WithName("RemoveListItem").Produces(StatusCodes.Status204NoContent).Produces(StatusCodes.Status404NotFound);
+            return Results.Ok(ToDto(item));
+        }).WithName("RemoveListItem").Produces<ListItemDto>().Produces(StatusCodes.Status404NotFound);
+
+        group.MapPost("/{listId:guid}/items/{itemId:guid}/undo", async (Guid listId, Guid itemId, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        {
+            var item = await dbContext.ListItems
+                .Include(listItem => listItem.List)
+                .FirstOrDefaultAsync(listItem => listItem.Id == itemId && listItem.ListId == listId && listItem.List!.HouseholdId == SeedHousehold.Id, cancellationToken);
+
+            if (item is null)
+            {
+                return Results.NotFound();
+            }
+
+            item.IsCompleted = false;
+            item.CompletedUtc = null;
+            item.IsDeleted = false;
+            item.DeletedUtc = null;
+            item.UpdatedUtc = DateTimeOffset.UtcNow;
+            await dbContext.SaveChangesAsync(cancellationToken);
+            return Results.Ok(ToDto(item));
+        }).WithName("UndoListItemLifecycle").Produces<ListItemDto>().Produces(StatusCodes.Status404NotFound);
 
         return app;
     }
 
-    private static async Task<ListDto?> LoadList(HomeOpsDbContext dbContext, Guid listId, CancellationToken cancellationToken)
+    private static async Task<ListDto?> LoadList(HomeOpsDbContext dbContext, Guid listId, CancellationToken cancellationToken, bool includeInactiveList = false)
     {
         return await dbContext.Lists
             .AsNoTracking()
-            .Where(list => list.Id == listId && list.HouseholdId == SeedHousehold.Id)
+            .Where(list => list.Id == listId && list.HouseholdId == SeedHousehold.Id && (includeInactiveList || (!list.IsArchived && !list.IsDeleted)))
             .Select(list => new ListDto(
                 list.Id,
                 list.Name,
+                list.IsArchived,
+                list.IsDeleted,
                 list.CreatedUtc,
                 list.UpdatedUtc,
                 list.HouseholdId,
                 list.Items
-                    .OrderBy(item => item.CreatedUtc)
+                    .Where(item => !item.IsDeleted || (item.DeletedUtc != null && item.DeletedUtc >= DateTimeOffset.UtcNow.AddHours(-24)))
+                    .Where(item => !item.IsCompleted || item.CompletedUtc == null || item.CompletedUtc >= DateTimeOffset.UtcNow.AddHours(-24))
+                    .OrderBy(item => item.IsDeleted)
+                    .ThenBy(item => item.IsCompleted)
+                    .ThenBy(item => item.CreatedUtc)
                     .ThenBy(item => item.Text)
                     .Select(item => ToDto(item))
                     .ToList()))
             .FirstOrDefaultAsync(cancellationToken);
     }
 
-    private static ListItemDto ToDto(ListItem item) => new(item.Id, item.ListId, item.Text, item.IsCompleted, item.PreferredStore, item.CreatedUtc, item.UpdatedUtc);
+    private static ListItemDto ToDto(ListItem item) => new(item.Id, item.ListId, item.Text, item.IsCompleted, item.CompletedUtc, item.IsDeleted, item.DeletedUtc, item.PreferredStore, item.CreatedUtc, item.UpdatedUtc);
 
     private static string NormalizeItemText(string text) => text.Trim().ToUpperInvariant();
 

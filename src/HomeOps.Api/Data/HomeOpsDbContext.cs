@@ -65,6 +65,10 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             entity.ToTable("Lists");
             entity.HasKey(list => list.Id);
             entity.Property(list => list.Name).HasMaxLength(160).IsRequired();
+            entity.Property(list => list.IsArchived).IsRequired();
+            entity.Property(list => list.ArchivedUtc);
+            entity.Property(list => list.IsDeleted).IsRequired();
+            entity.Property(list => list.DeletedUtc);
             entity.Property(list => list.CreatedUtc).IsRequired();
             entity.Property(list => list.UpdatedUtc).IsRequired();
             entity.HasOne(list => list.Household)
@@ -80,6 +84,9 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             entity.HasKey(item => item.Id);
             entity.Property(item => item.Text).HasMaxLength(240).IsRequired();
             entity.Property(item => item.IsCompleted).IsRequired();
+            entity.Property(item => item.CompletedUtc);
+            entity.Property(item => item.IsDeleted).IsRequired();
+            entity.Property(item => item.DeletedUtc);
             entity.Property(item => item.PreferredStore).HasMaxLength(120);
             entity.Property(item => item.CreatedUtc).IsRequired();
             entity.Property(item => item.UpdatedUtc).IsRequired();
@@ -87,7 +94,7 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
                 .WithMany(list => list.Items)
                 .HasForeignKey(item => item.ListId)
                 .OnDelete(DeleteBehavior.Cascade);
-            entity.HasIndex(item => new { item.ListId, item.CreatedUtc });
+            entity.HasIndex(item => new { item.ListId, item.IsDeleted, item.IsCompleted, item.CreatedUtc });
         });
 
 
