@@ -2291,3 +2291,18 @@ button {
 .reset-row { display: grid; gap: 0.35rem; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid rgba(148, 163, 184, 0.25); }
 .reset-row div { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 .recap-card { grid-column: 1 / -1; }
+.moment-avatar .homeops-icon-asset {
+  font-size: 1.45rem;
+}
+
+.moment-card-heading span {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.35rem;
+}
+
+.helpful-reset-row strong {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.45rem;
+}

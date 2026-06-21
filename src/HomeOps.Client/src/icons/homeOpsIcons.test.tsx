@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import {
+  getHelpfulMomentIconName,
   getHomeOpsIconAsset,
   getHomeOpsIconSymbol,
   homeOpsIconRegistry,
@@ -30,6 +31,24 @@ describe("HomeOpsIcon", () => {
     expect(getHomeOpsIconAsset("celebrationMemory", "keepsake")).toContain(
       "data-asset-name='celebration-memory'",
     );
+  });
+
+  it("resolves helpful moment semantic names to owned SVG assets", () => {
+    expect(getHomeOpsIconAsset("kindness", "icon")).toContain("data-asset-name='helpful-kindness'");
+    expect(getHomeOpsIconAsset("teamwork", "spot")).toContain("data-asset-name='helpful-teamwork'");
+    expect(getHomeOpsIconAsset("initiative", "icon")).toContain("data-asset-name='helpful-initiative'");
+    expect(getHomeOpsIconAsset("responsibility", "spot")).toContain("data-asset-name='helpful-responsibility'");
+    expect(getHomeOpsIconAsset("routine", "icon")).toContain("data-asset-name='helpful-routine'");
+  });
+
+  it("maps helpful moment recognition tags through semantic names with a safe fallback", () => {
+    expect(getHelpfulMomentIconName("Kindness")).toBe("kindness");
+    expect(getHelpfulMomentIconName("teamwork")).toBe("teamwork");
+    expect(getHelpfulMomentIconName("Initiative")).toBe("initiative");
+    expect(getHelpfulMomentIconName("Responsibility")).toBe("responsibility");
+    expect(getHelpfulMomentIconName("Routine")).toBe("routine");
+    expect(getHelpfulMomentIconName("Unknown")).toBe("kindness");
+    expect(getHelpfulMomentIconName()).toBe("kindness");
   });
 
   it("keeps fallback symbols stable when a semantic asset is unavailable", () => {

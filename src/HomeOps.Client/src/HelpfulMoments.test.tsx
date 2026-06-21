@@ -31,6 +31,7 @@ describe('HelpfulMomentsSection', () => {
     expect(within(section).getByText('Kindness')).not.toBeNull();
     expect(within(section).getByText('Kind things your family noticed.')).not.toBeNull();
     expect(within(section).getByText('You helped.')).not.toBeNull();
+    expect(section.querySelector("img[src*='helpful-kindness']")).not.toBeNull();
     expect(screen.queryByText(/points?|tokens?|gems?|shop|leaderboard|balance|reward value/i)).toBeNull();
   });
 
