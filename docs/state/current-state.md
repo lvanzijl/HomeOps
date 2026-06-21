@@ -304,3 +304,9 @@ Family Goal Creation closes the final functional P0 blocker for Motivation. Hous
 - The workspace uses DateOfBirth for age-aware presentation: younger children get simpler star/checkmark language while school-age children get richer progress and celebration detail.
 - Existing Motivation data supplies active individual goals, active family goal progress, and family celebration context without adding Reward Economy, gems, shops, balances, badges, leaderboards, or notifications.
 - Existing Helpful Moments appear as positive recognition cards on the child workspace, while existing Family Member persistence, avatar editing, Motivation, Family Goals, Individual Goals, Tasks, and Home flows remain preserved.
+
+### Child Mode — Completed 2026-06-20
+- Child Family Member pages now land in dedicated Child Mode as “My Place In The Family,” with avatar identity and the “How am I doing?” emotional frame before any administration.
+- Child Mode keeps the existing Child Workspace and Child Progress content dominant: family goal, personal goals, progress, Helpful Moments, and family celebration appear before Parent Mode access.
+- Parent Mode remains available as a secondary administration area for editing member details, date of birth, member type, display color, avatar configuration, and removal without removing existing management functionality.
+- Existing Family Member persistence, avatar editing, Child Workspace, Motivation, Goals, Helpful Moments, and Celebrations remain preserved. Reward Economy, gems, shop, purchases, notifications, Google Calendar, household settings, and dashboard customization remain out of scope.
