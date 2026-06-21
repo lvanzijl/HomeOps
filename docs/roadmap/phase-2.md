@@ -195,3 +195,11 @@ Celebration Anticipation Moment upgrades existing Family Celebration presentatio
 
 ### Completed Slice 2.38 — Family Contribution Story Foundation
 Family Contribution Story Foundation reframes the child-facing Motivation journey from Goal → Progress → Celebration → Memory to Contribution → Progress → Celebration → Memory. Helpful Moments now bridge everyday appreciation to the shared family journey as evidence of how the family got closer, without automatically increasing progress or becoming points, rewards, rankings, leaderboards, badges, gems, balances, or streaks. Child Mode strengthens non-competitive ownership with “my help mattered” language, celebrations feel family-created instead of system-created, and memories now explain why the celebration happened using existing goal, progress, celebration, and Helpful Moment information. Existing Family Goals, Progress, Helpful Moments, Family Celebrations, Celebration Memory, Child Workspace, and Child Journey remain preserved.
+
+
+### HomeOps Long-Term Usage Review — Completed 2026-06-21
+- Added retention-focused long-term usage review reports under `docs/reports/2026-06-21-work/`.
+- Evaluated 30-day and 90-day household usage across expert, father, mother, six-year-old child, and ten-year-old child perspectives.
+- Identified recurring tasks, shopping intelligence, child contribution visibility, and family goal rituals as the strongest long-term retention anchors.
+- Identified maintenance burden, stale tasks, generic recognition, stale goals, template dormancy, and unritualized memories as the primary retention risks.
+- Final verdict: the family would probably still use HomeOps after 90 days, especially if a weekly household reset and recap consolidates ongoing maintenance into a sustainable ritual.
