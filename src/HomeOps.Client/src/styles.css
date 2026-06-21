@@ -2254,3 +2254,9 @@ button {
   color: #7a8190;
   text-decoration: line-through;
 }
+.weekly-reset-page { display: grid; gap: 1rem; }
+.weekly-reset-hero, .reset-card { border: 1px solid rgba(148, 163, 184, 0.35); border-radius: 1rem; padding: 1rem; background: rgba(255, 255, 255, 0.75); }
+.reset-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.reset-row { display: grid; gap: 0.35rem; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid rgba(148, 163, 184, 0.25); }
+.reset-row div { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.recap-card { grid-column: 1 / -1; }

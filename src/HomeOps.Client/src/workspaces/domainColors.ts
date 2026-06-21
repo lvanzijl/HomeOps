@@ -11,6 +11,7 @@ export const domainColorClassByWorkspace: Record<WorkspaceId, string> = {
   house: 'domain-house',
   media: 'domain-media',
   gamification: 'domain-gamification',
+  weeklyReset: 'domain-home',
   settings: 'domain-settings',
 };
 

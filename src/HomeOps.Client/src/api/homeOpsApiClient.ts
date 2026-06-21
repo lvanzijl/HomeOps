@@ -2383,6 +2383,77 @@ export class HomeOpsApiClient {
         }
         return Promise.resolve<HelpfulMomentDto>(null as any);
     }
+
+    getWeeklyReset(): Promise<WeeklyResetDto> {
+        let url_ = this.baseUrl + "/api/weekly-reset";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetWeeklyReset(_response);
+        });
+    }
+
+    protected processGetWeeklyReset(response: Response): Promise<WeeklyResetDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = WeeklyResetDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<WeeklyResetDto>(null as any);
+    }
+
+    archiveWeeklyResetFamilyGoal(id: string): Promise<void> {
+        let url_ = this.baseUrl + "/api/weekly-reset/family-goal/{id}/archive";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processArchiveWeeklyResetFamilyGoal(_response);
+        });
+    }
+
+    protected processArchiveWeeklyResetFamilyGoal(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
 }
 
 export class EventSource implements IEventSource {
@@ -5513,6 +5584,214 @@ export interface ICreateHelpfulMomentRequest {
     title?: string;
     description?: string | undefined;
     recognitionTag?: string | undefined;
+}
+
+export class WeeklyResetDto implements IWeeklyResetDto {
+    reviewCandidates?: HouseholdTaskDto[];
+    familyGoal?: MotivationFamilyGoalDto | undefined;
+    individualGoals?: MotivationIndividualGoalDto[];
+    shoppingReviewCandidates?: ShoppingReviewCandidateDto[];
+    contributionRecap?: WeeklyContributionRecapDto;
+
+    constructor(data?: IWeeklyResetDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            if (Array.isArray(_data["reviewCandidates"])) {
+                this.reviewCandidates = [] as any;
+                for (let item of _data["reviewCandidates"])
+                    this.reviewCandidates!.push(HouseholdTaskDto.fromJS(item));
+            }
+            this.familyGoal = _data["familyGoal"] ? MotivationFamilyGoalDto.fromJS(_data["familyGoal"]) : undefined as any;
+            if (Array.isArray(_data["individualGoals"])) {
+                this.individualGoals = [] as any;
+                for (let item of _data["individualGoals"])
+                    this.individualGoals!.push(MotivationIndividualGoalDto.fromJS(item));
+            }
+            if (Array.isArray(_data["shoppingReviewCandidates"])) {
+                this.shoppingReviewCandidates = [] as any;
+                for (let item of _data["shoppingReviewCandidates"])
+                    this.shoppingReviewCandidates!.push(ShoppingReviewCandidateDto.fromJS(item));
+            }
+            this.contributionRecap = _data["contributionRecap"] ? WeeklyContributionRecapDto.fromJS(_data["contributionRecap"]) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): WeeklyResetDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new WeeklyResetDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        if (Array.isArray(this.reviewCandidates)) {
+            data["reviewCandidates"] = [];
+            for (let item of this.reviewCandidates)
+                data["reviewCandidates"].push(item ? item.toJSON() : undefined as any);
+        }
+        data["familyGoal"] = this.familyGoal ? this.familyGoal.toJSON() : undefined as any;
+        if (Array.isArray(this.individualGoals)) {
+            data["individualGoals"] = [];
+            for (let item of this.individualGoals)
+                data["individualGoals"].push(item ? item.toJSON() : undefined as any);
+        }
+        if (Array.isArray(this.shoppingReviewCandidates)) {
+            data["shoppingReviewCandidates"] = [];
+            for (let item of this.shoppingReviewCandidates)
+                data["shoppingReviewCandidates"].push(item ? item.toJSON() : undefined as any);
+        }
+        data["contributionRecap"] = this.contributionRecap ? this.contributionRecap.toJSON() : undefined as any;
+        return data;
+    }
+}
+
+export interface IWeeklyResetDto {
+    reviewCandidates?: HouseholdTaskDto[];
+    familyGoal?: MotivationFamilyGoalDto | undefined;
+    individualGoals?: MotivationIndividualGoalDto[];
+    shoppingReviewCandidates?: ShoppingReviewCandidateDto[];
+    contributionRecap?: WeeklyContributionRecapDto;
+}
+
+export class ShoppingReviewCandidateDto implements IShoppingReviewCandidateDto {
+    id?: string;
+    name?: string;
+    reason?: string;
+    updatedUtc?: Date;
+    itemCount?: number;
+
+    constructor(data?: IShoppingReviewCandidateDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.name = _data["name"];
+            this.reason = _data["reason"];
+            this.updatedUtc = _data["updatedUtc"] ? new Date(_data["updatedUtc"].toString()) : undefined as any;
+            this.itemCount = _data["itemCount"];
+        }
+    }
+
+    static fromJS(data: any): ShoppingReviewCandidateDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new ShoppingReviewCandidateDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["name"] = this.name;
+        data["reason"] = this.reason;
+        data["updatedUtc"] = this.updatedUtc ? this.updatedUtc.toISOString() : undefined as any;
+        data["itemCount"] = this.itemCount;
+        return data;
+    }
+}
+
+export interface IShoppingReviewCandidateDto {
+    id?: string;
+    name?: string;
+    reason?: string;
+    updatedUtc?: Date;
+    itemCount?: number;
+}
+
+export class WeeklyContributionRecapDto implements IWeeklyContributionRecapDto {
+    completedTaskCount?: number;
+    helpfulMomentCount?: number;
+    familyGoal?: MotivationFamilyGoalDto | undefined;
+    individualGoals?: MotivationIndividualGoalDto[];
+    helpfulMoments?: HelpfulMomentDto[];
+    celebrationMemories?: MotivationFamilyCelebrationMemoryDto[];
+
+    constructor(data?: IWeeklyContributionRecapDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.completedTaskCount = _data["completedTaskCount"];
+            this.helpfulMomentCount = _data["helpfulMomentCount"];
+            this.familyGoal = _data["familyGoal"] ? MotivationFamilyGoalDto.fromJS(_data["familyGoal"]) : undefined as any;
+            if (Array.isArray(_data["individualGoals"])) {
+                this.individualGoals = [] as any;
+                for (let item of _data["individualGoals"])
+                    this.individualGoals!.push(MotivationIndividualGoalDto.fromJS(item));
+            }
+            if (Array.isArray(_data["helpfulMoments"])) {
+                this.helpfulMoments = [] as any;
+                for (let item of _data["helpfulMoments"])
+                    this.helpfulMoments!.push(HelpfulMomentDto.fromJS(item));
+            }
+            if (Array.isArray(_data["celebrationMemories"])) {
+                this.celebrationMemories = [] as any;
+                for (let item of _data["celebrationMemories"])
+                    this.celebrationMemories!.push(MotivationFamilyCelebrationMemoryDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): WeeklyContributionRecapDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new WeeklyContributionRecapDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["completedTaskCount"] = this.completedTaskCount;
+        data["helpfulMomentCount"] = this.helpfulMomentCount;
+        data["familyGoal"] = this.familyGoal ? this.familyGoal.toJSON() : undefined as any;
+        if (Array.isArray(this.individualGoals)) {
+            data["individualGoals"] = [];
+            for (let item of this.individualGoals)
+                data["individualGoals"].push(item ? item.toJSON() : undefined as any);
+        }
+        if (Array.isArray(this.helpfulMoments)) {
+            data["helpfulMoments"] = [];
+            for (let item of this.helpfulMoments)
+                data["helpfulMoments"].push(item ? item.toJSON() : undefined as any);
+        }
+        if (Array.isArray(this.celebrationMemories)) {
+            data["celebrationMemories"] = [];
+            for (let item of this.celebrationMemories)
+                data["celebrationMemories"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IWeeklyContributionRecapDto {
+    completedTaskCount?: number;
+    helpfulMomentCount?: number;
+    familyGoal?: MotivationFamilyGoalDto | undefined;
+    individualGoals?: MotivationIndividualGoalDto[];
+    helpfulMoments?: HelpfulMomentDto[];
+    celebrationMemories?: MotivationFamilyCelebrationMemoryDto[];
 }
 
 function formatDate(d: Date) {

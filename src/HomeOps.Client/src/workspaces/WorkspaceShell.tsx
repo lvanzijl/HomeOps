@@ -5,6 +5,7 @@ import { MotivationPage } from '../MotivationPage';
 import { familyMembers, type FamilyMember } from '../home/familyMembers';
 import { createFamilyMember, loadFamilyMembers, removeFamilyMember, saveFamilyMember } from '../home/familyMembersApi';
 import { TasksPage } from '../tasks/TasksPage';
+import { WeeklyResetPage } from '../weeklyReset/WeeklyResetPage';
 import { FirstRunWizard } from '../FirstRunWizard';
 import { loadOnboardingStatus } from '../onboardingApi';
 import { DomainPlaceholderPage } from './DomainPlaceholderPage';
@@ -151,6 +152,8 @@ export function WorkspaceShell() {
           <TasksPage members={members} />
         ) : activeWorkspace.id === 'motivation' ? (
           <MotivationPage members={members} />
+        ) : activeWorkspace.id === 'weeklyReset' ? (
+          <WeeklyResetPage />
         ) : activeWorkspace.id === 'house' ? (
           <DomainPlaceholderPage title="House Status" purpose="For home alerts, sensors, and device state." />
         ) : activeWorkspace.id === 'media' ? (

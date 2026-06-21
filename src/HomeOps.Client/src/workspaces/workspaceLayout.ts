@@ -64,6 +64,7 @@ export const defaultWorkspaceLayouts: Record<WorkspaceId, readonly WidgetInstanc
     },
   ],
   gamification: [],
+  weeklyReset: [],
   settings: [
     {
       id: 'settings-placeholder-widget',
