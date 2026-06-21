@@ -1506,6 +1506,49 @@ button {
   display: grid;
   gap: 0.55rem;
 }
+.child-journey-today {
+  display: grid;
+  gap: 0.65rem;
+}
+.child-journey-summary {
+  color: #9a3412 !important;
+  font-size: 1.08rem;
+  font-weight: 900;
+  margin: 0;
+}
+.child-task-list {
+  display: grid;
+  gap: 0.6rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.child-task-list li {
+  align-items: center;
+  background: #fff7ed;
+  border: 1px solid rgba(251, 146, 60, 0.22);
+  border-radius: 1rem;
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: auto 1fr;
+  padding: 0.75rem;
+}
+.child-task-list li > span {
+  background: color-mix(in srgb, var(--member-color, #facc15) 42%, #ffffff);
+  border-radius: 999px;
+  color: #7c2d12;
+  display: grid;
+  font-weight: 900;
+  height: 2rem;
+  place-items: center;
+  width: 2rem;
+}
+.child-task-list strong {
+  color: #7c2d12;
+}
+.child-task-list p {
+  margin: 0.15rem 0 0;
+}
 .family-celebration-card {
   align-items: center;
   background: linear-gradient(135deg, #fff7ed, #fef3c7);

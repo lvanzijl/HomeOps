@@ -5,6 +5,7 @@ import { FamilyMemberPage } from "./FamilyMemberPage";
 import { familyMembers } from "./familyMembers";
 import { loadMotivationSnapshot } from "../motivationData";
 import { loadHelpfulMoments } from "../helpfulMomentsData";
+import { loadTasks } from "../tasks/tasksApi";
 
 vi.mock("../motivationData", async () => {
   const actual =
@@ -20,6 +21,10 @@ vi.mock("../helpfulMomentsData", async () => {
   );
   return { ...actual, loadHelpfulMoments: vi.fn() };
 });
+
+vi.mock("../tasks/tasksApi", () => ({
+  loadTasks: vi.fn(),
+}));
 
 afterEach(cleanup);
 
@@ -61,6 +66,34 @@ describe("FamilyMemberPage", () => {
         },
       ],
     });
+    vi.mocked(loadTasks).mockResolvedValue([
+      {
+        id: "task-1",
+        title: "Pack school bag",
+        dueDate: new Date().toISOString().slice(0, 10),
+        ownershipKind: "FamilyMember",
+        familyMemberId: "riley",
+        isCompleted: false,
+        completedUtc: null,
+        createdUtc: "2026-06-20T08:00:00Z",
+        updatedUtc: "2026-06-20T08:00:00Z",
+        recurrenceFrequency: "None",
+        recurringTaskSeriesId: null,
+      },
+      {
+        id: "task-2",
+        title: "Shared kitchen reset",
+        dueDate: new Date().toISOString().slice(0, 10),
+        ownershipKind: "SharedHousehold",
+        familyMemberId: null,
+        isCompleted: false,
+        completedUtc: null,
+        createdUtc: "2026-06-20T09:00:00Z",
+        updatedUtc: "2026-06-20T09:00:00Z",
+        recurrenceFrequency: "None",
+        recurringTaskSeriesId: null,
+      },
+    ]);
     vi.mocked(loadHelpfulMoments).mockResolvedValue([
       {
         id: "moment-1",
@@ -110,6 +143,9 @@ describe("FamilyMemberPage", () => {
     expect(screen.getByLabelText("How I am helping my family")).not.toBeNull();
     expect(await screen.findByLabelText("Hero celebration")).not.toBeNull();
     expect(screen.getByText("This is me")).not.toBeNull();
+    expect(await screen.findByText("Today")).not.toBeNull();
+    expect(screen.getByText("What should I do today?")).not.toBeNull();
+    expect(screen.getByText("Pack school bag")).not.toBeNull();
     expect(screen.getByText("What I am working on")).not.toBeNull();
     expect(screen.getByText("How I am helping")).not.toBeNull();
     expect(screen.getByText("My Place In The Family")).not.toBeNull();
@@ -160,9 +196,30 @@ describe("FamilyMemberPage", () => {
 
     expect(await screen.findByText("Progress I am making")).not.toBeNull();
     expect(screen.getByLabelText("Hero progress")).not.toBeNull();
+    expect(screen.getByLabelText("This Week")).not.toBeNull();
     expect(
       screen.getByLabelText("Progress for Read before bed"),
     ).not.toBeNull();
+  });
+
+  it("renders the Family Goal journey section with celebration context", async () => {
+    render(
+      <FamilyMemberPage
+        member={familyMembers[2]}
+        onBack={vi.fn()}
+        onChange={vi.fn()}
+        onRemove={vi.fn()}
+      />,
+    );
+
+    expect(
+      await screen.findByLabelText("Family goal participation"),
+    ).not.toBeNull();
+    expect(screen.getByText("Family Goal")).not.toBeNull();
+    expect(screen.getByLabelText("Family celebration")).not.toBeNull();
+    expect(screen.getAllByText("Board game night").length).toBeGreaterThan(
+      0,
+    );
   });
 
   it("opens Parent Mode for child administration without making it the landing content", async () => {
@@ -184,7 +241,9 @@ describe("FamilyMemberPage", () => {
     expect(screen.getByLabelText("Parent administration")).not.toBeNull();
     expect(screen.getByText("Edit member")).not.toBeNull();
     expect(screen.getByText("Current avatar configuration")).not.toBeNull();
-    expect(screen.getByRole("button", { name: "Edit avatar" })).not.toBeNull();
+    expect(
+      screen.getByRole("button", { name: "Edit avatar" }),
+    ).not.toBeNull();
   });
 
   it("keeps child-first ordering before Parent Mode controls", async () => {
@@ -202,10 +261,19 @@ describe("FamilyMemberPage", () => {
     ).toBeGreaterThan(0);
     const pageText = document.body.textContent ?? "";
     expect(pageText.indexOf("This is me")).toBeLessThan(
-      pageText.indexOf("Helping the family goal"),
+      pageText.indexOf("Today"),
     );
-    expect(pageText.indexOf("What I am working on")).toBeLessThan(
-      pageText.indexOf("Helping the family goal"),
+    expect(pageText.indexOf("Today")).toBeLessThan(
+      pageText.indexOf("This Week"),
+    );
+    expect(pageText.indexOf("This Week")).toBeLessThan(
+      pageText.indexOf("Family Goal"),
+    );
+    expect(pageText.indexOf("Family Goal")).toBeLessThan(
+      pageText.indexOf("Helpful Moments"),
+    );
+    expect(pageText.indexOf("Helpful Moments")).toBeLessThan(
+      pageText.indexOf("Parent Mode"),
     );
     expect(pageText.indexOf("How am I doing?")).toBeLessThan(
       pageText.indexOf("Parent Mode"),
