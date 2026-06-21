@@ -2160,3 +2160,88 @@ button {
     animation: none;
   }
 }
+
+.celebration-memory-section {
+  display: grid;
+  gap: 1rem;
+  border: 1px solid rgba(245, 158, 11, 0.22);
+  border-radius: 24px;
+  padding: 1.25rem;
+  background: linear-gradient(135deg, rgba(255, 251, 235, 0.92), rgba(254, 243, 199, 0.6));
+  box-shadow: 0 18px 45px rgba(120, 53, 15, 0.08);
+}
+
+.celebration-memory-section .section-heading-row > span {
+  color: #92400e;
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.celebration-memory-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.85rem;
+}
+
+.celebration-memory-card {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  border: 1px solid rgba(217, 119, 6, 0.18);
+  border-radius: 18px;
+  padding: 0.9rem;
+  background: rgba(255, 255, 255, 0.76);
+}
+
+.celebration-memory-card > span,
+.child-memory-list > div > span {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  background: rgba(251, 191, 36, 0.22);
+}
+
+.celebration-memory-card h4,
+.celebration-memory-card p,
+.celebration-memory-card small {
+  margin: 0;
+}
+
+.celebration-memory-card p,
+.child-memory-list p {
+  color: #92400e;
+  font-weight: 800;
+}
+
+.celebration-memory-card small {
+  display: block;
+  margin-top: 0.25rem;
+  color: #6b7280;
+}
+
+.child-memory-card {
+  background: linear-gradient(135deg, rgba(255, 251, 235, 0.95), rgba(254, 243, 199, 0.68));
+  border-color: rgba(217, 119, 6, 0.2);
+}
+
+.child-memory-list {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 0.9rem;
+}
+
+.child-memory-list > div {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  border-radius: 16px;
+  padding: 0.75rem;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.child-memory-list strong,
+.child-memory-list p {
+  margin: 0;
+}

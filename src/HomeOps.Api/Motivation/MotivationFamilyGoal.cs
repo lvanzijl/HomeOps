@@ -14,5 +14,6 @@ public sealed class MotivationFamilyGoal
     public string? CelebrationTitle { get; set; }
     public string? CelebrationDescription { get; set; }
     public FamilyCelebrationStatus CelebrationStatus { get; set; } = FamilyCelebrationStatus.Planned;
+    public DateTimeOffset? CelebrationCelebratedUtc { get; set; }
     public bool IsActive { get; set; }
 }

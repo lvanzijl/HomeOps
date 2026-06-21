@@ -2162,6 +2162,7 @@ export interface IEventSourceColor {
 export class MotivationSnapshotDto implements IMotivationSnapshotDto {
     familyGoal?: MotivationFamilyGoalDto | undefined;
     individualGoals?: MotivationIndividualGoalDto[];
+    celebrationMemories?: MotivationFamilyCelebrationMemoryDto[];
 
     constructor(data?: IMotivationSnapshotDto) {
         if (data) {
@@ -2179,6 +2180,11 @@ export class MotivationSnapshotDto implements IMotivationSnapshotDto {
                 this.individualGoals = [] as any;
                 for (let item of _data["individualGoals"])
                     this.individualGoals!.push(MotivationIndividualGoalDto.fromJS(item));
+            }
+            if (Array.isArray(_data["celebrationMemories"])) {
+                this.celebrationMemories = [] as any;
+                for (let item of _data["celebrationMemories"])
+                    this.celebrationMemories!.push(MotivationFamilyCelebrationMemoryDto.fromJS(item));
             }
         }
     }
@@ -2198,6 +2204,11 @@ export class MotivationSnapshotDto implements IMotivationSnapshotDto {
             for (let item of this.individualGoals)
                 data["individualGoals"].push(item ? item.toJSON() : undefined as any);
         }
+        if (Array.isArray(this.celebrationMemories)) {
+            data["celebrationMemories"] = [];
+            for (let item of this.celebrationMemories)
+                data["celebrationMemories"].push(item ? item.toJSON() : undefined as any);
+        }
         return data;
     }
 }
@@ -2205,6 +2216,7 @@ export class MotivationSnapshotDto implements IMotivationSnapshotDto {
 export interface IMotivationSnapshotDto {
     familyGoal?: MotivationFamilyGoalDto | undefined;
     individualGoals?: MotivationIndividualGoalDto[];
+    celebrationMemories?: MotivationFamilyCelebrationMemoryDto[];
 }
 
 export class MotivationFamilyGoalDto implements IMotivationFamilyGoalDto {
@@ -2267,6 +2279,7 @@ export class MotivationFamilyCelebrationDto implements IMotivationFamilyCelebrat
     title?: string;
     description?: string | undefined;
     status?: FamilyCelebrationStatus;
+    celebratedUtc?: Date | undefined;
 
     constructor(data?: IMotivationFamilyCelebrationDto) {
         if (data) {
@@ -2282,6 +2295,7 @@ export class MotivationFamilyCelebrationDto implements IMotivationFamilyCelebrat
             this.title = _data["title"];
             this.description = _data["description"];
             this.status = _data["status"];
+            this.celebratedUtc = _data["celebratedUtc"] ? new Date(_data["celebratedUtc"].toString()) : undefined as any;
         }
     }
 
@@ -2297,6 +2311,7 @@ export class MotivationFamilyCelebrationDto implements IMotivationFamilyCelebrat
         data["title"] = this.title;
         data["description"] = this.description;
         data["status"] = this.status;
+        data["celebratedUtc"] = this.celebratedUtc ? this.celebratedUtc.toISOString() : undefined as any;
         return data;
     }
 }
@@ -2305,6 +2320,7 @@ export interface IMotivationFamilyCelebrationDto {
     title?: string;
     description?: string | undefined;
     status?: FamilyCelebrationStatus;
+    celebratedUtc?: Date | undefined;
 }
 
 export enum FamilyCelebrationStatus {
@@ -2375,6 +2391,54 @@ export interface IMotivationIndividualGoalDto {
     currentProgress?: number;
     unitLabel?: string;
     visualKind?: string;
+}
+
+export class MotivationFamilyCelebrationMemoryDto implements IMotivationFamilyCelebrationMemoryDto {
+    familyGoalId?: string;
+    title?: string;
+    description?: string | undefined;
+    celebratedUtc?: Date;
+
+    constructor(data?: IMotivationFamilyCelebrationMemoryDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.familyGoalId = _data["familyGoalId"];
+            this.title = _data["title"];
+            this.description = _data["description"];
+            this.celebratedUtc = _data["celebratedUtc"] ? new Date(_data["celebratedUtc"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): MotivationFamilyCelebrationMemoryDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new MotivationFamilyCelebrationMemoryDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["familyGoalId"] = this.familyGoalId;
+        data["title"] = this.title;
+        data["description"] = this.description;
+        data["celebratedUtc"] = this.celebratedUtc ? this.celebratedUtc.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface IMotivationFamilyCelebrationMemoryDto {
+    familyGoalId?: string;
+    title?: string;
+    description?: string | undefined;
+    celebratedUtc?: Date;
 }
 
 export class ProblemDetails implements IProblemDetails {

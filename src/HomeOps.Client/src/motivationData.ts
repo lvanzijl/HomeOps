@@ -1,10 +1,18 @@
-import { FamilyCelebrationStatus, HomeOpsApiClient, UpsertMotivationFamilyGoalRequest, UpsertMotivationIndividualGoalRequest, type MotivationFamilyGoalDto, type MotivationIndividualGoalDto, type MotivationSnapshotDto } from './api/homeOpsApiClient';
+import { FamilyCelebrationStatus, HomeOpsApiClient, UpsertMotivationFamilyGoalRequest, UpsertMotivationIndividualGoalRequest, type MotivationFamilyCelebrationMemoryDto, type MotivationFamilyGoalDto, type MotivationIndividualGoalDto, type MotivationSnapshotDto } from './api/homeOpsApiClient';
 import type { FamilyMember } from './home/familyMembers';
 
 export interface MotivationFamilyCelebration {
   title: string;
   description?: string;
   status: FamilyCelebrationStatus;
+  celebratedUtc?: string;
+}
+
+export interface MotivationCelebrationMemory {
+  familyGoalId: string;
+  title: string;
+  description?: string;
+  celebratedUtc: string;
 }
 
 export interface MotivationFamilyGoal {
@@ -30,6 +38,7 @@ export interface MotivationIndividualGoal {
 export interface MotivationSnapshot {
   familyGoal?: MotivationFamilyGoal;
   individualGoals: readonly MotivationIndividualGoal[];
+  celebrationMemories?: readonly MotivationCelebrationMemory[];
 }
 
 export interface UpsertMotivationFamilyGoalInput {
@@ -67,6 +76,7 @@ function familyGoalFromApi(goal?: MotivationFamilyGoalDto): MotivationFamilyGoal
       title: goal.celebration.title,
       description: goal.celebration.description,
       status: goal.celebration.status ?? FamilyCelebrationStatus.Planned,
+      celebratedUtc: goal.celebration.celebratedUtc ? String(goal.celebration.celebratedUtc) : undefined,
     } : undefined,
   };
 }
@@ -84,10 +94,20 @@ function individualGoalFromApi(goal: MotivationIndividualGoalDto): MotivationInd
   };
 }
 
+function celebrationMemoryFromApi(memory: MotivationFamilyCelebrationMemoryDto): MotivationCelebrationMemory {
+  return {
+    familyGoalId: memory.familyGoalId ?? '',
+    title: memory.title ?? '',
+    description: memory.description,
+    celebratedUtc: memory.celebratedUtc ? String(memory.celebratedUtc) : '',
+  };
+}
+
 export function motivationSnapshotFromApi(snapshot: MotivationSnapshotDto): MotivationSnapshot {
   return {
     familyGoal: familyGoalFromApi(snapshot.familyGoal),
     individualGoals: (snapshot.individualGoals ?? []).map(individualGoalFromApi),
+    celebrationMemories: (snapshot.celebrationMemories ?? []).map(celebrationMemoryFromApi),
   };
 }
 

@@ -43,6 +43,7 @@ describe("FamilyMemberPage", () => {
           status: 0,
         },
       },
+      celebrationMemories: [{ familyGoalId: 'old-goal', title: 'Family Picnic', description: 'Lunch at the park.', celebratedUtc: '2026-06-20T12:00:00Z' }],
       individualGoals: [
         {
           id: "riley-goal",
@@ -142,6 +143,9 @@ describe("FamilyMemberPage", () => {
     expect(screen.getByLabelText("Current goal and progress")).not.toBeNull();
     expect(screen.getByLabelText("How I am helping my family")).not.toBeNull();
     expect(await screen.findByLabelText("Hero celebration")).not.toBeNull();
+    expect(screen.getByLabelText("Celebration memories")).not.toBeNull();
+    expect(screen.getByText("Family Picnic")).not.toBeNull();
+    expect(screen.getByText("Celebrated Together")).not.toBeNull();
     expect(screen.getByText("This is me")).not.toBeNull();
     expect(await screen.findByText("Today")).not.toBeNull();
     expect(screen.getByText("What should I do today?")).not.toBeNull();

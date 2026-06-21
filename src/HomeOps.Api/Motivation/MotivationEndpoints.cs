@@ -1,6 +1,7 @@
 using HomeOps.Api.Data;
 using HomeOps.Api.Households;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 
 namespace HomeOps.Api.Motivation;
 
@@ -30,7 +31,19 @@ public static class MotivationEndpoints
                     goal.VisualKind))
                 .ToListAsync(cancellationToken);
 
-            return Results.Ok(new MotivationSnapshotDto(familyGoal, individualGoals));
+            var celebrationMemories = await dbContext.MotivationFamilyGoals.AsNoTracking()
+                .Where(goal => goal.HouseholdId == SeedHousehold.Id && goal.CelebrationStatus == FamilyCelebrationStatus.Celebrated && goal.CelebrationCelebratedUtc != null && goal.CelebrationTitle != null)
+                .OrderByDescending(goal => goal.CelebrationCelebratedUtc)
+                .ThenBy(goal => goal.Id)
+                .Take(6)
+                .Select(goal => new MotivationFamilyCelebrationMemoryDto(
+                    goal.Id,
+                    goal.CelebrationTitle!,
+                    goal.CelebrationDescription,
+                    goal.CelebrationCelebratedUtc!.Value))
+                .ToListAsync(cancellationToken);
+
+            return Results.Ok(new MotivationSnapshotDto(familyGoal, individualGoals, celebrationMemories));
         }).WithName("GetMotivationSnapshot").Produces<MotivationSnapshotDto>();
 
 
@@ -169,6 +182,7 @@ public static class MotivationEndpoints
             }
 
             goal.CelebrationStatus = FamilyCelebrationStatus.Celebrated;
+            goal.CelebrationCelebratedUtc ??= DateTimeOffset.UtcNow;
             await dbContext.SaveChangesAsync(cancellationToken);
             return Results.Ok(ToDto(goal));
         }).WithName("MarkFamilyGoalCelebrated").Produces<MotivationFamilyGoalDto>().Produces(StatusCodes.Status404NotFound).ProducesValidationProblem();
@@ -204,7 +218,7 @@ public static class MotivationEndpoints
     private static MotivationFamilyCelebrationDto? ToCelebrationDto(MotivationFamilyGoal goal)
     {
         var title = NormalizeOptionalLabel(goal.CelebrationTitle);
-        return title is null ? null : new MotivationFamilyCelebrationDto(title, NormalizeOptionalLabel(goal.CelebrationDescription), goal.CelebrationStatus);
+        return title is null ? null : new MotivationFamilyCelebrationDto(title, NormalizeOptionalLabel(goal.CelebrationDescription), goal.CelebrationStatus, goal.CelebrationCelebratedUtc);
     }
 
     private static string? NormalizeOptionalLabel(string? value)
