@@ -250,3 +250,6 @@ Semantic Icon Layer adds a stable visual abstraction between current Unicode/emo
 
 ### Completed Slice 2.45 — HomeOps Asset Wave 1
 HomeOps Asset Wave 1 creates standalone owned SVG assets for Helpful Moments, Celebration states, Child Ownership concepts, and the core add/close/back controls under `src/HomeOps.Client/src/assets/homeops/`. The wave establishes the soft, rounded, pastel, child-safe layered-flat asset direction while remaining independent from product integration. It intentionally does not replace Semantic Icon Layer Unicode mappings, modify runtime behavior, change workflows, or redesign product surfaces.
+
+### Completed Slice 2.46 — Celebration Asset Integration
+Celebration Asset Integration wires existing Wave 1 Celebration SVG assets into the Semantic Icon Layer and replaces Celebration Unicode/emoji rendering across Motivation, Child Workspace, Home Motivation summary, and Celebration Memory surfaces. Feature components continue using semantic names instead of direct SVG imports, with safe fallback symbols preserved for unmigrated or unavailable assets. Existing Celebration, Motivation, Child Workspace, Home, Family Goal, and Celebration Memory behavior remains unchanged; this slice only advances asset-system adoption and visual ownership.

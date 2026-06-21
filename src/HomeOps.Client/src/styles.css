@@ -19,6 +19,17 @@ button {
   font: inherit;
 }
 
+.homeops-icon-asset {
+  display: inline-grid;
+  place-items: center;
+}
+
+.homeops-icon-asset img {
+  display: block;
+  height: 1em;
+  width: 1em;
+}
+
 .app-shell {
   display: grid;
   gap: 0.75rem;
@@ -2095,6 +2106,22 @@ button {
   border-color: #f97316;
   box-shadow: 0 20px 52px rgb(249 115 22 / 24%);
 }
+
+.homeops-icon-asset img,
+.celebration-surface-icon img,
+.home-celebration-surface > span img,
+.family-celebration-card > span img,
+.child-hero-celebration > span img,
+.celebration-memory-card > span img,
+.child-memory-list > div > span img {
+  display: block;
+  height: 100%;
+  max-height: 100%;
+  max-width: 100%;
+  object-fit: contain;
+  width: 100%;
+}
+
 .celebration-surface-icon {
   background: #ffffff;
   border-radius: 1rem;
@@ -2138,7 +2165,11 @@ button {
   padding: 0.75rem;
 }
 .home-celebration-surface > span {
+  display: grid;
   font-size: 1.7rem;
+  height: 2.2rem;
+  place-items: center;
+  width: 2.2rem;
 }
 .home-celebration-surface strong,
 .home-celebration-surface p {

@@ -553,7 +553,7 @@ function ChildHeroArea({
             className={`child-hero-celebration ${celebration.status === FamilyCelebrationStatus.ReadyToCelebrate || celebrationComplete ? "ready" : celebration.status === FamilyCelebrationStatus.Celebrated ? "celebrated" : "planned"}`}
             aria-label="Hero celebration"
           >
-            <HomeOpsIcon name="celebration" />
+            <HomeOpsIcon name={celebration.status === FamilyCelebrationStatus.ReadyToCelebrate || celebrationComplete ? "celebrationReady" : celebration.status === FamilyCelebrationStatus.Celebrated ? "celebrationCelebrated" : "celebrationUpcoming"} variant="hero" />
             <div>
               <p className="eyebrow">{celebrationStatus}</p>
               <strong>{celebration.title}</strong>
@@ -760,7 +760,7 @@ function FamilyCelebrationCard({
       className={`family-celebration-card ${statusClass}`}
       aria-label="Family celebration"
     >
-      <HomeOpsIcon name={ageBand === "early-child" ? "celebration" : "sparkle"} />
+      <HomeOpsIcon name={statusClass === "ready" ? "celebrationReady" : statusClass === "celebrated" ? "celebrationCelebrated" : "celebrationUpcoming"} variant={ageBand === "early-child" ? "spot" : "icon"} />
       <div>
         <p className="eyebrow">{statusText}</p>
         <h4>{celebration.title}</h4>
@@ -796,7 +796,7 @@ function ChildCelebrationMemories({
       <div className="child-memory-list">
         {recent.map((memory) => (
           <div key={`${memory.familyGoalId}-${memory.celebratedUtc}`}>
-            <HomeOpsIcon name="memory" />
+            <HomeOpsIcon name="memory" variant="keepsake" />
             <div>
               <strong>{memory.title}</strong>
               <p>We helped make this happen.</p>
