@@ -1,12 +1,14 @@
 namespace HomeOps.Api.Lists;
 
-public sealed record ListSummaryDto(Guid Id, string Name, DateTimeOffset CreatedUtc, DateTimeOffset UpdatedUtc, Guid HouseholdId, int ItemCount);
+public sealed record ListSummaryDto(Guid Id, string Name, bool IsArchived, bool IsDeleted, DateTimeOffset CreatedUtc, DateTimeOffset UpdatedUtc, Guid HouseholdId, int ItemCount);
 
-public sealed record ListDto(Guid Id, string Name, DateTimeOffset CreatedUtc, DateTimeOffset UpdatedUtc, Guid HouseholdId, IReadOnlyCollection<ListItemDto> Items);
+public sealed record ListDto(Guid Id, string Name, bool IsArchived, bool IsDeleted, DateTimeOffset CreatedUtc, DateTimeOffset UpdatedUtc, Guid HouseholdId, IReadOnlyCollection<ListItemDto> Items);
 
-public sealed record ListItemDto(Guid Id, Guid ListId, string Text, bool IsCompleted, string? PreferredStore, DateTimeOffset CreatedUtc, DateTimeOffset UpdatedUtc);
+public sealed record ListItemDto(Guid Id, Guid ListId, string Text, bool IsCompleted, DateTimeOffset? CompletedUtc, bool IsDeleted, DateTimeOffset? DeletedUtc, string? PreferredStore, DateTimeOffset CreatedUtc, DateTimeOffset UpdatedUtc);
 
 public sealed record CreateListRequest(string Name);
+
+public sealed record RenameListRequest(string Name);
 
 public sealed record AddListItemRequest(string Text);
 

@@ -4,7 +4,7 @@
 Phase 2 — Durable Household Core
 
 ## Current Slice
-Goal Hygiene — Completed
+Shopping Lifecycle — Completed
 
 ## Completed Slices
 - 1.1 Repository Bootstrap
@@ -386,3 +386,11 @@ Celebration Memory makes completed Family Celebrations part of family history in
 - Individual Goal creation and editing now enforce a single active Individual Goal per Family Member, retiring only that member's other active goal and leaving other members unaffected.
 - Added database-level partial unique indexes and migration cleanup to prevent duplicate active goals from reappearing outside normal API flows.
 - Existing progress, Motivation displays, Family Celebrations, Child Workspace, and Family Contribution Story remain preserved while reducing stale goal clutter.
+
+
+## 2026-06-21 Update — Shopping Lifecycle
+- Implemented shopping lifecycle management as a Phase 2 maintenance-reduction slice.
+- Lists can now be renamed and can leave normal views through archive or soft-delete lifecycle states.
+- Completed items remain visible for 24 hours, move after active items, support undo, and are then omitted from the active list view.
+- Deleted items use a soft-delete lifecycle with visible deleted state, strikethrough presentation, 24-hour visibility, undo support, and cleanup from normal list views after the retention window.
+- Shopping Intelligence preferred-store learning, item-name-only Home quick capture, existing Lists persistence, and existing Shopping workflows remain preserved.

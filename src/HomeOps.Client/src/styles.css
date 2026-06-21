@@ -2245,3 +2245,12 @@ button {
 .child-memory-list p {
   margin: 0;
 }
+
+.shopping-list-name-form {
+  flex-wrap: wrap;
+}
+
+.shopping-item-deleted span {
+  color: #7a8190;
+  text-decoration: line-through;
+}

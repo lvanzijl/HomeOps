@@ -475,6 +475,117 @@
             "description": ""
           }
         }
+      },
+      "delete": {
+        "tags": [
+          "Lists"
+        ],
+        "operationId": "DeleteList",
+        "parameters": [
+          {
+            "name": "listId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/lists/{listId}/name": {
+      "patch": {
+        "tags": [
+          "Lists"
+        ],
+        "operationId": "RenameList",
+        "parameters": [
+          {
+            "name": "listId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RenameListRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": ""
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/lists/{listId}/archive": {
+      "post": {
+        "tags": [
+          "Lists"
+        ],
+        "operationId": "ArchiveList",
+        "parameters": [
+          {
+            "name": "listId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
       }
     },
     "/api/lists/{listId}/items": {
@@ -658,8 +769,60 @@
           }
         ],
         "responses": {
-          "204": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListItemDto"
+                }
+              }
+            }
+          },
+          "404": {
             "description": ""
+          }
+        }
+      }
+    },
+    "/api/lists/{listId}/items/{itemId}/undo": {
+      "post": {
+        "tags": [
+          "Lists"
+        ],
+        "operationId": "UndoListItemLifecycle",
+        "parameters": [
+          {
+            "name": "listId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListItemDto"
+                }
+              }
+            }
           },
           "404": {
             "description": ""
@@ -2024,6 +2187,12 @@
           "name": {
             "type": "string"
           },
+          "isArchived": {
+            "type": "boolean"
+          },
+          "isDeleted": {
+            "type": "boolean"
+          },
           "createdUtc": {
             "type": "string",
             "format": "date-time"
@@ -2052,6 +2221,12 @@
           },
           "name": {
             "type": "string"
+          },
+          "isArchived": {
+            "type": "boolean"
+          },
+          "isDeleted": {
+            "type": "boolean"
           },
           "createdUtc": {
             "type": "string",
@@ -2091,6 +2266,19 @@
           "isCompleted": {
             "type": "boolean"
           },
+          "completedUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "isDeleted": {
+            "type": "boolean"
+          },
+          "deletedUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
           "preferredStore": {
             "type": "string",
             "nullable": true
@@ -2106,6 +2294,15 @@
         }
       },
       "CreateListRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "RenameListRequest": {
         "type": "object",
         "additionalProperties": false,
         "properties": {

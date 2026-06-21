@@ -13,6 +13,10 @@ vi.mock('../../shopping/listsApi', () => ({
   toggleShoppingListItem: vi.fn(),
   updateShoppingListItemStore: vi.fn(),
   removeShoppingListItem: vi.fn(),
+  undoShoppingListItem: vi.fn(),
+  renameShoppingList: vi.fn(),
+  archiveShoppingList: vi.fn(),
+  deleteShoppingList: vi.fn(),
 }));
 
 async function mockedListsApi() {
@@ -33,15 +37,16 @@ describe('ShoppingListWidget API-backed behavior', () => {
     vi.mocked(listsApi.loadShoppingList).mockResolvedValue({
       listId: 'shopping-list-id',
       items: [
-        { id: 'bread', label: 'Bread', completed: false, preferredStore: 'Supermarket' },
-        { id: 'coffee', label: 'Coffee', completed: true, preferredStore: null },
+        { id: 'bread', label: 'Bread', completed: false, deleted: false, preferredStore: 'Supermarket' },
+        { id: 'coffee', label: 'Coffee', completed: true, deleted: false, preferredStore: null },
       ],
     });
     vi.mocked(listsApi.createShoppingList).mockResolvedValue({ listId: 'shopping-list-id', items: [] });
-    vi.mocked(listsApi.addShoppingListItem).mockResolvedValue({ id: 'apples', label: 'Apples', completed: false, preferredStore: null });
-    vi.mocked(listsApi.toggleShoppingListItem).mockResolvedValue({ id: 'bread', label: 'Bread', completed: true, preferredStore: 'Supermarket' });
-    vi.mocked(listsApi.updateShoppingListItemStore).mockResolvedValue({ id: 'coffee', label: 'Coffee', completed: true, preferredStore: 'Drugstore' });
-    vi.mocked(listsApi.removeShoppingListItem).mockResolvedValue(undefined);
+    vi.mocked(listsApi.addShoppingListItem).mockResolvedValue({ id: 'apples', label: 'Apples', completed: false, deleted: false, preferredStore: null });
+    vi.mocked(listsApi.toggleShoppingListItem).mockResolvedValue({ id: 'bread', label: 'Bread', completed: true, deleted: false, preferredStore: 'Supermarket' });
+    vi.mocked(listsApi.updateShoppingListItemStore).mockResolvedValue({ id: 'coffee', label: 'Coffee', completed: true, deleted: false, preferredStore: 'Drugstore' });
+    vi.mocked(listsApi.removeShoppingListItem).mockResolvedValue({ id: 'bread', label: 'Bread', completed: true, deleted: true, preferredStore: 'Supermarket' });
+    vi.mocked(listsApi.undoShoppingListItem).mockResolvedValue({ id: 'bread', label: 'Bread', completed: false, deleted: false, preferredStore: 'Supermarket' });
   });
 
   it('loads shopping list items from the API-backed list service', async () => {
@@ -73,7 +78,7 @@ describe('ShoppingListWidget API-backed behavior', () => {
     const breadAfterToggle = await screen.findByText('Bread');
     await user.click(within(breadAfterToggle.closest('li')!).getByRole('button', { name: 'Remove' }));
     expect(listsApi.removeShoppingListItem).toHaveBeenCalledWith(apiClient, 'shopping-list-id', 'bread');
-    await waitFor(() => expect(screen.queryByText('Bread')).toBeNull());
+    expect(await screen.findByText('Deleted')).not.toBeNull();
   });
 
 

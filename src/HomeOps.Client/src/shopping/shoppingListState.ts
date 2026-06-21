@@ -15,9 +15,14 @@ export function removeShoppingListItemById(items: readonly ShoppingListItem[], i
 }
 
 export function getActiveShoppingListItems(items: readonly ShoppingListItem[]): readonly ShoppingListItem[] {
-  return items.filter((item) => !item.completed);
+  return items.filter((item) => !item.completed && !item.deleted);
 }
 
 export function getCompletedShoppingListItems(items: readonly ShoppingListItem[]): readonly ShoppingListItem[] {
-  return items.filter((item) => item.completed);
+  return items.filter((item) => item.completed && !item.deleted);
+}
+
+
+export function getDeletedShoppingListItems(items: readonly ShoppingListItem[]): readonly ShoppingListItem[] {
+  return items.filter((item) => item.deleted);
 }

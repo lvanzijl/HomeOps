@@ -15,9 +15,10 @@ describe('lists API mapping', () => {
 
     expect(state).toEqual({
       listId: 'shopping-list-id',
+      name: 'Shopping',
       items: [
-        { id: 'bread', label: 'Bread', completed: false, preferredStore: 'Bakery' },
-        { id: 'coffee', label: 'Coffee', completed: true, preferredStore: null },
+        { id: 'bread', label: 'Bread', completed: false, completedUtc: null, deleted: false, deletedUtc: null, preferredStore: 'Bakery' },
+        { id: 'coffee', label: 'Coffee', completed: true, completedUtc: null, deleted: false, deletedUtc: null, preferredStore: null },
       ],
     });
   });
