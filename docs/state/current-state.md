@@ -447,3 +447,6 @@ Weekly Household Reset & Recap adds an optional parent-facing maintenance pass d
 
 ### Celebration Asset Integration — Completed 2026-06-21
 Semantic Icon Layer now resolves Celebration semantic names to existing HomeOps-owned SVG assets for upcoming, ready, celebrated, and memory states. Motivation, Child Workspace, Home Motivation summary, and Celebration Memory surfaces render those assets through `HomeOpsIcon`, preserving fallback symbols for unmigrated semantics and preserving existing workflows, data models, copy, and layouts.
+
+### Helpful Moments Asset Integration — Completed 2026-06-21
+Semantic Icon Layer now resolves Helpful Moment recognition categories to existing HomeOps-owned SVG assets for Kindness, Teamwork, Initiative, Responsibility, and Routine. Motivation, Child Workspace/Family Member Helpful Moments, Family Contribution Story surfaces that reuse Helpful Moments, and Weekly Reset recap rows render recognition visuals through semantic icon names instead of category Unicode/glyph presentation. Safe fallbacks remain for unknown tags and unmigrated consumers, while existing Helpful Moments, Motivation, Child Workspace, Family Contribution Story, Weekly Reset, and Celebration behavior remains unchanged.

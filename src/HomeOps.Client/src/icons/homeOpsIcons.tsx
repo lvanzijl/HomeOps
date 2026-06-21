@@ -11,6 +11,16 @@ import celebrationReadySpot from "../assets/homeops/celebration/celebration-read
 import celebrationUpcomingHero from "../assets/homeops/celebration/celebration-upcoming-hero.svg";
 import celebrationUpcomingIcon from "../assets/homeops/celebration/celebration-upcoming-icon.svg";
 import celebrationUpcomingSpot from "../assets/homeops/celebration/celebration-upcoming-spot.svg";
+import helpfulInitiativeIcon from "../assets/homeops/helpful-moments/helpful-initiative-icon.svg";
+import helpfulInitiativeSpot from "../assets/homeops/helpful-moments/helpful-initiative-spot.svg";
+import helpfulKindnessIcon from "../assets/homeops/helpful-moments/helpful-kindness-icon.svg";
+import helpfulKindnessSpot from "../assets/homeops/helpful-moments/helpful-kindness-spot.svg";
+import helpfulResponsibilityIcon from "../assets/homeops/helpful-moments/helpful-responsibility-icon.svg";
+import helpfulResponsibilitySpot from "../assets/homeops/helpful-moments/helpful-responsibility-spot.svg";
+import helpfulRoutineIcon from "../assets/homeops/helpful-moments/helpful-routine-icon.svg";
+import helpfulRoutineSpot from "../assets/homeops/helpful-moments/helpful-routine-spot.svg";
+import helpfulTeamworkIcon from "../assets/homeops/helpful-moments/helpful-teamwork-icon.svg";
+import helpfulTeamworkSpot from "../assets/homeops/helpful-moments/helpful-teamwork-spot.svg";
 import uiAddIcon from "../assets/homeops/core-ui/ui-add-icon.svg";
 import uiBackIcon from "../assets/homeops/core-ui/ui-back-icon.svg";
 import uiCloseIcon from "../assets/homeops/core-ui/ui-close-icon.svg";
@@ -48,20 +58,22 @@ export const homeOpsIconRegistry = {
   checkmark: { fallback: "✓" },
   close: { fallback: "×", assets: { icon: uiCloseIcon } },
   completed: { fallback: "✓" },
-  initiative: { fallback: "💛" },
-  kindness: { fallback: "💛" },
+  initiative: { fallback: "💛", assets: { icon: helpfulInitiativeIcon, spot: helpfulInitiativeSpot } },
+  kindness: { fallback: "💛", assets: { icon: helpfulKindnessIcon, spot: helpfulKindnessSpot } },
   memory: {
     fallback: "💛",
     assets: { icon: celebrationMemoryIcon, spot: celebrationMemorySpot, keepsake: celebrationMemoryKeepsake },
   },
   progress: { fallback: "★" },
+  responsibility: { fallback: "✓", assets: { icon: helpfulResponsibilityIcon, spot: helpfulResponsibilitySpot } },
+  routine: { fallback: "↻", assets: { icon: helpfulRoutineIcon, spot: helpfulRoutineSpot } },
   sparkle: {
     fallback: "✨",
     assets: { icon: celebrationCelebratedIcon, spot: celebrationCelebratedSpot },
   },
   teamwork: {
-    fallback: "🎉",
-    assets: { icon: celebrationReadyIcon, spot: celebrationReadySpot },
+    fallback: "🤝",
+    assets: { icon: helpfulTeamworkIcon, spot: helpfulTeamworkSpot },
   },
 } as const satisfies Record<string, HomeOpsIconRegistryEntry>;
 
@@ -97,4 +109,19 @@ export function HomeOpsIcon({ name, label, variant = "icon", className, ...props
       {asset ? <img alt="" draggable="false" src={asset} /> : fallback}
     </span>
   );
+}
+
+const helpfulMomentIconNames = {
+  initiative: "initiative",
+  kindness: "kindness",
+  responsibility: "responsibility",
+  routine: "routine",
+  teamwork: "teamwork",
+} as const satisfies Record<string, HomeOpsIconName>;
+
+export function getHelpfulMomentIconName(recognitionTag?: string): HomeOpsIconName {
+  const normalized = recognitionTag?.trim().toLowerCase();
+  return normalized && normalized in helpfulMomentIconNames
+    ? helpfulMomentIconNames[normalized as keyof typeof helpfulMomentIconNames]
+    : "kindness";
 }
