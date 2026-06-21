@@ -458,7 +458,15 @@ export function HomeDashboard({
               <div className="progress-bar" aria-label={`Family goal progress ${motivationFamilyGoal.currentProgress} of ${motivationFamilyGoal.targetCount}`}>
                 <span style={{ width: `${motivationProgress}%` }} />
               </div>
-              {motivationFamilyGoal.celebration ? <p className="home-context-note">{motivationFamilyGoal.celebration.status === FamilyCelebrationStatus.ReadyToCelebrate ? "Ready to celebrate" : motivationFamilyGoal.celebration.status === FamilyCelebrationStatus.Celebrated ? "Celebrated" : "When we finish"}: {motivationFamilyGoal.celebration.title}</p> : <p className="home-context-note">A shared encouragement goal for the household.</p>}
+              {motivationFamilyGoal.celebration ? (
+                <div className={`home-celebration-surface ${motivationFamilyGoal.celebration.status === FamilyCelebrationStatus.ReadyToCelebrate ? "ready" : motivationFamilyGoal.celebration.status === FamilyCelebrationStatus.Celebrated ? "celebrated" : "planned"}`} aria-label="Home celebration">
+                  <span aria-hidden="true">🎉</span>
+                  <div>
+                    <strong>{motivationFamilyGoal.celebration.status === FamilyCelebrationStatus.ReadyToCelebrate ? "Ready to celebrate" : motivationFamilyGoal.celebration.status === FamilyCelebrationStatus.Celebrated ? "Celebrated together" : "Celebration ahead"}</strong>
+                    <p>{motivationFamilyGoal.celebration.title}</p>
+                  </div>
+                </div>
+              ) : <p className="home-context-note">A shared encouragement goal for the household.</p>}
             </>
           ) : (
             <div className="empty-state-card">

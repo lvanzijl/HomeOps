@@ -2053,3 +2053,110 @@ button {
     transform: none;
   }
 }
+
+.motivation-story {
+  align-items: center;
+  color: #9a3412;
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 0.82rem;
+  font-weight: 900;
+  gap: 0.45rem;
+  letter-spacing: 0.08em;
+  margin: 0.85rem 0;
+  text-transform: uppercase;
+}
+.motivation-story span:not([aria-hidden="true"]) {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 999px;
+  padding: 0.3rem 0.55rem;
+}
+.celebration-surface {
+  align-items: center;
+  background:
+    radial-gradient(circle at 8% 16%, rgb(251 191 36 / 34%), transparent 30%),
+    linear-gradient(135deg, #fff7ed 0%, #fef3c7 52%, #ffffff 100%);
+  border: 2px solid #fdba74;
+  border-radius: 1.45rem;
+  box-shadow: 0 18px 42px rgb(154 52 18 / 14%);
+  color: #7c2d12;
+  display: grid;
+  gap: 0.9rem;
+  grid-template-columns: auto 1fr;
+  margin: 1rem 0;
+  padding: 1rem;
+}
+.celebration-surface.ready,
+.home-celebration-surface.ready,
+.family-celebration-card.ready,
+.child-hero-celebration.ready {
+  animation: celebrationPulse 1.8s ease-in-out infinite;
+  border-color: #f97316;
+  box-shadow: 0 20px 52px rgb(249 115 22 / 24%);
+}
+.celebration-surface-icon {
+  background: #ffffff;
+  border-radius: 1rem;
+  box-shadow: 0 12px 26px rgb(154 52 18 / 16%);
+  display: grid;
+  font-size: 2.4rem;
+  height: 4.2rem;
+  place-items: center;
+  width: 4.2rem;
+}
+.celebration-surface h4,
+.celebration-surface p,
+.celebration-surface span {
+  margin: 0;
+}
+.celebration-surface h4 {
+  font-size: clamp(1.35rem, 3vw, 2.2rem);
+  line-height: 1;
+}
+.celebration-surface p:not(.eyebrow) {
+  color: #9a3412;
+  font-weight: 800;
+  margin-top: 0.25rem;
+}
+.celebration-surface span:not(.celebration-surface-icon) {
+  color: #7c2d12;
+  display: block;
+  font-weight: 700;
+  margin-top: 0.35rem;
+}
+.home-celebration-surface {
+  align-items: center;
+  background: linear-gradient(135deg, #fff7ed, #fef3c7);
+  border: 1px solid #fdba74;
+  border-radius: 1rem;
+  color: #7c2d12;
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: auto 1fr;
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+}
+.home-celebration-surface > span {
+  font-size: 1.7rem;
+}
+.home-celebration-surface strong,
+.home-celebration-surface p {
+  margin: 0;
+}
+.home-celebration-surface p {
+  color: #9a3412;
+  font-weight: 800;
+}
+@keyframes celebrationPulse {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .celebration-surface.ready,
+  .home-celebration-surface.ready,
+  .family-celebration-card.ready,
+  .child-hero-celebration.ready {
+    animation: none;
+  }
+}
