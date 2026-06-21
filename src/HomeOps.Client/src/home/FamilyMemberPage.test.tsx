@@ -141,17 +141,18 @@ describe("FamilyMemberPage", () => {
     expect(screen.getByLabelText("Child hero area")).not.toBeNull();
     expect(screen.getByLabelText("Who I am")).not.toBeNull();
     expect(screen.getByLabelText("Current goal and progress")).not.toBeNull();
-    expect(screen.getByLabelText("How I am helping my family")).not.toBeNull();
+    expect(screen.getByLabelText("My contribution to my family")).not.toBeNull();
     expect(await screen.findByLabelText("Hero celebration")).not.toBeNull();
     expect(screen.getByLabelText("Celebration memories")).not.toBeNull();
     expect(screen.getByText("Family Picnic")).not.toBeNull();
-    expect(screen.getByText("Celebrated Together")).not.toBeNull();
+    expect(screen.getByText("We helped make this happen.")).not.toBeNull();
     expect(screen.getByText("This is me")).not.toBeNull();
     expect(await screen.findByText("Today")).not.toBeNull();
     expect(screen.getByText("What should I do today?")).not.toBeNull();
     expect(screen.getByText("Pack school bag")).not.toBeNull();
     expect(screen.getByText("What I am working on")).not.toBeNull();
-    expect(screen.getByText("How I am helping")).not.toBeNull();
+    expect(screen.getByText("My contribution")).not.toBeNull();
+    expect(screen.getByText(/My contribution helped the family get closer/)).not.toBeNull();
     expect(screen.getByText("My Place In The Family")).not.toBeNull();
     expect(screen.getByText("How am I doing?")).not.toBeNull();
     expect(
@@ -161,7 +162,7 @@ describe("FamilyMemberPage", () => {
       0,
     );
     expect(screen.getByLabelText("Family celebration")).not.toBeNull();
-    expect(screen.getByText(/Today's help brings it closer/)).not.toBeNull();
+    expect(screen.getByText(/My help mattered and brings the family closer/)).not.toBeNull();
     expect(screen.getAllByText("Board game night").length).toBeGreaterThan(
       0,
     );
@@ -173,8 +174,9 @@ describe("FamilyMemberPage", () => {
     expect(await screen.findByText("Helped set the table")).not.toBeNull();
     expect(screen.getByText("Things My Family Appreciates")).not.toBeNull();
     expect(screen.getByText("We noticed Riley")).not.toBeNull();
-    expect(screen.getByText("Thank you for")).not.toBeNull();
+    expect(screen.getByText("This helped our family because")).not.toBeNull();
     expect(screen.getByText("Initiative")).not.toBeNull();
+    expect(screen.getByText(/This contribution helped us get closer/)).not.toBeNull();
     expect(screen.queryByText(/Gems|Shop|Leaderboard|balance/i)).toBeNull();
   });
 
@@ -212,7 +214,7 @@ describe("FamilyMemberPage", () => {
     ).not.toBeNull();
   });
 
-  it("renders the Family Goal journey section with celebration context", async () => {
+  it("renders the Contribution journey section with celebration context", async () => {
     render(
       <FamilyMemberPage
         member={familyMembers[2]}
@@ -225,9 +227,9 @@ describe("FamilyMemberPage", () => {
     expect(
       await screen.findByLabelText("Family goal participation"),
     ).not.toBeNull();
-    expect(screen.getByText("Family Goal")).not.toBeNull();
+    expect(screen.getByText("Contribution")).not.toBeNull();
     expect(screen.getByLabelText("Family celebration")).not.toBeNull();
-    expect(screen.getByText(/Today's help brings it closer/)).not.toBeNull();
+    expect(screen.getByText(/My help mattered and brings the family closer/)).not.toBeNull();
     expect(screen.getAllByText("Board game night").length).toBeGreaterThan(
       0,
     );
@@ -278,9 +280,9 @@ describe("FamilyMemberPage", () => {
       pageText.indexOf("This Week"),
     );
     expect(pageText.indexOf("This Week")).toBeLessThan(
-      pageText.indexOf("Family Goal"),
+      pageText.indexOf("Contribution"),
     );
-    expect(pageText.indexOf("Family Goal")).toBeLessThan(
+    expect(pageText.indexOf("Contribution")).toBeLessThan(
       pageText.indexOf("Things My Family Appreciates"),
     );
     expect(pageText.indexOf("Things My Family Appreciates")).toBeLessThan(

@@ -27,9 +27,11 @@ describe('HelpfulMomentsSection', () => {
     const section = screen.getByLabelText('Things My Family Appreciates');
     expect(await within(section).findByText('Helped Jordan clean up')).not.toBeNull();
     expect(within(section).getByText('We noticed Riley')).not.toBeNull();
-    expect(within(section).getByText('Thank you for')).not.toBeNull();
+    expect(within(section).getByText('This helped our family because')).not.toBeNull();
     expect(within(section).getByText('My Family Appreciates')).not.toBeNull();
     expect(within(section).getByText('Kindness')).not.toBeNull();
+    expect(within(section).getByText(/Helpful moments are the bridge/)).not.toBeNull();
+    expect(within(section).getByText(/This contribution helped us get closer/)).not.toBeNull();
     expect(screen.queryByText(/points?|tokens?|gems?|shop|leaderboard|balance|reward value/i)).toBeNull();
   });
 

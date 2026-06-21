@@ -530,14 +530,14 @@ function ChildHeroArea({
 
       <aside
         className="child-hero-family"
-        aria-label="How I am helping my family"
+        aria-label="My contribution to my family"
       >
-        <p className="eyebrow">How I am helping</p>
+        <p className="eyebrow">My contribution</p>
         {familyGoal ? (
           <>
             <h4>{familyGoal.title}</h4>
             <p>
-              Your helpful steps are part of the whole family’s progress — no
+              My help mattered. My family noticed. My contribution helped the family get closer — no
               teams, ranks, or comparisons.
             </p>
             <strong>
@@ -561,9 +561,9 @@ function ChildHeroArea({
                 {celebration.status === FamilyCelebrationStatus.ReadyToCelebrate || celebrationComplete
                   ? `We did it — ${celebration.title} is ready now.`
                   : celebration.status === FamilyCelebrationStatus.Celebrated
-                    ? "A proud family moment already shared."
+                    ? "A proud family-created moment we shared because we helped make it happen."
                     : familyGoal
-                      ? `Every helpful step brings ${celebration.title} closer.`
+                      ? `Every contribution and helpful moment brings ${celebration.title} closer.`
                       : "This is what your family is working toward."}
               </p>
             </div>
@@ -701,12 +701,12 @@ function FamilyGoalParticipation({
       className="child-progress-card family-goal-participation"
       aria-label="Family goal participation"
     >
-      <p className="eyebrow">Family Goal</p>
+      <p className="eyebrow">Contribution</p>
       <h3>{familyGoal.title}</h3>
       <p>
         {remaining > 0
           ? familyGoal.celebration
-            ? `${remaining === 1 ? "Only 1 more" : `Only ${remaining} more`} ${familyGoal.unitLabel} until ${familyGoal.celebration.title}. Today's help brings it closer.`
+            ? `${remaining === 1 ? "Only 1 more" : `Only ${remaining} more`} ${familyGoal.unitLabel} until ${familyGoal.celebration.title}. My help mattered and brings the family closer.`
             : `Every kind step helps. ${remaining} more ${familyGoal.unitLabel} and the family reaches it together.`
           : "We did it together — time to celebrate the teamwork!"}
       </p>
@@ -747,8 +747,8 @@ function FamilyCelebrationCard({
   const detail = celebration.status === FamilyCelebrationStatus.ReadyToCelebrate || complete
     ? `We did it. ${celebration.title} is ready because the family finished together.`
     : celebration.status === FamilyCelebrationStatus.Celebrated
-      ? "Your family already shared this proud moment."
-      : `Keep helping — every step brings ${celebration.title} closer.`;
+      ? "Your family already shared this proud moment because everyone helped make it happen."
+      : `Keep helping — every contribution and helpful moment brings ${celebration.title} closer.`;
   const statusClass = celebration.status === FamilyCelebrationStatus.ReadyToCelebrate || complete
     ? "ready"
     : celebration.status === FamilyCelebrationStatus.Celebrated
@@ -791,14 +791,14 @@ function ChildCelebrationMemories({
     <article className="child-progress-card child-memory-card" aria-label="Celebration memories">
       <p className="eyebrow">Family Memories</p>
       <h3>{ageBand === "early-child" ? "We did it together" : "Celebrations we remember"}</h3>
-      <p>These are proud family moments that started as goals and became memories.</p>
+      <p>These memories explain why we celebrated: we helped, got closer, and made the celebration happen together.</p>
       <div className="child-memory-list">
         {recent.map((memory) => (
           <div key={`${memory.familyGoalId}-${memory.celebratedUtc}`}>
             <span aria-hidden="true">💛</span>
             <div>
               <strong>{memory.title}</strong>
-              <p>Celebrated Together</p>
+              <p>We helped make this happen.</p>
             </div>
           </div>
         ))}
