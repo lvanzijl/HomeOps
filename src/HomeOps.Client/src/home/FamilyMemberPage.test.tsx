@@ -6,7 +6,6 @@ import { familyMembers } from "./familyMembers";
 import { loadMotivationSnapshot } from "../motivationData";
 import { loadHelpfulMoments } from "../helpfulMomentsData";
 import { loadTasks } from "../tasks/tasksApi";
-import { getHomeOpsIconSymbol } from "../icons/homeOpsIcons";
 
 vi.mock("../motivationData", async () => {
   const actual =
@@ -44,7 +43,14 @@ describe("FamilyMemberPage", () => {
           status: 0,
         },
       },
-      celebrationMemories: [{ familyGoalId: 'old-goal', title: 'Family Picnic', description: 'Lunch at the park.', celebratedUtc: '2026-06-20T12:00:00Z' }],
+      celebrationMemories: [
+        {
+          familyGoalId: "old-goal",
+          title: "Family Picnic",
+          description: "Lunch at the park.",
+          celebratedUtc: "2026-06-20T12:00:00Z",
+        },
+      ],
       individualGoals: [
         {
           id: "riley-goal",
@@ -144,7 +150,12 @@ describe("FamilyMemberPage", () => {
     expect(screen.getByLabelText("Current goal and progress")).not.toBeNull();
     expect(screen.getByLabelText("Family goal")).not.toBeNull();
     expect(await screen.findByLabelText("Hero celebration")).not.toBeNull();
-    expect(screen.getByLabelText("Hero celebration").querySelector("img")?.getAttribute("src")).toContain("data-asset-name='celebration-upcoming'");
+    expect(
+      screen
+        .getByLabelText("Hero celebration")
+        .querySelector("img")
+        ?.getAttribute("src"),
+    ).toContain("data-asset-name='celebration-upcoming'");
     expect(screen.getByLabelText("Celebration memories")).not.toBeNull();
     expect(screen.getByText("Family Picnic")).not.toBeNull();
     expect(screen.getByText("We helped make this happen.")).not.toBeNull();
@@ -152,27 +163,45 @@ describe("FamilyMemberPage", () => {
     expect(await screen.findByText("Today")).not.toBeNull();
     expect(screen.getByText("What should I do today?")).not.toBeNull();
     expect(screen.getByText("Pack school bag")).not.toBeNull();
-    expect(screen.getAllByText(getHomeOpsIconSymbol("completed")).length).toBeGreaterThan(0);
-    expect(screen.getByText("My goal")).not.toBeNull();
+    expect(screen.getAllByText("✓").length).toBeGreaterThan(0);
+    expect(screen.getByText("My Progress")).not.toBeNull();
+    expect(
+      screen
+        .getByLabelText("Current goal and progress")
+        .querySelector("img")
+        ?.getAttribute("src"),
+    ).toContain("data-asset-name='child-my-progress'");
+    expect(
+      screen.getByLabelText("Today").querySelector("img")?.getAttribute("src"),
+    ).toContain("data-asset-name='child-today'");
+    expect(
+      screen
+        .getByLabelText("This Week")
+        .querySelector("img")
+        ?.getAttribute("src"),
+    ).toContain("data-asset-name='child-this-week'");
     expect(screen.getAllByText("Family Goal").length).toBeGreaterThan(0);
     expect(screen.getByText(/The family is getting closer/)).not.toBeNull();
+    expect(
+      screen
+        .getByLabelText("Family goal")
+        .querySelector("img")
+        ?.getAttribute("src"),
+    ).toContain("data-asset-name='child-family-participation'");
     expect(screen.getByText("My page")).not.toBeNull();
     expect(screen.getByText("What is next?")).not.toBeNull();
     expect(
       (await screen.findAllByText("Fill the family helper path")).length,
     ).toBeGreaterThan(0);
-    expect(screen.getAllByText("Read before bed").length).toBeGreaterThan(
-      0,
-    );
+    expect(screen.getAllByText("Read before bed").length).toBeGreaterThan(0);
     expect(screen.getByLabelText("Family celebration")).not.toBeNull();
     expect(screen.getAllByText(/You helped/).length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Board game night").length).toBeGreaterThan(
-      0,
-    );
-    expect(screen.getAllByText(/Only 7 more helpful steps until Board game night/).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/2 stars to go/).length).toBeGreaterThan(
-      0,
-    );
+    expect(screen.getAllByText("Board game night").length).toBeGreaterThan(0);
+    expect(
+      screen.getAllByText(/Only 7 more helpful steps until Board game night/)
+        .length,
+    ).toBeGreaterThan(0);
+    expect(screen.getAllByText(/2 stars to go/).length).toBeGreaterThan(0);
     expect(await screen.findByText("Helped set the table")).not.toBeNull();
     expect(screen.getByText("Things My Family Appreciates")).not.toBeNull();
     expect(screen.getByText("We noticed Riley")).not.toBeNull();
@@ -231,9 +260,7 @@ describe("FamilyMemberPage", () => {
     expect(screen.getAllByText("Family Goal").length).toBeGreaterThan(0);
     expect(screen.getByLabelText("Family celebration")).not.toBeNull();
     expect(screen.getAllByText(/You helped/).length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Board game night").length).toBeGreaterThan(
-      0,
-    );
+    expect(screen.getAllByText("Board game night").length).toBeGreaterThan(0);
   });
 
   it("opens Parent Mode for child administration without making it the landing content", async () => {
@@ -255,9 +282,7 @@ describe("FamilyMemberPage", () => {
     expect(screen.getByLabelText("Parent administration")).not.toBeNull();
     expect(screen.getByText("Edit member")).not.toBeNull();
     expect(screen.getByText("Current avatar configuration")).not.toBeNull();
-    expect(
-      screen.getByRole("button", { name: "Edit avatar" }),
-    ).not.toBeNull();
+    expect(screen.getByRole("button", { name: "Edit avatar" })).not.toBeNull();
   });
 
   it("keeps child-first ordering before Parent Mode controls", async () => {
@@ -280,7 +305,10 @@ describe("FamilyMemberPage", () => {
     expect(pageText.indexOf("Today")).toBeLessThan(
       pageText.indexOf("This Week"),
     );
-    const familyGoalAfterThisWeek = pageText.indexOf("Only 7 more helpful steps", pageText.indexOf("This Week"));
+    const familyGoalAfterThisWeek = pageText.indexOf(
+      "Only 7 more helpful steps",
+      pageText.indexOf("This Week"),
+    );
     expect(pageText.indexOf("This Week")).toBeLessThan(familyGoalAfterThisWeek);
     expect(familyGoalAfterThisWeek).toBeLessThan(
       pageText.indexOf("Things My Family Appreciates"),

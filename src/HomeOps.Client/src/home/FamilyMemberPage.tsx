@@ -3,7 +3,7 @@ import { loadTasks } from "../tasks/tasksApi";
 import type { HouseholdTask } from "../tasks/tasksModel";
 import { type CSSProperties, type FormEvent, useEffect, useState } from "react";
 import { FamilyCelebrationStatus } from "../api/homeOpsApiClient";
-import { HomeOpsIcon, getHomeOpsIconSymbol } from "../icons/homeOpsIcons";
+import { HomeOpsIcon } from "../icons/homeOpsIcons";
 import {
   clampProgress,
   goalsForMembers,
@@ -42,9 +42,9 @@ export function FamilyMemberPage({
   const [motivationSnapshot, setMotivationSnapshot] =
     useState<MotivationSnapshot>({ individualGoals: [] });
   const [tasks, setTasks] = useState<readonly HouseholdTask[]>([]);
-  const [tasksStatus, setTasksStatus] = useState<
-    "loading" | "ready" | "error"
-  >("loading");
+  const [tasksStatus, setTasksStatus] = useState<"loading" | "ready" | "error">(
+    "loading",
+  );
 
   useEffect(() => {
     setDraft(member);
@@ -136,9 +136,7 @@ export function FamilyMemberPage({
         </div>
         <div>
           <p className="eyebrow">
-            {member.memberKind === "child"
-              ? "My page"
-              : "Household member"}
+            {member.memberKind === "child" ? "My page" : "Household member"}
           </p>
           <h2>{member.name}</h2>
           <p>{ageContext(member, age)}</p>
@@ -177,7 +175,10 @@ export function FamilyMemberPage({
                 status={motivationStatus}
                 ageBand={ageBand}
               />
-              <ChildCelebrationMemories memories={motivationSnapshot.celebrationMemories ?? []} ageBand={ageBand} />
+              <ChildCelebrationMemories
+                memories={motivationSnapshot.celebrationMemories ?? []}
+                ageBand={ageBand}
+              />
               <HelpfulMomentsSection
                 members={[member]}
                 familyMemberId={member.id}
@@ -485,7 +486,12 @@ function ChildHeroArea({
       </div>
 
       <div className="child-hero-main" aria-label="Current goal and progress">
-        <p className="eyebrow">My goal</p>
+        <HomeOpsIcon
+          className="child-section-asset"
+          name="childMyProgress"
+          variant="spot"
+        />
+        <p className="eyebrow">My Progress</p>
         <h2>
           {primaryGoal?.title ?? familyGoal?.title ?? "A new goal is coming"}
         </h2>
@@ -529,17 +535,17 @@ function ChildHeroArea({
         )}
       </div>
 
-      <aside
-        className="child-hero-family"
-        aria-label="Family goal"
-      >
-        <p className="eyebrow">Family Goal</p>
+      <aside className="child-hero-family" aria-label="Family goal">
+        <HomeOpsIcon
+          className="child-section-asset"
+          name="childFamilyParticipation"
+          variant="group"
+        />
+        <p className="eyebrow">Family Participation</p>
         {familyGoal ? (
           <>
             <h4>{familyGoal.title}</h4>
-            <p>
-              You helped. The family is getting closer.
-            </p>
+            <p>You helped. The family is getting closer.</p>
             <strong>
               {familyGoal.currentProgress}/{familyGoal.targetCount}{" "}
               {familyGoal.unitLabel} together
@@ -553,12 +559,25 @@ function ChildHeroArea({
             className={`child-hero-celebration ${celebration.status === FamilyCelebrationStatus.ReadyToCelebrate || celebrationComplete ? "ready" : celebration.status === FamilyCelebrationStatus.Celebrated ? "celebrated" : "planned"}`}
             aria-label="Hero celebration"
           >
-            <HomeOpsIcon name={celebration.status === FamilyCelebrationStatus.ReadyToCelebrate || celebrationComplete ? "celebrationReady" : celebration.status === FamilyCelebrationStatus.Celebrated ? "celebrationCelebrated" : "celebrationUpcoming"} variant="hero" />
+            <HomeOpsIcon
+              name={
+                celebration.status ===
+                  FamilyCelebrationStatus.ReadyToCelebrate ||
+                celebrationComplete
+                  ? "celebrationReady"
+                  : celebration.status === FamilyCelebrationStatus.Celebrated
+                    ? "celebrationCelebrated"
+                    : "celebrationUpcoming"
+              }
+              variant="hero"
+            />
             <div>
               <p className="eyebrow">{celebrationStatus}</p>
               <strong>{celebration.title}</strong>
               <p>
-                {celebration.status === FamilyCelebrationStatus.ReadyToCelebrate || celebrationComplete
+                {celebration.status ===
+                  FamilyCelebrationStatus.ReadyToCelebrate ||
+                celebrationComplete
                   ? `We did it — ${celebration.title} is ready now.`
                   : celebration.status === FamilyCelebrationStatus.Celebrated
                     ? "We celebrated together."
@@ -574,10 +593,20 @@ function ChildHeroArea({
   );
 }
 
-function childAnticipationMessage(progressGoal: MotivationIndividualGoal | MotivationFamilyGoal, familyGoal?: MotivationFamilyGoal) {
-  const remaining = Math.max(0, progressGoal.targetCount - progressGoal.currentProgress);
+function childAnticipationMessage(
+  progressGoal: MotivationIndividualGoal | MotivationFamilyGoal,
+  familyGoal?: MotivationFamilyGoal,
+) {
+  const remaining = Math.max(
+    0,
+    progressGoal.targetCount - progressGoal.currentProgress,
+  );
   const celebration = familyGoal?.celebration;
-  if (celebration && familyGoal && familyGoal.currentProgress < familyGoal.targetCount) {
+  if (
+    celebration &&
+    familyGoal &&
+    familyGoal.currentProgress < familyGoal.targetCount
+  ) {
     const familyRemaining = familyGoal.targetCount - familyGoal.currentProgress;
     return `${familyRemaining === 1 ? "Only 1 more" : `Only ${familyRemaining} more`} ${familyGoal.unitLabel} until ${celebration.title}.`;
   }
@@ -597,17 +626,16 @@ function TodaySection({
     .filter(
       (task) =>
         !task.isCompleted &&
-        task.noDateReviewState !== 'NeedsReview' &&
-        task.noDateReviewState !== 'Someday' &&
-        task.noDateReviewState !== 'Archived' &&
+        task.noDateReviewState !== "NeedsReview" &&
+        task.noDateReviewState !== "Someday" &&
+        task.noDateReviewState !== "Archived" &&
         task.ownershipKind === "FamilyMember" &&
         task.familyMemberId === member.id,
     )
     .sort(
       (a, b) =>
-        (a.dueDate ?? "9999-12-31").localeCompare(
-          b.dueDate ?? "9999-12-31",
-        ) || a.createdUtc.localeCompare(b.createdUtc),
+        (a.dueDate ?? "9999-12-31").localeCompare(b.dueDate ?? "9999-12-31") ||
+        a.createdUtc.localeCompare(b.createdUtc),
     );
   const visibleTasks = childTasks.slice(0, 3);
   const todayIso = new Date().toISOString().slice(0, 10);
@@ -620,16 +648,17 @@ function TodaySection({
       className="child-progress-card child-journey-today"
       aria-label="Today"
     >
+      <HomeOpsIcon
+        className="child-card-asset"
+        name="childToday"
+        variant="section"
+      />
       <p className="eyebrow">Today</p>
       <h3>What should I do today?</h3>
       {status === "loading" ? <p>Finding your helpful jobs…</p> : null}
-      {status === "error" ? (
-        <p>Tasks are unavailable right now.</p>
-      ) : null}
+      {status === "error" ? <p>Tasks are unavailable right now.</p> : null}
       {status === "ready" && childTasks.length === 0 ? (
-        <p>
-          No jobs right now. A grown-up can add one.
-        </p>
+        <p>No jobs right now. A grown-up can add one.</p>
       ) : null}
       {childTasks.length > 0 ? (
         <>
@@ -684,9 +713,7 @@ function FamilyGoalParticipation({
             ? "Family goal unavailable"
             : "No family goal yet"}
         </h3>
-        <p>
-          A grown-up can add one.
-        </p>
+        <p>A grown-up can add one.</p>
       </article>
     );
   const percent = clampProgress(
@@ -702,6 +729,11 @@ function FamilyGoalParticipation({
       className="child-progress-card family-goal-participation"
       aria-label="Family goal participation"
     >
+      <HomeOpsIcon
+        className="child-card-asset"
+        name="childFamilyParticipation"
+        variant="spot"
+      />
       <p className="eyebrow">Family Goal</p>
       <h3>{familyGoal.title}</h3>
       <p>
@@ -745,28 +777,40 @@ function FamilyCelebrationCard({
           complete
         ? "We did it — ready to celebrate"
         : "When we finish";
-  const detail = celebration.status === FamilyCelebrationStatus.ReadyToCelebrate || complete
-    ? `${celebration.title} is ready now.`
-    : celebration.status === FamilyCelebrationStatus.Celebrated
-      ? "We celebrated together."
-      : `Keep helping — ${celebration.title} is getting closer.`;
-  const statusClass = celebration.status === FamilyCelebrationStatus.ReadyToCelebrate || complete
-    ? "ready"
-    : celebration.status === FamilyCelebrationStatus.Celebrated
-      ? "celebrated"
-      : "planned";
+  const detail =
+    celebration.status === FamilyCelebrationStatus.ReadyToCelebrate || complete
+      ? `${celebration.title} is ready now.`
+      : celebration.status === FamilyCelebrationStatus.Celebrated
+        ? "We celebrated together."
+        : `Keep helping — ${celebration.title} is getting closer.`;
+  const statusClass =
+    celebration.status === FamilyCelebrationStatus.ReadyToCelebrate || complete
+      ? "ready"
+      : celebration.status === FamilyCelebrationStatus.Celebrated
+        ? "celebrated"
+        : "planned";
   return (
     <aside
       className={`family-celebration-card ${statusClass}`}
       aria-label="Family celebration"
     >
-      <HomeOpsIcon name={statusClass === "ready" ? "celebrationReady" : statusClass === "celebrated" ? "celebrationCelebrated" : "celebrationUpcoming"} variant={ageBand === "early-child" ? "spot" : "icon"} />
+      <HomeOpsIcon
+        name={
+          statusClass === "ready"
+            ? "celebrationReady"
+            : statusClass === "celebrated"
+              ? "celebrationCelebrated"
+              : "celebrationUpcoming"
+        }
+        variant={ageBand === "early-child" ? "spot" : "icon"}
+      />
       <div>
         <p className="eyebrow">{statusText}</p>
         <h4>{celebration.title}</h4>
         <p>
           {ageBand === "early-child"
-            ? celebration.status === FamilyCelebrationStatus.ReadyToCelebrate || complete
+            ? celebration.status === FamilyCelebrationStatus.ReadyToCelebrate ||
+              complete
               ? "Ready now!"
               : "Getting closer."
             : detail}
@@ -789,9 +833,16 @@ function ChildCelebrationMemories({
   const recent = memories.slice(0, 3);
   if (recent.length === 0) return null;
   return (
-    <article className="child-progress-card child-memory-card" aria-label="Celebration memories">
+    <article
+      className="child-progress-card child-memory-card"
+      aria-label="Celebration memories"
+    >
       <p className="eyebrow">Family Memories</p>
-      <h3>{ageBand === "early-child" ? "We did it together" : "Celebrations we remember"}</h3>
+      <h3>
+        {ageBand === "early-child"
+          ? "We did it together"
+          : "Celebrations we remember"}
+      </h3>
       <p>We made these happen together.</p>
       <div className="child-memory-list">
         {recent.map((memory) => (
@@ -819,16 +870,15 @@ function IndividualGoalProgress({
 }) {
   return (
     <article className="child-progress-card" aria-label="This Week">
+      <HomeOpsIcon
+        className="child-card-asset"
+        name="childThisWeek"
+        variant="section"
+      />
       <p className="eyebrow">This Week</p>
-      <h3>
-        {ageBand === "early-child"
-          ? "Stars to collect"
-          : "My progress"}
-      </h3>
+      <h3>{ageBand === "early-child" ? "Stars to collect" : "My progress"}</h3>
       {goals.length === 0 ? (
-        <p>
-          No personal goal right now. A grown-up can add one.
-        </p>
+        <p>No personal goal right now. A grown-up can add one.</p>
       ) : null}
       <div className="child-goal-list">
         {goals.map((goal) => {
@@ -843,6 +893,10 @@ function IndividualGoalProgress({
               key={goal.id}
               style={{ "--member-color": member.displayColor } as CSSProperties}
             >
+              <HomeOpsIcon
+                className="child-goal-asset"
+                name="childMyProgress"
+              />
               <h4>{goal.title}</h4>
               <div
                 className="star-row"
@@ -854,7 +908,13 @@ function IndividualGoalProgress({
                     key={index}
                     aria-hidden="true"
                   >
-                    {index < goal.currentProgress ? getHomeOpsIconSymbol("progress") : getHomeOpsIconSymbol("completed")}
+                    <HomeOpsIcon
+                      name={
+                        index < goal.currentProgress
+                          ? "childMyProgress"
+                          : "completed"
+                      }
+                    />
                   </span>
                 ))}
               </div>
@@ -904,12 +964,9 @@ function calculateAge(dateOfBirth?: string | null) {
 function ageContext(member: FamilyMember, age: number | null) {
   if (member.memberKind !== "child")
     return "Family Members are household entities for shared home context. They are not users, login identities, profiles, or permission holders.";
-  if (age === null)
-    return "A simple progress view for this child.";
-  if (age <= 5)
-    return `${age} years old · stars and simple goals.`;
-  if (age <= 12)
-    return `${age} years old · goals and progress.`;
+  if (age === null) return "A simple progress view for this child.";
+  if (age <= 5) return `${age} years old · stars and simple goals.`;
+  if (age <= 12) return `${age} years old · goals and progress.`;
   return `${age} years old · goals and progress.`;
 }
 
