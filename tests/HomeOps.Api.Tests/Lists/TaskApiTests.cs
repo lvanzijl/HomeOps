@@ -59,7 +59,7 @@ public sealed class RecurringTaskApiTests(HomeOpsWebApplicationFactory factory) 
     [Theory]
     [InlineData(TaskRecurrenceFrequency.Daily, 1)]
     [InlineData(TaskRecurrenceFrequency.Weekly, 7)]
-    [InlineData(TaskRecurrenceFrequency.Monthly, 30)]
+    [InlineData(TaskRecurrenceFrequency.Monthly, 31)]
     public async Task CreatesRecurringTasksForSupportedFrequencies(TaskRecurrenceFrequency frequency, int expectedGapDays)
     {
         var start = new DateOnly(2026, 6, 20);
@@ -108,10 +108,47 @@ public sealed class RecurringTaskApiTests(HomeOpsWebApplicationFactory factory) 
         Assert.Equal(7, seriesTasks[1].DueDate!.Value.DayNumber - seriesTasks[0].DueDate!.Value.DayNumber);
     }
 
+
+    [Theory]
+    [InlineData(TaskRecurrenceFrequency.Daily, 1)]
+    [InlineData(TaskRecurrenceFrequency.Weekly, 7)]
+    [InlineData(TaskRecurrenceFrequency.Monthly, 31)]
+    public async Task RecurringHygieneExpiresOlderIncompleteOccurrences(TaskRecurrenceFrequency frequency, int daysBack)
+    {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var staleDate = today.AddDays(-daysBack);
+        var title = $"Hygiene {frequency} {Guid.NewGuid()}";
+        var created = await CreateRecurringTask(title, staleDate, frequency, TaskOwnershipKind.Unassigned, null);
+
+        var tasks = await _client.GetFromJsonAsync<IReadOnlyCollection<HouseholdTaskDto>>("/api/tasks");
+        var seriesTasks = tasks!.Where(task => task.RecurringTaskSeriesId == created.RecurringTaskSeriesId).ToList();
+
+        Assert.DoesNotContain(seriesTasks, task => !task.IsCompleted && task.DueDate < today);
+        Assert.Contains(seriesTasks, task => !task.IsCompleted && task.DueDate >= today);
+    }
+
+    [Fact]
+    public async Task RecurringHygienePreservesCompletedOccurrencesAndMotivationCompatibility()
+    {
+        var before = await _client.GetFromJsonAsync<HomeOps.Api.Motivation.MotivationSnapshotDto>("/api/motivation");
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var created = await CreateRecurringTask($"Completed hygiene {Guid.NewGuid()}", today, TaskRecurrenceFrequency.Daily, TaskOwnershipKind.SharedHousehold, null);
+
+        var completeResponse = await _client.PostAsync($"/api/tasks/{created.Id}/complete", null);
+        completeResponse.EnsureSuccessStatusCode();
+
+        var tasks = await _client.GetFromJsonAsync<IReadOnlyCollection<HouseholdTaskDto>>("/api/tasks");
+        var after = await _client.GetFromJsonAsync<HomeOps.Api.Motivation.MotivationSnapshotDto>("/api/motivation");
+
+        Assert.Contains(tasks!, task => task.Id == created.Id && task.IsCompleted);
+        Assert.Contains(tasks!, task => task.RecurringTaskSeriesId == created.RecurringTaskSeriesId && !task.IsCompleted && task.DueDate > today);
+        Assert.Equal(Math.Min(before!.FamilyGoal!.CurrentProgress + 1, before.FamilyGoal.TargetCount), after!.FamilyGoal!.CurrentProgress);
+    }
+
     [Fact]
     public async Task DeletingRecurringSeriesRemovesPendingOccurrencesOnly()
     {
-        var created = await CreateRecurringTask("Change bedding", new DateOnly(2026, 6, 20), TaskRecurrenceFrequency.Monthly, TaskOwnershipKind.Unassigned, null);
+        var created = await CreateRecurringTask("Change bedding", DateOnly.FromDateTime(DateTime.UtcNow), TaskRecurrenceFrequency.Monthly, TaskOwnershipKind.Unassigned, null);
         await _client.PostAsync($"/api/tasks/{created.Id}/complete", null);
 
         var delete = await _client.DeleteAsync($"/api/tasks/{created.Id}/series");

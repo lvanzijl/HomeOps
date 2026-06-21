@@ -203,3 +203,8 @@ Family Contribution Story Foundation reframes the child-facing Motivation journe
 - Identified recurring tasks, shopping intelligence, child contribution visibility, and family goal rituals as the strongest long-term retention anchors.
 - Identified maintenance burden, stale tasks, generic recognition, stale goals, template dormancy, and unritualized memories as the primary retention risks.
 - Final verdict: the family would probably still use HomeOps after 90 days, especially if a weekly household reset and recap consolidates ongoing maintenance into a sustainable ritual.
+
+## 2026-06-21 Update — Recurring Task Hygiene
+- Implemented recurring task hygiene as a Phase 2 maintenance-reduction slice.
+- Older incomplete occurrences from the same recurring series expire when a current or upcoming occurrence exists, keeping task lists focused on what should be done now.
+- Completed occurrences remain preserved, avoiding data loss and preserving Motivation compatibility.
