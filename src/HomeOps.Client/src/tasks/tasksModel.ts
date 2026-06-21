@@ -1,5 +1,6 @@
 export type TaskOwnershipKind = 'Unassigned' | 'FamilyMember' | 'SharedHousehold';
 export type TaskRecurrenceFrequency = 'None' | 'Daily' | 'Weekly' | 'Monthly';
+export type NoDateTaskReviewState = 'Active' | 'NeedsReview' | 'Someday' | 'Completed' | 'Archived';
 
 export interface HouseholdTask {
   id: string;
@@ -13,6 +14,9 @@ export interface HouseholdTask {
   updatedUtc: string;
   recurringTaskSeriesId?: string | null;
   recurrenceFrequency?: TaskRecurrenceFrequency;
+  noDateReviewState?: NoDateTaskReviewState;
+  noDateLastReviewedUtc?: string | null;
+  archivedUtc?: string | null;
 }
 
 export interface CreateTaskInput {
@@ -21,6 +25,9 @@ export interface CreateTaskInput {
   ownershipKind?: TaskOwnershipKind;
   familyMemberId?: string | null;
   recurrenceFrequency?: TaskRecurrenceFrequency;
+  noDateReviewState?: NoDateTaskReviewState;
+  noDateLastReviewedUtc?: string | null;
+  archivedUtc?: string | null;
 }
 
 export type TaskUrgencyGroupId = 'overdue' | 'today' | 'upcoming' | 'noDueDate' | 'completedRecently';

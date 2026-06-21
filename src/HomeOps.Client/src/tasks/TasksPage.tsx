@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { familyMembers as fallbackFamilyMembers, type FamilyMember } from '../home/familyMembers';
-import { applyTaskTemplate, archiveTaskTemplate, completeTask, createTask, createTaskTemplate, deleteRecurringTaskSeries, loadTaskTemplates, loadTasks, reopenTask, updateTask as saveTask, updateTaskTemplate } from './tasksApi';
+import { applyTaskTemplate, archiveTask, archiveTaskTemplate, completeTask, createTask, createTaskTemplate, deleteRecurringTaskSeries, keepTaskActive, loadTaskTemplates, loadTasks, moveTaskToSomeday, reopenTask, updateTask as saveTask, updateTaskTemplate } from './tasksApi';
 import { groupTasksByUrgency } from './taskGrouping';
 import type { HouseholdTask, TaskOwnershipKind, TaskRecurrenceFrequency, TaskTemplate } from './tasksModel';
 
@@ -18,6 +18,8 @@ export function TasksPage({ members = fallbackFamilyMembers }: { members?: reado
   const [editingTemplate, setEditingTemplate] = useState<TaskTemplate | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const reviewTasks = useMemo(() => tasks.filter((task) => task.noDateReviewState === 'NeedsReview').slice(0, 5), [tasks]);
+  const somedayTasks = useMemo(() => tasks.filter((task) => task.noDateReviewState === 'Someday'), [tasks]);
   const groups = useMemo(() => groupTasksByUrgency(tasks), [tasks]);
 
   useEffect(() => {
@@ -82,12 +84,28 @@ export function TasksPage({ members = fallbackFamilyMembers }: { members?: reado
     try { await archiveTaskTemplate(templateId); setTemplates(await loadTaskTemplates()); } catch { setError('Task template could not be archived.'); }
   }
 
+  function onEditTaskDue(task: HouseholdTask) {
+    startEditing(task);
+    const due = window.prompt('Choose a due date (YYYY-MM-DD)', new Date().toISOString().slice(0, 10));
+    if (due) void saveTask(task.id, { title: task.title, dueDate: due, ownershipKind: task.ownershipKind, familyMemberId: task.familyMemberId, recurrenceFrequency: task.recurrenceFrequency ?? 'None' }).then(async () => setTasks(await loadTasks())).catch(() => setError('Due date could not be saved.'));
+  }
+
   function startEditing(task: HouseholdTask) {
     setEditingTask(task); setTitle(task.title); setDueDate(task.dueDate ?? ''); setOwnership(task.ownershipKind); setFamilyMemberId(task.familyMemberId ?? members[0]?.id ?? ''); setRecurrenceFrequency(task.recurrenceFrequency ?? 'None');
   }
 
   async function deleteSeries(taskId: string) {
     try { await deleteRecurringTaskSeries(taskId); setTasks(await loadTasks()); } catch { setError('Recurring task series could not be deleted.'); }
+  }
+
+  async function reviewTask(taskId: string, action: 'keep' | 'someday' | 'archive' | 'complete') {
+    try {
+      if (action === 'keep') await keepTaskActive(taskId);
+      if (action === 'someday') await moveTaskToSomeday(taskId);
+      if (action === 'archive') await archiveTask(taskId);
+      if (action === 'complete') await completeTask(taskId);
+      setTasks(await loadTasks());
+    } catch { setError('Review action could not be saved.'); }
   }
 
   async function updateTask(taskId: string, action: 'complete' | 'reopen') {
@@ -121,6 +139,8 @@ export function TasksPage({ members = fallbackFamilyMembers }: { members?: reado
         </form>
         {templates.length === 0 ? <p className="shopping-empty">No active templates.</p> : <ul className="task-list">{templates.map((template) => <li className="task-item" key={template.id}><div><strong>{template.name}</strong><span>{template.description ?? 'Reusable household tasks'} · {template.items.length} task{template.items.length === 1 ? '' : 's'}</span></div><button onClick={() => applyTemplate(template.id)} type="button">Apply</button><button onClick={() => startEditingTemplate(template)} type="button">Edit</button><button onClick={() => archiveTemplate(template.id)} type="button">Archive</button></li>)}</ul>}
       </section>
+      <section className="task-templates-panel" aria-label="Weekly Household Reset"><div><p className="widget-type">Weekly Household Reset</p><h4>Still part of the plan?</h4><p>Review a few older no-date tasks without making them disappear.</p></div>{reviewTasks.length === 0 ? <p className="shopping-empty">No no-date tasks need review right now.</p> : <ul className="task-list">{reviewTasks.map((task) => <li className="task-item" key={task.id}><div><strong>{task.title}</strong><span>Parent review · no child-facing warning</span></div><button onClick={() => reviewTask(task.id, 'keep')} type="button">Keep Active</button><button onClick={() => onEditTaskDue(task)} type="button">Add Due Date</button><button onClick={() => reviewTask(task.id, 'someday')} type="button">Move To Someday</button><button onClick={() => reviewTask(task.id, 'complete')} type="button">Complete</button><button onClick={() => reviewTask(task.id, 'archive')} type="button">Archive</button></li>)}</ul>}</section>
+      {somedayTasks.length > 0 ? <section className="task-group"><h4>Someday</h4><p className="shopping-empty">Long-term ideas and aspirations, kept out of daily pressure.</p><ul className="task-list">{somedayTasks.map((task) => <li className="task-item" key={task.id}><div><strong>{task.title}</strong><span>Someday</span></div><button onClick={() => reviewTask(task.id, 'keep')} type="button">Make Active</button><button onClick={() => reviewTask(task.id, 'archive')} type="button">Archive</button></li>)}</ul></section> : null}
       {isLoading ? <p className="shopping-empty">Loading tasks…</p> : tasks.length === 0 ? (
         <div className="empty-state-card page-empty-state">
           <strong>Create your first task</strong>

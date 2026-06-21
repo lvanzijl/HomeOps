@@ -597,6 +597,9 @@ function TodaySection({
     .filter(
       (task) =>
         !task.isCompleted &&
+        task.noDateReviewState !== 'NeedsReview' &&
+        task.noDateReviewState !== 'Someday' &&
+        task.noDateReviewState !== 'Archived' &&
         task.ownershipKind === "FamilyMember" &&
         task.familyMemberId === member.id,
     )

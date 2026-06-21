@@ -8,6 +8,8 @@ namespace HomeOps.Api.Tasks;
 public static class TaskEndpoints
 {
     private const int GenerationHorizonDays = 60;
+    private const int NoDateNeedsReviewDays = 14;
+    private const int NoDateReviewCandidateLimit = 5;
 
     public static IEndpointRouteBuilder MapTaskEndpoints(this IEndpointRouteBuilder app)
     {
@@ -16,10 +18,11 @@ public static class TaskEndpoints
         group.MapGet("/", async (HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
         {
             await GenerateRecurringTasks(dbContext, DateOnly.FromDateTime(DateTime.UtcNow), cancellationToken);
+            await ClassifyNoDateTasks(dbContext, DateTimeOffset.UtcNow, cancellationToken);
             await dbContext.SaveChangesAsync(cancellationToken);
 
             var tasks = await dbContext.HouseholdTasks.AsNoTracking()
-                .Where(task => task.HouseholdId == SeedHousehold.Id && !task.IsExpired)
+                .Where(task => task.HouseholdId == SeedHousehold.Id && !task.IsExpired && task.NoDateReviewState != NoDateTaskReviewState.Archived)
                 .OrderBy(task => task.IsCompleted).ThenBy(task => task.DueDate == null).ThenBy(task => task.DueDate).ThenBy(task => task.CreatedUtc)
                 .Select(task => ToDto(task))
                 .ToListAsync(cancellationToken);
@@ -95,10 +98,52 @@ public static class TaskEndpoints
             return Results.NoContent();
         }).WithName("DeleteRecurringTaskSeries").Produces(StatusCodes.Status204NoContent).Produces(StatusCodes.Status404NotFound);
 
+        group.MapGet("/review/no-date", async (HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        {
+            await ClassifyNoDateTasks(dbContext, DateTimeOffset.UtcNow, cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken);
+            var tasks = await dbContext.HouseholdTasks.AsNoTracking()
+                .Where(task => task.HouseholdId == SeedHousehold.Id && task.DueDate == null && !task.IsCompleted && !task.IsExpired && task.NoDateReviewState == NoDateTaskReviewState.NeedsReview)
+                .OrderBy(task => task.NoDateLastReviewedUtc ?? task.CreatedUtc).ThenBy(task => task.CreatedUtc)
+                .Take(NoDateReviewCandidateLimit)
+                .Select(task => ToDto(task))
+                .ToListAsync(cancellationToken);
+            return Results.Ok(tasks);
+        }).WithName("GetNoDateTaskReviewCandidates").Produces<IReadOnlyCollection<HouseholdTaskDto>>();
+
+        group.MapPost("/{taskId:guid}/keep-active", async (Guid taskId, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        {
+            var task = await LoadTask(dbContext, taskId, cancellationToken); if (task is null) return Results.NotFound();
+            var now = DateTimeOffset.UtcNow; task.NoDateReviewState = NoDateTaskReviewState.Active; task.NoDateLastReviewedUtc = now; task.UpdatedUtc = now;
+            await dbContext.SaveChangesAsync(cancellationToken); return Results.Ok(ToDto(task));
+        }).WithName("KeepNoDateTaskActive").Produces<HouseholdTaskDto>().Produces(StatusCodes.Status404NotFound);
+
+        group.MapPost("/{taskId:guid}/add-due-date", async (Guid taskId, ReviewNoDateTaskRequest request, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        {
+            var task = await LoadTask(dbContext, taskId, cancellationToken); if (task is null) return Results.NotFound();
+            if (request.DueDate is null) return Results.BadRequest(new { error = "Due date is required." });
+            var now = DateTimeOffset.UtcNow; task.DueDate = request.DueDate; task.NoDateReviewState = NoDateTaskReviewState.Active; task.NoDateLastReviewedUtc = now; task.UpdatedUtc = now;
+            await dbContext.SaveChangesAsync(cancellationToken); return Results.Ok(ToDto(task));
+        }).WithName("AddDueDateToNoDateTask").Produces<HouseholdTaskDto>().Produces(StatusCodes.Status400BadRequest).Produces(StatusCodes.Status404NotFound);
+
+        group.MapPost("/{taskId:guid}/move-to-someday", async (Guid taskId, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        {
+            var task = await LoadTask(dbContext, taskId, cancellationToken); if (task is null) return Results.NotFound();
+            var now = DateTimeOffset.UtcNow; task.DueDate = null; task.NoDateReviewState = NoDateTaskReviewState.Someday; task.NoDateLastReviewedUtc = now; task.UpdatedUtc = now;
+            await dbContext.SaveChangesAsync(cancellationToken); return Results.Ok(ToDto(task));
+        }).WithName("MoveNoDateTaskToSomeday").Produces<HouseholdTaskDto>().Produces(StatusCodes.Status404NotFound);
+
+        group.MapPost("/{taskId:guid}/archive", async (Guid taskId, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        {
+            var task = await LoadTask(dbContext, taskId, cancellationToken); if (task is null) return Results.NotFound();
+            var now = DateTimeOffset.UtcNow; task.NoDateReviewState = NoDateTaskReviewState.Archived; task.ArchivedUtc = now; task.UpdatedUtc = now;
+            await dbContext.SaveChangesAsync(cancellationToken); return Results.Ok(ToDto(task));
+        }).WithName("ArchiveTask").Produces<HouseholdTaskDto>().Produces(StatusCodes.Status404NotFound);
+
         group.MapPost("/{taskId:guid}/complete", async (Guid taskId, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
         {
             var task = await LoadTask(dbContext, taskId, cancellationToken); if (task is null) return Results.NotFound();
-            var wasCompleted = task.IsCompleted; var now = DateTimeOffset.UtcNow; task.IsCompleted = true; task.CompletedUtc ??= now; task.UpdatedUtc = now;
+            var wasCompleted = task.IsCompleted; var now = DateTimeOffset.UtcNow; task.IsCompleted = true; task.CompletedUtc ??= now; task.NoDateReviewState = NoDateTaskReviewState.Completed; task.UpdatedUtc = now;
             if (!wasCompleted) await ApplyMotivationProgress(dbContext, task, 1, cancellationToken);
             await GenerateRecurringTasks(dbContext, DateOnly.FromDateTime(DateTime.UtcNow), cancellationToken);
             await dbContext.SaveChangesAsync(cancellationToken);
@@ -108,7 +153,7 @@ public static class TaskEndpoints
         group.MapPost("/{taskId:guid}/reopen", async (Guid taskId, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
         {
             var task = await LoadTask(dbContext, taskId, cancellationToken); if (task is null) return Results.NotFound();
-            var wasCompleted = task.IsCompleted; task.IsCompleted = false; task.CompletedUtc = null; task.UpdatedUtc = DateTimeOffset.UtcNow;
+            var wasCompleted = task.IsCompleted; task.IsCompleted = false; task.CompletedUtc = null; task.NoDateReviewState = task.DueDate is null ? NoDateTaskReviewState.Active : task.NoDateReviewState; task.UpdatedUtc = DateTimeOffset.UtcNow;
             if (wasCompleted) await ApplyMotivationProgress(dbContext, task, -1, cancellationToken);
             await dbContext.SaveChangesAsync(cancellationToken);
             return Results.Ok(ToDto(task));
@@ -154,6 +199,15 @@ public static class TaskEndpoints
         }
     }
 
+    private static async Task ClassifyNoDateTasks(HomeOpsDbContext dbContext, DateTimeOffset now, CancellationToken cancellationToken)
+    {
+        var reviewBefore = now.AddDays(-NoDateNeedsReviewDays);
+        var tasks = await dbContext.HouseholdTasks
+            .Where(task => task.HouseholdId == SeedHousehold.Id && task.DueDate == null && !task.IsCompleted && !task.IsExpired && task.NoDateReviewState == NoDateTaskReviewState.Active && (task.NoDateLastReviewedUtc ?? task.CreatedUtc) <= reviewBefore)
+            .ToListAsync(cancellationToken);
+        foreach (var task in tasks) { task.NoDateReviewState = NoDateTaskReviewState.NeedsReview; task.UpdatedUtc = now; }
+    }
+
     private static DateOnly NextDueDate(DateOnly date, TaskRecurrenceFrequency frequency) => frequency switch
     {
         TaskRecurrenceFrequency.Daily => date.AddDays(1),
@@ -163,7 +217,7 @@ public static class TaskEndpoints
     };
 
     private static HouseholdTask CreateTask(string title, DateOnly? dueDate, TaskOwnershipKind ownershipKind, string? familyMemberId, Guid? seriesId, DateTimeOffset now) => new()
-    { Id = Guid.NewGuid(), HouseholdId = SeedHousehold.Id, Title = title, DueDate = dueDate, OwnershipKind = ownershipKind, FamilyMemberId = familyMemberId, RecurringTaskSeriesId = seriesId, RecurrenceFrequency = seriesId is null ? TaskRecurrenceFrequency.None : TaskRecurrenceFrequency.Daily, IsCompleted = false, IsExpired = false, CreatedUtc = now, UpdatedUtc = now };
+    { Id = Guid.NewGuid(), HouseholdId = SeedHousehold.Id, Title = title, DueDate = dueDate, OwnershipKind = ownershipKind, FamilyMemberId = familyMemberId, RecurringTaskSeriesId = seriesId, RecurrenceFrequency = seriesId is null ? TaskRecurrenceFrequency.None : TaskRecurrenceFrequency.Daily, IsCompleted = false, IsExpired = false, NoDateReviewState = NoDateTaskReviewState.Active, CreatedUtc = now, UpdatedUtc = now };
 
     private static async Task<(string Title, TaskOwnershipKind OwnershipKind, string? FamilyMemberId, string? Error)> ValidateTaskInput(string titleInput, TaskOwnershipKind? ownership, string? member, HomeOpsDbContext dbContext, CancellationToken cancellationToken)
     {
@@ -198,5 +252,5 @@ public static class TaskEndpoints
     }
 
     private static int ClampProgress(int progress, int targetCount) => Math.Min(Math.Max(progress, 0), targetCount);
-    private static HouseholdTaskDto ToDto(HouseholdTask task) => new(task.Id, task.Title, task.DueDate, task.OwnershipKind, task.FamilyMemberId, task.IsCompleted, task.CompletedUtc, task.CreatedUtc, task.UpdatedUtc, task.RecurringTaskSeriesId, task.RecurrenceFrequency);
+    private static HouseholdTaskDto ToDto(HouseholdTask task) => new(task.Id, task.Title, task.DueDate, task.OwnershipKind, task.FamilyMemberId, task.IsCompleted, task.CompletedUtc, task.CreatedUtc, task.UpdatedUtc, task.RecurringTaskSeriesId, task.RecurrenceFrequency, task.NoDateReviewState, task.NoDateLastReviewedUtc, task.ArchivedUtc);
 }

@@ -1467,6 +1467,184 @@
         }
       }
     },
+    "/api/tasks/review/no-date": {
+      "get": {
+        "tags": [
+          "Tasks"
+        ],
+        "operationId": "GetNoDateTaskReviewCandidates",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/HouseholdTaskDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/tasks/{taskId}/keep-active": {
+      "post": {
+        "tags": [
+          "Tasks"
+        ],
+        "operationId": "KeepNoDateTaskActive",
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HouseholdTaskDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/tasks/{taskId}/add-due-date": {
+      "post": {
+        "tags": [
+          "Tasks"
+        ],
+        "operationId": "AddDueDateToNoDateTask",
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewNoDateTaskRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HouseholdTaskDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": ""
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/tasks/{taskId}/move-to-someday": {
+      "post": {
+        "tags": [
+          "Tasks"
+        ],
+        "operationId": "MoveNoDateTaskToSomeday",
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HouseholdTaskDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/tasks/{taskId}/archive": {
+      "post": {
+        "tags": [
+          "Tasks"
+        ],
+        "operationId": "ArchiveTask",
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HouseholdTaskDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
     "/api/tasks/{taskId}/complete": {
       "post": {
         "tags": [
@@ -3018,6 +3196,19 @@
           },
           "recurrenceFrequency": {
             "$ref": "#/components/schemas/TaskRecurrenceFrequency"
+          },
+          "noDateReviewState": {
+            "$ref": "#/components/schemas/NoDateTaskReviewState"
+          },
+          "noDateLastReviewedUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "archivedUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
           }
         }
       },
@@ -3049,6 +3240,24 @@
           "Daily",
           "Weekly",
           "Monthly"
+        ]
+      },
+      "NoDateTaskReviewState": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "Active",
+          "NeedsReview",
+          "Someday",
+          "Completed",
+          "Archived"
+        ],
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4
         ]
       },
       "CreateHouseholdTaskRequest": {
@@ -3116,6 +3325,17 @@
                 "$ref": "#/components/schemas/TaskRecurrenceFrequency"
               }
             ]
+          }
+        }
+      },
+      "ReviewNoDateTaskRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "dueDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
           }
         }
       },

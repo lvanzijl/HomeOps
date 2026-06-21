@@ -114,3 +114,15 @@ export async function applyTaskTemplate(templateId: string): Promise<void> {
   });
   if (!response.ok) throw new Error('Task template could not be applied.');
 }
+
+export async function keepTaskActive(taskId: string): Promise<HouseholdTask> {
+  return readTaskResponse(await fetch(`${apiBaseUrl}/api/tasks/${taskId}/keep-active`, { method: 'POST', headers: { Accept: 'application/json' } }));
+}
+
+export async function moveTaskToSomeday(taskId: string): Promise<HouseholdTask> {
+  return readTaskResponse(await fetch(`${apiBaseUrl}/api/tasks/${taskId}/move-to-someday`, { method: 'POST', headers: { Accept: 'application/json' } }));
+}
+
+export async function archiveTask(taskId: string): Promise<HouseholdTask> {
+  return readTaskResponse(await fetch(`${apiBaseUrl}/api/tasks/${taskId}/archive`, { method: 'POST', headers: { Accept: 'application/json' } }));
+}

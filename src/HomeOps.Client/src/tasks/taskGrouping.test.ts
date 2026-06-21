@@ -14,6 +14,7 @@ function task(overrides: Partial<HouseholdTask>): HouseholdTask {
     completedUtc: overrides.completedUtc ?? null,
     createdUtc: overrides.createdUtc ?? '2026-06-19T00:00:00Z',
     updatedUtc: overrides.updatedUtc ?? '2026-06-19T00:00:00Z',
+    noDateReviewState: overrides.noDateReviewState ?? 'Active',
   };
 }
 
@@ -34,6 +35,19 @@ describe('groupTasksByUrgency', () => {
       ['noDueDate', ['none']],
       ['completedRecently', ['done']],
     ]);
+  });
+
+  it('keeps Someday and review-only clutter out of active urgency groups', () => {
+    const groups = groupTasksByUrgency([
+      task({ id: 'active', dueDate: null }),
+      task({ id: 'review', dueDate: null, noDateReviewState: 'NeedsReview' }),
+      task({ id: 'someday', dueDate: null, noDateReviewState: 'Someday' }),
+      task({ id: 'archived', dueDate: null, noDateReviewState: 'Archived' }),
+    ], '2026-06-20');
+
+    const noDate = groups.find((group) => group.id === 'noDueDate')!;
+    expect(noDate.title).toBe('Still part of the plan?');
+    expect(noDate.tasks.map((item) => item.id)).toEqual(['review', 'active']);
   });
 });
 
