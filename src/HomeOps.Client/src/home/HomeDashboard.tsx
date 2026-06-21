@@ -461,7 +461,7 @@ export function HomeDashboard({
               </div>
               {motivationFamilyGoal.celebration ? (
                 <div className={`home-celebration-surface ${motivationFamilyGoal.celebration.status === FamilyCelebrationStatus.ReadyToCelebrate ? "ready" : motivationFamilyGoal.celebration.status === FamilyCelebrationStatus.Celebrated ? "celebrated" : "planned"}`} aria-label="Home celebration">
-                  <HomeOpsIcon name="celebration" />
+                  <HomeOpsIcon name={motivationFamilyGoal.celebration.status === FamilyCelebrationStatus.ReadyToCelebrate ? "celebrationReady" : motivationFamilyGoal.celebration.status === FamilyCelebrationStatus.Celebrated ? "celebrationCelebrated" : "celebrationUpcoming"} variant="icon" />
                   <div>
                     <strong>{motivationFamilyGoal.celebration.status === FamilyCelebrationStatus.ReadyToCelebrate ? "We did it — ready to celebrate" : motivationFamilyGoal.celebration.status === FamilyCelebrationStatus.Celebrated ? "Celebrated together" : "Getting closer"}</strong>
                     <p>{homeCelebrationMessage(motivationFamilyGoal)}</p>

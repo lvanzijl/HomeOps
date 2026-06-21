@@ -144,7 +144,7 @@ describe("FamilyMemberPage", () => {
     expect(screen.getByLabelText("Current goal and progress")).not.toBeNull();
     expect(screen.getByLabelText("Family goal")).not.toBeNull();
     expect(await screen.findByLabelText("Hero celebration")).not.toBeNull();
-    expect(screen.getAllByText(getHomeOpsIconSymbol("celebration")).length).toBeGreaterThan(0);
+    expect(screen.getByLabelText("Hero celebration").querySelector("img")?.getAttribute("src")).toContain("data-asset-name='celebration-upcoming'");
     expect(screen.getByLabelText("Celebration memories")).not.toBeNull();
     expect(screen.getByText("Family Picnic")).not.toBeNull();
     expect(screen.getByText("We helped make this happen.")).not.toBeNull();

@@ -246,7 +246,7 @@ function FamilyCelebrationDisplay({ familyGoal, onCelebrated }: { familyGoal: Mo
 
   return (
     <div className={`celebration-surface ${statusClass}`} aria-label="Celebration surface">
-      <HomeOpsIcon className="celebration-surface-icon" name="celebration" />
+      <HomeOpsIcon className="celebration-surface-icon" name={statusClass === 'ready' ? 'celebrationReady' : statusClass === 'celebrated' ? 'celebrationCelebrated' : 'celebrationUpcoming'} variant={statusClass === 'ready' ? 'hero' : 'spot'} />
       <div>
         <p className="eyebrow">{label}</p>
         <h4>{celebration.title}</h4>
@@ -341,7 +341,7 @@ function CelebrationMemorySection({ memories }: { memories: readonly MotivationC
       <div className="celebration-memory-grid">
         {memories.map((memory) => (
           <article className="celebration-memory-card" key={`${memory.familyGoalId}-${memory.celebratedUtc}`}>
-            <HomeOpsIcon name="memory" />
+            <HomeOpsIcon name="memory" variant="keepsake" />
             <div>
               <h4>{memory.title}</h4>
               <p>We made this happen together.</p>

@@ -4,7 +4,7 @@
 Phase 2 — Durable Household Core
 
 ## Current Slice
-No-Date Task Lifecycle — Completed
+Celebration Asset Integration — Completed
 
 ## Completed Slices
 - 1.1 Repository Bootstrap
@@ -37,6 +37,7 @@ No-Date Task Lifecycle — Completed
 - Product Experience Review Round 5
 - Product Experience Review Round 6
 - HomeOps Long-Term Usage Review
+- Celebration Asset Integration
 
 
 
@@ -46,6 +47,13 @@ No-Date Task Lifecycle — Completed
 - Someday is an explicit destination for long-term ideas and aspirations that should remain recoverable without contributing to daily household pressure.
 - Home and Child Workspace task surfaces stay focused by avoiding Someday, archived, and review-only stale-task pressure in child-facing views.
 - The slice preserves the Review, Do Not Disappear principle: no-date tasks remain valid and are never automatically deleted.
+
+
+### Celebration Asset Integration — Completed 2026-06-21
+- Integrated existing Celebration Wave 1 SVG assets into the Semantic Icon Layer registry.
+- Replaced Celebration Unicode/emoji rendering across Motivation, Child Workspace, Home Motivation summary, and Celebration Memory surfaces with HomeOps-owned assets.
+- Preserved existing Celebration, Motivation, Child Workspace, Home, Family Goal, and Celebration Memory behavior while limiting changes to visual asset integration.
+- Asset-system progress now includes semantic SVG resolution with fallback symbols for consumers that do not yet have owned assets.
 
 ### HomeOps Long-Term Usage Review — Completed 2026-06-21
 - Added a long-term household usage review focused on 30-day and 90-day retention, habit formation, sustainable workflows, and maintenance burden.
@@ -436,3 +444,6 @@ Weekly Household Reset & Recap adds an optional parent-facing maintenance pass d
 - Created standalone HomeOps-owned SVG assets for Helpful Moments, Celebration, Child Ownership, and core UI controls under `src/HomeOps.Client/src/assets/homeops/`.
 - Documented the wave inventory, folder structure, semantic color-slot usage, risks, and follow-up recommendations in `docs/reports/2026-06-21-homeops-asset-wave-1/asset-wave-1.md`.
 - This slice intentionally does not integrate the assets into product surfaces, replace Semantic Icon Layer Unicode mappings, modify runtime behavior, or alter workflows.
+
+### Celebration Asset Integration — Completed 2026-06-21
+Semantic Icon Layer now resolves Celebration semantic names to existing HomeOps-owned SVG assets for upcoming, ready, celebrated, and memory states. Motivation, Child Workspace, Home Motivation summary, and Celebration Memory surfaces render those assets through `HomeOpsIcon`, preserving fallback symbols for unmigrated semantics and preserving existing workflows, data models, copy, and layouts.
