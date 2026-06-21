@@ -22,6 +22,7 @@
 | 2.30 | Child Workspace Foundation | Completed |
 | 2.31 | Child Mode | Completed |
 | 2.32 | Child Hero Area | Completed |
+| 2.39 | Goal Hygiene | Completed |
 
 Phase 2 theme: Durable Household Core.
 
@@ -208,3 +209,7 @@ Family Contribution Story Foundation reframes the child-facing Motivation journe
 - Implemented recurring task hygiene as a Phase 2 maintenance-reduction slice.
 - Older incomplete occurrences from the same recurring series expire when a current or upcoming occurrence exists, keeping task lists focused on what should be done now.
 - Completed occurrences remain preserved, avoiding data loss and preserving Motivation compatibility.
+
+
+### Completed Slice 2.39 — Goal Hygiene
+Goal Hygiene reduces Motivation maintenance burden by making focus the default. Family Goal creation and editing now preserve the invariant that only one Family Goal can be active for the household, retiring previous active family goals through the existing inactive lifecycle model. Individual Goal creation and editing now preserve the invariant that each Family Member has at most one active Individual Goal, retiring only that member's previous active goal and leaving other Family Members unchanged. Database-level partial unique indexes protect those invariants outside normal API flows, and migration cleanup deactivates duplicate active records before the constraints are added. Existing Family Goals, Individual Goals, Motivation progress, Family Celebrations, Child Workspace, Family Contribution Story, and progress history remain preserved. Reward Economy, notifications, shopping changes, analytics, goal templates, new goal types, and dashboard changes remain out of scope.

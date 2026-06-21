@@ -337,6 +337,82 @@ public sealed class MotivationApiTests(HomeOpsWebApplicationFactory factory) : I
     }
 
     [Fact]
+    public async Task CreateFamilyGoalReplacesExistingActiveFamilyGoalAndPreservesHistory()
+    {
+        await using var isolatedFactory = new HomeOpsWebApplicationFactory();
+        var client = isolatedFactory.CreateClient();
+        var before = await client.GetFromJsonAsync<MotivationSnapshotDto>("/api/motivation");
+        Assert.NotNull(before?.FamilyGoal);
+
+        var response = await client.PostAsJsonAsync("/api/motivation/family-goals", new UpsertMotivationFamilyGoalRequest(
+            "Focus on the weekly reset",
+            6,
+            "reset tasks",
+            "Sunday pancakes",
+            "Celebrate a calm weekly reset."));
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var created = await response.Content.ReadFromJsonAsync<MotivationFamilyGoalDto>();
+        Assert.NotNull(created);
+
+        var snapshot = await client.GetFromJsonAsync<MotivationSnapshotDto>("/api/motivation");
+        Assert.Equal(created.Id, snapshot?.FamilyGoal?.Id);
+        using var scope = isolatedFactory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<HomeOpsDbContext>();
+        Assert.Single(dbContext.MotivationFamilyGoals.Where(goal => goal.HouseholdId == SeedHousehold.Id && goal.IsActive));
+        Assert.Contains(dbContext.MotivationFamilyGoals, goal => goal.Id == before.FamilyGoal.Id && !goal.IsActive && goal.CurrentProgress == before.FamilyGoal.CurrentProgress);
+    }
+
+    [Fact]
+    public async Task CreateIndividualGoalReplacesExistingActiveGoalForSameMemberOnly()
+    {
+        await using var isolatedFactory = new HomeOpsWebApplicationFactory();
+        var client = isolatedFactory.CreateClient();
+        var before = await client.GetFromJsonAsync<MotivationSnapshotDto>("/api/motivation");
+        var rileyBefore = Assert.Single(before!.IndividualGoals, goal => goal.FamilyMemberId == "riley");
+        var jordanBefore = Assert.Single(before.IndividualGoals, goal => goal.FamilyMemberId == "jordan");
+
+        var response = await client.PostAsJsonAsync("/api/motivation/individual-goals", new UpsertMotivationIndividualGoalRequest("riley", "Practice reading", 5, "books"));
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var created = await response.Content.ReadFromJsonAsync<MotivationIndividualGoalDto>();
+        Assert.NotNull(created);
+        var snapshot = await client.GetFromJsonAsync<MotivationSnapshotDto>("/api/motivation");
+        Assert.Single(snapshot!.IndividualGoals, goal => goal.FamilyMemberId == "riley");
+        Assert.Contains(snapshot.IndividualGoals, goal => goal.Id == created.Id && goal.FamilyMemberId == "riley");
+        Assert.Contains(snapshot.IndividualGoals, goal => goal.Id == jordanBefore.Id && goal.FamilyMemberId == "jordan");
+
+        using var scope = isolatedFactory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<HomeOpsDbContext>();
+        Assert.Contains(dbContext.MotivationIndividualGoals, goal => goal.Id == rileyBefore.Id && !goal.IsActive && goal.CurrentProgress == rileyBefore.CurrentProgress);
+        Assert.Contains(dbContext.MotivationIndividualGoals, goal => goal.Id == jordanBefore.Id && goal.IsActive);
+    }
+
+    [Fact]
+    public async Task EditIndividualGoalReplacesExistingActiveGoalForNewMember()
+    {
+        await using var isolatedFactory = new HomeOpsWebApplicationFactory();
+        var client = isolatedFactory.CreateClient();
+        var before = await client.GetFromJsonAsync<MotivationSnapshotDto>("/api/motivation");
+        var rileyGoal = Assert.Single(before!.IndividualGoals, goal => goal.FamilyMemberId == "riley");
+        var alexGoal = Assert.Single(before.IndividualGoals, goal => goal.FamilyMemberId == "alex");
+
+        var response = await client.PutAsJsonAsync($"/api/motivation/individual-goals/{rileyGoal.Id}", new UpsertMotivationIndividualGoalRequest("alex", "Focused homework", 4, "sessions"));
+
+        response.EnsureSuccessStatusCode();
+        var updated = await response.Content.ReadFromJsonAsync<MotivationIndividualGoalDto>();
+        Assert.NotNull(updated);
+        Assert.Equal("alex", updated.FamilyMemberId);
+        var snapshot = await client.GetFromJsonAsync<MotivationSnapshotDto>("/api/motivation");
+        Assert.Single(snapshot!.IndividualGoals, goal => goal.FamilyMemberId == "alex");
+        Assert.Contains(snapshot.IndividualGoals, goal => goal.Id == rileyGoal.Id && goal.FamilyMemberId == "alex");
+
+        using var scope = isolatedFactory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<HomeOpsDbContext>();
+        Assert.Contains(dbContext.MotivationIndividualGoals, goal => goal.Id == alexGoal.Id && !goal.IsActive && goal.CurrentProgress == alexGoal.CurrentProgress);
+    }
+
+    [Fact]
     public async Task FamilyGoalCreationRejectsRewardEconomyFieldsByIgnoringUnknownJson()
     {
         await using var isolatedFactory = new HomeOpsWebApplicationFactory();

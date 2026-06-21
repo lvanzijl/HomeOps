@@ -303,6 +303,7 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
                 .HasForeignKey(goal => goal.HouseholdId)
                 .OnDelete(DeleteBehavior.Restrict);
             entity.HasIndex(goal => new { goal.HouseholdId, goal.IsActive });
+            entity.HasIndex(goal => goal.HouseholdId).IsUnique().HasFilter("\"IsActive\"");
         });
 
         modelBuilder.Entity<MotivationIndividualGoal>(entity =>
@@ -326,6 +327,7 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
                 .OnDelete(DeleteBehavior.Restrict);
             entity.HasIndex(goal => new { goal.HouseholdId, goal.IsActive });
             entity.HasIndex(goal => new { goal.HouseholdId, goal.FamilyMemberId, goal.IsActive });
+            entity.HasIndex(goal => new { goal.HouseholdId, goal.FamilyMemberId }).IsUnique().HasFilter("\"IsActive\"");
         });
 
         modelBuilder.Entity<HelpfulMoment>(entity =>
