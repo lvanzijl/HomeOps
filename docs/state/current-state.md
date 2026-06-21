@@ -4,7 +4,7 @@
 Phase 2 — Durable Household Core
 
 ## Current Slice
-HomeOps Long-Term Usage Review — Completed
+Goal Hygiene — Completed
 
 ## Completed Slices
 - 1.1 Repository Bootstrap
@@ -378,3 +378,11 @@ Celebration Memory makes completed Family Celebrations part of family history in
 - Recurring task occurrences now use soft expiration for older incomplete occurrences once the same series has a current or upcoming occurrence.
 - Expired recurring occurrences are omitted from the active task API response, reducing stale recurring backlog without hard deletion.
 - Completed recurring occurrences remain preserved so Motivation progress and completed task history stay intact.
+
+
+## 2026-06-21 Update — Goal Hygiene
+- Implemented goal hygiene as a Phase 2 maintenance-reduction slice.
+- Family Goal creation and editing now enforce a single active Family Goal by retiring other active family goals through the existing inactive lifecycle model.
+- Individual Goal creation and editing now enforce a single active Individual Goal per Family Member, retiring only that member's other active goal and leaving other members unaffected.
+- Added database-level partial unique indexes and migration cleanup to prevent duplicate active goals from reappearing outside normal API flows.
+- Existing progress, Motivation displays, Family Celebrations, Child Workspace, and Family Contribution Story remain preserved while reducing stale goal clutter.

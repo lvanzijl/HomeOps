@@ -56,7 +56,9 @@ public static class MotivationEndpoints
             if (validation is not null) return validation;
 
             var member = await dbContext.FamilyMembers.AsNoTracking()
-                .FirstAsync(item => item.HouseholdId == SeedHousehold.Id && item.Id == request.FamilyMemberId && !item.IsDeleted, cancellationToken);
+                .FirstAsync(item => item.HouseholdId == SeedHousehold.Id && item.Id == request.FamilyMemberId.Trim() && !item.IsDeleted, cancellationToken);
+            await RetireOtherActiveIndividualGoals(dbContext, member.Id, null, cancellationToken);
+
             var goal = new MotivationIndividualGoal
             {
                 Id = Guid.NewGuid(),
@@ -86,7 +88,10 @@ public static class MotivationEndpoints
                 .FirstOrDefaultAsync(cancellationToken);
             if (goal is null) return Results.NotFound();
 
-            goal.FamilyMemberId = request.FamilyMemberId.Trim();
+            var newFamilyMemberId = request.FamilyMemberId.Trim();
+            await RetireOtherActiveIndividualGoals(dbContext, newFamilyMemberId, goal.Id, cancellationToken);
+
+            goal.FamilyMemberId = newFamilyMemberId;
             goal.Title = request.Title.Trim();
             goal.TargetCount = request.TargetCount;
             goal.CurrentProgress = Math.Min(goal.CurrentProgress, goal.TargetCount);
@@ -150,6 +155,8 @@ public static class MotivationEndpoints
                 .FirstOrDefaultAsync(cancellationToken);
             if (goal is null) return Results.NotFound();
 
+            await RetireOtherActiveFamilyGoals(dbContext, goal.Id, cancellationToken);
+
             goal.Title = request.Title.Trim();
             goal.TargetCount = request.TargetCount;
             goal.CurrentProgress = Math.Min(goal.CurrentProgress, goal.TargetCount);
@@ -190,6 +197,27 @@ public static class MotivationEndpoints
         return app;
     }
 
+    private static async Task RetireOtherActiveFamilyGoals(HomeOpsDbContext dbContext, Guid keepGoalId, CancellationToken cancellationToken)
+    {
+        var activeGoals = await dbContext.MotivationFamilyGoals
+            .Where(goal => goal.HouseholdId == SeedHousehold.Id && goal.IsActive && goal.Id != keepGoalId)
+            .ToListAsync(cancellationToken);
+        foreach (var activeGoal in activeGoals)
+        {
+            activeGoal.IsActive = false;
+        }
+    }
+
+    private static async Task RetireOtherActiveIndividualGoals(HomeOpsDbContext dbContext, string familyMemberId, Guid? keepGoalId, CancellationToken cancellationToken)
+    {
+        var activeGoals = await dbContext.MotivationIndividualGoals
+            .Where(goal => goal.HouseholdId == SeedHousehold.Id && goal.FamilyMemberId == familyMemberId && goal.IsActive && (keepGoalId == null || goal.Id != keepGoalId.Value))
+            .ToListAsync(cancellationToken);
+        foreach (var activeGoal in activeGoals)
+        {
+            activeGoal.IsActive = false;
+        }
+    }
 
     private static MotivationIndividualGoalDto ToIndividualGoalDto(MotivationIndividualGoal goal) =>
         new(goal.Id, goal.FamilyMemberId, goal.FamilyMember?.Name ?? string.Empty, goal.Title, goal.TargetCount, goal.CurrentProgress, goal.UnitLabel, goal.VisualKind);
