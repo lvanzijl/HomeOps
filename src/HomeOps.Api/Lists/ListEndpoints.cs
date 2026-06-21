@@ -128,8 +128,6 @@ public static class ListEndpoints
             }
 
             var now = DateTimeOffset.UtcNow;
-            var preference = await dbContext.ShoppingItemPreferences.AsNoTracking()
-                .FirstOrDefaultAsync(pref => pref.HouseholdId == SeedHousehold.Id && pref.NormalizedText == NormalizeItemText(trimmedText), cancellationToken);
             var item = new ListItem
             {
                 Id = Guid.NewGuid(),
@@ -137,7 +135,6 @@ public static class ListEndpoints
                 Text = trimmedText,
                 IsCompleted = false,
                 IsDeleted = false,
-                PreferredStore = preference?.PreferredStore,
                 CreatedUtc = now,
                 UpdatedUtc = now,
             };
@@ -145,7 +142,7 @@ public static class ListEndpoints
             dbContext.ListItems.Add(item);
             await dbContext.SaveChangesAsync(cancellationToken);
 
-            return Results.Created($"/api/lists/{listId}/items/{item.Id}", ToDto(item));
+            return Results.Created($"/api/lists/{listId}/items/{item.Id}", await ToDto(dbContext, item, cancellationToken));
         }).WithName("AddListItem").Produces<ListItemDto>(StatusCodes.Status201Created).Produces(StatusCodes.Status400BadRequest).Produces(StatusCodes.Status404NotFound);
 
         group.MapPatch("/{listId:guid}/items/{itemId:guid}/store", async (Guid listId, Guid itemId, UpdateListItemStoreRequest request, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
@@ -165,12 +162,18 @@ public static class ListEndpoints
 
             if (store is not null)
             {
-                await RememberStorePreference(dbContext, item.Text, store, item.UpdatedUtc, cancellationToken);
+                await RecordPurchaseHistory(dbContext, item.Text, store, item.UpdatedUtc, cancellationToken);
             }
 
             await dbContext.SaveChangesAsync(cancellationToken);
-            return Results.Ok(ToDto(item));
+            return Results.Ok(await ToDto(dbContext, item, cancellationToken));
         }).WithName("UpdateListItemStore").Produces<ListItemDto>().Produces(StatusCodes.Status404NotFound);
+
+        group.MapGet("/shopping/suggestions", async (string text, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        {
+            var suggestions = await LoadStoreSuggestions(dbContext, NormalizeItemText(text), cancellationToken);
+            return Results.Ok(new ShoppingItemSuggestionDto(text.Trim(), suggestions));
+        }).WithName("GetShoppingItemStoreSuggestions").Produces<ShoppingItemSuggestionDto>();
 
         group.MapPost("/{listId:guid}/items/{itemId:guid}/toggle", async (Guid listId, Guid itemId, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
         {
@@ -189,7 +192,7 @@ public static class ListEndpoints
             item.UpdatedUtc = now;
             await dbContext.SaveChangesAsync(cancellationToken);
 
-            return Results.Ok(ToDto(item));
+            return Results.Ok(await ToDto(dbContext, item, cancellationToken));
         }).WithName("ToggleListItemCompletion").Produces<ListItemDto>().Produces(StatusCodes.Status404NotFound);
 
         group.MapDelete("/{listId:guid}/items/{itemId:guid}", async (Guid listId, Guid itemId, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
@@ -209,7 +212,7 @@ public static class ListEndpoints
             item.UpdatedUtc = now;
             await dbContext.SaveChangesAsync(cancellationToken);
 
-            return Results.Ok(ToDto(item));
+            return Results.Ok(await ToDto(dbContext, item, cancellationToken));
         }).WithName("RemoveListItem").Produces<ListItemDto>().Produces(StatusCodes.Status404NotFound);
 
         group.MapPost("/{listId:guid}/items/{itemId:guid}/undo", async (Guid listId, Guid itemId, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
@@ -229,7 +232,7 @@ public static class ListEndpoints
             item.DeletedUtc = null;
             item.UpdatedUtc = DateTimeOffset.UtcNow;
             await dbContext.SaveChangesAsync(cancellationToken);
-            return Results.Ok(ToDto(item));
+            return Results.Ok(await ToDto(dbContext, item, cancellationToken));
         }).WithName("UndoListItemLifecycle").Produces<ListItemDto>().Produces(StatusCodes.Status404NotFound);
 
         return app;
@@ -237,30 +240,47 @@ public static class ListEndpoints
 
     private static async Task<ListDto?> LoadList(HomeOpsDbContext dbContext, Guid listId, CancellationToken cancellationToken, bool includeInactiveList = false)
     {
-        return await dbContext.Lists
+        var now = DateTimeOffset.UtcNow;
+        var list = await dbContext.Lists
             .AsNoTracking()
+            .Include(list => list.Items)
             .Where(list => list.Id == listId && list.HouseholdId == SeedHousehold.Id && (includeInactiveList || (!list.IsArchived && !list.IsDeleted)))
-            .Select(list => new ListDto(
-                list.Id,
-                list.Name,
-                list.IsArchived,
-                list.IsDeleted,
-                list.CreatedUtc,
-                list.UpdatedUtc,
-                list.HouseholdId,
-                list.Items
-                    .Where(item => !item.IsDeleted || (item.DeletedUtc != null && item.DeletedUtc >= DateTimeOffset.UtcNow.AddHours(-24)))
-                    .Where(item => !item.IsCompleted || item.CompletedUtc == null || item.CompletedUtc >= DateTimeOffset.UtcNow.AddHours(-24))
-                    .OrderBy(item => item.IsDeleted)
-                    .ThenBy(item => item.IsCompleted)
-                    .ThenBy(item => item.CreatedUtc)
-                    .ThenBy(item => item.Text)
-                    .Select(item => ToDto(item))
-                    .ToList()))
             .FirstOrDefaultAsync(cancellationToken);
+
+        if (list is null)
+        {
+            return null;
+        }
+
+        var visibleItems = list.Items
+            .Where(item => !item.IsDeleted || (item.DeletedUtc != null && item.DeletedUtc >= now.AddHours(-24)))
+            .Where(item => !item.IsCompleted || item.CompletedUtc == null || item.CompletedUtc >= now.AddHours(-24))
+            .OrderBy(item => item.IsDeleted)
+            .ThenBy(item => item.IsCompleted)
+            .ThenBy(item => item.CreatedUtc)
+            .ThenBy(item => item.Text)
+            .ToList();
+
+        var itemDtos = new List<ListItemDto>();
+        foreach (var item in visibleItems)
+        {
+            itemDtos.Add(await ToDto(dbContext, item, cancellationToken));
+        }
+
+        return new ListDto(list.Id, list.Name, list.IsArchived, list.IsDeleted, list.CreatedUtc, list.UpdatedUtc, list.HouseholdId, itemDtos);
     }
 
-    private static ListItemDto ToDto(ListItem item) => new(item.Id, item.ListId, item.Text, item.IsCompleted, item.CompletedUtc, item.IsDeleted, item.DeletedUtc, item.PreferredStore, item.CreatedUtc, item.UpdatedUtc);
+    private static async Task<ListItemDto> ToDto(HomeOpsDbContext dbContext, ListItem item, CancellationToken cancellationToken) =>
+        new(item.Id, item.ListId, item.Text, item.IsCompleted, item.CompletedUtc, item.IsDeleted, item.DeletedUtc, item.PreferredStore, await LoadStoreSuggestions(dbContext, NormalizeItemText(item.Text), cancellationToken), item.CreatedUtc, item.UpdatedUtc);
+
+    private static async Task<IReadOnlyCollection<ShoppingStoreSuggestionDto>> LoadStoreSuggestions(HomeOpsDbContext dbContext, string normalizedText, CancellationToken cancellationToken) =>
+        await dbContext.ShoppingPurchaseHistories
+            .AsNoTracking()
+            .Where(history => history.HouseholdId == SeedHousehold.Id && history.NormalizedText == normalizedText)
+            .OrderByDescending(history => history.PurchaseCount)
+            .ThenBy(history => history.Store)
+            .Select(history => new ShoppingStoreSuggestionDto(history.Store, history.PurchaseCount))
+            .ToListAsync(cancellationToken);
 
     private static string NormalizeItemText(string text) => text.Trim().ToUpperInvariant();
 
@@ -270,31 +290,30 @@ public static class ListEndpoints
         return string.IsNullOrWhiteSpace(trimmed) ? null : trimmed;
     }
 
-    private static async Task RememberStorePreference(HomeOpsDbContext dbContext, string itemText, string store, DateTimeOffset now, CancellationToken cancellationToken)
+    private static async Task RecordPurchaseHistory(HomeOpsDbContext dbContext, string itemText, string store, DateTimeOffset now, CancellationToken cancellationToken)
     {
         var normalizedText = NormalizeItemText(itemText);
-        var preference = await dbContext.ShoppingItemPreferences
-            .FirstOrDefaultAsync(pref => pref.HouseholdId == SeedHousehold.Id && pref.NormalizedText == normalizedText, cancellationToken);
+        var history = await dbContext.ShoppingPurchaseHistories
+            .FirstOrDefaultAsync(entry => entry.HouseholdId == SeedHousehold.Id && entry.NormalizedText == normalizedText && entry.Store == store, cancellationToken);
 
-        if (preference is null)
+        if (history is null)
         {
-            dbContext.ShoppingItemPreferences.Add(new ShoppingItemPreference
+            dbContext.ShoppingPurchaseHistories.Add(new ShoppingPurchaseHistory
             {
                 Id = Guid.NewGuid(),
                 HouseholdId = SeedHousehold.Id,
                 NormalizedText = normalizedText,
                 ItemText = itemText.Trim(),
-                PreferredStore = store,
-                StoreObservationCount = 1,
+                Store = store,
+                PurchaseCount = 1,
                 CreatedUtc = now,
                 UpdatedUtc = now,
             });
             return;
         }
 
-        preference.ItemText = itemText.Trim();
-        preference.PreferredStore = store;
-        preference.StoreObservationCount += 1;
-        preference.UpdatedUtc = now;
+        history.ItemText = itemText.Trim();
+        history.PurchaseCount += 1;
+        history.UpdatedUtc = now;
     }
 }

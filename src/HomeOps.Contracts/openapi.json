@@ -695,6 +695,37 @@
         }
       }
     },
+    "/api/lists/shopping/suggestions": {
+      "get": {
+        "tags": [
+          "Lists"
+        ],
+        "operationId": "GetShoppingItemStoreSuggestions",
+        "parameters": [
+          {
+            "name": "text",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShoppingItemSuggestionDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/lists/{listId}/items/{itemId}/toggle": {
       "post": {
         "tags": [
@@ -2509,6 +2540,12 @@
             "type": "string",
             "nullable": true
           },
+          "storeSuggestions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ShoppingStoreSuggestionDto"
+            }
+          },
           "createdUtc": {
             "type": "string",
             "format": "date-time"
@@ -2516,6 +2553,19 @@
           "updatedUtc": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "ShoppingStoreSuggestionDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "store": {
+            "type": "string"
+          },
+          "purchaseCount": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
@@ -2553,6 +2603,21 @@
           "preferredStore": {
             "type": "string",
             "nullable": true
+          }
+        }
+      },
+      "ShoppingItemSuggestionDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "storeSuggestions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ShoppingStoreSuggestionDto"
+            }
           }
         }
       },

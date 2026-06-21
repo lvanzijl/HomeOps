@@ -280,11 +280,17 @@ function ShoppingListSection({ emptyLabel, items, onRemove, onStoreChange, onTog
                       <span>Store</span>
                       <input
                         aria-label={`Store for ${item.label}`}
+                        list={`store-suggestions-${item.id}`}
                         onBlur={(event) => onStoreChange(item.id, event.target.value || null)}
                         placeholder="Optional"
                         type="text"
                         defaultValue={item.preferredStore ?? ''}
                       />
+                      <datalist id={`store-suggestions-${item.id}`}>
+                        {(item.storeSuggestions ?? []).map((suggestion) => (
+                          <option key={suggestion.store} value={suggestion.store}>{suggestion.store} ({suggestion.purchaseCount})</option>
+                        ))}
+                      </datalist>
                     </label>
                     {onUndo ? <button onClick={() => onUndo(item.id)} type="button">Undo</button> : null}
                     {!item.deleted ? <button onClick={() => onRemove(item.id)} type="button">

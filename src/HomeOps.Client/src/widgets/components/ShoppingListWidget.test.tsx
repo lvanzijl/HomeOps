@@ -37,7 +37,7 @@ describe('ShoppingListWidget API-backed behavior', () => {
     vi.mocked(listsApi.loadShoppingList).mockResolvedValue({
       listId: 'shopping-list-id',
       items: [
-        { id: 'bread', label: 'Bread', completed: false, deleted: false, preferredStore: 'Supermarket' },
+        { id: 'bread', label: 'Bread', completed: false, deleted: false, preferredStore: 'Supermarket', storeSuggestions: [{ store: 'Supermarket', purchaseCount: 4 }, { store: 'Corner Shop', purchaseCount: 1 }] },
         { id: 'coffee', label: 'Coffee', completed: true, deleted: false, preferredStore: null },
       ],
     });
@@ -46,7 +46,7 @@ describe('ShoppingListWidget API-backed behavior', () => {
     vi.mocked(listsApi.toggleShoppingListItem).mockResolvedValue({ id: 'bread', label: 'Bread', completed: true, deleted: false, preferredStore: 'Supermarket' });
     vi.mocked(listsApi.updateShoppingListItemStore).mockResolvedValue({ id: 'coffee', label: 'Coffee', completed: true, deleted: false, preferredStore: 'Drugstore' });
     vi.mocked(listsApi.removeShoppingListItem).mockResolvedValue({ id: 'bread', label: 'Bread', completed: true, deleted: true, preferredStore: 'Supermarket' });
-    vi.mocked(listsApi.undoShoppingListItem).mockResolvedValue({ id: 'bread', label: 'Bread', completed: false, deleted: false, preferredStore: 'Supermarket' });
+    vi.mocked(listsApi.undoShoppingListItem).mockResolvedValue({ id: 'bread', label: 'Bread', completed: false, deleted: false, preferredStore: 'Supermarket', storeSuggestions: [{ store: 'Supermarket', purchaseCount: 4 }, { store: 'Corner Shop', purchaseCount: 1 }] });
   });
 
   it('loads shopping list items from the API-backed list service', async () => {
@@ -89,6 +89,7 @@ describe('ShoppingListWidget API-backed behavior', () => {
 
     expect(await screen.findByRole('heading', { name: 'Supermarket' })).not.toBeNull();
     expect(screen.getByRole('heading', { name: 'Uncategorized' })).not.toBeNull();
+    expect(document.querySelector('option[value=\"Corner Shop\"]')).not.toBeNull();
 
     const coffeeStore = screen.getByLabelText('Store for Coffee');
     await user.clear(coffeeStore);

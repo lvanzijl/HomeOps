@@ -24,6 +24,7 @@
 | 2.32 | Child Hero Area | Completed |
 | 2.39 | Goal Hygiene | Completed |
 | 2.40 | Shopping Lifecycle | Completed |
+| 2.42 | Shopping Intelligence V2 | Completed |
 | 2.41 | No-Date Task Lifecycle | Completed |
 
 Phase 2 theme: Durable Household Core.
@@ -237,3 +238,6 @@ Shopping Lifecycle reduces shopping-list maintenance burden and list clutter whi
 - Adds a recap of completed tasks, Helpful Moments, goal progress, celebration memories, and “what went well” signals using existing data only.
 - Preserves existing Tasks, Goal Hygiene, Shopping Lifecycle, Child Workspace, Helpful Moments, Celebrations, and Family Contribution Story.
 - Does not add Reward Economy, notifications, Google Calendar, dashboard customization, household settings, project management, or new social systems.
+
+### Completed Slice 2.42 — Shopping Intelligence V2
+Shopping Intelligence V2 replaces the single preferred-store learning model with lightweight Purchase History. Household item/store associations now support multiple stores with counts, store suggestions are ordered by most common historical use, and users can still add any new item/store combination or no store at all. Home quick capture and Shopping quick capture remain item-name-only, store selection remains optional, and intelligence stays assistive rather than prescriptive. Existing preferred-store data migrates into initial purchase-history entries so prior store associations remain useful. AI classification, OCR, barcode scanning, notifications, Reward Economy, analytics, and dashboard changes remain out of scope.
