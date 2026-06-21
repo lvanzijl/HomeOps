@@ -3,7 +3,7 @@ import { FamilyAvatar } from './home/FamilyAvatar';
 import { HelpfulMomentsSection } from './HelpfulMoments';
 import type { FamilyMember } from './home/familyMembers';
 import { FamilyCelebrationStatus } from './api/homeOpsApiClient';
-import { archiveIndividualGoal, clampProgress, createFamilyGoal, createIndividualGoal, goalsForMembers, loadMotivationSnapshot, markFamilyGoalCelebrated, updateFamilyGoal, updateIndividualGoal, type MotivationFamilyGoal, type MotivationIndividualGoal, type MotivationSnapshot } from './motivationData';
+import { archiveIndividualGoal, clampProgress, createFamilyGoal, createIndividualGoal, goalsForMembers, loadMotivationSnapshot, markFamilyGoalCelebrated, updateFamilyGoal, updateIndividualGoal, type MotivationCelebrationMemory, type MotivationFamilyGoal, type MotivationIndividualGoal, type MotivationSnapshot } from './motivationData';
 
 interface MotivationPageProps {
   members: readonly FamilyMember[];
@@ -37,7 +37,13 @@ export function MotivationPage({ members }: MotivationPageProps) {
   const individualGoals = goalsForMembers(snapshot, members);
 
   function handleFormSaved(goal: MotivationFamilyGoal) {
-    setSnapshot((current) => ({ ...current, familyGoal: goal }));
+    setSnapshot((current) => {
+      const celebratedMemory = memoryFromFamilyGoal(goal);
+      const memories = celebratedMemory
+        ? [celebratedMemory, ...(current.celebrationMemories ?? []).filter((memory) => memory.familyGoalId !== celebratedMemory.familyGoalId)].slice(0, 6)
+        : current.celebrationMemories;
+      return { ...current, familyGoal: goal, celebrationMemories: memories };
+    });
     setFormMode('closed');
     setFormError(null);
   }
@@ -111,6 +117,8 @@ export function MotivationPage({ members }: MotivationPageProps) {
           }}
         />
       ) : null}
+
+      <CelebrationMemorySection memories={snapshot.celebrationMemories ?? []} />
 
       <HelpfulMomentsSection members={members} showCreate title="Things My Family Appreciates" />
 
@@ -293,5 +301,43 @@ function FamilyGoalForm({ familyGoal, error, onCancel, onSubmit }: FamilyGoalFor
       {error ? <p className="form-error">{error}</p> : null}
       <div className="form-actions"><button type="submit" disabled={saving}>{saving ? 'Saving…' : 'Save family goal'}</button><button type="button" onClick={onCancel}>Cancel</button></div>
     </form>
+  );
+}
+
+
+function memoryFromFamilyGoal(goal: MotivationFamilyGoal): MotivationCelebrationMemory | undefined {
+  if (goal.celebration?.status !== FamilyCelebrationStatus.Celebrated || !goal.celebration.title) return undefined;
+  return {
+    familyGoalId: goal.id,
+    title: goal.celebration.title,
+    description: goal.celebration.description,
+    celebratedUtc: goal.celebration.celebratedUtc ?? new Date().toISOString(),
+  };
+}
+
+function CelebrationMemorySection({ memories }: { memories: readonly MotivationCelebrationMemory[] }) {
+  if (memories.length === 0) return null;
+  return (
+    <section className="celebration-memory-section" aria-label="Celebration memories">
+      <div className="section-heading-row">
+        <div>
+          <p className="eyebrow">Family memories</p>
+          <h3>Celebrations we remember</h3>
+        </div>
+        <span>Goal → Progress → Celebration → Memory</span>
+      </div>
+      <div className="celebration-memory-grid">
+        {memories.map((memory) => (
+          <article className="celebration-memory-card" key={`${memory.familyGoalId}-${memory.celebratedUtc}`}>
+            <span aria-hidden="true">💛</span>
+            <div>
+              <h4>{memory.title}</h4>
+              <p>Celebrated Together</p>
+              {memory.description ? <small>{memory.description}</small> : null}
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
   );
 }

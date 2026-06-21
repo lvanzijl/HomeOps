@@ -183,3 +183,9 @@ Helpful Moments Upgrade reframes the existing parent-entered recognition surface
 
 ### Completed Slice 2.35 — Celebration Surface
 Celebration Surface promotes existing Family Celebrations from compact goal-card context into visible emotional product surfaces. Motivation now tells the family story as Goal → Progress → Celebration, keeping celebrations attached to family progress and recognition rather than administration. Child Mode highlights the celebration in the hero and Family Goal journey areas so children can see what is upcoming, ready, or already celebrated. Home adds a compact summary-first celebration surface, with ReadyToCelebrate styled as hard to miss without turning Home into a rewards page. Reward Economy, gems, shops, purchases, individual rewards, notifications, celebration history, celebration memory, goal templates, and dashboard customization remain out of scope.
+
+### Celebration Memory — Completed 2026-06-21
+- Celebrated Family Celebrations now remain visible as recent Celebration Memories with title, optional description, and celebrated date.
+- Motivation presents memories as warm family history and extends the story from Goal → Progress → Celebration to Goal → Progress → Celebration → Memory.
+- Child Mode shows recent celebration memories so children can see what the family already achieved and celebrated together.
+- This stays presentation-focused and avoids Reward Economy, gems, shops, purchases, individual rewards, notifications, comments, reactions, social feeds, rankings, and dashboard customization.

@@ -36,6 +36,7 @@ describe('MotivationPage', () => {
         unitLabel: 'helpful actions',
         celebration: { title: 'Board game night together', status: FamilyCelebrationStatus.Planned },
       },
+      celebrationMemories: [{ familyGoalId: 'old-goal', title: 'Ice Cream', description: 'Scoops after teamwork.', celebratedUtc: '2026-06-20T12:00:00Z' }],
       individualGoals: [
         { id: 'alex-goal', familyMemberId: 'alex', familyMemberName: 'Alex', title: 'Finish morning routine', targetCount: 5, currentProgress: 3, unitLabel: 'checkmarks', visualKind: 'checkmarks' },
         { id: 'sam-goal', familyMemberId: 'sam', familyMemberName: 'Sam', title: 'Help with dinner', targetCount: 3, currentProgress: 2, unitLabel: 'stars', visualKind: 'stars' },
@@ -55,6 +56,10 @@ describe('MotivationPage', () => {
     expect(within(familyGoal).getByLabelText('Goal progress celebration story')).not.toBeNull();
     expect(within(familyGoal).getByLabelText('Celebration surface')).not.toBeNull();
     expect(within(familyGoal).getByText(/Board game night together/)).not.toBeNull();
+    expect(screen.getByLabelText('Celebration memories')).not.toBeNull();
+    expect(screen.getByText('Celebrations we remember')).not.toBeNull();
+    expect(screen.getByText('Ice Cream')).not.toBeNull();
+    expect(screen.getByText('Celebrated Together')).not.toBeNull();
 
     const individualGoals = screen.getByLabelText('Individual encouragement goals');
     expect(within(individualGoals).getByText('Alex')).not.toBeNull();
@@ -70,7 +75,7 @@ describe('MotivationPage', () => {
       individualGoals: [],
     });
     vi.mocked(markFamilyGoalCelebrated).mockResolvedValueOnce({
-      id: 'family-goal', title: 'Fill the family helper path', targetCount: 20, currentProgress: 20, unitLabel: 'helpful actions', celebration: { title: 'Movie night', status: FamilyCelebrationStatus.Celebrated },
+      id: 'family-goal', title: 'Fill the family helper path', targetCount: 20, currentProgress: 20, unitLabel: 'helpful actions', celebration: { title: 'Movie night', status: FamilyCelebrationStatus.Celebrated, celebratedUtc: '2026-06-21T10:00:00Z' },
     });
 
     render(<MotivationPage members={familyMembers} />);
@@ -81,6 +86,8 @@ describe('MotivationPage', () => {
 
     expect(markFamilyGoalCelebrated).toHaveBeenCalledWith('family-goal');
     expect(await screen.findByText('Celebrated together')).not.toBeNull();
+    expect(screen.getAllByText('Movie night').length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByLabelText('Celebration memories')).not.toBeNull();
   });
 
   it('does not render reward economy or competitive wording', async () => {

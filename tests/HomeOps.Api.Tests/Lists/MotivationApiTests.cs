@@ -172,6 +172,38 @@ public sealed class MotivationApiTests(HomeOpsWebApplicationFactory factory) : I
         Assert.Equal(FamilyCelebrationStatus.Celebrated, celebrated?.Celebration?.Status);
     }
 
+    [Fact]
+    public async Task CelebratedFamilyCelebrationRemainsVisibleAsMemory()
+    {
+        await using var isolatedFactory = new HomeOpsWebApplicationFactory();
+        var client = isolatedFactory.CreateClient();
+        Guid familyGoalId;
+        using (var scope = isolatedFactory.Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<HomeOpsDbContext>();
+            var familyGoal = dbContext.MotivationFamilyGoals.Single(goal => goal.HouseholdId == SeedHousehold.Id && goal.IsActive);
+            familyGoalId = familyGoal.Id;
+            familyGoal.CurrentProgress = familyGoal.TargetCount;
+            familyGoal.CelebrationTitle = "Family picnic";
+            familyGoal.CelebrationDescription = "Pack snacks and sit under the big tree.";
+            familyGoal.CelebrationStatus = FamilyCelebrationStatus.ReadyToCelebrate;
+            await dbContext.SaveChangesAsync();
+        }
+
+        var response = await client.PostAsync($"/api/motivation/family-goals/{familyGoalId}/celebration/celebrated", null);
+        response.EnsureSuccessStatusCode();
+
+        var snapshot = await client.GetFromJsonAsync<MotivationSnapshotDto>("/api/motivation");
+
+        Assert.NotNull(snapshot?.FamilyGoal?.Celebration);
+        Assert.Equal(FamilyCelebrationStatus.Celebrated, snapshot.FamilyGoal.Celebration.Status);
+        Assert.NotNull(snapshot.FamilyGoal.Celebration.CelebratedUtc);
+        var memory = Assert.Single(snapshot.CelebrationMemories);
+        Assert.Equal(familyGoalId, memory.FamilyGoalId);
+        Assert.Equal("Family picnic", memory.Title);
+        Assert.Equal("Pack snacks and sit under the big tree.", memory.Description);
+    }
+
     private static async Task<HouseholdTaskDto> CreateTask(HttpClient client, string title, TaskOwnershipKind ownershipKind, string? familyMemberId)
     {
         var response = await client.PostAsJsonAsync("/api/tasks", new CreateHouseholdTaskRequest(title, null, ownershipKind, familyMemberId));

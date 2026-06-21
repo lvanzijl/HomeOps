@@ -1751,6 +1751,12 @@
             "items": {
               "$ref": "#/components/schemas/MotivationIndividualGoalDto"
             }
+          },
+          "celebrationMemories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MotivationFamilyCelebrationMemoryDto"
+            }
           }
         }
       },
@@ -1799,6 +1805,11 @@
           },
           "status": {
             "$ref": "#/components/schemas/FamilyCelebrationStatus"
+          },
+          "celebratedUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
           }
         }
       },
@@ -1846,6 +1857,27 @@
           },
           "visualKind": {
             "type": "string"
+          }
+        }
+      },
+      "MotivationFamilyCelebrationMemoryDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "familyGoalId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "celebratedUtc": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },

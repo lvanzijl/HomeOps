@@ -7,6 +7,7 @@ import {
   clampProgress,
   goalsForMembers,
   loadMotivationSnapshot,
+  type MotivationCelebrationMemory,
   type MotivationFamilyGoal,
   type MotivationIndividualGoal,
   type MotivationSnapshot,
@@ -175,6 +176,7 @@ export function FamilyMemberPage({
                 status={motivationStatus}
                 ageBand={ageBand}
               />
+              <ChildCelebrationMemories memories={motivationSnapshot.celebrationMemories ?? []} ageBand={ageBand} />
               <HelpfulMomentsSection
                 members={[member]}
                 familyMemberId={member.id}
@@ -759,6 +761,35 @@ function FamilyCelebrationCard({
         ) : null}
       </div>
     </aside>
+  );
+}
+
+function ChildCelebrationMemories({
+  memories,
+  ageBand,
+}: {
+  memories: readonly MotivationCelebrationMemory[];
+  ageBand: "early-child" | "school-age";
+}) {
+  const recent = memories.slice(0, 3);
+  if (recent.length === 0) return null;
+  return (
+    <article className="child-progress-card child-memory-card" aria-label="Celebration memories">
+      <p className="eyebrow">Family Memories</p>
+      <h3>{ageBand === "early-child" ? "We did it together" : "Celebrations we remember"}</h3>
+      <p>These are proud family moments that started as goals and became memories.</p>
+      <div className="child-memory-list">
+        {recent.map((memory) => (
+          <div key={`${memory.familyGoalId}-${memory.celebratedUtc}`}>
+            <span aria-hidden="true">💛</span>
+            <div>
+              <strong>{memory.title}</strong>
+              <p>Celebrated Together</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </article>
   );
 }
 

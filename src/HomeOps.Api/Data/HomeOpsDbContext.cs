@@ -295,6 +295,7 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             entity.Property(goal => goal.CelebrationTitle).HasMaxLength(240);
             entity.Property(goal => goal.CelebrationDescription).HasMaxLength(500);
             entity.Property(goal => goal.CelebrationStatus).HasConversion<string>().HasMaxLength(40).IsRequired();
+            entity.Property(goal => goal.CelebrationCelebratedUtc);
             entity.Property(goal => goal.IsActive).IsRequired();
             entity.HasOne(goal => goal.Household)
                 .WithMany()
