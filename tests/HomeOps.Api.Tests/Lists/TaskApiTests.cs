@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using HomeOps.Api.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HomeOps.Api.Tests.Lists;
 
@@ -164,5 +165,83 @@ public sealed class RecurringTaskApiTests(HomeOpsWebApplicationFactory factory) 
         var response = await _client.PostAsJsonAsync("/api/tasks", new CreateHouseholdTaskRequest(title, dueDate, ownershipKind, familyMemberId, frequency));
         response.EnsureSuccessStatusCode();
         return (await response.Content.ReadFromJsonAsync<HouseholdTaskDto>())!;
+    }
+}
+
+public sealed class NoDateTaskLifecycleApiTests(HomeOpsWebApplicationFactory factory) : IClassFixture<HomeOpsWebApplicationFactory>
+{
+    private readonly HttpClient _client = factory.CreateClient();
+    private readonly HomeOpsWebApplicationFactory _factory = factory;
+
+    [Fact]
+    public async Task OlderNoDateTasksEnterParentReviewWithoutDisappearing()
+    {
+        var created = await CreateNoDateTask($"Treehouse idea {Guid.NewGuid()}");
+        await AgeTask(created.Id, DateTimeOffset.UtcNow.AddDays(-21));
+
+        var review = await _client.GetFromJsonAsync<IReadOnlyCollection<HouseholdTaskDto>>("/api/tasks/review/no-date");
+        var tasks = await _client.GetFromJsonAsync<IReadOnlyCollection<HouseholdTaskDto>>("/api/tasks");
+
+        Assert.Contains(review!, task => task.Id == created.Id && task.NoDateReviewState == NoDateTaskReviewState.NeedsReview);
+        Assert.Contains(tasks!, task => task.Id == created.Id && task.NoDateReviewState == NoDateTaskReviewState.NeedsReview);
+    }
+
+    [Fact]
+    public async Task ReviewActionsKeepActiveMoveSomedayCompleteAndArchive()
+    {
+        var active = await CreateNoDateTask($"Keep active {Guid.NewGuid()}");
+        await AgeTask(active.Id, DateTimeOffset.UtcNow.AddDays(-21));
+        await _client.GetAsync("/api/tasks/review/no-date");
+
+        var keep = await _client.PostAsync($"/api/tasks/{active.Id}/keep-active", null);
+        var kept = await keep.Content.ReadFromJsonAsync<HouseholdTaskDto>();
+        Assert.Equal(NoDateTaskReviewState.Active, kept!.NoDateReviewState);
+        Assert.NotNull(kept.NoDateLastReviewedUtc);
+
+        var someday = await CreateNoDateTask($"Build treehouse {Guid.NewGuid()}");
+        var move = await _client.PostAsync($"/api/tasks/{someday.Id}/move-to-someday", null);
+        var moved = await move.Content.ReadFromJsonAsync<HouseholdTaskDto>();
+        Assert.Equal(NoDateTaskReviewState.Someday, moved!.NoDateReviewState);
+
+        var complete = await _client.PostAsync($"/api/tasks/{someday.Id}/complete", null);
+        var completed = await complete.Content.ReadFromJsonAsync<HouseholdTaskDto>();
+        Assert.True(completed!.IsCompleted);
+        Assert.Equal(NoDateTaskReviewState.Completed, completed.NoDateReviewState);
+
+        var archive = await CreateNoDateTask($"Archive idea {Guid.NewGuid()}");
+        var archiveResponse = await _client.PostAsync($"/api/tasks/{archive.Id}/archive", null);
+        var archived = await archiveResponse.Content.ReadFromJsonAsync<HouseholdTaskDto>();
+        var tasks = await _client.GetFromJsonAsync<IReadOnlyCollection<HouseholdTaskDto>>("/api/tasks");
+        Assert.Equal(NoDateTaskReviewState.Archived, archived!.NoDateReviewState);
+        Assert.DoesNotContain(tasks!, task => task.Id == archive.Id);
+    }
+
+    [Fact]
+    public async Task AddDueDateReturnsTaskToActiveDatedFlow()
+    {
+        var task = await CreateNoDateTask($"Plan garden {Guid.NewGuid()}");
+        var response = await _client.PostAsJsonAsync($"/api/tasks/{task.Id}/add-due-date", new ReviewNoDateTaskRequest(new DateOnly(2026, 7, 1)));
+
+        var updated = await response.Content.ReadFromJsonAsync<HouseholdTaskDto>();
+
+        Assert.Equal(new DateOnly(2026, 7, 1), updated!.DueDate);
+        Assert.Equal(NoDateTaskReviewState.Active, updated.NoDateReviewState);
+    }
+
+    private async Task<HouseholdTaskDto> CreateNoDateTask(string title)
+    {
+        var response = await _client.PostAsJsonAsync("/api/tasks", new CreateHouseholdTaskRequest(title, null, TaskOwnershipKind.Unassigned, null));
+        response.EnsureSuccessStatusCode();
+        return (await response.Content.ReadFromJsonAsync<HouseholdTaskDto>())!;
+    }
+
+    private async Task AgeTask(Guid taskId, DateTimeOffset createdUtc)
+    {
+        using var scope = _factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<HomeOps.Api.Data.HomeOpsDbContext>();
+        var task = await dbContext.HouseholdTasks.FindAsync(taskId);
+        task!.CreatedUtc = createdUtc;
+        task.UpdatedUtc = createdUtc;
+        await dbContext.SaveChangesAsync();
     }
 }

@@ -4,7 +4,7 @@
 Phase 2 — Durable Household Core
 
 ## Current Slice
-Shopping Lifecycle — Completed
+No-Date Task Lifecycle — Completed
 
 ## Completed Slices
 - 1.1 Repository Bootstrap
@@ -38,6 +38,14 @@ Shopping Lifecycle — Completed
 - Product Experience Review Round 6
 - HomeOps Long-Term Usage Review
 
+
+
+### No-Date Task Lifecycle — Completed 2026-06-21
+- Added a trust-preserving no-date task lifecycle with Active, Needs Review, Someday, Completed, and Archived states.
+- Older no-date tasks now participate in a parent-facing Weekly Household Reset prompt, “Still part of the plan?”, with actions to keep active, add a due date, move to Someday, complete, or archive.
+- Someday is an explicit destination for long-term ideas and aspirations that should remain recoverable without contributing to daily household pressure.
+- Home and Child Workspace task surfaces stay focused by avoiding Someday, archived, and review-only stale-task pressure in child-facing views.
+- The slice preserves the Review, Do Not Disappear principle: no-date tasks remain valid and are never automatically deleted.
 
 ### HomeOps Long-Term Usage Review — Completed 2026-06-21
 - Added a long-term household usage review focused on 30-day and 90-day retention, habit formation, sustainable workflows, and maintenance burden.

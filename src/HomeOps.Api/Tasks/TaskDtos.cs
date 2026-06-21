@@ -11,7 +11,10 @@ public sealed record HouseholdTaskDto(
     DateTimeOffset CreatedUtc,
     DateTimeOffset UpdatedUtc,
     Guid? RecurringTaskSeriesId,
-    TaskRecurrenceFrequency RecurrenceFrequency);
+    TaskRecurrenceFrequency RecurrenceFrequency,
+    NoDateTaskReviewState NoDateReviewState,
+    DateTimeOffset? NoDateLastReviewedUtc,
+    DateTimeOffset? ArchivedUtc);
 
 public sealed record CreateHouseholdTaskRequest(
     string Title,
@@ -26,3 +29,5 @@ public sealed record UpdateHouseholdTaskRequest(
     TaskOwnershipKind? OwnershipKind,
     string? FamilyMemberId,
     TaskRecurrenceFrequency? RecurrenceFrequency = null);
+
+public sealed record ReviewNoDateTaskRequest(DateOnly? DueDate = null);

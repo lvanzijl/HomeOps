@@ -24,6 +24,7 @@
 | 2.32 | Child Hero Area | Completed |
 | 2.39 | Goal Hygiene | Completed |
 | 2.40 | Shopping Lifecycle | Completed |
+| 2.41 | No-Date Task Lifecycle | Completed |
 
 Phase 2 theme: Durable Household Core.
 
@@ -56,6 +57,10 @@ Calendar Portability Hardening freezes the V1 canonical JSON contract, reserves 
 
 ## Completed Slice 2.12 — Calendar Recurrence, EventException, and Occurrence Generation Runtime
 Calendar Recurrence adds V1 recurrence metadata to EventSeries, supports None/Daily/Weekly/Monthly/Yearly only, persists EventException records for skipped and modified occurrences, and expands Agenda-facing EventOccurrence output at runtime with household timezone local wall-clock semantics. EventOccurrence remains projection-only and is not persisted. Advanced recurrence rules, ICS, recurrence UI, occurrence edit UI, per-event timezones, notifications, reminders, and authentication remain out of scope.
+
+
+## Completed Slice 2.41 — No-Date Task Lifecycle
+No-Date Task Lifecycle adds a trust-preserving review state for undated tasks: Active, Needs Review, Someday, Completed, and Archived. Older no-date tasks participate in the Weekly Household Reset with parent-facing language, “Still part of the plan?”, and actions to keep active, add a due date, move to Someday, complete, or archive. Someday is an explicit recoverable destination for long-term ideas that should not create daily pressure. Home and Child Workspace remain focused by keeping Someday, archived, and review-only stale-task pressure out of child-facing surfaces. No notifications, project management, reward economy, categories, analytics, or dashboard redesign were introduced.
 
 ## Recommended Next Slice
 Proceed with Real Google Calendar Read-Only Integration only after preserving HomeOps Calendar as source of truth and local-only portability boundaries. Keep any Google Calendar work optional and integration-scoped; do not add two-way sync, authentication beyond an explicitly scoped integration requirement, sensors, media, notifications, recurring event editing, or offline-first synchronization.
@@ -218,3 +223,7 @@ Goal Hygiene reduces Motivation maintenance burden by making focus the default. 
 
 ### Completed Slice 2.40 — Shopping Lifecycle
 Shopping Lifecycle reduces shopping-list maintenance burden and list clutter while preserving frictionless capture and Shopping Intelligence. Lists now support rename plus archive and soft-delete lifecycle states so old lists leave normal views without unnecessary hard deletion. Completed items move below active items, remain visible for 24 hours, and can be undone before they are omitted from the active list view. Deleted items are soft-deleted, shown with deleted state and strikethrough styling for 24 hours, and can be restored through undo before cleanup hides them from normal views. Home quick capture remains item-name only, preferred-store learning remains unchanged, and Shopping Intelligence V2, Reward Economy, notifications, analytics, OCR, barcode scanning, and AI classification remain out of scope.
+
+
+## No-Date Task Lifecycle
+- Completed review state, Someday lane, Weekly Household Reset participation, and trust-preserving Home/Child visibility rules.
