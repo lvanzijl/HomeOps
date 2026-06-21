@@ -27,11 +27,10 @@ describe('HelpfulMomentsSection', () => {
     const section = screen.getByLabelText('Things My Family Appreciates');
     expect(await within(section).findByText('Helped Jordan clean up')).not.toBeNull();
     expect(within(section).getByText('We noticed Riley')).not.toBeNull();
-    expect(within(section).getByText('This helped our family because')).not.toBeNull();
     expect(within(section).getByText('My Family Appreciates')).not.toBeNull();
     expect(within(section).getByText('Kindness')).not.toBeNull();
-    expect(within(section).getByText(/Helpful moments are the bridge/)).not.toBeNull();
-    expect(within(section).getByText(/This contribution helped us get closer/)).not.toBeNull();
+    expect(within(section).getByText('Kind things your family noticed.')).not.toBeNull();
+    expect(within(section).getByText('You helped.')).not.toBeNull();
     expect(screen.queryByText(/points?|tokens?|gems?|shop|leaderboard|balance|reward value/i)).toBeNull();
   });
 
@@ -44,7 +43,7 @@ describe('HelpfulMomentsSection', () => {
     await user.selectOptions(screen.getByLabelText('Family member'), 'riley');
     await user.type(screen.getByLabelText('What happened?'), 'Took initiative');
     await user.selectOptions(screen.getByLabelText('We appreciated'), 'Initiative');
-    await user.click(screen.getByRole('button', { name: 'Save Appreciation' }));
+    await user.click(screen.getByRole('button', { name: 'Save appreciation' }));
 
     expect(vi.mocked(createHelpfulMoment)).toHaveBeenCalledWith({ familyMemberId: 'riley', title: 'Took initiative', description: undefined, recognitionTag: 'Initiative' });
     expect(await screen.findByText('Took initiative')).not.toBeNull();

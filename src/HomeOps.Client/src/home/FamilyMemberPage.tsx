@@ -136,13 +136,13 @@ export function FamilyMemberPage({
         <div>
           <p className="eyebrow">
             {member.memberKind === "child"
-              ? "My Place In The Family"
+              ? "My page"
               : "Household member"}
           </p>
           <h2>{member.name}</h2>
           <p>{ageContext(member, age)}</p>
           {member.memberKind === "child" ? (
-            <p className="child-mode-question">How am I doing?</p>
+            <p className="child-mode-question">What is next?</p>
           ) : null}
         </div>
       </header>
@@ -479,12 +479,12 @@ function ChildHeroArea({
         <div>
           <p className="eyebrow">This is me</p>
           <h3>{member.name}</h3>
-          <p>My place in the family today</p>
+          <p>My jobs and goals</p>
         </div>
       </div>
 
       <div className="child-hero-main" aria-label="Current goal and progress">
-        <p className="eyebrow">What I am working on</p>
+        <p className="eyebrow">My goal</p>
         <h2>
           {primaryGoal?.title ?? familyGoal?.title ?? "A new goal is coming"}
         </h2>
@@ -502,7 +502,7 @@ function ChildHeroArea({
                 <p className="hero-progress-copy">
                   {remaining > 0
                     ? childAnticipationMessage(progressGoal, familyGoal)
-                    : "Goal reached — your effort helped make this happen!"}
+                    : "Goal done!"}
                 </p>
                 {ageBand === "school-age" ? (
                   <p className="hero-progress-detail">
@@ -523,22 +523,21 @@ function ChildHeroArea({
           <p className="hero-progress-copy">
             {status === "loading"
               ? "Finding today’s encouraging progress…"
-              : "A grown-up can add a goal on the Motivation page."}
+              : "A grown-up can add a goal."}
           </p>
         )}
       </div>
 
       <aside
         className="child-hero-family"
-        aria-label="My contribution to my family"
+        aria-label="Family goal"
       >
-        <p className="eyebrow">My contribution</p>
+        <p className="eyebrow">Family Goal</p>
         {familyGoal ? (
           <>
             <h4>{familyGoal.title}</h4>
             <p>
-              My help mattered. My family noticed. My contribution helped the family get closer — no
-              teams, ranks, or comparisons.
+              You helped. The family is getting closer.
             </p>
             <strong>
               {familyGoal.currentProgress}/{familyGoal.targetCount}{" "}
@@ -546,7 +545,7 @@ function ChildHeroArea({
             </strong>
           </>
         ) : (
-          <p>When your family starts a shared goal, it will show here first.</p>
+          <p>No family goal yet.</p>
         )}
         {celebration ? (
           <div
@@ -561,9 +560,9 @@ function ChildHeroArea({
                 {celebration.status === FamilyCelebrationStatus.ReadyToCelebrate || celebrationComplete
                   ? `We did it — ${celebration.title} is ready now.`
                   : celebration.status === FamilyCelebrationStatus.Celebrated
-                    ? "A proud family-created moment we shared because we helped make it happen."
+                    ? "We celebrated together."
                     : familyGoal
-                      ? `Every contribution and helpful moment brings ${celebration.title} closer.`
+                      ? `${celebration.title} is getting closer.`
                       : "This is what your family is working toward."}
               </p>
             </div>
@@ -579,9 +578,9 @@ function childAnticipationMessage(progressGoal: MotivationIndividualGoal | Motiv
   const celebration = familyGoal?.celebration;
   if (celebration && familyGoal && familyGoal.currentProgress < familyGoal.targetCount) {
     const familyRemaining = familyGoal.targetCount - familyGoal.currentProgress;
-    return `${familyRemaining === 1 ? "Only 1 more" : `Only ${familyRemaining} more`} ${familyGoal.unitLabel} until ${celebration.title}. Your help moves the family closer.`;
+    return `${familyRemaining === 1 ? "Only 1 more" : `Only ${familyRemaining} more`} ${familyGoal.unitLabel} until ${celebration.title}.`;
   }
-  return `${remaining} ${progressGoal.unitLabel} to go — every step counts.`;
+  return `${remaining} ${progressGoal.unitLabel} to go.`;
 }
 
 function TodaySection({
@@ -624,12 +623,11 @@ function TodaySection({
       <h3>What should I do today?</h3>
       {status === "loading" ? <p>Finding your helpful jobs…</p> : null}
       {status === "error" ? (
-        <p>Your tasks are resting right now. Try again in a little bit.</p>
+        <p>Tasks are unavailable right now.</p>
       ) : null}
       {status === "ready" && childTasks.length === 0 ? (
         <p>
-          No child-owned tasks are active right now. Enjoy helping when a grown-up
-          adds one for you.
+          No jobs right now. A grown-up can add one.
         </p>
       ) : null}
       {childTasks.length > 0 ? (
@@ -673,7 +671,7 @@ function FamilyGoalParticipation({
     return (
       <article className="child-progress-card">
         <p className="eyebrow">Family goal</p>
-        <h3>Finding today’s team goal…</h3>
+        <h3>Finding family goal…</h3>
       </article>
     );
   if (!familyGoal)
@@ -682,12 +680,11 @@ function FamilyGoalParticipation({
         <p className="eyebrow">Family goal</p>
         <h3>
           {status === "error"
-            ? "Family goal is resting right now"
-            : "No team goal yet"}
+            ? "Family goal unavailable"
+            : "No family goal yet"}
         </h3>
         <p>
-          When your family starts a shared goal, this page will show how
-          everyone is helping together.
+          A grown-up can add one.
         </p>
       </article>
     );
@@ -704,14 +701,14 @@ function FamilyGoalParticipation({
       className="child-progress-card family-goal-participation"
       aria-label="Family goal participation"
     >
-      <p className="eyebrow">Contribution</p>
+      <p className="eyebrow">Family Goal</p>
       <h3>{familyGoal.title}</h3>
       <p>
         {remaining > 0
           ? familyGoal.celebration
-            ? `${remaining === 1 ? "Only 1 more" : `Only ${remaining} more`} ${familyGoal.unitLabel} until ${familyGoal.celebration.title}. My help mattered and brings the family closer.`
-            : `Every kind step helps. ${remaining} more ${familyGoal.unitLabel} and the family reaches it together.`
-          : "We did it together — time to celebrate the teamwork!"}
+            ? `${remaining === 1 ? "Only 1 more" : `Only ${remaining} more`} ${familyGoal.unitLabel} until ${familyGoal.celebration.title}. You helped.`
+            : `${remaining} more ${familyGoal.unitLabel} to go.`
+          : "We did it together!"}
       </p>
       <div
         className="progress-bar"
@@ -748,10 +745,10 @@ function FamilyCelebrationCard({
         ? "We did it — ready to celebrate"
         : "When we finish";
   const detail = celebration.status === FamilyCelebrationStatus.ReadyToCelebrate || complete
-    ? `We did it. ${celebration.title} is ready because the family finished together.`
+    ? `${celebration.title} is ready now.`
     : celebration.status === FamilyCelebrationStatus.Celebrated
-      ? "Your family already shared this proud moment because everyone helped make it happen."
-      : `Keep helping — every contribution and helpful moment brings ${celebration.title} closer.`;
+      ? "We celebrated together."
+      : `Keep helping — ${celebration.title} is getting closer.`;
   const statusClass = celebration.status === FamilyCelebrationStatus.ReadyToCelebrate || complete
     ? "ready"
     : celebration.status === FamilyCelebrationStatus.Celebrated
@@ -794,7 +791,7 @@ function ChildCelebrationMemories({
     <article className="child-progress-card child-memory-card" aria-label="Celebration memories">
       <p className="eyebrow">Family Memories</p>
       <h3>{ageBand === "early-child" ? "We did it together" : "Celebrations we remember"}</h3>
-      <p>These memories explain why we celebrated: we helped, got closer, and made the celebration happen together.</p>
+      <p>We made these happen together.</p>
       <div className="child-memory-list">
         {recent.map((memory) => (
           <div key={`${memory.familyGoalId}-${memory.celebratedUtc}`}>
@@ -825,12 +822,11 @@ function IndividualGoalProgress({
       <h3>
         {ageBand === "early-child"
           ? "Stars to collect"
-          : "Progress I am making"}
+          : "My progress"}
       </h3>
       {goals.length === 0 ? (
         <p>
-          No personal goals are active right now. Check back when a grown-up
-          adds one on the Motivation page.
+          No personal goal right now. A grown-up can add one.
         </p>
       ) : null}
       <div className="child-goal-list">
@@ -871,8 +867,8 @@ function IndividualGoalProgress({
               ) : null}
               <p>
                 {remaining > 0
-                  ? `${remaining} ${goal.unitLabel} to go. Keep going — you are building a great routine!`
-                  : "Goal reached. Big checkmark for today’s effort!"}
+                  ? `${remaining} ${goal.unitLabel} to go. Keep going!`
+                  : "Goal done!"}
               </p>
             </section>
           );
@@ -908,12 +904,12 @@ function ageContext(member: FamilyMember, age: number | null) {
   if (member.memberKind !== "child")
     return "Family Members are household entities for shared home context. They are not users, login identities, profiles, or permission holders.";
   if (age === null)
-    return "A warm progress view for this child, using simple goals and family encouragement.";
+    return "A simple progress view for this child.";
   if (age <= 5)
-    return `${age} years old · a simple, visual progress view with stars and gentle encouragement.`;
+    return `${age} years old · stars and simple goals.`;
   if (age <= 12)
-    return `${age} years old · goals, progress, and family teamwork in one encouraging place.`;
-  return `${age} years old · household goals and progress without accounts, points, or rankings.`;
+    return `${age} years old · goals and progress.`;
+  return `${age} years old · goals and progress.`;
 }
 
 function buildInitials(name: string) {

@@ -53,16 +53,13 @@ describe('MotivationPage', () => {
     const familyGoal = screen.getByLabelText('Active family goal');
     expect(await within(familyGoal).findByText('Fill the family helper path')).not.toBeNull();
     expect(within(familyGoal).getByText('13/20')).not.toBeNull();
-    expect(within(familyGoal).getByLabelText('Contribution progress celebration memory story')).not.toBeNull();
-    expect(within(familyGoal).getByText('Contribution')).not.toBeNull();
-    expect(within(familyGoal).getByText('Memory')).not.toBeNull();
+    expect(within(familyGoal).getAllByText('Only 7 more helpful actions until Board game night together.').length).toBeGreaterThan(0);
     expect(within(familyGoal).getByLabelText('Celebration surface')).not.toBeNull();
     expect(within(familyGoal).getAllByText(/Board game night together/).length).toBeGreaterThan(0);
-    expect(within(familyGoal).getByText('We helped, we got closer — only 7 more helpful actions until Board game night together.')).not.toBeNull();
     expect(screen.getByLabelText('Celebration memories')).not.toBeNull();
     expect(screen.getByText('Celebrations we remember')).not.toBeNull();
     expect(screen.getByText('Ice Cream')).not.toBeNull();
-    expect(screen.getByText('We remember why: the family helped, made progress, and created this celebration together.')).not.toBeNull();
+    expect(screen.getByText('We made this happen together.')).not.toBeNull();
 
     const individualGoals = screen.getByLabelText('Individual encouragement goals');
     expect(within(individualGoals).getByText('Alex')).not.toBeNull();
@@ -117,16 +114,16 @@ describe('MotivationPage', () => {
 
     render(<MotivationPage members={familyMembers} />);
 
-    expect(await screen.findByText('Create your first family goal')).not.toBeNull();
-    expect(screen.getByText(/Pick one shared target/)).not.toBeNull();
+    expect(await screen.findByText('No family goal yet.')).not.toBeNull();
+    expect(screen.getByText('Create one shared goal.')).not.toBeNull();
 
     await user.click(screen.getByRole('button', { name: 'Create family goal' }));
     await user.clear(screen.getByLabelText('Goal title'));
     await user.type(screen.getByLabelText('Goal title'), 'Complete 10 helpful tasks');
     await user.clear(screen.getByLabelText('Target count'));
     await user.type(screen.getByLabelText('Target count'), '10');
-    await user.clear(screen.getByLabelText('Progress words'));
-    await user.type(screen.getByLabelText('Progress words'), 'helpful tasks');
+    await user.clear(screen.getByLabelText('Progress label'));
+    await user.type(screen.getByLabelText('Progress label'), 'helpful tasks');
     await user.type(screen.getByLabelText('Family celebration title, optional'), 'Movie night together');
     await user.click(screen.getByRole('button', { name: 'Save family goal' }));
 
@@ -154,8 +151,8 @@ describe('MotivationPage', () => {
     await user.type(screen.getByLabelText('Goal title'), 'Complete 15 helpful household tasks');
     await user.clear(screen.getByLabelText('Target count'));
     await user.type(screen.getByLabelText('Target count'), '15');
-    await user.clear(screen.getByLabelText('Progress words'));
-    await user.type(screen.getByLabelText('Progress words'), 'helpful tasks');
+    await user.clear(screen.getByLabelText('Progress label'));
+    await user.type(screen.getByLabelText('Progress label'), 'helpful tasks');
     await user.clear(screen.getByLabelText('Family celebration title, optional'));
     await user.click(screen.getByRole('button', { name: 'Save family goal' }));
 
