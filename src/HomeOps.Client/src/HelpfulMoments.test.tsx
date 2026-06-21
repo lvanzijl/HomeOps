@@ -21,12 +21,14 @@ describe('HelpfulMomentsSection', () => {
     ]);
   });
 
-  it('renders a warm recognition feed without points or reward economy concepts', async () => {
-    render(<HelpfulMomentsSection members={familyMembers} title="Recent Helpful Moments" />);
+  it('renders warm family appreciation without points or reward economy concepts', async () => {
+    render(<HelpfulMomentsSection members={familyMembers} title="Things My Family Appreciates" />);
 
-    const section = screen.getByLabelText('Recent Helpful Moments');
+    const section = screen.getByLabelText('Things My Family Appreciates');
     expect(await within(section).findByText('Helped Jordan clean up')).not.toBeNull();
-    expect(within(section).getByText('Riley')).not.toBeNull();
+    expect(within(section).getByText('We noticed Riley')).not.toBeNull();
+    expect(within(section).getByText('Thank you for')).not.toBeNull();
+    expect(within(section).getByText('My Family Appreciates')).not.toBeNull();
     expect(within(section).getByText('Kindness')).not.toBeNull();
     expect(screen.queryByText(/points?|tokens?|gems?|shop|leaderboard|balance|reward value/i)).toBeNull();
   });
@@ -35,12 +37,12 @@ describe('HelpfulMomentsSection', () => {
     const user = userEvent.setup();
     vi.mocked(createHelpfulMoment).mockResolvedValueOnce({ id: 'moment-2', householdId: 'household', familyMemberId: 'riley', familyMemberName: 'Riley', familyMemberDisplayColor: '#bbf7d0', familyMemberInitials: 'R', title: 'Took initiative', description: undefined, recognitionTag: 'Initiative', createdUtc: '2026-06-20T12:05:00Z' });
 
-    render(<HelpfulMomentsSection members={familyMembers} showCreate title="Recent Helpful Moments" />);
+    render(<HelpfulMomentsSection members={familyMembers} showCreate title="Things My Family Appreciates" />);
 
     await user.selectOptions(screen.getByLabelText('Family member'), 'riley');
     await user.type(screen.getByLabelText('What happened?'), 'Took initiative');
-    await user.selectOptions(screen.getByLabelText('Recognition tag'), 'Initiative');
-    await user.click(screen.getByRole('button', { name: 'Save Helpful Moment' }));
+    await user.selectOptions(screen.getByLabelText('We appreciated'), 'Initiative');
+    await user.click(screen.getByRole('button', { name: 'Save Appreciation' }));
 
     expect(vi.mocked(createHelpfulMoment)).toHaveBeenCalledWith({ familyMemberId: 'riley', title: 'Took initiative', description: undefined, recognitionTag: 'Initiative' });
     expect(await screen.findByText('Took initiative')).not.toBeNull();

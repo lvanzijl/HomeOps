@@ -47,6 +47,8 @@ describe('MotivationPage', () => {
     render(<MotivationPage members={familyMembers} />);
 
     expect(screen.getByLabelText('Motivation page')).not.toBeNull();
+    expect(await screen.findByLabelText('Things My Family Appreciates')).not.toBeNull();
+    expect(screen.getByText('My Family Appreciates')).not.toBeNull();
     const familyGoal = screen.getByLabelText('Active family goal');
     expect(await within(familyGoal).findByText('Fill the family helper path')).not.toBeNull();
     expect(within(familyGoal).getByText('13/20')).not.toBeNull();
