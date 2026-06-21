@@ -264,6 +264,7 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             entity.Property(task => task.OwnershipKind).HasConversion<string>().HasMaxLength(32).IsRequired();
             entity.Property(task => task.FamilyMemberId).HasMaxLength(120);
             entity.Property(task => task.IsCompleted).IsRequired();
+            entity.Property(task => task.IsExpired).IsRequired();
             entity.Property(task => task.RecurringTaskSeriesId);
             entity.Property(task => task.RecurrenceFrequency).HasConversion<string>().HasMaxLength(16).IsRequired();
             entity.Property(task => task.CreatedUtc).IsRequired();
@@ -280,7 +281,7 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
                 .WithMany(series => series.Tasks)
                 .HasForeignKey(task => task.RecurringTaskSeriesId)
                 .OnDelete(DeleteBehavior.SetNull);
-            entity.HasIndex(task => new { task.HouseholdId, task.IsCompleted, task.DueDate });
+            entity.HasIndex(task => new { task.HouseholdId, task.IsCompleted, task.IsExpired, task.DueDate });
             entity.HasIndex(task => new { task.RecurringTaskSeriesId, task.DueDate }).IsUnique();
         });
 

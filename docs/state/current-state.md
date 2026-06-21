@@ -373,3 +373,8 @@ Celebration Memory makes completed Family Celebrations part of family history in
 - Helpful Moments act as the narrative bridge showing how kindness, teamwork, initiative, responsibility, and routines helped the family get closer without changing progress mechanics.
 - Child Mode strengthens ownership language around “My help mattered,” “My family noticed,” and “I helped make this happen” while avoiding comparison, rankings, points, gems, shops, balances, badges, leaderboards, and rewards.
 - Celebration and memory surfaces now emphasize that celebrations are family-created and memories explain why the celebration happened using existing goal, progress, celebration, and Helpful Moment context only.
+
+## 2026-06-21 Recurring Task Hygiene
+- Recurring task occurrences now use soft expiration for older incomplete occurrences once the same series has a current or upcoming occurrence.
+- Expired recurring occurrences are omitted from the active task API response, reducing stale recurring backlog without hard deletion.
+- Completed recurring occurrences remain preserved so Motivation progress and completed task history stay intact.

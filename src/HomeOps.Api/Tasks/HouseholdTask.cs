@@ -15,6 +15,7 @@ public sealed class HouseholdTask
     public RecurringTaskSeries? RecurringTaskSeries { get; set; }
     public TaskRecurrenceFrequency RecurrenceFrequency { get; set; } = TaskRecurrenceFrequency.None;
     public bool IsCompleted { get; set; }
+    public bool IsExpired { get; set; }
     public DateTimeOffset? CompletedUtc { get; set; }
     public DateTimeOffset CreatedUtc { get; set; }
     public DateTimeOffset UpdatedUtc { get; set; }

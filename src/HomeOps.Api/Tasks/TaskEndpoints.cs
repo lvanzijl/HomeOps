@@ -19,7 +19,7 @@ public static class TaskEndpoints
             await dbContext.SaveChangesAsync(cancellationToken);
 
             var tasks = await dbContext.HouseholdTasks.AsNoTracking()
-                .Where(task => task.HouseholdId == SeedHousehold.Id)
+                .Where(task => task.HouseholdId == SeedHousehold.Id && !task.IsExpired)
                 .OrderBy(task => task.IsCompleted).ThenBy(task => task.DueDate == null).ThenBy(task => task.DueDate).ThenBy(task => task.CreatedUtc)
                 .Select(task => ToDto(task))
                 .ToListAsync(cancellationToken);
@@ -49,7 +49,7 @@ public static class TaskEndpoints
             dbContext.RecurringTaskSeries.Add(series);
             await GenerateOccurrencesForSeries(dbContext, series, DateOnly.FromDateTime(DateTime.UtcNow), cancellationToken);
             await dbContext.SaveChangesAsync(cancellationToken);
-            var first = await dbContext.HouseholdTasks.AsNoTracking().Where(task => task.RecurringTaskSeriesId == series.Id).OrderBy(task => task.DueDate).FirstAsync(cancellationToken);
+            var first = await dbContext.HouseholdTasks.AsNoTracking().Where(task => task.RecurringTaskSeriesId == series.Id && !task.IsExpired).OrderBy(task => task.DueDate).FirstAsync(cancellationToken);
             return Results.Created($"/api/tasks/{first.Id}", ToDto(first));
         }).WithName("CreateTask").Produces<HouseholdTaskDto>(StatusCodes.Status201Created).Produces(StatusCodes.Status400BadRequest);
 
@@ -134,6 +134,24 @@ public static class TaskEndpoints
             task.RecurrenceFrequency = series.Frequency;
             dbContext.HouseholdTasks.Add(task);
         }
+        await ExpireOlderIncompleteOccurrences(dbContext, series.Id, today, cancellationToken);
+    }
+
+    private static async Task ExpireOlderIncompleteOccurrences(HomeOpsDbContext dbContext, Guid seriesId, DateOnly today, CancellationToken cancellationToken)
+    {
+        var hasCurrentOrUpcomingOccurrence = await dbContext.HouseholdTasks
+            .AnyAsync(t => t.RecurringTaskSeriesId == seriesId && t.DueDate >= today && !t.IsExpired, cancellationToken);
+        if (!hasCurrentOrUpcomingOccurrence) return;
+
+        var expiredUtc = DateTimeOffset.UtcNow;
+        var staleOccurrences = await dbContext.HouseholdTasks
+            .Where(t => t.RecurringTaskSeriesId == seriesId && !t.IsCompleted && !t.IsExpired && t.DueDate < today)
+            .ToListAsync(cancellationToken);
+        foreach (var occurrence in staleOccurrences)
+        {
+            occurrence.IsExpired = true;
+            occurrence.UpdatedUtc = expiredUtc;
+        }
     }
 
     private static DateOnly NextDueDate(DateOnly date, TaskRecurrenceFrequency frequency) => frequency switch
@@ -145,7 +163,7 @@ public static class TaskEndpoints
     };
 
     private static HouseholdTask CreateTask(string title, DateOnly? dueDate, TaskOwnershipKind ownershipKind, string? familyMemberId, Guid? seriesId, DateTimeOffset now) => new()
-    { Id = Guid.NewGuid(), HouseholdId = SeedHousehold.Id, Title = title, DueDate = dueDate, OwnershipKind = ownershipKind, FamilyMemberId = familyMemberId, RecurringTaskSeriesId = seriesId, RecurrenceFrequency = seriesId is null ? TaskRecurrenceFrequency.None : TaskRecurrenceFrequency.Daily, IsCompleted = false, CreatedUtc = now, UpdatedUtc = now };
+    { Id = Guid.NewGuid(), HouseholdId = SeedHousehold.Id, Title = title, DueDate = dueDate, OwnershipKind = ownershipKind, FamilyMemberId = familyMemberId, RecurringTaskSeriesId = seriesId, RecurrenceFrequency = seriesId is null ? TaskRecurrenceFrequency.None : TaskRecurrenceFrequency.Daily, IsCompleted = false, IsExpired = false, CreatedUtc = now, UpdatedUtc = now };
 
     private static async Task<(string Title, TaskOwnershipKind OwnershipKind, string? FamilyMemberId, string? Error)> ValidateTaskInput(string titleInput, TaskOwnershipKind? ownership, string? member, HomeOpsDbContext dbContext, CancellationToken cancellationToken)
     {
