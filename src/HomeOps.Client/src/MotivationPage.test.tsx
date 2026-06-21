@@ -53,14 +53,16 @@ describe('MotivationPage', () => {
     const familyGoal = screen.getByLabelText('Active family goal');
     expect(await within(familyGoal).findByText('Fill the family helper path')).not.toBeNull();
     expect(within(familyGoal).getByText('13/20')).not.toBeNull();
-    expect(within(familyGoal).getByLabelText('Goal progress celebration story')).not.toBeNull();
+    expect(within(familyGoal).getByLabelText('Contribution progress celebration memory story')).not.toBeNull();
+    expect(within(familyGoal).getByText('Contribution')).not.toBeNull();
+    expect(within(familyGoal).getByText('Memory')).not.toBeNull();
     expect(within(familyGoal).getByLabelText('Celebration surface')).not.toBeNull();
     expect(within(familyGoal).getAllByText(/Board game night together/).length).toBeGreaterThan(0);
-    expect(within(familyGoal).getByText('Only 7 more helpful actions until Board game night together.')).not.toBeNull();
+    expect(within(familyGoal).getByText('We helped, we got closer — only 7 more helpful actions until Board game night together.')).not.toBeNull();
     expect(screen.getByLabelText('Celebration memories')).not.toBeNull();
     expect(screen.getByText('Celebrations we remember')).not.toBeNull();
     expect(screen.getByText('Ice Cream')).not.toBeNull();
-    expect(screen.getByText('Celebrated Together')).not.toBeNull();
+    expect(screen.getByText('We remember why: the family helped, made progress, and created this celebration together.')).not.toBeNull();
 
     const individualGoals = screen.getByLabelText('Individual encouragement goals');
     expect(within(individualGoals).getByText('Alex')).not.toBeNull();

@@ -78,15 +78,17 @@ export function MotivationPage({ members }: MotivationPageProps) {
         ) : (
         <>
         <div>
-          <p className="eyebrow">Together we are working on</p>
+          <p className="eyebrow">Family contribution story</p>
           <h3>{familyGoal.title}</h3>
           <p className="motivation-copy">{familyGoalAnticipationMessage(familyGoal)}</p>
-          <div className="motivation-story" aria-label="Goal progress celebration story">
-            <span>Goal</span>
+          <div className="motivation-story" aria-label="Contribution progress celebration memory story">
+            <span>Contribution</span>
             <span aria-hidden="true">→</span>
             <span>Progress</span>
             <span aria-hidden="true">→</span>
-            <span>{familyGoal.celebration?.status === FamilyCelebrationStatus.Celebrated ? 'Memory' : 'Celebration closer'}</span>
+            <span>Celebration</span>
+            <span aria-hidden="true">→</span>
+            <span>Memory</span>
           </div>
           <FamilyCelebrationDisplay familyGoal={familyGoal} onCelebrated={handleFormSaved} />
           <button type="button" className="secondary-action" onClick={() => setFormMode('edit')}>Edit family goal</button>
@@ -182,10 +184,10 @@ function familyGoalAnticipationMessage(familyGoal: MotivationFamilyGoal) {
   }
   if (celebrationTitle) {
     return remaining === 1
-      ? `Only 1 more ${familyGoal.unitLabel} until ${celebrationTitle}.`
-      : `Only ${remaining} more ${familyGoal.unitLabel} until ${celebrationTitle}.`;
+      ? `We helped, we got closer — only 1 more ${familyGoal.unitLabel} until ${celebrationTitle}.`
+      : `We helped, we got closer — only ${remaining} more ${familyGoal.unitLabel} until ${celebrationTitle}.`;
   }
-  return `${remaining} more ${familyGoal.unitLabel} to reach this family goal.`;
+  return `We helped, we got closer — ${remaining} more ${familyGoal.unitLabel} to reach this family goal.`;
 }
 
 interface IndividualGoalFormProps {
@@ -240,10 +242,10 @@ function FamilyCelebrationDisplay({ familyGoal, onCelebrated }: { familyGoal: Mo
   const message = celebration.status === FamilyCelebrationStatus.ReadyToCelebrate
     ? `We did it. ${celebration.title} is ready now because the family finished the goal together.`
     : celebration.status === FamilyCelebrationStatus.Celebrated
-      ? 'This family moment has been celebrated together.'
+      ? 'This family-created moment happened because everyone helped the goal become real.'
       : remaining === 1
-        ? `Only 1 more ${familyGoal.unitLabel} until ${celebration.title}. Today’s help brings it close.`
-        : `Only ${remaining} more ${familyGoal.unitLabel} until ${celebration.title}. Every helpful step brings the fun closer.`;
+        ? `Only 1 more ${familyGoal.unitLabel} until ${celebration.title}. Helpful moments show how the family got this close.`
+        : `Only ${remaining} more ${familyGoal.unitLabel} until ${celebration.title}. Helpful moments show how the family got this close.`;
   const statusClass = celebration.status === FamilyCelebrationStatus.ReadyToCelebrate
     ? 'ready'
     : celebration.status === FamilyCelebrationStatus.Celebrated
@@ -342,7 +344,7 @@ function CelebrationMemorySection({ memories }: { memories: readonly MotivationC
           <p className="eyebrow">Family memories</p>
           <h3>Celebrations we remember</h3>
         </div>
-        <span>Goal → Progress → Celebration → Memory</span>
+        <span>Contribution → Progress → Celebration → Memory</span>
       </div>
       <div className="celebration-memory-grid">
         {memories.map((memory) => (
@@ -350,7 +352,7 @@ function CelebrationMemorySection({ memories }: { memories: readonly MotivationC
             <span aria-hidden="true">💛</span>
             <div>
               <h4>{memory.title}</h4>
-              <p>Celebrated Together</p>
+              <p>We remember why: the family helped, made progress, and created this celebration together.</p>
               {memory.description ? <small>{memory.description}</small> : null}
             </div>
           </article>

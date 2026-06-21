@@ -353,3 +353,9 @@ Celebration Memory makes completed Family Celebrations part of family history in
 - Child Mode now highlights how close the family is to the celebration in the hero and Family Goal journey surfaces, including child-facing copy about how today’s help moves the family closer.
 - Home’s Motivation tile summarizes planned celebrations as getting closer and ReadyToCelebrate moments as ready now, preserving the compact dashboard shape.
 - Existing Family Goals, Motivation, Child Workspace, Child Journey, Helpful Moments, Celebration Surface, and Celebration Memory remain preserved. Reward Economy, gems, shops, purchases, notifications, photos, comments, reactions, social feeds, voting, and new persistence models remain out of scope.
+
+### Family Contribution Story Foundation — Completed 2026-06-21
+- Child-facing Motivation now frames the family journey as Contribution → Progress → Celebration → Memory instead of Goal → Progress → Celebration → Memory.
+- Helpful Moments act as the narrative bridge showing how kindness, teamwork, initiative, responsibility, and routines helped the family get closer without changing progress mechanics.
+- Child Mode strengthens ownership language around “My help mattered,” “My family noticed,” and “I helped make this happen” while avoiding comparison, rankings, points, gems, shops, balances, badges, leaderboards, and rewards.
+- Celebration and memory surfaces now emphasize that celebrations are family-created and memories explain why the celebration happened using existing goal, progress, celebration, and Helpful Moment context only.
