@@ -19,6 +19,9 @@
 | 2.15 | Media/TV Source Foundation | Planned |
 | 2.16 | Home Hierarchy Tightening | Completed |
 | 2.23 | Home Task Summary | Completed |
+| 2.30 | Child Workspace Foundation | Completed |
+| 2.31 | Child Mode | Completed |
+| 2.32 | Child Hero Area | Completed |
 
 Phase 2 theme: Durable Household Core.
 
@@ -167,3 +170,7 @@ Child Workspace Foundation evolves child Family Member pages from management-fir
 
 ### Completed Slice 2.31 — Child Mode
 Child Mode transforms child Family Member pages from a management-adjacent record into “My Place In The Family.” The page now lands on child-first content that answers “How am I doing?” through avatar identity, family goal progress, personal goals, Helpful Moments, and family celebration context before any administrative controls. Parent Mode remains accessible as a secondary administration area for editing member details, date of birth, member type, display color, avatar configuration, and removal. Existing Family Member persistence, avatar editing, Child Workspace, Motivation, Goals, Helpful Moments, and Celebrations remain preserved. Reward Economy, gems, shops, purchases, notifications, Google Calendar, household settings, and dashboard customization remain out of scope.
+
+
+### Completed Slice 2.32 — Child Hero Area
+Child Hero Area makes Child Mode hero-first by adding a dominant top section that combines the child avatar and name, current primary individual goal when available, visual progress, active family goal context, and family celebration status. The hierarchy is identity → current goal → progress → family goal → celebration, so the first screen answers “Who am I?”, “How am I doing?”, “What am I working on?”, and “How am I helping my family?” before secondary cards or Parent Mode. Family contribution copy emphasizes belonging and shared progress without rankings, comparisons, leaderboards, Reward Economy, gems, shops, purchases, notifications, Google Calendar, dashboard customization, or household settings. Existing Child Workspace, Child Mode, Motivation, Family Goals, Individual Goals, Helpful Moments, Family Celebrations, and avatar editing remain preserved.

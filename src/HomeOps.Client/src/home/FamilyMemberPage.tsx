@@ -129,6 +129,13 @@ export function FamilyMemberPage({
               className={`child-progress-view child-mode ${ageBand}`}
               aria-label={`${member.name} Child Mode`}
             >
+              <ChildHeroArea
+                member={member}
+                goals={memberGoals}
+                familyGoal={motivationSnapshot.familyGoal}
+                status={motivationStatus}
+                ageBand={ageBand}
+              />
               <FamilyGoalParticipation
                 familyGoal={motivationSnapshot.familyGoal}
                 status={motivationStatus}
@@ -392,6 +399,134 @@ function ParentAdministration({
           )}
         </article>
       </div>
+    </section>
+  );
+}
+
+function ChildHeroArea({
+  member,
+  goals,
+  familyGoal,
+  status,
+  ageBand,
+}: {
+  member: FamilyMember;
+  goals: readonly MotivationIndividualGoal[];
+  familyGoal?: MotivationFamilyGoal;
+  status: "loading" | "ready" | "error";
+  ageBand: "early-child" | "school-age";
+}) {
+  const primaryGoal = goals[0];
+  const progressGoal = primaryGoal ?? familyGoal;
+  const percent = progressGoal
+    ? clampProgress(progressGoal.currentProgress, progressGoal.targetCount)
+    : 0;
+  const remaining = progressGoal
+    ? Math.max(0, progressGoal.targetCount - progressGoal.currentProgress)
+    : 0;
+  const celebration = familyGoal?.celebration;
+  const celebrationComplete = familyGoal
+    ? familyGoal.currentProgress >= familyGoal.targetCount
+    : false;
+  const celebrationStatus = celebration
+    ? celebration.status === FamilyCelebrationStatus.Celebrated
+      ? "Celebrated together"
+      : celebration.status === FamilyCelebrationStatus.ReadyToCelebrate ||
+          celebrationComplete
+        ? "Ready to celebrate"
+        : "When we finish"
+    : undefined;
+
+  return (
+    <section
+      className={`child-hero-area ${ageBand}`}
+      aria-label="Child hero area"
+      style={{ "--member-color": member.displayColor } as CSSProperties}
+    >
+      <div className="child-hero-identity" aria-label="Who I am">
+        <FamilyAvatar member={member} size="large" />
+        <div>
+          <p className="eyebrow">This is me</p>
+          <h3>{member.name}</h3>
+          <p>My place in the family today</p>
+        </div>
+      </div>
+
+      <div className="child-hero-main" aria-label="Current goal and progress">
+        <p className="eyebrow">What I am working on</p>
+        <h2>
+          {primaryGoal?.title ?? familyGoal?.title ?? "A new goal is coming"}
+        </h2>
+        {progressGoal ? (
+          <>
+            <div className="hero-progress-visual" aria-label="Hero progress">
+              <div
+                className="hero-progress-ring"
+                style={{ "--progress": `${percent}%` } as CSSProperties}
+              >
+                <strong>{percent}%</strong>
+                <span>done</span>
+              </div>
+              <div>
+                <p className="hero-progress-copy">
+                  {remaining > 0
+                    ? `${remaining} ${progressGoal.unitLabel} to go — every step counts.`
+                    : "Goal reached — your effort helped make this happen!"}
+                </p>
+                {ageBand === "school-age" ? (
+                  <p className="hero-progress-detail">
+                    {progressGoal.currentProgress} of {progressGoal.targetCount}{" "}
+                    {progressGoal.unitLabel} complete
+                  </p>
+                ) : null}
+              </div>
+            </div>
+            <div
+              className="progress-bar hero-progress-bar"
+              aria-label={`${progressGoal.currentProgress} of ${progressGoal.targetCount} ${progressGoal.unitLabel}`}
+            >
+              <span style={{ width: `${percent}%` }} />
+            </div>
+          </>
+        ) : (
+          <p className="hero-progress-copy">
+            {status === "loading"
+              ? "Finding today’s encouraging progress…"
+              : "A grown-up can add a goal on the Motivation page."}
+          </p>
+        )}
+      </div>
+
+      <aside
+        className="child-hero-family"
+        aria-label="How I am helping my family"
+      >
+        <p className="eyebrow">How I am helping</p>
+        {familyGoal ? (
+          <>
+            <h4>{familyGoal.title}</h4>
+            <p>
+              Your helpful steps are part of the whole family’s progress — no
+              teams, ranks, or comparisons.
+            </p>
+            <strong>
+              {familyGoal.currentProgress}/{familyGoal.targetCount}{" "}
+              {familyGoal.unitLabel} together
+            </strong>
+          </>
+        ) : (
+          <p>When your family starts a shared goal, it will show here first.</p>
+        )}
+        {celebration ? (
+          <div className="child-hero-celebration" aria-label="Hero celebration">
+            <span aria-hidden="true">🎉</span>
+            <div>
+              <p className="eyebrow">{celebrationStatus}</p>
+              <strong>{celebration.title}</strong>
+            </div>
+          </div>
+        ) : null}
+      </aside>
     </section>
   );
 }

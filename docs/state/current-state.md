@@ -4,7 +4,7 @@
 Phase 2 — Durable Household Core
 
 ## Current Slice
-Child Progress View — Completed
+Child Hero Area — Completed
 
 ## Completed Slices
 - 1.1 Repository Bootstrap
@@ -32,6 +32,7 @@ Child Progress View — Completed
 - Phase 1 Roadmap Protection Rule
 - 2.23 Home Task Summary
 - Child Progress View
+- Child Hero Area
 
 ## Next Slice
 Proceed with the next Phase 2 household-core slice only after preserving Home as summary-first, Family Members as non-authentication household entities, Motivation progress as encouragement-only, and HomeOps Calendar source-of-truth/local-only portability boundaries.
@@ -310,3 +311,9 @@ Family Goal Creation closes the final functional P0 blocker for Motivation. Hous
 - Child Mode keeps the existing Child Workspace and Child Progress content dominant: family goal, personal goals, progress, Helpful Moments, and family celebration appear before Parent Mode access.
 - Parent Mode remains available as a secondary administration area for editing member details, date of birth, member type, display color, avatar configuration, and removal without removing existing management functionality.
 - Existing Family Member persistence, avatar editing, Child Workspace, Motivation, Goals, Helpful Moments, and Celebrations remain preserved. Reward Economy, gems, shop, purchases, notifications, Google Calendar, household settings, and dashboard customization remain out of scope.
+
+### Child Hero Area — Completed 2026-06-21
+- Child Mode now starts with a dominant hero area that combines avatar, name, current primary goal, at-a-glance progress, active family goal context, and celebration visibility before secondary progress cards.
+- The hero-first hierarchy intentionally reads as identity, current goal, progress, family contribution, then celebration so children can answer “Who am I?”, “How am I doing?”, “What am I working on?”, and “How am I helping?” without scanning multiple cards.
+- Family contribution visibility connects the child to the shared active family goal with together-language and no rankings, comparisons, leaderboards, gems, shops, purchases, or Reward Economy behavior.
+- Existing Child Workspace, Child Mode, Motivation, Family Goals, Individual Goals, Helpful Moments, Family Celebrations, and avatar editing remain preserved.
