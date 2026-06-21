@@ -2058,6 +2058,63 @@
           }
         }
       }
+    },
+    "/api/visual-review-fixtures/scenarios": {
+      "get": {
+        "tags": [
+          "Visual Review Fixtures"
+        ],
+        "operationId": "GetVisualReviewFixtureScenarios",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VisualReviewScenarioDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/visual-review-fixtures/{scenarioName}/reset": {
+      "post": {
+        "tags": [
+          "Visual Review Fixtures"
+        ],
+        "operationId": "ResetVisualReviewFixtureScenario",
+        "parameters": [
+          {
+            "name": "scenarioName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplyVisualReviewScenarioResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
     }
   },
   "components": {
@@ -3776,6 +3833,63 @@
             "items": {
               "$ref": "#/components/schemas/MotivationFamilyCelebrationMemoryDto"
             }
+          }
+        }
+      },
+      "VisualReviewScenarioDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "purpose": {
+            "type": "string"
+          }
+        }
+      },
+      "ApplyVisualReviewScenarioResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "scenarioName": {
+            "type": "string"
+          },
+          "anchorUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "familyMembers": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tasks": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lists": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "listItems": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "familyGoals": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "individualGoals": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "helpfulMoments": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "events": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       }

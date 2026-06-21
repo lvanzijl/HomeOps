@@ -8,6 +8,7 @@ using HomeOps.Api.Motivation;
 using HomeOps.Api.WidgetLayouts;
 using HomeOps.Api.Tasks;
 using HomeOps.Api.WeeklyReset;
+using HomeOps.Api.VisualReviewFixtures;
 using Microsoft.EntityFrameworkCore;
 using NSwag.AspNetCore;
 
@@ -61,6 +62,10 @@ app.MapTaskTemplateEndpoints();
 app.MapMotivationEndpoints();
 app.MapHelpfulMomentEndpoints();
 app.MapWeeklyResetEndpoints();
+if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Testing"))
+{
+    app.MapVisualReviewFixtureEndpoints();
+}
 
 app.Run();
 
