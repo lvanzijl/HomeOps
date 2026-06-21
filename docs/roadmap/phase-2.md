@@ -227,3 +227,13 @@ Shopping Lifecycle reduces shopping-list maintenance burden and list clutter whi
 
 ## No-Date Task Lifecycle
 - Completed review state, Someday lane, Weekly Household Reset participation, and trust-preserving Home/Child visibility rules.
+
+### Completed Slice 2.41 — Weekly Household Reset & Recap
+- Added a lightweight optional Weekly Reset workspace for parents.
+- Batches maintenance into a short weekly pass rather than turning every domain into a dashboard.
+- Uses existing lifecycle signals for review candidates: no-date Needs Review, older active no-date tasks, and stale Someday tasks.
+- Adds lightweight goal confirmation for the current family goal and each child’s active goal with keep/archive affordances and replacement deferred to existing Motivation flows.
+- Adds shopping review candidates for archived, older, or duplicate-looking lists without requiring weekly shopping maintenance.
+- Adds a recap of completed tasks, Helpful Moments, goal progress, celebration memories, and “what went well” signals using existing data only.
+- Preserves existing Tasks, Goal Hygiene, Shopping Lifecycle, Child Workspace, Helpful Moments, Celebrations, and Family Contribution Story.
+- Does not add Reward Economy, notifications, Google Calendar, dashboard customization, household settings, project management, or new social systems.

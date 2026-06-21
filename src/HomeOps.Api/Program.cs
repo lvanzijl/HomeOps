@@ -7,6 +7,7 @@ using HomeOps.Api.FamilyMembers;
 using HomeOps.Api.Motivation;
 using HomeOps.Api.WidgetLayouts;
 using HomeOps.Api.Tasks;
+using HomeOps.Api.WeeklyReset;
 using Microsoft.EntityFrameworkCore;
 using NSwag.AspNetCore;
 
@@ -59,6 +60,7 @@ app.MapTaskEndpoints();
 app.MapTaskTemplateEndpoints();
 app.MapMotivationEndpoints();
 app.MapHelpfulMomentEndpoints();
+app.MapWeeklyResetEndpoints();
 
 app.Run();
 

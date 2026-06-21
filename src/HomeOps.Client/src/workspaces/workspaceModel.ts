@@ -1,4 +1,4 @@
-export type WorkspaceId = 'home' | 'agenda' | 'lists' | 'tasks' | 'motivation' | 'house' | 'media' | 'gamification' | 'settings';
+export type WorkspaceId = 'home' | 'agenda' | 'lists' | 'tasks' | 'motivation' | 'house' | 'media' | 'gamification' | 'settings' | 'weeklyReset';
 
 export interface WorkspaceDefinition {
   id: WorkspaceId;
@@ -46,6 +46,11 @@ export const workspaceDefinitions: readonly WorkspaceDefinition[] = [
     id: 'gamification',
     label: 'Gamification',
     description: 'For points, rewards, and family progress after Tasks mature.',
+  },
+  {
+    id: 'weeklyReset',
+    label: 'Weekly Reset',
+    description: 'A short parent-facing review and recap.',
   },
   {
     id: 'settings',

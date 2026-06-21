@@ -1979,6 +1979,54 @@
           }
         }
       }
+    },
+    "/api/weekly-reset": {
+      "get": {
+        "tags": [
+          "Weekly Reset"
+        ],
+        "operationId": "GetWeeklyReset",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WeeklyResetDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/weekly-reset/family-goal/{id}/archive": {
+      "post": {
+        "tags": [
+          "Weekly Reset"
+        ],
+        "operationId": "ArchiveWeeklyResetFamilyGoal",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
     }
   },
   "components": {
@@ -3564,6 +3612,105 @@
           "recognitionTag": {
             "type": "string",
             "nullable": true
+          }
+        }
+      },
+      "WeeklyResetDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "reviewCandidates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HouseholdTaskDto"
+            }
+          },
+          "familyGoal": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/MotivationFamilyGoalDto"
+              }
+            ]
+          },
+          "individualGoals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MotivationIndividualGoalDto"
+            }
+          },
+          "shoppingReviewCandidates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ShoppingReviewCandidateDto"
+            }
+          },
+          "contributionRecap": {
+            "$ref": "#/components/schemas/WeeklyContributionRecapDto"
+          }
+        }
+      },
+      "ShoppingReviewCandidateDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "updatedUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "itemCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "WeeklyContributionRecapDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "completedTaskCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "helpfulMomentCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "familyGoal": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/MotivationFamilyGoalDto"
+              }
+            ]
+          },
+          "individualGoals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MotivationIndividualGoalDto"
+            }
+          },
+          "helpfulMoments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HelpfulMomentDto"
+            }
+          },
+          "celebrationMemories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MotivationFamilyCelebrationMemoryDto"
+            }
           }
         }
       }
