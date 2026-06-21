@@ -33,12 +33,43 @@ describe("HomeOpsIcon", () => {
     );
   });
 
+  it("resolves child ownership semantic names to owned SVG assets", () => {
+    expect(getHomeOpsIconAsset("childMyProgress", "spot")).toContain(
+      "data-asset-name='child-my-progress'",
+    );
+    expect(getHomeOpsIconAsset("progress", "icon")).toContain(
+      "data-asset-name='child-my-progress'",
+    );
+    expect(getHomeOpsIconAsset("childMyHelpMattered", "hero")).toContain(
+      "data-asset-name='child-my-help-mattered'",
+    );
+    expect(getHomeOpsIconAsset("childFamilyParticipation", "group")).toContain(
+      "data-asset-name='child-family-participation'",
+    );
+    expect(getHomeOpsIconAsset("childToday", "section")).toContain(
+      "data-asset-name='child-today'",
+    );
+    expect(getHomeOpsIconAsset("childThisWeek", "section")).toContain(
+      "data-asset-name='child-this-week'",
+    );
+  });
+
   it("resolves helpful moment semantic names to owned SVG assets", () => {
-    expect(getHomeOpsIconAsset("kindness", "icon")).toContain("data-asset-name='helpful-kindness'");
-    expect(getHomeOpsIconAsset("teamwork", "spot")).toContain("data-asset-name='helpful-teamwork'");
-    expect(getHomeOpsIconAsset("initiative", "icon")).toContain("data-asset-name='helpful-initiative'");
-    expect(getHomeOpsIconAsset("responsibility", "spot")).toContain("data-asset-name='helpful-responsibility'");
-    expect(getHomeOpsIconAsset("routine", "icon")).toContain("data-asset-name='helpful-routine'");
+    expect(getHomeOpsIconAsset("kindness", "icon")).toContain(
+      "data-asset-name='helpful-kindness'",
+    );
+    expect(getHomeOpsIconAsset("teamwork", "spot")).toContain(
+      "data-asset-name='helpful-teamwork'",
+    );
+    expect(getHomeOpsIconAsset("initiative", "icon")).toContain(
+      "data-asset-name='helpful-initiative'",
+    );
+    expect(getHomeOpsIconAsset("responsibility", "spot")).toContain(
+      "data-asset-name='helpful-responsibility'",
+    );
+    expect(getHomeOpsIconAsset("routine", "icon")).toContain(
+      "data-asset-name='helpful-routine'",
+    );
   });
 
   it("maps helpful moment recognition tags through semantic names with a safe fallback", () => {

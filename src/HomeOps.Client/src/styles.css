@@ -1283,6 +1283,39 @@ button {
 .secondary-action {
   margin-top: 0.75rem;
 }
+
+.child-card-asset,
+.child-section-asset,
+.child-goal-asset,
+.motivation-ownership-asset {
+  color: var(--member-color, #d97706);
+  line-height: 1;
+}
+
+.child-card-asset {
+  float: right;
+  font-size: 3.25rem;
+  margin-left: 0.75rem;
+}
+
+.child-section-asset {
+  font-size: 3.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.child-goal-asset,
+.motivation-ownership-asset {
+  font-size: 1.65rem;
+}
+
+.individual-goal-heading .motivation-ownership-asset {
+  flex: 0 0 auto;
+}
+
+.star-row .homeops-icon-asset img {
+  height: 1.1em;
+  width: 1.1em;
+}
 .family-goal-form {
   display: grid;
   gap: 0.75rem;
@@ -1617,7 +1650,11 @@ button {
   margin-top: 1.25rem;
   padding: 1.1rem;
   border-radius: 28px;
-  background: linear-gradient(135deg, rgba(255, 247, 237, 0.96), rgba(254, 243, 199, 0.74));
+  background: linear-gradient(
+    135deg,
+    rgba(255, 247, 237, 0.96),
+    rgba(254, 243, 199, 0.74)
+  );
   border: 1px solid rgba(251, 191, 36, 0.32);
   box-shadow: 0 22px 54px rgba(120, 53, 15, 0.12);
 }
@@ -1667,7 +1704,9 @@ button {
   border-radius: 24px;
   background: rgba(255, 255, 255, 0.92);
   border: 1px solid rgba(251, 191, 36, 0.26);
-  box-shadow: inset 0 0 0 1px rgba(255, 251, 235, 0.8), 0 14px 30px rgba(146, 64, 14, 0.08);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 251, 235, 0.8),
+    0 14px 30px rgba(146, 64, 14, 0.08);
 }
 .moment-avatar {
   width: 2.5rem;
@@ -1720,7 +1759,11 @@ button {
   margin-top: 1.25rem;
   padding: 1.1rem;
   border-radius: 28px;
-  background: linear-gradient(135deg, rgba(255, 247, 237, 0.96), rgba(254, 243, 199, 0.74));
+  background: linear-gradient(
+    135deg,
+    rgba(255, 247, 237, 0.96),
+    rgba(254, 243, 199, 0.74)
+  );
   border: 1px solid rgba(251, 191, 36, 0.32);
   box-shadow: 0 22px 54px rgba(120, 53, 15, 0.12);
 }
@@ -1770,7 +1813,9 @@ button {
   border-radius: 24px;
   background: rgba(255, 255, 255, 0.92);
   border: 1px solid rgba(251, 191, 36, 0.26);
-  box-shadow: inset 0 0 0 1px rgba(255, 251, 235, 0.8), 0 14px 30px rgba(146, 64, 14, 0.08);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 251, 235, 0.8),
+    0 14px 30px rgba(146, 64, 14, 0.08);
 }
 .moment-avatar {
   width: 2.5rem;
@@ -1945,15 +1990,23 @@ button {
 
 .child-hero-area {
   background:
-    radial-gradient(circle at 12% 18%, color-mix(in srgb, var(--member-color, #facc15) 34%, transparent), transparent 28%),
+    radial-gradient(
+      circle at 12% 18%,
+      color-mix(in srgb, var(--member-color, #facc15) 34%, transparent),
+      transparent 28%
+    ),
     linear-gradient(135deg, #fff7ed 0%, #ffffff 48%, #fef3c7 100%);
-  border: 2px solid color-mix(in srgb, var(--member-color, #facc15) 42%, #fed7aa);
+  border: 2px solid
+    color-mix(in srgb, var(--member-color, #facc15) 42%, #fed7aa);
   border-radius: 2rem;
   box-shadow: 0 28px 70px rgb(120 53 15 / 18%);
   display: grid;
   gap: 1.25rem;
   grid-column: 1 / -1;
-  grid-template-columns: minmax(180px, 0.8fr) minmax(280px, 1.45fr) minmax(220px, 0.95fr);
+  grid-template-columns: minmax(180px, 0.8fr) minmax(280px, 1.45fr) minmax(
+      220px,
+      0.95fr
+    );
   padding: clamp(1.15rem, 3vw, 2rem);
 }
 .child-hero-identity,
@@ -1992,9 +2045,15 @@ button {
 .hero-progress-ring {
   --progress: 0%;
   aspect-ratio: 1;
-  background: conic-gradient(color-mix(in srgb, var(--member-color, #facc15) 78%, #f97316) var(--progress), #ffedd5 0);
+  background: conic-gradient(
+    color-mix(in srgb, var(--member-color, #facc15) 78%, #f97316)
+      var(--progress),
+    #ffedd5 0
+  );
   border-radius: 999px;
-  box-shadow: inset 0 0 0 0.65rem #fffaf5, 0 14px 32px rgb(120 53 15 / 16%);
+  box-shadow:
+    inset 0 0 0 0.65rem #fffaf5,
+    0 14px 32px rgb(120 53 15 / 16%);
   color: #7c2d12;
   display: grid;
   min-width: 7rem;
@@ -2180,8 +2239,13 @@ button {
   font-weight: 800;
 }
 @keyframes celebrationPulse {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-2px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .celebration-surface.ready,
@@ -2198,7 +2262,11 @@ button {
   border: 1px solid rgba(245, 158, 11, 0.22);
   border-radius: 24px;
   padding: 1.25rem;
-  background: linear-gradient(135deg, rgba(255, 251, 235, 0.92), rgba(254, 243, 199, 0.6));
+  background: linear-gradient(
+    135deg,
+    rgba(255, 251, 235, 0.92),
+    rgba(254, 243, 199, 0.6)
+  );
   box-shadow: 0 18px 45px rgba(120, 53, 15, 0.08);
 }
 
@@ -2253,7 +2321,11 @@ button {
 }
 
 .child-memory-card {
-  background: linear-gradient(135deg, rgba(255, 251, 235, 0.95), rgba(254, 243, 199, 0.68));
+  background: linear-gradient(
+    135deg,
+    rgba(255, 251, 235, 0.95),
+    rgba(254, 243, 199, 0.68)
+  );
   border-color: rgba(217, 119, 6, 0.2);
 }
 
@@ -2285,12 +2357,37 @@ button {
   color: #7a8190;
   text-decoration: line-through;
 }
-.weekly-reset-page { display: grid; gap: 1rem; }
-.weekly-reset-hero, .reset-card { border: 1px solid rgba(148, 163, 184, 0.35); border-radius: 1rem; padding: 1rem; background: rgba(255, 255, 255, 0.75); }
-.reset-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
-.reset-row { display: grid; gap: 0.35rem; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid rgba(148, 163, 184, 0.25); }
-.reset-row div { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-.recap-card { grid-column: 1 / -1; }
+.weekly-reset-page {
+  display: grid;
+  gap: 1rem;
+}
+.weekly-reset-hero,
+.reset-card {
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 1rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.75);
+}
+.reset-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+.reset-row {
+  display: grid;
+  gap: 0.35rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgba(148, 163, 184, 0.25);
+}
+.reset-row div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.recap-card {
+  grid-column: 1 / -1;
+}
 .moment-avatar .homeops-icon-asset {
   font-size: 1.45rem;
 }
