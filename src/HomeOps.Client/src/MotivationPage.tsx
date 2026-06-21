@@ -80,13 +80,13 @@ export function MotivationPage({ members }: MotivationPageProps) {
         <div>
           <p className="eyebrow">Together we are working on</p>
           <h3>{familyGoal.title}</h3>
-          <p className="motivation-copy">{Math.max(0, familyGoal.targetCount - familyGoal.currentProgress)} more {familyGoal.unitLabel} to reach this family goal.</p>
+          <p className="motivation-copy">{familyGoalAnticipationMessage(familyGoal)}</p>
           <div className="motivation-story" aria-label="Goal progress celebration story">
             <span>Goal</span>
             <span aria-hidden="true">→</span>
             <span>Progress</span>
             <span aria-hidden="true">→</span>
-            <span>Celebration</span>
+            <span>{familyGoal.celebration?.status === FamilyCelebrationStatus.Celebrated ? 'Memory' : 'Celebration closer'}</span>
           </div>
           <FamilyCelebrationDisplay familyGoal={familyGoal} onCelebrated={handleFormSaved} />
           <button type="button" className="secondary-action" onClick={() => setFormMode('edit')}>Edit family goal</button>
@@ -172,6 +172,21 @@ export function MotivationPage({ members }: MotivationPageProps) {
   );
 }
 
+function familyGoalAnticipationMessage(familyGoal: MotivationFamilyGoal) {
+  const remaining = Math.max(0, familyGoal.targetCount - familyGoal.currentProgress);
+  const celebrationTitle = familyGoal.celebration?.title;
+  if (familyGoal.celebration?.status === FamilyCelebrationStatus.ReadyToCelebrate || remaining === 0) {
+    return celebrationTitle
+      ? `We did it — ${celebrationTitle} is ready because the family finished together.`
+      : 'We did it — the family goal is complete.';
+  }
+  if (celebrationTitle) {
+    return remaining === 1
+      ? `Only 1 more ${familyGoal.unitLabel} until ${celebrationTitle}.`
+      : `Only ${remaining} more ${familyGoal.unitLabel} until ${celebrationTitle}.`;
+  }
+  return `${remaining} more ${familyGoal.unitLabel} to reach this family goal.`;
+}
 
 interface IndividualGoalFormProps {
   goal?: MotivationIndividualGoal;
@@ -216,16 +231,19 @@ function FamilyCelebrationDisplay({ familyGoal, onCelebrated }: { familyGoal: Mo
   const celebration = familyGoal.celebration;
   if (!celebration) return null;
 
+  const remaining = Math.max(0, familyGoal.targetCount - familyGoal.currentProgress);
   const label = celebration.status === FamilyCelebrationStatus.ReadyToCelebrate
-    ? 'Ready to celebrate'
+    ? 'We did it — ready to celebrate'
     : celebration.status === FamilyCelebrationStatus.Celebrated
       ? 'Celebrated together'
       : 'Coming up when we finish';
   const message = celebration.status === FamilyCelebrationStatus.ReadyToCelebrate
-    ? 'The family goal is complete. Gather everyone for this moment.'
+    ? `We did it. ${celebration.title} is ready now because the family finished the goal together.`
     : celebration.status === FamilyCelebrationStatus.Celebrated
       ? 'This family moment has been celebrated together.'
-      : 'Every completed step brings the family closer to this shared moment.';
+      : remaining === 1
+        ? `Only 1 more ${familyGoal.unitLabel} until ${celebration.title}. Today’s help brings it close.`
+        : `Only ${remaining} more ${familyGoal.unitLabel} until ${celebration.title}. Every helpful step brings the fun closer.`;
   const statusClass = celebration.status === FamilyCelebrationStatus.ReadyToCelebrate
     ? 'ready'
     : celebration.status === FamilyCelebrationStatus.Celebrated
