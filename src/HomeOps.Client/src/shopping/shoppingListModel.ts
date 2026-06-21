@@ -6,6 +6,12 @@ export interface ShoppingListItem {
   deleted?: boolean;
   deletedUtc?: Date | null;
   preferredStore?: string | null;
+  storeSuggestions?: readonly ShoppingStoreSuggestion[];
+}
+
+export interface ShoppingStoreSuggestion {
+  store: string;
+  purchaseCount: number;
 }
 
 export interface ShoppingListState {

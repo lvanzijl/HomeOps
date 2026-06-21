@@ -410,5 +410,13 @@ Celebration Memory makes completed Family Celebrations part of family history in
 - Deleted items use a soft-delete lifecycle with visible deleted state, strikethrough presentation, 24-hour visibility, undo support, and cleanup from normal list views after the retention window.
 - Shopping Intelligence preferred-store learning, item-name-only Home quick capture, existing Lists persistence, and existing Shopping workflows remain preserved.
 
+
+## 2026-06-21 Update — Shopping Intelligence V2
+- Shopping Intelligence now uses lightweight Purchase History instead of a single household preferred-store record.
+- Store choices remain optional per list item, and selecting a store records a household item/store purchase-history count.
+- Re-adding an item no longer forces or auto-selects a store; historical store associations are exposed as suggestions ordered by most common use first.
+- Existing Home quick capture and Shopping quick capture remain item-name-only flows with no mandatory store, quantity, category, AI, OCR, barcode scanning, notifications, analytics, or Reward Economy behavior.
+- The Shopping Intelligence V2 migration preserves existing preferred-store associations by converting them into initial purchase-history entries.
+
 ### Completed Slice 2.41 — Weekly Household Reset & Recap
 Weekly Household Reset & Recap adds an optional parent-facing maintenance pass designed to take roughly 2–5 minutes. The reset batches only likely review candidates instead of reviewing everything: no-date tasks already in Needs Review, older active no-date tasks, stale Someday items, active family and child goals, and shopping lists that are archived, old, or duplicate-looking. The reset ends with a contribution recap from existing completed tasks, Helpful Moments, goal progress, celebrations, and memories so the family can answer “What went well this week?” without new data entry. Existing Tasks, No-Date Lifecycle, Goal Hygiene, Shopping Lifecycle, Child Workspace, Helpful Moments, Celebrations, and Family Contribution Story remain preserved. Reward Economy, notifications, Google Calendar, dashboard customization, household settings, project management, and new social systems remain out of scope.

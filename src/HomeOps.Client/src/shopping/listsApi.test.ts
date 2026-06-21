@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ListDto, ListItemDto } from '../api/homeOpsApiClient';
+import { ListDto, ListItemDto, ShoppingStoreSuggestionDto } from '../api/homeOpsApiClient';
 import { toShoppingListState } from './listsApi';
 
 describe('lists API mapping', () => {
@@ -8,7 +8,7 @@ describe('lists API mapping', () => {
       id: 'shopping-list-id',
       name: 'Shopping',
       items: [
-        new ListItemDto({ id: 'bread', listId: 'shopping-list-id', text: 'Bread', isCompleted: false, preferredStore: 'Bakery' }),
+        new ListItemDto({ id: 'bread', listId: 'shopping-list-id', text: 'Bread', isCompleted: false, preferredStore: 'Bakery', storeSuggestions: [new ShoppingStoreSuggestionDto({ store: 'Bakery', purchaseCount: 3 })] }),
         new ListItemDto({ id: 'coffee', listId: 'shopping-list-id', text: 'Coffee', isCompleted: true }),
       ],
     }));
@@ -17,8 +17,8 @@ describe('lists API mapping', () => {
       listId: 'shopping-list-id',
       name: 'Shopping',
       items: [
-        { id: 'bread', label: 'Bread', completed: false, completedUtc: null, deleted: false, deletedUtc: null, preferredStore: 'Bakery' },
-        { id: 'coffee', label: 'Coffee', completed: true, completedUtc: null, deleted: false, deletedUtc: null, preferredStore: null },
+        { id: 'bread', label: 'Bread', completed: false, completedUtc: null, deleted: false, deletedUtc: null, preferredStore: 'Bakery', storeSuggestions: [{ store: 'Bakery', purchaseCount: 3 }] },
+        { id: 'coffee', label: 'Coffee', completed: true, completedUtc: null, deleted: false, deletedUtc: null, preferredStore: null, storeSuggestions: [] },
       ],
     });
   });

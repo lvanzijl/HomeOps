@@ -88,5 +88,8 @@ function toShoppingListItem(item: ListItemDto): ShoppingListItem {
     deleted: item.isDeleted ?? false,
     deletedUtc: item.deletedUtc ?? null,
     preferredStore: item.preferredStore ?? null,
+    storeSuggestions: (item.storeSuggestions ?? [])
+      .filter((suggestion) => Boolean(suggestion.store))
+      .map((suggestion) => ({ store: suggestion.store!, purchaseCount: suggestion.purchaseCount ?? 0 })),
   };
 }

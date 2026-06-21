@@ -16,7 +16,7 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
     public DbSet<Household> Households => Set<Household>();
     public DbSet<Lists.List> Lists => Set<Lists.List>();
     public DbSet<ListItem> ListItems => Set<ListItem>();
-    public DbSet<ShoppingItemPreference> ShoppingItemPreferences => Set<ShoppingItemPreference>();
+    public DbSet<ShoppingPurchaseHistory> ShoppingPurchaseHistories => Set<ShoppingPurchaseHistory>();
     public DbSet<CalendarEvents.EventSource> EventSources => Set<CalendarEvents.EventSource>();
     public DbSet<EventSeries> EventSeries => Set<EventSeries>();
     public DbSet<EventException> EventExceptions => Set<EventException>();
@@ -98,17 +98,18 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
         });
 
 
-        modelBuilder.Entity<ShoppingItemPreference>(entity =>
+        modelBuilder.Entity<ShoppingPurchaseHistory>(entity =>
         {
-            entity.ToTable("ShoppingItemPreferences");
-            entity.HasKey(preference => preference.Id);
-            entity.Property(preference => preference.NormalizedText).HasMaxLength(240).IsRequired();
-            entity.Property(preference => preference.ItemText).HasMaxLength(240).IsRequired();
-            entity.Property(preference => preference.PreferredStore).HasMaxLength(120).IsRequired();
-            entity.Property(preference => preference.StoreObservationCount).IsRequired();
-            entity.Property(preference => preference.CreatedUtc).IsRequired();
-            entity.Property(preference => preference.UpdatedUtc).IsRequired();
-            entity.HasIndex(preference => new { preference.HouseholdId, preference.NormalizedText }).IsUnique();
+            entity.ToTable("ShoppingPurchaseHistories");
+            entity.HasKey(history => history.Id);
+            entity.Property(history => history.NormalizedText).HasMaxLength(240).IsRequired();
+            entity.Property(history => history.ItemText).HasMaxLength(240).IsRequired();
+            entity.Property(history => history.Store).HasMaxLength(120).IsRequired();
+            entity.Property(history => history.PurchaseCount).IsRequired();
+            entity.Property(history => history.CreatedUtc).IsRequired();
+            entity.Property(history => history.UpdatedUtc).IsRequired();
+            entity.HasIndex(history => new { history.HouseholdId, history.NormalizedText, history.Store }).IsUnique();
+            entity.HasIndex(history => new { history.HouseholdId, history.NormalizedText, history.PurchaseCount });
         });
 
 

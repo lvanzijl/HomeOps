@@ -831,6 +831,44 @@ export class HomeOpsApiClient {
         return Promise.resolve<ListItemDto>(null as any);
     }
 
+    getShoppingItemStoreSuggestions(text: string): Promise<ShoppingItemSuggestionDto> {
+        let url_ = this.baseUrl + "/api/lists/shopping/suggestions?";
+        if (text === undefined || text === null)
+            throw new globalThis.Error("The parameter 'text' must be defined and cannot be null.");
+        else
+            url_ += "text=" + encodeURIComponent("" + text) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetShoppingItemStoreSuggestions(_response);
+        });
+    }
+
+    protected processGetShoppingItemStoreSuggestions(response: Response): Promise<ShoppingItemSuggestionDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ShoppingItemSuggestionDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ShoppingItemSuggestionDto>(null as any);
+    }
+
     toggleListItemCompletion(listId: string, itemId: string): Promise<ListItemDto> {
         let url_ = this.baseUrl + "/api/lists/{listId}/items/{itemId}/toggle";
         if (listId === undefined || listId === null)
@@ -3394,6 +3432,7 @@ export class ListItemDto implements IListItemDto {
     isDeleted?: boolean;
     deletedUtc?: Date | undefined;
     preferredStore?: string | undefined;
+    storeSuggestions?: ShoppingStoreSuggestionDto[];
     createdUtc?: Date;
     updatedUtc?: Date;
 
@@ -3416,6 +3455,11 @@ export class ListItemDto implements IListItemDto {
             this.isDeleted = _data["isDeleted"];
             this.deletedUtc = _data["deletedUtc"] ? new Date(_data["deletedUtc"].toString()) : undefined as any;
             this.preferredStore = _data["preferredStore"];
+            if (Array.isArray(_data["storeSuggestions"])) {
+                this.storeSuggestions = [] as any;
+                for (let item of _data["storeSuggestions"])
+                    this.storeSuggestions!.push(ShoppingStoreSuggestionDto.fromJS(item));
+            }
             this.createdUtc = _data["createdUtc"] ? new Date(_data["createdUtc"].toString()) : undefined as any;
             this.updatedUtc = _data["updatedUtc"] ? new Date(_data["updatedUtc"].toString()) : undefined as any;
         }
@@ -3438,6 +3482,11 @@ export class ListItemDto implements IListItemDto {
         data["isDeleted"] = this.isDeleted;
         data["deletedUtc"] = this.deletedUtc ? this.deletedUtc.toISOString() : undefined as any;
         data["preferredStore"] = this.preferredStore;
+        if (Array.isArray(this.storeSuggestions)) {
+            data["storeSuggestions"] = [];
+            for (let item of this.storeSuggestions)
+                data["storeSuggestions"].push(item ? item.toJSON() : undefined as any);
+        }
         data["createdUtc"] = this.createdUtc ? this.createdUtc.toISOString() : undefined as any;
         data["updatedUtc"] = this.updatedUtc ? this.updatedUtc.toISOString() : undefined as any;
         return data;
@@ -3453,8 +3502,49 @@ export interface IListItemDto {
     isDeleted?: boolean;
     deletedUtc?: Date | undefined;
     preferredStore?: string | undefined;
+    storeSuggestions?: ShoppingStoreSuggestionDto[];
     createdUtc?: Date;
     updatedUtc?: Date;
+}
+
+export class ShoppingStoreSuggestionDto implements IShoppingStoreSuggestionDto {
+    store?: string;
+    purchaseCount?: number;
+
+    constructor(data?: IShoppingStoreSuggestionDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.store = _data["store"];
+            this.purchaseCount = _data["purchaseCount"];
+        }
+    }
+
+    static fromJS(data: any): ShoppingStoreSuggestionDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new ShoppingStoreSuggestionDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["store"] = this.store;
+        data["purchaseCount"] = this.purchaseCount;
+        return data;
+    }
+}
+
+export interface IShoppingStoreSuggestionDto {
+    store?: string;
+    purchaseCount?: number;
 }
 
 export class CreateListRequest implements ICreateListRequest {
@@ -3599,6 +3689,54 @@ export class UpdateListItemStoreRequest implements IUpdateListItemStoreRequest {
 
 export interface IUpdateListItemStoreRequest {
     preferredStore?: string | undefined;
+}
+
+export class ShoppingItemSuggestionDto implements IShoppingItemSuggestionDto {
+    text?: string;
+    storeSuggestions?: ShoppingStoreSuggestionDto[];
+
+    constructor(data?: IShoppingItemSuggestionDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.text = _data["text"];
+            if (Array.isArray(_data["storeSuggestions"])) {
+                this.storeSuggestions = [] as any;
+                for (let item of _data["storeSuggestions"])
+                    this.storeSuggestions!.push(ShoppingStoreSuggestionDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): ShoppingItemSuggestionDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new ShoppingItemSuggestionDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["text"] = this.text;
+        if (Array.isArray(this.storeSuggestions)) {
+            data["storeSuggestions"] = [];
+            for (let item of this.storeSuggestions)
+                data["storeSuggestions"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IShoppingItemSuggestionDto {
+    text?: string;
+    storeSuggestions?: ShoppingStoreSuggestionDto[];
 }
 
 export class WorkspaceLayoutDto implements IWorkspaceLayoutDto {
