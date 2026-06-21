@@ -1,6 +1,7 @@
 import { useEffect, useState, type CSSProperties, type FormEvent } from 'react';
 import { FamilyAvatar } from './home/FamilyAvatar';
 import { HelpfulMomentsSection } from './HelpfulMoments';
+import { HomeOpsIcon } from './icons/homeOpsIcons';
 import type { FamilyMember } from './home/familyMembers';
 import { FamilyCelebrationStatus } from './api/homeOpsApiClient';
 import { archiveIndividualGoal, clampProgress, createFamilyGoal, createIndividualGoal, goalsForMembers, loadMotivationSnapshot, markFamilyGoalCelebrated, updateFamilyGoal, updateIndividualGoal, type MotivationCelebrationMemory, type MotivationFamilyGoal, type MotivationIndividualGoal, type MotivationSnapshot } from './motivationData';
@@ -152,7 +153,7 @@ export function MotivationPage({ members }: MotivationPageProps) {
                 </div>
                 <div className="star-row" aria-label={`${goal.currentProgress} of ${goal.targetCount} ${goal.unitLabel}`}>
                   {Array.from({ length: goal.targetCount }, (_, index) => (
-                    <span className={index < goal.currentProgress ? 'filled' : ''} key={index} aria-hidden="true">{index < goal.currentProgress ? '★' : '✓'}</span>
+                    <HomeOpsIcon className={index < goal.currentProgress ? 'filled' : ''} key={index} name={index < goal.currentProgress ? 'progress' : 'completed'} />
                   ))}
                 </div>
                 <p>{goal.targetCount - goal.currentProgress > 0 ? `${goal.targetCount - goal.currentProgress} to go — keep cheering each other on.` : 'Goal reached — celebrate the routine!'}</p>
@@ -245,7 +246,7 @@ function FamilyCelebrationDisplay({ familyGoal, onCelebrated }: { familyGoal: Mo
 
   return (
     <div className={`celebration-surface ${statusClass}`} aria-label="Celebration surface">
-      <span className="celebration-surface-icon" aria-hidden="true">🎉</span>
+      <HomeOpsIcon className="celebration-surface-icon" name="celebration" />
       <div>
         <p className="eyebrow">{label}</p>
         <h4>{celebration.title}</h4>
@@ -340,7 +341,7 @@ function CelebrationMemorySection({ memories }: { memories: readonly MotivationC
       <div className="celebration-memory-grid">
         {memories.map((memory) => (
           <article className="celebration-memory-card" key={`${memory.familyGoalId}-${memory.celebratedUtc}`}>
-            <span aria-hidden="true">💛</span>
+            <HomeOpsIcon name="memory" />
             <div>
               <h4>{memory.title}</h4>
               <p>We made this happen together.</p>

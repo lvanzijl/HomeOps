@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { familyMembers } from './home/familyMembers';
 import { FamilyCelebrationStatus } from './api/homeOpsApiClient';
 import { MotivationPage } from './MotivationPage';
+import { getHomeOpsIconSymbol } from './icons/homeOpsIcons';
 import { archiveIndividualGoal, createFamilyGoal, createIndividualGoal, loadMotivationSnapshot, markFamilyGoalCelebrated, updateFamilyGoal, updateIndividualGoal } from './motivationData';
 
 vi.mock('./motivationData', async (importOriginal) => ({
@@ -55,6 +56,7 @@ describe('MotivationPage', () => {
     expect(within(familyGoal).getByText('13/20')).not.toBeNull();
     expect(within(familyGoal).getAllByText('Only 7 more helpful actions until Board game night together.').length).toBeGreaterThan(0);
     expect(within(familyGoal).getByLabelText('Celebration surface')).not.toBeNull();
+    expect(within(familyGoal).getByText(getHomeOpsIconSymbol('celebration'))).not.toBeNull();
     expect(within(familyGoal).getAllByText(/Board game night together/).length).toBeGreaterThan(0);
     expect(screen.getByLabelText('Celebration memories')).not.toBeNull();
     expect(screen.getByText('Celebrations we remember')).not.toBeNull();

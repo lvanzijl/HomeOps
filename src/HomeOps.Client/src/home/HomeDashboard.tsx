@@ -27,6 +27,7 @@ import {
 import { loadTasks } from "../tasks/tasksApi";
 import { groupTasksByUrgency } from "../tasks/taskGrouping";
 import type { HouseholdTask } from "../tasks/tasksModel";
+import { HomeOpsIcon } from "../icons/homeOpsIcons";
 import { FamilyAvatar } from "./FamilyAvatar";
 import { FamilyCelebrationStatus } from "../api/homeOpsApiClient";
 import { clampProgress, loadMotivationSnapshot, type MotivationFamilyGoal } from "../motivationData";
@@ -273,7 +274,7 @@ export function HomeDashboard({
               <strong>{member.name}</strong>
             </button>
           ))}
-        <button className="family-chip add-family-chip" type="button" onClick={onAddFamilyMember} aria-label="Add Family Member"><span aria-hidden="true">＋</span><strong>Add</strong></button>
+        <button className="family-chip add-family-chip" type="button" onClick={onAddFamilyMember} aria-label="Add Family Member"><HomeOpsIcon name="add" /><strong>Add</strong></button>
         </section>
         <section className="quick-capture" aria-label="Quick capture">
           <form className="home-quick-form" onSubmit={handleShoppingSubmit}>
@@ -460,7 +461,7 @@ export function HomeDashboard({
               </div>
               {motivationFamilyGoal.celebration ? (
                 <div className={`home-celebration-surface ${motivationFamilyGoal.celebration.status === FamilyCelebrationStatus.ReadyToCelebrate ? "ready" : motivationFamilyGoal.celebration.status === FamilyCelebrationStatus.Celebrated ? "celebrated" : "planned"}`} aria-label="Home celebration">
-                  <span aria-hidden="true">🎉</span>
+                  <HomeOpsIcon name="celebration" />
                   <div>
                     <strong>{motivationFamilyGoal.celebration.status === FamilyCelebrationStatus.ReadyToCelebrate ? "We did it — ready to celebrate" : motivationFamilyGoal.celebration.status === FamilyCelebrationStatus.Celebrated ? "Celebrated together" : "Getting closer"}</strong>
                     <p>{homeCelebrationMessage(motivationFamilyGoal)}</p>

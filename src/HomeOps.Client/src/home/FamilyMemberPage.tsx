@@ -3,6 +3,7 @@ import { loadTasks } from "../tasks/tasksApi";
 import type { HouseholdTask } from "../tasks/tasksModel";
 import { type CSSProperties, type FormEvent, useEffect, useState } from "react";
 import { FamilyCelebrationStatus } from "../api/homeOpsApiClient";
+import { HomeOpsIcon, getHomeOpsIconSymbol } from "../icons/homeOpsIcons";
 import {
   clampProgress,
   goalsForMembers,
@@ -124,7 +125,7 @@ export function FamilyMemberPage({
       aria-label={`${member.name} family member page`}
     >
       <button className="back-link" type="button" onClick={onBack}>
-        ← Back to Home
+        <HomeOpsIcon name="arrowBack" /> Back to Home
       </button>
       <header
         className="family-member-hero child-progress-hero"
@@ -552,7 +553,7 @@ function ChildHeroArea({
             className={`child-hero-celebration ${celebration.status === FamilyCelebrationStatus.ReadyToCelebrate || celebrationComplete ? "ready" : celebration.status === FamilyCelebrationStatus.Celebrated ? "celebrated" : "planned"}`}
             aria-label="Hero celebration"
           >
-            <span aria-hidden="true">🎉</span>
+            <HomeOpsIcon name="celebration" />
             <div>
               <p className="eyebrow">{celebrationStatus}</p>
               <strong>{celebration.title}</strong>
@@ -644,7 +645,7 @@ function TodaySection({
           <ul className="child-task-list">
             {visibleTasks.map((task) => (
               <li key={task.id}>
-                <span aria-hidden="true">✓</span>
+                <HomeOpsIcon name="completed" />
                 <div>
                   <strong>{task.title}</strong>
                   <p>{friendlyTaskDue(task)}</p>
@@ -759,7 +760,7 @@ function FamilyCelebrationCard({
       className={`family-celebration-card ${statusClass}`}
       aria-label="Family celebration"
     >
-      <span aria-hidden="true">{ageBand === "early-child" ? "🎉" : "✨"}</span>
+      <HomeOpsIcon name={ageBand === "early-child" ? "celebration" : "sparkle"} />
       <div>
         <p className="eyebrow">{statusText}</p>
         <h4>{celebration.title}</h4>
@@ -795,7 +796,7 @@ function ChildCelebrationMemories({
       <div className="child-memory-list">
         {recent.map((memory) => (
           <div key={`${memory.familyGoalId}-${memory.celebratedUtc}`}>
-            <span aria-hidden="true">💛</span>
+            <HomeOpsIcon name="memory" />
             <div>
               <strong>{memory.title}</strong>
               <p>We helped make this happen.</p>
@@ -853,7 +854,7 @@ function IndividualGoalProgress({
                     key={index}
                     aria-hidden="true"
                   >
-                    {index < goal.currentProgress ? "★" : "✓"}
+                    {index < goal.currentProgress ? getHomeOpsIconSymbol("progress") : getHomeOpsIconSymbol("completed")}
                   </span>
                 ))}
               </div>
