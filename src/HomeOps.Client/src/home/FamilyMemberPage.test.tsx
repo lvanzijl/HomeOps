@@ -104,15 +104,29 @@ describe("FamilyMemberPage", () => {
     );
 
     expect(screen.getByLabelText("Riley Child Mode")).not.toBeNull();
+    expect(screen.getByLabelText("Child hero area")).not.toBeNull();
+    expect(screen.getByLabelText("Who I am")).not.toBeNull();
+    expect(screen.getByLabelText("Current goal and progress")).not.toBeNull();
+    expect(screen.getByLabelText("How I am helping my family")).not.toBeNull();
+    expect(await screen.findByLabelText("Hero celebration")).not.toBeNull();
+    expect(screen.getByText("This is me")).not.toBeNull();
+    expect(screen.getByText("What I am working on")).not.toBeNull();
+    expect(screen.getByText("How I am helping")).not.toBeNull();
     expect(screen.getByText("My Place In The Family")).not.toBeNull();
     expect(screen.getByText("How am I doing?")).not.toBeNull();
     expect(
-      await screen.findByText("Fill the family helper path"),
-    ).not.toBeNull();
-    expect(screen.getByText("Read before bed")).not.toBeNull();
+      (await screen.findAllByText("Fill the family helper path")).length,
+    ).toBeGreaterThan(0);
+    expect(screen.getAllByText("Read before bed").length).toBeGreaterThan(
+      0,
+    );
     expect(screen.getByLabelText("Family celebration")).not.toBeNull();
-    expect(screen.getByText("Board game night")).not.toBeNull();
-    expect(screen.getByText(/2 stars to go/)).not.toBeNull();
+    expect(screen.getAllByText("Board game night").length).toBeGreaterThan(
+      0,
+    );
+    expect(screen.getAllByText(/2 stars to go/).length).toBeGreaterThan(
+      0,
+    );
     expect(await screen.findByText("Helped set the table")).not.toBeNull();
     expect(screen.getByText("Initiative")).not.toBeNull();
     expect(screen.queryByText(/Gems|Shop|Leaderboard|balance/i)).toBeNull();
@@ -129,7 +143,9 @@ describe("FamilyMemberPage", () => {
     );
 
     expect(await screen.findByText("Stars to collect")).not.toBeNull();
-    expect(await screen.findByText(/Brush teeth/)).not.toBeNull();
+    expect((await screen.findAllByText(/Brush teeth/)).length).toBeGreaterThan(
+      0,
+    );
   });
 
   it("uses richer progress language for school-age children", async () => {
@@ -143,6 +159,7 @@ describe("FamilyMemberPage", () => {
     );
 
     expect(await screen.findByText("Progress I am making")).not.toBeNull();
+    expect(screen.getByLabelText("Hero progress")).not.toBeNull();
     expect(
       screen.getByLabelText("Progress for Read before bed"),
     ).not.toBeNull();
@@ -181,9 +198,15 @@ describe("FamilyMemberPage", () => {
     );
 
     expect(
-      await screen.findByText("Fill the family helper path"),
-    ).not.toBeNull();
+      (await screen.findAllByText("Fill the family helper path")).length,
+    ).toBeGreaterThan(0);
     const pageText = document.body.textContent ?? "";
+    expect(pageText.indexOf("This is me")).toBeLessThan(
+      pageText.indexOf("Helping the family goal"),
+    );
+    expect(pageText.indexOf("What I am working on")).toBeLessThan(
+      pageText.indexOf("Helping the family goal"),
+    );
     expect(pageText.indexOf("How am I doing?")).toBeLessThan(
       pageText.indexOf("Parent Mode"),
     );
