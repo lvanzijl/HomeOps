@@ -425,3 +425,9 @@ Weekly Household Reset & Recap adds an optional parent-facing maintenance pass d
 - Motivation now uses shorter, state-first copy for Family Goal progress, celebration status, memories, Helpful Moments, Personal Goals, and empty states.
 - Child Workspace now uses simpler child-facing copy in the hero, Today, This Week, Family Goal, celebration, memory, and Helpful Moments areas.
 - User-facing terminology is more consistent around Family Goal and Personal Goal, while existing behavior, workflows, data models, and visual structure remain unchanged.
+
+### Semantic Icon Layer — Completed 2026-06-21
+- Added a client-side semantic icon layer that routes family-facing visual symbols through a central HomeOps icon registry and `HomeOpsIcon` component.
+- Migrated primary Child Workspace, Motivation, Celebration, Home celebration, and close/add/back control symbols from direct Unicode in feature components to semantic icon names while preserving current Unicode appearance.
+- The layer intentionally keeps existing emoji/Unicode output today and defines the future SVG migration seam so owned HomeOps assets can replace registry entries without touching each family-facing component.
+- Existing layouts, copy, styling, workflows, Motivation behavior, Child Workspace behavior, Celebration behavior, Helpful Moments behavior, and family member management behavior remain preserved.

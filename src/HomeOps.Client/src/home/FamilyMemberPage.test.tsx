@@ -6,6 +6,7 @@ import { familyMembers } from "./familyMembers";
 import { loadMotivationSnapshot } from "../motivationData";
 import { loadHelpfulMoments } from "../helpfulMomentsData";
 import { loadTasks } from "../tasks/tasksApi";
+import { getHomeOpsIconSymbol } from "../icons/homeOpsIcons";
 
 vi.mock("../motivationData", async () => {
   const actual =
@@ -143,6 +144,7 @@ describe("FamilyMemberPage", () => {
     expect(screen.getByLabelText("Current goal and progress")).not.toBeNull();
     expect(screen.getByLabelText("Family goal")).not.toBeNull();
     expect(await screen.findByLabelText("Hero celebration")).not.toBeNull();
+    expect(screen.getAllByText(getHomeOpsIconSymbol("celebration")).length).toBeGreaterThan(0);
     expect(screen.getByLabelText("Celebration memories")).not.toBeNull();
     expect(screen.getByText("Family Picnic")).not.toBeNull();
     expect(screen.getByText("We helped make this happen.")).not.toBeNull();
@@ -150,6 +152,7 @@ describe("FamilyMemberPage", () => {
     expect(await screen.findByText("Today")).not.toBeNull();
     expect(screen.getByText("What should I do today?")).not.toBeNull();
     expect(screen.getByText("Pack school bag")).not.toBeNull();
+    expect(screen.getAllByText(getHomeOpsIconSymbol("completed")).length).toBeGreaterThan(0);
     expect(screen.getByText("My goal")).not.toBeNull();
     expect(screen.getAllByText("Family Goal").length).toBeGreaterThan(0);
     expect(screen.getByText(/The family is getting closer/)).not.toBeNull();

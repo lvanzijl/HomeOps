@@ -1,3 +1,4 @@
+import { HomeOpsIcon } from '../icons/homeOpsIcons';
 import { FamilyAvatar } from './FamilyAvatar';
 import type { FamilyMember, FamilyMemberAvatarConfig } from './familyMembers';
 
@@ -27,7 +28,7 @@ export function FamilyAvatarEditor({ member, onChange, onClose }: FamilyAvatarEd
             <h3>{member.name}</h3>
             <p>This changes only the friendly Home avatar. It is not a login, account, security, or profile setting.</p>
           </div>
-          <button type="button" className="icon-button" onClick={onClose} aria-label="Close avatar editor">×</button>
+          <button type="button" className="icon-button" onClick={onClose} aria-label="Close avatar editor"><HomeOpsIcon name="close" /></button>
         </header>
         <div className="avatar-editor-preview"><FamilyAvatar member={member} size="large" /></div>
         <div className="avatar-editor-grid">
