@@ -235,6 +235,8 @@ describe("HomeDashboard", () => {
     const tile = screen.getByLabelText("Motivation summary");
     expect(await within(tile).findByText("Fill the family helper path")).not.toBeNull();
     expect(within(tile).getByText("13/20 helpful actions")).not.toBeNull();
+    expect(within(tile).getByLabelText("Home celebration")).not.toBeNull();
+    expect(within(tile).getByText("Celebration ahead")).not.toBeNull();
     expect(within(tile).queryByText(/shop/i)).toBeNull();
     expect(within(tile).queryByText(/^gems?$/i)).toBeNull();
     expect(within(tile).queryByText(/leaderboard/i)).toBeNull();

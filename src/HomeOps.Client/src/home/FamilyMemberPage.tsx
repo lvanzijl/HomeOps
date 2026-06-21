@@ -547,11 +547,21 @@ function ChildHeroArea({
           <p>When your family starts a shared goal, it will show here first.</p>
         )}
         {celebration ? (
-          <div className="child-hero-celebration" aria-label="Hero celebration">
+          <div
+            className={`child-hero-celebration ${celebration.status === FamilyCelebrationStatus.ReadyToCelebrate || celebrationComplete ? "ready" : celebration.status === FamilyCelebrationStatus.Celebrated ? "celebrated" : "planned"}`}
+            aria-label="Hero celebration"
+          >
             <span aria-hidden="true">🎉</span>
             <div>
               <p className="eyebrow">{celebrationStatus}</p>
               <strong>{celebration.title}</strong>
+              <p>
+                {celebration.status === FamilyCelebrationStatus.ReadyToCelebrate || celebrationComplete
+                  ? "The family did it — this celebration is ready now."
+                  : celebration.status === FamilyCelebrationStatus.Celebrated
+                    ? "A proud family moment already shared."
+                    : "This is what your family is working toward."}
+              </p>
             </div>
           </div>
         ) : null}
@@ -718,15 +728,32 @@ function FamilyCelebrationCard({
           complete
         ? "Ready to celebrate"
         : "When we finish";
+  const detail = celebration.status === FamilyCelebrationStatus.ReadyToCelebrate || complete
+    ? "You helped the family get here. This celebration is ready now."
+    : celebration.status === FamilyCelebrationStatus.Celebrated
+      ? "Your family already shared this proud moment."
+      : "Keep helping — this is the family moment waiting at the end.";
+  const statusClass = celebration.status === FamilyCelebrationStatus.ReadyToCelebrate || complete
+    ? "ready"
+    : celebration.status === FamilyCelebrationStatus.Celebrated
+      ? "celebrated"
+      : "planned";
   return (
     <aside
-      className="family-celebration-card"
+      className={`family-celebration-card ${statusClass}`}
       aria-label="Family celebration"
     >
       <span aria-hidden="true">{ageBand === "early-child" ? "🎉" : "✨"}</span>
       <div>
         <p className="eyebrow">{statusText}</p>
         <h4>{celebration.title}</h4>
+        <p>
+          {ageBand === "early-child"
+            ? celebration.status === FamilyCelebrationStatus.ReadyToCelebrate || complete
+              ? "Ready now!"
+              : "Coming soon."
+            : detail}
+        </p>
         {ageBand === "school-age" && celebration.description ? (
           <p>{celebration.description}</p>
         ) : null}

@@ -52,6 +52,8 @@ describe('MotivationPage', () => {
     const familyGoal = screen.getByLabelText('Active family goal');
     expect(await within(familyGoal).findByText('Fill the family helper path')).not.toBeNull();
     expect(within(familyGoal).getByText('13/20')).not.toBeNull();
+    expect(within(familyGoal).getByLabelText('Goal progress celebration story')).not.toBeNull();
+    expect(within(familyGoal).getByLabelText('Celebration surface')).not.toBeNull();
     expect(within(familyGoal).getByText(/Board game night together/)).not.toBeNull();
 
     const individualGoals = screen.getByLabelText('Individual encouragement goals');
@@ -73,11 +75,12 @@ describe('MotivationPage', () => {
 
     render(<MotivationPage members={familyMembers} />);
 
-    expect(await screen.findByText(/Ready to celebrate:/)).not.toBeNull();
+    expect(await screen.findByLabelText('Celebration surface')).not.toBeNull();
+    expect(screen.getByText('Ready to celebrate')).not.toBeNull();
     await user.click(screen.getByRole('button', { name: 'Mark celebrated' }));
 
     expect(markFamilyGoalCelebrated).toHaveBeenCalledWith('family-goal');
-    expect(await screen.findByText(/Celebrated:/)).not.toBeNull();
+    expect(await screen.findByText('Celebrated together')).not.toBeNull();
   });
 
   it('does not render reward economy or competitive wording', async () => {

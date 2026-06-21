@@ -75,6 +75,13 @@ export function MotivationPage({ members }: MotivationPageProps) {
           <p className="eyebrow">Together we are working on</p>
           <h3>{familyGoal.title}</h3>
           <p className="motivation-copy">{Math.max(0, familyGoal.targetCount - familyGoal.currentProgress)} more {familyGoal.unitLabel} to reach this family goal.</p>
+          <div className="motivation-story" aria-label="Goal progress celebration story">
+            <span>Goal</span>
+            <span aria-hidden="true">→</span>
+            <span>Progress</span>
+            <span aria-hidden="true">→</span>
+            <span>Celebration</span>
+          </div>
           <FamilyCelebrationDisplay familyGoal={familyGoal} onCelebrated={handleFormSaved} />
           <button type="button" className="secondary-action" onClick={() => setFormMode('edit')}>Edit family goal</button>
         </div>
@@ -204,13 +211,28 @@ function FamilyCelebrationDisplay({ familyGoal, onCelebrated }: { familyGoal: Mo
   const label = celebration.status === FamilyCelebrationStatus.ReadyToCelebrate
     ? 'Ready to celebrate'
     : celebration.status === FamilyCelebrationStatus.Celebrated
-      ? 'Celebrated'
-      : 'When we finish';
+      ? 'Celebrated together'
+      : 'Coming up when we finish';
+  const message = celebration.status === FamilyCelebrationStatus.ReadyToCelebrate
+    ? 'The family goal is complete. Gather everyone for this moment.'
+    : celebration.status === FamilyCelebrationStatus.Celebrated
+      ? 'This family moment has been celebrated together.'
+      : 'Every completed step brings the family closer to this shared moment.';
+  const statusClass = celebration.status === FamilyCelebrationStatus.ReadyToCelebrate
+    ? 'ready'
+    : celebration.status === FamilyCelebrationStatus.Celebrated
+      ? 'celebrated'
+      : 'planned';
 
   return (
-    <div className="celebration-label">
-      <p><strong>{label}:</strong> {celebration.title}</p>
-      {celebration.description ? <span>{celebration.description}</span> : null}
+    <div className={`celebration-surface ${statusClass}`} aria-label="Celebration surface">
+      <span className="celebration-surface-icon" aria-hidden="true">🎉</span>
+      <div>
+        <p className="eyebrow">{label}</p>
+        <h4>{celebration.title}</h4>
+        <p>{message}</p>
+        {celebration.description ? <span>{celebration.description}</span> : null}
+      </div>
       {celebration.status === FamilyCelebrationStatus.ReadyToCelebrate ? (
         <button
           type="button"
