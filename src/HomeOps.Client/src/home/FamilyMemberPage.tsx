@@ -178,7 +178,7 @@ export function FamilyMemberPage({
               <HelpfulMomentsSection
                 members={[member]}
                 familyMemberId={member.id}
-                title={`${member.name}'s Helpful Moments`}
+                title="Things My Family Appreciates"
               />
             </section>
           ) : (
@@ -222,7 +222,7 @@ export function FamilyMemberPage({
           <HelpfulMomentsSection
             members={[member]}
             familyMemberId={member.id}
-            title={`${member.name}'s Helpful Moments`}
+            title="Things My Family Appreciates"
           />
           <ParentAdministration
             member={member}

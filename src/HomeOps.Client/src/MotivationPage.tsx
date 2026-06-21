@@ -105,7 +105,7 @@ export function MotivationPage({ members }: MotivationPageProps) {
         />
       ) : null}
 
-      <HelpfulMomentsSection members={members} showCreate title="Recent Helpful Moments" />
+      <HelpfulMomentsSection members={members} showCreate title="Things My Family Appreciates" />
 
       <section className="individual-goals" aria-label="Individual encouragement goals">
         <div className="section-heading-row"><h3>Personal goals this week</h3><button type="button" className="secondary-action" onClick={() => setIndividualFormGoal({ id: "", familyMemberId: members[0]?.id ?? "", familyMemberName: members[0]?.name ?? "", title: "", targetCount: 4, currentProgress: 0, unitLabel: "times", visualKind: "stars" })}>Add personal goal</button></div>

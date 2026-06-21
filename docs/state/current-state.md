@@ -325,3 +325,9 @@ Family Goal Creation closes the final functional P0 blocker for Motivation. Hous
 - Family Goal shows active shared family progress, belonging-oriented contribution context, and Family Celebration context when available.
 - Existing Child Mode, Child Hero Area, Motivation, Family Goals, Individual Goals, Helpful Moments, Family Celebrations, Parent Mode, Tasks, and avatar editing remain preserved.
 - Reward Economy, gems, shops, purchases, notifications, Google Calendar, dashboard customization, household settings, rankings, comparisons, and leaderboards remain out of scope.
+
+### Helpful Moments Upgrade — Completed 2026-06-21
+- Helpful Moments now present to children as “Things My Family Appreciates,” shifting the experience away from a recent feed and toward warm family appreciation.
+- Recognition copy now uses child-facing language such as “My Family Appreciates,” “Thank you for,” and “We noticed,” while keeping existing parent-entered Helpful Moment creation and persistence intact.
+- Child Mode surfaces appreciation as an emotional highlight after the Family Goal journey section, preserving Child Workspace, Child Journey, Motivation, Goals, Family Celebrations, Tasks, and avatar editing.
+- Motivation now connects appreciation with encouragement, family goals, personal goals, progress, and celebrations without adding automatic progress, rewards, gems, shops, purchases, notifications, rankings, comparisons, or leaderboards.

@@ -164,6 +164,9 @@ describe("FamilyMemberPage", () => {
       0,
     );
     expect(await screen.findByText("Helped set the table")).not.toBeNull();
+    expect(screen.getByText("Things My Family Appreciates")).not.toBeNull();
+    expect(screen.getByText("We noticed Riley")).not.toBeNull();
+    expect(screen.getByText("Thank you for")).not.toBeNull();
     expect(screen.getByText("Initiative")).not.toBeNull();
     expect(screen.queryByText(/Gems|Shop|Leaderboard|balance/i)).toBeNull();
   });
@@ -195,10 +198,10 @@ describe("FamilyMemberPage", () => {
     );
 
     expect(await screen.findByText("Progress I am making")).not.toBeNull();
-    expect(screen.getByLabelText("Hero progress")).not.toBeNull();
+    expect(await screen.findByLabelText("Hero progress")).not.toBeNull();
     expect(screen.getByLabelText("This Week")).not.toBeNull();
     expect(
-      screen.getByLabelText("Progress for Read before bed"),
+      await screen.findByLabelText("Progress for Read before bed"),
     ).not.toBeNull();
   });
 
@@ -270,9 +273,9 @@ describe("FamilyMemberPage", () => {
       pageText.indexOf("Family Goal"),
     );
     expect(pageText.indexOf("Family Goal")).toBeLessThan(
-      pageText.indexOf("Helpful Moments"),
+      pageText.indexOf("Things My Family Appreciates"),
     );
-    expect(pageText.indexOf("Helpful Moments")).toBeLessThan(
+    expect(pageText.indexOf("Things My Family Appreciates")).toBeLessThan(
       pageText.indexOf("Parent Mode"),
     );
     expect(pageText.indexOf("How am I doing?")).toBeLessThan(
