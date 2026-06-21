@@ -431,3 +431,8 @@ Weekly Household Reset & Recap adds an optional parent-facing maintenance pass d
 - Migrated primary Child Workspace, Motivation, Celebration, Home celebration, and close/add/back control symbols from direct Unicode in feature components to semantic icon names while preserving current Unicode appearance.
 - The layer intentionally keeps existing emoji/Unicode output today and defines the future SVG migration seam so owned HomeOps assets can replace registry entries without touching each family-facing component.
 - Existing layouts, copy, styling, workflows, Motivation behavior, Child Workspace behavior, Celebration behavior, Helpful Moments behavior, and family member management behavior remain preserved.
+
+### HomeOps Asset Wave 1 — Completed 2026-06-21
+- Created standalone HomeOps-owned SVG assets for Helpful Moments, Celebration, Child Ownership, and core UI controls under `src/HomeOps.Client/src/assets/homeops/`.
+- Documented the wave inventory, folder structure, semantic color-slot usage, risks, and follow-up recommendations in `docs/reports/2026-06-21-homeops-asset-wave-1/asset-wave-1.md`.
+- This slice intentionally does not integrate the assets into product surfaces, replace Semantic Icon Layer Unicode mappings, modify runtime behavior, or alter workflows.
