@@ -522,3 +522,6 @@ Color Token Cleanup introduced a shared design-system color vocabulary for text,
 - Added an isolated client-side Avatar V2 SVG rendering engine with typed configs, internal palette tokens, layered renderers, and deterministic sample output artifacts.
 - Generated four standalone SVG samples under `docs/reports/2026-06-22-avatar-v2-engine/` for playful child, calm child with glasses, adult, and expressive child accessory directions.
 - Current MVP avatars, Family Member UI, Child Workspace, Motivation, persistence, and avatar editor behavior remain unchanged; Avatar V2 is not integrated into product surfaces yet.
+
+## Avatar V2 Golden Sample Quality Validation — Completed 2026-06-22
+- Upgraded the isolated Avatar V2 SVG renderer with anatomy anchors, layered hair, a hoodie asset, chest accessory mounting, and one Golden Sample artifact for visual-quality validation only. Production UI integration, editor UI, persistence, Profile Picker, Child Workspace, MVP avatar replacement, raster assets, and external avatar libraries remain out of scope.
