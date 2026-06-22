@@ -370,8 +370,12 @@ describe("Avatar V2 SVG renderer", () => {
       accessory: { style: "none" as const, color: "accessoryCoral" as const },
     });
     expect(curlyOnly).toContain('data-hair-style="curlyPlayful"');
-    expect(curlyOnly.match(/data-hair-style="curlyPlayful"/g)?.length).toBeGreaterThanOrEqual(4);
+    expect(curlyOnly.match(/data-hair-style="curlyPlayful"/g)?.length).toBeGreaterThanOrEqual(2);
     expect(curlyOnly).toContain('data-hair-highlight="curlyPlayful"');
+
+    expect(curlyOnly).toContain('data-concept="loose-wavy-curls-fixed"');
+    expect(curlyOnly).not.toContain("M119 74c5 14 3 29-6 43");
+    expect(curlyOnly).toContain("M121 64c7 4 12 11 14 20");
     expect(validateAvatarV2HairSvg(curlyOnly, "curlyPlayful")).toBe(true);
 
     const leafPin = renderAvatarV2Svg({

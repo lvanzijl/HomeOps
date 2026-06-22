@@ -4,7 +4,7 @@
 Phase 2 — Durable Household Core
 
 ## Current Slice
-Avatar V2 Curly Hairstyle Concept Exploration — Completed
+Avatar V2 Concept B Curly Hairstyle Salvage — Completed
 
 ## Completed Slices
 - 1.1 Repository Bootstrap
@@ -40,6 +40,12 @@ Avatar V2 Curly Hairstyle Concept Exploration — Completed
 - Celebration Asset Integration
 - Weekly Reset Explanation Compaction
 
+
+
+### Avatar V2 Concept B Curly Hairstyle Salvage — Completed 2026-06-22
+- Rejected Concepts A and C per visual review override and kept Concept B as the only viable direction.
+- Found the face strip root cause in the Concept B highlight layer: a long right-side highlight segment rendered above the face and descended through the cheek area.
+- Corrected Concept B with a shorter upper-right wave highlight, regenerated four validation samples, and kept SVG-only deterministic Avatar V2 rendering intact without editor UI, persistence, production integration, new avatar systems, new head variants, clothing assets, accessories, or raster assets.
 
 ### Avatar V2 Curly Hairstyle Concept Exploration — Completed 2026-06-22
 - Treated CurlyPlayful as rejected and created isolated SVG-only comparison artifacts for three fundamentally different curly hairstyle directions.
