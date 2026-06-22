@@ -471,3 +471,10 @@ Semantic Icon Layer now resolves Child Ownership semantic names to existing Home
 - Event quick capture now opens in a Home dialog after explicit `+ Event` intent and preserves simple all-day event creation.
 - The Home summary order now brings Tasks directly after Agenda so due and overdue responsibilities receive more above-the-fold emphasis before Motivation and Shopping/Lists.
 - Existing Agenda, Lists, Shopping, Tasks, Motivation, Family Member navigation, and dedicated pages remain preserved; no new domains or feature capabilities were added.
+
+## 2026-06-22 Update — Lists Hierarchy Compaction
+- Implemented Lists Hierarchy Compaction as a UX-only Phase 2 slice.
+- Lists now opens execution-first: active shopping/list work, quick item add, active items, and completion opportunities precede list administration.
+- Rename, archive, and delete remain available in a compact List settings disclosure instead of dominating the first scan.
+- Store grouping remains visible for shopping execution, while per-item store editing is compacted behind row-level Store controls so Shopping Intelligence stays available without making the page feel management-first.
+- Existing Shopping Lifecycle, Shopping Intelligence, store suggestions, item creation, item completion, removal, undo, list rename, archive, and delete behavior remain preserved with no persistence or workflow changes.
