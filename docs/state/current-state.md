@@ -4,7 +4,7 @@
 Phase 2 — Durable Household Core
 
 ## Current Slice
-Celebration Asset Integration — Completed
+Weekly Reset Explanation Compaction — Completed
 
 ## Completed Slices
 - 1.1 Repository Bootstrap
@@ -38,7 +38,13 @@ Celebration Asset Integration — Completed
 - Product Experience Review Round 6
 - HomeOps Long-Term Usage Review
 - Celebration Asset Integration
+- Weekly Reset Explanation Compaction
 
+
+### Weekly Reset Explanation Compaction — Completed 2026-06-22
+- Applied the HomeOps review-first UX rule to Weekly Reset so the page opens with review state, counts, and actions instead of tutorial-style explanation.
+- Compacted the hero and task, goal, shopping, and recap cards while preserving existing Weekly Reset behavior, candidate selection, goal review, shopping review, task review actions, and recap behavior.
+- Kept Weekly Reset as a maintenance workflow and did not add new domains, features, workflow changes, notifications, rewards, or review-logic changes.
 
 
 ### No-Date Task Lifecycle — Completed 2026-06-21

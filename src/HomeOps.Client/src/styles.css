@@ -2447,6 +2447,16 @@ button {
   padding: 1rem;
   background: rgba(255, 255, 255, 0.75);
 }
+.weekly-reset-hero {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.weekly-reset-hero p {
+  margin-bottom: 0;
+}
+
 .reset-grid {
   display: grid;
   gap: 1rem;
@@ -2459,10 +2469,34 @@ button {
   padding-top: 0.75rem;
   border-top: 1px solid rgba(148, 163, 184, 0.25);
 }
-.reset-row div {
+.reset-card-heading {
+  align-items: baseline;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+}
+
+.reset-card-heading h3 {
+  margin-bottom: 0;
+}
+
+.reset-card-heading span {
+  color: #64748b;
+  font-size: 0.85rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.reset-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+}
+
+.weekly-reset-page .secondary-action {
+  background: transparent;
+  border-color: rgba(100, 116, 139, 0.45);
+  color: #475569;
 }
 .recap-card {
   grid-column: 1 / -1;
