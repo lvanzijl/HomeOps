@@ -15,7 +15,14 @@ import { getWidgetDefinition } from '../widgets/widgetCatalog';
 import { WidgetRenderer } from '../widgets/WidgetRenderer';
 import type { WidgetInstance } from '../widgets/widgetModel';
 import { loadWorkspaceLayout } from './workspaceLayout';
-import { WorkspaceDefinition, WorkspaceId, workspaceDefinitions } from './workspaceModel';
+import {
+  administrationWorkspaceDefinitions,
+  primaryWorkspaceDefinitions,
+  secondaryWorkspaceDefinitions,
+  WorkspaceDefinition,
+  WorkspaceId,
+  workspaceDefinitions,
+} from './workspaceModel';
 
 function getInitialWorkspace(): WorkspaceDefinition {
   return workspaceDefinitions[0];
@@ -52,7 +59,8 @@ export function WorkspaceShell() {
     };
   }, [activeWorkspaceId]);
 
-  const activeWorkspaceIndex = workspaceDefinitions.findIndex((workspace) => workspace.id === activeWorkspace.id);
+  const activeWorkspaceIsPrimary = primaryWorkspaceDefinitions.some((workspace) => workspace.id === activeWorkspace.id);
+  const activeWorkspaceIsAdministration = administrationWorkspaceDefinitions.some((workspace) => workspace.id === activeWorkspace.id);
   useEffect(() => {
     let ignore = false;
     loadFamilyMembers().then((loaded) => { if (!ignore) setMembers([...loaded]); }).catch(() => { if (!ignore) setMembers([]); });
@@ -122,7 +130,8 @@ export function WorkspaceShell() {
   return (
     <section className={`workspace-shell ${activeDomainClass}`} aria-label="Workspace shell">
       <nav className="workspace-nav" aria-label="Workspace navigation">
-        {workspaceDefinitions.map((workspace) => (
+        <div className="workspace-primary-nav" aria-label="Daily work">
+          {primaryWorkspaceDefinitions.map((workspace) => (
           <button
             aria-current={workspace.id === activeWorkspace.id ? 'page' : undefined}
             className={`workspace-nav-button ${getDomainColorClass(workspace.id)}`}
@@ -132,14 +141,44 @@ export function WorkspaceShell() {
           >
             {workspace.label}
           </button>
-        ))}
+          ))}
+        </div>
+        <div className="workspace-secondary-nav" aria-label="Occasional and future work">
+          {secondaryWorkspaceDefinitions.map((workspace) => (
+            <button
+              aria-current={workspace.id === activeWorkspace.id ? 'page' : undefined}
+              className={`workspace-nav-button workspace-nav-button-secondary ${getDomainColorClass(workspace.id)}`}
+              key={workspace.id}
+              onClick={() => navigateWorkspace(workspace.id)}
+              type="button"
+            >
+              {workspace.label}
+            </button>
+          ))}
+        </div>
+        <div className="workspace-admin-nav" aria-label="Administration">
+          {administrationWorkspaceDefinitions.map((workspace) => (
+            <button
+              aria-current={workspace.id === activeWorkspace.id ? 'page' : undefined}
+              aria-label={`${workspace.label} administration`}
+              className={`workspace-nav-button workspace-admin-button ${getDomainColorClass(workspace.id)}`}
+              key={workspace.id}
+              onClick={() => navigateWorkspace(workspace.id)}
+              title={workspace.label}
+              type="button"
+            >
+              <span aria-hidden="true">⚙</span>
+              <span>{workspace.label}</span>
+            </button>
+          ))}
+        </div>
       </nav>
 
       <section className="workspace-panel" aria-labelledby="active-workspace-title">
         {activeWorkspace.id === 'home' && !activeFamilyMember ? <h2 className="visually-hidden" id="active-workspace-title">Home</h2> : activeFamilyMember ? <h2 className="visually-hidden" id="active-workspace-title">{activeFamilyMember.name}</h2> : (
           <header className="workspace-page-header">
             <p className="workspace-position">
-              {activeWorkspaceIndex + 1}/{workspaceDefinitions.length}
+              {activeWorkspaceIsPrimary ? `Daily work ${primaryWorkspaceDefinitions.findIndex((workspace) => workspace.id === activeWorkspace.id) + 1}/${primaryWorkspaceDefinitions.length}` : activeWorkspaceIsAdministration ? 'Administration' : 'Occasional work'}
             </p>
             <h2 id="active-workspace-title">{activeWorkspace.label}</h2>
             <p>{activeWorkspace.description}</p>
@@ -150,7 +189,7 @@ export function WorkspaceShell() {
         ) : activeWorkspace.id === 'home' ? (
           <HomeDashboard members={members} onNavigate={navigateWorkspace} onSelectFamilyMember={setActiveFamilyMemberId} onAddFamilyMember={() => setIsAddingMember(true)} />
         ) : activeWorkspace.id === 'tasks' ? (
-          <TasksPage members={members} />
+          <TasksPage members={members} onOpenWeeklyReset={() => navigateWorkspace('weeklyReset')} />
         ) : activeWorkspace.id === 'motivation' ? (
           <MotivationPage members={members} />
         ) : activeWorkspace.id === 'weeklyReset' ? (

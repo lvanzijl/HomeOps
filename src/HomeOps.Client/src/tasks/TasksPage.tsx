@@ -29,8 +29,10 @@ import type {
 
 export function TasksPage({
   members = fallbackFamilyMembers,
+  onOpenWeeklyReset,
 }: {
   members?: readonly FamilyMember[];
+  onOpenWeeklyReset?: () => void;
 }) {
   const [tasks, setTasks] = useState<readonly HouseholdTask[]>([]);
   const [templates, setTemplates] = useState<readonly TaskTemplate[]>([]);
@@ -302,6 +304,11 @@ export function TasksPage({
         >
           Weekly Reset{reviewTasks.length > 0 ? ` (${reviewTasks.length})` : ""}
         </button>
+        {onOpenWeeklyReset ? (
+          <button type="button" onClick={onOpenWeeklyReset}>
+            Open full reset
+          </button>
+        ) : null}
       </div>
 
       {isTaskFormOpen || editingTask ? (

@@ -6,6 +6,21 @@ export interface WorkspaceDefinition {
   description: string;
 }
 
+export type NavigationRole = 'primary' | 'secondary' | 'administration';
+
+const navigationRoles: Readonly<Record<WorkspaceId, NavigationRole>> = {
+  home: 'primary',
+  agenda: 'primary',
+  tasks: 'primary',
+  lists: 'primary',
+  motivation: 'primary',
+  weeklyReset: 'secondary',
+  house: 'secondary',
+  media: 'secondary',
+  gamification: 'secondary',
+  settings: 'administration',
+};
+
 export const workspaceDefinitions: readonly WorkspaceDefinition[] = [
   {
     id: 'home',
@@ -18,14 +33,14 @@ export const workspaceDefinitions: readonly WorkspaceDefinition[] = [
     description: 'Full agenda page for calendar browsing and event management.',
   },
   {
-    id: 'lists',
-    label: 'Lists',
-    description: 'Full lists page for household list management.',
-  },
-  {
     id: 'tasks',
     label: 'Tasks',
     description: 'Urgency-first page for ad-hoc household tasks.',
+  },
+  {
+    id: 'lists',
+    label: 'Lists',
+    description: 'Full lists page for household list management.',
   },
   {
     id: 'motivation',
@@ -58,3 +73,19 @@ export const workspaceDefinitions: readonly WorkspaceDefinition[] = [
     description: 'Workspace configuration and household preferences placeholder.',
   },
 ] as const;
+
+export function getNavigationRole(workspaceId: WorkspaceId): NavigationRole {
+  return navigationRoles[workspaceId];
+}
+
+export const primaryWorkspaceDefinitions = workspaceDefinitions.filter(
+  (workspace) => getNavigationRole(workspace.id) === 'primary',
+);
+
+export const secondaryWorkspaceDefinitions = workspaceDefinitions.filter(
+  (workspace) => getNavigationRole(workspace.id) === 'secondary',
+);
+
+export const administrationWorkspaceDefinitions = workspaceDefinitions.filter(
+  (workspace) => getNavigationRole(workspace.id) === 'administration',
+);

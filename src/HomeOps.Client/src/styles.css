@@ -52,9 +52,31 @@ button {
 
 .workspace-nav {
   align-items: center;
-  display: grid;
+  display: flex;
+  flex-wrap: wrap;
   gap: 0.35rem;
-  grid-template-columns: repeat(auto-fit, minmax(5.7rem, 1fr));
+}
+
+.workspace-primary-nav,
+.workspace-secondary-nav,
+.workspace-admin-nav {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.workspace-primary-nav {
+  flex: 1 1 30rem;
+}
+
+.workspace-secondary-nav {
+  flex: 1 1 18rem;
+  justify-content: flex-end;
+}
+
+.workspace-admin-nav {
+  flex: 0 0 auto;
 }
 
 .workspace-nav-button,
@@ -72,6 +94,20 @@ button {
   min-height: 2.15rem;
   padding: 0.35rem 0.55rem;
   white-space: nowrap;
+}
+
+.workspace-nav-button-secondary,
+.workspace-admin-button {
+  font-size: 0.78rem;
+  min-height: 1.9rem;
+  opacity: 0.78;
+  padding: 0.28rem 0.48rem;
+}
+
+.workspace-admin-button {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.25rem;
 }
 
 .workspace-nav-button[aria-current="page"] {

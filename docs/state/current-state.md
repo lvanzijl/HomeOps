@@ -505,3 +505,6 @@ Workspace Shell and Home Hero Compaction applies the content-first UX rule acros
 ### Completed Slice 2.53 — Card System Consolidation Phase 1
 Card System Consolidation Phase 1 introduced shared card primitives for `Card`, `CardHeader`, `SummaryCard`, and `ReviewCard` while preserving existing visual output. Home summary cards now reuse `SummaryCard` and the shared header structure, and Weekly Reset review cards now reuse `ReviewCard` and the shared header structure while retaining the existing `home-summary-card`, `home-card-header`, `reset-card`, and `reset-card-heading` styling contracts. This slice reduced architectural duplication without redesigning pages, changing UX flows, normalizing colors or typography, migrating emotional cards, or changing workflows.
 
+
+## Navigation Architecture Cleanup — 2026-06-22
+Primary navigation now represents daily household work only: Home, Agenda, Tasks, Lists, and Motivation. Weekly Reset, House Status, Media, and Gamification remain reachable as secondary/occasional or future-context destinations, Settings moved to an Administration affordance, and Child Workspace remains contextual through Home family member selection. Existing routes, page behavior, and workflows were preserved.
