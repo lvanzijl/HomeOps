@@ -283,3 +283,10 @@ Motivation now follows the HomeOps overview-first UX rule. The page opens around
 
 ### Completed Slice 2.52 — Child Workspace Overview First
 Child Workspace Overview First applies the overview-first/detail-on-demand rule to Child Mode. The child surface now opens with Today immediately after identity, then shows one primary progress summary, compact Family Goal context, and a latest appreciation preview so a child can answer “what should I do today?”, “how am I doing?”, and “what are we working toward together?” within the opening screen. Full personal progress, expanded Family Goal detail, celebration memories, and Helpful Moments history remain available through deliberate exploration, while Parent Mode stays separate and more discoverable without exposing parent controls in Child Mode. Existing Child Mode, Parent Mode, Family Goal, Helpful Moments, Celebration, Memory, task behavior, workflows, and persistence remain preserved; no new domains, rewards, gamification, notifications, or Avatar V2 work was introduced.
+
+### Slice 2.53 — Card System Consolidation Phase 1 — Completed
+- Introduced shared card taxonomy: `Card`, `CardHeader`, `SummaryCard`, and `ReviewCard`.
+- Migrated Home summary cards onto `SummaryCard` while preserving existing Home visual contracts.
+- Migrated Weekly Reset review cards onto `ReviewCard` while preserving existing reset-card visual contracts and workflows.
+- Deferred broader Tasks, Motivation, Child Workspace, color, typography, avatar, and asset normalization to future explicit slices.
+

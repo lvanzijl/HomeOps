@@ -1,28 +1,272 @@
-import { useEffect, useState } from 'react';
-import { getHelpfulMomentIconName, HomeOpsIcon } from '../icons/homeOpsIcons';
-import { archiveIndividualGoal, type MotivationFamilyGoal, type MotivationIndividualGoal } from '../motivationData';
-import { archiveTask, keepTaskActive, moveTaskToSomeday } from '../tasks/tasksApi';
-import { archiveFamilyGoalForReset, loadWeeklyReset, type WeeklyReset } from './weeklyResetApi';
+import { useEffect, useState } from "react";
+import { getHelpfulMomentIconName, HomeOpsIcon } from "../icons/homeOpsIcons";
+import { CardHeader, ReviewCard } from "../components/cards/Card";
+import {
+  archiveIndividualGoal,
+  type MotivationFamilyGoal,
+  type MotivationIndividualGoal,
+} from "../motivationData";
+import {
+  archiveTask,
+  keepTaskActive,
+  moveTaskToSomeday,
+} from "../tasks/tasksApi";
+import {
+  archiveFamilyGoalForReset,
+  loadWeeklyReset,
+  type WeeklyReset,
+} from "./weeklyResetApi";
 
 export function WeeklyResetPage() {
   const [reset, setReset] = useState<WeeklyReset | null>(null);
-  const [status, setStatus] = useState('Loading weekly reset…');
+  const [status, setStatus] = useState("Loading weekly reset…");
   const [skipped, setSkipped] = useState(false);
-  useEffect(() => { let ignore = false; loadWeeklyReset().then((data) => { if (!ignore) { setReset(data); setStatus('Ready'); } }).catch(() => { if (!ignore) setStatus('Weekly reset could not be loaded.'); }); return () => { ignore = true; }; }, []);
-  async function refresh(message: string) { setStatus(message); setReset(await loadWeeklyReset()); }
-  if (skipped) return <section className="weekly-reset-page"><p className="eyebrow">Optional reset</p><h2>Skipped for now</h2><p>No problem. HomeOps will keep working without a weekly review.</p><button type="button" onClick={() => setSkipped(false)}>Open reset again</button></section>;
-  if (!reset) return <section className="weekly-reset-page"><p>{status}</p></section>;
-  return <section className="weekly-reset-page" aria-labelledby="weekly-reset-title">
-    <header className="weekly-reset-hero"><div><p className="eyebrow">This week’s review</p><h2 id="weekly-reset-title">Weekly Household Reset</h2><p>Review the tasks, goals, and lists that need attention.</p></div><button type="button" className="secondary-action" onClick={() => setSkipped(true)}>Skip this week</button></header>
-    <section className="reset-grid">
-      <article className="reset-card"><div className="reset-card-heading"><h3>Review candidates</h3><span>{reset.reviewCandidates.length} to check</span></div>{reset.reviewCandidates.length === 0 ? <p>Nothing needs review right now.</p> : reset.reviewCandidates.map((task) => <div className="reset-row" key={task.id}><strong>{task.title}</strong><span>{task.noDateReviewState ?? 'Active'}</span><div className="reset-actions"><button type="button" onClick={() => keepTaskActive(task.id).then(() => refresh('Kept active.'))}>Keep active</button><button type="button" onClick={() => moveTaskToSomeday(task.id).then(() => refresh('Moved to someday.'))}>Someday</button><button type="button" className="secondary-action" onClick={() => archiveTask(task.id).then(() => refresh('Archived.'))}>Archive</button></div></div>)}</article>
-      <GoalCard title="Family goal" goal={reset.familyGoal} onArchive={(id) => archiveFamilyGoalForReset(id).then(() => refresh('Family goal archived.'))} />
-      <article className="reset-card"><div className="reset-card-heading"><h3>Children’s goals</h3><span>{reset.individualGoals.length} active</span></div>{reset.individualGoals.length === 0 ? <p>No active child goals to confirm.</p> : reset.individualGoals.map((goal) => <IndividualGoalRow goal={goal} key={goal.id} onArchive={(id) => archiveIndividualGoal(id).then(() => refresh('Child goal archived.'))} />)}</article>
-      <article className="reset-card"><div className="reset-card-heading"><h3>Shopping review</h3><span>{reset.shoppingReviewCandidates.length} to check</span></div>{reset.shoppingReviewCandidates.length === 0 ? <p>No shopping cleanup suggested this week.</p> : reset.shoppingReviewCandidates.map((list) => <div className="reset-row" key={list.id}><strong>{list.name}</strong><span>{list.reason} · {list.itemCount} items</span></div>)}</article>
-      <article className="reset-card recap-card"><div className="reset-card-heading"><h3>Weekly recap</h3><span>{reset.contributionRecap.completedTaskCount} tasks · {reset.contributionRecap.helpfulMomentCount} moments</span></div>{reset.contributionRecap.helpfulMoments.map((moment) => <div className="reset-row helpful-reset-row" key={moment.id}><strong><HomeOpsIcon name={getHelpfulMomentIconName(moment.recognitionTag)} />{moment.familyMemberName}: {moment.title}</strong>{moment.description ? <span>{moment.description}</span> : null}</div>)}{reset.contributionRecap.celebrationMemories.map((memory) => <div className="reset-row" key={memory.familyGoalId}><strong>Celebrated: {memory.title}</strong>{memory.description ? <span>{memory.description}</span> : null}</div>)}</article>
-    </section><p role="status">{status}</p>
-  </section>;
+  useEffect(() => {
+    let ignore = false;
+    loadWeeklyReset()
+      .then((data) => {
+        if (!ignore) {
+          setReset(data);
+          setStatus("Ready");
+        }
+      })
+      .catch(() => {
+        if (!ignore) setStatus("Weekly reset could not be loaded.");
+      });
+    return () => {
+      ignore = true;
+    };
+  }, []);
+  async function refresh(message: string) {
+    setStatus(message);
+    setReset(await loadWeeklyReset());
+  }
+  if (skipped)
+    return (
+      <section className="weekly-reset-page">
+        <p className="eyebrow">Optional reset</p>
+        <h2>Skipped for now</h2>
+        <p>No problem. HomeOps will keep working without a weekly review.</p>
+        <button type="button" onClick={() => setSkipped(false)}>
+          Open reset again
+        </button>
+      </section>
+    );
+  if (!reset)
+    return (
+      <section className="weekly-reset-page">
+        <p>{status}</p>
+      </section>
+    );
+  return (
+    <section className="weekly-reset-page" aria-labelledby="weekly-reset-title">
+      <header className="weekly-reset-hero">
+        <div>
+          <p className="eyebrow">This week’s review</p>
+          <h2 id="weekly-reset-title">Weekly Household Reset</h2>
+          <p>Review the tasks, goals, and lists that need attention.</p>
+        </div>
+        <button
+          type="button"
+          className="secondary-action"
+          onClick={() => setSkipped(true)}
+        >
+          Skip this week
+        </button>
+      </header>
+      <section className="reset-grid">
+        <ReviewCard>
+          <CardHeader
+            className="reset-card-heading"
+            title="Review candidates"
+            actions={`${reset.reviewCandidates.length} to check`}
+          />
+          {reset.reviewCandidates.length === 0 ? (
+            <p>Nothing needs review right now.</p>
+          ) : (
+            reset.reviewCandidates.map((task) => (
+              <div className="reset-row" key={task.id}>
+                <strong>{task.title}</strong>
+                <span>{task.noDateReviewState ?? "Active"}</span>
+                <div className="reset-actions">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      keepTaskActive(task.id).then(() =>
+                        refresh("Kept active."),
+                      )
+                    }
+                  >
+                    Keep active
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      moveTaskToSomeday(task.id).then(() =>
+                        refresh("Moved to someday."),
+                      )
+                    }
+                  >
+                    Someday
+                  </button>
+                  <button
+                    type="button"
+                    className="secondary-action"
+                    onClick={() =>
+                      archiveTask(task.id).then(() => refresh("Archived."))
+                    }
+                  >
+                    Archive
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </ReviewCard>
+        <GoalCard
+          title="Family goal"
+          goal={reset.familyGoal}
+          onArchive={(id) =>
+            archiveFamilyGoalForReset(id).then(() =>
+              refresh("Family goal archived."),
+            )
+          }
+        />
+        <ReviewCard>
+          <CardHeader
+            className="reset-card-heading"
+            title="Children’s goals"
+            actions={`${reset.individualGoals.length} active`}
+          />
+          {reset.individualGoals.length === 0 ? (
+            <p>No active child goals to confirm.</p>
+          ) : (
+            reset.individualGoals.map((goal) => (
+              <IndividualGoalRow
+                goal={goal}
+                key={goal.id}
+                onArchive={(id) =>
+                  archiveIndividualGoal(id).then(() =>
+                    refresh("Child goal archived."),
+                  )
+                }
+              />
+            ))
+          )}
+        </ReviewCard>
+        <ReviewCard>
+          <CardHeader
+            className="reset-card-heading"
+            title="Shopping review"
+            actions={`${reset.shoppingReviewCandidates.length} to check`}
+          />
+          {reset.shoppingReviewCandidates.length === 0 ? (
+            <p>No shopping cleanup suggested this week.</p>
+          ) : (
+            reset.shoppingReviewCandidates.map((list) => (
+              <div className="reset-row" key={list.id}>
+                <strong>{list.name}</strong>
+                <span>
+                  {list.reason} · {list.itemCount} items
+                </span>
+              </div>
+            ))
+          )}
+        </ReviewCard>
+        <ReviewCard className="recap-card">
+          <CardHeader
+            className="reset-card-heading"
+            title="Weekly recap"
+            actions={`${reset.contributionRecap.completedTaskCount} tasks · ${reset.contributionRecap.helpfulMomentCount} moments`}
+          />
+          {reset.contributionRecap.helpfulMoments.map((moment) => (
+            <div className="reset-row helpful-reset-row" key={moment.id}>
+              <strong>
+                <HomeOpsIcon
+                  name={getHelpfulMomentIconName(moment.recognitionTag)}
+                />
+                {moment.familyMemberName}: {moment.title}
+              </strong>
+              {moment.description ? <span>{moment.description}</span> : null}
+            </div>
+          ))}
+          {reset.contributionRecap.celebrationMemories.map((memory) => (
+            <div className="reset-row" key={memory.familyGoalId}>
+              <strong>Celebrated: {memory.title}</strong>
+              {memory.description ? <span>{memory.description}</span> : null}
+            </div>
+          ))}
+        </ReviewCard>
+      </section>
+      <p role="status">{status}</p>
+    </section>
+  );
 }
 
-function GoalCard({ title, goal, onArchive }: { title: string; goal?: MotivationFamilyGoal; onArchive: (id: string) => void }) { return <article className="reset-card"><div className="reset-card-heading"><h3>{title}</h3><span>{goal ? 'Active' : 'None active'}</span></div>{!goal ? <p>No active family goal to confirm.</p> : <div className="reset-row"><strong>{goal.title}</strong><span>{goal.currentProgress} / {goal.targetCount} {goal.unitLabel}</span><div className="reset-actions"><button type="button">Keep active</button><button type="button" className="secondary-action" onClick={() => onArchive(goal.id)}>Archive</button></div></div>}</article>; }
-function IndividualGoalRow({ goal, onArchive }: { goal: MotivationIndividualGoal; onArchive: (id: string) => void }) { return <div className="reset-row"><strong>{goal.familyMemberName}: {goal.title}</strong><span>{goal.currentProgress} / {goal.targetCount} {goal.unitLabel}</span><div className="reset-actions"><button type="button">Keep active</button><button type="button" className="secondary-action" onClick={() => onArchive(goal.id)}>Archive</button></div></div>; }
+function GoalCard({
+  title,
+  goal,
+  onArchive,
+}: {
+  title: string;
+  goal?: MotivationFamilyGoal;
+  onArchive: (id: string) => void;
+}) {
+  return (
+    <ReviewCard>
+      <CardHeader
+        className="reset-card-heading"
+        title={title}
+        actions={goal ? "Active" : "None active"}
+      />
+      {!goal ? (
+        <p>No active family goal to confirm.</p>
+      ) : (
+        <div className="reset-row">
+          <strong>{goal.title}</strong>
+          <span>
+            {goal.currentProgress} / {goal.targetCount} {goal.unitLabel}
+          </span>
+          <div className="reset-actions">
+            <button type="button">Keep active</button>
+            <button
+              type="button"
+              className="secondary-action"
+              onClick={() => onArchive(goal.id)}
+            >
+              Archive
+            </button>
+          </div>
+        </div>
+      )}
+    </ReviewCard>
+  );
+}
+function IndividualGoalRow({
+  goal,
+  onArchive,
+}: {
+  goal: MotivationIndividualGoal;
+  onArchive: (id: string) => void;
+}) {
+  return (
+    <div className="reset-row">
+      <strong>
+        {goal.familyMemberName}: {goal.title}
+      </strong>
+      <span>
+        {goal.currentProgress} / {goal.targetCount} {goal.unitLabel}
+      </span>
+      <div className="reset-actions">
+        <button type="button">Keep active</button>
+        <button
+          type="button"
+          className="secondary-action"
+          onClick={() => onArchive(goal.id)}
+        >
+          Archive
+        </button>
+      </div>
+    </div>
+  );
+}

@@ -501,3 +501,7 @@ Workspace Shell and Home Hero Compaction applies the content-first UX rule acros
 - Full personal progress, expanded Family Goal detail, celebration memories, and appreciation history remain available through deliberate exploration instead of occupying the primary overview.
 - Parent Mode remains separate and discoverable through the existing mode switch plus a lightweight grown-up cue, without exposing parent controls in Child Mode.
 - Existing Child Mode, Parent Mode, Family Goal, Helpful Moments, Celebration, Memory, task behavior, and persistence remain preserved.
+
+### Completed Slice 2.53 — Card System Consolidation Phase 1
+Card System Consolidation Phase 1 introduced shared card primitives for `Card`, `CardHeader`, `SummaryCard`, and `ReviewCard` while preserving existing visual output. Home summary cards now reuse `SummaryCard` and the shared header structure, and Weekly Reset review cards now reuse `ReviewCard` and the shared header structure while retaining the existing `home-summary-card`, `home-card-header`, `reset-card`, and `reset-card-heading` styling contracts. This slice reduced architectural duplication without redesigning pages, changing UX flows, normalizing colors or typography, migrating emotional cards, or changing workflows.
+

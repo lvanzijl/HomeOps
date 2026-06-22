@@ -28,6 +28,7 @@ import { loadTasks } from "../tasks/tasksApi";
 import { groupTasksByUrgency } from "../tasks/taskGrouping";
 import type { HouseholdTask } from "../tasks/tasksModel";
 import { HomeOpsIcon } from "../icons/homeOpsIcons";
+import { CardHeader, SummaryCard } from "../components/cards/Card";
 import { FamilyAvatar } from "./FamilyAvatar";
 import { FamilyCelebrationStatus } from "../api/homeOpsApiClient";
 import {
@@ -373,8 +374,8 @@ export function HomeDashboard({
       </header>
 
       <div className="home-summary-grid">
-        <article
-          className="home-summary-card agenda-summary"
+        <SummaryCard
+          className="agenda-summary"
           onClick={() => onNavigate("agenda")}
           role="button"
           tabIndex={0}
@@ -382,8 +383,9 @@ export function HomeDashboard({
           aria-label="Agenda summary"
         >
           <CardHeader
+            className="home-card-header"
             title="Agenda"
-            action="Open agenda"
+            actions="Open agenda"
             meta={`${visibleAgenda.length} showing`}
           />
           {agendaError ? <p role="alert">{agendaError}</p> : null}
@@ -427,10 +429,10 @@ export function HomeDashboard({
               +{hiddenAgendaCount} more
             </button>
           ) : null}
-        </article>
+        </SummaryCard>
 
-        <article
-          className="home-summary-card tasks-summary"
+        <SummaryCard
+          className="tasks-summary"
           onClick={() => onNavigate("tasks")}
           role="button"
           tabIndex={0}
@@ -438,8 +440,9 @@ export function HomeDashboard({
           aria-label="Tasks summary"
         >
           <CardHeader
+            className="home-card-header"
             title="Tasks"
-            action="Open tasks"
+            actions="Open tasks"
             meta={`${summaryTasks.length} due soon`}
           />
           {tasksError ? <p role="alert">{tasksError}</p> : null}
@@ -497,10 +500,10 @@ export function HomeDashboard({
               View Tasks
             </button>
           )}
-        </article>
+        </SummaryCard>
 
-        <article
-          className="home-summary-card motivation-summary"
+        <SummaryCard
+          className="motivation-summary"
           onClick={() => onNavigate("motivation")}
           role="button"
           tabIndex={0}
@@ -508,8 +511,9 @@ export function HomeDashboard({
           aria-label="Motivation summary"
         >
           <CardHeader
+            className="home-card-header"
             title="Motivation"
-            action="View Motivation"
+            actions="View Motivation"
             meta={
               motivationFamilyGoal
                 ? `${motivationFamilyGoal.currentProgress}/${motivationFamilyGoal.targetCount} ${motivationFamilyGoal.unitLabel}`
@@ -574,10 +578,10 @@ export function HomeDashboard({
               </button>
             </div>
           )}
-        </article>
+        </SummaryCard>
 
-        <article
-          className="home-summary-card lists-summary"
+        <SummaryCard
+          className="lists-summary"
           onClick={() => onNavigate("lists")}
           role="button"
           tabIndex={0}
@@ -585,8 +589,9 @@ export function HomeDashboard({
           aria-label="Lists summary"
         >
           <CardHeader
+            className="home-card-header"
             title={primaryListName ? `${primaryListName} lists` : "Lists"}
-            action="Open lists"
+            actions="Open lists"
             meta={`${activeListItems.length} active`}
           />
           {listsError ? <p role="alert">{listsError}</p> : null}
@@ -622,7 +627,7 @@ export function HomeDashboard({
           <p className="home-context-note">
             Shared for {members.length} household members.
           </p>
-        </article>
+        </SummaryCard>
       </div>
 
       {isEventCaptureOpen ? (
@@ -706,26 +711,6 @@ function homeCelebrationMessage(goal: MotivationFamilyGoal) {
   return remaining === 1
     ? `Only 1 more ${goal.unitLabel} until ${celebration.title}.`
     : `Only ${remaining} more ${goal.unitLabel} until ${celebration.title}.`;
-}
-
-function CardHeader({
-  title,
-  action,
-  meta,
-}: {
-  title: string;
-  action: string;
-  meta?: string;
-}) {
-  return (
-    <div className="home-card-header">
-      <div>
-        <h3>{title}</h3>
-        {meta ? <small>{meta}</small> : null}
-      </div>
-      <span>{action}</span>
-    </div>
-  );
 }
 
 function buildAgendaSummary(
