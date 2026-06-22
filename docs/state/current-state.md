@@ -512,3 +512,8 @@ Primary navigation now represents daily household work only: Home, Agenda, Tasks
 
 ## Color Token Cleanup — 2026-06-22
 Color Token Cleanup introduced a shared design-system color vocabulary for text, brand accents, surfaces, borders, elevation, domain accents, and member tints in the client stylesheet. Workspace shells, widget cards, Home summary cards, family member detail cards, placeholder pages, dialogs, and Motivation review surfaces now route repeated surface, border, shadow, domain, and member values through explicit tokens while preserving current layouts, spacing, typography, workflows, navigation, and emotional/child-friendly visual differentiation.
+
+## Avatar V2 Engine Exploration — 2026-06-22
+- Added an isolated client-side Avatar V2 SVG rendering engine with typed configs, internal palette tokens, layered renderers, and deterministic sample output artifacts.
+- Generated four standalone SVG samples under `docs/reports/2026-06-22-avatar-v2-engine/` for playful child, calm child with glasses, adult, and expressive child accessory directions.
+- Current MVP avatars, Family Member UI, Child Workspace, Motivation, persistence, and avatar editor behavior remain unchanged; Avatar V2 is not integrated into product surfaces yet.

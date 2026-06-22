@@ -299,3 +299,6 @@ Child Workspace Overview First applies the overview-first/detail-on-demand rule 
 - Migrated Weekly Reset review cards onto `ReviewCard` while preserving existing reset-card visual contracts and workflows.
 - Deferred broader Tasks, Motivation, Child Workspace, color, typography, avatar, and asset normalization to future explicit slices.
 
+
+### Avatar V2 Engine Exploration — Completed 2026-06-22
+Avatar V2 Engine Exploration adds an isolated SVG-only client renderer for future avatar direction work. The engine uses typed configs, internal palette tokens, independent Shirt/Base/Hair/Glasses/Accessory layers, and four deterministic sample SVG artifacts. Current MVP avatars, Family Member management, Child Workspace, Motivation, persistence, editor UI, uploads/photos, raster assets, and AI-generated avatars remain unchanged and out of scope.
