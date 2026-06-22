@@ -555,3 +555,9 @@ Showcase Sample C and Showcase Sample D exposed that the wide head variant's ear
 - Reviewed all existing Avatar V2 hairstyles for silhouette, growth direction, BackHair/FrontHair consistency, highlight flow, monochrome readability, and dark-color believability.
 - Improved the weak prioritized hair assets (`shortMessy`, `longSoft`, and `curlyPlayful`) without adding hairstyles, changing anatomy, building editor UI, adding persistence, or integrating Avatar V2 into production UI.
 - Added practical hair SVG validation and regenerated standalone showcase SVG artifacts under `docs/reports/2026-06-22-work/`.
+
+## Avatar V2 Rejected Asset Redesign — 2026-06-22
+- Redesigned the isolated SVG-only Avatar V2 `curlyPlayful` hairstyle from a helmet-like cap into a foreground curl-cluster silhouette with clearer BackHair/FrontHair relationship and dark-plum readability.
+- Redesigned `leafPin` into a clearer leaf silhouette with center and secondary veins, preserving the existing accessory id and mount behavior.
+- Added the simplest headband interaction rule for `curlyPlayful`: the headband renders behind foreground curls so it reads as wrapped around the head rather than pasted over the hairstyle.
+- Generated targeted CurlyPlayful V2 validation SVGs under `docs/reports/2026-06-22-work/` and regenerated the existing six showcase SVGs without adding editor UI, persistence, production integration, new systems, new head variants, new clothing assets, gamification, unlockables, raster assets, or external avatar systems.

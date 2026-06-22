@@ -349,9 +349,9 @@ function hairParts(ctx: AvatarRenderContext) {
     };
   if (s === "curlyPlayful")
     return {
-      back: `<path data-hair-style="curlyPlayful" d="M45 72c-2-26 20-47 51-48 32 0 54 20 52 48-3 20-20 34-45 36-4 0-10 0-14 0-26-2-42-16-44-36z" fill="${c.shade}" stroke="${c.line}" stroke-width="3"/><path d="M48 75c5-10 13-14 23-11M122 63c10-3 18 1 24 10" fill="none" stroke="${c.line}" stroke-width="5" stroke-linecap="round" opacity="0.45"/>`,
-      front: `<path data-hair-style="curlyPlayful" d="M49 65c6-10 15-16 27-17 4-12 15-18 28-15 12 2 21 9 25 21 9 2 15 7 19 14-10 9-24 11-41 7l-11 13-10-13c-16 4-29 1-37-10z" ${common}/><path d="M57 59c7-9 17-12 29-9M82 43c9-8 22-8 32 0M110 47c12-2 22 4 29 15M70 70c9 5 18 5 27-2" fill="none" stroke="${c.line}" stroke-width="3" stroke-linecap="round" opacity="0.45"/>`,
-      hi: `<path data-hair-highlight="curlyPlayful" d="M70 48c7-6 17-7 27-3" fill="none" stroke="${c.highlight}" stroke-width="4" stroke-linecap="round" opacity="0.58"/><path data-hair-highlight="curlyPlayful" d="M110 47c8 1 15 6 19 13" fill="none" stroke="${c.highlight}" stroke-width="4" stroke-linecap="round" opacity="0.52"/><path data-hair-highlight="curlyPlayful" d="M61 63c6-4 13-5 20-2" fill="none" stroke="${c.highlight}" stroke-width="4" stroke-linecap="round" opacity="0.5"/>`,
+      back: `<path data-hair-style="curlyPlayful" d="M46 78c-5-27 17-52 50-53 34 1 56 25 50 54-4 20-20 36-42 39-8 1-16 1-24 0-22-4-32-20-34-40z" fill="${c.shade}" stroke="${c.line}" stroke-width="3"/><path d="M55 82c5-8 12-12 22-10M116 72c11-2 19 2 23 11M72 104c8 7 39 8 50 0" fill="none" stroke="${c.line}" stroke-width="4" stroke-linecap="round" opacity="0.38"/>`,
+      front: `<path data-hair-style="curlyPlayful" d="M49 68c5-12 14-19 27-20 4-11 13-18 25-17 12 1 20 8 24 18 11 1 19 8 23 19-7 6-17 7-29 2-5 8-14 12-24 10-9 0-16-4-21-11-9 5-18 6-25-1z" ${common}/><circle data-hair-style="curlyPlayful" cx="70" cy="62" r="13" ${common}/><circle data-hair-style="curlyPlayful" cx="96" cy="50" r="16" ${common}/><circle data-hair-style="curlyPlayful" cx="122" cy="62" r="13" ${common}/><path d="M59 65c5-7 14-9 22-5M83 49c7-7 19-7 27 0M112 60c8-4 17-2 22 5M77 71c7 5 15 6 24 2" fill="none" stroke="${c.line}" stroke-width="3" stroke-linecap="round" opacity="0.52"/>`,
+      hi: `<path data-hair-highlight="curlyPlayful" d="M63 58c5-5 13-7 20-4" fill="none" stroke="${c.highlight}" stroke-width="4" stroke-linecap="round" opacity="0.62"/><path data-hair-highlight="curlyPlayful" d="M88 42c7-5 18-5 26 0" fill="none" stroke="${c.highlight}" stroke-width="4" stroke-linecap="round" opacity="0.62"/><path data-hair-highlight="curlyPlayful" d="M114 57c7-3 14-1 19 5" fill="none" stroke="${c.highlight}" stroke-width="4" stroke-linecap="round" opacity="0.58"/>`,
     };
   if (s === "layeredMessy")
     return {
@@ -607,8 +607,11 @@ export const avatarV2AccessoryAssets: Record<
       previewPriority: 30,
       recommendedMount: "headTop",
     },
-    render: (ctx, c) =>
-      `<g id="avatar-v2-layer-accessory" data-accessory-asset="headband"><path d="M${ctx.anatomy.head.bounds.x + 11} ${ctx.anatomy.head.bounds.y + 28}c22-22 62-22 84 0" fill="none" stroke="${c.line}" stroke-width="8" stroke-linecap="round"/><path d="M${ctx.anatomy.head.bounds.x + 14} ${ctx.anatomy.head.bounds.y + 29}c21-16 57-16 78 0" fill="none" stroke="${c.base}" stroke-width="4" stroke-linecap="round"/></g>`,
+    render: (ctx, c) => {
+      const yOffset = ctx.config.hair.style === "curlyPlayful" ? 25 : 28;
+      const innerYOffset = ctx.config.hair.style === "curlyPlayful" ? 26 : 29;
+      return `<g id="avatar-v2-layer-accessory" data-accessory-asset="headband" data-accessory-layer-rule="${ctx.config.hair.style === "curlyPlayful" ? "behind-front-hair" : "normal"}"><path d="M${ctx.anatomy.head.bounds.x + 11} ${ctx.anatomy.head.bounds.y + yOffset}c22-20 62-20 84 0" fill="none" stroke="${c.line}" stroke-width="7" stroke-linecap="round"/><path d="M${ctx.anatomy.head.bounds.x + 14} ${ctx.anatomy.head.bounds.y + innerYOffset}c21-14 57-14 78 0" fill="none" stroke="${c.base}" stroke-width="4" stroke-linecap="round"/></g>`;
+    },
   },
   bow: {
     id: "bow",
@@ -649,7 +652,7 @@ export const avatarV2AccessoryAssets: Record<
         ctx,
         c,
         "hairRight",
-        `<path data-accessory-asset="leafPin" d="M-2-13c16 2 23 14 15 28-16-2-22-16-15-28z" fill="${c.base}" stroke="${c.line}" stroke-width="3"/><path d="M-1-8c5 5 9 11 11 18" stroke="${c.highlight}" stroke-width="3" stroke-linecap="round"/>`,
+        `<path data-accessory-asset="leafPin" d="M-14 2C-5-14 10-16 17-4 10 13-5 17-14 2z" fill="${c.base}" stroke="${c.line}" stroke-width="3"/><path d="M-10 1C-2-1 7-4 14-8" fill="none" stroke="${c.highlight}" stroke-width="3" stroke-linecap="round"/><path d="M-2-1l-3-7M4-3l3 6" fill="none" stroke="${c.line}" stroke-width="2" stroke-linecap="round" opacity="0.55"/>`,
       ),
   },
   tinyCrown: {
@@ -680,8 +683,20 @@ function renderMounted(
 }
 function renderAccessory(ctx: AvatarRenderContext): string {
   if (ctx.config.accessory.style === "none") return "";
+  if (shouldRenderAccessoryBehindFrontHair(ctx)) return "";
   const c = sw(ctx.config.accessory.color);
   return avatarV2AccessoryAssets[ctx.config.accessory.style].render(ctx, c);
+}
+function shouldRenderAccessoryBehindFrontHair(ctx: AvatarRenderContext): boolean {
+  return (
+    ctx.config.hair.style === "curlyPlayful" &&
+    ctx.config.accessory.style === "headband"
+  );
+}
+function renderBehindFrontHairAccessory(ctx: AvatarRenderContext): string {
+  if (!shouldRenderAccessoryBehindFrontHair(ctx)) return "";
+  const c = sw(ctx.config.accessory.color);
+  return avatarV2AccessoryAssets.headband.render(ctx, c);
 }
 export function validateAvatarV2AssetSvg(svg: string): boolean {
   return svg.startsWith("<svg") && svg.endsWith("</svg>") && noRaster(svg);
@@ -710,7 +725,7 @@ export function validateAvatarV2HairSvg(svg: string, style: HairStyle): boolean 
 export function renderAvatarV2Svg(config: AvatarConfig): string {
   const anatomy = resolveAvatarAnatomy(config),
     ctx = { config, anatomy };
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192" role="img" aria-label="HomeOps Avatar V2 sample">${renderHairLayer(ctx, "back")}${renderShirt(ctx)}${renderHeadAndFace(ctx)}${renderHairLayer(ctx, "front")}${renderGlasses(ctx)}${renderHairLayer(ctx, "hi")}${renderAccessory(ctx)}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192" role="img" aria-label="HomeOps Avatar V2 sample">${renderHairLayer(ctx, "back")}${renderShirt(ctx)}${renderHeadAndFace(ctx)}${renderBehindFrontHairAccessory(ctx)}${renderHairLayer(ctx, "front")}${renderGlasses(ctx)}${renderHairLayer(ctx, "hi")}${renderAccessory(ctx)}</svg>`;
 }
 export const avatarV2SampleConfigs = {
   playfulChild: {

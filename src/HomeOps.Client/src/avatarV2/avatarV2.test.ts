@@ -360,6 +360,63 @@ describe("Avatar V2 SVG renderer", () => {
     }
   });
 
+  it("renders redesigned curly hair and rejected accessories with asset-specific guards", () => {
+    const baseConfig = {
+      ...avatarV2SampleConfigs.showcaseSampleF,
+      hair: { style: "curlyPlayful" as const, color: "hairPlum" as const },
+    };
+    const curlyOnly = renderAvatarV2Svg({
+      ...baseConfig,
+      accessory: { style: "none" as const, color: "accessoryCoral" as const },
+    });
+    expect(curlyOnly).toContain('data-hair-style="curlyPlayful"');
+    expect(curlyOnly.match(/data-hair-style="curlyPlayful"/g)?.length).toBeGreaterThanOrEqual(4);
+    expect(curlyOnly).toContain('data-hair-highlight="curlyPlayful"');
+    expect(validateAvatarV2HairSvg(curlyOnly, "curlyPlayful")).toBe(true);
+
+    const leafPin = renderAvatarV2Svg({
+      ...baseConfig,
+      accessory: {
+        style: "leafPin" as const,
+        color: "accessoryCoral" as const,
+        mount: "hairRight" as const,
+      },
+    });
+    expect(leafPin).toContain('data-accessory-asset="leafPin"');
+    expect(leafPin).toContain("C-5-14 10-16 17-4");
+    expect(leafPin).toContain("M-10 1C-2-1 7-4 14-8");
+    expect(validateAvatarV2AssetSvg(leafPin)).toBe(true);
+    expect(leafPin).toBe(renderAvatarV2Svg({
+      ...baseConfig,
+      accessory: {
+        style: "leafPin" as const,
+        color: "accessoryCoral" as const,
+        mount: "hairRight" as const,
+      },
+    }));
+  });
+
+  it("renders headbands behind curly foreground hair instead of pasted above curls", () => {
+    const config = {
+      ...avatarV2SampleConfigs.showcaseSampleC,
+      hair: { style: "curlyPlayful" as const, color: "hairPlum" as const },
+      accessory: {
+        style: "headband" as const,
+        color: "accessoryCoral" as const,
+        mount: "headTop" as const,
+      },
+    };
+    const svg = renderAvatarV2Svg(config);
+    const headbandIndex = svg.indexOf('data-accessory-asset="headband"');
+    const frontHairIndex = svg.indexOf("avatar-v2-layer-front-hair");
+    const highlightsIndex = svg.indexOf("avatar-v2-layer-hair-highlights");
+    expect(headbandIndex).toBeGreaterThan(svg.indexOf("avatar-v2-layer-base"));
+    expect(headbandIndex).toBeLessThan(frontHairIndex);
+    expect(frontHairIndex).toBeLessThan(highlightsIndex);
+    expect(svg).toContain('data-accessory-layer-rule="behind-front-hair"');
+    expect(svg).toBe(renderAvatarV2Svg(config));
+  });
+
   it("renders all sample configs without exception", () => {
     for (const config of Object.values(avatarV2SampleConfigs)) {
       expect(() => renderAvatarV2Svg(config)).not.toThrow();
