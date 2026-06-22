@@ -2482,3 +2482,56 @@ button {
   display: inline-flex;
   gap: 0.45rem;
 }
+
+.task-primary-actions {
+  align-items: center;
+  border-top: 1px solid rgba(148, 163, 184, 0.22);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+  padding-top: 1rem;
+}
+
+.task-primary-actions button,
+.task-management-section button,
+.empty-state-card button {
+  background: #0f172a;
+  border: 0;
+  border-radius: 999px;
+  color: white;
+  font: inherit;
+  font-weight: 800;
+  padding: 0.75rem 1rem;
+}
+
+.task-primary-actions button:not(:first-child) {
+  background: rgba(15, 23, 42, 0.08);
+  color: #0f172a;
+}
+
+.task-management-section,
+.task-secondary-stack {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.task-management-section {
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 24px;
+  background: rgba(248, 250, 252, 0.8);
+  padding: 1rem;
+}
+
+.task-management-section h4 {
+  margin: 0;
+}
+
+.compact-task-form {
+  margin: 0.25rem 0 0;
+}
+
+.task-planning-group {
+  margin-top: 0.5rem;
+}

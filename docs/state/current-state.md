@@ -80,6 +80,11 @@ Celebration Asset Integration — Completed
 - Concluded HomeOps currently mostly saves more effort than it creates because shopping, recurring task hygiene, goal focus, and child contribution reduce coordination load, while stale manually entered data remains the largest long-term risk.
 - Recommended a Weekly Household Reset as the single most valuable next sustainability slice because it batches cleanup and protects trust without adding a new product domain.
 
+### Tasks Hierarchy Compaction — Completed 2026-06-22
+- Applied the Home dashboard-first UX lesson to Tasks so active urgency groups render before creation, templates, Weekly Reset maintenance, and Someday planning content.
+- Replaced the persistent top task creation form with a compact on-demand Add Task panel while preserving title, owner, family member, due date, and recurrence capabilities.
+- Moved Task Templates and Weekly Household Reset into secondary entry points and kept Someday after active work, preserving existing behavior without new domains, persistence changes, or workflow changes.
+
 ## Next Slice
 Proceed with the next Phase 2 household-core slice only after preserving Home as summary-first, Family Members as non-authentication household entities, Motivation progress as encouragement-only, and HomeOps Calendar source-of-truth/local-only portability boundaries.
 
