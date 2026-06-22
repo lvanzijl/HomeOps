@@ -539,3 +539,9 @@ Color Token Cleanup introduced a shared design-system color vocabulary for text,
 ## Avatar V2 Ear Attachment Fix — 2026-06-22
 
 Showcase Sample C and Showcase Sample D exposed that the wide head variant's ears had too little horizontal overlap with the head silhouette, making the ears read as visually detached. The isolated SVG-only Avatar V2 renderer now uses a wider-specific anatomy ear inset while preserving anatomy-driven placement, deterministic rendering, existing layers, and sample generation. Round and oval ear placement remains unchanged, and tests now validate round, oval, and wide ear attachment geometry.
+
+## Avatar V2 Left/Right Anatomy Symmetry Fix — 2026-06-22
+- Corrected the isolated SVG-only Avatar V2 wide head path so the silhouette mirrors around the anatomy centerline instead of leaning right.
+- Removed left/right rendering offsets in face and glasses SVG output so eyes, lenses, bridge, and temples now render from mirrored anatomy coordinates.
+- Added automated symmetry validation for round, oval, and wide heads covering ear anchors, eye anchors, lens geometry, and temple geometry.
+- Regenerated the four Avatar V2 showcase SVG samples under `docs/reports/2026-06-22-work/` with no production UI integration, editor work, persistence work, new avatar features, raster assets, or external URLs.
