@@ -4,7 +4,7 @@
 Phase 2 — Durable Household Core
 
 ## Current Slice
-Weekly Reset Explanation Compaction — Completed
+Avatar V2 Engine Quality Upgrade Analysis — Completed
 
 ## Completed Slices
 - 1.1 Repository Bootstrap
@@ -40,6 +40,11 @@ Weekly Reset Explanation Compaction — Completed
 - Celebration Asset Integration
 - Weekly Reset Explanation Compaction
 
+
+### Avatar V2 Engine Quality Upgrade Analysis — Completed 2026-06-22
+- Added an isolated architecture analysis and implementation plan for improving Avatar V2 engine visual quality while preserving SVG-only deterministic rendering.
+- Recommended an anatomy anchor system, head variants, hair depth layers, clothing assets, accessory mount points, expanded internal palette roles, and asset design standards.
+- Kept editor integration, production UI integration, MVP avatar replacement, persistence changes, and non-SVG rendering out of scope.
 
 ### Weekly Reset Explanation Compaction — Completed 2026-06-22
 - Applied the HomeOps review-first UX rule to Weekly Reset so the page opens with review state, counts, and actions instead of tutorial-style explanation.
