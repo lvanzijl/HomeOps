@@ -137,13 +137,13 @@ export function WorkspaceShell() {
 
       <section className="workspace-panel" aria-labelledby="active-workspace-title">
         {activeWorkspace.id === 'home' && !activeFamilyMember ? <h2 className="visually-hidden" id="active-workspace-title">Home</h2> : activeFamilyMember ? <h2 className="visually-hidden" id="active-workspace-title">{activeFamilyMember.name}</h2> : (
-          <>
+          <header className="workspace-page-header">
             <p className="workspace-position">
-              Page {activeWorkspaceIndex + 1} of {workspaceDefinitions.length}
+              {activeWorkspaceIndex + 1}/{workspaceDefinitions.length}
             </p>
             <h2 id="active-workspace-title">{activeWorkspace.label}</h2>
             <p>{activeWorkspace.description}</p>
-          </>
+          </header>
         )}
         {activeFamilyMember ? (
           <FamilyMemberPage member={activeFamilyMember} onBack={() => setActiveFamilyMemberId(null)} onChange={updateFamilyMember} onRemove={deleteFamilyMember} />

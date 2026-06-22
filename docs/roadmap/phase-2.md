@@ -62,6 +62,10 @@ Calendar Recurrence adds V1 recurrence metadata to EventSeries, supports None/Da
 
 
 
+
+## Completed Slice 2.50 — Workspace Shell and Home Hero Compaction
+Workspace Shell and Home Hero Compaction applies the content-first UX rule across the global shell and primary Home surface. Navigation now uses smaller, grid-based pills to reduce awkward wrapping and keep Settings from becoming an isolated second-row item, workspace headers use compact orientation metadata instead of tall page framing, and the Home hero uses tighter date/time, family, and quick-capture treatments so dashboard content appears sooner. Existing navigation destinations, routes, Home behavior, Tasks, Lists, Motivation, Weekly Reset, Settings, and dashboard content remain preserved. No new functionality, domains, workflow changes, persistence changes, card redesign, motivation redesign, child workspace redesign, or Avatar V2 work was introduced.
+
 ## Completed Slice 2.44 — Weekly Reset Explanation Compaction
 Weekly Reset Explanation Compaction applies the HomeOps review-first UX rule to the Weekly Household Reset surface. The page now uses a compact hero and state-first cards with counts and actions for review candidates, family goal, children’s goals, shopping review, and weekly recap. Existing Weekly Reset behavior, task candidate selection, goal review, shopping review, task review actions, and recap behavior remain preserved. No new Weekly Reset features, review logic, workflow changes, domains, notifications, rewards, gamification, or persistence changes were introduced.
 
