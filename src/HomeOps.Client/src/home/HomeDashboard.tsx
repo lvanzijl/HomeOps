@@ -30,12 +30,18 @@ import type { HouseholdTask } from "../tasks/tasksModel";
 import { HomeOpsIcon } from "../icons/homeOpsIcons";
 import { FamilyAvatar } from "./FamilyAvatar";
 import { FamilyCelebrationStatus } from "../api/homeOpsApiClient";
-import { clampProgress, loadMotivationSnapshot, type MotivationFamilyGoal } from "../motivationData";
+import {
+  clampProgress,
+  loadMotivationSnapshot,
+  type MotivationFamilyGoal,
+} from "../motivationData";
 import type { FamilyMember } from "./familyMembers";
 
 interface HomeDashboardProps {
   members: readonly FamilyMember[];
-  onNavigate: (destination: "agenda" | "lists" | "tasks" | "motivation") => void;
+  onNavigate: (
+    destination: "agenda" | "lists" | "tasks" | "motivation",
+  ) => void;
   onSelectFamilyMember: (memberId: string) => void;
   onAddFamilyMember: () => void;
 }
@@ -62,8 +68,12 @@ export function HomeDashboard({
   onAddFamilyMember,
 }: HomeDashboardProps) {
   const [now, setNow] = useState(() => new Date());
-  const [motivationFamilyGoal, setMotivationFamilyGoal] = useState<MotivationFamilyGoal | undefined>();
-  const [motivationStatus, setMotivationStatus] = useState<"loading" | "ready" | "error">("loading");
+  const [motivationFamilyGoal, setMotivationFamilyGoal] = useState<
+    MotivationFamilyGoal | undefined
+  >();
+  const [motivationStatus, setMotivationStatus] = useState<
+    "loading" | "ready" | "error"
+  >("loading");
   const [events, setEvents] = useState<NormalizedEvent[]>([]);
   const [sources, setSources] = useState<EventSource[]>([
     ...demoReadOnlyEventSources,
@@ -82,6 +92,8 @@ export function HomeDashboard({
     toDateInputValue(new Date()),
   );
   const [quickStatus, setQuickStatus] = useState<string | null>(null);
+  const [isShoppingCaptureOpen, setIsShoppingCaptureOpen] = useState(false);
+  const [isEventCaptureOpen, setIsEventCaptureOpen] = useState(false);
   const [history, setHistory] = useState<string[]>(() => loadShoppingHistory());
 
   useEffect(() => {
@@ -102,7 +114,9 @@ export function HomeDashboard({
       .catch(() => {
         if (!ignore) setMotivationStatus("error");
       });
-    return () => { ignore = true; };
+    return () => {
+      ignore = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -177,6 +191,7 @@ export function HomeDashboard({
       const nextHistory = rememberShoppingItem(history, trimmed);
       setHistory(nextHistory);
       setShoppingText("");
+      setIsShoppingCaptureOpen(false);
       setQuickStatus(`Added ${trimmed} to Shopping.`);
       await refreshHomeData();
     } catch {
@@ -197,6 +212,7 @@ export function HomeDashboard({
         allDay: true,
       });
       setEventTitle("");
+      setIsEventCaptureOpen(false);
       setQuickStatus(`Added ${trimmed} to Agenda.`);
       await refreshHomeData();
     } catch {
@@ -238,7 +254,12 @@ export function HomeDashboard({
     0,
     summaryTasks.length - visibleTasks.length,
   );
-  const motivationProgress = motivationFamilyGoal ? clampProgress(motivationFamilyGoal.currentProgress, motivationFamilyGoal.targetCount) : 0;
+  const motivationProgress = motivationFamilyGoal
+    ? clampProgress(
+        motivationFamilyGoal.currentProgress,
+        motivationFamilyGoal.targetCount,
+      )
+    : 0;
 
   return (
     <section className="home-dashboard" aria-label="Home dashboard">
@@ -274,69 +295,75 @@ export function HomeDashboard({
               <strong>{member.name}</strong>
             </button>
           ))}
-        <button className="family-chip add-family-chip" type="button" onClick={onAddFamilyMember} aria-label="Add Family Member"><HomeOpsIcon name="add" /><strong>Add</strong></button>
+          <button
+            className="family-chip add-family-chip"
+            type="button"
+            onClick={onAddFamilyMember}
+            aria-label="Add Family Member"
+          >
+            <HomeOpsIcon name="add" />
+            <strong>Add</strong>
+          </button>
         </section>
         <section className="quick-capture" aria-label="Quick capture">
-          <form className="home-quick-form" onSubmit={handleShoppingSubmit}>
-            <label htmlFor="home-shopping-capture">Shopping</label>
-            <div className="home-quick-row">
-              <input
-                id="home-shopping-capture"
-                list="home-shopping-suggestions"
-                value={shoppingText}
-                onChange={(event) => setShoppingText(event.target.value)}
-                placeholder="Milk"
-                aria-label="Shopping item"
-              />
-              <button type="submit">Add</button>
-            </div>
-            <datalist id="home-shopping-suggestions">
-              {history
-                .filter((item) =>
-                  item
-                    .toLowerCase()
-                    .includes(shoppingText.trim().toLowerCase()),
-                )
-                .slice(0, 6)
-                .map((item) => (
-                  <option key={item} value={item} label={getShoppingSuggestionLabel(item, activeListItems)} />
-                ))}
-            </datalist>
-          </form>
-          <form className="home-quick-form" onSubmit={handleCalendarSubmit}>
-            <label htmlFor="home-event-title">Event</label>
-            <div className="home-quick-row">
-              <input
-                id="home-event-title"
-                value={eventTitle}
-                onChange={(event) => setEventTitle(event.target.value)}
-                placeholder="Swimming lesson"
-                aria-label="What"
-              />
-              <select
-                value={eventWhen}
-                onChange={(event) =>
-                  setEventWhen(
-                    event.target.value as "today" | "tomorrow" | "pick",
-                  )
-                }
-                aria-label="When"
-              >
-                <option value="today">Today</option>
-                <option value="tomorrow">Tomorrow</option>
-                <option value="pick">Pick date</option>
-              </select>
-              {eventWhen === "pick" ? (
+          <div className="quick-capture-header">
+            <p className="eyebrow">Quick capture</p>
+            <p>Small actions, dashboard stays first.</p>
+          </div>
+          <div className="quick-capture-actions">
+            <button
+              className="quick-capture-action"
+              type="button"
+              aria-expanded={isShoppingCaptureOpen}
+              aria-controls="home-shopping-capture-panel"
+              onClick={() => setIsShoppingCaptureOpen((isOpen) => !isOpen)}
+            >
+              + Shopping item
+            </button>
+            <button
+              className="quick-capture-action"
+              type="button"
+              onClick={() => setIsEventCaptureOpen(true)}
+            >
+              + Event
+            </button>
+          </div>
+          {isShoppingCaptureOpen ? (
+            <form
+              className="home-quick-form compact"
+              id="home-shopping-capture-panel"
+              onSubmit={handleShoppingSubmit}
+            >
+              <label htmlFor="home-shopping-capture">Shopping item</label>
+              <div className="home-quick-row">
                 <input
-                  type="date"
-                  value={eventDate}
-                  onChange={(event) => setEventDate(event.target.value)}
-                  aria-label="Pick date"
+                  id="home-shopping-capture"
+                  list="home-shopping-suggestions"
+                  value={shoppingText}
+                  onChange={(event) => setShoppingText(event.target.value)}
+                  placeholder="Milk"
+                  aria-label="Shopping item"
                 />
-              ) : null}
-              <button type="submit">Save</button>
-            </div>
-          </form>
+                <button type="submit">Add</button>
+              </div>
+              <datalist id="home-shopping-suggestions">
+                {history
+                  .filter((item) =>
+                    item
+                      .toLowerCase()
+                      .includes(shoppingText.trim().toLowerCase()),
+                  )
+                  .slice(0, 6)
+                  .map((item) => (
+                    <option
+                      key={item}
+                      value={item}
+                      label={getShoppingSuggestionLabel(item, activeListItems)}
+                    />
+                  ))}
+              </datalist>
+            </form>
+          ) : null}
           {quickStatus ? (
             <p className="home-quick-status" role="status">
               {quickStatus}
@@ -382,8 +409,13 @@ export function HomeDashboard({
           {visibleAgenda.length === 0 && !agendaError ? (
             <div className="empty-state-card">
               <strong>Create your first event</strong>
-              <p>Events help the household remember important dates and activities.</p>
-              <button type="button" onClick={() => onNavigate("agenda")}>Open Agenda</button>
+              <p>
+                Events help the household remember important dates and
+                activities.
+              </p>
+              <button type="button" onClick={() => onNavigate("agenda")}>
+                Open Agenda
+              </button>
             </div>
           ) : null}
           {hiddenAgendaCount > 0 ? (
@@ -395,87 +427,6 @@ export function HomeDashboard({
               +{hiddenAgendaCount} more
             </button>
           ) : null}
-        </article>
-
-        <article
-          className="home-summary-card lists-summary"
-          onClick={() => onNavigate("lists")}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => e.key === "Enter" && onNavigate("lists")}
-          aria-label="Lists summary"
-        >
-          <CardHeader
-            title={primaryListName ? `${primaryListName} lists` : "Lists"}
-            action="Open lists"
-            meta={`${activeListItems.length} active`}
-          />
-          {listsError ? <p role="alert">{listsError}</p> : null}
-          <ul className="home-summary-list">
-            {visibleListItems.map((item) => (
-              <li key={`${item.listId}-${item.id}`}>
-                <strong>{item.listName}</strong>
-                <span>{item.text}{item.preferredStore ? ` (${item.preferredStore})` : ""}</span>
-              </li>
-            ))}
-          </ul>
-          {visibleListItems.length === 0 && !listsError ? (
-            <div className="empty-state-card">
-              <strong>Add your first shopping item</strong>
-              <p>Lists help remember shopping, packing, and household items.</p>
-              <button type="button" onClick={() => onNavigate("lists")}>Open Lists</button>
-            </div>
-          ) : null}
-          {hiddenListCount > 0 ? (
-            <button
-              className="more-link"
-              type="button"
-              onClick={() => onNavigate("lists")}
-            >
-              +{hiddenListCount} more
-            </button>
-          ) : null}
-          <p className="home-context-note">
-            Shared for {members.length} household members.
-          </p>
-        </article>
-
-        <article
-          className="home-summary-card motivation-summary"
-          onClick={() => onNavigate("motivation")}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => e.key === "Enter" && onNavigate("motivation")}
-          aria-label="Motivation summary"
-        >
-          <CardHeader
-            title="Motivation"
-            action="View Motivation"
-            meta={motivationFamilyGoal ? `${motivationFamilyGoal.currentProgress}/${motivationFamilyGoal.targetCount} ${motivationFamilyGoal.unitLabel}` : motivationStatus === "error" ? "Unavailable" : "Loading"}
-          />
-          {motivationFamilyGoal ? (
-            <>
-              <p className="motivation-tile-title">{motivationFamilyGoal.title}</p>
-              <div className="progress-bar" aria-label={`Family goal progress ${motivationFamilyGoal.currentProgress} of ${motivationFamilyGoal.targetCount}`}>
-                <span style={{ width: `${motivationProgress}%` }} />
-              </div>
-              {motivationFamilyGoal.celebration ? (
-                <div className={`home-celebration-surface ${motivationFamilyGoal.celebration.status === FamilyCelebrationStatus.ReadyToCelebrate ? "ready" : motivationFamilyGoal.celebration.status === FamilyCelebrationStatus.Celebrated ? "celebrated" : "planned"}`} aria-label="Home celebration">
-                  <HomeOpsIcon name={motivationFamilyGoal.celebration.status === FamilyCelebrationStatus.ReadyToCelebrate ? "celebrationReady" : motivationFamilyGoal.celebration.status === FamilyCelebrationStatus.Celebrated ? "celebrationCelebrated" : "celebrationUpcoming"} variant="icon" />
-                  <div>
-                    <strong>{motivationFamilyGoal.celebration.status === FamilyCelebrationStatus.ReadyToCelebrate ? "We did it — ready to celebrate" : motivationFamilyGoal.celebration.status === FamilyCelebrationStatus.Celebrated ? "Celebrated together" : "Getting closer"}</strong>
-                    <p>{homeCelebrationMessage(motivationFamilyGoal)}</p>
-                  </div>
-                </div>
-              ) : <p className="home-context-note">A shared encouragement goal for the household.</p>}
-            </>
-          ) : (
-            <div className="empty-state-card">
-              <strong>Create your first family goal</strong>
-              <p>Family goals help everyone work toward something together.</p>
-              <button type="button" onClick={() => onNavigate("motivation")}>Open Motivation</button>
-            </div>
-          )}
         </article>
 
         <article
@@ -524,7 +475,9 @@ export function HomeDashboard({
             <div className="empty-state-card">
               <strong>Create your first task</strong>
               <p>Tasks help organize household responsibilities.</p>
-              <button type="button" onClick={() => onNavigate("tasks")}>Open Tasks</button>
+              <button type="button" onClick={() => onNavigate("tasks")}>
+                Open Tasks
+              </button>
             </div>
           ) : null}
           {hiddenTaskCount > 0 ? (
@@ -545,7 +498,196 @@ export function HomeDashboard({
             </button>
           )}
         </article>
+
+        <article
+          className="home-summary-card motivation-summary"
+          onClick={() => onNavigate("motivation")}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => e.key === "Enter" && onNavigate("motivation")}
+          aria-label="Motivation summary"
+        >
+          <CardHeader
+            title="Motivation"
+            action="View Motivation"
+            meta={
+              motivationFamilyGoal
+                ? `${motivationFamilyGoal.currentProgress}/${motivationFamilyGoal.targetCount} ${motivationFamilyGoal.unitLabel}`
+                : motivationStatus === "error"
+                  ? "Unavailable"
+                  : "Loading"
+            }
+          />
+          {motivationFamilyGoal ? (
+            <>
+              <p className="motivation-tile-title">
+                {motivationFamilyGoal.title}
+              </p>
+              <div
+                className="progress-bar"
+                aria-label={`Family goal progress ${motivationFamilyGoal.currentProgress} of ${motivationFamilyGoal.targetCount}`}
+              >
+                <span style={{ width: `${motivationProgress}%` }} />
+              </div>
+              {motivationFamilyGoal.celebration ? (
+                <div
+                  className={`home-celebration-surface ${motivationFamilyGoal.celebration.status === FamilyCelebrationStatus.ReadyToCelebrate ? "ready" : motivationFamilyGoal.celebration.status === FamilyCelebrationStatus.Celebrated ? "celebrated" : "planned"}`}
+                  aria-label="Home celebration"
+                >
+                  <HomeOpsIcon
+                    name={
+                      motivationFamilyGoal.celebration.status ===
+                      FamilyCelebrationStatus.ReadyToCelebrate
+                        ? "celebrationReady"
+                        : motivationFamilyGoal.celebration.status ===
+                            FamilyCelebrationStatus.Celebrated
+                          ? "celebrationCelebrated"
+                          : "celebrationUpcoming"
+                    }
+                    variant="icon"
+                  />
+                  <div>
+                    <strong>
+                      {motivationFamilyGoal.celebration.status ===
+                      FamilyCelebrationStatus.ReadyToCelebrate
+                        ? "We did it — ready to celebrate"
+                        : motivationFamilyGoal.celebration.status ===
+                            FamilyCelebrationStatus.Celebrated
+                          ? "Celebrated together"
+                          : "Getting closer"}
+                    </strong>
+                    <p>{homeCelebrationMessage(motivationFamilyGoal)}</p>
+                  </div>
+                </div>
+              ) : (
+                <p className="home-context-note">
+                  A shared encouragement goal for the household.
+                </p>
+              )}
+            </>
+          ) : (
+            <div className="empty-state-card">
+              <strong>Create your first family goal</strong>
+              <p>Family goals help everyone work toward something together.</p>
+              <button type="button" onClick={() => onNavigate("motivation")}>
+                Open Motivation
+              </button>
+            </div>
+          )}
+        </article>
+
+        <article
+          className="home-summary-card lists-summary"
+          onClick={() => onNavigate("lists")}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => e.key === "Enter" && onNavigate("lists")}
+          aria-label="Lists summary"
+        >
+          <CardHeader
+            title={primaryListName ? `${primaryListName} lists` : "Lists"}
+            action="Open lists"
+            meta={`${activeListItems.length} active`}
+          />
+          {listsError ? <p role="alert">{listsError}</p> : null}
+          <ul className="home-summary-list">
+            {visibleListItems.map((item) => (
+              <li key={`${item.listId}-${item.id}`}>
+                <strong>{item.listName}</strong>
+                <span>
+                  {item.text}
+                  {item.preferredStore ? ` (${item.preferredStore})` : ""}
+                </span>
+              </li>
+            ))}
+          </ul>
+          {visibleListItems.length === 0 && !listsError ? (
+            <div className="empty-state-card">
+              <strong>Add your first shopping item</strong>
+              <p>Lists help remember shopping, packing, and household items.</p>
+              <button type="button" onClick={() => onNavigate("lists")}>
+                Open Lists
+              </button>
+            </div>
+          ) : null}
+          {hiddenListCount > 0 ? (
+            <button
+              className="more-link"
+              type="button"
+              onClick={() => onNavigate("lists")}
+            >
+              +{hiddenListCount} more
+            </button>
+          ) : null}
+          <p className="home-context-note">
+            Shared for {members.length} household members.
+          </p>
+        </article>
       </div>
+
+      {isEventCaptureOpen ? (
+        <div className="avatar-editor-backdrop" role="presentation">
+          <section
+            className="home-capture-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Add event from Home"
+          >
+            <header>
+              <div>
+                <p className="eyebrow">Quick capture</p>
+                <h3>Add event</h3>
+                <p>Save a simple all-day event without leaving Home.</p>
+              </div>
+              <button
+                type="button"
+                className="icon-button"
+                onClick={() => setIsEventCaptureOpen(false)}
+                aria-label="Close event capture"
+              >
+                <HomeOpsIcon name="close" />
+              </button>
+            </header>
+            <form
+              className="home-quick-form event-dialog-form"
+              onSubmit={handleCalendarSubmit}
+            >
+              <label htmlFor="home-event-title">Event</label>
+              <div className="home-quick-row">
+                <input
+                  id="home-event-title"
+                  value={eventTitle}
+                  onChange={(event) => setEventTitle(event.target.value)}
+                  placeholder="Swimming lesson"
+                  aria-label="What"
+                />
+                <select
+                  value={eventWhen}
+                  onChange={(event) =>
+                    setEventWhen(
+                      event.target.value as "today" | "tomorrow" | "pick",
+                    )
+                  }
+                  aria-label="When"
+                >
+                  <option value="today">Today</option>
+                  <option value="tomorrow">Tomorrow</option>
+                  <option value="pick">Pick date</option>
+                </select>
+                {eventWhen === "pick" ? (
+                  <input
+                    type="date"
+                    value={eventDate}
+                    onChange={(event) => setEventDate(event.target.value)}
+                    aria-label="Pick date"
+                  />
+                ) : null}
+                <button type="submit">Save</button>
+              </div>
+            </form>
+          </section>
+        </div>
+      ) : null}
     </section>
   );
 }
@@ -554,8 +696,13 @@ function homeCelebrationMessage(goal: MotivationFamilyGoal) {
   const celebration = goal.celebration;
   if (!celebration) return goal.title;
   const remaining = Math.max(0, goal.targetCount - goal.currentProgress);
-  if (celebration.status === FamilyCelebrationStatus.ReadyToCelebrate || remaining === 0) return `${celebration.title} is ready now.`;
-  if (celebration.status === FamilyCelebrationStatus.Celebrated) return celebration.title;
+  if (
+    celebration.status === FamilyCelebrationStatus.ReadyToCelebrate ||
+    remaining === 0
+  )
+    return `${celebration.title} is ready now.`;
+  if (celebration.status === FamilyCelebrationStatus.Celebrated)
+    return celebration.title;
   return remaining === 1
     ? `Only 1 more ${goal.unitLabel} until ${celebration.title}.`
     : `Only ${remaining} more ${goal.unitLabel} until ${celebration.title}.`;
@@ -714,8 +861,12 @@ function formatTaskDue(task: HouseholdTask) {
   return `Due ${task.dueDate}`;
 }
 
-
-function getShoppingSuggestionLabel(item: string, activeItems: { text: string; preferredStore?: string | null }[]): string {
-  const match = activeItems.find((activeItem) => activeItem.text.toLowerCase() === item.toLowerCase());
+function getShoppingSuggestionLabel(
+  item: string,
+  activeItems: { text: string; preferredStore?: string | null }[],
+): string {
+  const match = activeItems.find(
+    (activeItem) => activeItem.text.toLowerCase() === item.toLowerCase(),
+  );
   return match?.preferredStore ? `${item} (${match.preferredStore})` : item;
 }

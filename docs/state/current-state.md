@@ -459,3 +459,10 @@ Semantic Icon Layer now resolves Child Ownership semantic names to existing Home
 - Supported scenarios are `visual-full`, `visual-mixed`, `visual-empty`, `visual-child-young`, `visual-child-older`, `visual-weekly-reset`, and `visual-shopping-lifecycle`.
 - Resetting a scenario clears review runtime data and reloads deterministic fixture data with stable identifiers and a fixed `2026-06-21T09:00:00Z` anchor timestamp for repeatable screenshot and Playwright review workflows.
 - Fixture scenarios cover rich household, child workspace, motivation, celebration, shopping lifecycle, weekly reset, and empty-state review surfaces without adding production functionality.
+
+### Home Quick Capture Compaction — Completed 2026-06-21
+- Home now treats quick capture as a compact action group instead of persistent hero forms, making the opening screen read as a dashboard first.
+- Shopping quick capture remains available through an expand-on-demand inline form and still adds item-name-only entries to the Shopping list.
+- Event quick capture now opens in a Home dialog after explicit `+ Event` intent and preserves simple all-day event creation.
+- The Home summary order now brings Tasks directly after Agenda so due and overdue responsibilities receive more above-the-fold emphasis before Motivation and Shopping/Lists.
+- Existing Agenda, Lists, Shopping, Tasks, Motivation, Family Member navigation, and dedicated pages remain preserved; no new domains or feature capabilities were added.
