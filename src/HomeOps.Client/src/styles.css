@@ -2535,3 +2535,68 @@ button {
 .task-planning-group {
   margin-top: 0.5rem;
 }
+
+.shopping-header {
+  align-items: start;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.shopping-header h3,
+.shopping-header p {
+  margin: 0;
+}
+
+.shopping-header > p {
+  color: #5c667a;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.shopping-execution-form {
+  background: rgba(236, 253, 245, 0.72);
+  border: 1px solid rgba(20, 184, 166, 0.22);
+  border-radius: 1rem;
+  padding: 0.75rem;
+}
+
+.shopping-execution-form label,
+.shopping-execution-form input {
+  flex: 1;
+}
+
+.shopping-section-primary {
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 1rem;
+  padding: 0.85rem;
+}
+
+.shopping-section h4 {
+  margin: 0 0 0.65rem;
+}
+
+.shopping-list-management {
+  border-top: 1px solid #d7ddea;
+  padding-top: 0.75rem;
+}
+
+.shopping-list-management summary,
+.shopping-item-options summary {
+  color: #475569;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.shopping-list-management .shopping-list-name-form {
+  margin-top: 0.75rem;
+}
+
+.shopping-item-options {
+  color: #5c667a;
+  font-size: 0.85rem;
+}
+
+.shopping-item-options .shopping-store-field {
+  margin-top: 0.45rem;
+}

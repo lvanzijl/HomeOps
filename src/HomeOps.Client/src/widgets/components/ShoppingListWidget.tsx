@@ -182,20 +182,16 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
 
   return (
     <article className="widget-card shopping-widget" aria-label={instance.title}>
-      <p className="widget-type">Shopping List Widget</p>
-      <h3>{instance.title}</h3>
+      <header className="shopping-header">
+        <div>
+          <p className="widget-type">Lists</p>
+          <h3>{listName || instance.title}</h3>
+        </div>
+        <p>{activeItems.length} active · {completedItems.length} completed</p>
+      </header>
       {isLoading ? <p className="shopping-empty">Loading shopping list…</p> : null}
       {error ? <p className="shopping-empty" role="alert">{error}</p> : null}
-      <form className="shopping-add-form shopping-list-name-form" onSubmit={renameList}>
-        <label>
-          <span>List name</span>
-          <input disabled={isLoading || !listId} onChange={(event) => setListName(event.target.value)} type="text" value={listName} />
-        </label>
-        <button disabled={isLoading || !listId} type="submit">Rename</button>
-        <button disabled={isLoading || !listId} onClick={archiveList} type="button">Archive</button>
-        <button disabled={isLoading || !listId} onClick={deleteList} type="button">Delete</button>
-      </form>
-      <form className="shopping-add-form" onSubmit={addItem}>
+      <form className="shopping-add-form shopping-execution-form" aria-label="Add shopping item" onSubmit={addItem}>
         <label>
           <span className="visually-hidden">New shopping item</span>
           <input
@@ -217,6 +213,7 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
         </div>
       ) : null}
       <ShoppingListSection
+        className="shopping-section-primary"
         emptyLabel="No active items."
         items={activeItems}
         onRemove={removeItem}
@@ -233,6 +230,18 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
         onUndo={undoItem}
         title="Completed"
       />
+      <details className="shopping-list-management">
+        <summary>List settings</summary>
+        <form className="shopping-add-form shopping-list-name-form" onSubmit={renameList}>
+          <label>
+            <span>List name</span>
+            <input disabled={isLoading || !listId} onChange={(event) => setListName(event.target.value)} type="text" value={listName} />
+          </label>
+          <button disabled={isLoading || !listId} type="submit">Rename</button>
+          <button disabled={isLoading || !listId} onClick={archiveList} type="button">Archive</button>
+          <button disabled={isLoading || !listId} onClick={deleteList} type="button">Delete</button>
+        </form>
+      </details>
       <ShoppingListSection
         emptyLabel="No recently deleted items."
         items={deletedItems}
@@ -247,6 +256,7 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
 }
 
 interface ShoppingListSectionProps {
+  className?: string;
   emptyLabel: string;
   items: readonly ShoppingListItem[];
   onRemove(itemId: string): void;
@@ -256,9 +266,9 @@ interface ShoppingListSectionProps {
   title: string;
 }
 
-function ShoppingListSection({ emptyLabel, items, onRemove, onStoreChange, onToggle, onUndo, title }: ShoppingListSectionProps) {
+function ShoppingListSection({ className, emptyLabel, items, onRemove, onStoreChange, onToggle, onUndo, title }: ShoppingListSectionProps) {
   return (
-    <section className="shopping-section">
+    <section className={`shopping-section${className ? ` ${className}` : ''}`}>
       <h4>{title}</h4>
       {items.length === 0 ? (
         <p className="shopping-empty">{emptyLabel}</p>
@@ -276,9 +286,11 @@ function ShoppingListSection({ emptyLabel, items, onRemove, onStoreChange, onTog
                       {item.deleted ? <small>Deleted</small> : null}
                       {item.preferredStore ? <small>({item.preferredStore})</small> : null}
                     </label>
-                    <label className="shopping-store-field">
-                      <span>Store</span>
-                      <input
+                    <details className="shopping-item-options">
+                      <summary>Store</summary>
+                      <label className="shopping-store-field">
+                        <span className="visually-hidden">Store</span>
+                        <input
                         aria-label={`Store for ${item.label}`}
                         list={`store-suggestions-${item.id}`}
                         onBlur={(event) => onStoreChange(item.id, event.target.value || null)}
@@ -286,12 +298,13 @@ function ShoppingListSection({ emptyLabel, items, onRemove, onStoreChange, onTog
                         type="text"
                         defaultValue={item.preferredStore ?? ''}
                       />
-                      <datalist id={`store-suggestions-${item.id}`}>
+                        <datalist id={`store-suggestions-${item.id}`}>
                         {(item.storeSuggestions ?? []).map((suggestion) => (
                           <option key={suggestion.store} value={suggestion.store}>{suggestion.store} ({suggestion.purchaseCount})</option>
                         ))}
-                      </datalist>
-                    </label>
+                        </datalist>
+                      </label>
+                    </details>
                     {onUndo ? <button onClick={() => onUndo(item.id)} type="button">Undo</button> : null}
                     {!item.deleted ? <button onClick={() => onRemove(item.id)} type="button">
                       Remove

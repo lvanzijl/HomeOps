@@ -91,6 +91,7 @@ describe('ShoppingListWidget API-backed behavior', () => {
     expect(screen.getByRole('heading', { name: 'Uncategorized' })).not.toBeNull();
     expect(document.querySelector('option[value=\"Corner Shop\"]')).not.toBeNull();
 
+    await user.click(within(screen.getByText('Coffee').closest('li')!).getAllByText('Store')[0]);
     const coffeeStore = screen.getByLabelText('Store for Coffee');
     await user.clear(coffeeStore);
     await user.type(coffeeStore, 'Drugstore');
@@ -98,6 +99,26 @@ describe('ShoppingListWidget API-backed behavior', () => {
 
     expect(listsApi.updateShoppingListItemStore).toHaveBeenCalledWith(apiClient, 'shopping-list-id', 'coffee', 'Drugstore');
     expect(await screen.findByText('(Drugstore)')).not.toBeNull();
+  });
+
+  it('keeps list management available without leading the first scan', async () => {
+    const user = userEvent.setup();
+    const listsApi = await mockedListsApi();
+    render(<ShoppingListWidget {...widgetProps} />);
+
+    const bread = await screen.findByText('Bread');
+    const listSettings = screen.getByText('List settings');
+    expect(screen.getByRole('form', { name: 'Add shopping item' })).not.toBeNull();
+    expect(bread.compareDocumentPosition(listSettings) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
+    await user.click(listSettings);
+    await user.clear(screen.getByLabelText('List name'));
+    await user.type(screen.getByLabelText('List name'), 'Groceries');
+    await user.click(screen.getByRole('button', { name: 'Rename' }));
+
+    expect(listsApi.renameShoppingList).toHaveBeenCalledWith(apiClient, 'shopping-list-id', 'Groceries');
+    expect(screen.getByRole('button', { name: 'Archive' })).not.toBeNull();
+    expect(screen.getByRole('button', { name: 'Delete' })).not.toBeNull();
   });
 
   it('guides households when the first list has no items yet', async () => {
