@@ -25,6 +25,7 @@
 | 2.39 | Goal Hygiene | Completed |
 | 2.40 | Shopping Lifecycle | Completed |
 | 2.42 | Shopping Intelligence V2 | Completed |
+| 2.43 | Tasks Hierarchy Compaction | Completed |
 | 2.41 | No-Date Task Lifecycle | Completed |
 
 Phase 2 theme: Durable Household Core.
@@ -59,6 +60,9 @@ Calendar Portability Hardening freezes the V1 canonical JSON contract, reserves 
 ## Completed Slice 2.12 — Calendar Recurrence, EventException, and Occurrence Generation Runtime
 Calendar Recurrence adds V1 recurrence metadata to EventSeries, supports None/Daily/Weekly/Monthly/Yearly only, persists EventException records for skipped and modified occurrences, and expands Agenda-facing EventOccurrence output at runtime with household timezone local wall-clock semantics. EventOccurrence remains projection-only and is not persisted. Advanced recurrence rules, ICS, recurrence UI, occurrence edit UI, per-event timezones, notifications, reminders, and authentication remain out of scope.
 
+
+## Completed Slice 2.43 — Tasks Hierarchy Compaction
+Tasks Hierarchy Compaction applies the Home dashboard-first UX lesson to Tasks. The dedicated Tasks page now leads with active urgency groups before management surfaces, uses an on-demand Add Task panel instead of a persistent top form, moves Task Templates behind a secondary entry point, compacts Weekly Household Reset access, and keeps Someday/future planning after active work. Existing task creation, ownership, due date, recurrence, template, Weekly Reset, Someday, and no-date lifecycle behavior remain preserved. No new task features, recurrence features, domains, persistence changes, approval workflows, notifications, rewards, or gamification were introduced.
 
 ## Completed Slice 2.41 — No-Date Task Lifecycle
 No-Date Task Lifecycle adds a trust-preserving review state for undated tasks: Active, Needs Review, Someday, Completed, and Archived. Older no-date tasks participate in the Weekly Household Reset with parent-facing language, “Still part of the plan?”, and actions to keep active, add a due date, move to Someday, complete, or archive. Someday is an explicit recoverable destination for long-term ideas that should not create daily pressure. Home and Child Workspace remain focused by keeping Someday, archived, and review-only stale-task pressure out of child-facing surfaces. No notifications, project management, reward economy, categories, analytics, or dashboard redesign were introduced.
