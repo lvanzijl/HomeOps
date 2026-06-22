@@ -61,6 +61,10 @@ Calendar Portability Hardening freezes the V1 canonical JSON contract, reserves 
 Calendar Recurrence adds V1 recurrence metadata to EventSeries, supports None/Daily/Weekly/Monthly/Yearly only, persists EventException records for skipped and modified occurrences, and expands Agenda-facing EventOccurrence output at runtime with household timezone local wall-clock semantics. EventOccurrence remains projection-only and is not persisted. Advanced recurrence rules, ICS, recurrence UI, occurrence edit UI, per-event timezones, notifications, reminders, and authentication remain out of scope.
 
 
+
+## Completed Slice 2.44 — Weekly Reset Explanation Compaction
+Weekly Reset Explanation Compaction applies the HomeOps review-first UX rule to the Weekly Household Reset surface. The page now uses a compact hero and state-first cards with counts and actions for review candidates, family goal, children’s goals, shopping review, and weekly recap. Existing Weekly Reset behavior, task candidate selection, goal review, shopping review, task review actions, and recap behavior remain preserved. No new Weekly Reset features, review logic, workflow changes, domains, notifications, rewards, gamification, or persistence changes were introduced.
+
 ## Completed Slice 2.43 — Tasks Hierarchy Compaction
 Tasks Hierarchy Compaction applies the Home dashboard-first UX lesson to Tasks. The dedicated Tasks page now leads with active urgency groups before management surfaces, uses an on-demand Add Task panel instead of a persistent top form, moves Task Templates behind a secondary entry point, compacts Weekly Household Reset access, and keeps Someday/future planning after active work. Existing task creation, ownership, due date, recurrence, template, Weekly Reset, Someday, and no-date lifecycle behavior remain preserved. No new task features, recurrence features, domains, persistence changes, approval workflows, notifications, rewards, or gamification were introduced.
 
