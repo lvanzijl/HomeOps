@@ -312,3 +312,6 @@ Avatar V2 Golden Sample Quality Validation proves a higher-quality SVG-only dire
 
 ### Avatar V2 Head and Hair Quality — Completed 2026-06-22
 Avatar V2 Head and Hair Quality improves the isolated SVG renderer with distinct round, oval, and wide head silhouettes, anatomy-tuned facial proportions, ear alignment, and exactly three higher-quality hairstyles: shortMessy, longSoft, and curlyPlayful. Four showcase SVG samples now validate silhouette diversity alongside the original sample set and Golden Sample. The slice remains sample-driven and deterministic, and it does not add editor UI, persistence, production UI integration, Profile Picker integration, Child Workspace integration, MVP avatar replacement, gamification, unlockables, external avatar systems, or raster assets.
+
+### Avatar V2 Ear Attachment Fix — Completed 2026-06-22
+Avatar V2 Ear Attachment Fix corrects the isolated renderer's wide-head ear anchors so Showcase Sample C and Showcase Sample D no longer read as detached from the head silhouette. The fix remains anatomy-driven and SVG-only, adds geometry validation for round, oval, and wide variants, and regenerates the four showcase samples. No editor functionality, persistence, production UI integration, new avatar features, new head variants, hairstyles, clothing assets, raster assets, or external URLs were introduced.

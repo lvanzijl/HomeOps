@@ -530,3 +530,7 @@ Color Token Cleanup introduced a shared design-system color vocabulary for text,
 - Expanded the isolated SVG-only Avatar V2 renderer with true round, oval, and wide head silhouettes, anatomy-tuned face anchors, and anatomy-aligned ears.
 - Added exactly three high-quality hairstyles (`shortMessy`, `longSoft`, `curlyPlayful`) with BackHair, FrontHair, and HairHighlights layering for stronger personality and reduced helmet-like silhouettes.
 - Generated original sample, Golden Sample, and four showcase SVG comparison artifacts under `docs/reports/2026-06-22-work/` without integrating Avatar V2 into production UI, editor UI, persistence, Profile Picker, Child Workspace, MVP avatars, gamification, unlockables, external avatar systems, or raster assets.
+
+## Avatar V2 Ear Attachment Fix — 2026-06-22
+
+Showcase Sample C and Showcase Sample D exposed that the wide head variant's ears had too little horizontal overlap with the head silhouette, making the ears read as visually detached. The isolated SVG-only Avatar V2 renderer now uses a wider-specific anatomy ear inset while preserving anatomy-driven placement, deterministic rendering, existing layers, and sample generation. Round and oval ear placement remains unchanged, and tests now validate round, oval, and wide ear attachment geometry.

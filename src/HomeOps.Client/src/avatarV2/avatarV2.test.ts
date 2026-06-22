@@ -74,6 +74,30 @@ describe("Avatar V2 SVG renderer", () => {
     ).toContain(`data-anatomy=\"ear-left\" cx=\"${round.ears.left.x}\"`);
   });
 
+
+  it("keeps ears physically attached to round, oval, and wide head silhouettes", () => {
+    const expectedMinimumOverlap = 8;
+    const variants = ["round", "oval", "wide"] as const;
+
+    for (const headVariant of variants) {
+      const anatomy = resolveAvatarAnatomy({
+        ...avatarV2SampleConfigs.playfulChild,
+        headVariant,
+      });
+      const { head, ears } = anatomy;
+      const leftEarInsideHead =
+        ears.left.x + ears.width / 2 - head.bounds.x;
+      const rightEarInsideHead =
+        head.bounds.x + head.bounds.width - (ears.right.x - ears.width / 2);
+
+      expect(leftEarInsideHead).toBeGreaterThanOrEqual(expectedMinimumOverlap);
+      expect(rightEarInsideHead).toBeGreaterThanOrEqual(expectedMinimumOverlap);
+      expect(ears.left.y).toBeGreaterThan(head.bounds.y);
+      expect(ears.left.y).toBeLessThan(head.bounds.y + head.bounds.height);
+      expect(ears.right.y).toBe(ears.left.y);
+    }
+  });
+
   it("renders the golden sample with layered hair, hoodie, and mounted chest accessory", () => {
     const svg = renderAvatarV2Svg(avatarV2SampleConfigs.goldenSample);
     const order = [
