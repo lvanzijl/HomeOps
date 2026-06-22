@@ -2749,3 +2749,46 @@ button {
 .shopping-item-options .shopping-store-field {
   margin-top: 0.45rem;
 }
+
+.child-mode > .child-journey-today {
+  grid-column: 1 / -1;
+}
+
+.child-mode > .child-hero-area {
+  grid-column: 1 / -1;
+}
+
+.child-detail-disclosure {
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(234, 223, 209, 0.9);
+  border-radius: 1.2rem;
+  padding: 0.7rem;
+}
+
+.child-detail-disclosure summary {
+  color: #9a3412;
+  cursor: pointer;
+  font-weight: 900;
+  list-style-position: inside;
+}
+
+.child-detail-disclosure > .child-progress-card {
+  margin-top: 0.75rem;
+}
+
+.child-family-cue {
+  background: #fff7ed;
+  border: 1px solid rgba(251, 146, 60, 0.24);
+  border-radius: 999px;
+  color: #9a3412 !important;
+  font-weight: 900;
+  margin: 0.5rem 0 0;
+  padding: 0.45rem 0.75rem;
+}
+
+.member-mode-discovery p {
+  color: #64748b;
+  font-size: 0.9rem;
+  font-weight: 800;
+  margin: 0;
+}
