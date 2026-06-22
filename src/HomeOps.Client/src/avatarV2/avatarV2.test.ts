@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
   avatarV2SampleConfigs,
+  avatarV2AccessoryAssets,
+  avatarV2ClothingAssets,
   expandAvatarPaletteToken,
   renderAvatarV2Svg,
   resolveAvatarAnatomy,
+  validateAvatarV2AssetSvg,
 } from "./avatarV2";
 
 describe("Avatar V2 SVG renderer", () => {
@@ -74,7 +77,6 @@ describe("Avatar V2 SVG renderer", () => {
     ).toContain(`data-anatomy=\"ear-left\" cx=\"${round.ears.left.x}\"`);
   });
 
-
   it("keeps ears visibly attached without embedding them in round, oval, and wide silhouettes", () => {
     const variants = ["round", "oval", "wide"] as const;
 
@@ -84,17 +86,25 @@ describe("Avatar V2 SVG renderer", () => {
         headVariant,
       });
       const { head, ears } = anatomy;
-      const leftVisibleOutsideHead = head.bounds.x - (ears.left.x - ears.width / 2);
-      const rightVisibleOutsideHead = ears.right.x + ears.width / 2 - (head.bounds.x + head.bounds.width);
-      const leftAttachedInsideHead = ears.left.x + ears.width / 2 - head.bounds.x;
-      const rightAttachedInsideHead = head.bounds.x + head.bounds.width - (ears.right.x - ears.width / 2);
+      const leftVisibleOutsideHead =
+        head.bounds.x - (ears.left.x - ears.width / 2);
+      const rightVisibleOutsideHead =
+        ears.right.x + ears.width / 2 - (head.bounds.x + head.bounds.width);
+      const leftAttachedInsideHead =
+        ears.left.x + ears.width / 2 - head.bounds.x;
+      const rightAttachedInsideHead =
+        head.bounds.x + head.bounds.width - (ears.right.x - ears.width / 2);
 
       expect(leftVisibleOutsideHead).toBeGreaterThanOrEqual(6);
       expect(rightVisibleOutsideHead).toBeGreaterThanOrEqual(6);
       expect(leftAttachedInsideHead).toBeGreaterThanOrEqual(6);
       expect(rightAttachedInsideHead).toBeGreaterThanOrEqual(6);
-      expect(ears.left.y).toBeGreaterThan(head.bounds.y + head.bounds.height * 0.5);
-      expect(ears.left.y).toBeLessThan(head.bounds.y + head.bounds.height * 0.78);
+      expect(ears.left.y).toBeGreaterThan(
+        head.bounds.y + head.bounds.height * 0.5,
+      );
+      expect(ears.left.y).toBeLessThan(
+        head.bounds.y + head.bounds.height * 0.78,
+      );
       expect(ears.right.y).toBe(ears.left.y);
     }
   });
@@ -119,7 +129,9 @@ describe("Avatar V2 SVG renderer", () => {
 
       expect(svg).toContain(`rect x="${leftLensX}"`);
       expect(svg).toContain(`rect x="${rightLensX}"`);
-      expect(svg).toContain(`M${leftLensX + lensWidth} ${anatomy.face.eyeLineY}H${rightLensX}`);
+      expect(svg).toContain(
+        `M${leftLensX + lensWidth} ${anatomy.face.eyeLineY}H${rightLensX}`,
+      );
       expect(anatomy.face.leftEye.x).toBeGreaterThan(leftLensX);
       expect(anatomy.face.leftEye.x).toBeLessThan(leftLensX + lensWidth);
       expect(anatomy.face.rightEye.x).toBeGreaterThan(rightLensX);
@@ -154,14 +166,24 @@ describe("Avatar V2 SVG renderer", () => {
 
       expect(anatomy.ears.left.x + anatomy.ears.right.x).toBe(centerX * 2);
       expect(anatomy.ears.left.y).toBe(anatomy.ears.right.y);
-      expect(anatomy.face.leftEye.x + anatomy.face.rightEye.x).toBe(centerX * 2);
+      expect(anatomy.face.leftEye.x + anatomy.face.rightEye.x).toBe(
+        centerX * 2,
+      );
       expect(anatomy.face.leftEye.y).toBe(anatomy.face.rightEye.y);
       expect(leftLensX + rightLensX + lensWidth).toBe(centerX * 2);
       expect(leftTempleEndX + rightTempleEndX).toBe(centerX * 2);
-      expect(svg).toContain(`<rect x="${leftLensX}" y="${lensY}" width="${lensWidth}" height="${lensHeight}"`);
-      expect(svg).toContain(`<rect x="${rightLensX}" y="${lensY}" width="${lensWidth}" height="${lensHeight}"`);
-      expect(svg).toContain(`M${leftLensX} ${templeStartY}L${leftTempleEndX} ${templeEndY}`);
-      expect(svg).toContain(`M${rightLensX + lensWidth} ${templeStartY}L${rightTempleEndX} ${templeEndY}`);
+      expect(svg).toContain(
+        `<rect x="${leftLensX}" y="${lensY}" width="${lensWidth}" height="${lensHeight}"`,
+      );
+      expect(svg).toContain(
+        `<rect x="${rightLensX}" y="${lensY}" width="${lensWidth}" height="${lensHeight}"`,
+      );
+      expect(svg).toContain(
+        `M${leftLensX} ${templeStartY}L${leftTempleEndX} ${templeEndY}`,
+      );
+      expect(svg).toContain(
+        `M${rightLensX + lensWidth} ${templeStartY}L${rightTempleEndX} ${templeEndY}`,
+      );
     }
   });
 
@@ -177,7 +199,7 @@ describe("Avatar V2 SVG renderer", () => {
     ].map((layer) => svg.indexOf(layer));
     expect(order.every((index) => index > -1)).toBe(true);
     expect(order).toEqual([...order].sort((a, b) => a - b));
-    expect(svg).toContain('transform=\"translate(96 151) scale(1)\"');
+    expect(svg).toContain('transform="translate(96 151) rotate(0) scale(1)"');
     expect(svg).not.toContain("<image");
     expect(svg).not.toMatch(/(?:href|src)=\"https?:\/\//);
   });
@@ -221,7 +243,7 @@ describe("Avatar V2 SVG renderer", () => {
     }
   });
 
-  it("defines exactly four showcase samples for silhouette validation", () => {
+  it("defines exactly six showcase samples for asset diversity validation", () => {
     const showcaseKeys = Object.keys(avatarV2SampleConfigs).filter((key) =>
       key.startsWith("showcaseSample"),
     );
@@ -230,6 +252,8 @@ describe("Avatar V2 SVG renderer", () => {
       "showcaseSampleB",
       "showcaseSampleC",
       "showcaseSampleD",
+      "showcaseSampleE",
+      "showcaseSampleF",
     ]);
     for (const key of showcaseKeys) {
       const svg = renderAvatarV2Svg(
@@ -238,6 +262,74 @@ describe("Avatar V2 SVG renderer", () => {
       expect(svg).toContain("avatar-v2-layer-shirt");
       expect(svg).toContain("avatar-v2-layer-back-hair");
       expect(svg).toContain("avatar-v2-layer-front-hair");
+    }
+  });
+
+  it("exposes editor-safe clothing and accessory metadata", () => {
+    expect(Object.keys(avatarV2ClothingAssets)).toEqual([
+      "roundedTee",
+      "collar",
+      "tShirt",
+      "sweater",
+      "hoodie",
+      "overall",
+    ]);
+    expect(Object.keys(avatarV2AccessoryAssets)).toEqual([
+      "chestStar",
+      "star",
+      "flower",
+      "headband",
+      "bow",
+      "starClip",
+      "leafPin",
+      "tinyCrown",
+    ]);
+    for (const asset of [
+      ...Object.values(avatarV2ClothingAssets),
+      ...Object.values(avatarV2AccessoryAssets),
+    ]) {
+      expect(asset.metadata.displayName.length).toBeGreaterThan(0);
+      expect(asset.metadata.previewPriority).toBeGreaterThanOrEqual(0);
+      expect(["clothing", "accessory"]).toContain(asset.metadata.category);
+    }
+    expect(avatarV2AccessoryAssets.flower.metadata.recommendedMount).toBe(
+      "hairLeft",
+    );
+  });
+
+  it("renders new asset V1 clothing and accessories deterministically as valid SVG", () => {
+    const clothing = ["hoodie", "sweater", "tShirt", "overall"] as const;
+    const accessories = ["star", "flower", "headband", "bow"] as const;
+
+    for (const style of clothing) {
+      const config = {
+        ...avatarV2SampleConfigs.showcaseSampleA,
+        shirt: { ...avatarV2SampleConfigs.showcaseSampleA.shirt, style },
+        accessory: {
+          ...avatarV2SampleConfigs.showcaseSampleA.accessory,
+          style: "none" as const,
+        },
+      };
+      const svg = renderAvatarV2Svg(config);
+      expect(svg).toContain(`data-clothing-asset=\"${style}\"`);
+      expect(validateAvatarV2AssetSvg(svg)).toBe(true);
+      expect(svg).toBe(renderAvatarV2Svg(config));
+    }
+
+    for (const style of accessories) {
+      const config = {
+        ...avatarV2SampleConfigs.showcaseSampleA,
+        accessory: {
+          style,
+          color: "accessoryCoral" as const,
+          mount: avatarV2AccessoryAssets[style].metadata.recommendedMount,
+        },
+      };
+      const svg = renderAvatarV2Svg(config);
+      expect(svg).toContain("avatar-v2-layer-accessory");
+      expect(svg).toContain(`data-accessory-asset=\"${style}\"`);
+      expect(validateAvatarV2AssetSvg(svg)).toBe(true);
+      expect(svg).toBe(renderAvatarV2Svg(config));
     }
   });
 
