@@ -119,11 +119,49 @@ describe("Avatar V2 SVG renderer", () => {
 
       expect(svg).toContain(`rect x="${leftLensX}"`);
       expect(svg).toContain(`rect x="${rightLensX}"`);
-      expect(svg).toContain(`M${leftLensX + lensWidth} ${anatomy.face.eyeLineY - 1}H${rightLensX}`);
+      expect(svg).toContain(`M${leftLensX + lensWidth} ${anatomy.face.eyeLineY}H${rightLensX}`);
       expect(anatomy.face.leftEye.x).toBeGreaterThan(leftLensX);
       expect(anatomy.face.leftEye.x).toBeLessThan(leftLensX + lensWidth);
       expect(anatomy.face.rightEye.x).toBeGreaterThan(rightLensX);
       expect(anatomy.face.rightEye.x).toBeLessThan(rightLensX + lensWidth);
+    }
+  });
+
+  it("keeps symmetric head anatomy and glasses geometry mirrored", () => {
+    const variants = ["round", "oval", "wide"] as const;
+
+    for (const headVariant of variants) {
+      const config = {
+        ...avatarV2SampleConfigs.calmChildWithGlasses,
+        headVariant,
+        glasses: {
+          ...avatarV2SampleConfigs.calmChildWithGlasses.glasses,
+          style: "softSquare" as const,
+        },
+      };
+      const anatomy = resolveAvatarAnatomy(config);
+      const centerX = anatomy.head.center.x;
+      const svg = renderAvatarV2Svg(config);
+      const lensWidth = 30;
+      const lensHeight = 24;
+      const lensY = anatomy.face.eyeLineY - lensHeight / 2;
+      const leftLensX = anatomy.face.leftEye.x - lensWidth / 2;
+      const rightLensX = anatomy.face.rightEye.x - lensWidth / 2;
+      const leftTempleEndX = anatomy.ears.left.x + anatomy.ears.width / 2;
+      const rightTempleEndX = anatomy.ears.right.x - anatomy.ears.width / 2;
+      const templeStartY = anatomy.face.eyeLineY - 2;
+      const templeEndY = anatomy.ears.left.y - 8;
+
+      expect(anatomy.ears.left.x + anatomy.ears.right.x).toBe(centerX * 2);
+      expect(anatomy.ears.left.y).toBe(anatomy.ears.right.y);
+      expect(anatomy.face.leftEye.x + anatomy.face.rightEye.x).toBe(centerX * 2);
+      expect(anatomy.face.leftEye.y).toBe(anatomy.face.rightEye.y);
+      expect(leftLensX + rightLensX + lensWidth).toBe(centerX * 2);
+      expect(leftTempleEndX + rightTempleEndX).toBe(centerX * 2);
+      expect(svg).toContain(`<rect x="${leftLensX}" y="${lensY}" width="${lensWidth}" height="${lensHeight}"`);
+      expect(svg).toContain(`<rect x="${rightLensX}" y="${lensY}" width="${lensWidth}" height="${lensHeight}"`);
+      expect(svg).toContain(`M${leftLensX} ${templeStartY}L${leftTempleEndX} ${templeEndY}`);
+      expect(svg).toContain(`M${rightLensX + lensWidth} ${templeStartY}L${rightTempleEndX} ${templeEndY}`);
     }
   });
 

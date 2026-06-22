@@ -320,3 +320,9 @@ Avatar V2 Head and Hair Quality improves the isolated SVG renderer with distinct
 
 ### Avatar V2 Ear Attachment Fix — Completed 2026-06-22
 Avatar V2 Ear Attachment Fix corrects the isolated renderer's wide-head ear anchors so Showcase Sample C and Showcase Sample D no longer read as detached from the head silhouette. The fix remains anatomy-driven and SVG-only, adds geometry validation for round, oval, and wide variants, and regenerates the four showcase samples. No editor functionality, persistence, production UI integration, new avatar features, new head variants, hairstyles, clothing assets, raster assets, or external URLs were introduced.
+
+## Avatar V2 Left/Right Anatomy Symmetry Fix — Completed 2026-06-22
+- Corrected isolated Avatar V2 anatomy/rendering symmetry for round, oval, and wide heads.
+- Wide head geometry now mirrors around the anatomy centerline, and face/glasses rendering no longer applies side-specific vertical offsets.
+- Added validation for mirrored ear anchors, eye anchors, lens geometry, and temple geometry.
+- Scope remained limited to Avatar V2 geometry and regenerated standalone showcase SVG samples; no production UI, editor, persistence, or feature expansion was introduced.

@@ -226,7 +226,7 @@ function headPath(h: AvatarBounds, variant: AvatarHeadVariant): string {
     return `M${h.x + h.width / 2} ${h.y}c27 0 44 22 44 53 0 34-18 53-44 53s-44-19-44-53c0-31 17-53 44-53z`;
   }
   if (variant === "wide") {
-    return `M${h.x + 20} ${h.y + 12}c18-14 63-14 81 0 15 12 17 45 2 61-18 20-65 20-83 0-15-16-13-49 0-61z`;
+    return `M${h.x + 18} ${h.y + 12}C${h.x + 36} ${h.y - 2} ${h.x + h.width - 36} ${h.y - 2} ${h.x + h.width - 18} ${h.y + 12}C${h.x + h.width - 3} ${h.y + 24} ${h.x + h.width - 1} ${h.y + 57} ${h.x + h.width - 16} ${h.y + 73}C${h.x + h.width - 34} ${h.y + 93} ${h.x + 34} ${h.y + 93} ${h.x + 16} ${h.y + 73}C${h.x + 1} ${h.y + 57} ${h.x + 3} ${h.y + 24} ${h.x + 18} ${h.y + 12}z`;
   }
   return `M${h.x + h.width / 2} ${h.y}c30 0 51 20 51 46 0 29-21 46-51 46s-51-17-51-46c0-26 21-46 51-46z`;
 }
@@ -236,7 +236,7 @@ function renderHeadAndFace({ config, anatomy }: AvatarRenderContext): string {
     e = anatomy.ears;
   const ear = (side: string, a: AvatarAnchor) =>
     `<ellipse data-anatomy="ear-${side}" cx="${a.x}" cy="${a.y}" rx="${e.width / 2}" ry="${e.height / 2}" fill="${skin.base}" stroke="${skin.line}" stroke-width="3"/>`;
-  return `<g id="avatar-v2-layer-base"><ellipse cx="96" cy="113" rx="55" ry="41" fill="${skin.shade}" opacity="0.16"/>${ear("left", e.left)}${ear("right", e.right)}<path data-anatomy="head-${anatomy.head.variant}" d="${headPath(h, anatomy.head.variant)}" fill="${skin.base}" stroke="${skin.line}" stroke-width="3"/><path d="M${h.x + 19} ${h.y + 22}c17-17 45-21 64-2" fill="none" stroke="${skin.highlight}" stroke-width="8" stroke-linecap="round" opacity="0.4"/><circle cx="${anatomy.face.leftEye.x}" cy="${anatomy.face.eyeLineY}" r="5" fill="#3d2c30"/><circle cx="${anatomy.face.rightEye.x}" cy="${anatomy.face.eyeLineY - 1}" r="5" fill="#3d2c30"/><circle cx="${anatomy.face.leftEye.x + 2}" cy="${anatomy.face.eyeLineY - 2}" r="1.5" fill="#fff8f2"/><circle cx="${anatomy.face.rightEye.x + 2}" cy="${anatomy.face.eyeLineY - 3}" r="1.5" fill="#fff8f2"/><path d="M${anatomy.face.mouth.x - 18} ${anatomy.face.mouth.y}c10 12 27 12 37-1" fill="none" stroke="#7a4545" stroke-width="4" stroke-linecap="round"/></g>`;
+  return `<g id="avatar-v2-layer-base"><ellipse cx="96" cy="113" rx="55" ry="41" fill="${skin.shade}" opacity="0.16"/>${ear("left", e.left)}${ear("right", e.right)}<path data-anatomy="head-${anatomy.head.variant}" d="${headPath(h, anatomy.head.variant)}" fill="${skin.base}" stroke="${skin.line}" stroke-width="3"/><path d="M${h.x + 19} ${h.y + 22}c17-17 45-21 64-2" fill="none" stroke="${skin.highlight}" stroke-width="8" stroke-linecap="round" opacity="0.4"/><circle cx="${anatomy.face.leftEye.x}" cy="${anatomy.face.eyeLineY}" r="5" fill="#3d2c30"/><circle cx="${anatomy.face.rightEye.x}" cy="${anatomy.face.eyeLineY}" r="5" fill="#3d2c30"/><circle cx="${anatomy.face.leftEye.x + 2}" cy="${anatomy.face.eyeLineY - 2}" r="1.5" fill="#fff8f2"/><circle cx="${anatomy.face.rightEye.x - 2}" cy="${anatomy.face.eyeLineY - 2}" r="1.5" fill="#fff8f2"/><path d="M${anatomy.face.mouth.x - 18} ${anatomy.face.mouth.y}c10 12 27 12 37-1" fill="none" stroke="#7a4545" stroke-width="4" stroke-linecap="round"/></g>`;
 }
 function hairParts(ctx: AvatarRenderContext) {
   const c = sw(ctx.config.hair.color),
@@ -304,7 +304,7 @@ function renderGlasses({ config, anatomy }: AvatarRenderContext): string {
     leftInnerX = leftLensX + lensWidth,
     rightInnerX = rightLensX,
     y = anatomy.face.eyeLineY - lensHeight / 2;
-  return `<g id="avatar-v2-layer-glasses" fill="none" stroke="${c.line}" stroke-width="4" stroke-linecap="round"><rect x="${leftLensX}" y="${y}" width="${lensWidth}" height="${lensHeight}" ${r}/><rect x="${rightLensX}" y="${y - 1}" width="${lensWidth}" height="${lensHeight}" ${r}/><path d="M${leftInnerX} ${anatomy.face.eyeLineY - 1}H${rightInnerX}"/><path d="M${leftLensX} ${anatomy.face.eyeLineY - 2}L${anatomy.ears.left.x + anatomy.ears.width / 2} ${anatomy.ears.left.y - 8}M${rightLensX + lensWidth} ${anatomy.face.eyeLineY - 3}L${anatomy.ears.right.x - anatomy.ears.width / 2} ${anatomy.ears.right.y - 9}"/></g>`;
+  return `<g id="avatar-v2-layer-glasses" fill="none" stroke="${c.line}" stroke-width="4" stroke-linecap="round"><rect x="${leftLensX}" y="${y}" width="${lensWidth}" height="${lensHeight}" ${r}/><rect x="${rightLensX}" y="${y}" width="${lensWidth}" height="${lensHeight}" ${r}/><path d="M${leftInnerX} ${anatomy.face.eyeLineY}H${rightInnerX}"/><path d="M${leftLensX} ${anatomy.face.eyeLineY - 2}L${anatomy.ears.left.x + anatomy.ears.width / 2} ${anatomy.ears.left.y - 8}M${rightLensX + lensWidth} ${anatomy.face.eyeLineY - 2}L${anatomy.ears.right.x - anatomy.ears.width / 2} ${anatomy.ears.right.y - 8}"/></g>`;
 }
 function renderShirt({ config }: AvatarRenderContext): string {
   const c = sw(config.shirt.color);
