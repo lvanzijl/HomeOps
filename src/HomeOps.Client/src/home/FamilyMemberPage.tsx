@@ -153,6 +153,11 @@ export function FamilyMemberPage({
               className={`child-progress-view child-mode ${ageBand}`}
               aria-label={`${member.name} Child Mode`}
             >
+              <TodaySection
+                member={member}
+                tasks={tasks}
+                status={tasksStatus}
+              />
               <ChildHeroArea
                 member={member}
                 goals={memberGoals}
@@ -160,30 +165,35 @@ export function FamilyMemberPage({
                 status={motivationStatus}
                 ageBand={ageBand}
               />
-              <TodaySection
-                member={member}
-                tasks={tasks}
-                status={tasksStatus}
-              />
-              <IndividualGoalProgress
-                goals={memberGoals}
-                ageBand={ageBand}
-                member={member}
-              />
-              <FamilyGoalParticipation
-                familyGoal={motivationSnapshot.familyGoal}
-                status={motivationStatus}
-                ageBand={ageBand}
-              />
-              <ChildCelebrationMemories
-                memories={motivationSnapshot.celebrationMemories ?? []}
-                ageBand={ageBand}
-              />
               <HelpfulMomentsSection
                 members={[member]}
                 familyMemberId={member.id}
-                title="Things My Family Appreciates"
+                title="Latest Appreciation"
+                compact
               />
+              <details className="child-detail-disclosure">
+                <summary>Explore my progress</summary>
+                <IndividualGoalProgress
+                  goals={memberGoals}
+                  ageBand={ageBand}
+                  member={member}
+                />
+              </details>
+              <details className="child-detail-disclosure">
+                <summary>Explore our family goal</summary>
+                <FamilyGoalParticipation
+                  familyGoal={motivationSnapshot.familyGoal}
+                  status={motivationStatus}
+                  ageBand={ageBand}
+                />
+              </details>
+              <details className="child-detail-disclosure">
+                <summary>Explore memories</summary>
+                <ChildCelebrationMemories
+                  memories={motivationSnapshot.celebrationMemories ?? []}
+                  ageBand={ageBand}
+                />
+              </details>
             </section>
           ) : (
             <ParentAdministration
@@ -196,6 +206,9 @@ export function FamilyMemberPage({
               onEditAvatar={() => setIsEditingAvatar(true)}
             />
           )}
+          <div className="member-mode-discovery">
+            <p>Grown-ups can use Parent Mode for settings.</p>
+          </div>
           <div
             className="member-mode-switch"
             role="tablist"
@@ -491,7 +504,7 @@ function ChildHeroArea({
           name="childMyProgress"
           variant="spot"
         />
-        <p className="eyebrow">My Progress</p>
+        <p className="eyebrow">How am I doing?</p>
         <h2>
           {primaryGoal?.title ?? familyGoal?.title ?? "A new goal is coming"}
         </h2>
@@ -541,52 +554,23 @@ function ChildHeroArea({
           name="childFamilyParticipation"
           variant="group"
         />
-        <p className="eyebrow">Family Participation</p>
+        <p className="eyebrow">Family Goal</p>
         {familyGoal ? (
           <>
             <h4>{familyGoal.title}</h4>
-            <p>You helped. The family is getting closer.</p>
+            <p>We are working toward this together.</p>
             <strong>
               {familyGoal.currentProgress}/{familyGoal.targetCount}{" "}
-              {familyGoal.unitLabel} together
+              {familyGoal.unitLabel}
             </strong>
           </>
         ) : (
           <p>No family goal yet.</p>
         )}
         {celebration ? (
-          <div
-            className={`child-hero-celebration ${celebration.status === FamilyCelebrationStatus.ReadyToCelebrate || celebrationComplete ? "ready" : celebration.status === FamilyCelebrationStatus.Celebrated ? "celebrated" : "planned"}`}
-            aria-label="Hero celebration"
-          >
-            <HomeOpsIcon
-              name={
-                celebration.status ===
-                  FamilyCelebrationStatus.ReadyToCelebrate ||
-                celebrationComplete
-                  ? "celebrationReady"
-                  : celebration.status === FamilyCelebrationStatus.Celebrated
-                    ? "celebrationCelebrated"
-                    : "celebrationUpcoming"
-              }
-              variant="hero"
-            />
-            <div>
-              <p className="eyebrow">{celebrationStatus}</p>
-              <strong>{celebration.title}</strong>
-              <p>
-                {celebration.status ===
-                  FamilyCelebrationStatus.ReadyToCelebrate ||
-                celebrationComplete
-                  ? `We did it — ${celebration.title} is ready now.`
-                  : celebration.status === FamilyCelebrationStatus.Celebrated
-                    ? "We celebrated together."
-                    : familyGoal
-                      ? `${celebration.title} is getting closer.`
-                      : "This is what your family is working toward."}
-              </p>
-            </div>
-          </div>
+          <p className="child-family-cue" aria-label="Family celebration summary">
+            {celebrationStatus}: {celebration.title}
+          </p>
         ) : null}
       </aside>
     </section>

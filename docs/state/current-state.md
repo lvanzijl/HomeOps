@@ -494,3 +494,10 @@ Semantic Icon Layer now resolves Child Ownership semantic names to existing Home
 
 ## Completed Slice 2.50 — Workspace Shell and Home Hero Compaction
 Workspace Shell and Home Hero Compaction applies the content-first UX rule across the global shell and primary Home surface. Navigation now uses smaller, grid-based pills to reduce awkward wrapping and keep Settings from becoming an isolated second-row item, workspace headers use compact orientation metadata instead of tall page framing, and the Home hero uses tighter date/time, family, and quick-capture treatments so dashboard content appears sooner. Existing navigation destinations, routes, Home behavior, Tasks, Lists, Motivation, Weekly Reset, Settings, and dashboard content remain preserved. No new functionality, domains, workflow changes, persistence changes, card redesign, motivation redesign, child workspace redesign, or Avatar V2 work was introduced.
+
+## 2026-06-22 Update — Child Workspace Overview First
+- Implemented Child Workspace Overview First as a UX-only Phase 2 slice.
+- Child Mode now leads with Today immediately after identity, followed by a single compact progress signal, Family Goal context, and latest appreciation preview.
+- Full personal progress, expanded Family Goal detail, celebration memories, and appreciation history remain available through deliberate exploration instead of occupying the primary overview.
+- Parent Mode remains separate and discoverable through the existing mode switch plus a lightweight grown-up cue, without exposing parent controls in Child Mode.
+- Existing Child Mode, Parent Mode, Family Goal, Helpful Moments, Celebration, Memory, task behavior, and persistence remain preserved.
