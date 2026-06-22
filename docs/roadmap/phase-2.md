@@ -26,6 +26,7 @@
 | 2.40 | Shopping Lifecycle | Completed |
 | 2.42 | Shopping Intelligence V2 | Completed |
 | 2.43 | Tasks Hierarchy Compaction | Completed |
+| 2.54 | Navigation Architecture Cleanup | Completed |
 | 2.41 | No-Date Task Lifecycle | Completed |
 
 Phase 2 theme: Durable Household Core.
@@ -62,6 +63,9 @@ Calendar Recurrence adds V1 recurrence metadata to EventSeries, supports None/Da
 
 
 
+
+## Completed Slice 2.54 — Navigation Architecture Cleanup
+Navigation Architecture Cleanup aligns the shell with real household usage by limiting Primary Navigation to daily work: Home, Agenda, Tasks, Lists, and Motivation. Weekly Reset, House Status, Media, and Gamification remain reachable as secondary/occasional or future-context surfaces; Child Workspace remains contextual through family member selection; and Settings moves into an Administration affordance. Existing routes, page behavior, workflows, and functionality remain preserved. No new pages, domains, route removals, child workspace redesign, home redesign, or feature behavior changes were introduced.
 
 ## Completed Slice 2.50 — Workspace Shell and Home Hero Compaction
 Workspace Shell and Home Hero Compaction applies the content-first UX rule across the global shell and primary Home surface. Navigation now uses smaller, grid-based pills to reduce awkward wrapping and keep Settings from becoming an isolated second-row item, workspace headers use compact orientation metadata instead of tall page framing, and the Home hero uses tighter date/time, family, and quick-capture treatments so dashboard content appears sooner. Existing navigation destinations, routes, Home behavior, Tasks, Lists, Motivation, Weekly Reset, Settings, and dashboard content remain preserved. No new functionality, domains, workflow changes, persistence changes, card redesign, motivation redesign, child workspace redesign, or Avatar V2 work was introduced.

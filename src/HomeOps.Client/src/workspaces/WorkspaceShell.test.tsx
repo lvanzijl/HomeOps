@@ -2,13 +2,14 @@ import { cleanup, render, screen, waitFor, within } from '@testing-library/react
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { WorkspaceShell } from './WorkspaceShell';
+import type { WorkspaceId } from './workspaceModel';
 
 vi.mock('./workspaceLayout', () => ({
   loadWorkspaceLayout: vi.fn(),
 }));
 
 vi.mock('../home/HomeDashboard', () => ({
-  HomeDashboard: ({ onNavigate }: { onNavigate: (destination: 'agenda' | 'lists' | 'tasks' | 'motivation' | 'house' | 'media' | 'gamification' | 'settings') => void }) => (
+  HomeDashboard: ({ onNavigate }: { onNavigate: (destination: WorkspaceId) => void }) => (
     <section aria-label="Home dashboard"><button onClick={() => onNavigate('agenda')} type="button">Open Agenda</button></section>
   ),
 }));
@@ -48,13 +49,31 @@ describe('WorkspaceShell API-backed layouts', () => {
     expect(workspaceLayout.loadWorkspaceLayout).toHaveBeenCalledWith('home');
   });
 
-  it('keeps workspace navigation functional while loading layouts by workspace', async () => {
+  it('restricts primary navigation to daily household work', async () => {
+    render(<WorkspaceShell />);
+
+    await screen.findByText('Open Agenda');
+    const dailyWork = screen.getByLabelText('Daily work');
+    expect(within(dailyWork).getByRole('button', { name: 'Home' })).not.toBeNull();
+    expect(within(dailyWork).getByRole('button', { name: 'Agenda' })).not.toBeNull();
+    expect(within(dailyWork).getByRole('button', { name: 'Tasks' })).not.toBeNull();
+    expect(within(dailyWork).getByRole('button', { name: 'Lists' })).not.toBeNull();
+    expect(within(dailyWork).getByRole('button', { name: 'Motivation' })).not.toBeNull();
+    expect(within(dailyWork).queryByRole('button', { name: 'Settings' })).toBeNull();
+    expect(within(dailyWork).queryByRole('button', { name: 'Weekly Reset' })).toBeNull();
+    expect(within(dailyWork).queryByRole('button', { name: 'Media' })).toBeNull();
+    expect(within(dailyWork).queryByRole('button', { name: 'House Status' })).toBeNull();
+    expect(within(dailyWork).queryByRole('button', { name: 'Gamification' })).toBeNull();
+  });
+
+  it('keeps secondary and future routes reachable outside primary navigation', async () => {
     const user = userEvent.setup();
     const workspaceLayout = await mockedWorkspaceLayout();
     render(<WorkspaceShell />);
 
     await screen.findByText('Open Agenda');
-    await user.click(screen.getByRole('button', { name: 'House Status' }));
+    const secondary = screen.getByLabelText('Occasional and future work');
+    await user.click(within(secondary).getByRole('button', { name: 'House Status' }));
 
     await waitFor(() => expect(workspaceLayout.loadWorkspaceLayout).toHaveBeenCalledWith('house'));
     const placeholder = await screen.findByLabelText('House Status placeholder page');
@@ -63,28 +82,31 @@ describe('WorkspaceShell API-backed layouts', () => {
     expect(within(placeholder).getByText('Not implemented yet.')).not.toBeNull();
   });
 
-  it('shows future domain navigation and placeholder pages with domain classes', async () => {
+  it('keeps settings available as administration instead of primary navigation', async () => {
     const user = userEvent.setup();
     render(<WorkspaceShell />);
 
     await screen.findByText('Open Agenda');
+    const administration = screen.getByLabelText('Administration');
+    expect(within(administration).getByRole('button', { name: 'Settings administration' })).not.toBeNull();
 
-    const mediaButton = screen.getByRole('button', { name: 'Media' });
-    const gamificationButton = screen.getByRole('button', { name: 'Gamification' });
-    expect(mediaButton.className).toContain('domain-media');
-    expect(gamificationButton.className).toContain('domain-gamification');
-    expect(screen.getByRole('button', { name: 'Motivation' }).className).toContain('domain-motivation');
+    await user.click(within(administration).getByRole('button', { name: 'Settings administration' }));
+    expect(await screen.findByText('Calendar Export / Restore')).not.toBeNull();
+  });
 
-    await user.click(screen.getByRole('button', { name: 'Motivation' }));
-    expect(await screen.findByLabelText('Motivation page')).not.toBeNull();
+  it('keeps Weekly Reset reachable as occasional work and from Tasks', async () => {
+    const user = userEvent.setup();
+    render(<WorkspaceShell />);
 
-    await user.click(mediaButton);
-    const mediaPlaceholder = await screen.findByLabelText('Media placeholder page');
-    expect(within(mediaPlaceholder).getByText('For media reminders and future household media context.')).not.toBeNull();
+    await screen.findByText('Open Agenda');
+    await user.click(screen.getByRole('button', { name: 'Tasks' }));
+    await user.click(await screen.findByRole('button', { name: 'Open full reset' }));
+    expect(await screen.findByRole('heading', { name: 'Weekly Reset' })).not.toBeNull();
 
-    await user.click(gamificationButton);
-    const gamificationPlaceholder = await screen.findByLabelText('Gamification placeholder page');
-    expect(within(gamificationPlaceholder).getByText('For points, rewards, and family progress after Tasks mature.')).not.toBeNull();
+    await user.click(screen.getByRole('button', { name: 'Home' }));
+    const secondary = screen.getByLabelText('Occasional and future work');
+    await user.click(within(secondary).getByRole('button', { name: 'Weekly Reset' }));
+    expect(await screen.findByRole('heading', { name: 'Weekly Reset' })).not.toBeNull();
   });
 
   it('applies the active workspace domain color class to the shell', async () => {
