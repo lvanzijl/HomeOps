@@ -317,9 +317,12 @@ button {
   border: 1px solid #ead7c7;
   border-radius: 1.25rem;
   display: grid;
-  gap: 0.75rem;
-  grid-template-columns: minmax(14rem, 1fr) auto auto;
-  padding: 0.8rem 1rem;
+  gap: 0.65rem;
+  grid-template-columns: minmax(13rem, 1fr) minmax(14rem, auto) minmax(
+      14rem,
+      auto
+    );
+  padding: 0.7rem 0.9rem;
 }
 
 .home-date-card .eyebrow,
@@ -344,11 +347,41 @@ button {
   font-weight: 700;
 }
 
-.family-strip,
-.quick-capture {
+.family-strip {
   display: flex;
   flex-wrap: wrap;
   gap: 0.45rem;
+  justify-content: flex-end;
+}
+
+.quick-capture {
+  align-content: center;
+  align-items: end;
+  display: grid;
+  gap: 0.45rem;
+  justify-items: end;
+}
+
+.quick-capture-header {
+  display: grid;
+  gap: 0.1rem;
+  text-align: right;
+}
+
+.quick-capture-header p {
+  margin: 0;
+}
+
+.quick-capture-header p:not(.eyebrow) {
+  color: #5c667a;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.quick-capture-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
   justify-content: flex-end;
 }
 
@@ -402,6 +435,11 @@ button {
   font-weight: 700;
   min-height: 2.75rem;
   padding: 0.65rem 1rem;
+}
+
+.quick-capture-action {
+  box-shadow: 0 8px 20px rgb(23 32 51 / 8%);
+  white-space: nowrap;
 }
 
 .home-summary-grid {
@@ -516,6 +554,14 @@ button {
 
   .quick-capture {
     grid-column: 1 / -1;
+    justify-items: start;
+  }
+
+  .quick-capture-header {
+    text-align: left;
+  }
+
+  .quick-capture-actions {
     justify-content: flex-start;
   }
 
@@ -1118,6 +1164,39 @@ button {
   display: grid;
   gap: 0.35rem;
   padding: 0.55rem;
+}
+
+.home-quick-form.compact {
+  justify-self: stretch;
+  max-width: 22rem;
+}
+
+.home-capture-dialog {
+  background: #ffffff;
+  border: 1px solid var(--domain-border, #fed7aa);
+  border-radius: 1.25rem;
+  box-shadow: 0 24px 80px rgb(23 32 51 / 24%);
+  display: grid;
+  gap: 1rem;
+  max-width: min(34rem, calc(100vw - 2rem));
+  padding: 1rem;
+  width: 100%;
+}
+
+.home-capture-dialog header {
+  align-items: start;
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.home-capture-dialog h3,
+.home-capture-dialog p {
+  margin: 0;
+}
+
+.event-dialog-form {
+  background: color-mix(in srgb, var(--domain-tint, #fff7ed) 68%, white);
 }
 
 .home-quick-form label {

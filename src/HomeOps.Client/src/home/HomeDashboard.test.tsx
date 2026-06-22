@@ -195,7 +195,8 @@ describe("HomeDashboard", () => {
       <HomeDashboard
         members={familyMembers}
         onNavigate={vi.fn()}
-        onSelectFamilyMember={vi.fn()} onAddFamilyMember={vi.fn()}
+        onSelectFamilyMember={vi.fn()}
+        onAddFamilyMember={vi.fn()}
       />,
     );
 
@@ -228,16 +229,23 @@ describe("HomeDashboard", () => {
       <HomeDashboard
         members={familyMembers}
         onNavigate={onNavigate}
-        onSelectFamilyMember={vi.fn()} onAddFamilyMember={vi.fn()}
+        onSelectFamilyMember={vi.fn()}
+        onAddFamilyMember={vi.fn()}
       />,
     );
 
     const tile = screen.getByLabelText("Motivation summary");
-    expect(await within(tile).findByText("Fill the family helper path")).not.toBeNull();
+    expect(
+      await within(tile).findByText("Fill the family helper path"),
+    ).not.toBeNull();
     expect(within(tile).getByText("13/20 helpful actions")).not.toBeNull();
     expect(within(tile).getByLabelText("Home celebration")).not.toBeNull();
     expect(within(tile).getByText("Getting closer")).not.toBeNull();
-    expect(within(tile).getByText("Only 7 more helpful actions until Board game night together.")).not.toBeNull();
+    expect(
+      within(tile).getByText(
+        "Only 7 more helpful actions until Board game night together.",
+      ),
+    ).not.toBeNull();
     expect(within(tile).queryByText(/shop/i)).toBeNull();
     expect(within(tile).queryByText(/^gems?$/i)).toBeNull();
     expect(within(tile).queryByText(/leaderboard/i)).toBeNull();
@@ -253,7 +261,8 @@ describe("HomeDashboard", () => {
       <HomeDashboard
         members={familyMembers}
         onNavigate={vi.fn()}
-        onSelectFamilyMember={onSelectFamilyMember} onAddFamilyMember={vi.fn()}
+        onSelectFamilyMember={onSelectFamilyMember}
+        onAddFamilyMember={vi.fn()}
       />,
     );
 
@@ -272,7 +281,8 @@ describe("HomeDashboard", () => {
       <HomeDashboard
         members={familyMembers}
         onNavigate={onNavigate}
-        onSelectFamilyMember={vi.fn()} onAddFamilyMember={vi.fn()}
+        onSelectFamilyMember={vi.fn()}
+        onAddFamilyMember={vi.fn()}
       />,
     );
     await screen.findByText("Event 1");
@@ -297,17 +307,20 @@ describe("HomeDashboard", () => {
     );
     expect(onNavigate).toHaveBeenCalledWith("tasks");
   });
-  it("adds shopping items and calendar events directly from Home quick capture", async () => {
+  it("adds shopping items from compact capture and calendar events from the Home dialog", async () => {
     const user = userEvent.setup();
     render(
       <HomeDashboard
         members={familyMembers}
         onNavigate={vi.fn()}
-        onSelectFamilyMember={vi.fn()} onAddFamilyMember={vi.fn()}
+        onSelectFamilyMember={vi.fn()}
+        onAddFamilyMember={vi.fn()}
       />,
     );
     await screen.findByText("Event 1");
 
+    expect(screen.queryByLabelText("What")).toBeNull();
+    await user.click(screen.getByRole("button", { name: "+ Shopping item" }));
     await user.type(screen.getByLabelText("Shopping item"), "Oat milk");
     await user.click(screen.getByRole("button", { name: "Add" }));
 
@@ -322,6 +335,12 @@ describe("HomeDashboard", () => {
       await screen.findByText("Added Oat milk to Shopping."),
     ).not.toBeNull();
 
+    expect(screen.queryByLabelText("Shopping item")).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: "+ Event" }));
+    expect(
+      screen.getByRole("dialog", { name: "Add event from Home" }),
+    ).not.toBeNull();
     await user.type(screen.getByLabelText("What"), "Swimming lesson");
     await user.selectOptions(screen.getByLabelText("When"), "tomorrow");
     await user.click(screen.getByRole("button", { name: "Save" }));
@@ -341,14 +360,28 @@ describe("HomeDashboard empty states", () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     vi.clearAllMocks();
     vi.setSystemTime(new Date("2026-06-19T08:30:00Z"));
-    vi.mocked((await agendaApi()).loadCalendarAgendaData).mockResolvedValue({ sources: [], events: [] });
-    vi.mocked((await listsSummaryApi()).loadListSummaries).mockResolvedValue([]);
+    vi.mocked((await agendaApi()).loadCalendarAgendaData).mockResolvedValue({
+      sources: [],
+      events: [],
+    });
+    vi.mocked((await listsSummaryApi()).loadListSummaries).mockResolvedValue(
+      [],
+    );
     vi.mocked((await tasksApi()).loadTasks).mockResolvedValue([]);
-    vi.mocked((await motivationApi()).loadMotivationSnapshot).mockResolvedValue({ individualGoals: [] });
+    vi.mocked((await motivationApi()).loadMotivationSnapshot).mockResolvedValue(
+      { individualGoals: [] },
+    );
   });
 
   it("shows lightweight first actions for empty household data", async () => {
-    render(<HomeDashboard members={familyMembers} onNavigate={vi.fn()} onSelectFamilyMember={vi.fn()} onAddFamilyMember={vi.fn()} />);
+    render(
+      <HomeDashboard
+        members={familyMembers}
+        onNavigate={vi.fn()}
+        onSelectFamilyMember={vi.fn()}
+        onAddFamilyMember={vi.fn()}
+      />,
+    );
 
     expect(await screen.findByText("Create your first event")).not.toBeNull();
     expect(screen.getByText("Add your first shopping item")).not.toBeNull();
@@ -356,7 +389,9 @@ describe("HomeDashboard empty states", () => {
     expect(screen.getByText("Create your first task")).not.toBeNull();
     expect(screen.getByRole("button", { name: "Open Agenda" })).not.toBeNull();
     expect(screen.getByRole("button", { name: "Open Lists" })).not.toBeNull();
-    expect(screen.getByRole("button", { name: "Open Motivation" })).not.toBeNull();
+    expect(
+      screen.getByRole("button", { name: "Open Motivation" }),
+    ).not.toBeNull();
     expect(screen.getByRole("button", { name: "Open Tasks" })).not.toBeNull();
   });
 });
