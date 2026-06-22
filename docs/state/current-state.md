@@ -4,7 +4,7 @@
 Phase 2 — Durable Household Core
 
 ## Current Slice
-Avatar V2 Concept B Curly Hairstyle Salvage — Completed
+Avatar V2 Concept B Headband Visibility Fix — Completed
 
 ## Completed Slices
 - 1.1 Repository Bootstrap
@@ -41,6 +41,12 @@ Avatar V2 Concept B Curly Hairstyle Salvage — Completed
 - Weekly Reset Explanation Compaction
 
 
+
+
+### Avatar V2 Concept B Headband Visibility Fix — Completed 2026-06-22
+- Corrected Concept B headband visibility after review found the previous validation sample technically rendered the accessory but did not make it reliably identifiable.
+- Selected partial occlusion as the visual rule: the headband wraps behind foreground curls while short side arcs remain visible above the completed hair stack.
+- Regenerated before, after, and closeup SVG validation samples while preserving SVG-only deterministic output, AvatarAnatomy-driven rendering, the Concept B face-strip fix, and the existing isolated Avatar V2 pipeline.
 
 ### Avatar V2 Concept B Curly Hairstyle Salvage — Completed 2026-06-22
 - Rejected Concepts A and C per visual review override and kept Concept B as the only viable direction.

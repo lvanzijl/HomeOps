@@ -400,7 +400,7 @@ describe("Avatar V2 SVG renderer", () => {
     }));
   });
 
-  it("renders headbands behind curly foreground hair instead of pasted above curls", () => {
+  it("renders curly headbands as partially occluded visible wraps instead of hidden bands", () => {
     const config = {
       ...avatarV2SampleConfigs.showcaseSampleC,
       hair: { style: "curlyPlayful" as const, color: "hairPlum" as const },
@@ -411,13 +411,16 @@ describe("Avatar V2 SVG renderer", () => {
       },
     };
     const svg = renderAvatarV2Svg(config);
-    const headbandIndex = svg.indexOf('data-accessory-asset="headband"');
+    const rearHeadbandIndex = svg.indexOf('data-accessory-layer-rule="partial-occlusion-rear"');
     const frontHairIndex = svg.indexOf("avatar-v2-layer-front-hair");
+    const visibleHeadbandIndex = svg.indexOf('data-accessory-layer-rule="partial-occlusion-visible"');
     const highlightsIndex = svg.indexOf("avatar-v2-layer-hair-highlights");
-    expect(headbandIndex).toBeGreaterThan(svg.indexOf("avatar-v2-layer-base"));
-    expect(headbandIndex).toBeLessThan(frontHairIndex);
-    expect(frontHairIndex).toBeLessThan(highlightsIndex);
-    expect(svg).toContain('data-accessory-layer-rule="behind-front-hair"');
+    expect(rearHeadbandIndex).toBeGreaterThan(svg.indexOf("avatar-v2-layer-base"));
+    expect(rearHeadbandIndex).toBeLessThan(frontHairIndex);
+    expect(frontHairIndex).toBeLessThan(visibleHeadbandIndex);
+    expect(visibleHeadbandIndex).toBeGreaterThan(highlightsIndex);
+    expect(svg).toContain('id="avatar-v2-layer-accessory-visible"');
+    expect(svg.match(/data-accessory-asset="headband"/g)).toHaveLength(2);
     expect(svg).toBe(renderAvatarV2Svg(config));
   });
 
