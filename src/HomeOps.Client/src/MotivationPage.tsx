@@ -38,6 +38,8 @@ export function MotivationPage({ members }: MotivationPageProps) {
     MotivationIndividualGoal | undefined
   >();
   const [formError, setFormError] = useState<string | null>(null);
+  const [showMemoriesDetail, setShowMemoriesDetail] = useState(false);
+  const [showPersonalGoalsDetail, setShowPersonalGoalsDetail] = useState(false);
 
   useEffect(() => {
     let ignore = false;
@@ -92,6 +94,7 @@ export function MotivationPage({ members }: MotivationPageProps) {
         : [...current.individualGoals, goal],
     }));
     setIndividualFormGoal(undefined);
+    setShowPersonalGoalsDetail(true);
     setFormError(null);
   }
 
@@ -180,38 +183,62 @@ export function MotivationPage({ members }: MotivationPageProps) {
         />
       ) : null}
 
-      <CelebrationMemorySection memories={snapshot.celebrationMemories ?? []} />
+      <CelebrationMemorySection
+        memories={snapshot.celebrationMemories ?? []}
+        expanded={showMemoriesDetail}
+        onToggle={() => setShowMemoriesDetail((current) => !current)}
+      />
 
       <HelpfulMomentsSection
         members={members}
         showCreate
+        compact
         title="Things My Family Appreciates"
       />
 
       <section
-        className="individual-goals"
+        className="individual-goals compact-overview-section"
         aria-label="Individual encouragement goals"
       >
         <div className="section-heading-row">
-          <h3>Personal goals this week</h3>
-          <button
-            type="button"
-            className="secondary-action"
-            onClick={() =>
-              setIndividualFormGoal({
-                id: "",
-                familyMemberId: members[0]?.id ?? "",
-                familyMemberName: members[0]?.name ?? "",
-                title: "",
-                targetCount: 4,
-                currentProgress: 0,
-                unitLabel: "times",
-                visualKind: "stars",
-              })
-            }
-          >
-            Add personal goal
-          </button>
+          <div>
+            <p className="eyebrow">Personal goals</p>
+            <h3>Personal goals this week</h3>
+            <p className="motivation-copy">
+              {individualGoals.length} active{" "}
+              {individualGoals.length === 1 ? "goal" : "goals"} ·{" "}
+              {personalGoalSummary(individualGoals)}
+            </p>
+          </div>
+          <div className="overview-actions">
+            <button
+              type="button"
+              className="secondary-action"
+              onClick={() => setShowPersonalGoalsDetail((current) => !current)}
+            >
+              {showPersonalGoalsDetail
+                ? "Show preview"
+                : "Manage personal goals"}
+            </button>
+            <button
+              type="button"
+              className="secondary-action"
+              onClick={() =>
+                setIndividualFormGoal({
+                  id: "",
+                  familyMemberId: members[0]?.id ?? "",
+                  familyMemberName: members[0]?.name ?? "",
+                  title: "",
+                  targetCount: 4,
+                  currentProgress: 0,
+                  unitLabel: "times",
+                  visualKind: "stars",
+                })
+              }
+            >
+              Add personal goal
+            </button>
+          </div>
         </div>
         {individualFormGoal ? (
           <IndividualGoalForm
@@ -260,7 +287,10 @@ export function MotivationPage({ members }: MotivationPageProps) {
           {individualGoals.length === 0 ? (
             <p className="motivation-copy">No personal goals yet.</p>
           ) : null}
-          {individualGoals.map((goal) => {
+          {(showPersonalGoalsDetail
+            ? individualGoals
+            : individualGoals.slice(0, 2)
+          ).map((goal) => {
             const member = members.find(
               (item) => item.id === goal.familyMemberId,
             );
@@ -283,13 +313,15 @@ export function MotivationPage({ members }: MotivationPageProps) {
                     <strong>{member.name}</strong>
                     <span>{goal.title}</span>
                   </div>
-                  <button
-                    type="button"
-                    className="secondary-action compact-action"
-                    onClick={() => setIndividualFormGoal(goal)}
-                  >
-                    Edit
-                  </button>
+                  {showPersonalGoalsDetail ? (
+                    <button
+                      type="button"
+                      className="secondary-action compact-action"
+                      onClick={() => setIndividualFormGoal(goal)}
+                    >
+                      Edit
+                    </button>
+                  ) : null}
                 </div>
                 <div
                   className="star-row"
@@ -319,6 +351,19 @@ export function MotivationPage({ members }: MotivationPageProps) {
       </section>
     </section>
   );
+}
+
+function personalGoalSummary(goals: readonly MotivationIndividualGoal[]) {
+  if (goals.length === 0) return "ready when your family adds one.";
+  const complete = goals.filter(
+    (goal) => goal.currentProgress >= goal.targetCount,
+  ).length;
+  const totalRemaining = goals.reduce(
+    (sum, goal) => sum + Math.max(0, goal.targetCount - goal.currentProgress),
+    0,
+  );
+  if (complete === goals.length) return "all goals reached.";
+  return `${totalRemaining} steps left across the family.`;
 }
 
 function familyGoalAnticipationMessage(familyGoal: MotivationFamilyGoal) {
@@ -712,8 +757,12 @@ function memoryFromFamilyGoal(
 
 function CelebrationMemorySection({
   memories,
+  expanded,
+  onToggle,
 }: {
   memories: readonly MotivationCelebrationMemory[];
+  expanded: boolean;
+  onToggle: () => void;
 }) {
   if (memories.length === 0) return null;
   return (
@@ -726,10 +775,19 @@ function CelebrationMemorySection({
           <p className="eyebrow">Family memories</p>
           <h3>Celebrations we remember</h3>
         </div>
-        <span>Recent celebrations</span>
+        <div className="overview-actions">
+          <span>{memories.length} remembered</span>
+          <button
+            type="button"
+            className="secondary-action compact-action"
+            onClick={onToggle}
+          >
+            {expanded ? "Show recent memory" : "View memory history"}
+          </button>
+        </div>
       </div>
       <div className="celebration-memory-grid">
-        {memories.map((memory) => (
+        {(expanded ? memories : memories.slice(0, 1)).map((memory) => (
           <article
             className="celebration-memory-card"
             key={`${memory.familyGoalId}-${memory.celebratedUtc}`}

@@ -354,6 +354,9 @@ describe("MotivationPage", () => {
     render(<MotivationPage members={familyMembers} />);
 
     expect(await screen.findByText("Finish morning routine")).not.toBeNull();
+    await user.click(
+      screen.getByRole("button", { name: "Manage personal goals" }),
+    );
     const alexCard = screen
       .getByText("Finish morning routine")
       .closest("article")!;
@@ -393,6 +396,9 @@ describe("MotivationPage", () => {
     render(<MotivationPage members={familyMembers} />);
 
     expect(await screen.findByText("Finish morning routine")).not.toBeNull();
+    await user.click(
+      screen.getByRole("button", { name: "Manage personal goals" }),
+    );
     const alexCard = screen
       .getByText("Finish morning routine")
       .closest("article")!;
@@ -402,5 +408,51 @@ describe("MotivationPage", () => {
     expect(archiveIndividualGoal).toHaveBeenCalledWith("alex-goal");
     expect(screen.queryByText("Finish morning routine")).toBeNull();
     expect(screen.getByText("Help with dinner")).not.toBeNull();
+  });
+
+  it("keeps detail workflows behind progressive disclosure", async () => {
+    const user = userEvent.setup();
+
+    render(<MotivationPage members={familyMembers} />);
+
+    expect(
+      await screen.findByText("Fill the family helper path"),
+    ).not.toBeNull();
+    expect(screen.queryByRole("button", { name: "Edit" })).toBeNull();
+    expect(
+      screen.getByRole("button", { name: "Manage personal goals" }),
+    ).not.toBeNull();
+    await user.click(
+      screen.getByRole("button", { name: "Manage personal goals" }),
+    );
+    expect(
+      screen.getAllByRole("button", { name: "Edit" }).length,
+    ).toBeGreaterThan(0);
+  });
+
+  it("opens Motivation detail access for memories and helpful moments", async () => {
+    const user = userEvent.setup();
+
+    render(<MotivationPage members={familyMembers} />);
+
+    expect(await screen.findByLabelText("Celebration memories")).not.toBeNull();
+    expect(
+      screen.getByRole("button", { name: "View memory history" }),
+    ).not.toBeNull();
+    await user.click(
+      screen.getByRole("button", { name: "View memory history" }),
+    );
+    expect(
+      screen.getByRole("button", { name: "Show recent memory" }),
+    ).not.toBeNull();
+
+    expect(
+      await screen.findByLabelText("Things My Family Appreciates"),
+    ).not.toBeNull();
+    await user.click(screen.getByRole("button", { name: "Add appreciation" }));
+    expect(screen.getByLabelText("Create helpful moment")).not.toBeNull();
+    expect(
+      screen.getByRole("button", { name: "View all appreciation" }),
+    ).not.toBeNull();
   });
 });

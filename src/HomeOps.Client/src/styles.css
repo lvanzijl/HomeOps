@@ -1413,6 +1413,46 @@ button {
   font: inherit;
   padding: 0.65rem 0.75rem;
 }
+
+.compact-overview-section {
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid var(--domain-border, #fed7aa);
+  border-radius: 1.35rem;
+  box-shadow: 0 14px 34px
+    color-mix(in srgb, var(--domain-accent, #f97316) 8%, transparent);
+  padding: 1rem;
+}
+
+.overview-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.overview-actions .secondary-action,
+.overview-actions .compact-action {
+  margin-top: 0;
+}
+
+.compact-overview-section .section-heading p,
+.compact-overview-section .section-heading-row p {
+  margin-bottom: 0;
+}
+
+.compact-overview-section .helpful-moment-feed,
+.compact-overview-section .celebration-memory-grid {
+  grid-template-columns: 1fr;
+}
+
+.compact-overview-section .helpful-moment-card,
+.compact-overview-section .celebration-memory-card,
+.compact-overview-section .individual-goal-card {
+  box-shadow: none;
+  padding: 0.75rem;
+}
+
 .section-heading-row {
   align-items: center;
   display: flex;

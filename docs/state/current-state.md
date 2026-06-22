@@ -61,6 +61,13 @@ Weekly Reset Explanation Compaction — Completed
 - Preserved existing Celebration, Motivation, Child Workspace, Home, Family Goal, and Celebration Memory behavior while limiting changes to visual asset integration.
 - Asset-system progress now includes semantic SVG resolution with fallback symbols for consumers that do not yet have owned assets.
 
+### Motivation Overview / Detail Separation — Completed 2026-06-22
+- Motivation is now overview-first: the active Family Goal, current progress, and Celebration state remain the primary first-screen story.
+- Helpful Moments now open as a compact appreciation preview with count/recent example, while appreciation creation and full browsing require explicit expansion.
+- Celebration Memories now show a recent memory by default with history behind intentional detail access.
+- Personal Goals now show active count and key progress summary first, with editing/management behind a deliberate manage action.
+- Existing Family Goal, Helpful Moments, Celebration, Memory, and Personal Goal data models and workflows remain preserved; this was a UX-only hierarchy slice.
+
 ### HomeOps Long-Term Usage Review — Completed 2026-06-21
 - Added a long-term household usage review focused on 30-day and 90-day retention, habit formation, sustainable workflows, and maintenance burden.
 - Captured independent reviewer perspectives for an expert product reviewer, father, mother, six-year-old child, and ten-year-old child before combining conclusions into a final verdict.
