@@ -188,9 +188,9 @@ export function resolveAvatarAnatomy(config: AvatarConfig): AvatarAnatomy {
   const b = presets[variant];
   const center = { x: b.x + b.width / 2, y: b.y + b.height / 2 };
   const faceTuning = {
-    round: { eyeYOffset: 49, eyeSpread: 19, mouthYOffset: 70, earYOffset: 61, earW: 17, earH: 25 },
-    oval: { eyeYOffset: 55, eyeSpread: 17, mouthYOffset: 79, earYOffset: 67, earW: 16, earH: 27 },
-    wide: { eyeYOffset: 45, eyeSpread: 23, mouthYOffset: 66, earYOffset: 58, earW: 18, earH: 24 },
+    round: { eyeYOffset: 49, eyeSpread: 19, mouthYOffset: 70, earYOffset: 61, earW: 17, earH: 25, earInset: 4 },
+    oval: { eyeYOffset: 55, eyeSpread: 17, mouthYOffset: 79, earYOffset: 67, earW: 16, earH: 27, earInset: 4 },
+    wide: { eyeYOffset: 45, eyeSpread: 23, mouthYOffset: 66, earYOffset: 58, earW: 18, earH: 24, earInset: 8 },
   }[variant];
   const chest = { x: 96, y: 151, scale: 1 };
   return {
@@ -208,8 +208,8 @@ export function resolveAvatarAnatomy(config: AvatarConfig): AvatarAnatomy {
       mouth: { x: center.x, y: b.y + faceTuning.mouthYOffset },
     },
     ears: {
-      left: { x: b.x + 4, y: b.y + faceTuning.earYOffset },
-      right: { x: b.x + b.width - 4, y: b.y + faceTuning.earYOffset },
+      left: { x: b.x + faceTuning.earInset, y: b.y + faceTuning.earYOffset },
+      right: { x: b.x + b.width - faceTuning.earInset, y: b.y + faceTuning.earYOffset },
       width: faceTuning.earW,
       height: faceTuning.earH,
     },
