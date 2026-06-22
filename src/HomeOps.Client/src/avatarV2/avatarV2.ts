@@ -188,9 +188,9 @@ export function resolveAvatarAnatomy(config: AvatarConfig): AvatarAnatomy {
   const b = presets[variant];
   const center = { x: b.x + b.width / 2, y: b.y + b.height / 2 };
   const faceTuning = {
-    round: { eyeYOffset: 49, eyeSpread: 19, mouthYOffset: 70, earYOffset: 61, earW: 17, earH: 25, earInset: 4 },
-    oval: { eyeYOffset: 55, eyeSpread: 17, mouthYOffset: 79, earYOffset: 67, earW: 16, earH: 27, earInset: 4 },
-    wide: { eyeYOffset: 45, eyeSpread: 23, mouthYOffset: 66, earYOffset: 58, earW: 18, earH: 24, earInset: 8 },
+    round: { eyeYOffset: 49, eyeSpread: 19, mouthYOffset: 70, earYOffset: 61, earW: 17, earH: 25, earInset: -1 },
+    oval: { eyeYOffset: 55, eyeSpread: 17, mouthYOffset: 79, earYOffset: 67, earW: 16, earH: 27, earInset: -1 },
+    wide: { eyeYOffset: 46, eyeSpread: 21, mouthYOffset: 66, earYOffset: 57, earW: 18, earH: 24, earInset: -1 },
   }[variant];
   const chest = { x: 96, y: 151, scale: 1 };
   return {
@@ -297,8 +297,14 @@ function renderGlasses({ config, anatomy }: AvatarRenderContext): string {
   if (config.glasses.style === "none") return "";
   const c = sw(config.glasses.color),
     r = config.glasses.style === "round" ? 'rx="13"' : 'rx="8"',
-    y = anatomy.face.eyeLineY - 12;
-  return `<g id="avatar-v2-layer-glasses" fill="none" stroke="${c.line}" stroke-width="4" stroke-linecap="round"><rect x="${anatomy.face.leftEye.x - 15}" y="${y}" width="29" height="24" ${r}/><rect x="${anatomy.face.rightEye.x - 15}" y="${y - 1}" width="31" height="24" ${r}/><path d="M${anatomy.face.leftEye.x + 14} ${anatomy.face.eyeLineY - 1}h11"/><path d="M${anatomy.face.leftEye.x - 15} ${anatomy.face.eyeLineY - 2}l-10-4M${anatomy.face.rightEye.x + 16} ${anatomy.face.eyeLineY - 3}l10-5"/></g>`;
+    lensWidth = config.glasses.style === "round" ? 29 : 30,
+    lensHeight = 24,
+    leftLensX = anatomy.face.leftEye.x - lensWidth / 2,
+    rightLensX = anatomy.face.rightEye.x - lensWidth / 2,
+    leftInnerX = leftLensX + lensWidth,
+    rightInnerX = rightLensX,
+    y = anatomy.face.eyeLineY - lensHeight / 2;
+  return `<g id="avatar-v2-layer-glasses" fill="none" stroke="${c.line}" stroke-width="4" stroke-linecap="round"><rect x="${leftLensX}" y="${y}" width="${lensWidth}" height="${lensHeight}" ${r}/><rect x="${rightLensX}" y="${y - 1}" width="${lensWidth}" height="${lensHeight}" ${r}/><path d="M${leftInnerX} ${anatomy.face.eyeLineY - 1}H${rightInnerX}"/><path d="M${leftLensX} ${anatomy.face.eyeLineY - 2}L${anatomy.ears.left.x + anatomy.ears.width / 2} ${anatomy.ears.left.y - 8}M${rightLensX + lensWidth} ${anatomy.face.eyeLineY - 3}L${anatomy.ears.right.x - anatomy.ears.width / 2} ${anatomy.ears.right.y - 9}"/></g>`;
 }
 function renderShirt({ config }: AvatarRenderContext): string {
   const c = sw(config.shirt.color);
