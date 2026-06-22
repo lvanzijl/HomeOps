@@ -284,7 +284,9 @@ export interface AvatarAssetMetadata {
 type SvgPart = (ctx: AvatarRenderContext, swatch: ExpandedSwatch) => string;
 export interface HairAsset {
   id: HairStyle;
-  metadata: AvatarAssetMetadata;
+  metadata: AvatarAssetMetadata & {
+    manualReviewChecks: typeof avatarV2HairManualReviewChecks;
+  };
   render: (ctx: AvatarRenderContext) => {
     back: string;
     front: string;
@@ -301,6 +303,14 @@ export interface AccessoryAsset {
   metadata: AvatarAssetMetadata;
   render: SvgPart;
 }
+export const avatarV2HairManualReviewChecks = [
+  "Hair must have an identifiable silhouette without relying on color.",
+  "Hair must have a visible growth direction from crown or part to fringe or sides.",
+  "BackHair and FrontHair must describe the same hairstyle and must not contradict each other.",
+  "Highlights must align with strand or curl flow rather than crossing it.",
+  "Hair must remain believable in dark colors at small showcase sizes.",
+] as const;
+
 const noRaster = (svg: string) =>
   !/<image\b/i.test(svg) && !/(?:href|src)="https?:\/\//i.test(svg);
 
@@ -327,21 +337,21 @@ function hairParts(ctx: AvatarRenderContext) {
     s = ctx.config.hair.style;
   if (s === "shortMessy")
     return {
-      back: `<path data-hair-style="shortMessy" d="M48 72c-2-25 16-43 47-45 32-2 52 16 51 43-11-7-23-8-36-5-18 4-35 3-51-5-5 3-9 7-11 12z" fill="${c.shade}" stroke="${c.line}" stroke-width="3"/>`,
-      front: `<path d="M49 64c8-22 25-34 50-35 14 0 27 3 38 12l12 16c-12-4-23-3-34 3l-10 14-8-16-15 18-5-16c-10 8-19 10-28 4z" ${common}/><path d="M64 43l-10 20M86 35l-7 26M119 37l17 23" fill="none" stroke="${c.line}" stroke-width="3" stroke-linecap="round" opacity="0.5"/>`,
-      hi: `<path d="M70 42c15-7 34-8 50-2" fill="none" stroke="${c.highlight}" stroke-width="5" stroke-linecap="round" opacity="0.55"/><path d="M86 55l-8 10" fill="none" stroke="${c.highlight}" stroke-width="4" stroke-linecap="round" opacity="0.4"/>`,
+      back: `<path data-hair-style="shortMessy" d="M47 73c-1-26 18-44 49-45 31 0 51 17 50 43-10-6-22-8-35-5-18 4-35 2-50-6-6 3-11 8-14 13z" fill="${c.shade}" stroke="${c.line}" stroke-width="3"/>`,
+      front: `<path data-hair-style="shortMessy" d="M49 66c7-22 25-36 49-37 18-1 34 5 45 17 4 4 6 9 7 15-11-4-22-3-33 3l-9 13-10-17-15 19-6-17c-10 8-20 9-28 4z" ${common}/><path d="M62 47c8-8 19-13 32-15M88 35c-5 8-8 17-9 27M116 36c10 5 17 13 22 24" fill="none" stroke="${c.line}" stroke-width="3" stroke-linecap="round" opacity="0.46"/>`,
+      hi: `<path data-hair-highlight="shortMessy" d="M68 45c14-8 33-10 50-4" fill="none" stroke="${c.highlight}" stroke-width="5" stroke-linecap="round" opacity="0.58"/><path data-hair-highlight="shortMessy" d="M90 56c-4 5-7 10-11 15" fill="none" stroke="${c.highlight}" stroke-width="4" stroke-linecap="round" opacity="0.42"/>`,
     };
   if (s === "longSoft")
     return {
-      back: `<path data-hair-style="longSoft" d="M47 67c1-27 20-43 49-43s48 17 50 45c4 33-8 58-30 66-4-18-7-35-20-51-12 16-16 33-20 51-22-8-33-34-29-68z" fill="${c.shade}" stroke="${c.line}" stroke-width="3"/>`,
-      front: `<path d="M50 62c6-24 24-37 51-36 23 1 39 14 44 38-18-10-35-13-51-7-16 6-29 8-44 5z" ${common}/><path d="M95 28c-4 18-18 31-40 39M103 31c17 8 29 20 39 35" fill="none" stroke="${c.line}" stroke-width="3" stroke-linecap="round" opacity="0.45"/>`,
-      hi: `<path d="M66 51c18-13 38-17 60-10" fill="none" stroke="${c.highlight}" stroke-width="5" stroke-linecap="round" opacity="0.5"/><path d="M131 77c3 18 0 34-9 47" fill="none" stroke="${c.highlight}" stroke-width="4" stroke-linecap="round" opacity="0.35"/>`,
+      back: `<path data-hair-style="longSoft" d="M47 70c-2-29 18-47 49-47 30 0 50 18 49 48 6 31-7 57-31 65-2-17-7-35-18-51-11 16-16 34-18 51-24-8-37-34-31-66z" fill="${c.shade}" stroke="${c.line}" stroke-width="3"/><path d="M61 74c-2 22 3 42 16 58M132 74c2 22-3 42-17 58" fill="none" stroke="${c.line}" stroke-width="3" stroke-linecap="round" opacity="0.38"/>`,
+      front: `<path data-hair-style="longSoft" d="M50 65c5-24 23-39 49-39 24 0 41 13 47 37-17-6-33-7-49-2-15 5-31 9-47 4z" ${common}/><path d="M95 28c-6 17-19 30-39 38M103 30c15 8 27 19 39 34" fill="none" stroke="${c.line}" stroke-width="3" stroke-linecap="round" opacity="0.45"/>`,
+      hi: `<path data-hair-highlight="longSoft" d="M65 54c17-13 38-17 60-11" fill="none" stroke="${c.highlight}" stroke-width="5" stroke-linecap="round" opacity="0.52"/><path data-hair-highlight="longSoft" d="M126 75c3 18-1 35-10 50" fill="none" stroke="${c.highlight}" stroke-width="4" stroke-linecap="round" opacity="0.38"/>`,
     };
   if (s === "curlyPlayful")
     return {
-      back: `<path data-hair-style="curlyPlayful" d="M45 70c-1-25 20-45 51-46 32 0 54 20 52 47-5 23-24 37-52 36-29 0-48-14-51-37z" fill="${c.shade}" stroke="${c.line}" stroke-width="3"/><circle cx="50" cy="75" r="12" fill="${c.shade}" stroke="${c.line}" stroke-width="3"/><circle cx="143" cy="72" r="13" fill="${c.shade}" stroke="${c.line}" stroke-width="3"/>`,
-      front: `<circle data-hair-style="curlyPlayful" cx="62" cy="57" r="15" ${common}/><circle cx="82" cy="42" r="16" ${common}/><circle cx="105" cy="41" r="17" ${common}/><circle cx="128" cy="56" r="16" ${common}/><path d="M49 66c17 7 32 5 47-7 16 12 32 14 49 6-10 10-24 14-41 10l-8 12-8-12c-17 4-30 1-39-9z" ${common}/>`,
-      hi: `<path d="M73 44c5-5 12-7 19-4M111 42c8 1 14 5 18 11M58 63c5-4 10-6 16-5" fill="none" stroke="${c.highlight}" stroke-width="4" stroke-linecap="round" opacity="0.55"/>`,
+      back: `<path data-hair-style="curlyPlayful" d="M45 72c-2-26 20-47 51-48 32 0 54 20 52 48-3 20-20 34-45 36-4 0-10 0-14 0-26-2-42-16-44-36z" fill="${c.shade}" stroke="${c.line}" stroke-width="3"/><path d="M48 75c5-10 13-14 23-11M122 63c10-3 18 1 24 10" fill="none" stroke="${c.line}" stroke-width="5" stroke-linecap="round" opacity="0.45"/>`,
+      front: `<path data-hair-style="curlyPlayful" d="M49 65c6-10 15-16 27-17 4-12 15-18 28-15 12 2 21 9 25 21 9 2 15 7 19 14-10 9-24 11-41 7l-11 13-10-13c-16 4-29 1-37-10z" ${common}/><path d="M57 59c7-9 17-12 29-9M82 43c9-8 22-8 32 0M110 47c12-2 22 4 29 15M70 70c9 5 18 5 27-2" fill="none" stroke="${c.line}" stroke-width="3" stroke-linecap="round" opacity="0.45"/>`,
+      hi: `<path data-hair-highlight="curlyPlayful" d="M70 48c7-6 17-7 27-3" fill="none" stroke="${c.highlight}" stroke-width="4" stroke-linecap="round" opacity="0.58"/><path data-hair-highlight="curlyPlayful" d="M110 47c8 1 15 6 19 13" fill="none" stroke="${c.highlight}" stroke-width="4" stroke-linecap="round" opacity="0.52"/><path data-hair-highlight="curlyPlayful" d="M61 63c6-4 13-5 20-2" fill="none" stroke="${c.highlight}" stroke-width="4" stroke-linecap="round" opacity="0.5"/>`,
     };
   if (s === "layeredMessy")
     return {
@@ -370,6 +380,7 @@ export const avatarV2HairAssets: Record<HairStyle, HairAsset> = {
       displayName: "Soft Crop",
       category: "hair",
       previewPriority: 10,
+      manualReviewChecks: avatarV2HairManualReviewChecks,
     },
     render: hairParts,
   },
@@ -379,6 +390,7 @@ export const avatarV2HairAssets: Record<HairStyle, HairAsset> = {
       displayName: "Curly Cloud",
       category: "hair",
       previewPriority: 20,
+      manualReviewChecks: avatarV2HairManualReviewChecks,
     },
     render: hairParts,
   },
@@ -388,12 +400,18 @@ export const avatarV2HairAssets: Record<HairStyle, HairAsset> = {
       displayName: "Side Bob",
       category: "hair",
       previewPriority: 30,
+      manualReviewChecks: avatarV2HairManualReviewChecks,
     },
     render: hairParts,
   },
   swoop: {
     id: "swoop",
-    metadata: { displayName: "Swoop", category: "hair", previewPriority: 40 },
+    metadata: {
+      displayName: "Swoop",
+      category: "hair",
+      previewPriority: 40,
+      manualReviewChecks: avatarV2HairManualReviewChecks,
+    },
     render: hairParts,
   },
   layeredMessy: {
@@ -402,6 +420,7 @@ export const avatarV2HairAssets: Record<HairStyle, HairAsset> = {
       displayName: "Layered Messy",
       category: "hair",
       previewPriority: 50,
+      manualReviewChecks: avatarV2HairManualReviewChecks,
     },
     render: hairParts,
   },
@@ -411,6 +430,7 @@ export const avatarV2HairAssets: Record<HairStyle, HairAsset> = {
       displayName: "Short Messy",
       category: "hair",
       previewPriority: 60,
+      manualReviewChecks: avatarV2HairManualReviewChecks,
     },
     render: hairParts,
   },
@@ -420,6 +440,7 @@ export const avatarV2HairAssets: Record<HairStyle, HairAsset> = {
       displayName: "Long Soft",
       category: "hair",
       previewPriority: 70,
+      manualReviewChecks: avatarV2HairManualReviewChecks,
     },
     render: hairParts,
   },
@@ -429,6 +450,7 @@ export const avatarV2HairAssets: Record<HairStyle, HairAsset> = {
       displayName: "Curly Playful",
       category: "hair",
       previewPriority: 80,
+      manualReviewChecks: avatarV2HairManualReviewChecks,
     },
     render: hairParts,
   },
@@ -663,6 +685,27 @@ function renderAccessory(ctx: AvatarRenderContext): string {
 }
 export function validateAvatarV2AssetSvg(svg: string): boolean {
   return svg.startsWith("<svg") && svg.endsWith("</svg>") && noRaster(svg);
+}
+export function validateAvatarV2HairSvg(svg: string, style: HairStyle): boolean {
+  const hasReadableSilhouette =
+    svg.includes(`data-hair-style="${style}"`) &&
+    svg.includes("avatar-v2-layer-front-hair");
+  const hasLayerRelationship =
+    svg.includes("avatar-v2-layer-back-hair") &&
+    svg.indexOf("avatar-v2-layer-back-hair") <
+    svg.indexOf("avatar-v2-layer-front-hair");
+  const hasFlowHighlights =
+    svg.includes("avatar-v2-layer-hair-highlights") &&
+    svg.includes(`data-hair-highlight="${style}"`) &&
+    /data-hair-highlight="[^"]+"[^>]*d="M/.test(svg);
+  const hasSvgOnlyDeterminismGuards = validateAvatarV2AssetSvg(svg);
+
+  return (
+    hasReadableSilhouette &&
+    hasLayerRelationship &&
+    hasFlowHighlights &&
+    hasSvgOnlyDeterminismGuards
+  );
 }
 export function renderAvatarV2Svg(config: AvatarConfig): string {
   const anatomy = resolveAvatarAnatomy(config),

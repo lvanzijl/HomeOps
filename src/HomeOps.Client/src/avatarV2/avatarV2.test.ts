@@ -7,6 +7,7 @@ import {
   renderAvatarV2Svg,
   resolveAvatarAnatomy,
   validateAvatarV2AssetSvg,
+  validateAvatarV2HairSvg,
 } from "./avatarV2";
 
 describe("Avatar V2 SVG renderer", () => {
@@ -240,6 +241,32 @@ describe("Avatar V2 SVG renderer", () => {
       expect(svg).toBe(renderAvatarV2Svg(config));
       expect(svg).not.toContain("<image");
       expect(svg).not.toMatch(/(?:href|src)=\"https?:\/\//);
+      expect(validateAvatarV2HairSvg(svg, style)).toBe(true);
+    }
+  });
+
+  it("validates practical hair quality constraints for prioritized dark and light hair renders", () => {
+    const styles = ["shortMessy", "longSoft", "curlyPlayful"] as const;
+    const colors = ["hairCocoa", "hairChestnut", "hairPlum"] as const;
+
+    for (const style of styles) {
+      for (const color of colors) {
+        const config = {
+          ...avatarV2SampleConfigs.showcaseSampleA,
+          hair: { style, color },
+          accessory: {
+            ...avatarV2SampleConfigs.showcaseSampleA.accessory,
+            style: "none" as const,
+          },
+        };
+        const svg = renderAvatarV2Svg(config);
+
+        expect(validateAvatarV2HairSvg(svg, style)).toBe(true);
+        expect(svg).toContain(`data-hair-highlight="${style}"`);
+        expect(svg).not.toContain("<image");
+        expect(svg).not.toMatch(/(?:href|src)=\"https?:\/\//);
+        expect(svg).toBe(renderAvatarV2Svg(config));
+      }
     }
   });
 
