@@ -4,7 +4,7 @@
 Phase 2 — Durable Household Core
 
 ## Current Slice
-Avatar V2 Engine Quality Upgrade Analysis — Completed
+Avatar V2 Wide Head Anatomy Review and Fix — Completed
 
 ## Completed Slices
 - 1.1 Repository Bootstrap
@@ -39,6 +39,11 @@ Avatar V2 Engine Quality Upgrade Analysis — Completed
 - HomeOps Long-Term Usage Review
 - Celebration Asset Integration
 - Weekly Reset Explanation Compaction
+
+### Avatar V2 Wide Head Anatomy Review and Fix — Completed 2026-06-22
+- Reviewed round, oval, and wide Avatar V2 anatomy across head silhouette, ear placement, eye placement, glasses placement, mouth placement, and facial proportions.
+- Corrected the regression as an interacting anatomy issue: ear anchors had been moved too far into the head silhouette, wide eye spread made glasses less natural, and glasses bridge/temple geometry used fixed offsets instead of fully following anatomy anchors.
+- Regenerated Showcase Sample A, B, C, and D while preserving SVG-only deterministic rendering and keeping Avatar V2 isolated from editor, persistence, and production UI integration.
 
 
 ### Avatar V2 Engine Quality Upgrade Analysis — Completed 2026-06-22

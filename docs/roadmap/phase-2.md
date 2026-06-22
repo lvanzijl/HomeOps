@@ -28,6 +28,7 @@
 | 2.43 | Tasks Hierarchy Compaction | Completed |
 | 2.54 | Navigation Architecture Cleanup | Completed |
 | 2.55 | Color Token Cleanup | Completed |
+| 2.56 | Avatar V2 Wide Head Anatomy Review and Fix | Completed |
 | 2.41 | No-Date Task Lifecycle | Completed |
 
 Phase 2 theme: Durable Household Core.
@@ -65,6 +66,10 @@ Calendar Recurrence adds V1 recurrence metadata to EventSeries, supports None/Da
 
 
 
+
+
+## Completed Slice 2.56 — Avatar V2 Wide Head Anatomy Review and Fix
+Avatar V2 Wide Head Anatomy Review and Fix corrected a visual regression introduced by symptom-focused ear overlap tuning. The fix keeps AvatarAnatomy as the source of truth, moves ears back to visibly external-but-attached silhouette anchors for round, oval, and wide heads, narrows the wide eye spread slightly for better facial balance, and makes glasses bridge/temple geometry derive from eye and ear anchors instead of fixed offsets. Showcase Sample A, B, C, and D were regenerated. No editor functionality, persistence, production UI integration, raster assets, external URLs, new head variants, new hairstyles, or new clothing assets were introduced.
 
 ## Completed Slice 2.55 — Color Token Cleanup
 Color Token Cleanup adds a shared design-system color vocabulary for product surfaces, borders, elevation, domain accents, and member tints. The client now routes repeated neutral, warm, emotional, review, glass, domain, and member color decisions through explicit CSS custom properties while preserving visual hierarchy and page behavior. Existing layouts, spacing, typography, navigation, workflows, emotional Motivation surfaces, child/member surfaces, and dashboard/operational page roles remain unchanged. No dark mode, theme redesign, card redesign, Avatar V2, asset redesign, or feature behavior changes were introduced.

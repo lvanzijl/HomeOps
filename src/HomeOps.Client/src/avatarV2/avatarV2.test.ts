@@ -75,8 +75,7 @@ describe("Avatar V2 SVG renderer", () => {
   });
 
 
-  it("keeps ears physically attached to round, oval, and wide head silhouettes", () => {
-    const expectedMinimumOverlap = 8;
+  it("keeps ears visibly attached without embedding them in round, oval, and wide silhouettes", () => {
     const variants = ["round", "oval", "wide"] as const;
 
     for (const headVariant of variants) {
@@ -85,16 +84,46 @@ describe("Avatar V2 SVG renderer", () => {
         headVariant,
       });
       const { head, ears } = anatomy;
-      const leftEarInsideHead =
-        ears.left.x + ears.width / 2 - head.bounds.x;
-      const rightEarInsideHead =
-        head.bounds.x + head.bounds.width - (ears.right.x - ears.width / 2);
+      const leftVisibleOutsideHead = head.bounds.x - (ears.left.x - ears.width / 2);
+      const rightVisibleOutsideHead = ears.right.x + ears.width / 2 - (head.bounds.x + head.bounds.width);
+      const leftAttachedInsideHead = ears.left.x + ears.width / 2 - head.bounds.x;
+      const rightAttachedInsideHead = head.bounds.x + head.bounds.width - (ears.right.x - ears.width / 2);
 
-      expect(leftEarInsideHead).toBeGreaterThanOrEqual(expectedMinimumOverlap);
-      expect(rightEarInsideHead).toBeGreaterThanOrEqual(expectedMinimumOverlap);
-      expect(ears.left.y).toBeGreaterThan(head.bounds.y);
-      expect(ears.left.y).toBeLessThan(head.bounds.y + head.bounds.height);
+      expect(leftVisibleOutsideHead).toBeGreaterThanOrEqual(6);
+      expect(rightVisibleOutsideHead).toBeGreaterThanOrEqual(6);
+      expect(leftAttachedInsideHead).toBeGreaterThanOrEqual(6);
+      expect(rightAttachedInsideHead).toBeGreaterThanOrEqual(6);
+      expect(ears.left.y).toBeGreaterThan(head.bounds.y + head.bounds.height * 0.5);
+      expect(ears.left.y).toBeLessThan(head.bounds.y + head.bounds.height * 0.78);
       expect(ears.right.y).toBe(ears.left.y);
+    }
+  });
+
+  it("aligns glasses to anatomy eye anchors for round, oval, and wide heads", () => {
+    const variants = ["round", "oval", "wide"] as const;
+
+    for (const headVariant of variants) {
+      const config = {
+        ...avatarV2SampleConfigs.calmChildWithGlasses,
+        headVariant,
+        glasses: {
+          ...avatarV2SampleConfigs.calmChildWithGlasses.glasses,
+          style: "softSquare" as const,
+        },
+      };
+      const anatomy = resolveAvatarAnatomy(config);
+      const svg = renderAvatarV2Svg(config);
+      const lensWidth = 30;
+      const leftLensX = anatomy.face.leftEye.x - lensWidth / 2;
+      const rightLensX = anatomy.face.rightEye.x - lensWidth / 2;
+
+      expect(svg).toContain(`rect x="${leftLensX}"`);
+      expect(svg).toContain(`rect x="${rightLensX}"`);
+      expect(svg).toContain(`M${leftLensX + lensWidth} ${anatomy.face.eyeLineY - 1}H${rightLensX}`);
+      expect(anatomy.face.leftEye.x).toBeGreaterThan(leftLensX);
+      expect(anatomy.face.leftEye.x).toBeLessThan(leftLensX + lensWidth);
+      expect(anatomy.face.rightEye.x).toBeGreaterThan(rightLensX);
+      expect(anatomy.face.rightEye.x).toBeLessThan(rightLensX + lensWidth);
     }
   });
 
