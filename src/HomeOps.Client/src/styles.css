@@ -1,6 +1,40 @@
 :root {
-  color: #172033;
-  background: #f5f7fb;
+  --color-text-default: #172033;
+  --color-text-strong: #1f2a44;
+  --color-text-muted: #5c667a;
+  --color-brand-accent: #4f46e5;
+  --color-brand-accent-strong: #312e81;
+  --surface-default: #ffffff;
+  --surface-app: #f5f7fb;
+  --surface-subtle: #fbfcff;
+  --surface-warm: #fffdf8;
+  --surface-warm-tint: #fffaf3;
+  --surface-emotional: #fff7ed;
+  --surface-review: rgb(255 255 255 / 90%);
+  --surface-glass: rgb(255 255 255 / 74%);
+  --surface-glass-strong: rgb(255 255 255 / 88%);
+  --border-default: #d7ddea;
+  --border-subtle: rgb(215 221 234 / 80%);
+  --border-warm: #eadfd1;
+  --border-emotional: #fed7aa;
+  --border-review: var(--domain-border, var(--border-emotional));
+  --elevation-0: none;
+  --elevation-1: 0 8px 20px rgb(23 32 51 / 8%);
+  --elevation-2: 0 10px 30px rgb(23 32 51 / 8%);
+  --elevation-warm-1: 0 12px 32px rgb(120 90 60 / 10%);
+  --elevation-emotional-1: 0 18px 48px color-mix(in srgb, var(--domain-accent, #f97316) 12%, transparent);
+  --elevation-dialog: 0 24px 80px rgb(23 32 51 / 24%);
+  --domain-accent: var(--color-brand-accent);
+  --domain-accent-strong: var(--color-brand-accent-strong);
+  --domain-tint: var(--surface-default);
+  --domain-tint-2: var(--surface-subtle);
+  --domain-border: var(--border-default);
+  --member-accent: var(--member-color, var(--domain-accent));
+  --member-surface: color-mix(in srgb, var(--member-accent) 35%, white);
+  --member-border: var(--member-accent);
+
+  color: var(--color-text-default);
+  background: var(--surface-app);
   font-family:
     Inter,
     ui-sans-serif,
@@ -39,7 +73,7 @@ button {
 }
 
 .eyebrow {
-  color: #4f46e5;
+  color: var(--color-brand-accent);
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -81,14 +115,14 @@ button {
 
 .workspace-nav-button,
 .workspace-panel {
-  border: 1px solid #d7ddea;
+  border: 1px solid var(--border-default);
   border-radius: 1rem;
-  background: #ffffff;
-  box-shadow: 0 10px 30px rgb(23 32 51 / 8%);
+  background: var(--surface-default);
+  box-shadow: var(--elevation-2);
 }
 
 .workspace-nav-button {
-  color: #1f2a44;
+  color: var(--color-text-strong);
   cursor: pointer;
   font-size: 0.88rem;
   min-height: 2.15rem;
@@ -111,8 +145,8 @@ button {
 }
 
 .workspace-nav-button[aria-current="page"] {
-  border-color: #4f46e5;
-  color: #312e81;
+  border-color: var(--color-brand-accent);
+  color: var(--color-brand-accent-strong);
   font-weight: 700;
 }
 
@@ -138,7 +172,7 @@ button {
 }
 
 .workspace-page-header p:last-child {
-  color: #5c667a;
+  color: var(--color-text-muted);
   font-size: 0.86rem;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -147,7 +181,7 @@ button {
 
 .workspace-position {
   background: rgba(255, 255, 255, 0.7);
-  border: 1px solid #d7ddea;
+  border: 1px solid var(--border-default);
   border-radius: 999px;
   flex: 0 0 auto;
   font-size: 0.75rem;
@@ -157,7 +191,7 @@ button {
 
 .workspace-position,
 .widget-type {
-  color: #5c667a;
+  color: var(--color-text-muted);
 }
 
 .widget-host {
@@ -167,9 +201,9 @@ button {
 }
 
 .widget-card {
-  border: 1px solid #d7ddea;
+  border: 1px solid var(--border-default);
   border-radius: 0.875rem;
-  background: #fbfcff;
+  background: var(--surface-subtle);
   padding: 1rem;
 }
 
@@ -202,21 +236,21 @@ button {
 }
 
 .agenda-view-toggle button {
-  border: 1px solid #d7ddea;
+  border: 1px solid var(--border-default);
   border-radius: 999px;
-  background: #ffffff;
+  background: var(--surface-default);
   cursor: pointer;
   padding: 0.45rem 0.75rem;
 }
 
 .agenda-view-toggle button[aria-pressed="true"] {
-  border-color: #4f46e5;
-  color: #312e81;
+  border-color: var(--color-brand-accent);
+  color: var(--color-brand-accent-strong);
   font-weight: 700;
 }
 
 .source-selector {
-  border: 1px solid #d7ddea;
+  border: 1px solid var(--border-default);
   border-radius: 0.75rem;
   display: flex;
   flex-wrap: wrap;
@@ -254,7 +288,7 @@ button {
 }
 
 .agenda-group {
-  border-top: 1px solid #d7ddea;
+  border-top: 1px solid var(--border-default);
   padding-top: 0.75rem;
 }
 
@@ -267,7 +301,7 @@ button {
 }
 
 .agenda-event small {
-  color: #5c667a;
+  color: var(--color-text-muted);
   display: block;
   margin-top: 0.2rem;
 }
@@ -286,16 +320,16 @@ button {
 }
 
 .shopping-add-form input {
-  border: 1px solid #d7ddea;
+  border: 1px solid var(--border-default);
   border-radius: 0.75rem;
   padding: 0.65rem 0.75rem;
 }
 
 .shopping-add-form button,
 .shopping-item button {
-  border: 1px solid #d7ddea;
+  border: 1px solid var(--border-default);
   border-radius: 999px;
-  background: #ffffff;
+  background: var(--surface-default);
   cursor: pointer;
   padding: 0.45rem 0.75rem;
 }
@@ -313,7 +347,7 @@ button {
 }
 
 .shopping-empty {
-  color: #5c667a;
+  color: var(--color-text-muted);
 }
 
 .visually-hidden {
@@ -332,7 +366,7 @@ button {
 }
 
 .calendar-portability-actions {
-  border: 1px solid #d7ddea;
+  border: 1px solid var(--border-default);
   border-radius: 0.75rem;
   display: grid;
   gap: 0.5rem;
@@ -341,9 +375,9 @@ button {
 
 .calendar-portability-actions button,
 .calendar-portability-widget > button {
-  border: 1px solid #d7ddea;
+  border: 1px solid var(--border-default);
   border-radius: 999px;
-  background: #ffffff;
+  background: var(--surface-default);
   cursor: pointer;
   justify-self: start;
   padding: 0.45rem 0.75rem;
@@ -385,7 +419,7 @@ button {
 
 .home-hero {
   align-items: center;
-  background: linear-gradient(135deg, #fff7ed, #ecfeff 55%, #fdf2f8);
+  background: linear-gradient(135deg, var(--surface-emotional), #ecfeff 55%, #fdf2f8);
   border: 1px solid #ead7c7;
   border-radius: 1rem;
   display: grid;
@@ -411,7 +445,7 @@ button {
 }
 
 .weather-placeholder {
-  color: #5c667a;
+  color: var(--color-text-muted);
   font-size: 0.8rem;
   font-weight: 700;
 }
@@ -442,7 +476,7 @@ button {
 }
 
 .quick-capture-header p:not(.eyebrow) {
-  color: #5c667a;
+  color: var(--color-text-muted);
   font-size: 0.72rem;
   font-weight: 700;
 }
@@ -456,8 +490,8 @@ button {
 
 .family-chip {
   align-items: center;
-  background: color-mix(in srgb, var(--member-color) 35%, white);
-  border: 1px solid var(--member-color);
+  background: var(--member-surface);
+  border: 1px solid var(--member-border);
   border-radius: 999px;
   display: inline-flex;
   font-weight: 800;
@@ -490,16 +524,16 @@ button {
 .family-member-copy small,
 .home-card-header small,
 .home-context-note {
-  color: #5c667a;
+  color: var(--color-text-muted);
   font-size: 0.78rem;
   font-weight: 600;
 }
 
 .quick-capture button,
 .more-link {
-  border: 1px solid #d7ddea;
+  border: 1px solid var(--border-default);
   border-radius: 999px;
-  background: #ffffff;
+  background: var(--surface-default);
   cursor: pointer;
   font-weight: 700;
   min-height: 2.75rem;
@@ -522,7 +556,7 @@ button {
 }
 
 .quick-capture-action {
-  box-shadow: 0 8px 20px rgb(23 32 51 / 8%);
+  box-shadow: var(--elevation-1);
   white-space: nowrap;
 }
 
@@ -536,10 +570,10 @@ button {
 }
 
 .home-summary-card {
-  background: #fffdf8;
-  border: 1px solid #eadfd1;
+  background: var(--surface-warm);
+  border: 1px solid var(--border-warm);
   border-radius: 1.25rem;
-  box-shadow: 0 12px 32px rgb(120 90 60 / 10%);
+  box-shadow: var(--elevation-warm-1);
   cursor: pointer;
   padding: 1rem;
 }
@@ -569,7 +603,7 @@ button {
 }
 
 .agenda-summary-group h4 {
-  color: #5c667a;
+  color: var(--color-text-muted);
   font-size: 0.8rem;
   letter-spacing: 0.06em;
   margin: 0 0 0.35rem;
@@ -628,7 +662,7 @@ button {
 }
 
 .home-summary-list small {
-  color: #5c667a;
+  color: var(--color-text-muted);
 }
 
 @media (max-width: 900px) {
@@ -678,7 +712,7 @@ button {
 }
 
 .family-chip {
-  color: #172033;
+  color: var(--color-text-default);
   cursor: pointer;
   font: inherit;
 }
@@ -690,8 +724,8 @@ button {
 
 .back-link,
 .family-member-hero button {
-  background: #ffffff;
-  border: 1px solid #d7ddea;
+  background: var(--surface-default);
+  border: 1px solid var(--border-default);
   border-radius: 999px;
   color: #7c3aed;
   cursor: pointer;
@@ -706,10 +740,10 @@ button {
   align-items: center;
   background: linear-gradient(
     135deg,
-    color-mix(in srgb, var(--member-color) 35%, white),
-    #fffaf3
+    var(--member-surface),
+    var(--surface-warm-tint)
   );
-  border: 1px solid var(--member-color);
+  border: 1px solid var(--member-border);
   border-radius: 1.5rem;
   display: grid;
   gap: 1rem;
@@ -735,10 +769,10 @@ button {
 }
 
 .family-member-detail-card {
-  background: #fffdf8;
-  border: 1px solid #eadfd1;
+  background: var(--surface-warm);
+  border: 1px solid var(--border-warm);
   border-radius: 1.25rem;
-  box-shadow: 0 12px 32px rgb(120 90 60 / 10%);
+  box-shadow: var(--elevation-warm-1);
   padding: 1rem;
 }
 
@@ -757,7 +791,7 @@ button {
   gap: 1rem;
 }
 .family-member-detail-list dt {
-  color: #5c667a;
+  color: var(--color-text-muted);
   font-weight: 800;
 }
 .family-member-detail-list dd {
@@ -768,16 +802,16 @@ button {
   text-align: right;
 }
 .color-swatch {
-  border: 1px solid #ffffff;
+  border: 1px solid var(--surface-default);
   border-radius: 999px;
-  box-shadow: 0 0 0 1px #d7ddea;
+  box-shadow: 0 0 0 1px var(--border-default);
   display: inline-block;
   height: 1rem;
   width: 1rem;
 }
 .muted-card {
   background: #f8fafc;
-  color: #5c667a;
+  color: var(--color-text-muted);
 }
 
 .family-avatar-portrait,
@@ -860,7 +894,7 @@ button {
   z-index: 4;
 }
 .avatar-eye {
-  background: #172033;
+  background: var(--color-text-default);
   border-radius: 50%;
   height: 7%;
   position: absolute;
@@ -883,7 +917,7 @@ button {
   width: 24%;
 }
 .avatar-glasses {
-  border: 1.5px solid #172033;
+  border: 1.5px solid var(--color-text-default);
   border-left-width: 1px;
   border-right-width: 1px;
   border-radius: 999px;
@@ -922,7 +956,7 @@ button {
 }
 
 .avatar-editor {
-  background: #fffaf3;
+  background: var(--surface-warm-tint);
   border: 1px solid #f1dcc4;
   border-radius: 1.5rem;
   box-shadow: 0 24px 70px rgb(23 32 51 / 24%);
@@ -952,14 +986,14 @@ button {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 .avatar-editor label {
-  color: #5c667a;
+  color: var(--color-text-muted);
   display: grid;
   font-size: 0.82rem;
   font-weight: 800;
   gap: 0.25rem;
 }
 .avatar-editor select {
-  border: 1px solid #d7ddea;
+  border: 1px solid var(--border-default);
   border-radius: 0.75rem;
   font: inherit;
   padding: 0.55rem;
@@ -969,8 +1003,8 @@ button {
   grid-template-columns: auto 1fr !important;
 }
 .icon-button {
-  background: #ffffff;
-  border: 1px solid #d7ddea;
+  background: var(--surface-default);
+  border: 1px solid var(--border-default);
   border-radius: 999px;
   cursor: pointer;
   font-size: 1.3rem;
@@ -1095,9 +1129,9 @@ button {
 .domain-home {
   --domain-accent: #f59e0b;
   --domain-accent-strong: #b45309;
-  --domain-tint: #fff7ed;
+  --domain-tint: var(--surface-emotional);
   --domain-tint-2: #fdf2f8;
-  --domain-border: #fed7aa;
+  --domain-border: var(--border-emotional);
 }
 .domain-agenda {
   --domain-accent: #8b5cf6;
@@ -1110,7 +1144,7 @@ button {
   --domain-accent: #f59e0b;
   --domain-accent-strong: #b45309;
   --domain-tint: #fffbeb;
-  --domain-tint-2: #fff7ed;
+  --domain-tint-2: var(--surface-emotional);
   --domain-border: #fde68a;
 }
 .domain-tasks {
@@ -1152,31 +1186,31 @@ button {
 .workspace-panel {
   background: linear-gradient(
     135deg,
-    var(--domain-tint, #ffffff),
-    #ffffff 46%,
+    var(--domain-tint, var(--surface-default)),
+    var(--surface-default) 46%,
     var(--domain-tint-2, #f8fafc)
   );
-  border-color: var(--domain-border, #d7ddea);
+  border-color: var(--domain-border, var(--border-default));
 }
 
 .workspace-nav-button {
-  background: color-mix(in srgb, var(--domain-tint, #ffffff) 86%, white);
-  border-color: var(--domain-border, #d7ddea);
-  color: var(--domain-accent-strong, #1f2a44);
+  background: color-mix(in srgb, var(--domain-tint, var(--surface-default)) 86%, white);
+  border-color: var(--domain-border, var(--border-default));
+  color: var(--domain-accent-strong, var(--color-text-strong));
 }
 
 .workspace-nav-button:hover,
 .workspace-nav-button:focus-visible {
-  border-color: var(--domain-accent, #4f46e5);
+  border-color: var(--domain-accent, var(--color-brand-accent));
   box-shadow: 0 0 0 3px
-    color-mix(in srgb, var(--domain-accent, #4f46e5) 24%, transparent);
+    color-mix(in srgb, var(--domain-accent, var(--color-brand-accent)) 24%, transparent);
   outline: none;
 }
 
 .workspace-nav-button[aria-current="page"] {
-  background: var(--domain-accent, #4f46e5);
-  border-color: var(--domain-accent-strong, #312e81);
-  color: #ffffff;
+  background: var(--domain-accent, var(--color-brand-accent));
+  border-color: var(--domain-accent-strong, var(--color-brand-accent-strong));
+  color: var(--surface-default);
 }
 
 .widget-card,
@@ -1185,24 +1219,24 @@ button {
 .tasks-page,
 .domain-placeholder-page {
   background: rgba(255, 255, 255, 0.88);
-  border-color: var(--domain-border, #d7ddea);
+  border-color: var(--domain-border, var(--border-default));
 }
 
 .home-hero,
 .family-member-hero {
   background: linear-gradient(
     135deg,
-    var(--domain-tint, #fff7ed),
-    #ffffff 58%,
+    var(--domain-tint, var(--surface-emotional)),
+    var(--surface-default) 58%,
     var(--domain-tint-2, #fdf2f8)
   );
   border-color: var(--domain-border, #ead7c7);
 }
 
 .domain-placeholder-page {
-  border: 1px solid var(--domain-border, #d7ddea);
+  border: 1px solid var(--domain-border, var(--border-default));
   border-radius: 1.25rem;
-  box-shadow: 0 12px 32px rgb(120 90 60 / 10%);
+  box-shadow: var(--elevation-warm-1);
   display: grid;
   gap: 0.35rem;
   padding: 1rem;
@@ -1254,8 +1288,8 @@ button {
 }
 
 .home-quick-form {
-  background: rgb(255 255 255 / 74%);
-  border: 1px solid rgb(215 221 234 / 80%);
+  background: var(--surface-glass);
+  border: 1px solid var(--border-subtle);
   border-radius: 0.9rem;
   display: grid;
   gap: 0.35rem;
@@ -1268,10 +1302,10 @@ button {
 }
 
 .home-capture-dialog {
-  background: #ffffff;
-  border: 1px solid var(--domain-border, #fed7aa);
+  background: var(--surface-default);
+  border: 1px solid var(--domain-border, var(--border-emotional));
   border-radius: 1.25rem;
-  box-shadow: 0 24px 80px rgb(23 32 51 / 24%);
+  box-shadow: var(--elevation-dialog);
   display: grid;
   gap: 1rem;
   max-width: min(34rem, calc(100vw - 2rem));
@@ -1292,11 +1326,11 @@ button {
 }
 
 .event-dialog-form {
-  background: color-mix(in srgb, var(--domain-tint, #fff7ed) 68%, white);
+  background: color-mix(in srgb, var(--domain-tint, var(--surface-emotional)) 68%, white);
 }
 
 .home-quick-form label {
-  color: #5c667a;
+  color: var(--color-text-muted);
   font-size: 0.75rem;
   font-weight: 800;
   letter-spacing: 0.04em;
@@ -1312,7 +1346,7 @@ button {
 
 .home-quick-row input,
 .home-quick-row select {
-  border: 1px solid #d7ddea;
+  border: 1px solid var(--border-default);
   border-radius: 999px;
   min-height: 2.25rem;
   padding: 0.35rem 0.7rem;
@@ -1333,9 +1367,9 @@ button {
 .domain-motivation {
   --domain-accent: #f97316;
   --domain-accent-strong: #c2410c;
-  --domain-tint: #fff7ed;
+  --domain-tint: var(--surface-emotional);
   --domain-tint-2: #fffbeb;
-  --domain-border: #fed7aa;
+  --domain-border: var(--border-emotional);
 }
 
 .motivation-page {
@@ -1346,11 +1380,10 @@ button {
 .family-goal-card,
 .individual-goal-card,
 .family-goal-form {
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid var(--domain-border, #fed7aa);
+  background: var(--surface-review);
+  border: 1px solid var(--domain-border, var(--border-emotional));
   border-radius: 1.35rem;
-  box-shadow: 0 18px 48px
-    color-mix(in srgb, var(--domain-accent, #f97316) 12%, transparent);
+  box-shadow: var(--elevation-emotional-1);
   padding: 0.8rem;
 }
 .motivation-header {
@@ -1380,8 +1413,8 @@ button {
   color: #64748b;
 }
 .celebration-label {
-  background: #fff7ed;
-  border: 1px solid #fed7aa;
+  background: var(--surface-emotional);
+  border: 1px solid var(--border-emotional);
   border-radius: 1rem;
   color: #9a3412;
   display: inline-flex;
@@ -1460,7 +1493,7 @@ button {
   width: 2rem;
 }
 .star-row span.filled {
-  background: color-mix(in srgb, var(--member-color, #facc15) 30%, #fff7ed);
+  background: color-mix(in srgb, var(--member-color, #facc15) 30%, var(--surface-emotional));
   border-color: var(--member-color, #facc15);
   color: #92400e;
 }
@@ -1513,7 +1546,7 @@ button {
 }
 .family-goal-form input,
 .family-goal-form select {
-  border: 1px solid #fed7aa;
+  border: 1px solid var(--border-emotional);
   border-radius: 0.8rem;
   font: inherit;
   padding: 0.65rem 0.75rem;
@@ -1521,7 +1554,7 @@ button {
 
 .compact-overview-section {
   background: rgba(255, 255, 255, 0.82);
-  border: 1px solid var(--domain-border, #fed7aa);
+  border: 1px solid var(--domain-border, var(--border-emotional));
   border-radius: 1.35rem;
   box-shadow: 0 14px 34px
     color-mix(in srgb, var(--domain-accent, #f97316) 8%, transparent);
@@ -1735,7 +1768,7 @@ button {
   justify-self: start;
   border: 0;
   border-radius: 999px;
-  background: #fff7ed;
+  background: var(--surface-emotional);
   color: #7c2d12;
   font-weight: 800;
   padding: 0.55rem 0.8rem;
@@ -1757,7 +1790,7 @@ button {
 .child-progress-card {
   background: rgba(255, 255, 255, 0.92);
   border: 1px solid
-    color-mix(in srgb, var(--member-color, #facc15) 35%, #eadfd1);
+    color-mix(in srgb, var(--member-color, #facc15) 35%, var(--border-warm));
   border-radius: 1.35rem;
   box-shadow: 0 16px 40px rgb(120 90 60 / 10%);
   padding: 1rem;
@@ -1793,7 +1826,7 @@ button {
 }
 .child-task-list li {
   align-items: center;
-  background: #fff7ed;
+  background: var(--surface-emotional);
   border: 1px solid rgba(251, 146, 60, 0.22);
   border-radius: 1rem;
   display: grid;
@@ -1802,7 +1835,7 @@ button {
   padding: 0.75rem;
 }
 .child-task-list li > span {
-  background: color-mix(in srgb, var(--member-color, #facc15) 42%, #ffffff);
+  background: color-mix(in srgb, var(--member-color, #facc15) 42%, var(--surface-default));
   border-radius: 999px;
   color: #7c2d12;
   display: grid;
@@ -1819,7 +1852,7 @@ button {
 }
 .family-celebration-card {
   align-items: center;
-  background: linear-gradient(135deg, #fff7ed, #fef3c7);
+  background: linear-gradient(135deg, var(--surface-emotional), #fef3c7);
   border: 1px solid rgba(251, 146, 60, 0.24);
   border-radius: 1rem;
   display: grid;
@@ -1844,9 +1877,9 @@ button {
   gap: 0.75rem;
 }
 .child-goal-card {
-  background: color-mix(in srgb, var(--member-color, #facc15) 12%, #ffffff);
+  background: color-mix(in srgb, var(--member-color, #facc15) 12%, var(--surface-default));
   border: 1px solid
-    color-mix(in srgb, var(--member-color, #facc15) 40%, #ffffff);
+    color-mix(in srgb, var(--member-color, #facc15) 40%, var(--surface-default));
   border-radius: 1rem;
   padding: 0.85rem;
 }
@@ -2116,12 +2149,12 @@ button {
 }
 
 .shopping-store-field {
-  color: #5c667a;
+  color: var(--color-text-muted);
   font-size: 0.8rem;
 }
 
 .shopping-store-field input {
-  border: 1px solid #d7ddea;
+  border: 1px solid var(--border-default);
   border-radius: 999px;
   max-width: 9rem;
   padding: 0.35rem 0.55rem;
@@ -2140,7 +2173,7 @@ button {
 .member-mode-switch {
   align-items: center;
   background: rgba(255, 255, 255, 0.72);
-  border: 1px solid #eadfd1;
+  border: 1px solid var(--border-warm);
   border-radius: 999px;
   display: flex;
   gap: 0.35rem;
@@ -2159,7 +2192,7 @@ button {
   padding: 0.65rem 1rem;
 }
 .member-mode-switch button.active {
-  background: #fff7ed;
+  background: var(--surface-emotional);
   box-shadow: 0 10px 24px rgb(120 53 15 / 12%);
   color: #9a3412;
 }
@@ -2198,8 +2231,8 @@ button {
   background: rgba(255, 255, 255, 0.86);
 }
 .parent-administration-intro button {
-  background: #ffffff;
-  border: 1px solid #d7ddea;
+  background: var(--surface-default);
+  border: 1px solid var(--border-default);
   color: #7c3aed;
 }
 @media (max-width: 760px) {
@@ -2219,9 +2252,9 @@ button {
       color-mix(in srgb, var(--member-color, #facc15) 34%, transparent),
       transparent 28%
     ),
-    linear-gradient(135deg, #fff7ed 0%, #ffffff 48%, #fef3c7 100%);
+    linear-gradient(135deg, var(--surface-emotional) 0%, var(--surface-default) 48%, #fef3c7 100%);
   border: 2px solid
-    color-mix(in srgb, var(--member-color, #facc15) 42%, #fed7aa);
+    color-mix(in srgb, var(--member-color, #facc15) 42%, var(--border-emotional));
   border-radius: 2rem;
   box-shadow: 0 28px 70px rgb(120 53 15 / 18%);
   display: grid;
@@ -2321,7 +2354,7 @@ button {
   color: #9a3412;
 }
 .child-hero-celebration {
-  background: #fff7ed;
+  background: var(--surface-emotional);
   border-radius: 1rem;
   grid-template-columns: auto 1fr;
   margin-top: 0.35rem;
@@ -2361,8 +2394,8 @@ button {
   text-transform: uppercase;
 }
 .motivation-story span:not([aria-hidden="true"]) {
-  background: #fff7ed;
-  border: 1px solid #fed7aa;
+  background: var(--surface-emotional);
+  border: 1px solid var(--border-emotional);
   border-radius: 999px;
   padding: 0.3rem 0.55rem;
 }
@@ -2370,7 +2403,7 @@ button {
   align-items: center;
   background:
     radial-gradient(circle at 8% 16%, rgb(251 191 36 / 34%), transparent 30%),
-    linear-gradient(135deg, #fff7ed 0%, #fef3c7 52%, #ffffff 100%);
+    linear-gradient(135deg, var(--surface-emotional) 0%, #fef3c7 52%, var(--surface-default) 100%);
   border: 2px solid #fdba74;
   border-radius: 1.45rem;
   box-shadow: 0 18px 42px rgb(154 52 18 / 14%);
@@ -2406,7 +2439,7 @@ button {
 }
 
 .celebration-surface-icon {
-  background: #ffffff;
+  background: var(--surface-default);
   border-radius: 1rem;
   box-shadow: 0 12px 26px rgb(154 52 18 / 16%);
   display: grid;
@@ -2437,7 +2470,7 @@ button {
 }
 .home-celebration-surface {
   align-items: center;
-  background: linear-gradient(135deg, #fff7ed, #fef3c7);
+  background: linear-gradient(135deg, var(--surface-emotional), #fef3c7);
   border: 1px solid #fdba74;
   border-radius: 1rem;
   color: #7c2d12;
@@ -2734,7 +2767,7 @@ button {
 }
 
 .shopping-header > p {
-  color: #5c667a;
+  color: var(--color-text-muted);
   font-size: 0.9rem;
   white-space: nowrap;
 }
@@ -2762,7 +2795,7 @@ button {
 }
 
 .shopping-list-management {
-  border-top: 1px solid #d7ddea;
+  border-top: 1px solid var(--border-default);
   padding-top: 0.75rem;
 }
 
@@ -2778,7 +2811,7 @@ button {
 }
 
 .shopping-item-options {
-  color: #5c667a;
+  color: var(--color-text-muted);
   font-size: 0.85rem;
 }
 
@@ -2813,7 +2846,7 @@ button {
 }
 
 .child-family-cue {
-  background: #fff7ed;
+  background: var(--surface-emotional);
   border: 1px solid rgba(251, 146, 60, 0.24);
   border-radius: 999px;
   color: #9a3412 !important;

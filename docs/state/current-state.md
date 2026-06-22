@@ -508,3 +508,7 @@ Card System Consolidation Phase 1 introduced shared card primitives for `Card`, 
 
 ## Navigation Architecture Cleanup — 2026-06-22
 Primary navigation now represents daily household work only: Home, Agenda, Tasks, Lists, and Motivation. Weekly Reset, House Status, Media, and Gamification remain reachable as secondary/occasional or future-context destinations, Settings moved to an Administration affordance, and Child Workspace remains contextual through Home family member selection. Existing routes, page behavior, and workflows were preserved.
+
+
+## Color Token Cleanup — 2026-06-22
+Color Token Cleanup introduced a shared design-system color vocabulary for text, brand accents, surfaces, borders, elevation, domain accents, and member tints in the client stylesheet. Workspace shells, widget cards, Home summary cards, family member detail cards, placeholder pages, dialogs, and Motivation review surfaces now route repeated surface, border, shadow, domain, and member values through explicit tokens while preserving current layouts, spacing, typography, workflows, navigation, and emotional/child-friendly visual differentiation.

@@ -27,6 +27,7 @@
 | 2.42 | Shopping Intelligence V2 | Completed |
 | 2.43 | Tasks Hierarchy Compaction | Completed |
 | 2.54 | Navigation Architecture Cleanup | Completed |
+| 2.55 | Color Token Cleanup | Completed |
 | 2.41 | No-Date Task Lifecycle | Completed |
 
 Phase 2 theme: Durable Household Core.
@@ -63,6 +64,10 @@ Calendar Recurrence adds V1 recurrence metadata to EventSeries, supports None/Da
 
 
 
+
+
+## Completed Slice 2.55 — Color Token Cleanup
+Color Token Cleanup adds a shared design-system color vocabulary for product surfaces, borders, elevation, domain accents, and member tints. The client now routes repeated neutral, warm, emotional, review, glass, domain, and member color decisions through explicit CSS custom properties while preserving visual hierarchy and page behavior. Existing layouts, spacing, typography, navigation, workflows, emotional Motivation surfaces, child/member surfaces, and dashboard/operational page roles remain unchanged. No dark mode, theme redesign, card redesign, Avatar V2, asset redesign, or feature behavior changes were introduced.
 
 ## Completed Slice 2.54 — Navigation Architecture Cleanup
 Navigation Architecture Cleanup aligns the shell with real household usage by limiting Primary Navigation to daily work: Home, Agenda, Tasks, Lists, and Motivation. Weekly Reset, House Status, Media, and Gamification remain reachable as secondary/occasional or future-context surfaces; Child Workspace remains contextual through family member selection; and Settings moves into an Administration affordance. Existing routes, page behavior, workflows, and functionality remain preserved. No new pages, domains, route removals, child workspace redesign, home redesign, or feature behavior changes were introduced.
