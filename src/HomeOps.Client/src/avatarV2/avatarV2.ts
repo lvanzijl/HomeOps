@@ -25,14 +25,28 @@ export type HairStyle =
   | "longSoft"
   | "curlyPlayful";
 export type GlassesStyle = "none" | "round" | "softSquare";
-export type ShirtStyle = "roundedTee" | "collar" | "hoodie";
+export type ShirtStyle =
+  | "roundedTee"
+  | "collar"
+  | "hoodie"
+  | "sweater"
+  | "tShirt"
+  | "overall";
 export type AccessoryStyle =
   | "none"
   | "starClip"
   | "leafPin"
   | "tinyCrown"
-  | "chestStar";
-export type AvatarMountPoint = "chestCenter";
+  | "chestStar"
+  | "star"
+  | "flower"
+  | "headband"
+  | "bow";
+export type AvatarMountPoint =
+  | "chestCenter"
+  | "hairLeft"
+  | "hairRight"
+  | "headTop";
 type AvatarPoint = { x: number; y: number };
 type AvatarBounds = AvatarPoint & {
   width: number;
@@ -188,9 +202,33 @@ export function resolveAvatarAnatomy(config: AvatarConfig): AvatarAnatomy {
   const b = presets[variant];
   const center = { x: b.x + b.width / 2, y: b.y + b.height / 2 };
   const faceTuning = {
-    round: { eyeYOffset: 49, eyeSpread: 19, mouthYOffset: 70, earYOffset: 61, earW: 17, earH: 25, earInset: -1 },
-    oval: { eyeYOffset: 55, eyeSpread: 17, mouthYOffset: 79, earYOffset: 67, earW: 16, earH: 27, earInset: -1 },
-    wide: { eyeYOffset: 46, eyeSpread: 21, mouthYOffset: 66, earYOffset: 57, earW: 18, earH: 24, earInset: -1 },
+    round: {
+      eyeYOffset: 49,
+      eyeSpread: 19,
+      mouthYOffset: 70,
+      earYOffset: 61,
+      earW: 17,
+      earH: 25,
+      earInset: -1,
+    },
+    oval: {
+      eyeYOffset: 55,
+      eyeSpread: 17,
+      mouthYOffset: 79,
+      earYOffset: 67,
+      earW: 16,
+      earH: 27,
+      earInset: -1,
+    },
+    wide: {
+      eyeYOffset: 46,
+      eyeSpread: 21,
+      mouthYOffset: 66,
+      earYOffset: 57,
+      earW: 18,
+      earH: 24,
+      earInset: -1,
+    },
   }[variant];
   const chest = { x: 96, y: 151, scale: 1 };
   return {
@@ -203,13 +241,22 @@ export function resolveAvatarAnatomy(config: AvatarConfig): AvatarAnatomy {
     },
     face: {
       eyeLineY: b.y + faceTuning.eyeYOffset,
-      leftEye: { x: center.x - faceTuning.eyeSpread, y: b.y + faceTuning.eyeYOffset },
-      rightEye: { x: center.x + faceTuning.eyeSpread, y: b.y + faceTuning.eyeYOffset },
+      leftEye: {
+        x: center.x - faceTuning.eyeSpread,
+        y: b.y + faceTuning.eyeYOffset,
+      },
+      rightEye: {
+        x: center.x + faceTuning.eyeSpread,
+        y: b.y + faceTuning.eyeYOffset,
+      },
       mouth: { x: center.x, y: b.y + faceTuning.mouthYOffset },
     },
     ears: {
       left: { x: b.x + faceTuning.earInset, y: b.y + faceTuning.earYOffset },
-      right: { x: b.x + b.width - faceTuning.earInset, y: b.y + faceTuning.earYOffset },
+      right: {
+        x: b.x + b.width - faceTuning.earInset,
+        y: b.y + faceTuning.earYOffset,
+      },
       width: faceTuning.earW,
       height: faceTuning.earH,
     },
@@ -218,9 +265,45 @@ export function resolveAvatarAnatomy(config: AvatarConfig): AvatarAnatomy {
       shoulders: { x: 96, y: 139 },
       chest,
     },
-    mounts: { chestCenter: chest },
+    mounts: {
+      chestCenter: chest,
+      hairLeft: { x: center.x - 30, y: b.y + 27, rotation: -12, scale: 0.92 },
+      hairRight: { x: center.x + 31, y: b.y + 26, rotation: 12, scale: 0.92 },
+      headTop: { x: center.x, y: b.y + 18, scale: 1 },
+    },
   };
 }
+
+export type AvatarAssetCategory = "hair" | "clothing" | "accessory";
+export interface AvatarAssetMetadata {
+  displayName: string;
+  category: AvatarAssetCategory;
+  previewPriority: number;
+  recommendedMount?: AvatarMountPoint;
+}
+type SvgPart = (ctx: AvatarRenderContext, swatch: ExpandedSwatch) => string;
+export interface HairAsset {
+  id: HairStyle;
+  metadata: AvatarAssetMetadata;
+  render: (ctx: AvatarRenderContext) => {
+    back: string;
+    front: string;
+    hi: string;
+  };
+}
+export interface ClothingAsset {
+  id: ShirtStyle;
+  metadata: AvatarAssetMetadata;
+  render: SvgPart;
+}
+export interface AccessoryAsset {
+  id: Exclude<AccessoryStyle, "none">;
+  metadata: AvatarAssetMetadata;
+  render: SvgPart;
+}
+const noRaster = (svg: string) =>
+  !/<image\b/i.test(svg) && !/(?:href|src)="https?:\/\//i.test(svg);
+
 function headPath(h: AvatarBounds, variant: AvatarHeadVariant): string {
   if (variant === "oval") {
     return `M${h.x + h.width / 2} ${h.y}c27 0 44 22 44 53 0 34-18 53-44 53s-44-19-44-53c0-31 17-53 44-53z`;
@@ -257,7 +340,7 @@ function hairParts(ctx: AvatarRenderContext) {
   if (s === "curlyPlayful")
     return {
       back: `<path data-hair-style="curlyPlayful" d="M45 70c-1-25 20-45 51-46 32 0 54 20 52 47-5 23-24 37-52 36-29 0-48-14-51-37z" fill="${c.shade}" stroke="${c.line}" stroke-width="3"/><circle cx="50" cy="75" r="12" fill="${c.shade}" stroke="${c.line}" stroke-width="3"/><circle cx="143" cy="72" r="13" fill="${c.shade}" stroke="${c.line}" stroke-width="3"/>`,
-      front: `<circle data-hair-style="curlyPlayful" cx="62" cy="57" r="15" ${common}/><circle cx="82" cy="42" r="16" ${common}/><circle cx="105" cy="41" r="17" ${common}/><circle cx="128" cy="56" r="16" ${common}/><path d="M49 66c17 7 32 5 47-7 16 12 32 14 49 6-10 10-24 14-41 10l-8 12-8-12c-17 4-30 1-39-9z" ${common}/>` ,
+      front: `<circle data-hair-style="curlyPlayful" cx="62" cy="57" r="15" ${common}/><circle cx="82" cy="42" r="16" ${common}/><circle cx="105" cy="41" r="17" ${common}/><circle cx="128" cy="56" r="16" ${common}/><path d="M49 66c17 7 32 5 47-7 16 12 32 14 49 6-10 10-24 14-41 10l-8 12-8-12c-17 4-30 1-39-9z" ${common}/>`,
       hi: `<path d="M73 44c5-5 12-7 19-4M111 42c8 1 14 5 18 11M58 63c5-4 10-6 16-5" fill="none" stroke="${c.highlight}" stroke-width="4" stroke-linecap="round" opacity="0.55"/>`,
     };
   if (s === "layeredMessy")
@@ -280,6 +363,76 @@ function hairParts(ctx: AvatarRenderContext) {
     hi: `<path d="M69 42c16-9 38-10 54 0" fill="none" stroke="${c.highlight}" stroke-width="6" stroke-linecap="round" opacity="0.45"/>`,
   };
 }
+export const avatarV2HairAssets: Record<HairStyle, HairAsset> = {
+  softCrop: {
+    id: "softCrop",
+    metadata: {
+      displayName: "Soft Crop",
+      category: "hair",
+      previewPriority: 10,
+    },
+    render: hairParts,
+  },
+  curlyCloud: {
+    id: "curlyCloud",
+    metadata: {
+      displayName: "Curly Cloud",
+      category: "hair",
+      previewPriority: 20,
+    },
+    render: hairParts,
+  },
+  sideBob: {
+    id: "sideBob",
+    metadata: {
+      displayName: "Side Bob",
+      category: "hair",
+      previewPriority: 30,
+    },
+    render: hairParts,
+  },
+  swoop: {
+    id: "swoop",
+    metadata: { displayName: "Swoop", category: "hair", previewPriority: 40 },
+    render: hairParts,
+  },
+  layeredMessy: {
+    id: "layeredMessy",
+    metadata: {
+      displayName: "Layered Messy",
+      category: "hair",
+      previewPriority: 50,
+    },
+    render: hairParts,
+  },
+  shortMessy: {
+    id: "shortMessy",
+    metadata: {
+      displayName: "Short Messy",
+      category: "hair",
+      previewPriority: 60,
+    },
+    render: hairParts,
+  },
+  longSoft: {
+    id: "longSoft",
+    metadata: {
+      displayName: "Long Soft",
+      category: "hair",
+      previewPriority: 70,
+    },
+    render: hairParts,
+  },
+  curlyPlayful: {
+    id: "curlyPlayful",
+    metadata: {
+      displayName: "Curly Playful",
+      category: "hair",
+      previewPriority: 80,
+    },
+    render: hairParts,
+  },
+};
 function renderHairLayer(
   ctx: AvatarRenderContext,
   part: "back" | "front" | "hi",
@@ -306,29 +459,210 @@ function renderGlasses({ config, anatomy }: AvatarRenderContext): string {
     y = anatomy.face.eyeLineY - lensHeight / 2;
   return `<g id="avatar-v2-layer-glasses" fill="none" stroke="${c.line}" stroke-width="4" stroke-linecap="round"><rect x="${leftLensX}" y="${y}" width="${lensWidth}" height="${lensHeight}" ${r}/><rect x="${rightLensX}" y="${y}" width="${lensWidth}" height="${lensHeight}" ${r}/><path d="M${leftInnerX} ${anatomy.face.eyeLineY}H${rightInnerX}"/><path d="M${leftLensX} ${anatomy.face.eyeLineY - 2}L${anatomy.ears.left.x + anatomy.ears.width / 2} ${anatomy.ears.left.y - 8}M${rightLensX + lensWidth} ${anatomy.face.eyeLineY - 2}L${anatomy.ears.right.x - anatomy.ears.width / 2} ${anatomy.ears.right.y - 8}"/></g>`;
 }
-function renderShirt({ config }: AvatarRenderContext): string {
-  const c = sw(config.shirt.color);
-  if (config.shirt.style === "hoodie")
-    return `<g id="avatar-v2-layer-shirt"><path d="M41 173c7-33 27-51 55-51s48 18 55 51z" fill="${c.base}" stroke="${c.line}" stroke-width="3"/><path d="M63 139c10-17 23-24 33-24s23 7 33 24c-12 11-54 11-66 0z" fill="${c.shade}" stroke="${c.line}" stroke-width="3"/><path d="M78 130c8 9 27 11 36 0" fill="none" stroke="${c.highlight}" stroke-width="5" stroke-linecap="round" opacity="0.65"/><path d="M88 137l-4 21M104 137l4 21" stroke="${c.line}" stroke-width="3" stroke-linecap="round"/><circle cx="84" cy="160" r="2.5" fill="${c.line}"/><circle cx="108" cy="160" r="2.5" fill="${c.line}"/><path d="M55 164c16-7 66-7 82 0" fill="none" stroke="${c.highlight}" stroke-width="5" stroke-linecap="round" opacity="0.5"/></g>`;
-  const collar =
-    config.shirt.style === "collar"
-      ? `<path d="M78 137l18 18 18-18" fill="#fff6ed" stroke="${c.line}" stroke-width="3"/>`
-      : "";
-  return `<g id="avatar-v2-layer-shirt"><path d="M42 172c8-32 27-49 54-49s46 17 54 49z" fill="${c.base}" stroke="${c.line}" stroke-width="3"/><path d="M62 150c17-13 48-14 68 0" fill="none" stroke="${c.highlight}" stroke-width="7" stroke-linecap="round" opacity="0.5"/>${collar}</g>`;
+export const avatarV2ClothingAssets: Record<ShirtStyle, ClothingAsset> = {
+  roundedTee: {
+    id: "roundedTee",
+    metadata: {
+      displayName: "Rounded Tee",
+      category: "clothing",
+      previewPriority: 20,
+    },
+    render: (_ctx, c) =>
+      `<path data-clothing-asset="roundedTee" d="M42 172c8-32 27-49 54-49s46 17 54 49z" fill="${c.base}" stroke="${c.line}" stroke-width="3"/><path d="M62 150c17-13 48-14 68 0" fill="none" stroke="${c.highlight}" stroke-width="7" stroke-linecap="round" opacity="0.5"/>`,
+  },
+  collar: {
+    id: "collar",
+    metadata: {
+      displayName: "Collared Shirt",
+      category: "clothing",
+      previewPriority: 30,
+    },
+    render: (_ctx, c) =>
+      `${avatarV2ClothingAssets.roundedTee.render(_ctx, c)}<path d="M78 137l18 18 18-18" fill="#fff6ed" stroke="${c.line}" stroke-width="3"/>`,
+  },
+  tShirt: {
+    id: "tShirt",
+    metadata: {
+      displayName: "T-Shirt",
+      category: "clothing",
+      previewPriority: 10,
+    },
+    render: (_ctx, c) =>
+      `<path data-clothing-asset="tShirt" d="M39 173l8-29c6-13 19-20 34-22l15 13 15-13c16 2 28 9 34 22l8 29z" fill="${c.base}" stroke="${c.line}" stroke-width="3"/><path d="M80 123c5 8 27 8 32 0" fill="none" stroke="${c.line}" stroke-width="3"/><path d="M54 151h84" stroke="${c.highlight}" stroke-width="6" stroke-linecap="round" opacity="0.48"/>`,
+  },
+  sweater: {
+    id: "sweater",
+    metadata: {
+      displayName: "Sweater",
+      category: "clothing",
+      previewPriority: 40,
+    },
+    render: (_ctx, c) =>
+      `<path data-clothing-asset="sweater" d="M40 173c7-33 27-51 56-51s49 18 56 51z" fill="${c.base}" stroke="${c.line}" stroke-width="3"/><path d="M73 125c7 14 39 14 46 0" fill="none" stroke="${c.line}" stroke-width="4"/><path d="M58 146h76M54 160h84" stroke="${c.highlight}" stroke-width="5" stroke-linecap="round" opacity="0.5"/>`,
+  },
+  hoodie: {
+    id: "hoodie",
+    metadata: {
+      displayName: "Hoodie",
+      category: "clothing",
+      previewPriority: 50,
+    },
+    render: (_ctx, c) =>
+      `<path data-clothing-asset="hoodie" d="M41 173c7-33 27-51 55-51s48 18 55 51z" fill="${c.base}" stroke="${c.line}" stroke-width="3"/><path d="M63 139c10-17 23-24 33-24s23 7 33 24c-12 11-54 11-66 0z" fill="${c.shade}" stroke="${c.line}" stroke-width="3"/><path d="M78 130c8 9 27 11 36 0" fill="none" stroke="${c.highlight}" stroke-width="5" stroke-linecap="round" opacity="0.65"/><path d="M88 137l-4 21M104 137l4 21" stroke="${c.line}" stroke-width="3" stroke-linecap="round"/><circle cx="84" cy="160" r="2.5" fill="${c.line}"/><circle cx="108" cy="160" r="2.5" fill="${c.line}"/>`,
+  },
+  overall: {
+    id: "overall",
+    metadata: {
+      displayName: "Overall",
+      category: "clothing",
+      previewPriority: 60,
+    },
+    render: (_ctx, c) =>
+      `<path data-clothing-asset="overall" d="M42 173c8-32 27-49 54-49s46 17 54 49z" fill="${c.highlight}" stroke="${c.line}" stroke-width="3"/><path d="M68 173v-43h18l10 14 10-14h18v43z" fill="${c.base}" stroke="${c.line}" stroke-width="3"/><path d="M76 130v-12M116 130v-12" stroke="${c.line}" stroke-width="5" stroke-linecap="round"/><circle cx="82" cy="142" r="3" fill="${c.line}"/><circle cx="110" cy="142" r="3" fill="${c.line}"/>`,
+  },
+};
+function renderShirt(ctx: AvatarRenderContext): string {
+  const c = sw(ctx.config.shirt.color);
+  return `<g id="avatar-v2-layer-shirt">${avatarV2ClothingAssets[ctx.config.shirt.style].render(ctx, c)}</g>`;
 }
-function renderAccessory({ config, anatomy }: AvatarRenderContext): string {
-  if (config.accessory.style === "none") return "";
-  const c = sw(config.accessory.color);
-  if (config.accessory.style === "chestStar") {
-    const m = anatomy.mounts[config.accessory.mount ?? "chestCenter"];
-    return `<g id="avatar-v2-layer-accessory" transform="translate(${m.x} ${m.y}) scale(${m.scale ?? 1})"><path d="M0-13l4 8 9 1-7 6 2 9-8-4-8 4 2-9-7-6 9-1z" fill="${c.base}" stroke="${c.line}" stroke-width="3"/><path d="M-3-5l3-4 3 4" fill="none" stroke="${c.highlight}" stroke-width="3" stroke-linecap="round" opacity="0.7"/></g>`;
-  }
-  const shapes = {
-    starClip: `<path d="M128 42l5 10 11 1-8 8 2 11-10-5-10 5 2-11-8-8 11-1z"`,
-    leafPin: `<path d="M131 44c16 2 23 14 15 28-16-2-22-16-15-28z"`,
-    tinyCrown: `<path d="M66 38l10 12 15-15 14 15 12-12 2 25H64z"`,
-  }[config.accessory.style];
-  return `<g id="avatar-v2-layer-accessory">${shapes} fill="${c.base}" stroke="${c.line}" stroke-width="3"/><path d="M130 48c4 3 7 6 9 11" stroke="${c.highlight}" stroke-width="4" stroke-linecap="round" opacity="0.65"/></g>`;
+export const avatarV2AccessoryAssets: Record<
+  Exclude<AccessoryStyle, "none">,
+  AccessoryAsset
+> = {
+  chestStar: {
+    id: "chestStar",
+    metadata: {
+      displayName: "Chest Star",
+      category: "accessory",
+      previewPriority: 40,
+      recommendedMount: "chestCenter",
+    },
+    render: (ctx, c) =>
+      renderMounted(
+        ctx,
+        c,
+        "chestCenter",
+        `<path d="M0-13l4 8 9 1-7 6 2 9-8-4-8 4 2-9-7-6 9-1z" fill="${c.base}" stroke="${c.line}" stroke-width="3"/><path d="M-3-5l3-4 3 4" fill="none" stroke="${c.highlight}" stroke-width="3" stroke-linecap="round" opacity="0.7"/>`,
+      ),
+  },
+  star: {
+    id: "star",
+    metadata: {
+      displayName: "Star Clip",
+      category: "accessory",
+      previewPriority: 10,
+      recommendedMount: "hairRight",
+    },
+    render: (ctx, c) =>
+      renderMounted(
+        ctx,
+        c,
+        "hairRight",
+        `<path data-accessory-asset="star" d="M0-14l5 9 10 1-7 7 2 10-10-5-10 5 2-10-7-7 10-1z" fill="${c.base}" stroke="${c.line}" stroke-width="3"/><path d="M-3-4l3-4 3 4" fill="none" stroke="${c.highlight}" stroke-width="3" stroke-linecap="round" opacity="0.7"/>`,
+      ),
+  },
+  flower: {
+    id: "flower",
+    metadata: {
+      displayName: "Flower Clip",
+      category: "accessory",
+      previewPriority: 20,
+      recommendedMount: "hairLeft",
+    },
+    render: (ctx, c) =>
+      renderMounted(
+        ctx,
+        c,
+        "hairLeft",
+        `<circle data-accessory-asset="flower" cx="0" cy="0" r="5" fill="${c.highlight}" stroke="${c.line}" stroke-width="2"/><circle cx="-8" cy="0" r="6" fill="${c.base}" stroke="${c.line}" stroke-width="2"/><circle cx="8" cy="0" r="6" fill="${c.base}" stroke="${c.line}" stroke-width="2"/><circle cx="0" cy="-8" r="6" fill="${c.base}" stroke="${c.line}" stroke-width="2"/><circle cx="0" cy="8" r="6" fill="${c.base}" stroke="${c.line}" stroke-width="2"/><path d="M-11 10c7 5 16 5 22 0" fill="none" stroke="${c.line}" stroke-width="3" stroke-linecap="round" opacity="0.55"/>`,
+      ),
+  },
+  headband: {
+    id: "headband",
+    metadata: {
+      displayName: "Headband",
+      category: "accessory",
+      previewPriority: 30,
+      recommendedMount: "headTop",
+    },
+    render: (ctx, c) =>
+      `<g id="avatar-v2-layer-accessory" data-accessory-asset="headband"><path d="M${ctx.anatomy.head.bounds.x + 11} ${ctx.anatomy.head.bounds.y + 28}c22-22 62-22 84 0" fill="none" stroke="${c.line}" stroke-width="8" stroke-linecap="round"/><path d="M${ctx.anatomy.head.bounds.x + 14} ${ctx.anatomy.head.bounds.y + 29}c21-16 57-16 78 0" fill="none" stroke="${c.base}" stroke-width="4" stroke-linecap="round"/></g>`,
+  },
+  bow: {
+    id: "bow",
+    metadata: {
+      displayName: "Bow",
+      category: "accessory",
+      previewPriority: 50,
+      recommendedMount: "hairRight",
+    },
+    render: (ctx, c) =>
+      renderMounted(
+        ctx,
+        c,
+        "hairRight",
+        `<path data-accessory-asset="bow" d="M0 0c-10-12-21-10-24 2 4 10 14 13 24 3 10 10 20 7 24-3-3-12-14-14-24-2z" fill="${c.base}" stroke="${c.line}" stroke-width="3"/><circle cx="0" cy="2" r="5" fill="${c.shade}" stroke="${c.line}" stroke-width="2"/>`,
+      ),
+  },
+  starClip: {
+    id: "starClip",
+    metadata: {
+      displayName: "Legacy Star Clip",
+      category: "accessory",
+      previewPriority: 90,
+      recommendedMount: "hairRight",
+    },
+    render: (ctx, c) => avatarV2AccessoryAssets.star.render(ctx, c),
+  },
+  leafPin: {
+    id: "leafPin",
+    metadata: {
+      displayName: "Leaf Pin",
+      category: "accessory",
+      previewPriority: 80,
+      recommendedMount: "hairRight",
+    },
+    render: (ctx, c) =>
+      renderMounted(
+        ctx,
+        c,
+        "hairRight",
+        `<path data-accessory-asset="leafPin" d="M-2-13c16 2 23 14 15 28-16-2-22-16-15-28z" fill="${c.base}" stroke="${c.line}" stroke-width="3"/><path d="M-1-8c5 5 9 11 11 18" stroke="${c.highlight}" stroke-width="3" stroke-linecap="round"/>`,
+      ),
+  },
+  tinyCrown: {
+    id: "tinyCrown",
+    metadata: {
+      displayName: "Tiny Crown",
+      category: "accessory",
+      previewPriority: 70,
+      recommendedMount: "headTop",
+    },
+    render: (ctx, c) =>
+      renderMounted(
+        ctx,
+        c,
+        "headTop",
+        `<path data-accessory-asset="tinyCrown" d="M-28-9l10 12 15-15 14 15 12-12 2 25h-55z" fill="${c.base}" stroke="${c.line}" stroke-width="3"/>`,
+      ),
+  },
+};
+function renderMounted(
+  ctx: AvatarRenderContext,
+  _c: ExpandedSwatch,
+  fallbackMount: AvatarMountPoint,
+  shapes: string,
+): string {
+  const m = ctx.anatomy.mounts[ctx.config.accessory.mount ?? fallbackMount];
+  return `<g id="avatar-v2-layer-accessory" data-avatar-mount="${ctx.config.accessory.mount ?? fallbackMount}" transform="translate(${m.x} ${m.y}) rotate(${m.rotation ?? 0}) scale(${m.scale ?? 1})">${shapes}</g>`;
+}
+function renderAccessory(ctx: AvatarRenderContext): string {
+  if (ctx.config.accessory.style === "none") return "";
+  const c = sw(ctx.config.accessory.color);
+  return avatarV2AccessoryAssets[ctx.config.accessory.style].render(ctx, c);
+}
+export function validateAvatarV2AssetSvg(svg: string): boolean {
+  return svg.startsWith("<svg") && svg.endsWith("</svg>") && noRaster(svg);
 }
 export function renderAvatarV2Svg(config: AvatarConfig): string {
   const anatomy = resolveAvatarAnatomy(config),
@@ -388,7 +722,7 @@ export const avatarV2SampleConfigs = {
     hair: { style: "shortMessy", color: "hairCocoa" },
     glasses: { style: "none", color: "lineBlue" },
     shirt: { style: "hoodie", color: "shirtSky" },
-    accessory: { style: "none", color: "accessoryCoral" },
+    accessory: { style: "star", color: "accessoryCoral", mount: "hairRight" },
   },
   showcaseSampleB: {
     base: "child",
@@ -396,8 +730,8 @@ export const avatarV2SampleConfigs = {
     skinTone: "skinHoney",
     hair: { style: "longSoft", color: "hairChestnut" },
     glasses: { style: "none", color: "lineBlue" },
-    shirt: { style: "hoodie", color: "shirtRose" },
-    accessory: { style: "none", color: "accessoryLilac" },
+    shirt: { style: "sweater", color: "shirtRose" },
+    accessory: { style: "flower", color: "accessoryLilac", mount: "hairLeft" },
   },
   showcaseSampleC: {
     base: "child",
@@ -405,8 +739,8 @@ export const avatarV2SampleConfigs = {
     skinTone: "skinBrown",
     hair: { style: "curlyPlayful", color: "hairPlum" },
     glasses: { style: "none", color: "lineBlue" },
-    shirt: { style: "hoodie", color: "shirtMint" },
-    accessory: { style: "none", color: "accessoryCoral" },
+    shirt: { style: "tShirt", color: "shirtMint" },
+    accessory: { style: "headband", color: "accessoryCoral", mount: "headTop" },
   },
   showcaseSampleD: {
     base: "child",
@@ -414,7 +748,33 @@ export const avatarV2SampleConfigs = {
     skinTone: "skinHoney",
     hair: { style: "shortMessy", color: "hairChestnut" },
     glasses: { style: "softSquare", color: "lineBerry" },
-    shirt: { style: "hoodie", color: "shirtSun" },
-    accessory: { style: "chestStar", color: "accessoryCoral", mount: "chestCenter" },
+    shirt: { style: "overall", color: "shirtSun" },
+    accessory: { style: "bow", color: "accessoryCoral", mount: "hairRight" },
+  },
+  showcaseSampleE: {
+    base: "adult",
+    headVariant: "oval",
+    skinTone: "skinBrown",
+    hair: { style: "layeredMessy", color: "hairChestnut" },
+    glasses: { style: "round", color: "lineBlue" },
+    shirt: { style: "collar", color: "shirtSky" },
+    accessory: {
+      style: "chestStar",
+      color: "accessoryLilac",
+      mount: "chestCenter",
+    },
+  },
+  showcaseSampleF: {
+    base: "child",
+    headVariant: "round",
+    skinTone: "skinHoney",
+    hair: { style: "curlyPlayful", color: "hairPlum" },
+    glasses: { style: "none", color: "lineBerry" },
+    shirt: { style: "roundedTee", color: "shirtMint" },
+    accessory: {
+      style: "leafPin",
+      color: "accessoryCoral",
+      mount: "hairRight",
+    },
   },
 } satisfies Record<string, AvatarConfig>;

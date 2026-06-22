@@ -326,3 +326,6 @@ Avatar V2 Ear Attachment Fix corrects the isolated renderer's wide-head ear anch
 - Wide head geometry now mirrors around the anatomy centerline, and face/glasses rendering no longer applies side-specific vertical offsets.
 - Added validation for mirrored ear anchors, eye anchors, lens geometry, and temple geometry.
 - Scope remained limited to Avatar V2 geometry and regenerated standalone showcase SVG samples; no production UI, editor, persistence, or feature expansion was introduced.
+
+### Avatar V2 Asset System V1 — Completed 2026-06-22
+Avatar V2 Asset System V1 introduces reusable SVG-only HairAsset, ClothingAsset, and AccessoryAsset definitions with editor-safe metadata for future editor consumption without building editor UI. Clothing now includes hoodie, sweater, T-shirt, and overall silhouettes; accessories now include star, flower, headband, and bow using anatomy mount points. Six standalone showcase avatars validate asset diversity and deterministic rendering while keeping Avatar V2 isolated from production UI, persistence, profile picker integration, unlockables, gamification, raster assets, external URLs, and external avatar systems.

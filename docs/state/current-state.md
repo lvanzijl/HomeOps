@@ -545,3 +545,8 @@ Showcase Sample C and Showcase Sample D exposed that the wide head variant's ear
 - Removed left/right rendering offsets in face and glasses SVG output so eyes, lenses, bridge, and temples now render from mirrored anatomy coordinates.
 - Added automated symmetry validation for round, oval, and wide heads covering ear anchors, eye anchors, lens geometry, and temple geometry.
 - Regenerated the four Avatar V2 showcase SVG samples under `docs/reports/2026-06-22-work/` with no production UI integration, editor work, persistence work, new avatar features, raster assets, or external URLs.
+
+## Avatar V2 Asset System V1 — 2026-06-22
+- Added reusable SVG-only Avatar V2 asset definitions for hair, clothing, and accessories with editor-safe metadata while keeping `AvatarAnatomy` as the positioning source of truth.
+- Expanded sample-driven clothing silhouettes to hoodie, sweater, T-shirt, and overall, and accessory assets to star, flower, headband, and bow using anatomy mount points.
+- Generated six standalone showcase SVG artifacts under `docs/reports/2026-06-22-work/` and kept editor UI, persistence, production UI integration, unlockables, gamification, raster assets, external URLs, and external avatar systems out of scope.
