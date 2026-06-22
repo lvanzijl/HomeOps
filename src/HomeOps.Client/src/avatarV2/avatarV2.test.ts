@@ -420,6 +420,10 @@ describe("Avatar V2 SVG renderer", () => {
     expect(frontHairIndex).toBeLessThan(visibleHeadbandIndex);
     expect(visibleHeadbandIndex).toBeGreaterThan(highlightsIndex);
     expect(svg).toContain('id="avatar-v2-layer-accessory-visible"');
+    expect(svg).toContain('data-headband-model="anatomy-anchor-curve"');
+    expect(svg).toContain('M47 70.2C64.1 48.4 127.9 48.4 145 70.2');
+    expect(svg).not.toContain('<image');
+    expect(svg).not.toMatch(/(?:href|src)="https?:\/\//i);
     expect(svg.match(/data-accessory-asset="headband"/g)).toHaveLength(2);
     expect(svg).toBe(renderAvatarV2Svg(config));
   });

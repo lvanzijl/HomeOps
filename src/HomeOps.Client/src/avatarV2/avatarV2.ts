@@ -668,21 +668,39 @@ export const avatarV2AccessoryAssets: Record<
       ),
   },
 };
+function headbandAnchorCurve(anatomy: AvatarAnatomy) {
+  const h = anatomy.head.bounds;
+  const left = { x: h.x + h.width * 0.07, y: h.y + h.height * 0.36 };
+  const right = { x: h.x + h.width * 0.93, y: h.y + h.height * 0.36 };
+  const leftC = { x: h.x + h.width * 0.22, y: h.y + h.height * 0.1 };
+  const rightC = { x: h.x + h.width * 0.78, y: h.y + h.height * 0.1 };
+  return { left, right, leftC, rightC };
+}
+
+const n = (value: number) => Math.round(value * 10) / 10;
+
 function renderHeadband(
   ctx: AvatarRenderContext,
   c: ExpandedSwatch,
   segment: "normal" | "curlyRear" | "curlyVisible",
 ): string {
-  const h = ctx.anatomy.head.bounds;
+  const a = headbandAnchorCurve(ctx.anatomy);
+  const path = `M${n(a.left.x)} ${n(a.left.y)}C${n(a.leftC.x)} ${n(a.leftC.y)} ${n(a.rightC.x)} ${n(a.rightC.y)} ${n(a.right.x)} ${n(a.right.y)}`;
+  const innerPath = `M${n(a.left.x + 3)} ${n(a.left.y - 1)}C${n(a.leftC.x + 3)} ${n(a.leftC.y + 5)} ${n(a.rightC.x - 3)} ${n(a.rightC.y + 5)} ${n(a.right.x - 3)} ${n(a.right.y - 1)}`;
+
   if (ctx.config.hair.style !== "curlyPlayful" || segment === "normal") {
-    return `<g id="avatar-v2-layer-accessory" data-accessory-asset="headband" data-accessory-layer-rule="normal"><path d="M${h.x + 11} ${h.y + 28}c22-20 62-20 84 0" fill="none" stroke="${c.line}" stroke-width="7" stroke-linecap="round"/><path d="M${h.x + 14} ${h.y + 29}c21-14 57-14 78 0" fill="none" stroke="${c.base}" stroke-width="4" stroke-linecap="round"/></g>`;
+    return `<g id="avatar-v2-layer-accessory" data-accessory-asset="headband" data-accessory-layer-rule="normal"><path d="${path}" fill="none" stroke="${c.line}" stroke-width="7" stroke-linecap="round"/><path d="${innerPath}" fill="none" stroke="${c.base}" stroke-width="4" stroke-linecap="round"/></g>`;
   }
 
   if (segment === "curlyRear") {
-    return `<g id="avatar-v2-layer-accessory" data-accessory-asset="headband" data-accessory-layer-rule="partial-occlusion-rear"><path d="M${h.x + 7} ${h.y + 31}c24-22 70-22 94 0" fill="none" stroke="${c.line}" stroke-width="8" stroke-linecap="round"/><path d="M${h.x + 11} ${h.y + 32}c23-16 63-16 86 0" fill="none" stroke="${c.base}" stroke-width="4" stroke-linecap="round"/></g>`;
+    return `<g id="avatar-v2-layer-accessory" data-accessory-asset="headband" data-accessory-layer-rule="partial-occlusion-rear" data-headband-model="anatomy-anchor-curve"><path d="${path}" fill="none" stroke="${c.line}" stroke-width="8" stroke-linecap="round"/><path d="${innerPath}" fill="none" stroke="${c.base}" stroke-width="4" stroke-linecap="round"/></g>`;
   }
 
-  return `<g id="avatar-v2-layer-accessory-visible" data-accessory-asset="headband" data-accessory-layer-rule="partial-occlusion-visible"><path d="M${h.x + 4} ${h.y + 35}c6-6 12-10 19-13M${h.x + 93} ${h.y + 22}c8 4 14 8 20 14" fill="none" stroke="${c.line}" stroke-width="8" stroke-linecap="round"/><path d="M${h.x + 6} ${h.y + 36}c6-5 12-9 18-12M${h.x + 92} ${h.y + 24}c7 3 13 7 18 12" fill="none" stroke="${c.base}" stroke-width="4" stroke-linecap="round"/></g>`;
+  const leftOuter = `M${n(a.left.x)} ${n(a.left.y)}C${n(a.left.x + 5)} ${n(a.left.y - 7)} ${n(a.leftC.x - 4)} ${n(a.leftC.y + 8)} ${n(a.leftC.x + 2)} ${n(a.leftC.y + 5)}`;
+  const rightOuter = `M${n(a.rightC.x - 2)} ${n(a.rightC.y + 5)}C${n(a.rightC.x + 4)} ${n(a.rightC.y + 8)} ${n(a.right.x - 5)} ${n(a.right.y - 7)} ${n(a.right.x)} ${n(a.right.y)}`;
+  const leftInner = `M${n(a.left.x + 3)} ${n(a.left.y - 1)}C${n(a.left.x + 7)} ${n(a.left.y - 6)} ${n(a.leftC.x - 1)} ${n(a.leftC.y + 10)} ${n(a.leftC.x + 5)} ${n(a.leftC.y + 7)}`;
+  const rightInner = `M${n(a.rightC.x - 5)} ${n(a.rightC.y + 7)}C${n(a.rightC.x + 1)} ${n(a.rightC.y + 10)} ${n(a.right.x - 7)} ${n(a.right.y - 6)} ${n(a.right.x - 3)} ${n(a.right.y - 1)}`;
+  return `<g id="avatar-v2-layer-accessory-visible" data-accessory-asset="headband" data-accessory-layer-rule="partial-occlusion-visible" data-headband-model="anatomy-anchor-curve"><path d="${leftOuter}${rightOuter}" fill="none" stroke="${c.line}" stroke-width="8" stroke-linecap="round"/><path d="${leftInner}${rightInner}" fill="none" stroke="${c.base}" stroke-width="4" stroke-linecap="round"/></g>`;
 }
 
 function renderMounted(

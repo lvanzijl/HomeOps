@@ -43,6 +43,12 @@ Avatar V2 Concept B Headband Visibility Fix — Completed
 
 
 
+
+### Avatar V2 Concept B Headband Fit Fix — Completed 2026-06-22
+- Corrected the Concept B headband geometric fit after visual review found the prior visibility fix made the accessory identifiable but still detached from the head volume.
+- Replaced fixed-offset headband arcs with an anatomy-derived headband anchor curve based on `AvatarAnatomy.head.bounds`, while preserving the existing partial-occlusion rule and Concept B hairstyle.
+- Regenerated before, after, and closeup SVG validation samples and verified SVG-only deterministic rendering, no raster references, no external URLs, and existing frontend build behavior.
+
 ### Avatar V2 Concept B Headband Visibility Fix — Completed 2026-06-22
 - Corrected Concept B headband visibility after review found the previous validation sample technically rendered the accessory but did not make it reliably identifiable.
 - Selected partial occlusion as the visual rule: the headband wraps behind foreground curls while short side arcs remain visible above the completed hair stack.
