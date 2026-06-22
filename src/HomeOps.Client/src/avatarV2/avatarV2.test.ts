@@ -91,6 +91,65 @@ describe("Avatar V2 SVG renderer", () => {
     expect(svg).not.toMatch(/(?:href|src)=\"https?:\/\//);
   });
 
+  it("renders visibly distinct head variants with anatomy-driven anchors", () => {
+    const variants = ["round", "oval", "wide"] as const;
+    const anatomies = variants.map((headVariant) =>
+      resolveAvatarAnatomy({
+        ...avatarV2SampleConfigs.playfulChild,
+        headVariant,
+      }),
+    );
+    expect(new Set(anatomies.map((a) => a.head.bounds.width)).size).toBe(3);
+    expect(new Set(anatomies.map((a) => a.head.bounds.height)).size).toBe(3);
+    expect(new Set(anatomies.map((a) => a.face.eyeLineY)).size).toBe(3);
+    expect(new Set(anatomies.map((a) => a.ears.left.x)).size).toBe(3);
+    for (const variant of variants) {
+      expect(
+        renderAvatarV2Svg({
+          ...avatarV2SampleConfigs.playfulChild,
+          headVariant: variant,
+        }),
+      ).toContain(`data-anatomy="head-${variant}"`);
+    }
+  });
+
+  it("renders the three quality hairstyles with back hair, front hair, and deterministic output", () => {
+    const styles = ["shortMessy", "longSoft", "curlyPlayful"] as const;
+    for (const style of styles) {
+      const config = {
+        ...avatarV2SampleConfigs.showcaseSampleA,
+        hair: { ...avatarV2SampleConfigs.showcaseSampleA.hair, style },
+      };
+      const svg = renderAvatarV2Svg(config);
+      expect(svg).toContain("avatar-v2-layer-back-hair");
+      expect(svg).toContain("avatar-v2-layer-front-hair");
+      expect(svg).toContain(`data-hair-style="${style}"`);
+      expect(svg).toBe(renderAvatarV2Svg(config));
+      expect(svg).not.toContain("<image");
+      expect(svg).not.toMatch(/(?:href|src)=\"https?:\/\//);
+    }
+  });
+
+  it("defines exactly four showcase samples for silhouette validation", () => {
+    const showcaseKeys = Object.keys(avatarV2SampleConfigs).filter((key) =>
+      key.startsWith("showcaseSample"),
+    );
+    expect(showcaseKeys).toEqual([
+      "showcaseSampleA",
+      "showcaseSampleB",
+      "showcaseSampleC",
+      "showcaseSampleD",
+    ]);
+    for (const key of showcaseKeys) {
+      const svg = renderAvatarV2Svg(
+        avatarV2SampleConfigs[key as keyof typeof avatarV2SampleConfigs],
+      );
+      expect(svg).toContain("avatar-v2-layer-shirt");
+      expect(svg).toContain("avatar-v2-layer-back-hair");
+      expect(svg).toContain("avatar-v2-layer-front-hair");
+    }
+  });
+
   it("renders all sample configs without exception", () => {
     for (const config of Object.values(avatarV2SampleConfigs)) {
       expect(() => renderAvatarV2Svg(config)).not.toThrow();
