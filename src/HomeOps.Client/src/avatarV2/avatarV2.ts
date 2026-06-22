@@ -1,5 +1,5 @@
 export type AvatarBase = "child" | "adult";
-export type AvatarHeadVariant = "round" | "oval";
+export type AvatarHeadVariant = "round" | "oval" | "wide";
 export type PaletteToken =
   | "skinPeach"
   | "skinHoney"
@@ -20,7 +20,10 @@ export type HairStyle =
   | "curlyCloud"
   | "sideBob"
   | "swoop"
-  | "layeredMessy";
+  | "layeredMessy"
+  | "shortMessy"
+  | "longSoft"
+  | "curlyPlayful";
 export type GlassesStyle = "none" | "round" | "softSquare";
 export type ShirtStyle = "roundedTee" | "collar" | "hoodie";
 export type AccessoryStyle =
@@ -177,11 +180,18 @@ export interface AvatarRenderContext {
 export function resolveAvatarAnatomy(config: AvatarConfig): AvatarAnatomy {
   const variant =
     config.headVariant ?? (config.base === "child" ? "round" : "oval");
-  const b =
-    variant === "round"
-      ? { x: 47, y: 35, width: 98, height: 88, rx: 45, ry: 43 }
-      : { x: 50, y: 31, width: 92, height: 96, rx: 42, ry: 48 };
+  const presets: Record<AvatarHeadVariant, AvatarBounds> = {
+    round: { x: 45, y: 34, width: 102, height: 92, rx: 50, ry: 45 },
+    oval: { x: 52, y: 27, width: 88, height: 106, rx: 40, ry: 53 },
+    wide: { x: 39, y: 40, width: 114, height: 84, rx: 38, ry: 36 },
+  };
+  const b = presets[variant];
   const center = { x: b.x + b.width / 2, y: b.y + b.height / 2 };
+  const faceTuning = {
+    round: { eyeYOffset: 49, eyeSpread: 19, mouthYOffset: 70, earYOffset: 61, earW: 17, earH: 25 },
+    oval: { eyeYOffset: 55, eyeSpread: 17, mouthYOffset: 79, earYOffset: 67, earW: 16, earH: 27 },
+    wide: { eyeYOffset: 45, eyeSpread: 23, mouthYOffset: 66, earYOffset: 58, earW: 18, earH: 24 },
+  }[variant];
   const chest = { x: 96, y: 151, scale: 1 };
   return {
     viewBox: { width: 192, height: 192 },
@@ -189,19 +199,19 @@ export function resolveAvatarAnatomy(config: AvatarConfig): AvatarAnatomy {
       variant,
       bounds: b,
       center,
-      hairline: { x: center.x, y: b.y + 18 },
+      hairline: { x: center.x, y: b.y + (variant === "oval" ? 20 : 17) },
     },
     face: {
-      eyeLineY: b.y + 48,
-      leftEye: { x: center.x - 20, y: b.y + 48 },
-      rightEye: { x: center.x + 20, y: b.y + 48 },
-      mouth: { x: center.x, y: b.y + 70 },
+      eyeLineY: b.y + faceTuning.eyeYOffset,
+      leftEye: { x: center.x - faceTuning.eyeSpread, y: b.y + faceTuning.eyeYOffset },
+      rightEye: { x: center.x + faceTuning.eyeSpread, y: b.y + faceTuning.eyeYOffset },
+      mouth: { x: center.x, y: b.y + faceTuning.mouthYOffset },
     },
     ears: {
-      left: { x: b.x + 6, y: b.y + 62 },
-      right: { x: b.x + b.width - 6, y: b.y + 62 },
-      width: 17,
-      height: 25,
+      left: { x: b.x + 4, y: b.y + faceTuning.earYOffset },
+      right: { x: b.x + b.width - 4, y: b.y + faceTuning.earYOffset },
+      width: faceTuning.earW,
+      height: faceTuning.earH,
     },
     body: {
       neck: { x: 81, y: 118, width: 30, height: 26, rx: 12 },
@@ -211,18 +221,45 @@ export function resolveAvatarAnatomy(config: AvatarConfig): AvatarAnatomy {
     mounts: { chestCenter: chest },
   };
 }
+function headPath(h: AvatarBounds, variant: AvatarHeadVariant): string {
+  if (variant === "oval") {
+    return `M${h.x + h.width / 2} ${h.y}c27 0 44 22 44 53 0 34-18 53-44 53s-44-19-44-53c0-31 17-53 44-53z`;
+  }
+  if (variant === "wide") {
+    return `M${h.x + 20} ${h.y + 12}c18-14 63-14 81 0 15 12 17 45 2 61-18 20-65 20-83 0-15-16-13-49 0-61z`;
+  }
+  return `M${h.x + h.width / 2} ${h.y}c30 0 51 20 51 46 0 29-21 46-51 46s-51-17-51-46c0-26 21-46 51-46z`;
+}
 function renderHeadAndFace({ config, anatomy }: AvatarRenderContext): string {
   const skin = sw(config.skinTone),
     h = anatomy.head.bounds,
     e = anatomy.ears;
   const ear = (side: string, a: AvatarAnchor) =>
     `<ellipse data-anatomy="ear-${side}" cx="${a.x}" cy="${a.y}" rx="${e.width / 2}" ry="${e.height / 2}" fill="${skin.base}" stroke="${skin.line}" stroke-width="3"/>`;
-  return `<g id="avatar-v2-layer-base"><ellipse cx="96" cy="113" rx="55" ry="41" fill="${skin.shade}" opacity="0.16"/>${ear("left", e.left)}${ear("right", e.right)}<rect x="${h.x}" y="${h.y}" width="${h.width}" height="${h.height}" rx="${h.rx}" ry="${h.ry}" fill="${skin.base}" stroke="${skin.line}" stroke-width="3"/><path d="M${h.x + 19} ${h.y + 22}c17-17 45-21 64-2" fill="none" stroke="${skin.highlight}" stroke-width="8" stroke-linecap="round" opacity="0.4"/><circle cx="${anatomy.face.leftEye.x}" cy="${anatomy.face.eyeLineY}" r="5" fill="#3d2c30"/><circle cx="${anatomy.face.rightEye.x}" cy="${anatomy.face.eyeLineY - 1}" r="5" fill="#3d2c30"/><circle cx="${anatomy.face.leftEye.x + 2}" cy="${anatomy.face.eyeLineY - 2}" r="1.5" fill="#fff8f2"/><circle cx="${anatomy.face.rightEye.x + 2}" cy="${anatomy.face.eyeLineY - 3}" r="1.5" fill="#fff8f2"/><path d="M${anatomy.face.mouth.x - 18} ${anatomy.face.mouth.y}c10 12 27 12 37-1" fill="none" stroke="#7a4545" stroke-width="4" stroke-linecap="round"/></g>`;
+  return `<g id="avatar-v2-layer-base"><ellipse cx="96" cy="113" rx="55" ry="41" fill="${skin.shade}" opacity="0.16"/>${ear("left", e.left)}${ear("right", e.right)}<path data-anatomy="head-${anatomy.head.variant}" d="${headPath(h, anatomy.head.variant)}" fill="${skin.base}" stroke="${skin.line}" stroke-width="3"/><path d="M${h.x + 19} ${h.y + 22}c17-17 45-21 64-2" fill="none" stroke="${skin.highlight}" stroke-width="8" stroke-linecap="round" opacity="0.4"/><circle cx="${anatomy.face.leftEye.x}" cy="${anatomy.face.eyeLineY}" r="5" fill="#3d2c30"/><circle cx="${anatomy.face.rightEye.x}" cy="${anatomy.face.eyeLineY - 1}" r="5" fill="#3d2c30"/><circle cx="${anatomy.face.leftEye.x + 2}" cy="${anatomy.face.eyeLineY - 2}" r="1.5" fill="#fff8f2"/><circle cx="${anatomy.face.rightEye.x + 2}" cy="${anatomy.face.eyeLineY - 3}" r="1.5" fill="#fff8f2"/><path d="M${anatomy.face.mouth.x - 18} ${anatomy.face.mouth.y}c10 12 27 12 37-1" fill="none" stroke="#7a4545" stroke-width="4" stroke-linecap="round"/></g>`;
 }
 function hairParts(ctx: AvatarRenderContext) {
   const c = sw(ctx.config.hair.color),
     common = `fill="${c.base}" stroke="${c.line}" stroke-width="3"`,
     s = ctx.config.hair.style;
+  if (s === "shortMessy")
+    return {
+      back: `<path data-hair-style="shortMessy" d="M48 72c-2-25 16-43 47-45 32-2 52 16 51 43-11-7-23-8-36-5-18 4-35 3-51-5-5 3-9 7-11 12z" fill="${c.shade}" stroke="${c.line}" stroke-width="3"/>`,
+      front: `<path d="M49 64c8-22 25-34 50-35 14 0 27 3 38 12l12 16c-12-4-23-3-34 3l-10 14-8-16-15 18-5-16c-10 8-19 10-28 4z" ${common}/><path d="M64 43l-10 20M86 35l-7 26M119 37l17 23" fill="none" stroke="${c.line}" stroke-width="3" stroke-linecap="round" opacity="0.5"/>`,
+      hi: `<path d="M70 42c15-7 34-8 50-2" fill="none" stroke="${c.highlight}" stroke-width="5" stroke-linecap="round" opacity="0.55"/><path d="M86 55l-8 10" fill="none" stroke="${c.highlight}" stroke-width="4" stroke-linecap="round" opacity="0.4"/>`,
+    };
+  if (s === "longSoft")
+    return {
+      back: `<path data-hair-style="longSoft" d="M47 67c1-27 20-43 49-43s48 17 50 45c4 33-8 58-30 66-4-18-7-35-20-51-12 16-16 33-20 51-22-8-33-34-29-68z" fill="${c.shade}" stroke="${c.line}" stroke-width="3"/>`,
+      front: `<path d="M50 62c6-24 24-37 51-36 23 1 39 14 44 38-18-10-35-13-51-7-16 6-29 8-44 5z" ${common}/><path d="M95 28c-4 18-18 31-40 39M103 31c17 8 29 20 39 35" fill="none" stroke="${c.line}" stroke-width="3" stroke-linecap="round" opacity="0.45"/>`,
+      hi: `<path d="M66 51c18-13 38-17 60-10" fill="none" stroke="${c.highlight}" stroke-width="5" stroke-linecap="round" opacity="0.5"/><path d="M131 77c3 18 0 34-9 47" fill="none" stroke="${c.highlight}" stroke-width="4" stroke-linecap="round" opacity="0.35"/>`,
+    };
+  if (s === "curlyPlayful")
+    return {
+      back: `<path data-hair-style="curlyPlayful" d="M45 70c-1-25 20-45 51-46 32 0 54 20 52 47-5 23-24 37-52 36-29 0-48-14-51-37z" fill="${c.shade}" stroke="${c.line}" stroke-width="3"/><circle cx="50" cy="75" r="12" fill="${c.shade}" stroke="${c.line}" stroke-width="3"/><circle cx="143" cy="72" r="13" fill="${c.shade}" stroke="${c.line}" stroke-width="3"/>`,
+      front: `<circle data-hair-style="curlyPlayful" cx="62" cy="57" r="15" ${common}/><circle cx="82" cy="42" r="16" ${common}/><circle cx="105" cy="41" r="17" ${common}/><circle cx="128" cy="56" r="16" ${common}/><path d="M49 66c17 7 32 5 47-7 16 12 32 14 49 6-10 10-24 14-41 10l-8 12-8-12c-17 4-30 1-39-9z" ${common}/>` ,
+      hi: `<path d="M73 44c5-5 12-7 19-4M111 42c8 1 14 5 18 11M58 63c5-4 10-6 16-5" fill="none" stroke="${c.highlight}" stroke-width="4" stroke-linecap="round" opacity="0.55"/>`,
+    };
   if (s === "layeredMessy")
     return {
       back: `<path d="M49 76c-4-28 15-49 47-50 32 0 52 21 48 51-9-10-19-14-31-12-16 3-31 6-48-2-7 3-12 7-16 13z" fill="${c.shade}" stroke="${c.line}" stroke-width="3"/>`,
@@ -337,5 +374,41 @@ export const avatarV2SampleConfigs = {
       color: "accessoryCoral",
       mount: "chestCenter",
     },
+  },
+  showcaseSampleA: {
+    base: "child",
+    headVariant: "round",
+    skinTone: "skinPeach",
+    hair: { style: "shortMessy", color: "hairCocoa" },
+    glasses: { style: "none", color: "lineBlue" },
+    shirt: { style: "hoodie", color: "shirtSky" },
+    accessory: { style: "none", color: "accessoryCoral" },
+  },
+  showcaseSampleB: {
+    base: "child",
+    headVariant: "oval",
+    skinTone: "skinHoney",
+    hair: { style: "longSoft", color: "hairChestnut" },
+    glasses: { style: "none", color: "lineBlue" },
+    shirt: { style: "hoodie", color: "shirtRose" },
+    accessory: { style: "none", color: "accessoryLilac" },
+  },
+  showcaseSampleC: {
+    base: "child",
+    headVariant: "wide",
+    skinTone: "skinBrown",
+    hair: { style: "curlyPlayful", color: "hairPlum" },
+    glasses: { style: "none", color: "lineBlue" },
+    shirt: { style: "hoodie", color: "shirtMint" },
+    accessory: { style: "none", color: "accessoryCoral" },
+  },
+  showcaseSampleD: {
+    base: "child",
+    headVariant: "wide",
+    skinTone: "skinHoney",
+    hair: { style: "shortMessy", color: "hairChestnut" },
+    glasses: { style: "softSquare", color: "lineBerry" },
+    shirt: { style: "hoodie", color: "shirtSun" },
+    accessory: { style: "chestStar", color: "accessoryCoral", mount: "chestCenter" },
   },
 } satisfies Record<string, AvatarConfig>;
