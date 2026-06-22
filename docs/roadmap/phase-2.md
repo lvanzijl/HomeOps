@@ -30,6 +30,7 @@
 | 2.55 | Color Token Cleanup | Completed |
 | 2.56 | Avatar V2 Wide Head Anatomy Review and Fix | Completed |
 | 2.57 | Avatar V2 Hair Quality Review | Completed |
+| 2.59 | Avatar V2 Concept B Headband Visibility Fix | Completed |
 | 2.41 | No-Date Task Lifecycle | Completed |
 
 Phase 2 theme: Durable Household Core.
@@ -92,6 +93,10 @@ No-Date Task Lifecycle adds a trust-preserving review state for undated tasks: A
 
 ## Completed Slice 2.57 — Avatar V2 Curly Hairstyle Concept Exploration
 Avatar V2 Curly Hairstyle Concept Exploration treats CurlyPlayful as rejected and creates three isolated SVG-only hairstyle concept samples for comparison: Tight Curl Clusters, Loose Wavy Curls, and Playful Child Curls. Tight Curl Clusters is the recommended editor-worthy direction because it reads most immediately as curly hair in dark colors and small sizes. Loose Wavy Curls is retained only as a secondary future reference, while Playful Child Curls is rejected for weaker growth direction and less controlled readability. Existing Avatar V2 renderer behavior remains preserved; no editor UI, persistence, production integration, new avatar systems, new head variants, clothing assets, accessories, gamification, or unlockables were introduced.
+
+
+## Completed Slice 2.59 — Avatar V2 Concept B Headband Visibility Fix
+Avatar V2 Concept B Headband Visibility Fix corrected the curly-hair headband interaction after visual review found that the previous validation sample rendered the headband in SVG but hid it behind the hairstyle. The renderer now uses a partial-occlusion rule for curly headbands: a rear wrap remains behind foreground curls while short visible side arcs render after the hair stack so the accessory is visible, identifiable, and still reads as wrapped around the head rather than as a forehead stripe. Concept B remains the preferred curly-hair direction, and the previous face-strip fix remains intact. No editor UI, persistence, production integration, new hairstyles, new accessories, new avatar systems, new head variants, raster assets, or external URLs were introduced.
 
 ## Completed Slice 2.58 — Avatar V2 Concept B Curly Hairstyle Salvage
 Avatar V2 Concept B Curly Hairstyle Salvage supersedes the earlier concept ranking according to visual review: Concept A is rejected, Concept C is rejected, and Concept B is the only usable direction. The face strip was traced to a long right-side Concept B hair-highlight segment rendered above the face, then corrected with a shorter upper-right wave highlight that remains in the hair mass. Four corrected validation samples cover dark hair, light hair, headband interaction, and leaf-pin interaction while preserving SVG-only deterministic rendering, AvatarAnatomy-driven composition, and existing layer behavior. No editor UI, persistence, production integration, new avatar systems, new head variants, clothing assets, accessories, raster assets, external URLs, or additional hairstyle concepts were introduced.

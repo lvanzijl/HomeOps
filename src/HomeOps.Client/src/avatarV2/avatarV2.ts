@@ -607,11 +607,7 @@ export const avatarV2AccessoryAssets: Record<
       previewPriority: 30,
       recommendedMount: "headTop",
     },
-    render: (ctx, c) => {
-      const yOffset = ctx.config.hair.style === "curlyPlayful" ? 25 : 28;
-      const innerYOffset = ctx.config.hair.style === "curlyPlayful" ? 26 : 29;
-      return `<g id="avatar-v2-layer-accessory" data-accessory-asset="headband" data-accessory-layer-rule="${ctx.config.hair.style === "curlyPlayful" ? "behind-front-hair" : "normal"}"><path d="M${ctx.anatomy.head.bounds.x + 11} ${ctx.anatomy.head.bounds.y + yOffset}c22-20 62-20 84 0" fill="none" stroke="${c.line}" stroke-width="7" stroke-linecap="round"/><path d="M${ctx.anatomy.head.bounds.x + 14} ${ctx.anatomy.head.bounds.y + innerYOffset}c21-14 57-14 78 0" fill="none" stroke="${c.base}" stroke-width="4" stroke-linecap="round"/></g>`;
-    },
+    render: (ctx, c) => renderHeadband(ctx, c, "normal"),
   },
   bow: {
     id: "bow",
@@ -672,6 +668,23 @@ export const avatarV2AccessoryAssets: Record<
       ),
   },
 };
+function renderHeadband(
+  ctx: AvatarRenderContext,
+  c: ExpandedSwatch,
+  segment: "normal" | "curlyRear" | "curlyVisible",
+): string {
+  const h = ctx.anatomy.head.bounds;
+  if (ctx.config.hair.style !== "curlyPlayful" || segment === "normal") {
+    return `<g id="avatar-v2-layer-accessory" data-accessory-asset="headband" data-accessory-layer-rule="normal"><path d="M${h.x + 11} ${h.y + 28}c22-20 62-20 84 0" fill="none" stroke="${c.line}" stroke-width="7" stroke-linecap="round"/><path d="M${h.x + 14} ${h.y + 29}c21-14 57-14 78 0" fill="none" stroke="${c.base}" stroke-width="4" stroke-linecap="round"/></g>`;
+  }
+
+  if (segment === "curlyRear") {
+    return `<g id="avatar-v2-layer-accessory" data-accessory-asset="headband" data-accessory-layer-rule="partial-occlusion-rear"><path d="M${h.x + 7} ${h.y + 31}c24-22 70-22 94 0" fill="none" stroke="${c.line}" stroke-width="8" stroke-linecap="round"/><path d="M${h.x + 11} ${h.y + 32}c23-16 63-16 86 0" fill="none" stroke="${c.base}" stroke-width="4" stroke-linecap="round"/></g>`;
+  }
+
+  return `<g id="avatar-v2-layer-accessory-visible" data-accessory-asset="headband" data-accessory-layer-rule="partial-occlusion-visible"><path d="M${h.x + 4} ${h.y + 35}c6-6 12-10 19-13M${h.x + 93} ${h.y + 22}c8 4 14 8 20 14" fill="none" stroke="${c.line}" stroke-width="8" stroke-linecap="round"/><path d="M${h.x + 6} ${h.y + 36}c6-5 12-9 18-12M${h.x + 92} ${h.y + 24}c7 3 13 7 18 12" fill="none" stroke="${c.base}" stroke-width="4" stroke-linecap="round"/></g>`;
+}
+
 function renderMounted(
   ctx: AvatarRenderContext,
   _c: ExpandedSwatch,
@@ -683,8 +696,8 @@ function renderMounted(
 }
 function renderAccessory(ctx: AvatarRenderContext): string {
   if (ctx.config.accessory.style === "none") return "";
-  if (shouldRenderAccessoryBehindFrontHair(ctx)) return "";
   const c = sw(ctx.config.accessory.color);
+  if (shouldRenderAccessoryBehindFrontHair(ctx)) return renderHeadband(ctx, c, "curlyVisible");
   return avatarV2AccessoryAssets[ctx.config.accessory.style].render(ctx, c);
 }
 function shouldRenderAccessoryBehindFrontHair(ctx: AvatarRenderContext): boolean {
@@ -696,7 +709,7 @@ function shouldRenderAccessoryBehindFrontHair(ctx: AvatarRenderContext): boolean
 function renderBehindFrontHairAccessory(ctx: AvatarRenderContext): string {
   if (!shouldRenderAccessoryBehindFrontHair(ctx)) return "";
   const c = sw(ctx.config.accessory.color);
-  return avatarV2AccessoryAssets.headband.render(ctx, c);
+  return renderHeadband(ctx, c, "curlyRear");
 }
 export function validateAvatarV2AssetSvg(svg: string): boolean {
   return svg.startsWith("<svg") && svg.endsWith("</svg>") && noRaster(svg);
