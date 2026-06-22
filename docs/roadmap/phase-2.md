@@ -302,3 +302,7 @@ Child Workspace Overview First applies the overview-first/detail-on-demand rule 
 
 ### Avatar V2 Engine Exploration — Completed 2026-06-22
 Avatar V2 Engine Exploration adds an isolated SVG-only client renderer for future avatar direction work. The engine uses typed configs, internal palette tokens, independent Shirt/Base/Hair/Glasses/Accessory layers, and four deterministic sample SVG artifacts. Current MVP avatars, Family Member management, Child Workspace, Motivation, persistence, editor UI, uploads/photos, raster assets, and AI-generated avatars remain unchanged and out of scope.
+
+
+### Avatar V2 Engine Quality Upgrade Analysis — Completed 2026-06-22
+Avatar V2 Engine Quality Upgrade Analysis defines the engine-only architecture needed to move the isolated SVG avatar renderer toward the HomeOps visual identity: warm, family-friendly, child-friendly, personal, pastel, and softly rounded. The plan recommends anatomy anchors, explicit head variants, BackHair/FrontHair/HairHighlights depth, recognizable clothing assets, accessory mount points, expanded internal palette roles, and SVG asset design rules. Editor integration, production UI integration, MVP avatar replacement, persistence changes, uploads/photos, raster assets, and AI-generated avatars remain out of scope.
