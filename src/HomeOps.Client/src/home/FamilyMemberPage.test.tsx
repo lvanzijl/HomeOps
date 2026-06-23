@@ -119,7 +119,7 @@ describe("FamilyMemberPage", () => {
     ]);
   });
 
-  it("renders member management details and avatar configuration", () => {
+  it("renders member management details without legacy avatar configuration fields", () => {
     render(
       <FamilyMemberPage
         member={familyMembers[0]}
@@ -132,7 +132,15 @@ describe("FamilyMemberPage", () => {
     expect(screen.getByLabelText("Alex family member page")).not.toBeNull();
     expect(screen.getByText("Edit member")).not.toBeNull();
     expect(screen.getAllByText("Date of birth").length).toBeGreaterThan(0);
-    expect(screen.getByText("Current avatar configuration")).not.toBeNull();
+    expect(screen.getByRole("heading", { name: "Avatar" })).not.toBeNull();
+    expect(screen.getByText(/family avatar is set/)).not.toBeNull();
+    expect(screen.queryByText("Current avatar configuration")).toBeNull();
+    expect(screen.queryByText("Age group")).toBeNull();
+    expect(screen.queryByText("Presentation")).toBeNull();
+    expect(screen.queryByText("Skin tone")).toBeNull();
+    expect(screen.queryByText("Hair")).toBeNull();
+    expect(screen.queryByText("Glasses")).toBeNull();
+    expect(screen.queryByText("Shirt color")).toBeNull();
   });
 
   it("renders Avatar V2 in the Family Member hero when configured", () => {
@@ -292,8 +300,10 @@ describe("FamilyMemberPage", () => {
 
     expect(screen.getByLabelText("Parent administration")).not.toBeNull();
     expect(screen.getByText("Edit member")).not.toBeNull();
-    expect(screen.getByText("Current avatar configuration")).not.toBeNull();
-    expect(screen.getByRole("button", { name: "Edit avatar" })).not.toBeNull();
+    expect(screen.getByRole("heading", { name: "Avatar" })).not.toBeNull();
+    expect(screen.queryByText("Current avatar configuration")).toBeNull();
+    expect(screen.queryByText("Skin tone")).toBeNull();
+    expect(screen.getAllByRole("button", { name: "Edit avatar" }).length).toBeGreaterThan(0);
   });
 
   it("keeps child-first ordering before Parent Mode controls", async () => {

@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { avatarV2DefaultConfiguration } from './avatarV2/avatarConfig';
 import { type FamilyMember } from './home/familyMembers';
 import { createFamilyMember } from './home/familyMembersApi';
 import { completeOnboarding } from './onboardingApi';
@@ -65,7 +66,7 @@ function MemberForm({ kind, onAdd }: { kind: FamilyMember['memberKind']; onAdd: 
   async function submit(event: FormEvent) {
     event.preventDefault();
     if (!name.trim() || (kind === 'child' && !dateOfBirth)) return;
-    await onAdd({ name: name.trim(), initials: buildInitials(name), memberKind: kind, dateOfBirth: kind === 'child' ? dateOfBirth : null, displayColor: kind === 'adult' ? '#c7d2fe' : '#bbf7d0', avatar: { ageGroup: kind, presentation: 'neutral', skinTone: '#f1c27d', hairColor: '#111827', hairStyle: 'short', glasses: false, shirtColor: '#60a5fa' } });
+    await onAdd({ name: name.trim(), initials: buildInitials(name), memberKind: kind, dateOfBirth: kind === 'child' ? dateOfBirth : null, displayColor: kind === 'adult' ? '#c7d2fe' : '#bbf7d0', avatar: { ageGroup: kind, presentation: 'neutral', skinTone: '#f1c27d', hairColor: '#111827', hairStyle: 'short', glasses: false, shirtColor: '#60a5fa' }, avatarV2Config: avatarV2DefaultConfiguration });
     setName(''); setDateOfBirth('');
   }
   return <form className="wizard-form" onSubmit={submit} aria-label={`Add ${kind}`}><label>Name<input value={name} onChange={(event) => setName(event.target.value)} required /></label>{kind === 'child' ? <label>Date of birth<input aria-label="Date of birth" type="date" value={dateOfBirth} onChange={(event) => setDateOfBirth(event.target.value)} required /></label> : null}<button type="submit">Add {kind}</button></form>;

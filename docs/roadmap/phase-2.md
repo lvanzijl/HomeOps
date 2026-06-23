@@ -32,6 +32,7 @@
 | 2.57 | Avatar V2 Hair Quality Review | Completed |
 | 2.59 | Avatar V2 Concept B Headband Visibility Fix | Completed |
 | 2.61 | Profile Picker Removal and Family-First Cleanup | Completed |
+| 2.62 | Avatar V2 Slice 1 Frontend/Product Cleanup | Completed |
 | 2.41 | No-Date Task Lifecycle | Completed |
 
 Phase 2 theme: Durable Household Core.
@@ -70,6 +71,9 @@ Calendar Recurrence adds V1 recurrence metadata to EventSeries, supports None/Da
 
 
 
+
+## Completed Slice 2.62 — Avatar V2 Slice 1 Frontend/Product Cleanup
+Avatar V2 Slice 1 Frontend/Product Cleanup removes user-visible legacy avatar configuration details from the Family Member parent surface, gives normal frontend-created and fallback/mock members Avatar V2 defaults, and preserves current legacy avatar payload construction only for API compatibility. FamilyAvatar legacy rendering, backend contracts, DTOs, generated clients, persistence, migrations, and legacy CSS remain unchanged for later removal slices. Initials fallback remains permanent.
 
 ## Completed Slice 2.61 — Profile Picker Removal and Family-First Cleanup
 Profile Picker Removal and Family-First Cleanup removes remaining product-facing profile-picker assumptions from the runnable client experience. Startup remains household-first: incomplete setup opens First Run Wizard, while completed setup opens Home directly. The temporary Avatar V2 editor administration entry was removed from navigation, Family Member copy no longer describes household members as profiles, and Family Member management remains contextual from Home. No Avatar V2 persistence, FamilyMember schema changes, authentication, identity, permissions, migration code, or profile replacement model was introduced.

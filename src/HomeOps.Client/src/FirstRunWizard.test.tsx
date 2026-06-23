@@ -46,6 +46,16 @@ describe('FirstRunWizard', () => {
     await user.type(screen.getByLabelText('Name'), 'Alex');
     await user.click(screen.getByRole('button', { name: 'Add adult' }));
     expect(await screen.findByText('Alex')).not.toBeNull();
+    const family = await familyApi();
+    expect(vi.mocked(family.createFamilyMember).mock.calls[0][0].avatarV2Config).toEqual({
+      headVariant: 'round',
+      hairStyle: 'shortMessy',
+      hairColor: 'hairCocoa',
+      clothingStyle: 'hoodie',
+      clothingColor: 'shirtSky',
+      accessory: 'star',
+      accessoryColor: 'accessoryCoral',
+    });
     await user.click(screen.getByRole('button', { name: 'Continue' }));
 
     expect(screen.getByText('Add Children')).not.toBeNull();
@@ -53,6 +63,15 @@ describe('FirstRunWizard', () => {
     await user.type(screen.getByLabelText('Date of birth'), '2018-04-12');
     await user.click(screen.getByRole('button', { name: 'Add child' }));
     expect(await screen.findByText('Riley')).not.toBeNull();
+    expect(vi.mocked(family.createFamilyMember).mock.calls[1][0].avatarV2Config).toEqual({
+      headVariant: 'round',
+      hairStyle: 'shortMessy',
+      hairColor: 'hairCocoa',
+      clothingStyle: 'hoodie',
+      clothingColor: 'shirtSky',
+      accessory: 'star',
+      accessoryColor: 'accessoryCoral',
+    });
     await user.click(screen.getByRole('button', { name: 'Review household' }));
 
     const review = screen.getByLabelText('Review Household');
