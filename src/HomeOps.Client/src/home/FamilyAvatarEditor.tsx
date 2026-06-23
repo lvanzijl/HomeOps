@@ -1,6 +1,8 @@
+import { useMemo, useState } from 'react';
+import { avatarV2AccessoryAssets, avatarV2ClothingAssets, avatarV2HairAssets, expandAvatarPaletteToken, renderAvatarV2Svg, type AccessoryStyle, type HairStyle, type PaletteToken, type ShirtStyle } from '../avatarV2/avatarV2';
+import { avatarV2ConfigurationsEqual, avatarV2DefaultConfiguration, normalizeAvatarV2Configuration, toAvatarV2RenderConfig, type AvatarV2Configuration } from '../avatarV2/avatarConfig';
 import { HomeOpsIcon } from '../icons/homeOpsIcons';
-import { FamilyAvatar } from './FamilyAvatar';
-import type { FamilyMember, FamilyMemberAvatarConfig } from './familyMembers';
+import type { FamilyMember } from './familyMembers';
 
 interface FamilyAvatarEditorProps {
   member: FamilyMember;
@@ -8,44 +10,67 @@ interface FamilyAvatarEditorProps {
   onClose: () => void;
 }
 
-const skinTones = ['#ffdbac', '#f1c27d', '#c68642', '#8d5524'];
-const hairColors = ['#111827', '#3b2416', '#92400e', '#f59e0b', '#6b7280'];
-const shirtColors = ['#60a5fa', '#f472b6', '#34d399', '#fbbf24', '#a78bfa'];
-const displayColors = ['#f8c8dc', '#c7d2fe', '#bbf7d0', '#fde68a', '#fed7aa'];
+const hairOptions: HairStyle[] = ['softCrop', 'curlyCloud', 'sideBob', 'swoop', 'layeredMessy', 'shortMessy', 'longSoft', 'curlyPlayful'];
+const clothingOptions: ShirtStyle[] = ['tShirt', 'roundedTee', 'collar', 'hoodie', 'sweater', 'overall'];
+const accessoryOptions: AccessoryStyle[] = ['none', 'star', 'flower', 'headband', 'bow', 'chestStar', 'leafPin', 'tinyCrown'];
+const hairSwatches: PaletteToken[] = ['hairCocoa', 'hairChestnut', 'hairPlum'];
+const clothingSwatches: PaletteToken[] = ['shirtSky', 'shirtMint', 'shirtRose', 'shirtSun'];
+const accessorySwatches: PaletteToken[] = ['accessoryLilac', 'accessoryCoral'];
 
 export function FamilyAvatarEditor({ member, onChange, onClose }: FamilyAvatarEditorProps) {
-  if (!member.avatar) return null;
+  const persistedConfiguration = normalizeAvatarV2Configuration(member.avatarV2Config ?? avatarV2DefaultConfiguration);
+  const [draftConfiguration, setDraftConfiguration] = useState<AvatarV2Configuration>(persistedConfiguration);
+  const hasUnsavedChanges = !avatarV2ConfigurationsEqual(persistedConfiguration, draftConfiguration);
+  const previewSvg = useMemo(() => renderAvatarV2Svg(toAvatarV2RenderConfig(draftConfiguration)), [draftConfiguration]);
 
-  const updateAvatar = (avatarPatch: Partial<FamilyMemberAvatarConfig>) => onChange({ ...member, avatar: { ...member.avatar!, ...avatarPatch } });
-  const updateMember = (patch: Partial<FamilyMember>) => onChange({ ...member, ...patch });
+  function updateConfiguration(update: Partial<AvatarV2Configuration>) {
+    setDraftConfiguration((current) => ({ ...current, ...update }));
+  }
+
+  function save() {
+    onChange({ ...member, avatarV2Config: draftConfiguration });
+    onClose();
+  }
 
   return (
     <div className="avatar-editor-backdrop" role="presentation">
-      <section className="avatar-editor" role="dialog" aria-modal="true" aria-label={`${member.name} household member avatar editor`}>
+      <section className="avatar-editor avatar-v2-family-editor" role="dialog" aria-modal="true" aria-label={`${member.name} family member Avatar V2 editor`}>
         <header>
           <div>
-            <p className="eyebrow">Household member avatar</p>
-            <h3>{member.name}</h3>
-            <p>This changes only the friendly Home avatar. It is not a login, account, or security setting.</p>
+            <p className="eyebrow">Family member avatar</p>
+            <h3>Edit {member.name}'s avatar</h3>
+            <p>Preview changes for {member.name}, then save them to this Family Member record.</p>
           </div>
           <button type="button" className="icon-button" onClick={onClose} aria-label="Close avatar editor"><HomeOpsIcon name="close" /></button>
         </header>
-        <div className="avatar-editor-preview"><FamilyAvatar member={member} size="large" /></div>
-        <div className="avatar-editor-grid">
-          <label>Age group<select value={member.avatar.ageGroup} onChange={(e) => updateAvatar({ ageGroup: e.target.value as FamilyMemberAvatarConfig['ageGroup'] })}><option value="child">Child</option><option value="adult">Adult</option></select></label>
-          <label>Presentation<select value={member.avatar.presentation} onChange={(e) => updateAvatar({ presentation: e.target.value as FamilyMemberAvatarConfig['presentation'] })}><option value="neutral">Neutral</option><option value="masculine">Masculine</option><option value="feminine">Feminine</option></select></label>
-          <label>Hair style<select value={member.avatar.hairStyle} onChange={(e) => updateAvatar({ hairStyle: e.target.value as FamilyMemberAvatarConfig['hairStyle'] })}><option value="short">Short</option><option value="curly">Curly</option><option value="bob">Bob</option><option value="long">Long</option><option value="top">Top</option></select></label>
-          <label className="checkbox-label"><input type="checkbox" checked={member.avatar.glasses} onChange={(e) => updateAvatar({ glasses: e.target.checked })} /> Glasses</label>
-          <ColorSelect label="Skin tone" value={member.avatar.skinTone} colors={skinTones} onChange={(skinTone) => updateAvatar({ skinTone })} />
-          <ColorSelect label="Hair color" value={member.avatar.hairColor} colors={hairColors} onChange={(hairColor) => updateAvatar({ hairColor })} />
-          <ColorSelect label="Shirt color" value={member.avatar.shirtColor} colors={shirtColors} onChange={(shirtColor) => updateAvatar({ shirtColor })} />
-          <ColorSelect label="Display color" value={member.displayColor} colors={displayColors} onChange={(displayColor) => updateMember({ displayColor })} />
+        <div className="avatar-v2-editor-layout">
+          <aside className="avatar-v2-preview-card" aria-label={`${member.name} avatar live preview`}>
+            <div className="avatar-v2-preview" data-testid="family-avatar-v2-live-preview" dangerouslySetInnerHTML={{ __html: previewSvg }} />
+            <p className={hasUnsavedChanges ? 'avatar-v2-status avatar-v2-status-unsaved' : 'avatar-v2-status'} aria-live="polite">{hasUnsavedChanges ? 'Unsaved changes' : 'Saved'}</p>
+            <div className="avatar-v2-actions">
+              <button type="button" onClick={save} disabled={!hasUnsavedChanges}>Save</button>
+              <button type="button" onClick={() => setDraftConfiguration(persistedConfiguration)} disabled={!hasUnsavedChanges}>Cancel</button>
+              <button type="button" onClick={() => setDraftConfiguration(avatarV2DefaultConfiguration)}>Reset</button>
+            </div>
+          </aside>
+          <div className="avatar-v2-controls" aria-label={`${member.name} avatar choices`}>
+            <AssetSection title="Hair" description="Pick a hairstyle." options={hairOptions} selected={draftConfiguration.hairStyle} renderPreview={(style) => renderAvatarV2Svg(toAvatarV2RenderConfig({ ...draftConfiguration, hairStyle: style, accessory: 'none' }))} getLabel={(style) => avatarV2HairAssets[style].metadata.displayName} onSelect={(hairStyle) => updateConfiguration({ hairStyle })} />
+            <SwatchSection title="Hair color" swatches={hairSwatches} selected={draftConfiguration.hairColor} onSelect={(hairColor) => updateConfiguration({ hairColor })} />
+            <AssetSection title="Clothing" description="Pick an outfit shape." options={clothingOptions} selected={draftConfiguration.clothingStyle} renderPreview={(style) => renderAvatarV2Svg(toAvatarV2RenderConfig({ ...draftConfiguration, clothingStyle: style }))} getLabel={(style) => avatarV2ClothingAssets[style].metadata.displayName} onSelect={(clothingStyle) => updateConfiguration({ clothingStyle })} />
+            <SwatchSection title="Clothing color" swatches={clothingSwatches} selected={draftConfiguration.clothingColor} onSelect={(clothingColor) => updateConfiguration({ clothingColor })} />
+            <AssetSection title="Accessory" description="Pick a finishing touch." options={accessoryOptions} selected={draftConfiguration.accessory} renderPreview={(style) => renderAvatarV2Svg(toAvatarV2RenderConfig({ ...draftConfiguration, accessory: style }))} getLabel={(style) => style === 'none' ? 'No accessory' : avatarV2AccessoryAssets[style].metadata.displayName} onSelect={(accessory) => updateConfiguration({ accessory })} />
+            <SwatchSection title="Accessory color" swatches={accessorySwatches} selected={draftConfiguration.accessoryColor} onSelect={(accessoryColor) => updateConfiguration({ accessoryColor })} />
+          </div>
         </div>
       </section>
     </div>
   );
 }
 
-function ColorSelect({ label, value, colors, onChange }: { label: string; value: string; colors: string[]; onChange: (value: string) => void }) {
-  return <label>{label}<select value={value} onChange={(e) => onChange(e.target.value)}>{colors.map((color) => <option key={color} value={color}>{color}</option>)}</select></label>;
+function AssetSection<T extends string>({ title, description, options, selected, renderPreview, getLabel, onSelect }: { title: string; description: string; options: T[]; selected: T; renderPreview: (value: T) => string; getLabel: (value: T) => string; onSelect: (value: T) => void }) {
+  return <section className="avatar-v2-choice-section" aria-labelledby={`${title}-title`}><div><h3 id={`${title}-title`}>{title}</h3><p>{description}</p></div><div className="avatar-v2-asset-grid">{options.map((option) => <button className="avatar-v2-asset-tile" aria-pressed={option === selected} key={option} onClick={() => onSelect(option)} type="button"><span dangerouslySetInnerHTML={{ __html: renderPreview(option) }} /><strong>{getLabel(option)}</strong></button>)}</div></section>;
+}
+
+function SwatchSection({ title, swatches, selected, onSelect }: { title: string; swatches: PaletteToken[]; selected: PaletteToken; onSelect: (value: PaletteToken) => void }) {
+  return <section className="avatar-v2-swatch-section" aria-labelledby={`${title}-title`}><h3 id={`${title}-title`}>{title}</h3><div className="avatar-v2-swatch-row">{swatches.map((swatch) => <button aria-label={`${title} option ${swatches.indexOf(swatch) + 1}`} aria-pressed={swatch === selected} className="avatar-v2-swatch" key={swatch} onClick={() => onSelect(swatch)} style={{ background: expandAvatarPaletteToken(swatch).base }} type="button" />)}</div></section>;
 }

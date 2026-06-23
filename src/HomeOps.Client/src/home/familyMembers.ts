@@ -13,6 +13,16 @@ export interface FamilyMemberAvatarConfig {
   shirtColor: string;
 }
 
+export interface AvatarV2Config {
+  headVariant: import('../avatarV2/avatarV2').AvatarHeadVariant;
+  hairStyle: import('../avatarV2/avatarV2').HairStyle;
+  hairColor: import('../avatarV2/avatarV2').PaletteToken;
+  clothingStyle: import('../avatarV2/avatarV2').ShirtStyle;
+  clothingColor: import('../avatarV2/avatarV2').PaletteToken;
+  accessory: import('../avatarV2/avatarV2').AccessoryStyle;
+  accessoryColor: import('../avatarV2/avatarV2').PaletteToken;
+}
+
 export interface FamilyMember {
   id: string;
   name: string;
@@ -21,6 +31,7 @@ export interface FamilyMember {
   memberKind: FamilyMemberKind;
   dateOfBirth?: string | null;
   avatar?: FamilyMemberAvatarConfig;
+  avatarV2Config?: AvatarV2Config;
 }
 
 export const familyMembers: readonly FamilyMember[] = [
