@@ -276,10 +276,6 @@ namespace HomeOps.Api.Migrations
                         .HasMaxLength(120)
                         .HasColumnType("character varying(120)");
 
-                    b.Property<string>("AgeGroup")
-                        .IsRequired()
-                        .HasMaxLength(16)
-                        .HasColumnType("character varying(16)");
 
                     b.Property<DateTimeOffset>("CreatedUtc")
                         .HasColumnType("timestamp with time zone");
@@ -289,18 +285,8 @@ namespace HomeOps.Api.Migrations
                         .HasMaxLength(32)
                         .HasColumnType("character varying(32)");
 
-                    b.Property<bool>("Glasses")
-                        .HasColumnType("boolean");
 
-                    b.Property<string>("HairColor")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
 
-                    b.Property<string>("HairStyle")
-                        .IsRequired()
-                        .HasMaxLength(16)
-                        .HasColumnType("character varying(16)");
 
                     b.Property<Guid>("HouseholdId")
                         .HasColumnType("uuid");
@@ -315,20 +301,8 @@ namespace HomeOps.Api.Migrations
                         .HasMaxLength(120)
                         .HasColumnType("character varying(120)");
 
-                    b.Property<string>("Presentation")
-                        .IsRequired()
-                        .HasMaxLength(16)
-                        .HasColumnType("character varying(16)");
 
-                    b.Property<string>("ShirtColor")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
 
-                    b.Property<string>("SkinTone")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
 
                     b.Property<DateTimeOffset>("UpdatedUtc")
                         .HasColumnType("timestamp with time zone");
@@ -344,69 +318,41 @@ namespace HomeOps.Api.Migrations
                         new
                         {
                             Id = "alex",
-                            AgeGroup = "Adult",
                             CreatedUtc = new DateTimeOffset(new DateTime(2026, 6, 20, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             DisplayColor = "#f8c8dc",
-                            Glasses = false,
-                            HairColor = "#3b2416",
-                            HairStyle = "Long",
                             HouseholdId = new Guid("11111111-1111-1111-1111-111111111111"),
                             Initials = "A",
                             Name = "Alex",
-                            Presentation = "Feminine",
-                            ShirtColor = "#f472b6",
-                            SkinTone = "#c68642",
                             UpdatedUtc = new DateTimeOffset(new DateTime(2026, 6, 20, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
                         },
                         new
                         {
                             Id = "sam",
-                            AgeGroup = "Adult",
                             CreatedUtc = new DateTimeOffset(new DateTime(2026, 6, 20, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             DisplayColor = "#c7d2fe",
-                            Glasses = true,
-                            HairColor = "#4b5563",
-                            HairStyle = "Short",
                             HouseholdId = new Guid("11111111-1111-1111-1111-111111111111"),
                             Initials = "S",
                             Name = "Sam",
-                            Presentation = "Masculine",
-                            ShirtColor = "#60a5fa",
-                            SkinTone = "#f1c27d",
                             UpdatedUtc = new DateTimeOffset(new DateTime(2026, 6, 20, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
                         },
                         new
                         {
                             Id = "riley",
-                            AgeGroup = "Child",
                             CreatedUtc = new DateTimeOffset(new DateTime(2026, 6, 20, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             DisplayColor = "#bbf7d0",
-                            Glasses = false,
-                            HairColor = "#111827",
-                            HairStyle = "Curly",
                             HouseholdId = new Guid("11111111-1111-1111-1111-111111111111"),
                             Initials = "R",
                             Name = "Riley",
-                            Presentation = "Neutral",
-                            ShirtColor = "#34d399",
-                            SkinTone = "#8d5524",
                             UpdatedUtc = new DateTimeOffset(new DateTime(2026, 6, 20, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
                         },
                         new
                         {
                             Id = "jordan",
-                            AgeGroup = "Child",
                             CreatedUtc = new DateTimeOffset(new DateTime(2026, 6, 20, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             DisplayColor = "#fde68a",
-                            Glasses = true,
-                            HairColor = "#92400e",
-                            HairStyle = "Top",
                             HouseholdId = new Guid("11111111-1111-1111-1111-111111111111"),
                             Initials = "J",
                             Name = "Jordan",
-                            Presentation = "Neutral",
-                            ShirtColor = "#fbbf24",
-                            SkinTone = "#ffdbac",
                             UpdatedUtc = new DateTimeOffset(new DateTime(2026, 6, 20, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
                         });
                 });

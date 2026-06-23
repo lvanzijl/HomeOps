@@ -11,7 +11,6 @@ const member: FamilyMember = {
   initials: 'T',
   memberKind: 'adult',
   dateOfBirth: null,
-  avatar: { ageGroup: 'adult', presentation: 'neutral', skinTone: '#f1c27d', hairColor: '#111827', hairStyle: 'short', glasses: false, shirtColor: '#60a5fa' },
 };
 
 afterEach(cleanup);
@@ -39,7 +38,7 @@ describe('FamilyAvatar', () => {
     expect(screen.getByText('T')).not.toBeNull();
   });
 
-  it('does not render legacy visual parts when only member.avatar exists', () => {
+  it('does not render legacy visual parts for initials fallback', () => {
     render(<FamilyAvatar member={member} />);
 
     expect(document.querySelector('.avatar-head')).toBeNull();

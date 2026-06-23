@@ -608,3 +608,8 @@ Showcase Sample C and Showcase Sample D exposed that the wide head variant's ear
 - FamilyAvatar now renders Avatar V2 SVG output when a FamilyMember has `avatarV2Config`, while preserving its public API and existing compact/large sizing classes.
 - Legacy `member.avatar` rendering remains the fallback when Avatar V2 config is absent, and initials fallback remains for members without usable avatar data.
 - Family Member hero, Child hero area, and Home family strip receive Avatar V2 through FamilyAvatar. API contracts, DTOs, persistence, migrations, Motivation cards, Helpful Moments, shopping/lists/weekly reset/mobile/future surfaces were not intentionally changed.
+
+## Avatar V2 Slice 4 Final Legacy Persistence Removal — 2026-06-23
+- Removed legacy avatar persistence fields from the FamilyMember entity, EF mapping, seed/default creation paths, visual review fixtures, and frontend fallback/member fixture types.
+- Cleaned EF migration/model snapshot artifacts so new development databases no longer create or seed legacy avatar persistence columns.
+- Avatar V2 configuration remains the sole supported avatar model, and initials fallback remains the permanent display fallback for missing or invalid Avatar V2 data.

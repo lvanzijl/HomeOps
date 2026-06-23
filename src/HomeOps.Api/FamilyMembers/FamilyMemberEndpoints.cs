@@ -47,13 +47,6 @@ public static class FamilyMemberEndpoints
                 Initials = initials,
                 MemberKind = request.MemberKind,
                 DateOfBirth = request.DateOfBirth,
-                AgeGroup = request.MemberKind == FamilyMemberKind.Adult ? FamilyMemberAgeGroup.Adult : FamilyMemberAgeGroup.Child,
-                Presentation = FamilyMemberPresentation.Neutral,
-                SkinTone = "#f1c27d",
-                HairColor = "#111827",
-                HairStyle = FamilyMemberHairStyle.Short,
-                Glasses = false,
-                ShirtColor = "#60a5fa",
                 AvatarV2Config = avatarV2,
                 CreatedUtc = now,
                 UpdatedUtc = now,
@@ -74,7 +67,6 @@ public static class FamilyMemberEndpoints
             if (displayColor.Length == 0 || initials.Length == 0) return Results.BadRequest(new { error = "Display color and initials are required." });
             member.Name = request.Name.Trim(); member.DisplayColor = displayColor; member.Initials = initials;
             member.MemberKind = request.MemberKind; member.DateOfBirth = request.DateOfBirth;
-            member.AgeGroup = request.MemberKind == FamilyMemberKind.Adult ? FamilyMemberAgeGroup.Adult : FamilyMemberAgeGroup.Child;
             member.AvatarV2Config = NormalizeAvatarV2Config(request.AvatarV2Config);
             member.UpdatedUtc = DateTimeOffset.UtcNow;
             await dbContext.SaveChangesAsync(cancellationToken);
