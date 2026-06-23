@@ -1,4 +1,4 @@
-export type WorkspaceId = 'home' | 'agenda' | 'lists' | 'tasks' | 'motivation' | 'house' | 'media' | 'gamification' | 'settings' | 'weeklyReset';
+export type WorkspaceId = 'home' | 'agenda' | 'lists' | 'tasks' | 'motivation' | 'house' | 'media' | 'gamification' | 'settings' | 'weeklyReset' | 'avatarEditor';
 
 export interface WorkspaceDefinition {
   id: WorkspaceId;
@@ -19,6 +19,7 @@ const navigationRoles: Readonly<Record<WorkspaceId, NavigationRole>> = {
   media: 'secondary',
   gamification: 'secondary',
   settings: 'administration',
+  avatarEditor: 'administration',
 };
 
 export const workspaceDefinitions: readonly WorkspaceDefinition[] = [
@@ -66,6 +67,11 @@ export const workspaceDefinitions: readonly WorkspaceDefinition[] = [
     id: 'weeklyReset',
     label: 'Weekly Reset',
     description: 'A short parent-facing review and recap.',
+  },
+  {
+    id: 'avatarEditor',
+    label: 'Avatar Editor',
+    description: 'Try Avatar V2 styles before profile integration.',
   },
   {
     id: 'settings',
