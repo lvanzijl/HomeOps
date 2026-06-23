@@ -369,3 +369,6 @@ Avatar V2 Contact Sheet Artifact Fix removes an unintended broad translucent bas
 - Updated FamilyMember create/update/read contracts and client mapping so Avatar V2 config round-trips with FamilyMember data.
 - Replaced browser-local Avatar V2 editor storage with Family Member save/load integration, including local preview, save, cancel, and reset-to-default workflows.
 - Broader Avatar V2 rollout into Home, Family Overview, Child Workspace, dashboards, profiles, authentication, or permissions remains out of scope.
+
+### Avatar V2 Phase 1 Core Display Rollout — Completed 2026-06-23
+FamilyAvatar now uses persisted FamilyMember Avatar V2 configuration for core display surfaces while keeping the FamilyAvatar public API and existing call sites intact. Family Member hero, Child hero area, and Home family strip render Avatar V2 through FamilyAvatar when `avatarV2Config` is present. Legacy avatar rendering remains as fallback when Avatar V2 config is absent, and initials remain as the no-avatar fallback. This display-only slice did not change API contracts, DTOs, persistence, migrations, Helpful Moments, shopping/lists/weekly reset/mobile/future surfaces, or intentionally redesign Motivation cards; Motivation cards may inherit Avatar V2 indirectly anywhere they already render FamilyAvatar.

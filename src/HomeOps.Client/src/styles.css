@@ -843,6 +843,14 @@ button {
   font-weight: 900;
 }
 
+.family-avatar-v2 {
+  overflow: hidden;
+}
+.family-avatar-v2 svg {
+  height: 100%;
+  width: 100%;
+}
+
 .avatar-head {
   background: var(--avatar-skin);
   border-radius: 50%;

@@ -1,4 +1,6 @@
-import type { CSSProperties } from 'react';
+import { useMemo, type CSSProperties } from 'react';
+import { normalizeAvatarV2Configuration, toAvatarV2RenderConfig } from '../avatarV2/avatarConfig';
+import { renderAvatarV2Svg } from '../avatarV2/avatarV2';
 import type { FamilyMember } from './familyMembers';
 
 interface FamilyAvatarProps {
@@ -7,6 +9,27 @@ interface FamilyAvatarProps {
 }
 
 export function FamilyAvatar({ member, size = 'compact' }: FamilyAvatarProps) {
+  const avatarV2Svg = useMemo(() => {
+    if (!member.avatarV2Config) return null;
+
+    return renderAvatarV2Svg(toAvatarV2RenderConfig(normalizeAvatarV2Configuration(member.avatarV2Config))).replace(
+      ' role="img" aria-label="HomeOps Avatar V2 sample"',
+      ' aria-hidden="true" focusable="false"',
+    );
+  }, [member.avatarV2Config]);
+
+  if (avatarV2Svg) {
+    return (
+      <span
+        className={`family-avatar-portrait family-avatar-v2 family-avatar-${size}`}
+        style={{ '--avatar-bg': member.displayColor } as CSSProperties}
+        aria-label={`${member.name} household avatar`}
+        role="img"
+        dangerouslySetInnerHTML={{ __html: avatarV2Svg }}
+      />
+    );
+  }
+
   if (!member.avatar) {
     return <span className={`family-avatar-fallback family-avatar-${size}`} aria-label={`${member.name} avatar fallback`}>{member.initials}</span>;
   }
