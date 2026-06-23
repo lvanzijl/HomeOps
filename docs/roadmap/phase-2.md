@@ -33,6 +33,7 @@
 | 2.59 | Avatar V2 Concept B Headband Visibility Fix | Completed |
 | 2.61 | Profile Picker Removal and Family-First Cleanup | Completed |
 | 2.62 | Avatar V2 Slice 1 Frontend/Product Cleanup | Completed |
+| 2.63 | Avatar V2 Slice 2 Renderer Cleanup | Completed |
 | 2.41 | No-Date Task Lifecycle | Completed |
 
 Phase 2 theme: Durable Household Core.
@@ -112,6 +113,9 @@ Avatar V2 Concept B Headband Visibility Fix corrected the curly-hair headband in
 
 ## Completed Slice 2.58 — Avatar V2 Concept B Curly Hairstyle Salvage
 Avatar V2 Concept B Curly Hairstyle Salvage supersedes the earlier concept ranking according to visual review: Concept A is rejected, Concept C is rejected, and Concept B is the only usable direction. The face strip was traced to a long right-side Concept B hair-highlight segment rendered above the face, then corrected with a shorter upper-right wave highlight that remains in the hair mass. Four corrected validation samples cover dark hair, light hair, headband interaction, and leaf-pin interaction while preserving SVG-only deterministic rendering, AvatarAnatomy-driven composition, and existing layer behavior. No editor UI, persistence, production integration, new avatar systems, new head variants, clothing assets, accessories, raster assets, external URLs, or additional hairstyle concepts were introduced.
+
+## Completed Slice 2.63 — Avatar V2 Slice 2 Renderer Cleanup
+Avatar V2 Slice 2 Renderer Cleanup removes the legacy CSS/span avatar renderer from the shared FamilyAvatar component. FamilyAvatar now renders Avatar V2 only from complete valid Avatar V2 configuration and otherwise uses the permanent initials fallback for missing, incomplete, or invalid Avatar V2 data. Legacy-only avatar CSS selectors were removed, while backend/API contracts, DTOs, generated client compatibility, persistence, and migrations remain unchanged for later dedicated cleanup slices.
 
 ## Recommended Next Slice
 Proceed with Real Google Calendar Read-Only Integration only after preserving HomeOps Calendar as source of truth and local-only portability boundaries. Keep any Google Calendar work optional and integration-scoped; do not add two-way sync, authentication beyond an explicitly scoped integration requirement, sensors, media, notifications, recurring event editing, or offline-first synchronization.

@@ -25,19 +25,26 @@ describe('FamilyAvatar', () => {
     expect(avatar.querySelector('svg')?.getAttribute('aria-hidden')).toBe('true');
   });
 
-  it('preserves legacy fallback when avatarV2Config is missing', () => {
+  it('renders initials fallback when avatarV2Config is missing', () => {
     render(<FamilyAvatar member={member} />);
 
-    const avatar = screen.getByRole('img', { name: 'Taylor household avatar' });
-    expect(avatar.className).toContain('family-avatar-portrait');
-    expect(avatar.className).toContain('hair-short');
-    expect(avatar.querySelector('svg')).toBeNull();
+    expect(screen.getByLabelText('Taylor avatar fallback')).not.toBeNull();
+    expect(screen.getByText('T')).not.toBeNull();
   });
 
-  it('preserves initials fallback when avatar configuration is missing', () => {
-    render(<FamilyAvatar member={{ id: 'fallback', name: 'Casey', displayColor: '#fde68a', initials: 'C', memberKind: 'adult', dateOfBirth: null }} />);
+  it('renders initials fallback when avatarV2Config is invalid', () => {
+    render(<FamilyAvatar member={{ ...member, avatarV2Config: { ...avatarV2DefaultConfiguration, hairStyle: 'legacy-short' } as unknown as FamilyMember['avatarV2Config'] }} />);
 
-    expect(screen.getByLabelText('Casey avatar fallback')).not.toBeNull();
-    expect(screen.getByText('C')).not.toBeNull();
+    expect(screen.getByLabelText('Taylor avatar fallback')).not.toBeNull();
+    expect(screen.getByText('T')).not.toBeNull();
+  });
+
+  it('does not render legacy visual parts when only member.avatar exists', () => {
+    render(<FamilyAvatar member={member} />);
+
+    expect(document.querySelector('.avatar-head')).toBeNull();
+    expect(document.querySelector('.avatar-hair')).toBeNull();
+    expect(document.querySelector('.avatar-shirt')).toBeNull();
+    expect(document.querySelector('.hair-short')).toBeNull();
   });
 });
