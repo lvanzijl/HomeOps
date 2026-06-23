@@ -1,5 +1,6 @@
 # Current State
 
+- 2026-06-23: Removed remaining product-facing profile-picker assumptions from startup/navigation by hiding the isolated Avatar V2 editor from Administration, cleaning Family Member profile wording, and preserving the family-first flow from onboarding directly to Home.
 - 2026-06-23: Shipped the isolated Avatar Editor MVP with persistent user-intent configuration, live SVG preview, visual asset selection, swatch-only colors, save/cancel/reset workflow, and tests while avoiding profile migration, MVP avatar replacement, child workspace integration, profile picker integration, unlockables, and gamification.
 - 2026-06-23: Removed the unintended Avatar V2 base-layer center oval artifact, regenerated the SVG-only contact sheet under `docs/reports/2026-06-23-work/`, and kept the fix limited to renderer/test/report documentation without editor UI, persistence, production integration, raster assets, or avatar redesign.
 
@@ -7,7 +8,7 @@
 Phase 2 — Durable Household Core
 
 ## Current Slice
-Avatar Editor MVP — Completed
+Profile Picker Removal and Family-First Cleanup — Completed
 
 ## Completed Slices
 - 1.1 Repository Bootstrap
@@ -43,6 +44,7 @@ Avatar Editor MVP — Completed
 - Celebration Asset Integration
 - Weekly Reset Explanation Compaction
 - Avatar Editor MVP
+- Profile Picker Removal and Family-First Cleanup
 
 
 
