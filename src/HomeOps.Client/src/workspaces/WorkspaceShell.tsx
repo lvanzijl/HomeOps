@@ -1,5 +1,6 @@
 import { HomeOpsIcon } from '../icons/homeOpsIcons';
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { avatarV2DefaultConfiguration } from '../avatarV2/avatarConfig';
 import { FamilyMemberPage } from '../home/FamilyMemberPage';
 import { HomeDashboard } from '../home/HomeDashboard';
 import { MotivationPage } from '../MotivationPage';
@@ -239,7 +240,7 @@ function AddFamilyMemberDialog({ onCancel, onCreate }: { onCancel: () => void; o
   function submit(event: FormEvent) {
     event.preventDefault();
     if (!name.trim() || (memberKind === 'child' && !dateOfBirth)) return;
-    onCreate({ name: name.trim(), initials: buildInitials(name), memberKind, dateOfBirth: dateOfBirth || null, displayColor, avatar: { ageGroup: memberKind, presentation: 'neutral', skinTone: '#f1c27d', hairColor: '#111827', hairStyle: 'short', glasses: false, shirtColor: '#60a5fa' } });
+    onCreate({ name: name.trim(), initials: buildInitials(name), memberKind, dateOfBirth: dateOfBirth || null, displayColor, avatar: { ageGroup: memberKind, presentation: 'neutral', skinTone: '#f1c27d', hairColor: '#111827', hairStyle: 'short', glasses: false, shirtColor: '#60a5fa' }, avatarV2Config: avatarV2DefaultConfiguration });
   }
   return <div className="avatar-editor-backdrop" role="presentation"><section className="avatar-editor" role="dialog" aria-modal="true" aria-label="Add family member"><header><div><p className="eyebrow">Family member management</p><h3>Add Family Member</h3><p>Add a household member without creating an account or login.</p></div><button type="button" className="icon-button" onClick={onCancel} aria-label="Close add family member"><HomeOpsIcon name="close" /></button></header><form className="avatar-editor-grid" onSubmit={submit}><label>Name<input value={name} onChange={(event) => setName(event.target.value)} required /></label><label>Member type<select value={memberKind} onChange={(event) => setMemberKind(event.target.value as FamilyMember['memberKind'])}><option value="adult">Adult</option><option value="child">Child</option></select></label><label>Date of birth<input type="date" value={dateOfBirth} onChange={(event) => setDateOfBirth(event.target.value)} aria-required={memberKind === 'child'} /></label><label>Display color<input type="color" value={displayColor} onChange={(event) => setDisplayColor(event.target.value)} /></label><div className="family-member-actions"><button type="submit">Add member</button><button type="button" onClick={onCancel}>Cancel</button></div></form></section></div>;
 }

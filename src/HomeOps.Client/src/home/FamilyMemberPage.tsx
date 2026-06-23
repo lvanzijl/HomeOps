@@ -408,39 +408,16 @@ function ParentAdministration({
           </dl>
         </article>
         <article className="family-member-detail-card">
-          <h3>Current avatar configuration</h3>
-          {member.avatar ? (
-            <dl className="family-member-detail-list">
-              <div>
-                <dt>Age group</dt>
-                <dd>{member.avatar.ageGroup}</dd>
-              </div>
-              <div>
-                <dt>Presentation</dt>
-                <dd>{member.avatar.presentation}</dd>
-              </div>
-              <div>
-                <dt>Skin tone</dt>
-                <dd>{member.avatar.skinTone}</dd>
-              </div>
-              <div>
-                <dt>Hair</dt>
-                <dd>
-                  {member.avatar.hairStyle} · {member.avatar.hairColor}
-                </dd>
-              </div>
-              <div>
-                <dt>Glasses</dt>
-                <dd>{member.avatar.glasses ? "Yes" : "No"}</dd>
-              </div>
-              <div>
-                <dt>Shirt color</dt>
-                <dd>{member.avatar.shirtColor}</dd>
-              </div>
-            </dl>
+          <h3>Avatar</h3>
+          {member.avatarV2Config ? (
+            <p>
+              {member.name}'s family avatar is set and appears across Home,
+              this page, and Motivation as a warm ownership cue.
+            </p>
           ) : (
             <p>
-              No avatar configuration yet. Initials are used as the fallback.
+              No Avatar V2 choices are saved yet. Initials remain available as
+              the fallback.
             </p>
           )}
         </article>

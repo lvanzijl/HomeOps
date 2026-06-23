@@ -131,6 +131,9 @@ describe("MotivationPage", () => {
     );
     expect(within(individualGoals).getByText("Alex")).not.toBeNull();
     expect(
+      within(individualGoals).getByRole("img", { name: "Alex household avatar" }).className,
+    ).toContain("family-avatar-v2");
+    expect(
       within(individualGoals).getByText("Finish morning routine"),
     ).not.toBeNull();
     expect(
