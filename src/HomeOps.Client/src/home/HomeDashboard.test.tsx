@@ -8,6 +8,7 @@ import {
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { HomeDashboard } from "./HomeDashboard";
+import { avatarV2DefaultConfiguration } from "../avatarV2/avatarConfig";
 import { familyMembers } from "./familyMembers";
 
 vi.mock("../agenda/calendarEventsApi", () => ({
@@ -220,6 +221,21 @@ describe("HomeDashboard", () => {
     expect(
       screen.getByText("Shared Household · Due 2026-06-19"),
     ).not.toBeNull();
+  });
+
+  it("renders Avatar V2 in the Home family strip when configured", () => {
+    render(
+      <HomeDashboard
+        members={[{ ...familyMembers[0], avatarV2Config: avatarV2DefaultConfiguration }]}
+        onNavigate={vi.fn()}
+        onSelectFamilyMember={vi.fn()}
+        onAddFamilyMember={vi.fn()}
+      />,
+    );
+
+    const strip = screen.getByLabelText("Family Members");
+    const avatar = within(strip).getByRole("img", { name: "Alex household avatar" });
+    expect(avatar.className).toContain("family-avatar-v2");
   });
 
   it("renders and navigates from the Home Motivation tile", async () => {

@@ -598,3 +598,8 @@ Showcase Sample C and Showcase Sample D exposed that the wide head variant's ear
 - Redesigned `leafPin` into a clearer leaf silhouette with center and secondary veins, preserving the existing accessory id and mount behavior.
 - Added the simplest headband interaction rule for `curlyPlayful`: the headband renders behind foreground curls so it reads as wrapped around the head rather than pasted over the hairstyle.
 - Generated targeted CurlyPlayful V2 validation SVGs under `docs/reports/2026-06-22-work/` and regenerated the existing six showcase SVGs without adding editor UI, persistence, production integration, new systems, new head variants, new clothing assets, gamification, unlockables, raster assets, or external avatar systems.
+
+## Avatar V2 Phase 1 Core Display Rollout — 2026-06-23
+- FamilyAvatar now renders Avatar V2 SVG output when a FamilyMember has `avatarV2Config`, while preserving its public API and existing compact/large sizing classes.
+- Legacy `member.avatar` rendering remains the fallback when Avatar V2 config is absent, and initials fallback remains for members without usable avatar data.
+- Family Member hero, Child hero area, and Home family strip receive Avatar V2 through FamilyAvatar. API contracts, DTOs, persistence, migrations, Motivation cards, Helpful Moments, shopping/lists/weekly reset/mobile/future surfaces were not intentionally changed.

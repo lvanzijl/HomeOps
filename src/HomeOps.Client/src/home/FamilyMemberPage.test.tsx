@@ -2,6 +2,7 @@ import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { FamilyMemberPage } from "./FamilyMemberPage";
+import { avatarV2DefaultConfiguration } from "../avatarV2/avatarConfig";
 import { familyMembers } from "./familyMembers";
 import { loadMotivationSnapshot } from "../motivationData";
 import { loadHelpfulMoments } from "../helpfulMomentsData";
@@ -134,10 +135,24 @@ describe("FamilyMemberPage", () => {
     expect(screen.getByText("Current avatar configuration")).not.toBeNull();
   });
 
+  it("renders Avatar V2 in the Family Member hero when configured", () => {
+    render(
+      <FamilyMemberPage
+        member={{ ...familyMembers[0], avatarV2Config: avatarV2DefaultConfiguration }}
+        onBack={vi.fn()}
+        onChange={vi.fn()}
+        onRemove={vi.fn()}
+      />,
+    );
+
+    const avatar = screen.getByRole("img", { name: "Alex household avatar" });
+    expect(avatar.className).toContain("family-avatar-v2");
+  });
+
   it("renders child progress with family and individual goals", async () => {
     render(
       <FamilyMemberPage
-        member={familyMembers[2]}
+        member={{ ...familyMembers[2], avatarV2Config: avatarV2DefaultConfiguration }}
         onBack={vi.fn()}
         onChange={vi.fn()}
         onRemove={vi.fn()}
@@ -147,6 +162,7 @@ describe("FamilyMemberPage", () => {
     expect(screen.getByLabelText("Riley Child Mode")).not.toBeNull();
     expect(screen.getByLabelText("Child hero area")).not.toBeNull();
     expect(screen.getByLabelText("Who I am")).not.toBeNull();
+    expect(screen.getAllByRole("img", { name: "Riley household avatar" }).some((avatar) => avatar.className.includes("family-avatar-v2"))).toBe(true);
     expect(screen.getByLabelText("Current goal and progress")).not.toBeNull();
     expect(screen.getByLabelText("Family goal")).not.toBeNull();
     expect(
