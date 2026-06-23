@@ -46,15 +46,6 @@ describe('familyMembersApi avatar contract cleanup', () => {
       dateOfBirth: null,
       displayColor: '#c7d2fe',
       initials: 'M',
-      avatar: {
-        ageGroup: 'adult',
-        presentation: 'neutral',
-        skinTone: '#f1c27d',
-        hairColor: '#111827',
-        hairStyle: 'short',
-        glasses: false,
-        shirtColor: '#60a5fa',
-      },
       avatarV2Config,
     });
 
@@ -69,15 +60,6 @@ describe('familyMembersApi avatar contract cleanup', () => {
       dateOfBirth: null,
       displayColor: '#c7d2fe',
       initials: 'M',
-      avatar: {
-        ageGroup: 'adult',
-        presentation: 'neutral',
-        skinTone: '#f1c27d',
-        hairColor: '#111827',
-        hairStyle: 'short',
-        glasses: false,
-        shirtColor: '#60a5fa',
-      },
       avatarV2Config,
     };
     const fetch = vi.fn(async (_url: string, options: RequestInit) => {
