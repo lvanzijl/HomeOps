@@ -8,6 +8,7 @@ import { createFamilyMember, loadFamilyMembers, removeFamilyMember, saveFamilyMe
 import { TasksPage } from '../tasks/TasksPage';
 import { WeeklyResetPage } from '../weeklyReset/WeeklyResetPage';
 import { FirstRunWizard } from '../FirstRunWizard';
+import { AvatarEditorPage } from '../avatarV2/AvatarEditorPage';
 import { loadOnboardingStatus } from '../onboardingApi';
 import { DomainPlaceholderPage } from './DomainPlaceholderPage';
 import { getDomainColorClass } from './domainColors';
@@ -194,6 +195,8 @@ export function WorkspaceShell() {
           <MotivationPage members={members} />
         ) : activeWorkspace.id === 'weeklyReset' ? (
           <WeeklyResetPage />
+        ) : activeWorkspace.id === 'avatarEditor' ? (
+          <AvatarEditorPage />
         ) : activeWorkspace.id === 'house' ? (
           <DomainPlaceholderPage title="House Status" purpose="For home alerts, sensors, and device state." />
         ) : activeWorkspace.id === 'media' ? (

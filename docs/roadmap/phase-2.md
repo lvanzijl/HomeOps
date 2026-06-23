@@ -353,3 +353,8 @@ Avatar V2 Hair Quality Review improved the isolated SVG-only renderer's weak pri
 Avatar V2 Rejected Asset Redesign addressed the visual rejection findings for `curlyPlayful`, `leafPin`, and the `curlyPlayful` + `headband` combination. The isolated SVG renderer now uses a rebuilt curl-cluster silhouette for `curlyPlayful`, a clearer veined `leafPin`, and an asset-specific rule that renders headbands behind foreground curls for curly hair. Targeted validation SVGs were generated alongside refreshed showcase samples. The slice remained asset-level only: no editor UI, persistence, production integration, new avatar systems, new head variants, new clothing assets, gamification, unlockables, raster assets, or external avatar systems were added.
 
 Avatar V2 Contact Sheet Artifact Fix removes an unintended broad translucent base-layer oval from the isolated SVG renderer after contact-sheet visual review. The correction is limited to the renderer, regression coverage, and regenerated SVG-only review artifacts; hairstyles, clothing, accessories, anatomy, editor UI, persistence, production integration, raster assets, and external avatar systems remain unchanged.
+
+### Avatar Editor MVP — Completed 2026-06-23
+- Added an isolated Avatar V2 editor page for limited user testing before production profile migration.
+- Persisted Avatar V2 user intent for head variant, hair, clothing, accessories, and swatch choices without exposing renderer internals.
+- Preserved AvatarAnatomy-driven SVG-only deterministic rendering and avoided replacing existing MVP avatars or integrating with child/profile/family overview surfaces.
