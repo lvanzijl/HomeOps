@@ -117,6 +117,9 @@ Avatar V2 Concept B Curly Hairstyle Salvage supersedes the earlier concept ranki
 ## Completed Slice 2.63 — Avatar V2 Slice 2 Renderer Cleanup
 Avatar V2 Slice 2 Renderer Cleanup removes the legacy CSS/span avatar renderer from the shared FamilyAvatar component. FamilyAvatar now renders Avatar V2 only from complete valid Avatar V2 configuration and otherwise uses the permanent initials fallback for missing, incomplete, or invalid Avatar V2 data. Legacy-only avatar CSS selectors were removed, while backend/API contracts, DTOs, generated client compatibility, persistence, and migrations remain unchanged for later dedicated cleanup slices.
 
+## Completed Slice 2.64 — Avatar V2 Slice 3 API/Client Contract Cleanup
+Avatar V2 Slice 3 API/Client Contract Cleanup removes legacy avatar DTO/request/response fields from the public Family Member API contracts and regenerates OpenAPI plus the TypeScript client so frontend create/update flows no longer send legacy avatar payloads. The backend still assigns server-side defaults to legacy entity properties only to satisfy the current persistence model. Avatar V2 configuration remains supported, initials fallback remains the display fallback, and EF/database legacy fields, schema, and migrations remain unchanged for Slice 4.
+
 ## Recommended Next Slice
 Proceed with Real Google Calendar Read-Only Integration only after preserving HomeOps Calendar as source of truth and local-only portability boundaries. Keep any Google Calendar work optional and integration-scoped; do not add two-way sync, authentication beyond an explicitly scoped integration requirement, sensors, media, notifications, recurring event editing, or offline-first synchronization.
 

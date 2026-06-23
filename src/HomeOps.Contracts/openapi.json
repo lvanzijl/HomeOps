@@ -3158,8 +3158,8 @@
             "format": "date",
             "nullable": true
           },
-          "avatar": {
-            "$ref": "#/components/schemas/FamilyMemberAvatarDto"
+          "avatarV2Config": {
+            "$ref": "#/components/schemas/AvatarV2ConfigDto"
           }
         }
       },
@@ -3175,76 +3175,32 @@
           1
         ]
       },
-      "FamilyMemberAvatarDto": {
+      "AvatarV2ConfigDto": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "ageGroup": {
-            "$ref": "#/components/schemas/FamilyMemberAgeGroup"
+          "headVariant": {
+            "type": "string"
           },
-          "presentation": {
-            "$ref": "#/components/schemas/FamilyMemberPresentation"
-          },
-          "skinTone": {
+          "hairStyle": {
             "type": "string"
           },
           "hairColor": {
             "type": "string"
           },
-          "hairStyle": {
-            "$ref": "#/components/schemas/FamilyMemberHairStyle"
+          "clothingStyle": {
+            "type": "string"
           },
-          "glasses": {
-            "type": "boolean"
+          "clothingColor": {
+            "type": "string"
           },
-          "shirtColor": {
+          "accessory": {
+            "type": "string"
+          },
+          "accessoryColor": {
             "type": "string"
           }
         }
-      },
-      "FamilyMemberAgeGroup": {
-        "type": "integer",
-        "description": "",
-        "x-enumNames": [
-          "Child",
-          "Adult"
-        ],
-        "enum": [
-          0,
-          1
-        ]
-      },
-      "FamilyMemberPresentation": {
-        "type": "integer",
-        "description": "",
-        "x-enumNames": [
-          "Neutral",
-          "Masculine",
-          "Feminine"
-        ],
-        "enum": [
-          0,
-          1,
-          2
-        ]
-      },
-      "FamilyMemberHairStyle": {
-        "type": "integer",
-        "description": "",
-        "x-enumNames": [
-          "Short",
-          "Curly",
-          "Bob",
-          "Long",
-          "Top"
-        ],
-        "enum": [
-          0,
-          1,
-          2,
-          3,
-          4
-        ]
       },
       "CreateFamilyMemberRequest": {
         "type": "object",
@@ -3269,11 +3225,11 @@
             "type": "string",
             "nullable": true
           },
-          "avatar": {
+          "avatarV2Config": {
             "nullable": true,
             "oneOf": [
               {
-                "$ref": "#/components/schemas/FamilyMemberAvatarDto"
+                "$ref": "#/components/schemas/AvatarV2ConfigDto"
               }
             ]
           }
@@ -3300,8 +3256,13 @@
             "format": "date",
             "nullable": true
           },
-          "avatar": {
-            "$ref": "#/components/schemas/FamilyMemberAvatarDto"
+          "avatarV2Config": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/AvatarV2ConfigDto"
+              }
+            ]
           }
         }
       },

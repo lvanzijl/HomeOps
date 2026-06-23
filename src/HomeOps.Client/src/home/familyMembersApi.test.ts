@@ -1,17 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { FamilyMemberAgeGroup, FamilyMemberHairStyle, FamilyMemberKind, FamilyMemberPresentation } from '../api/homeOpsApiClient';
+import { FamilyMemberKind } from '../api/homeOpsApiClient';
 import { createFamilyMember, saveFamilyMember } from './familyMembersApi';
 import type { FamilyMember } from './familyMembers';
-
-const avatar = {
-  ageGroup: FamilyMemberAgeGroup.Adult,
-  presentation: FamilyMemberPresentation.Neutral,
-  skinTone: '#f1c27d',
-  hairColor: '#111827',
-  hairStyle: FamilyMemberHairStyle.Short,
-  glasses: false,
-  shirtColor: '#60a5fa',
-};
 
 const avatarV2Config = {
   headVariant: 'round',
@@ -31,7 +21,6 @@ function familyMemberResponse(overrides: Record<string, unknown> = {}) {
     initials: 'M',
     memberKind: FamilyMemberKind.Adult,
     dateOfBirth: null,
-    avatar,
     avatarV2Config,
     ...overrides,
   };
@@ -41,11 +30,11 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe('familyMembersApi avatar compatibility', () => {
-  it('adds Avatar V2 defaults for created members while preserving legacy compatibility payloads when provided', async () => {
+describe('familyMembersApi avatar contract cleanup', () => {
+  it('creates members without sending a legacy avatar payload', async () => {
     const fetch = vi.fn(async (_url: string, options: RequestInit) => {
       const body = JSON.parse(options.body as string);
-      expect(body.avatar).toEqual(avatar);
+      expect(body.avatar).toBeUndefined();
       expect(body.avatarV2Config).toEqual(avatarV2Config);
       return new Response(JSON.stringify(familyMemberResponse()), { status: 201, headers: { 'Content-Type': 'application/json' } });
     });
@@ -66,12 +55,13 @@ describe('familyMembersApi avatar compatibility', () => {
         glasses: false,
         shirtColor: '#60a5fa',
       },
+      avatarV2Config,
     });
 
     expect(fetch).toHaveBeenCalled();
   });
 
-  it('keeps constructing a legacy avatar payload for updates required by the current API contract', async () => {
+  it('updates members without sending a legacy avatar payload', async () => {
     const member: FamilyMember = {
       id: 'morgan',
       name: 'Morgan',
@@ -92,7 +82,7 @@ describe('familyMembersApi avatar compatibility', () => {
     };
     const fetch = vi.fn(async (_url: string, options: RequestInit) => {
       const body = JSON.parse(options.body as string);
-      expect(body.avatar).toEqual(avatar);
+      expect(body.avatar).toBeUndefined();
       expect(body.avatarV2Config).toEqual(avatarV2Config);
       return new Response(JSON.stringify(familyMemberResponse()), { status: 200, headers: { 'Content-Type': 'application/json' } });
     });

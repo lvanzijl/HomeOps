@@ -4772,7 +4772,6 @@ export class FamilyMemberDto implements IFamilyMemberDto {
     initials?: string;
     memberKind?: FamilyMemberKind;
     dateOfBirth?: Date | undefined;
-    avatar?: FamilyMemberAvatarDto;
     avatarV2Config?: AvatarV2ConfigDto;
 
     constructor(data?: IFamilyMemberDto) {
@@ -4792,7 +4791,6 @@ export class FamilyMemberDto implements IFamilyMemberDto {
             this.initials = _data["initials"];
             this.memberKind = _data["memberKind"];
             this.dateOfBirth = _data["dateOfBirth"] ? new Date(_data["dateOfBirth"].toString()) : undefined as any;
-            this.avatar = _data["avatar"] ? FamilyMemberAvatarDto.fromJS(_data["avatar"]) : undefined as any;
             this.avatarV2Config = _data["avatarV2Config"] ? AvatarV2ConfigDto.fromJS(_data["avatarV2Config"]) : undefined as any;
         }
     }
@@ -4812,10 +4810,24 @@ export class FamilyMemberDto implements IFamilyMemberDto {
         data["initials"] = this.initials;
         data["memberKind"] = this.memberKind;
         data["dateOfBirth"] = this.dateOfBirth ? formatDate(this.dateOfBirth) : undefined as any;
-        data["avatar"] = this.avatar ? this.avatar.toJSON() : undefined as any;
         data["avatarV2Config"] = this.avatarV2Config ? this.avatarV2Config.toJSON() : undefined as any;
         return data;
     }
+}
+
+export interface IFamilyMemberDto {
+    id?: string;
+    name?: string;
+    displayColor?: string;
+    initials?: string;
+    memberKind?: FamilyMemberKind;
+    dateOfBirth?: Date | undefined;
+    avatarV2Config?: AvatarV2ConfigDto;
+}
+
+export enum FamilyMemberKind {
+    Child = 0,
+    Adult = 1,
 }
 
 export class AvatarV2ConfigDto implements IAvatarV2ConfigDto {
@@ -4827,40 +4839,7 @@ export class AvatarV2ConfigDto implements IAvatarV2ConfigDto {
     accessory?: string;
     accessoryColor?: string;
 
-    constructor(data?: IAvatarV2ConfigDto) { if (data) { for (var property in data) { if (data.hasOwnProperty(property)) (this as any)[property] = (data as any)[property]; } } }
-    init(_data?: any) { if (_data) { this.headVariant = _data["headVariant"]; this.hairStyle = _data["hairStyle"]; this.hairColor = _data["hairColor"]; this.clothingStyle = _data["clothingStyle"]; this.clothingColor = _data["clothingColor"]; this.accessory = _data["accessory"]; this.accessoryColor = _data["accessoryColor"]; } }
-    static fromJS(data: any): AvatarV2ConfigDto { data = typeof data === "object" ? data : {}; let result = new AvatarV2ConfigDto(); result.init(data); return result; }
-    toJSON(data?: any) { data = typeof data === "object" ? data : {}; data["headVariant"] = this.headVariant; data["hairStyle"] = this.hairStyle; data["hairColor"] = this.hairColor; data["clothingStyle"] = this.clothingStyle; data["clothingColor"] = this.clothingColor; data["accessory"] = this.accessory; data["accessoryColor"] = this.accessoryColor; return data; }
-}
-
-export interface IAvatarV2ConfigDto { headVariant?: string; hairStyle?: string; hairColor?: string; clothingStyle?: string; clothingColor?: string; accessory?: string; accessoryColor?: string; }
-
-export interface IFamilyMemberDto {
-    id?: string;
-    name?: string;
-    displayColor?: string;
-    initials?: string;
-    memberKind?: FamilyMemberKind;
-    dateOfBirth?: Date | undefined;
-    avatar?: FamilyMemberAvatarDto;
-    avatarV2Config?: AvatarV2ConfigDto;
-}
-
-export enum FamilyMemberKind {
-    Child = 0,
-    Adult = 1,
-}
-
-export class FamilyMemberAvatarDto implements IFamilyMemberAvatarDto {
-    ageGroup?: FamilyMemberAgeGroup;
-    presentation?: FamilyMemberPresentation;
-    skinTone?: string;
-    hairColor?: string;
-    hairStyle?: FamilyMemberHairStyle;
-    glasses?: boolean;
-    shirtColor?: string;
-
-    constructor(data?: IFamilyMemberAvatarDto) {
+    constructor(data?: IAvatarV2ConfigDto) {
         if (data) {
             for (var property in data) {
                 if (data.hasOwnProperty(property))
@@ -4871,63 +4850,44 @@ export class FamilyMemberAvatarDto implements IFamilyMemberAvatarDto {
 
     init(_data?: any) {
         if (_data) {
-            this.ageGroup = _data["ageGroup"];
-            this.presentation = _data["presentation"];
-            this.skinTone = _data["skinTone"];
-            this.hairColor = _data["hairColor"];
+            this.headVariant = _data["headVariant"];
             this.hairStyle = _data["hairStyle"];
-            this.glasses = _data["glasses"];
-            this.shirtColor = _data["shirtColor"];
+            this.hairColor = _data["hairColor"];
+            this.clothingStyle = _data["clothingStyle"];
+            this.clothingColor = _data["clothingColor"];
+            this.accessory = _data["accessory"];
+            this.accessoryColor = _data["accessoryColor"];
         }
     }
 
-    static fromJS(data: any): FamilyMemberAvatarDto {
+    static fromJS(data: any): AvatarV2ConfigDto {
         data = typeof data === 'object' ? data : {};
-        let result = new FamilyMemberAvatarDto();
+        let result = new AvatarV2ConfigDto();
         result.init(data);
         return result;
     }
 
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["ageGroup"] = this.ageGroup;
-        data["presentation"] = this.presentation;
-        data["skinTone"] = this.skinTone;
-        data["hairColor"] = this.hairColor;
+        data["headVariant"] = this.headVariant;
         data["hairStyle"] = this.hairStyle;
-        data["glasses"] = this.glasses;
-        data["shirtColor"] = this.shirtColor;
+        data["hairColor"] = this.hairColor;
+        data["clothingStyle"] = this.clothingStyle;
+        data["clothingColor"] = this.clothingColor;
+        data["accessory"] = this.accessory;
+        data["accessoryColor"] = this.accessoryColor;
         return data;
     }
 }
 
-export interface IFamilyMemberAvatarDto {
-    ageGroup?: FamilyMemberAgeGroup;
-    presentation?: FamilyMemberPresentation;
-    skinTone?: string;
+export interface IAvatarV2ConfigDto {
+    headVariant?: string;
+    hairStyle?: string;
     hairColor?: string;
-    hairStyle?: FamilyMemberHairStyle;
-    glasses?: boolean;
-    shirtColor?: string;
-}
-
-export enum FamilyMemberAgeGroup {
-    Child = 0,
-    Adult = 1,
-}
-
-export enum FamilyMemberPresentation {
-    Neutral = 0,
-    Masculine = 1,
-    Feminine = 2,
-}
-
-export enum FamilyMemberHairStyle {
-    Short = 0,
-    Curly = 1,
-    Bob = 2,
-    Long = 3,
-    Top = 4,
+    clothingStyle?: string;
+    clothingColor?: string;
+    accessory?: string;
+    accessoryColor?: string;
 }
 
 export class CreateFamilyMemberRequest implements ICreateFamilyMemberRequest {
@@ -4936,7 +4896,6 @@ export class CreateFamilyMemberRequest implements ICreateFamilyMemberRequest {
     dateOfBirth?: Date | undefined;
     displayColor?: string | undefined;
     initials?: string | undefined;
-    avatar?: FamilyMemberAvatarDto | undefined;
     avatarV2Config?: AvatarV2ConfigDto | undefined;
 
     constructor(data?: ICreateFamilyMemberRequest) {
@@ -4955,7 +4914,6 @@ export class CreateFamilyMemberRequest implements ICreateFamilyMemberRequest {
             this.dateOfBirth = _data["dateOfBirth"] ? new Date(_data["dateOfBirth"].toString()) : undefined as any;
             this.displayColor = _data["displayColor"];
             this.initials = _data["initials"];
-            this.avatar = _data["avatar"] ? FamilyMemberAvatarDto.fromJS(_data["avatar"]) : undefined as any;
             this.avatarV2Config = _data["avatarV2Config"] ? AvatarV2ConfigDto.fromJS(_data["avatarV2Config"]) : undefined as any;
         }
     }
@@ -4974,7 +4932,6 @@ export class CreateFamilyMemberRequest implements ICreateFamilyMemberRequest {
         data["dateOfBirth"] = this.dateOfBirth ? formatDate(this.dateOfBirth) : undefined as any;
         data["displayColor"] = this.displayColor;
         data["initials"] = this.initials;
-        data["avatar"] = this.avatar ? this.avatar.toJSON() : undefined as any;
         data["avatarV2Config"] = this.avatarV2Config ? this.avatarV2Config.toJSON() : undefined as any;
         return data;
     }
@@ -4986,7 +4943,6 @@ export interface ICreateFamilyMemberRequest {
     dateOfBirth?: Date | undefined;
     displayColor?: string | undefined;
     initials?: string | undefined;
-    avatar?: FamilyMemberAvatarDto | undefined;
     avatarV2Config?: AvatarV2ConfigDto | undefined;
 }
 
@@ -4996,7 +4952,6 @@ export class UpdateFamilyMemberRequest implements IUpdateFamilyMemberRequest {
     initials?: string;
     memberKind?: FamilyMemberKind;
     dateOfBirth?: Date | undefined;
-    avatar?: FamilyMemberAvatarDto;
     avatarV2Config?: AvatarV2ConfigDto | undefined;
 
     constructor(data?: IUpdateFamilyMemberRequest) {
@@ -5015,7 +4970,6 @@ export class UpdateFamilyMemberRequest implements IUpdateFamilyMemberRequest {
             this.initials = _data["initials"];
             this.memberKind = _data["memberKind"];
             this.dateOfBirth = _data["dateOfBirth"] ? new Date(_data["dateOfBirth"].toString()) : undefined as any;
-            this.avatar = _data["avatar"] ? FamilyMemberAvatarDto.fromJS(_data["avatar"]) : undefined as any;
             this.avatarV2Config = _data["avatarV2Config"] ? AvatarV2ConfigDto.fromJS(_data["avatarV2Config"]) : undefined as any;
         }
     }
@@ -5034,7 +4988,6 @@ export class UpdateFamilyMemberRequest implements IUpdateFamilyMemberRequest {
         data["initials"] = this.initials;
         data["memberKind"] = this.memberKind;
         data["dateOfBirth"] = this.dateOfBirth ? formatDate(this.dateOfBirth) : undefined as any;
-        data["avatar"] = this.avatar ? this.avatar.toJSON() : undefined as any;
         data["avatarV2Config"] = this.avatarV2Config ? this.avatarV2Config.toJSON() : undefined as any;
         return data;
     }
@@ -5046,7 +4999,6 @@ export interface IUpdateFamilyMemberRequest {
     initials?: string;
     memberKind?: FamilyMemberKind;
     dateOfBirth?: Date | undefined;
-    avatar?: FamilyMemberAvatarDto;
     avatarV2Config?: AvatarV2ConfigDto | undefined;
 }
 

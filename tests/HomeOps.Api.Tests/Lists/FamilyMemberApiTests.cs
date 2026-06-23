@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using HomeOps.Api.FamilyMembers;
 using HomeOps.Api.Tasks;
 
@@ -21,7 +22,7 @@ public sealed class FamilyMemberApiTests(HomeOpsWebApplicationFactory factory) :
     [Fact]
     public async Task AddAdultPersistsWithoutDateOfBirth()
     {
-        var response = await _client.PostAsJsonAsync("/api/family-members", new CreateFamilyMemberRequest("Taylor", FamilyMemberKind.Adult, null, "#abcdef", null, null, null));
+        var response = await _client.PostAsJsonAsync("/api/family-members", new CreateFamilyMemberRequest("Taylor", FamilyMemberKind.Adult, null, "#abcdef", null, null));
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         var created = await response.Content.ReadFromJsonAsync<FamilyMemberDto>();
         Assert.NotNull(created);
@@ -32,10 +33,10 @@ public sealed class FamilyMemberApiTests(HomeOpsWebApplicationFactory factory) :
     [Fact]
     public async Task AddChildRequiresAndPersistsDateOfBirth()
     {
-        var missing = await _client.PostAsJsonAsync("/api/family-members", new CreateFamilyMemberRequest("Casey", FamilyMemberKind.Child, null, null, null, null, null));
+        var missing = await _client.PostAsJsonAsync("/api/family-members", new CreateFamilyMemberRequest("Casey", FamilyMemberKind.Child, null, null, null, null));
         Assert.Equal(HttpStatusCode.BadRequest, missing.StatusCode);
 
-        var response = await _client.PostAsJsonAsync("/api/family-members", new CreateFamilyMemberRequest("Casey", FamilyMemberKind.Child, new DateOnly(2019, 7, 8), null, null, null, null));
+        var response = await _client.PostAsJsonAsync("/api/family-members", new CreateFamilyMemberRequest("Casey", FamilyMemberKind.Child, new DateOnly(2019, 7, 8), null, null, null));
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         var created = await response.Content.ReadFromJsonAsync<FamilyMemberDto>();
         Assert.NotNull(created);
@@ -46,7 +47,7 @@ public sealed class FamilyMemberApiTests(HomeOpsWebApplicationFactory factory) :
     public async Task CreateFamilyMemberPersistsAvatarV2Configuration()
     {
         var avatarV2 = new AvatarV2ConfigDto("oval", "sideBob", "hairChestnut", "sweater", "shirtRose", "flower", "accessoryLilac");
-        var response = await _client.PostAsJsonAsync("/api/family-members", new CreateFamilyMemberRequest("Morgan", FamilyMemberKind.Adult, null, null, null, null, avatarV2));
+        var response = await _client.PostAsJsonAsync("/api/family-members", new CreateFamilyMemberRequest("Morgan", FamilyMemberKind.Adult, null, null, null, avatarV2));
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
         var created = await response.Content.ReadFromJsonAsync<FamilyMemberDto>();
@@ -63,7 +64,7 @@ public sealed class FamilyMemberApiTests(HomeOpsWebApplicationFactory factory) :
     [Fact]
     public async Task UpdateFamilyMemberPersistsDetailsAndAvatarConfiguration()
     {
-        var request = new UpdateFamilyMemberRequest("Alex Updated", "#111111", "AX", FamilyMemberKind.Adult, new DateOnly(1985, 1, 2), new FamilyMemberAvatarDto(FamilyMemberAgeGroup.Adult, FamilyMemberPresentation.Neutral, "#aaaaaa", "#222222", FamilyMemberHairStyle.Bob, true, "#333333"), new AvatarV2ConfigDto("wide", "curlyPlayful", "hairPlum", "overall", "shirtMint", "tinyCrown", "accessoryLilac"));
+        var request = new UpdateFamilyMemberRequest("Alex Updated", "#111111", "AX", FamilyMemberKind.Adult, new DateOnly(1985, 1, 2), new AvatarV2ConfigDto("wide", "curlyPlayful", "hairPlum", "overall", "shirtMint", "tinyCrown", "accessoryLilac"));
         var response = await _client.PutAsJsonAsync("/api/family-members/alex", request);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
@@ -72,10 +73,26 @@ public sealed class FamilyMemberApiTests(HomeOpsWebApplicationFactory factory) :
         Assert.Equal("Alex Updated", loaded.Name);
         Assert.Equal(new DateOnly(1985, 1, 2), loaded.DateOfBirth);
         Assert.Equal("#111111", loaded.DisplayColor);
-        Assert.Equal(FamilyMemberHairStyle.Bob, loaded.Avatar.HairStyle);
-        Assert.True(loaded.Avatar.Glasses);
         Assert.Equal("wide", loaded.AvatarV2Config.HeadVariant);
         Assert.Equal("curlyPlayful", loaded.AvatarV2Config.HairStyle);
+    }
+
+    [Fact]
+    public async Task FamilyMemberContractDoesNotExposeLegacyAvatar()
+    {
+        var avatarV2 = new AvatarV2ConfigDto("oval", "sideBob", "hairChestnut", "sweater", "shirtRose", "flower", "accessoryLilac");
+        var response = await _client.PostAsJsonAsync("/api/family-members", new CreateFamilyMemberRequest("No Legacy", FamilyMemberKind.Adult, null, null, null, avatarV2));
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+        using var created = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync());
+        Assert.False(created.RootElement.TryGetProperty("avatar", out _));
+        Assert.True(created.RootElement.TryGetProperty("avatarV2Config", out _));
+
+        var update = await _client.PutAsJsonAsync($"/api/family-members/{created.RootElement.GetProperty("id").GetString()}", new UpdateFamilyMemberRequest("No Legacy Updated", "#123456", "NL", FamilyMemberKind.Adult, null, avatarV2));
+        Assert.Equal(HttpStatusCode.OK, update.StatusCode);
+        using var updated = await JsonDocument.ParseAsync(await update.Content.ReadAsStreamAsync());
+        Assert.False(updated.RootElement.TryGetProperty("avatar", out _));
+        Assert.Equal("sideBob", updated.RootElement.GetProperty("avatarV2Config").GetProperty("hairStyle").GetString());
     }
 
     [Fact]
