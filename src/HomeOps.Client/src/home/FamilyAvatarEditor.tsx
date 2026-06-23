@@ -26,7 +26,7 @@ export function FamilyAvatarEditor({ member, onChange, onClose }: FamilyAvatarEd
           <div>
             <p className="eyebrow">Household member avatar</p>
             <h3>{member.name}</h3>
-            <p>This changes only the friendly Home avatar. It is not a login, account, security, or profile setting.</p>
+            <p>This changes only the friendly Home avatar. It is not a login, account, or security setting.</p>
           </div>
           <button type="button" className="icon-button" onClick={onClose} aria-label="Close avatar editor"><HomeOpsIcon name="close" /></button>
         </header>

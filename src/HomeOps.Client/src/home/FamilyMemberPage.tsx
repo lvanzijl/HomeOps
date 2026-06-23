@@ -947,7 +947,7 @@ function calculateAge(dateOfBirth?: string | null) {
 
 function ageContext(member: FamilyMember, age: number | null) {
   if (member.memberKind !== "child")
-    return "Family Members are household entities for shared home context. They are not users, login identities, profiles, or permission holders.";
+    return "Family Members are household entities for shared home context. They are not users, login identities, accounts, or permission holders.";
   if (age === null) return "A simple progress view for this child.";
   if (age <= 5) return `${age} years old · stars and simple goals.`;
   if (age <= 12) return `${age} years old · goals and progress.`;

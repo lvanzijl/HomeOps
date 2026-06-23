@@ -31,6 +31,7 @@
 | 2.56 | Avatar V2 Wide Head Anatomy Review and Fix | Completed |
 | 2.57 | Avatar V2 Hair Quality Review | Completed |
 | 2.59 | Avatar V2 Concept B Headband Visibility Fix | Completed |
+| 2.61 | Profile Picker Removal and Family-First Cleanup | Completed |
 | 2.41 | No-Date Task Lifecycle | Completed |
 
 Phase 2 theme: Durable Household Core.
@@ -69,6 +70,9 @@ Calendar Recurrence adds V1 recurrence metadata to EventSeries, supports None/Da
 
 
 
+
+## Completed Slice 2.61 — Profile Picker Removal and Family-First Cleanup
+Profile Picker Removal and Family-First Cleanup removes remaining product-facing profile-picker assumptions from the runnable client experience. Startup remains household-first: incomplete setup opens First Run Wizard, while completed setup opens Home directly. The temporary Avatar V2 editor administration entry was removed from navigation, Family Member copy no longer describes household members as profiles, and Family Member management remains contextual from Home. No Avatar V2 persistence, FamilyMember schema changes, authentication, identity, permissions, migration code, or profile replacement model was introduced.
 
 ## Completed Slice 2.56 — Avatar V2 Wide Head Anatomy Review and Fix
 Avatar V2 Wide Head Anatomy Review and Fix corrected a visual regression introduced by symptom-focused ear overlap tuning. The fix keeps AvatarAnatomy as the source of truth, moves ears back to visibly external-but-attached silhouette anchors for round, oval, and wide heads, narrows the wide eye spread slightly for better facial balance, and makes glasses bridge/temple geometry derive from eye and ear anchors instead of fixed offsets. Showcase Sample A, B, C, and D were regenerated. No editor functionality, persistence, production UI integration, raster assets, external URLs, new head variants, new hairstyles, or new clothing assets were introduced.
