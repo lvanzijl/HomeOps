@@ -1,4 +1,5 @@
 # Current State
+- 2026-06-23: Made Avatar V2 a FamilyMember-owned feature by adding AvatarV2Config persistence on FamilyMembers, round-tripping it through FamilyMember API contracts, connecting Family Member avatar editing to save/cancel/reset against persisted member state, and removing browser-local Avatar V2 editor storage.
 
 - 2026-06-23: Removed remaining product-facing profile-picker assumptions from startup/navigation by hiding the isolated Avatar V2 editor from Administration, cleaning Family Member profile wording, and preserving the family-first flow from onboarding directly to Home.
 - 2026-06-23: Shipped the isolated Avatar Editor MVP with persistent user-intent configuration, live SVG preview, visual asset selection, swatch-only colors, save/cancel/reset workflow, and tests while avoiding profile migration, MVP avatar replacement, child workspace integration, profile picker integration, unlockables, and gamification.

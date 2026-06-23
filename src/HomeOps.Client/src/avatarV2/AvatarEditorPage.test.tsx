@@ -1,14 +1,10 @@
 import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import { AvatarEditorPage } from './AvatarEditorPage';
-import { avatarV2DefaultConfiguration, saveAvatarV2Configuration } from './avatarConfig';
 
 afterEach(() => cleanup());
 
-beforeEach(() => {
-  window.localStorage.clear();
-});
 
 describe('AvatarEditorPage', () => {
   it('updates the live preview immediately when choices change', async () => {
@@ -41,8 +37,9 @@ describe('AvatarEditorPage', () => {
 
   it('resets the draft to Avatar V2 defaults without saving automatically', async () => {
     const user = userEvent.setup();
-    saveAvatarV2Configuration({ ...avatarV2DefaultConfiguration, hairStyle: 'longSoft', clothingStyle: 'overall' });
     render(<AvatarEditorPage />);
+    await user.click(screen.getByRole('button', { name: /Long Soft/i }));
+    await user.click(screen.getByRole('button', { name: 'Save' }));
 
     await user.click(screen.getByRole('button', { name: 'Reset' }));
 

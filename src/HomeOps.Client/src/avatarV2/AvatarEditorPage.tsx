@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { avatarV2AccessoryAssets, avatarV2ClothingAssets, avatarV2HairAssets, expandAvatarPaletteToken, renderAvatarV2Svg, type AccessoryStyle, type HairStyle, type PaletteToken, type ShirtStyle } from './avatarV2';
-import { avatarV2ConfigurationsEqual, avatarV2DefaultConfiguration, loadAvatarV2Configuration, saveAvatarV2Configuration, toAvatarV2RenderConfig, type AvatarV2Configuration } from './avatarConfig';
+import { avatarV2ConfigurationsEqual, avatarV2DefaultConfiguration, toAvatarV2RenderConfig, type AvatarV2Configuration } from './avatarConfig';
 
 const hairOptions: HairStyle[] = ['softCrop', 'curlyCloud', 'sideBob', 'swoop', 'layeredMessy', 'shortMessy', 'longSoft', 'curlyPlayful'];
 const clothingOptions: ShirtStyle[] = ['tShirt', 'roundedTee', 'collar', 'hoodie', 'sweater', 'overall'];
@@ -10,7 +10,7 @@ const clothingSwatches: PaletteToken[] = ['shirtSky', 'shirtMint', 'shirtRose', 
 const accessorySwatches: PaletteToken[] = ['accessoryLilac', 'accessoryCoral'];
 
 export function AvatarEditorPage() {
-  const [savedConfiguration, setSavedConfiguration] = useState(() => loadAvatarV2Configuration());
+  const [savedConfiguration, setSavedConfiguration] = useState(avatarV2DefaultConfiguration);
   const [draftConfiguration, setDraftConfiguration] = useState<AvatarV2Configuration>(savedConfiguration);
   const hasUnsavedChanges = !avatarV2ConfigurationsEqual(savedConfiguration, draftConfiguration);
   const previewSvg = useMemo(() => renderAvatarV2Svg(toAvatarV2RenderConfig(draftConfiguration)), [draftConfiguration]);
@@ -20,7 +20,6 @@ export function AvatarEditorPage() {
   }
 
   function save() {
-    saveAvatarV2Configuration(draftConfiguration);
     setSavedConfiguration(draftConfiguration);
   }
 
@@ -28,9 +27,9 @@ export function AvatarEditorPage() {
     <section className="avatar-v2-editor-page" aria-labelledby="avatar-v2-editor-title">
       <header className="avatar-v2-editor-hero">
         <div>
-          <p className="eyebrow">Avatar V2 Editor MVP</p>
+          <p className="eyebrow">Avatar V2 editor</p>
           <h2 id="avatar-v2-editor-title">Build a family avatar</h2>
-          <p>Try styles instantly, then save when the avatar feels right. This does not replace existing family avatars yet.</p>
+          <p>Try styles instantly. Family Member management is the persistence entry point for real avatar saves.</p>
         </div>
         <p className={hasUnsavedChanges ? 'avatar-v2-status avatar-v2-status-unsaved' : 'avatar-v2-status'} aria-live="polite">
           {hasUnsavedChanges ? 'Unsaved changes' : 'Saved'}

@@ -23,4 +23,5 @@ public sealed class FamilyMember
     public string ShirtColor { get; set; } = string.Empty;
     public DateTimeOffset CreatedUtc { get; set; }
     public DateTimeOffset UpdatedUtc { get; set; }
+    public AvatarV2Config? AvatarV2Config { get; set; }
 }

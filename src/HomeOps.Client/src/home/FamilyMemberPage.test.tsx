@@ -388,14 +388,15 @@ describe("FamilyMemberPage", () => {
 
     expect(
       screen.getByRole("dialog", {
-        name: "Alex household member avatar editor",
+        name: "Alex family member Avatar V2 editor",
       }),
     ).not.toBeNull();
-    await user.selectOptions(screen.getByLabelText("Hair style"), "curly");
+    await user.click(screen.getByRole("button", { name: /Curly Playful/i }));
+    await user.click(screen.getByRole("button", { name: "Save" }));
     expect(onChange).toHaveBeenCalledWith(
       expect.objectContaining({
         id: "alex",
-        avatar: expect.objectContaining({ hairStyle: "curly" }),
+        avatarV2Config: expect.objectContaining({ hairStyle: "curlyPlayful" }),
       }),
     );
   });
