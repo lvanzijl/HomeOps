@@ -51,6 +51,15 @@ describe("Avatar V2 SVG renderer", () => {
     expect(withoutOptional).not.toContain("avatar-v2-layer-accessory");
   });
 
+  it("does not render a center body overlay in the base layer", () => {
+    for (const config of Object.values(avatarV2SampleConfigs)) {
+      const svg = renderAvatarV2Svg(config);
+
+      expect(svg).not.toContain('rx="55" ry="41"');
+      expect(svg).not.toContain('opacity="0.16"');
+    }
+  });
+
   it("expands palette tokens to internal SVG colors", () => {
     expect(expandAvatarPaletteToken("shirtMint")).toEqual({
       base: "#9edfc0",

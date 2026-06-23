@@ -1,5 +1,7 @@
 # Current State
 
+- 2026-06-23: Removed the unintended Avatar V2 base-layer center oval artifact, regenerated the SVG-only contact sheet under `docs/reports/2026-06-23-work/`, and kept the fix limited to renderer/test/report documentation without editor UI, persistence, production integration, raster assets, or avatar redesign.
+
 ## Current Phase
 Phase 2 — Durable Household Core
 
