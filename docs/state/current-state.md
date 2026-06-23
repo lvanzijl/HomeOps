@@ -1,4 +1,5 @@
 # Current State
+- 2026-06-23: Completed Avatar V2 Slice 2 renderer cleanup by removing the legacy CSS/span renderer from FamilyAvatar, requiring complete valid Avatar V2 config for SVG rendering, falling back to initials for missing/incomplete/invalid Avatar V2 config, and deleting legacy-only avatar CSS while leaving backend/API/contracts/generated client/persistence/migrations unchanged.
 - 2026-06-23: Completed Avatar V2 Slice 1 frontend/product cleanup by replacing user-visible legacy avatar configuration details on Family Member parent surfaces with Avatar V2-oriented status copy, giving normal frontend creation and fallback data Avatar V2 defaults while preserving legacy compatibility payloads, and adding focused regression coverage for initials fallback and current API compatibility.
 - 2026-06-23: Made Avatar V2 a FamilyMember-owned feature by adding AvatarV2Config persistence on FamilyMembers, round-tripping it through FamilyMember API contracts, connecting Family Member avatar editing to save/cancel/reset against persisted member state, and removing browser-local Avatar V2 editor storage.
 
@@ -10,7 +11,7 @@
 Phase 2 — Durable Household Core
 
 ## Current Slice
-Avatar V2 Slice 1 Frontend/Product Cleanup — Completed
+Avatar V2 Slice 2 Renderer Cleanup — Completed
 
 ## Completed Slices
 - 1.1 Repository Bootstrap
@@ -48,6 +49,7 @@ Avatar V2 Slice 1 Frontend/Product Cleanup — Completed
 - Avatar Editor MVP
 - Profile Picker Removal and Family-First Cleanup
 - Avatar V2 Slice 1 Frontend/Product Cleanup
+- Avatar V2 Slice 2 Renderer Cleanup
 
 
 
