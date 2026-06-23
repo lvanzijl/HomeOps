@@ -1,14 +1,5 @@
 namespace HomeOps.Api.FamilyMembers;
 
-public sealed record FamilyMemberAvatarDto(
-    FamilyMemberAgeGroup AgeGroup,
-    FamilyMemberPresentation Presentation,
-    string SkinTone,
-    string HairColor,
-    FamilyMemberHairStyle HairStyle,
-    bool Glasses,
-    string ShirtColor);
-
 public sealed record AvatarV2ConfigDto(
     string HeadVariant,
     string HairStyle,
@@ -25,7 +16,6 @@ public sealed record FamilyMemberDto(
     string Initials,
     FamilyMemberKind MemberKind,
     DateOnly? DateOfBirth,
-    FamilyMemberAvatarDto Avatar,
     AvatarV2ConfigDto AvatarV2Config);
 
 public sealed record CreateFamilyMemberRequest(
@@ -34,7 +24,6 @@ public sealed record CreateFamilyMemberRequest(
     DateOnly? DateOfBirth,
     string? DisplayColor,
     string? Initials,
-    FamilyMemberAvatarDto? Avatar,
     AvatarV2ConfigDto? AvatarV2Config);
 
 public sealed record UpdateFamilyMemberRequest(
@@ -43,5 +32,4 @@ public sealed record UpdateFamilyMemberRequest(
     string Initials,
     FamilyMemberKind MemberKind,
     DateOnly? DateOfBirth,
-    FamilyMemberAvatarDto Avatar,
     AvatarV2ConfigDto? AvatarV2Config);

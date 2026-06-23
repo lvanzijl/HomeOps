@@ -325,12 +325,6 @@ function ParentAdministration({
                   setDraft({
                     ...draft,
                     memberKind: event.target.value as FamilyMemberKind,
-                    avatar: draft.avatar
-                      ? {
-                          ...draft.avatar,
-                          ageGroup: event.target.value as FamilyMemberKind,
-                        }
-                      : draft.avatar,
                   })
                 }
               >

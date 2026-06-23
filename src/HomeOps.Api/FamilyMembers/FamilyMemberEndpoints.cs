@@ -37,7 +37,6 @@ public static class FamilyMemberEndpoints
             var name = request.Name.Trim();
             var initials = string.IsNullOrWhiteSpace(request.Initials) ? BuildInitials(name) : request.Initials.Trim();
             var count = await dbContext.FamilyMembers.CountAsync(member => member.HouseholdId == SeedHousehold.Id, cancellationToken);
-            var avatar = request.Avatar ?? DefaultAvatar(request.MemberKind);
             var avatarV2 = NormalizeAvatarV2Config(request.AvatarV2Config);
             var member = new FamilyMember
             {
@@ -49,12 +48,12 @@ public static class FamilyMemberEndpoints
                 MemberKind = request.MemberKind,
                 DateOfBirth = request.DateOfBirth,
                 AgeGroup = request.MemberKind == FamilyMemberKind.Adult ? FamilyMemberAgeGroup.Adult : FamilyMemberAgeGroup.Child,
-                Presentation = avatar.Presentation,
-                SkinTone = avatar.SkinTone.Trim(),
-                HairColor = avatar.HairColor.Trim(),
-                HairStyle = avatar.HairStyle,
-                Glasses = avatar.Glasses,
-                ShirtColor = avatar.ShirtColor.Trim(),
+                Presentation = FamilyMemberPresentation.Neutral,
+                SkinTone = "#f1c27d",
+                HairColor = "#111827",
+                HairStyle = FamilyMemberHairStyle.Short,
+                Glasses = false,
+                ShirtColor = "#60a5fa",
                 AvatarV2Config = avatarV2,
                 CreatedUtc = now,
                 UpdatedUtc = now,
@@ -75,9 +74,7 @@ public static class FamilyMemberEndpoints
             if (displayColor.Length == 0 || initials.Length == 0) return Results.BadRequest(new { error = "Display color and initials are required." });
             member.Name = request.Name.Trim(); member.DisplayColor = displayColor; member.Initials = initials;
             member.MemberKind = request.MemberKind; member.DateOfBirth = request.DateOfBirth;
-            member.AgeGroup = request.Avatar.AgeGroup; member.Presentation = request.Avatar.Presentation;
-            member.SkinTone = request.Avatar.SkinTone.Trim(); member.HairColor = request.Avatar.HairColor.Trim();
-            member.HairStyle = request.Avatar.HairStyle; member.Glasses = request.Avatar.Glasses; member.ShirtColor = request.Avatar.ShirtColor.Trim();
+            member.AgeGroup = request.MemberKind == FamilyMemberKind.Adult ? FamilyMemberAgeGroup.Adult : FamilyMemberAgeGroup.Child;
             member.AvatarV2Config = NormalizeAvatarV2Config(request.AvatarV2Config);
             member.UpdatedUtc = DateTimeOffset.UtcNow;
             await dbContext.SaveChangesAsync(cancellationToken);
@@ -120,7 +117,6 @@ public static class FamilyMemberEndpoints
 
     private static string BuildInitials(string name) => string.Concat(name.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(part => char.ToUpperInvariant(part[0])))[..Math.Min(2, string.Concat(name.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(part => char.ToUpperInvariant(part[0]))).Length)];
 
-    private static FamilyMemberAvatarDto DefaultAvatar(FamilyMemberKind kind) => new(kind == FamilyMemberKind.Adult ? FamilyMemberAgeGroup.Adult : FamilyMemberAgeGroup.Child, FamilyMemberPresentation.Neutral, "#f1c27d", "#111827", FamilyMemberHairStyle.Short, false, "#60a5fa");
 
     private static AvatarV2Config NormalizeAvatarV2Config(AvatarV2ConfigDto? config)
     {
@@ -142,5 +138,5 @@ public static class FamilyMemberEndpoints
     private static AvatarV2ConfigDto ToAvatarV2Dto(AvatarV2Config config) => new(config.HeadVariant, config.HairStyle, config.HairColor, config.ClothingStyle, config.ClothingColor, config.Accessory, config.AccessoryColor);
 
     private static FamilyMemberDto ToDto(FamilyMember member) => new(member.Id, member.Name, member.DisplayColor, member.Initials, member.MemberKind, member.DateOfBirth,
-        new FamilyMemberAvatarDto(member.AgeGroup, member.Presentation, member.SkinTone, member.HairColor, member.HairStyle, member.Glasses, member.ShirtColor), ToAvatarV2Dto(member.AvatarV2Config ?? new AvatarV2Config()));
+        ToAvatarV2Dto(member.AvatarV2Config ?? new AvatarV2Config()));
 }
