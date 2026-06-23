@@ -38,6 +38,7 @@ public static class FamilyMemberEndpoints
             var initials = string.IsNullOrWhiteSpace(request.Initials) ? BuildInitials(name) : request.Initials.Trim();
             var count = await dbContext.FamilyMembers.CountAsync(member => member.HouseholdId == SeedHousehold.Id, cancellationToken);
             var avatar = request.Avatar ?? DefaultAvatar(request.MemberKind);
+            var avatarV2 = NormalizeAvatarV2Config(request.AvatarV2Config);
             var member = new FamilyMember
             {
                 Id = await BuildMemberId(dbContext, name, cancellationToken),
@@ -54,6 +55,7 @@ public static class FamilyMemberEndpoints
                 HairStyle = avatar.HairStyle,
                 Glasses = avatar.Glasses,
                 ShirtColor = avatar.ShirtColor.Trim(),
+                AvatarV2Config = avatarV2,
                 CreatedUtc = now,
                 UpdatedUtc = now,
             };
@@ -76,6 +78,7 @@ public static class FamilyMemberEndpoints
             member.AgeGroup = request.Avatar.AgeGroup; member.Presentation = request.Avatar.Presentation;
             member.SkinTone = request.Avatar.SkinTone.Trim(); member.HairColor = request.Avatar.HairColor.Trim();
             member.HairStyle = request.Avatar.HairStyle; member.Glasses = request.Avatar.Glasses; member.ShirtColor = request.Avatar.ShirtColor.Trim();
+            member.AvatarV2Config = NormalizeAvatarV2Config(request.AvatarV2Config);
             member.UpdatedUtc = DateTimeOffset.UtcNow;
             await dbContext.SaveChangesAsync(cancellationToken);
             return Results.Ok(ToDto(member));
@@ -119,6 +122,25 @@ public static class FamilyMemberEndpoints
 
     private static FamilyMemberAvatarDto DefaultAvatar(FamilyMemberKind kind) => new(kind == FamilyMemberKind.Adult ? FamilyMemberAgeGroup.Adult : FamilyMemberAgeGroup.Child, FamilyMemberPresentation.Neutral, "#f1c27d", "#111827", FamilyMemberHairStyle.Short, false, "#60a5fa");
 
+    private static AvatarV2Config NormalizeAvatarV2Config(AvatarV2ConfigDto? config)
+    {
+        var defaults = new AvatarV2Config();
+        return config is null ? defaults : new AvatarV2Config
+        {
+            HeadVariant = Clean(config.HeadVariant, defaults.HeadVariant),
+            HairStyle = Clean(config.HairStyle, defaults.HairStyle),
+            HairColor = Clean(config.HairColor, defaults.HairColor),
+            ClothingStyle = Clean(config.ClothingStyle, defaults.ClothingStyle),
+            ClothingColor = Clean(config.ClothingColor, defaults.ClothingColor),
+            Accessory = Clean(config.Accessory, defaults.Accessory),
+            AccessoryColor = Clean(config.AccessoryColor, defaults.AccessoryColor),
+        };
+    }
+
+    private static string Clean(string? value, string fallback) => string.IsNullOrWhiteSpace(value) ? fallback : value.Trim();
+
+    private static AvatarV2ConfigDto ToAvatarV2Dto(AvatarV2Config config) => new(config.HeadVariant, config.HairStyle, config.HairColor, config.ClothingStyle, config.ClothingColor, config.Accessory, config.AccessoryColor);
+
     private static FamilyMemberDto ToDto(FamilyMember member) => new(member.Id, member.Name, member.DisplayColor, member.Initials, member.MemberKind, member.DateOfBirth,
-        new FamilyMemberAvatarDto(member.AgeGroup, member.Presentation, member.SkinTone, member.HairColor, member.HairStyle, member.Glasses, member.ShirtColor));
+        new FamilyMemberAvatarDto(member.AgeGroup, member.Presentation, member.SkinTone, member.HairColor, member.HairStyle, member.Glasses, member.ShirtColor), ToAvatarV2Dto(member.AvatarV2Config ?? new AvatarV2Config()));
 }

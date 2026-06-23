@@ -10,8 +10,6 @@ export interface AvatarV2Configuration {
   accessoryColor: PaletteToken;
 }
 
-const STORAGE_KEY = 'homeops.avatarV2.editorMvpConfiguration';
-
 export const avatarV2DefaultConfiguration: AvatarV2Configuration = {
   headVariant: 'round',
   hairStyle: 'shortMessy',
@@ -72,20 +70,6 @@ export function toAvatarV2RenderConfig(configuration: AvatarV2Configuration): Av
       mount: accessoryMounts[configuration.accessory],
     },
   };
-}
-
-export function loadAvatarV2Configuration(storage: Storage = window.localStorage): AvatarV2Configuration {
-  const stored = storage.getItem(STORAGE_KEY);
-  if (!stored) return { ...avatarV2DefaultConfiguration };
-  try {
-    return normalizeAvatarV2Configuration(JSON.parse(stored));
-  } catch {
-    return { ...avatarV2DefaultConfiguration };
-  }
-}
-
-export function saveAvatarV2Configuration(configuration: AvatarV2Configuration, storage: Storage = window.localStorage) {
-  storage.setItem(STORAGE_KEY, JSON.stringify(normalizeAvatarV2Configuration(configuration)));
 }
 
 export function avatarV2ConfigurationsEqual(a: AvatarV2Configuration, b: AvatarV2Configuration) {

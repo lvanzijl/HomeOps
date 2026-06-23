@@ -4773,6 +4773,7 @@ export class FamilyMemberDto implements IFamilyMemberDto {
     memberKind?: FamilyMemberKind;
     dateOfBirth?: Date | undefined;
     avatar?: FamilyMemberAvatarDto;
+    avatarV2Config?: AvatarV2ConfigDto;
 
     constructor(data?: IFamilyMemberDto) {
         if (data) {
@@ -4792,6 +4793,7 @@ export class FamilyMemberDto implements IFamilyMemberDto {
             this.memberKind = _data["memberKind"];
             this.dateOfBirth = _data["dateOfBirth"] ? new Date(_data["dateOfBirth"].toString()) : undefined as any;
             this.avatar = _data["avatar"] ? FamilyMemberAvatarDto.fromJS(_data["avatar"]) : undefined as any;
+            this.avatarV2Config = _data["avatarV2Config"] ? AvatarV2ConfigDto.fromJS(_data["avatarV2Config"]) : undefined as any;
         }
     }
 
@@ -4811,9 +4813,27 @@ export class FamilyMemberDto implements IFamilyMemberDto {
         data["memberKind"] = this.memberKind;
         data["dateOfBirth"] = this.dateOfBirth ? formatDate(this.dateOfBirth) : undefined as any;
         data["avatar"] = this.avatar ? this.avatar.toJSON() : undefined as any;
+        data["avatarV2Config"] = this.avatarV2Config ? this.avatarV2Config.toJSON() : undefined as any;
         return data;
     }
 }
+
+export class AvatarV2ConfigDto implements IAvatarV2ConfigDto {
+    headVariant?: string;
+    hairStyle?: string;
+    hairColor?: string;
+    clothingStyle?: string;
+    clothingColor?: string;
+    accessory?: string;
+    accessoryColor?: string;
+
+    constructor(data?: IAvatarV2ConfigDto) { if (data) { for (var property in data) { if (data.hasOwnProperty(property)) (this as any)[property] = (data as any)[property]; } } }
+    init(_data?: any) { if (_data) { this.headVariant = _data["headVariant"]; this.hairStyle = _data["hairStyle"]; this.hairColor = _data["hairColor"]; this.clothingStyle = _data["clothingStyle"]; this.clothingColor = _data["clothingColor"]; this.accessory = _data["accessory"]; this.accessoryColor = _data["accessoryColor"]; } }
+    static fromJS(data: any): AvatarV2ConfigDto { data = typeof data === "object" ? data : {}; let result = new AvatarV2ConfigDto(); result.init(data); return result; }
+    toJSON(data?: any) { data = typeof data === "object" ? data : {}; data["headVariant"] = this.headVariant; data["hairStyle"] = this.hairStyle; data["hairColor"] = this.hairColor; data["clothingStyle"] = this.clothingStyle; data["clothingColor"] = this.clothingColor; data["accessory"] = this.accessory; data["accessoryColor"] = this.accessoryColor; return data; }
+}
+
+export interface IAvatarV2ConfigDto { headVariant?: string; hairStyle?: string; hairColor?: string; clothingStyle?: string; clothingColor?: string; accessory?: string; accessoryColor?: string; }
 
 export interface IFamilyMemberDto {
     id?: string;
@@ -4823,6 +4843,7 @@ export interface IFamilyMemberDto {
     memberKind?: FamilyMemberKind;
     dateOfBirth?: Date | undefined;
     avatar?: FamilyMemberAvatarDto;
+    avatarV2Config?: AvatarV2ConfigDto;
 }
 
 export enum FamilyMemberKind {
@@ -4916,6 +4937,7 @@ export class CreateFamilyMemberRequest implements ICreateFamilyMemberRequest {
     displayColor?: string | undefined;
     initials?: string | undefined;
     avatar?: FamilyMemberAvatarDto | undefined;
+    avatarV2Config?: AvatarV2ConfigDto | undefined;
 
     constructor(data?: ICreateFamilyMemberRequest) {
         if (data) {
@@ -4934,6 +4956,7 @@ export class CreateFamilyMemberRequest implements ICreateFamilyMemberRequest {
             this.displayColor = _data["displayColor"];
             this.initials = _data["initials"];
             this.avatar = _data["avatar"] ? FamilyMemberAvatarDto.fromJS(_data["avatar"]) : undefined as any;
+            this.avatarV2Config = _data["avatarV2Config"] ? AvatarV2ConfigDto.fromJS(_data["avatarV2Config"]) : undefined as any;
         }
     }
 
@@ -4952,6 +4975,7 @@ export class CreateFamilyMemberRequest implements ICreateFamilyMemberRequest {
         data["displayColor"] = this.displayColor;
         data["initials"] = this.initials;
         data["avatar"] = this.avatar ? this.avatar.toJSON() : undefined as any;
+        data["avatarV2Config"] = this.avatarV2Config ? this.avatarV2Config.toJSON() : undefined as any;
         return data;
     }
 }
@@ -4963,6 +4987,7 @@ export interface ICreateFamilyMemberRequest {
     displayColor?: string | undefined;
     initials?: string | undefined;
     avatar?: FamilyMemberAvatarDto | undefined;
+    avatarV2Config?: AvatarV2ConfigDto | undefined;
 }
 
 export class UpdateFamilyMemberRequest implements IUpdateFamilyMemberRequest {
@@ -4972,6 +4997,7 @@ export class UpdateFamilyMemberRequest implements IUpdateFamilyMemberRequest {
     memberKind?: FamilyMemberKind;
     dateOfBirth?: Date | undefined;
     avatar?: FamilyMemberAvatarDto;
+    avatarV2Config?: AvatarV2ConfigDto | undefined;
 
     constructor(data?: IUpdateFamilyMemberRequest) {
         if (data) {
@@ -4990,6 +5016,7 @@ export class UpdateFamilyMemberRequest implements IUpdateFamilyMemberRequest {
             this.memberKind = _data["memberKind"];
             this.dateOfBirth = _data["dateOfBirth"] ? new Date(_data["dateOfBirth"].toString()) : undefined as any;
             this.avatar = _data["avatar"] ? FamilyMemberAvatarDto.fromJS(_data["avatar"]) : undefined as any;
+            this.avatarV2Config = _data["avatarV2Config"] ? AvatarV2ConfigDto.fromJS(_data["avatarV2Config"]) : undefined as any;
         }
     }
 
@@ -5008,6 +5035,7 @@ export class UpdateFamilyMemberRequest implements IUpdateFamilyMemberRequest {
         data["memberKind"] = this.memberKind;
         data["dateOfBirth"] = this.dateOfBirth ? formatDate(this.dateOfBirth) : undefined as any;
         data["avatar"] = this.avatar ? this.avatar.toJSON() : undefined as any;
+        data["avatarV2Config"] = this.avatarV2Config ? this.avatarV2Config.toJSON() : undefined as any;
         return data;
     }
 }
@@ -5019,6 +5047,7 @@ export interface IUpdateFamilyMemberRequest {
     memberKind?: FamilyMemberKind;
     dateOfBirth?: Date | undefined;
     avatar?: FamilyMemberAvatarDto;
+    avatarV2Config?: AvatarV2ConfigDto | undefined;
 }
 
 export class OnboardingStatusDto implements IOnboardingStatusDto {

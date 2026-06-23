@@ -193,6 +193,16 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             entity.Property(member => member.ShirtColor).HasMaxLength(32).IsRequired();
             entity.Property(member => member.CreatedUtc).IsRequired();
             entity.Property(member => member.UpdatedUtc).IsRequired();
+            entity.OwnsOne(member => member.AvatarV2Config, avatar =>
+            {
+                avatar.Property(config => config.HeadVariant).HasColumnName("AvatarV2HeadVariant").HasMaxLength(32).IsRequired();
+                avatar.Property(config => config.HairStyle).HasColumnName("AvatarV2HairStyle").HasMaxLength(32).IsRequired();
+                avatar.Property(config => config.HairColor).HasColumnName("AvatarV2HairColor").HasMaxLength(32).IsRequired();
+                avatar.Property(config => config.ClothingStyle).HasColumnName("AvatarV2ClothingStyle").HasMaxLength(32).IsRequired();
+                avatar.Property(config => config.ClothingColor).HasColumnName("AvatarV2ClothingColor").HasMaxLength(32).IsRequired();
+                avatar.Property(config => config.Accessory).HasColumnName("AvatarV2Accessory").HasMaxLength(32).IsRequired();
+                avatar.Property(config => config.AccessoryColor).HasColumnName("AvatarV2AccessoryColor").HasMaxLength(32).IsRequired();
+            });
             entity.HasOne(member => member.Household)
                 .WithMany()
                 .HasForeignKey(member => member.HouseholdId)

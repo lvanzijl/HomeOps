@@ -362,3 +362,10 @@ Avatar V2 Contact Sheet Artifact Fix removes an unintended broad translucent bas
 - Added an isolated Avatar V2 editor page for limited user testing before production profile migration.
 - Persisted Avatar V2 user intent for head variant, hair, clothing, accessories, and swatch choices without exposing renderer internals.
 - Preserved AvatarAnatomy-driven SVG-only deterministic rendering and avoided replacing existing MVP avatars or integrating with child/profile/family overview surfaces.
+
+## Avatar V2 FamilyMember Persistence — Completed 2026-06-23
+- Added `AvatarV2Config` as a FamilyMember-owned value object for user intent only: head variant, hair style/color, clothing style/color, accessory, and accessory color.
+- Persisted Avatar V2 choices as owned FamilyMember columns rather than SVG, anatomy, renderer internals, profiles, users, or identity records.
+- Updated FamilyMember create/update/read contracts and client mapping so Avatar V2 config round-trips with FamilyMember data.
+- Replaced browser-local Avatar V2 editor storage with Family Member save/load integration, including local preview, save, cancel, and reset-to-default workflows.
+- Broader Avatar V2 rollout into Home, Family Overview, Child Workspace, dashboards, profiles, authentication, or permissions remains out of scope.
