@@ -35,12 +35,12 @@ export const workspaceDefinitions: readonly WorkspaceDefinition[] = [
   {
     id: 'tasks',
     label: 'Tasks',
-    description: 'Daily household tasks and responsibilities.',
+    description: 'What the family can take care of today.',
   },
   {
     id: 'lists',
-    label: 'Shopping / Lists',
-    description: 'Shopping and family lists.',
+    label: 'Shopping',
+    description: 'Groceries and everyday family lists.',
   },
   {
     id: 'motivation',

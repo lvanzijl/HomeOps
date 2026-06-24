@@ -44,11 +44,11 @@ export function WeeklyResetPage() {
   if (skipped)
     return (
       <section className="weekly-reset-page">
-        <p className="eyebrow">Optional reset</p>
+        <p className="eyebrow">Optional family check-in</p>
         <h2>Skipped for now</h2>
-        <p>No problem. HomeOps will keep working without a weekly review.</p>
+        <p>No problem. The family plan will stay as it is for now.</p>
         <button type="button" onClick={() => setSkipped(false)}>
-          Open reset again
+          Open family reset again
         </button>
       </section>
     );
@@ -62,9 +62,9 @@ export function WeeklyResetPage() {
     <section className="weekly-reset-page" aria-labelledby="weekly-reset-title">
       <header className="weekly-reset-hero">
         <div>
-          <p className="eyebrow">This week’s review</p>
-          <h2 id="weekly-reset-title">Weekly Household Reset</h2>
-          <p>Review the tasks, goals, and lists that need attention.</p>
+          <p className="eyebrow">Family check-in</p>
+          <h2 id="weekly-reset-title">Weekly Reset</h2>
+          <p>Take a quick look at loose tasks, family goals, shopping, and wins from the week.</p>
         </div>
         <button
           type="button"
@@ -78,11 +78,11 @@ export function WeeklyResetPage() {
         <ReviewCard>
           <CardHeader
             className="reset-card-heading"
-            title="Review candidates"
+            title="Loose tasks"
             actions={`${reset.reviewCandidates.length} to check`}
           />
           {reset.reviewCandidates.length === 0 ? (
-            <p>Nothing needs review right now.</p>
+            <p>No loose tasks need a decision right now.</p>
           ) : (
             reset.reviewCandidates.map((task) => (
               <div className="reset-row" key={task.id}>
@@ -97,7 +97,7 @@ export function WeeklyResetPage() {
                       )
                     }
                   >
-                    Keep active
+                    Keep this week
                   </button>
                   <button
                     type="button"
@@ -107,7 +107,7 @@ export function WeeklyResetPage() {
                       )
                     }
                   >
-                    Someday
+                    Later
                   </button>
                   <button
                     type="button"
@@ -135,11 +135,11 @@ export function WeeklyResetPage() {
         <ReviewCard>
           <CardHeader
             className="reset-card-heading"
-            title="Children’s goals"
+            title="Kids’ goals"
             actions={`${reset.individualGoals.length} active`}
           />
           {reset.individualGoals.length === 0 ? (
-            <p>No active child goals to confirm.</p>
+            <p>No active kid goals to confirm.</p>
           ) : (
             reset.individualGoals.map((goal) => (
               <IndividualGoalRow
@@ -147,7 +147,7 @@ export function WeeklyResetPage() {
                 key={goal.id}
                 onArchive={(id) =>
                   archiveIndividualGoal(id).then(() =>
-                    refresh("Child goal archived."),
+                    refresh("Kid goal archived."),
                   )
                 }
               />
@@ -157,7 +157,7 @@ export function WeeklyResetPage() {
         <ReviewCard>
           <CardHeader
             className="reset-card-heading"
-            title="Shopping review"
+            title="Shopping check"
             actions={`${reset.shoppingReviewCandidates.length} to check`}
           />
           {reset.shoppingReviewCandidates.length === 0 ? (
@@ -176,7 +176,7 @@ export function WeeklyResetPage() {
         <ReviewCard className="recap-card">
           <CardHeader
             className="reset-card-heading"
-            title="Weekly recap"
+            title="Family wins"
             actions={`${reset.contributionRecap.completedTaskCount} tasks · ${reset.contributionRecap.helpfulMomentCount} moments`}
           />
           {reset.contributionRecap.helpfulMoments.map((moment) => (
@@ -220,7 +220,7 @@ function GoalCard({
         actions={goal ? "Active" : "None active"}
       />
       {!goal ? (
-        <p>No active family goal to confirm.</p>
+        <p>No active family goal to check today.</p>
       ) : (
         <div className="reset-row">
           <strong>{goal.title}</strong>
@@ -228,7 +228,7 @@ function GoalCard({
             {goal.currentProgress} / {goal.targetCount} {goal.unitLabel}
           </span>
           <div className="reset-actions">
-            <button type="button">Keep active</button>
+            <button type="button">Keep this week</button>
             <button
               type="button"
               className="secondary-action"
@@ -258,7 +258,7 @@ function IndividualGoalRow({
         {goal.currentProgress} / {goal.targetCount} {goal.unitLabel}
       </span>
       <div className="reset-actions">
-        <button type="button">Keep active</button>
+        <button type="button">Keep this week</button>
         <button
           type="button"
           className="secondary-action"

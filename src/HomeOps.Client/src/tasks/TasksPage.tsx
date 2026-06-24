@@ -249,9 +249,9 @@ export function TasksPage({
   return (
     <article className="tasks-page" aria-label="Tasks page">
       <header className="tasks-header">
-        <p className="widget-type">Tasks</p>
-        <h3>Household Tasks</h3>
-        <p>Urgency-first ad-hoc tasks for the household.</p>
+        <p className="widget-type">Today’s family help</p>
+        <h3>Tasks for the family</h3>
+        <p>Start with what needs attention, then keep the rest ready for later.</p>
       </header>
       {error ? (
         <p className="shopping-empty" role="alert">
@@ -262,10 +262,10 @@ export function TasksPage({
         <p className="shopping-empty">Loading tasks…</p>
       ) : tasks.length === 0 ? (
         <div className="empty-state-card page-empty-state">
-          <strong>Create your first task</strong>
-          <p>Tasks help organize household responsibilities.</p>
+          <strong>Add the first thing to help with</strong>
+          <p>Tasks keep family help visible without turning the day into admin.</p>
           <button type="button" onClick={() => setIsTaskFormOpen(true)}>
-            Start with one household task.
+            Add a family task
           </button>
         </div>
       ) : (
@@ -290,23 +290,23 @@ export function TasksPage({
             setIsTaskFormOpen((open) => !open);
           }}
         >
-          {isTaskFormOpen && !editingTask ? "Close add task" : "Add task"}
+          {isTaskFormOpen && !editingTask ? "Close" : "Add family task"}
         </button>
         <button
           type="button"
           onClick={() => setIsTemplatesOpen((open) => !open)}
         >
-          Templates
+          Routine starters
         </button>
         <button
           type="button"
           onClick={() => setIsWeeklyResetOpen((open) => !open)}
         >
-          Weekly Reset{reviewTasks.length > 0 ? ` (${reviewTasks.length})` : ""}
+          Plan the week{reviewTasks.length > 0 ? ` (${reviewTasks.length})` : ""}
         </button>
         {onOpenWeeklyReset ? (
           <button type="button" onClick={onOpenWeeklyReset}>
-            Open full reset
+            Open family reset
           </button>
         ) : null}
       </div>
@@ -314,11 +314,11 @@ export function TasksPage({
       {isTaskFormOpen || editingTask ? (
         <section
           className="task-management-section"
-          aria-label={editingTask ? "Edit task" : "Add task"}
+          aria-label={editingTask ? "Adjust task" : "Add family task"}
         >
           <div>
-            <p className="widget-type">Task setup</p>
-            <h4>{editingTask ? "Edit task" : "Add a household task"}</h4>
+            <p className="widget-type">Family help</p>
+            <h4>{editingTask ? "Adjust task" : "Add a family task"}</h4>
           </div>
           <form
             className="task-create-form compact-task-form"
@@ -336,15 +336,15 @@ export function TasksPage({
               />
             </label>
             <label>
-              <span>Owner</span>
+              <span>Who can help?</span>
               <select
                 onChange={(event) =>
                   setOwnership(event.target.value as TaskOwnershipKind)
                 }
                 value={ownership}
               >
-                <option value="Unassigned">Unassigned</option>
-                <option value="SharedHousehold">Shared household</option>
+                <option value="Unassigned">Anyone</option>
+                <option value="SharedHousehold">Whole family</option>
                 <option value="FamilyMember">Family member</option>
               </select>
             </label>
@@ -364,7 +364,7 @@ export function TasksPage({
               </label>
             ) : null}
             <label>
-              <span>Due date</span>
+              <span>When it helps</span>
               <input
                 onChange={(event) => setDueDate(event.target.value)}
                 type="date"
@@ -388,20 +388,20 @@ export function TasksPage({
               </select>
             </label>
             <button type="submit">
-              {editingTask ? "Save task series" : "Add task"}
+              {editingTask ? "Save routine" : "Add family task"}
             </button>
           </form>
         </section>
       ) : null}
 
-      <section className="task-secondary-stack" aria-label="Task management">
+      <section className="task-secondary-stack" aria-label="Family task planning">
         {isTemplatesOpen ? (
-          <section className="task-templates-panel" aria-label="Task templates">
+          <section className="task-templates-panel" aria-label="Routine starters">
             <div>
-              <p className="widget-type">Templates</p>
-              <h4>Reusable task templates</h4>
+              <p className="widget-type">Routine starters</p>
+              <h4>Saved family rhythms</h4>
               <p>
-                Setup accelerators for routines, kept secondary to today’s work.
+                Reuse common chores and routines after today’s needs are clear.
               </p>
             </div>
             <form
@@ -409,7 +409,7 @@ export function TasksPage({
               onSubmit={onSaveTemplate}
             >
               <label>
-                <span>Template name</span>
+                <span>Routine name</span>
                 <input
                   onChange={(event) => setTemplateName(event.target.value)}
                   placeholder="Morning routine"
@@ -431,12 +431,12 @@ export function TasksPage({
               </label>
               <button type="submit">
                 {editingTemplate
-                  ? "Save template"
-                  : "Save current task as template"}
+                  ? "Save routine"
+                  : "Save as routine starter"}
               </button>
             </form>
             {templates.length === 0 ? (
-              <p className="shopping-empty">No active templates.</p>
+              <p className="shopping-empty">No saved routines yet.</p>
             ) : (
               <ul className="task-list">
                 {templates.map((template) => (
@@ -444,7 +444,7 @@ export function TasksPage({
                     <div>
                       <strong>{template.name}</strong>
                       <span>
-                        {template.description ?? "Reusable household tasks"} ·{" "}
+                        {template.description ?? "Reusable family routine"} ·{" "}
                         {template.items.length} task
                         {template.items.length === 1 ? "" : "s"}
                       </span>
@@ -459,7 +459,7 @@ export function TasksPage({
                       onClick={() => startEditingTemplate(template)}
                       type="button"
                     >
-                      Edit
+                      Adjust
                     </button>
                     <button
                       onClick={() => archiveTemplate(template.id)}
@@ -476,16 +476,16 @@ export function TasksPage({
         {isWeeklyResetOpen ? (
           <section
             className="task-templates-panel"
-            aria-label="Weekly Household Reset"
+            aria-label="Plan the week"
           >
             <div>
-              <p className="widget-type">Weekly Household Reset</p>
-              <h4>Still part of the plan?</h4>
-              <p>Maintenance review for older no-date tasks.</p>
+              <p className="widget-type">Weekly Reset</p>
+              <h4>Plan the week together</h4>
+              <p>Check loose tasks and decide what still helps the family.</p>
             </div>
             {reviewTasks.length === 0 ? (
               <p className="shopping-empty">
-                No no-date tasks need review right now.
+                No loose tasks need a family check-in right now.
               </p>
             ) : (
               <ul className="task-list">
@@ -493,28 +493,28 @@ export function TasksPage({
                   <li className="task-item" key={task.id}>
                     <div>
                       <strong>{task.title}</strong>
-                      <span>Parent review · no child-facing warning</span>
+                      <span>Family check-in · not shown as urgent</span>
                     </div>
                     <button
                       onClick={() => reviewTask(task.id, "keep")}
                       type="button"
                     >
-                      Keep Active
+                      Keep for this week
                     </button>
                     <button onClick={() => onEditTaskDue(task)} type="button">
-                      Add Due Date
+                      Pick a helpful day
                     </button>
                     <button
                       onClick={() => reviewTask(task.id, "someday")}
                       type="button"
                     >
-                      Move To Someday
+                      Save for later
                     </button>
                     <button
                       onClick={() => reviewTask(task.id, "complete")}
                       type="button"
                     >
-                      Complete
+                      Done
                     </button>
                     <button
                       onClick={() => reviewTask(task.id, "archive")}
@@ -532,7 +532,7 @@ export function TasksPage({
           <section className="task-group task-planning-group">
             <h4>Someday</h4>
             <p className="shopping-empty">
-              Long-term ideas and aspirations, kept out of daily pressure.
+              Ideas for later, kept away from today’s pressure.
             </p>
             <ul className="task-list">
               {somedayTasks.map((task) => (
@@ -545,7 +545,7 @@ export function TasksPage({
                     onClick={() => reviewTask(task.id, "keep")}
                     type="button"
                   >
-                    Make Active
+                    Bring back this week
                   </button>
                   <button
                     onClick={() => reviewTask(task.id, "archive")}
@@ -582,7 +582,7 @@ function TaskGroup({
     <section className="task-group">
       <h4>{groupTitle}</h4>
       {tasks.length === 0 ? (
-        <p className="shopping-empty">No tasks.</p>
+        <p className="shopping-empty">Nothing here right now.</p>
       ) : (
         <ul className="task-list">
           {tasks.map((task) => (
@@ -598,11 +598,11 @@ function TaskGroup({
                 </span>
               </div>
               <button onClick={() => onEdit(task)} type="button">
-                Edit
+                Adjust
               </button>
               {task.recurringTaskSeriesId ? (
                 <button onClick={() => onDeleteSeries(task.id)} type="button">
-                  Delete series
+                  Remove routine
                 </button>
               ) : null}
               <button
@@ -611,7 +611,7 @@ function TaskGroup({
                 }
                 type="button"
               >
-                {task.isCompleted ? "Reopen" : "Complete"}
+                {task.isCompleted ? "Bring back" : "Done"}
               </button>
             </li>
           ))}
@@ -625,11 +625,11 @@ export function formatOwner(
   task: Pick<HouseholdTask, "ownershipKind" | "familyMemberId">,
   members: readonly FamilyMember[] = fallbackFamilyMembers,
 ): string {
-  if (task.ownershipKind === "SharedHousehold") return "Shared household";
+  if (task.ownershipKind === "SharedHousehold") return "Whole family";
   if (task.ownershipKind === "FamilyMember")
     return (
       members.find((member) => member.id === task.familyMemberId)?.name ??
       "Family member"
     );
-  return "Unassigned";
+  return "Anyone";
 }

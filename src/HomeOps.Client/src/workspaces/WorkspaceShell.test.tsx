@@ -53,11 +53,11 @@ describe('WorkspaceShell API-backed layouts', () => {
     render(<WorkspaceShell />);
 
     await screen.findByText('Open Agenda');
-    const dailyWork = screen.getByLabelText('Daily work');
+    const dailyWork = screen.getByLabelText('Everyday family places');
     expect(within(dailyWork).getByRole('button', { name: 'Home' })).not.toBeNull();
     expect(within(dailyWork).getByRole('button', { name: 'Agenda' })).not.toBeNull();
     expect(within(dailyWork).getByRole('button', { name: 'Tasks' })).not.toBeNull();
-    expect(within(dailyWork).getByRole('button', { name: 'Shopping / Lists' })).not.toBeNull();
+    expect(within(dailyWork).getByRole('button', { name: 'Shopping' })).not.toBeNull();
     expect(within(dailyWork).getByRole('button', { name: 'Motivation' })).not.toBeNull();
     expect(within(dailyWork).queryByRole('button', { name: 'Settings' })).toBeNull();
     expect(within(dailyWork).queryByRole('button', { name: 'Weekly Reset' })).toBeNull();
@@ -81,10 +81,10 @@ describe('WorkspaceShell API-backed layouts', () => {
     render(<WorkspaceShell />);
 
     await screen.findByText('Open Agenda');
-    const administration = screen.getByLabelText('Administration');
-    expect(within(administration).getByRole('button', { name: 'Settings administration' })).not.toBeNull();
+    const administration = screen.getByLabelText('Household settings');
+    expect(within(administration).getByRole('button', { name: 'Settings for household setup' })).not.toBeNull();
 
-    await user.click(within(administration).getByRole('button', { name: 'Settings administration' }));
+    await user.click(within(administration).getByRole('button', { name: 'Settings for household setup' }));
     expect(await screen.findByText('Calendar Export / Restore')).not.toBeNull();
   });
 
@@ -94,7 +94,7 @@ describe('WorkspaceShell API-backed layouts', () => {
 
     await screen.findByText('Open Agenda');
     await user.click(screen.getByRole('button', { name: 'Tasks' }));
-    await user.click(await screen.findByRole('button', { name: 'Open full reset' }));
+    await user.click(await screen.findByRole('button', { name: 'Open family reset' }));
     expect(await screen.findByRole('heading', { name: 'Weekly Reset' })).not.toBeNull();
 
     await user.click(screen.getByRole('button', { name: 'Home' }));
