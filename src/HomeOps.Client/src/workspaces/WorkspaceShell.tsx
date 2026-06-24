@@ -124,13 +124,13 @@ export function WorkspaceShell() {
   const widgetInstances = activeWorkspace.id === 'agenda'
     ? [{ id: 'agenda-page', widgetDefinitionId: 'agenda-mvp', title: 'Agenda', settings: {} }]
     : activeWorkspace.id === 'lists'
-      ? [{ id: 'lists-page', widgetDefinitionId: 'shopping-list-mvp', title: 'Lists', settings: {} }]
+      ? [{ id: 'lists-page', widgetDefinitionId: 'shopping-list-mvp', title: 'Shopping', settings: {} }]
       : widgetInstancesByWorkspace[activeWorkspace.id] ?? [];
 
   return (
     <section className={`workspace-shell ${activeDomainClass}`} aria-label="Workspace shell">
       <nav className="workspace-nav" aria-label="Workspace navigation">
-        <div className="workspace-primary-nav" aria-label="Daily work">
+        <div className="workspace-primary-nav" aria-label="Everyday family places">
           {primaryWorkspaceDefinitions.map((workspace) => (
           <button
             aria-current={workspace.id === activeWorkspace.id ? 'page' : undefined}
@@ -143,11 +143,11 @@ export function WorkspaceShell() {
           </button>
           ))}
         </div>
-        <div className="workspace-admin-nav" aria-label="Administration">
+        <div className="workspace-admin-nav" aria-label="Household settings">
           {administrationWorkspaceDefinitions.map((workspace) => (
             <button
               aria-current={workspace.id === activeWorkspace.id ? 'page' : undefined}
-              aria-label={`${workspace.label} administration`}
+              aria-label={`${workspace.label} for household setup`}
               className={`workspace-nav-button workspace-admin-button ${getDomainColorClass(workspace.id)}`}
               key={workspace.id}
               onClick={() => navigateWorkspace(workspace.id)}
@@ -165,7 +165,7 @@ export function WorkspaceShell() {
         {activeWorkspace.id === 'home' && !activeFamilyMember ? <h2 className="visually-hidden" id="active-workspace-title">Home</h2> : activeFamilyMember ? <h2 className="visually-hidden" id="active-workspace-title">{activeFamilyMember.name}</h2> : (
           <header className="workspace-page-header">
             <p className="workspace-position">
-              {activeWorkspaceIsPrimary ? `Daily family focus ${primaryWorkspaceDefinitions.findIndex((workspace) => workspace.id === activeWorkspace.id) + 1}/${primaryWorkspaceDefinitions.length}` : activeWorkspaceIsAdministration ? 'Settings' : 'Family reset'}
+              {activeWorkspaceIsPrimary ? 'Everyday family spot' : activeWorkspaceIsAdministration ? 'Household setup' : 'Family check-in'}
             </p>
             <h2 id="active-workspace-title">{activeWorkspace.label}</h2>
             <p>{activeWorkspace.description}</p>

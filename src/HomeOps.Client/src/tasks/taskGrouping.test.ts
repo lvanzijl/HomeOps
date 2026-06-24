@@ -53,8 +53,8 @@ describe('groupTasksByUrgency', () => {
 
 describe('formatOwner', () => {
   it('renders ownership states', () => {
-    expect(formatOwner(task({ ownershipKind: 'Unassigned' }))).toBe('Unassigned');
-    expect(formatOwner(task({ ownershipKind: 'SharedHousehold' }))).toBe('Shared household');
+    expect(formatOwner(task({ ownershipKind: 'Unassigned' }))).toBe('Anyone');
+    expect(formatOwner(task({ ownershipKind: 'SharedHousehold' }))).toBe('Whole family');
     expect(formatOwner(task({ ownershipKind: 'FamilyMember', familyMemberId: 'alex' }))).toBe('Alex');
   });
 });

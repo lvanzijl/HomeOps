@@ -2934,3 +2934,76 @@ button {
     position: static;
   }
 }
+
+/* Family-first navigation and task polish. */
+.workspace-primary-nav {
+  flex: 1 1 34rem;
+}
+
+.workspace-nav-button {
+  line-height: 1.1;
+}
+
+.task-primary-actions {
+  align-items: center;
+  background: color-mix(in srgb, var(--domain-tint, #ecfdf5) 58%, white);
+  border: 1px solid var(--domain-border, #99f6e4);
+  border-radius: 1.1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.85rem 0;
+  padding: 0.65rem;
+}
+
+.task-primary-actions button:nth-child(3),
+.task-primary-actions button:nth-child(4) {
+  border: 1px solid var(--domain-accent, #14b8a6);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--domain-accent, #14b8a6) 10%, transparent);
+}
+
+.task-secondary-stack {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.task-templates-panel,
+.task-management-section {
+  background: rgba(255, 255, 255, 0.74);
+  border: 1px solid var(--domain-border, #99f6e4);
+  border-radius: 1.25rem;
+  padding: 0.85rem;
+}
+
+.task-templates-panel h4,
+.task-management-section h4 {
+  margin: 0.1rem 0;
+}
+
+.task-templates-panel p,
+.task-management-section p {
+  margin: 0.15rem 0 0;
+}
+
+@media (max-width: 680px) {
+  .workspace-nav,
+  .workspace-primary-nav,
+  .workspace-admin-nav {
+    gap: 0.25rem;
+  }
+
+  .workspace-nav-button {
+    border-radius: 0.8rem;
+    font-size: 0.8rem;
+    min-height: 1.95rem;
+    padding: 0.28rem 0.42rem;
+  }
+
+  .workspace-admin-button span:last-child {
+    display: none;
+  }
+
+  .task-primary-actions button {
+    flex: 1 1 9rem;
+  }
+}

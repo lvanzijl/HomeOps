@@ -1,5 +1,8 @@
 # Phase 2 Roadmap
 
+## Completed Slice 2.47 — Tasks and Weekly Reset Family-First UX Pass
+Tasks and Weekly Reset Family-First UX Pass warms the Tasks surface and contextual Weekly Reset entry without adding features or changing workflows. Tasks now leads with family-help language, softer ownership labels, routine-starter copy, and clearer Weekly Reset discovery from the Tasks page. The beta-facing Shopping label replaces Shopping / Lists for clearer household comprehension while the route and list functionality remain unchanged. Narrow navigation buttons are tightened to reduce wrapping. Existing task lifecycle behavior, Weekly Reset functionality, navigation structure, FamilyMember behavior, and Avatar V2 remain preserved.
+
 | Slice | Name | Status |
 | --- | --- | --- |
 | 2.1 | Durable Lists Foundation | Completed |

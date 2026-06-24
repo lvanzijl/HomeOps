@@ -8,7 +8,7 @@ describe('WeeklyResetPage', () => {
   it('renders review candidates, goals, shopping review, and contribution recap', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => payload }));
     render(<WeeklyResetPage />);
-    await waitFor(() => expect(screen.getByText('Weekly Household Reset')).toBeTruthy());
+    await waitFor(() => expect(screen.getByText('Weekly Reset')).toBeTruthy());
     expect(screen.getByText('Review library books')).toBeTruthy();
     expect(screen.getByText('Fill the helper path')).toBeTruthy();
     expect(screen.getByText('Riley: Read together')).toBeTruthy();
