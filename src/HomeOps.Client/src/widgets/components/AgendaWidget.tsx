@@ -1,18 +1,31 @@
-import { useEffect, useMemo, useState } from 'react';
-import { groupEventsByDay, groupEventsByMonth, filterEventsBySource, formatEventTime, hydrateAgendaEvents } from '../../agenda/agendaUtils';
+import { useEffect, useMemo, useState } from "react";
+import {
+  groupEventsByDay,
+  groupEventsByMonth,
+  filterEventsBySource,
+  formatEventTime,
+  hydrateAgendaEvents,
+} from "../../agenda/agendaUtils";
 import {
   createCalendarAgendaEvent,
   deleteCalendarAgendaEvent,
   loadCalendarAgendaData,
   updateCalendarAgendaEvent,
   type EventSeriesInput,
-} from '../../agenda/calendarEventsApi';
-import { useAgendaLayerSettings } from '../../agenda/layerSettings';
-import { demoReadOnlyEvents, demoReadOnlyEventSources, demoToday } from '../../demo/demoAgendaData';
-import type { EventSource, NormalizedEvent } from '../../events/eventSourceModel';
-import type { WidgetRenderProps } from '../WidgetRenderer';
+} from "../../agenda/calendarEventsApi";
+import { useAgendaLayerSettings } from "../../agenda/layerSettings";
+import {
+  demoReadOnlyEvents,
+  demoReadOnlyEventSources,
+  demoToday,
+} from "../../demo/demoAgendaData";
+import type {
+  EventSource,
+  NormalizedEvent,
+} from "../../events/eventSourceModel";
+import type { WidgetRenderProps } from "../WidgetRenderer";
 
-type AgendaView = 'week' | 'months';
+type AgendaView = "week" | "months";
 
 type EventFormState = {
   title: string;
@@ -23,15 +36,15 @@ type EventFormState = {
 };
 
 const emptyForm: EventFormState = {
-  title: '',
-  description: '',
-  startsAt: '2026-06-22T09:00',
-  endsAt: '2026-06-22T10:00',
+  title: "",
+  description: "",
+  startsAt: "2026-06-22T09:00",
+  endsAt: "2026-06-22T10:00",
   allDay: false,
 };
 
 export function AgendaWidget({ instance }: WidgetRenderProps) {
-  const [activeView, setActiveView] = useState<AgendaView>('week');
+  const [activeView, setActiveView] = useState<AgendaView>("week");
   const [calendarEvents, setCalendarEvents] = useState<NormalizedEvent[]>([]);
   const [calendarSources, setCalendarSources] = useState<EventSource[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -40,6 +53,7 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
   const [editingEventId, setEditingEventId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [deletingEventId, setDeletingEventId] = useState<string | null>(null);
+  const [isEventFormOpen, setIsEventFormOpen] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -53,7 +67,11 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
       })
       .catch((error: unknown) => {
         if (!isMounted) return;
-        setErrorMessage(error instanceof Error ? error.message : 'HomeOps Calendar events could not be loaded.');
+        setErrorMessage(
+          error instanceof Error
+            ? error.message
+            : "HomeOps Calendar events could not be loaded.",
+        );
       })
       .finally(() => {
         if (isMounted) setIsLoading(false);
@@ -64,8 +82,23 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
     };
   }, []);
 
-  const eventSources = useMemo(() => [...calendarSources, ...demoReadOnlyEventSources], [calendarSources]);
-  const events = useMemo(() => [...calendarEvents, ...demoReadOnlyEvents], [calendarEvents]);
+  useEffect(() => {
+    if (!isEventFormOpen && editingEventId === null) return;
+    const close = (event: KeyboardEvent) => {
+      if (event.key === "Escape") closeEventForm();
+    };
+    window.addEventListener("keydown", close);
+    return () => window.removeEventListener("keydown", close);
+  }, [editingEventId, isEventFormOpen]);
+
+  const eventSources = useMemo(
+    () => [...calendarSources, ...demoReadOnlyEventSources],
+    [calendarSources],
+  );
+  const events = useMemo(
+    () => [...calendarEvents, ...demoReadOnlyEvents],
+    [calendarEvents],
+  );
   const { settings, setSourceEnabled } = useAgendaLayerSettings(eventSources);
 
   const selectedSources = settings[activeView].enabledSourceIds;
@@ -75,8 +108,14 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
     return hydrateAgendaEvents(filteredEvents, eventSources);
   }, [events, eventSources, selectedSources]);
 
-  const weekGroups = useMemo(() => groupEventsByDay(agendaEvents, demoToday, 7), [agendaEvents]);
-  const monthGroups = useMemo(() => groupEventsByMonth(agendaEvents), [agendaEvents]);
+  const weekGroups = useMemo(
+    () => groupEventsByDay(agendaEvents, demoToday, 7),
+    [agendaEvents],
+  );
+  const monthGroups = useMemo(
+    () => groupEventsByMonth(agendaEvents),
+    [agendaEvents],
+  );
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -95,26 +134,36 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
         : await createCalendarAgendaEvent(input);
 
       setCalendarEvents((current) => {
-        const withoutSaved = current.filter((calendarEvent) => calendarEvent.id !== savedEvent.id);
+        const withoutSaved = current.filter(
+          (calendarEvent) => calendarEvent.id !== savedEvent.id,
+        );
         return [...withoutSaved, savedEvent];
       });
-      setForm(emptyForm);
-      setEditingEventId(null);
+      closeEventForm();
       setErrorMessage(null);
     } catch (error: unknown) {
-      setErrorMessage(toUserFacingError(error, 'Calendar event could not be saved.'));
+      setErrorMessage(
+        toUserFacingError(error, "Calendar event could not be saved."),
+      );
     } finally {
       setIsSaving(false);
     }
   }
 
+  function closeEventForm() {
+    setEditingEventId(null);
+    setIsEventFormOpen(false);
+    setForm(emptyForm);
+  }
+
   function startEditing(event: NormalizedEvent) {
     setEditingEventId(event.id);
+    setIsEventFormOpen(true);
     setForm({
       title: event.title,
-      description: event.description ?? '',
+      description: event.description ?? "",
       startsAt: toDateTimeLocal(event.startsAt),
-      endsAt: event.endsAt ? toDateTimeLocal(event.endsAt) : '',
+      endsAt: event.endsAt ? toDateTimeLocal(event.endsAt) : "",
       allDay: event.allDay,
     });
   }
@@ -123,10 +172,14 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
     setDeletingEventId(eventId);
     try {
       await deleteCalendarAgendaEvent(eventId);
-      setCalendarEvents((current) => current.filter((event) => event.id !== eventId));
+      setCalendarEvents((current) =>
+        current.filter((event) => event.id !== eventId),
+      );
       setErrorMessage(null);
     } catch (error: unknown) {
-      setErrorMessage(toUserFacingError(error, 'Calendar event could not be deleted.'));
+      setErrorMessage(
+        toUserFacingError(error, "Calendar event could not be deleted."),
+      );
     } finally {
       setDeletingEventId(null);
     }
@@ -140,10 +193,18 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
           <h3>{instance.title}</h3>
         </div>
         <div className="agenda-view-toggle" aria-label="Agenda view selector">
-          <button aria-pressed={activeView === 'week'} onClick={() => setActiveView('week')} type="button">
+          <button
+            aria-pressed={activeView === "week"}
+            onClick={() => setActiveView("week")}
+            type="button"
+          >
             Week View
           </button>
-          <button aria-pressed={activeView === 'months'} onClick={() => setActiveView('months')} type="button">
+          <button
+            aria-pressed={activeView === "months"}
+            onClick={() => setActiveView("months")}
+            type="button"
+          >
             Months View
           </button>
         </div>
@@ -152,17 +213,55 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
       {isLoading ? <p role="status">Loading calendar events…</p> : null}
       {errorMessage ? <p role="alert">{errorMessage}</p> : null}
 
-      <EventForm
-        form={form}
-        isEditing={editingEventId !== null}
-        isSaving={isSaving}
-        onCancel={() => {
-          setEditingEventId(null);
-          setForm(emptyForm);
-        }}
-        onChange={setForm}
-        onSubmit={handleSubmit}
-      />
+      <button
+        type="button"
+        className="compact-action"
+        onClick={() => setIsEventFormOpen(true)}
+      >
+        Add household event
+      </button>
+
+      {isEventFormOpen || editingEventId !== null ? (
+        <div
+          className="avatar-editor-backdrop"
+          role="presentation"
+          onClick={closeEventForm}
+        >
+          <section
+            className="home-capture-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-label={
+              editingEventId ? "Edit calendar event" : "Add calendar event"
+            }
+            onClick={(event) => event.stopPropagation()}
+          >
+            <header>
+              <div>
+                <p className="eyebrow">Agenda</p>
+                <h3>{editingEventId ? "Edit event" : "Add an event"}</h3>
+                <p>Start with what and when. Details can stay optional.</p>
+              </div>
+              <button
+                type="button"
+                className="icon-button"
+                onClick={closeEventForm}
+                aria-label="Close event dialog"
+              >
+                ×
+              </button>
+            </header>
+            <EventForm
+              form={form}
+              isEditing={editingEventId !== null}
+              isSaving={isSaving}
+              onCancel={closeEventForm}
+              onChange={setForm}
+              onSubmit={handleSubmit}
+            />
+          </section>
+        </div>
+      ) : null}
 
       <fieldset className="source-selector">
         <legend>Sources</legend>
@@ -170,10 +269,16 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
           <label key={source.id}>
             <input
               checked={selectedSources[source.id] ?? false}
-              onChange={(event) => setSourceEnabled(activeView, source.id, event.target.checked)}
+              onChange={(event) =>
+                setSourceEnabled(activeView, source.id, event.target.checked)
+              }
               type="checkbox"
             />
-            <span className="source-color" style={{ backgroundColor: source.color.hex }} aria-hidden="true" />
+            <span
+              className="source-color"
+              style={{ backgroundColor: source.color.hex }}
+              aria-hidden="true"
+            />
             {source.name}
           </label>
         ))}
@@ -182,10 +287,28 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
       {agendaEvents.length === 0 && !isLoading && !errorMessage ? (
         <div className="empty-state-card page-empty-state">
           <strong>Create your first event</strong>
-          <p>Events help the household remember important dates and activities.</p>
-          <a href="#calendar-event-title">Start with one household event.</a>
+          <p>
+            Events help the household remember important dates and activities.
+          </p>
+          <button type="button" onClick={() => setIsEventFormOpen(true)}>
+            Start with one household event.
+          </button>
         </div>
-      ) : activeView === 'week' ? <WeekView deletingEventId={deletingEventId} groups={weekGroups} onDelete={removeEvent} onEdit={startEditing} /> : <MonthsView deletingEventId={deletingEventId} groups={monthGroups} onDelete={removeEvent} onEdit={startEditing} />}
+      ) : activeView === "week" ? (
+        <WeekView
+          deletingEventId={deletingEventId}
+          groups={weekGroups}
+          onDelete={removeEvent}
+          onEdit={startEditing}
+        />
+      ) : (
+        <MonthsView
+          deletingEventId={deletingEventId}
+          groups={monthGroups}
+          onDelete={removeEvent}
+          onEdit={startEditing}
+        />
+      )}
     </article>
   );
 }
@@ -206,75 +329,171 @@ function EventForm({
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
 }) {
   return (
-    <form className="calendar-event-form" onSubmit={onSubmit} aria-label="Calendar event form">
+    <form
+      className="calendar-event-form"
+      onSubmit={onSubmit}
+      aria-label="Calendar event form"
+    >
       <label>
         Title
-        <input value={form.title} onChange={(event) => onChange({ ...form, title: event.target.value })} id="calendar-event-title" placeholder="Calendar event title" />
+        <input
+          autoFocus
+          value={form.title}
+          onChange={(event) => onChange({ ...form, title: event.target.value })}
+          id="calendar-event-title"
+          placeholder="Calendar event title"
+        />
       </label>
       <label>
         Description
-        <input value={form.description} onChange={(event) => onChange({ ...form, description: event.target.value })} placeholder="Optional description" />
+        <input
+          value={form.description}
+          onChange={(event) =>
+            onChange({ ...form, description: event.target.value })
+          }
+          placeholder="Optional description"
+        />
       </label>
       <label>
         Start
-        <input type={form.allDay ? 'date' : 'datetime-local'} value={toInputValue(form.startsAt, form.allDay)} onChange={(event) => onChange({ ...form, startsAt: event.target.value })} />
+        <input
+          type={form.allDay ? "date" : "datetime-local"}
+          value={toInputValue(form.startsAt, form.allDay)}
+          onChange={(event) =>
+            onChange({ ...form, startsAt: event.target.value })
+          }
+        />
       </label>
       <label>
         End
-        <input type={form.allDay ? 'date' : 'datetime-local'} value={toInputValue(form.endsAt, form.allDay)} onChange={(event) => onChange({ ...form, endsAt: event.target.value })} />
+        <input
+          type={form.allDay ? "date" : "datetime-local"}
+          value={toInputValue(form.endsAt, form.allDay)}
+          onChange={(event) =>
+            onChange({ ...form, endsAt: event.target.value })
+          }
+        />
       </label>
       <label>
-        <input type="checkbox" checked={form.allDay} onChange={(event) => onChange(toAllDayState(form, event.target.checked))} />
+        <input
+          type="checkbox"
+          checked={form.allDay}
+          onChange={(event) =>
+            onChange(toAllDayState(form, event.target.checked))
+          }
+        />
         All day
       </label>
-      <button type="submit" disabled={isSaving}>{isSaving ? 'Saving…' : isEditing ? 'Update Event' : 'Add Event'}</button>
-      {isEditing ? <button type="button" onClick={onCancel}>Cancel Edit</button> : null}
+      <button type="submit" disabled={isSaving}>
+        {isSaving ? "Saving…" : isEditing ? "Update Event" : "Add Event"}
+      </button>
+      {isEditing ? (
+        <button type="button" onClick={onCancel}>
+          Cancel Edit
+        </button>
+      ) : null}
     </form>
   );
 }
 
-function WeekView({ deletingEventId, groups, onDelete, onEdit }: { deletingEventId: string | null; groups: ReturnType<typeof groupEventsByDay>; onDelete: (eventId: string) => void; onEdit: (event: NormalizedEvent) => void }) {
+function WeekView({
+  deletingEventId,
+  groups,
+  onDelete,
+  onEdit,
+}: {
+  deletingEventId: string | null;
+  groups: ReturnType<typeof groupEventsByDay>;
+  onDelete: (eventId: string) => void;
+  onEdit: (event: NormalizedEvent) => void;
+}) {
   return (
     <section className="agenda-view" aria-label="Week View">
       {groups.map((group) => (
         <div className="agenda-group" key={group.date}>
           <h4>{group.label}</h4>
-          <AgendaEventList deletingEventId={deletingEventId} events={group.events} onDelete={onDelete} onEdit={onEdit} />
+          <AgendaEventList
+            deletingEventId={deletingEventId}
+            events={group.events}
+            onDelete={onDelete}
+            onEdit={onEdit}
+          />
         </div>
       ))}
     </section>
   );
 }
 
-function MonthsView({ deletingEventId, groups, onDelete, onEdit }: { deletingEventId: string | null; groups: ReturnType<typeof groupEventsByMonth>; onDelete: (eventId: string) => void; onEdit: (event: NormalizedEvent) => void }) {
+function MonthsView({
+  deletingEventId,
+  groups,
+  onDelete,
+  onEdit,
+}: {
+  deletingEventId: string | null;
+  groups: ReturnType<typeof groupEventsByMonth>;
+  onDelete: (eventId: string) => void;
+  onEdit: (event: NormalizedEvent) => void;
+}) {
   return (
-    <section className="agenda-view agenda-months-view" aria-label="Months View">
+    <section
+      className="agenda-view agenda-months-view"
+      aria-label="Months View"
+    >
       {groups.map((group) => (
         <div className="agenda-group" key={group.month}>
           <h4>{group.label}</h4>
-          <AgendaEventList deletingEventId={deletingEventId} events={group.events} onDelete={onDelete} onEdit={onEdit} />
+          <AgendaEventList
+            deletingEventId={deletingEventId}
+            events={group.events}
+            onDelete={onDelete}
+            onEdit={onEdit}
+          />
         </div>
       ))}
     </section>
   );
 }
 
-function AgendaEventList({ deletingEventId, events, onDelete, onEdit }: { deletingEventId: string | null; events: ReturnType<typeof hydrateAgendaEvents>; onDelete: (eventId: string) => void; onEdit: (event: NormalizedEvent) => void }) {
+function AgendaEventList({
+  deletingEventId,
+  events,
+  onDelete,
+  onEdit,
+}: {
+  deletingEventId: string | null;
+  events: ReturnType<typeof hydrateAgendaEvents>;
+  onDelete: (eventId: string) => void;
+  onEdit: (event: NormalizedEvent) => void;
+}) {
   return (
     <ul className="agenda-event-list">
       {events.map((event) => (
         <li className="agenda-event" key={event.id}>
-          <span className="source-color" style={{ backgroundColor: event.source.color.hex }} aria-hidden="true" />
+          <span
+            className="source-color"
+            style={{ backgroundColor: event.source.color.hex }}
+            aria-hidden="true"
+          />
           <span>
             <strong>{event.title}</strong>
             <small>
-              {formatEventTime(event)} · {event.source.name} · {event.editable ? 'Writable' : 'Read-only'}
+              {formatEventTime(event)} · {event.source.name} ·{" "}
+              {event.editable ? "Writable" : "Read-only"}
             </small>
           </span>
           {event.editable ? (
             <span>
-              <button type="button" onClick={() => onEdit(event)}>Edit</button>
-              <button type="button" disabled={deletingEventId === event.id} onClick={() => onDelete(event.id)}>{deletingEventId === event.id ? 'Deleting…' : 'Delete'}</button>
+              <button type="button" onClick={() => onEdit(event)}>
+                Edit
+              </button>
+              <button
+                type="button"
+                disabled={deletingEventId === event.id}
+                onClick={() => onDelete(event.id)}
+              >
+                {deletingEventId === event.id ? "Deleting…" : "Delete"}
+              </button>
             </span>
           ) : null}
         </li>
@@ -301,19 +520,21 @@ function validateEventForm(form: EventFormState): string | null {
   const input = toEventSeriesInput(form);
 
   if (!input.title) {
-    return 'Calendar event title is required.';
+    return "Calendar event title is required.";
   }
 
   if (!form.startsAt) {
-    return form.allDay ? 'All-day event date is required.' : 'Event start is required.';
+    return form.allDay
+      ? "All-day event date is required."
+      : "Event start is required.";
   }
 
   if (!form.allDay && !form.endsAt) {
-    return 'Timed events require an end time.';
+    return "Timed events require an end time.";
   }
 
   if (input.endsAt && new Date(input.endsAt) < new Date(input.startsAt)) {
-    return 'Event end must be on or after event start.';
+    return "Event end must be on or after event start.";
   }
 
   return null;
@@ -323,8 +544,12 @@ function toAllDayState(form: EventFormState, allDay: boolean): EventFormState {
   return {
     ...form,
     allDay,
-    startsAt: allDay ? form.startsAt.slice(0, 10) : expandDateTime(form.startsAt, '09:00'),
-    endsAt: allDay ? form.endsAt.slice(0, 10) : expandDateTime(form.endsAt || form.startsAt, '10:00'),
+    startsAt: allDay
+      ? form.startsAt.slice(0, 10)
+      : expandDateTime(form.startsAt, "09:00"),
+    endsAt: allDay
+      ? form.endsAt.slice(0, 10)
+      : expandDateTime(form.endsAt || form.startsAt, "10:00"),
   };
 }
 
@@ -341,12 +566,21 @@ function expandDateTime(value: string, fallbackTime: string): string {
 }
 
 function toUserFacingError(error: unknown, fallback: string): string {
-  if (error instanceof Error && 'response' in error && typeof error.response === 'string') {
+  if (
+    error instanceof Error &&
+    "response" in error &&
+    typeof error.response === "string"
+  ) {
     try {
-      const parsed = JSON.parse(error.response) as { errors?: Record<string, string[]>; title?: string };
-      const validationMessages = parsed.errors ? Object.values(parsed.errors).flat() : [];
+      const parsed = JSON.parse(error.response) as {
+        errors?: Record<string, string[]>;
+        title?: string;
+      };
+      const validationMessages = parsed.errors
+        ? Object.values(parsed.errors).flat()
+        : [];
       if (validationMessages.length > 0) {
-        return validationMessages.join(' ');
+        return validationMessages.join(" ");
       }
 
       return parsed.title ?? fallback;

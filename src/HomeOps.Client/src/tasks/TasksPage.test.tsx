@@ -44,7 +44,10 @@ function task(overrides: Partial<HouseholdTask>): HouseholdTask {
   };
 }
 
-afterEach(() => cleanup());
+afterEach(() => {
+  cleanup();
+  vi.useRealTimers();
+});
 
 describe("TasksPage empty state", () => {
   beforeEach(async () => {
@@ -57,9 +60,13 @@ describe("TasksPage empty state", () => {
   it("guides households to create the first task when no tasks exist", async () => {
     render(<TasksPage members={familyMembers} />);
 
-    expect(await screen.findByText("Add the first thing to help with")).not.toBeNull();
     expect(
-      screen.getByText("Tasks keep family help visible without turning the day into admin."),
+      await screen.findByText("Add the first thing to help with"),
+    ).not.toBeNull();
+    expect(
+      screen.getByText(
+        "Tasks keep family help visible without turning the day into admin.",
+      ),
     ).not.toBeNull();
     expect(
       screen.getByRole("button", { name: "Add a family task" }),
@@ -129,7 +136,9 @@ describe("TasksPage hierarchy compaction", () => {
     expect(screen.queryByText("Morning Routine")).toBeNull();
   });
 
-  it("opens compact task creation on demand and preserves task creation fields", async () => {
+  it("guides task creation through one friendly question at a time", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    vi.setSystemTime(new Date("2026-06-20T08:00:00Z"));
     const user = userEvent.setup();
     const api = await tasksApi();
     vi.mocked(api.createTask).mockResolvedValue(
@@ -139,23 +148,100 @@ describe("TasksPage hierarchy compaction", () => {
 
     await screen.findByText("Return library books");
     await user.click(screen.getByRole("button", { name: "Add family task" }));
-    await user.type(screen.getByLabelText("Title"), "Water plants");
-    await user.selectOptions(screen.getByLabelText("Who can help?"), "SharedHousehold");
-    await user.type(screen.getByLabelText("When it helps"), "2026-06-22");
-    await user.selectOptions(screen.getByLabelText("Repeats"), "Weekly");
+
+    const dialog = screen.getByRole("dialog", { name: "Add family task" });
+    expect(within(dialog).getByText("What needs to be done?")).not.toBeNull();
+    expect(within(dialog).queryByText("Who should do this?")).toBeNull();
+    expect(
+      within(dialog)
+        .getByRole("button", { name: "Continue" })
+        .hasAttribute("disabled"),
+    ).toBe(true);
+
+    await user.type(
+      within(dialog).getByLabelText("What needs to be done?"),
+      "Water plants",
+    );
+    await user.click(within(dialog).getByRole("button", { name: "Continue" }));
+    expect(within(dialog).getByText("Who should do this?")).not.toBeNull();
     await user.click(
-      within(screen.getByLabelText("Add family task")).getByRole("button", {
-        name: "Add family task",
-      }),
+      within(dialog).getByRole("button", { name: "Whole family" }),
+    );
+
+    await user.click(within(dialog).getByRole("button", { name: "Continue" }));
+    expect(within(dialog).getByText("When should it happen?")).not.toBeNull();
+    await user.click(within(dialog).getByRole("button", { name: "Tomorrow" }));
+
+    await user.click(within(dialog).getByRole("button", { name: "Continue" }));
+    expect(within(dialog).getByText("Anything else?")).not.toBeNull();
+    await user.selectOptions(
+      within(dialog).getByLabelText("Repeats"),
+      "Weekly",
+    );
+    await user.click(
+      within(dialog).getByRole("button", { name: "Create task" }),
     );
 
     expect(vi.mocked(api.createTask)).toHaveBeenCalledWith({
       title: "Water plants",
-      dueDate: "2026-06-22",
+      dueDate: "2026-06-21",
       ownershipKind: "SharedHousehold",
       familyMemberId: null,
       recurrenceFrequency: "Weekly",
     });
+  });
+
+  it("preserves task editing and closes the dialog with Escape", async () => {
+    const user = userEvent.setup();
+    const api = await tasksApi();
+    vi.mocked(api.updateTask).mockResolvedValue(
+      task({ id: "overdue", title: "Return library bags" }),
+    );
+    render(<TasksPage members={familyMembers} />);
+
+    await screen.findByText("Return library books");
+    await user.click(
+      within(screen.getByText("Return library books").closest("li")!).getByRole(
+        "button",
+        { name: "Adjust" },
+      ),
+    );
+
+    const dialog = screen.getByRole("dialog", { name: "Adjust task" });
+    await user.clear(within(dialog).getByLabelText("What needs to be done?"));
+    await user.type(
+      within(dialog).getByLabelText("What needs to be done?"),
+      "Return library bags",
+    );
+    await user.click(within(dialog).getByRole("button", { name: "Continue" }));
+    await user.click(
+      within(dialog).getByRole("button", { name: "One person" }),
+    );
+    await user.selectOptions(
+      within(dialog).getByLabelText("Choose someone"),
+      "alex",
+    );
+    await user.click(within(dialog).getByRole("button", { name: "Continue" }));
+    await user.click(within(dialog).getByRole("button", { name: "Someday" }));
+    await user.click(within(dialog).getByRole("button", { name: "Continue" }));
+    await user.click(within(dialog).getByRole("button", { name: "Save task" }));
+
+    expect(vi.mocked(api.updateTask)).toHaveBeenCalledWith("overdue", {
+      title: "Return library bags",
+      dueDate: null,
+      ownershipKind: "FamilyMember",
+      familyMemberId: "alex",
+      recurrenceFrequency: "None",
+    });
+
+    await user.click(screen.getByRole("button", { name: "Add family task" }));
+    expect(
+      screen.getByRole("dialog", { name: "Add family task" }),
+    ).not.toBeNull();
+    await user.keyboard("{Escape}");
+    expect(
+      screen.queryByRole("dialog", { name: "Add family task" }),
+    ).toBeNull();
   });
 });
 
@@ -219,7 +305,9 @@ describe("TasksPage templates", () => {
 
     await screen.findByText("Fix hallway hook");
     await user.click(screen.getByRole("button", { name: "Plan the week (1)" }));
-    await user.click(screen.getByRole("button", { name: "Keep for this week" }));
+    await user.click(
+      screen.getByRole("button", { name: "Keep for this week" }),
+    );
 
     expect(vi.mocked(api.keepTaskActive)).toHaveBeenCalledWith("review");
   });

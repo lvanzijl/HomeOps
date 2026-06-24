@@ -1,4 +1,6 @@
 # Current State
+- 2026-06-24: Completed the Task dialog conversation slice by redesigning Task create/edit into a guided one-question-at-a-time flow with Today/Tomorrow/Someday timing shortcuts, optional recurrence at the end, existing task create/update payloads preserved, and focused Task dialog regression coverage.
+- 2026-06-24: Completed the Home dialog and layout UX consistency slice by changing Home to a balanced 2x2 Agenda/Tasks/Shopping/Motivation dashboard, applying a blurred pastel HomeOps dialog treatment, and moving Agenda event, Task, and Motivation goal creation/editing into on-demand dialogs while preserving Shopping inline entry and existing business logic.
 - 2026-06-24: Captured a complete desktop beta-surface visual review package under `docs/reports/2026-06-24-beta-surface-visual-review/`, covering Home, Agenda, Tasks, Shopping, Motivation, adult and child Family Member pages, Avatar Editor default and unsaved states, Weekly Reset, and Settings without implementation changes.
 - 2026-06-24: Completed a Tasks and Weekly Reset family-first UX pass by warming visible task copy, changing the beta-facing lists label to Shopping, making Weekly Reset contextual entry points read as week planning/family reset actions, and tightening narrow navigation button sizing without changing navigation destinations, task lifecycle behavior, Weekly Reset behavior, FamilyMember behavior, or Avatar V2.
 - 2026-06-23: Completed beta navigation and surface cleanup by hiding House Status, Media, and Gamification from user-facing beta navigation, focusing primary navigation on Home, Agenda, Tasks, Shopping / Lists, and Motivation, keeping Weekly Reset contextual from Tasks, and preserving Settings as a compact Administration affordance while leaving Family Members contextual to Home and Avatar V2 flows unchanged.
@@ -15,7 +17,7 @@
 Phase 2 — Durable Household Core
 
 ## Current Slice
-Beta Navigation and Surface Cleanup — Completed
+Task Dialog Conversation — Completed
 
 ## Completed Slices
 - 1.1 Repository Bootstrap
@@ -55,6 +57,8 @@ Beta Navigation and Surface Cleanup — Completed
 - Avatar V2 Slice 1 Frontend/Product Cleanup
 - Avatar V2 Slice 2 Renderer Cleanup
 - Beta Navigation and Surface Cleanup
+- Home Dialog and Layout UX Consistency
+- Task Dialog Conversation
 
 
 

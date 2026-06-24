@@ -27,6 +27,8 @@ import type {
   TaskTemplate,
 } from "./tasksModel";
 
+type TaskDialogQuestion = "title" | "owner" | "date" | "extras";
+
 export function TasksPage({
   members = fallbackFamilyMembers,
   onOpenWeeklyReset,
@@ -44,6 +46,8 @@ export function TasksPage({
     useState<TaskRecurrenceFrequency>("None");
   const [editingTask, setEditingTask] = useState<HouseholdTask | null>(null);
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
+  const [taskDialogQuestion, setTaskDialogQuestion] =
+    useState<TaskDialogQuestion>("title");
   const [isTemplatesOpen, setIsTemplatesOpen] = useState(false);
   const [isWeeklyResetOpen, setIsWeeklyResetOpen] = useState(false);
   const [templateName, setTemplateName] = useState("");
@@ -74,6 +78,38 @@ export function TasksPage({
       setFamilyMemberId(members[0]?.id ?? "");
     }
   }, [familyMemberId, members, ownership]);
+
+  useEffect(() => {
+    if (!isTaskFormOpen && !editingTask) return;
+    const close = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        resetTaskForm();
+      }
+    };
+    window.addEventListener("keydown", close);
+    return () => window.removeEventListener("keydown", close);
+  }, [editingTask, isTaskFormOpen]);
+
+  function resetTaskForm() {
+    setTitle("");
+    setDueDate("");
+    setOwnership("Unassigned");
+    setRecurrenceFrequency("None");
+    setEditingTask(null);
+    setIsTaskFormOpen(false);
+    setTaskDialogQuestion("title");
+  }
+
+  function openNewTaskDialog() {
+    setEditingTask(null);
+    setTitle("");
+    setDueDate(toDateInputValue(new Date()));
+    setOwnership("Unassigned");
+    setFamilyMemberId(members[0]?.id ?? "");
+    setRecurrenceFrequency("None");
+    setTaskDialogQuestion("title");
+    setIsTaskFormOpen(true);
+  }
 
   useEffect(() => {
     let ignore = false;
@@ -107,12 +143,7 @@ export function TasksPage({
         ? await saveTask(editingTask.id, payload)
         : await createTask(payload);
       if (saved) setTasks(await loadTasks());
-      setTitle("");
-      setDueDate("");
-      setOwnership("Unassigned");
-      setRecurrenceFrequency("None");
-      setEditingTask(null);
-      setIsTaskFormOpen(false);
+      resetTaskForm();
     } catch {
       setError("Task could not be saved.");
     }
@@ -158,6 +189,7 @@ export function TasksPage({
       setOwnership(first.ownershipKind);
       setFamilyMemberId(first.familyMemberId ?? members[0]?.id ?? "");
       setRecurrenceFrequency(first.recurrenceFrequency ?? "None");
+      setTaskDialogQuestion("title");
       setIsTaskFormOpen(true);
     }
   }
@@ -201,10 +233,11 @@ export function TasksPage({
   function startEditing(task: HouseholdTask) {
     setEditingTask(task);
     setTitle(task.title);
-    setDueDate(task.dueDate ?? "");
+    setDueDate(task.dueDate ?? toDateInputValue(new Date()));
     setOwnership(task.ownershipKind);
     setFamilyMemberId(task.familyMemberId ?? members[0]?.id ?? "");
     setRecurrenceFrequency(task.recurrenceFrequency ?? "None");
+    setTaskDialogQuestion("title");
     setIsTaskFormOpen(true);
   }
 
@@ -251,7 +284,9 @@ export function TasksPage({
       <header className="tasks-header">
         <p className="widget-type">Today’s family help</p>
         <h3>Tasks for the family</h3>
-        <p>Start with what needs attention, then keep the rest ready for later.</p>
+        <p>
+          Start with what needs attention, then keep the rest ready for later.
+        </p>
       </header>
       {error ? (
         <p className="shopping-empty" role="alert">
@@ -263,8 +298,10 @@ export function TasksPage({
       ) : tasks.length === 0 ? (
         <div className="empty-state-card page-empty-state">
           <strong>Add the first thing to help with</strong>
-          <p>Tasks keep family help visible without turning the day into admin.</p>
-          <button type="button" onClick={() => setIsTaskFormOpen(true)}>
+          <p>
+            Tasks keep family help visible without turning the day into admin.
+          </p>
+          <button type="button" onClick={openNewTaskDialog}>
             Add a family task
           </button>
         </div>
@@ -283,14 +320,8 @@ export function TasksPage({
       )}
 
       <div className="task-primary-actions" aria-label="Task actions">
-        <button
-          type="button"
-          onClick={() => {
-            setEditingTask(null);
-            setIsTaskFormOpen((open) => !open);
-          }}
-        >
-          {isTaskFormOpen && !editingTask ? "Close" : "Add family task"}
+        <button type="button" onClick={openNewTaskDialog}>
+          Add family task
         </button>
         <button
           type="button"
@@ -302,7 +333,8 @@ export function TasksPage({
           type="button"
           onClick={() => setIsWeeklyResetOpen((open) => !open)}
         >
-          Plan the week{reviewTasks.length > 0 ? ` (${reviewTasks.length})` : ""}
+          Plan the week
+          {reviewTasks.length > 0 ? ` (${reviewTasks.length})` : ""}
         </button>
         {onOpenWeeklyReset ? (
           <button type="button" onClick={onOpenWeeklyReset}>
@@ -312,91 +344,215 @@ export function TasksPage({
       </div>
 
       {isTaskFormOpen || editingTask ? (
-        <section
-          className="task-management-section"
-          aria-label={editingTask ? "Adjust task" : "Add family task"}
+        <div
+          className="avatar-editor-backdrop"
+          role="presentation"
+          onClick={resetTaskForm}
         >
-          <div>
-            <p className="widget-type">Family help</p>
-            <h4>{editingTask ? "Adjust task" : "Add a family task"}</h4>
-          </div>
-          <form
-            className="task-create-form compact-task-form"
-            onSubmit={onCreate}
+          <section
+            className="task-dialog task-conversation-dialog task-management-section"
+            role="dialog"
+            aria-modal="true"
+            aria-label={editingTask ? "Adjust task" : "Add family task"}
+            onClick={(event) => event.stopPropagation()}
           >
-            <label>
-              <span>Title</span>
-              <input
-                id="task-title"
-                onChange={(event) => setTitle(event.target.value)}
-                placeholder="Add a task"
-                required
-                type="text"
-                value={title}
-              />
-            </label>
-            <label>
-              <span>Who can help?</span>
-              <select
-                onChange={(event) =>
-                  setOwnership(event.target.value as TaskOwnershipKind)
-                }
-                value={ownership}
-              >
-                <option value="Unassigned">Anyone</option>
-                <option value="SharedHousehold">Whole family</option>
-                <option value="FamilyMember">Family member</option>
-              </select>
-            </label>
-            {ownership === "FamilyMember" ? (
-              <label>
-                <span>Family member</span>
-                <select
-                  onChange={(event) => setFamilyMemberId(event.target.value)}
-                  value={familyMemberId}
-                >
-                  {members.map((member) => (
-                    <option key={member.id} value={member.id}>
-                      {member.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            ) : null}
-            <label>
-              <span>When it helps</span>
-              <input
-                onChange={(event) => setDueDate(event.target.value)}
-                type="date"
-                value={dueDate}
-              />
-            </label>
-            <label>
-              <span>Repeats</span>
-              <select
-                onChange={(event) =>
-                  setRecurrenceFrequency(
-                    event.target.value as TaskRecurrenceFrequency,
-                  )
-                }
-                value={recurrenceFrequency}
-              >
-                <option value="None">Does not repeat</option>
-                <option value="Daily">Daily</option>
-                <option value="Weekly">Weekly</option>
-                <option value="Monthly">Monthly</option>
-              </select>
-            </label>
-            <button type="submit">
-              {editingTask ? "Save routine" : "Add family task"}
-            </button>
-          </form>
-        </section>
+            <div className="task-conversation-heading">
+              <p className="widget-type">Family help</p>
+              <h4>
+                {editingTask
+                  ? "Let’s adjust this task"
+                  : "Let’s add one helpful thing"}
+              </h4>
+              <p>
+                {taskDialogPrompt(taskDialogQuestion, editingTask !== null)}
+              </p>
+            </div>
+            <form
+              className="task-create-form compact-task-form task-conversation-form"
+              onSubmit={onCreate}
+            >
+              <div className="task-conversation-panel" key={taskDialogQuestion}>
+                {taskDialogQuestion === "title" ? (
+                  <label className="task-conversation-question">
+                    <span>What needs to be done?</span>
+                    <input
+                      id="task-title"
+                      autoFocus
+                      onChange={(event) => setTitle(event.target.value)}
+                      placeholder="Empty dishwasher"
+                      required
+                      type="text"
+                      value={title}
+                    />
+                  </label>
+                ) : null}
+
+                {taskDialogQuestion === "owner" ? (
+                  <fieldset className="task-choice-group">
+                    <legend>Who should do this?</legend>
+                    <button
+                      type="button"
+                      className={ownership === "Unassigned" ? "selected" : ""}
+                      onClick={() => setOwnership("Unassigned")}
+                    >
+                      Anyone can help
+                    </button>
+                    <button
+                      type="button"
+                      className={
+                        ownership === "SharedHousehold" ? "selected" : ""
+                      }
+                      onClick={() => setOwnership("SharedHousehold")}
+                    >
+                      Whole family
+                    </button>
+                    <button
+                      type="button"
+                      className={ownership === "FamilyMember" ? "selected" : ""}
+                      onClick={() => setOwnership("FamilyMember")}
+                    >
+                      One person
+                    </button>
+                    {ownership === "FamilyMember" ? (
+                      <label className="task-conversation-question compact">
+                        <span>Choose someone</span>
+                        <select
+                          autoFocus
+                          onChange={(event) =>
+                            setFamilyMemberId(event.target.value)
+                          }
+                          value={familyMemberId}
+                        >
+                          {members.map((member) => (
+                            <option key={member.id} value={member.id}>
+                              {member.name}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    ) : null}
+                  </fieldset>
+                ) : null}
+
+                {taskDialogQuestion === "date" ? (
+                  <div className="task-date-question">
+                    <p className="task-question-label">
+                      When should it happen?
+                    </p>
+                    <div
+                      className="task-choice-group horizontal"
+                      aria-label="Task due date shortcuts"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => setDueDate(toDateInputValue(new Date()))}
+                      >
+                        Today
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setDueDate(toDateInputValue(addDays(new Date(), 1)))
+                        }
+                      >
+                        Tomorrow
+                      </button>
+                      <button type="button" onClick={() => setDueDate("")}>
+                        Someday
+                      </button>
+                    </div>
+                    <label className="task-conversation-question compact">
+                      <span>Or pick a date</span>
+                      <input
+                        autoFocus
+                        onChange={(event) => setDueDate(event.target.value)}
+                        type="date"
+                        value={dueDate}
+                      />
+                    </label>
+                  </div>
+                ) : null}
+
+                {taskDialogQuestion === "extras" ? (
+                  <div className="task-extras-question">
+                    <p className="task-question-label">Anything else?</p>
+                    <label className="task-conversation-question compact">
+                      <span>Repeats</span>
+                      <select
+                        autoFocus
+                        onChange={(event) =>
+                          setRecurrenceFrequency(
+                            event.target.value as TaskRecurrenceFrequency,
+                          )
+                        }
+                        value={recurrenceFrequency}
+                      >
+                        <option value="None">Does not repeat</option>
+                        <option value="Daily">Daily</option>
+                        <option value="Weekly">Weekly</option>
+                        <option value="Monthly">Monthly</option>
+                      </select>
+                    </label>
+                    <p className="task-dialog-summary">
+                      {taskSummary(
+                        title,
+                        ownership,
+                        familyMemberId,
+                        members,
+                        dueDate,
+                        recurrenceFrequency,
+                      )}
+                    </p>
+                  </div>
+                ) : null}
+              </div>
+
+              <div className="task-conversation-actions">
+                {taskDialogQuestion !== "title" ? (
+                  <button
+                    type="button"
+                    className="secondary-action"
+                    onClick={() =>
+                      setTaskDialogQuestion(
+                        previousTaskQuestion(taskDialogQuestion),
+                      )
+                    }
+                  >
+                    Back
+                  </button>
+                ) : null}
+                {taskDialogQuestion === "extras" ? (
+                  <button type="submit">
+                    {editingTask ? "Save task" : "Create task"}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setTaskDialogQuestion(
+                        nextTaskQuestion(taskDialogQuestion),
+                      )
+                    }
+                    disabled={taskDialogQuestion === "title" && !title.trim()}
+                  >
+                    Continue
+                  </button>
+                )}
+              </div>
+            </form>
+          </section>
+        </div>
       ) : null}
 
-      <section className="task-secondary-stack" aria-label="Family task planning">
+      <section
+        className="task-secondary-stack"
+        aria-label="Family task planning"
+      >
         {isTemplatesOpen ? (
-          <section className="task-templates-panel" aria-label="Routine starters">
+          <section
+            className="task-templates-panel"
+            aria-label="Routine starters"
+          >
             <div>
               <p className="widget-type">Routine starters</p>
               <h4>Saved family rhythms</h4>
@@ -430,9 +586,7 @@ export function TasksPage({
                 />
               </label>
               <button type="submit">
-                {editingTemplate
-                  ? "Save routine"
-                  : "Save as routine starter"}
+                {editingTemplate ? "Save routine" : "Save as routine starter"}
               </button>
             </form>
             {templates.length === 0 ? (
@@ -474,10 +628,7 @@ export function TasksPage({
           </section>
         ) : null}
         {isWeeklyResetOpen ? (
-          <section
-            className="task-templates-panel"
-            aria-label="Plan the week"
-          >
+          <section className="task-templates-panel" aria-label="Plan the week">
             <div>
               <p className="widget-type">Weekly Reset</p>
               <h4>Plan the week together</h4>
@@ -619,6 +770,65 @@ function TaskGroup({
       )}
     </section>
   );
+}
+
+function nextTaskQuestion(question: TaskDialogQuestion): TaskDialogQuestion {
+  if (question === "title") return "owner";
+  if (question === "owner") return "date";
+  return "extras";
+}
+
+function previousTaskQuestion(
+  question: TaskDialogQuestion,
+): TaskDialogQuestion {
+  if (question === "extras") return "date";
+  if (question === "date") return "owner";
+  return "title";
+}
+
+function taskDialogPrompt(question: TaskDialogQuestion, isEditing: boolean) {
+  if (question === "title")
+    return isEditing
+      ? "Start with the name so everyone recognizes it."
+      : "Start with the one thing that would help the household.";
+  if (question === "owner")
+    return "Choose a helper, or leave it open for anyone.";
+  if (question === "date")
+    return "Today is ready by default, but you can move it.";
+  return "Optional details stay tucked away unless they help.";
+}
+
+function taskSummary(
+  title: string,
+  ownership: TaskOwnershipKind,
+  familyMemberId: string,
+  members: readonly FamilyMember[],
+  dueDate: string,
+  recurrenceFrequency: TaskRecurrenceFrequency,
+) {
+  const owner =
+    ownership === "FamilyMember"
+      ? (members.find((member) => member.id === familyMemberId)?.name ??
+        "one person")
+      : ownership === "SharedHousehold"
+        ? "the whole family"
+        : "anyone";
+  const when = dueDate ? `on ${dueDate}` : "someday";
+  const repeats =
+    recurrenceFrequency === "None"
+      ? ""
+      : ` and repeats ${recurrenceFrequency.toLowerCase()}`;
+  return `${title.trim() || "This task"} is for ${owner} ${when}${repeats}.`;
+}
+
+function toDateInputValue(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function addDays(date: Date, days: number): Date {
+  const next = new Date(date);
+  next.setDate(next.getDate() + days);
+  return next;
 }
 
 export function formatOwner(

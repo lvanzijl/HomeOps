@@ -22,7 +22,8 @@
   --elevation-1: 0 8px 20px rgb(23 32 51 / 8%);
   --elevation-2: 0 10px 30px rgb(23 32 51 / 8%);
   --elevation-warm-1: 0 12px 32px rgb(120 90 60 / 10%);
-  --elevation-emotional-1: 0 18px 48px color-mix(in srgb, var(--domain-accent, #f97316) 12%, transparent);
+  --elevation-emotional-1: 0 18px 48px
+    color-mix(in srgb, var(--domain-accent, #f97316) 12%, transparent);
   --elevation-dialog: 0 24px 80px rgb(23 32 51 / 24%);
   --domain-accent: var(--color-brand-accent);
   --domain-accent-strong: var(--color-brand-accent-strong);
@@ -102,7 +103,6 @@ button {
 .workspace-primary-nav {
   flex: 1 1 30rem;
 }
-
 
 .workspace-admin-nav {
   flex: 0 0 auto;
@@ -413,7 +413,12 @@ button {
 
 .home-hero {
   align-items: center;
-  background: linear-gradient(135deg, var(--surface-emotional), #ecfeff 55%, #fdf2f8);
+  background: linear-gradient(
+    135deg,
+    var(--surface-emotional),
+    #ecfeff 55%,
+    #fdf2f8
+  );
   border: 1px solid #ead7c7;
   border-radius: 1rem;
   display: grid;
@@ -557,10 +562,7 @@ button {
 .home-summary-grid {
   display: grid;
   gap: 0.75rem;
-  grid-template-columns: minmax(0, 1.55fr) minmax(16rem, 0.72fr) minmax(
-      16rem,
-      0.72fr
-    );
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .home-summary-card {
@@ -858,10 +860,15 @@ button {
   width: 100%;
 }
 
-
 .avatar-editor-backdrop {
   align-items: center;
-  background: rgb(23 32 51 / 35%);
+  animation: dialog-backdrop-in 160ms ease-out;
+  backdrop-filter: blur(10px);
+  background: color-mix(
+    in srgb,
+    var(--domain-tint, #fdf2f8) 32%,
+    rgb(23 32 51 / 30%)
+  );
   display: flex;
   inset: 0;
   justify-content: center;
@@ -1109,7 +1116,11 @@ button {
 }
 
 .workspace-nav-button {
-  background: color-mix(in srgb, var(--domain-tint, var(--surface-default)) 86%, white);
+  background: color-mix(
+    in srgb,
+    var(--domain-tint, var(--surface-default)) 86%,
+    white
+  );
   border-color: var(--domain-border, var(--border-default));
   color: var(--domain-accent-strong, var(--color-text-strong));
 }
@@ -1118,7 +1129,11 @@ button {
 .workspace-nav-button:focus-visible {
   border-color: var(--domain-accent, var(--color-brand-accent));
   box-shadow: 0 0 0 3px
-    color-mix(in srgb, var(--domain-accent, var(--color-brand-accent)) 24%, transparent);
+    color-mix(
+      in srgb,
+      var(--domain-accent, var(--color-brand-accent)) 24%,
+      transparent
+    );
   outline: none;
 }
 
@@ -1216,19 +1231,31 @@ button {
   max-width: 22rem;
 }
 
-.home-capture-dialog {
-  background: var(--surface-default);
+.home-capture-dialog,
+.task-dialog,
+.motivation-dialog {
+  animation: dialog-card-in 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--domain-tint, var(--surface-emotional)) 65%, white),
+    var(--surface-default) 72%
+  );
   border: 1px solid var(--domain-border, var(--border-emotional));
-  border-radius: 1.25rem;
-  box-shadow: var(--elevation-dialog);
+  border-radius: 1.75rem;
+  box-shadow: 0 28px 90px
+    color-mix(in srgb, var(--domain-accent, #7c3aed) 18%, rgb(23 32 51 / 24%));
   display: grid;
   gap: 1rem;
+  max-height: min(90vh, 44rem);
   max-width: min(34rem, calc(100vw - 2rem));
-  padding: 1rem;
+  overflow: auto;
+  padding: 1.25rem;
   width: 100%;
 }
 
-.home-capture-dialog header {
+.home-capture-dialog header,
+.task-dialog header,
+.motivation-dialog header {
   align-items: start;
   display: flex;
   gap: 1rem;
@@ -1236,12 +1263,20 @@ button {
 }
 
 .home-capture-dialog h3,
-.home-capture-dialog p {
+.home-capture-dialog p,
+.task-dialog h3,
+.task-dialog p,
+.motivation-dialog h3,
+.motivation-dialog p {
   margin: 0;
 }
 
 .event-dialog-form {
-  background: color-mix(in srgb, var(--domain-tint, var(--surface-emotional)) 68%, white);
+  background: color-mix(
+    in srgb,
+    var(--domain-tint, var(--surface-emotional)) 68%,
+    white
+  );
 }
 
 .home-quick-form label {
@@ -1408,7 +1443,11 @@ button {
   width: 2rem;
 }
 .star-row span.filled {
-  background: color-mix(in srgb, var(--member-color, #facc15) 30%, var(--surface-emotional));
+  background: color-mix(
+    in srgb,
+    var(--member-color, #facc15) 30%,
+    var(--surface-emotional)
+  );
   border-color: var(--member-color, #facc15);
   color: #92400e;
 }
@@ -1750,7 +1789,11 @@ button {
   padding: 0.55rem;
 }
 .child-task-list li > span {
-  background: color-mix(in srgb, var(--member-color, #facc15) 42%, var(--surface-default));
+  background: color-mix(
+    in srgb,
+    var(--member-color, #facc15) 42%,
+    var(--surface-default)
+  );
   border-radius: 999px;
   color: #7c2d12;
   display: grid;
@@ -1792,7 +1835,11 @@ button {
   gap: 0.75rem;
 }
 .child-goal-card {
-  background: color-mix(in srgb, var(--member-color, #facc15) 12%, var(--surface-default));
+  background: color-mix(
+    in srgb,
+    var(--member-color, #facc15) 12%,
+    var(--surface-default)
+  );
   border: 1px solid
     color-mix(in srgb, var(--member-color, #facc15) 40%, var(--surface-default));
   border-radius: 1rem;
@@ -2167,9 +2214,18 @@ button {
       color-mix(in srgb, var(--member-color, #facc15) 34%, transparent),
       transparent 28%
     ),
-    linear-gradient(135deg, var(--surface-emotional) 0%, var(--surface-default) 48%, #fef3c7 100%);
+    linear-gradient(
+      135deg,
+      var(--surface-emotional) 0%,
+      var(--surface-default) 48%,
+      #fef3c7 100%
+    );
   border: 2px solid
-    color-mix(in srgb, var(--member-color, #facc15) 42%, var(--border-emotional));
+    color-mix(
+      in srgb,
+      var(--member-color, #facc15) 42%,
+      var(--border-emotional)
+    );
   border-radius: 2rem;
   box-shadow: 0 28px 70px rgb(120 53 15 / 18%);
   display: grid;
@@ -2318,7 +2374,12 @@ button {
   align-items: center;
   background:
     radial-gradient(circle at 8% 16%, rgb(251 191 36 / 34%), transparent 30%),
-    linear-gradient(135deg, var(--surface-emotional) 0%, #fef3c7 52%, var(--surface-default) 100%);
+    linear-gradient(
+      135deg,
+      var(--surface-emotional) 0%,
+      #fef3c7 52%,
+      var(--surface-default) 100%
+    );
   border: 2px solid #fdba74;
   border-radius: 1.45rem;
   box-shadow: 0 18px 42px rgb(154 52 18 / 14%);
@@ -2665,6 +2726,117 @@ button {
   margin: 0.25rem 0 0;
 }
 
+.task-conversation-dialog {
+  max-width: min(32rem, calc(100vw - 2rem));
+}
+
+.task-conversation-heading {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.task-conversation-heading p:last-child {
+  color: var(--color-text-muted);
+  font-weight: 700;
+}
+
+.task-conversation-form {
+  gap: 0.85rem;
+}
+
+.task-conversation-panel {
+  animation: task-question-in 170ms ease-out;
+  display: grid;
+  gap: 0.75rem;
+  min-height: 9rem;
+}
+
+.task-conversation-question {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.task-conversation-question > span,
+.task-question-label,
+.task-choice-group legend {
+  color: var(--domain-accent-strong, #0f766e);
+  font-size: 1.05rem;
+  font-weight: 900;
+  margin: 0;
+}
+
+.task-conversation-question.compact > span {
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.task-choice-group {
+  border: 0;
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+}
+
+.task-choice-group.horizontal {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.task-choice-group button {
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid var(--domain-border, #99f6e4);
+  border-radius: 1rem;
+  color: var(--domain-accent-strong, #0f766e);
+  font: inherit;
+  font-weight: 850;
+  padding: 0.75rem;
+  text-align: left;
+}
+
+.task-choice-group.horizontal button {
+  text-align: center;
+}
+
+.task-choice-group button.selected {
+  background: color-mix(in srgb, var(--domain-accent, #14b8a6) 16%, white);
+  box-shadow: inset 0 0 0 2px var(--domain-accent, #14b8a6);
+}
+
+.task-date-question,
+.task-extras-question {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.task-dialog-summary {
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid var(--domain-border, #99f6e4);
+  border-radius: 1rem;
+  color: #475569;
+  font-weight: 700;
+  padding: 0.7rem;
+}
+
+.task-conversation-actions {
+  align-items: center;
+  display: flex;
+  gap: 0.6rem;
+  justify-content: flex-end;
+}
+
+@keyframes task-question-in {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 .task-planning-group {
   margin-top: 0.5rem;
 }
@@ -2915,7 +3087,8 @@ button {
 .avatar-v2-asset-tile[aria-pressed="true"],
 .avatar-v2-swatch[aria-pressed="true"] {
   border-color: var(--color-brand-accent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-brand-accent) 22%, transparent);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--color-brand-accent) 22%, transparent);
 }
 
 .avatar-v2-asset-tile svg {
@@ -2972,7 +3145,8 @@ button {
 .task-primary-actions button:nth-child(3),
 .task-primary-actions button:nth-child(4) {
   border: 1px solid var(--domain-accent, #14b8a6);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--domain-accent, #14b8a6) 10%, transparent);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--domain-accent, #14b8a6) 10%, transparent);
 }
 
 .task-secondary-stack {
@@ -3018,5 +3192,62 @@ button {
 
   .task-primary-actions button {
     flex: 1 1 9rem;
+  }
+}
+
+@keyframes dialog-backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes dialog-card-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.task-dialog,
+.motivation-dialog {
+  display: grid;
+  gap: 1rem;
+  width: min(100%, 34rem);
+}
+
+.task-dialog .task-create-form,
+.motivation-dialog .family-goal-form {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+}
+
+.agenda-summary {
+  order: 1;
+}
+.tasks-summary {
+  order: 2;
+}
+.lists-summary {
+  order: 3;
+}
+.motivation-summary {
+  order: 4;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .avatar-editor-backdrop,
+  .home-capture-dialog,
+  .task-dialog,
+  .motivation-dialog {
+    animation: none;
   }
 }

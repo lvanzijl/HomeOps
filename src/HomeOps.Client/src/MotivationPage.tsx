@@ -98,6 +98,19 @@ export function MotivationPage({ members }: MotivationPageProps) {
     setFormError(null);
   }
 
+  useEffect(() => {
+    if (formMode === "closed" && !individualFormGoal) return;
+    const close = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setFormMode("closed");
+        setIndividualFormGoal(undefined);
+        setFormError(null);
+      }
+    };
+    window.addEventListener("keydown", close);
+    return () => window.removeEventListener("keydown", close);
+  }, [formMode, individualFormGoal]);
+
   return (
     <section className="motivation-page" aria-label="Motivation page">
       <header className="motivation-header">
@@ -160,27 +173,46 @@ export function MotivationPage({ members }: MotivationPageProps) {
       </article>
 
       {formMode !== "closed" ? (
-        <FamilyGoalForm
-          familyGoal={formMode === "edit" ? familyGoal : undefined}
-          error={formError}
-          onCancel={() => {
+        <div
+          className="avatar-editor-backdrop"
+          role="presentation"
+          onClick={() => {
             setFormMode("closed");
             setFormError(null);
           }}
-          onSubmit={async (values) => {
-            try {
-              const saved =
-                formMode === "edit" && familyGoal
-                  ? await updateFamilyGoal(familyGoal.id, values)
-                  : await createFamilyGoal(values);
-              handleFormSaved(saved);
-            } catch {
-              setFormError(
-                "We could not save this family goal. Please try again.",
-              );
+        >
+          <section
+            className="motivation-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-label={
+              formMode === "edit" ? "Edit family goal" : "Create family goal"
             }
-          }}
-        />
+            onClick={(event) => event.stopPropagation()}
+          >
+            <FamilyGoalForm
+              familyGoal={formMode === "edit" ? familyGoal : undefined}
+              error={formError}
+              onCancel={() => {
+                setFormMode("closed");
+                setFormError(null);
+              }}
+              onSubmit={async (values) => {
+                try {
+                  const saved =
+                    formMode === "edit" && familyGoal
+                      ? await updateFamilyGoal(familyGoal.id, values)
+                      : await createFamilyGoal(values);
+                  handleFormSaved(saved);
+                } catch {
+                  setFormError(
+                    "We could not save this family goal. Please try again.",
+                  );
+                }
+              }}
+            />
+          </section>
+        </div>
       ) : null}
 
       <CelebrationMemorySection
@@ -241,47 +273,71 @@ export function MotivationPage({ members }: MotivationPageProps) {
           </div>
         </div>
         {individualFormGoal ? (
-          <IndividualGoalForm
-            goal={individualFormGoal.id ? individualFormGoal : undefined}
-            members={members}
-            error={formError}
-            onCancel={() => {
+          <div
+            className="avatar-editor-backdrop"
+            role="presentation"
+            onClick={() => {
               setIndividualFormGoal(undefined);
               setFormError(null);
             }}
-            onArchive={
-              individualFormGoal.id
-                ? async () => {
-                    try {
-                      await archiveIndividualGoal(individualFormGoal.id);
-                      setSnapshot((current) => ({
-                        ...current,
-                        individualGoals: current.individualGoals.filter(
-                          (goal) => goal.id !== individualFormGoal.id,
-                        ),
-                      }));
-                      setIndividualFormGoal(undefined);
-                    } catch {
-                      setFormError(
-                        "We could not retire this goal. Please try again.",
-                      );
-                    }
-                  }
-                : undefined
-            }
-            onSubmit={async (values) => {
-              try {
-                const saved = individualFormGoal.id
-                  ? await updateIndividualGoal(individualFormGoal.id, values)
-                  : await createIndividualGoal(values);
-                handleIndividualGoalSaved(saved);
-              } catch {
-                setFormError(
-                  "We could not save this personal goal. Please try again.",
-                );
+          >
+            <section
+              className="motivation-dialog"
+              role="dialog"
+              aria-modal="true"
+              aria-label={
+                individualFormGoal.id
+                  ? "Edit personal goal"
+                  : "Create personal goal"
               }
-            }}
-          />
+              onClick={(event) => event.stopPropagation()}
+            >
+              <IndividualGoalForm
+                goal={individualFormGoal.id ? individualFormGoal : undefined}
+                members={members}
+                error={formError}
+                onCancel={() => {
+                  setIndividualFormGoal(undefined);
+                  setFormError(null);
+                }}
+                onArchive={
+                  individualFormGoal.id
+                    ? async () => {
+                        try {
+                          await archiveIndividualGoal(individualFormGoal.id);
+                          setSnapshot((current) => ({
+                            ...current,
+                            individualGoals: current.individualGoals.filter(
+                              (goal) => goal.id !== individualFormGoal.id,
+                            ),
+                          }));
+                          setIndividualFormGoal(undefined);
+                        } catch {
+                          setFormError(
+                            "We could not retire this goal. Please try again.",
+                          );
+                        }
+                      }
+                    : undefined
+                }
+                onSubmit={async (values) => {
+                  try {
+                    const saved = individualFormGoal.id
+                      ? await updateIndividualGoal(
+                          individualFormGoal.id,
+                          values,
+                        )
+                      : await createIndividualGoal(values);
+                    handleIndividualGoalSaved(saved);
+                  } catch {
+                    setFormError(
+                      "We could not save this personal goal. Please try again.",
+                    );
+                  }
+                }}
+              />
+            </section>
+          </div>
         ) : null}
         <div className="individual-goal-grid">
           {individualGoals.length === 0 ? (
@@ -460,6 +516,7 @@ function IndividualGoalForm({
       <label>
         Family member
         <select
+          autoFocus
           value={familyMemberId}
           onChange={(event) => setFamilyMemberId(event.target.value)}
           required
@@ -474,6 +531,7 @@ function IndividualGoalForm({
       <label>
         Goal title
         <input
+          autoFocus
           value={title}
           maxLength={240}
           onChange={(event) => setTitle(event.target.value)}
