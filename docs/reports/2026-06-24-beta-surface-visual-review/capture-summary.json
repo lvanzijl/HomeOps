@@ -1,0 +1,204 @@
+{
+  "capturedAtUtc": "2026-06-24T11:31:00.033Z",
+  "surfaceRuns": [
+    {
+      "slug": "home",
+      "title": "Home",
+      "files": [
+        "home-desktop-top.png",
+        "home-desktop-middle.png",
+        "home-desktop-bottom.png"
+      ],
+      "scrollHeight": 1525,
+      "viewportHeight": 1200,
+      "fitsViewport": false,
+      "notes": null,
+      "apiEndpoints": [],
+      "containsUnavailable": false
+    },
+    {
+      "slug": "agenda",
+      "title": "Agenda",
+      "files": [
+        "agenda-desktop.png"
+      ],
+      "scrollHeight": 1200,
+      "viewportHeight": 1200,
+      "fitsViewport": true,
+      "notes": null,
+      "apiEndpoints": [],
+      "containsUnavailable": false
+    },
+    {
+      "slug": "tasks",
+      "title": "Tasks",
+      "files": [
+        "tasks-desktop.png"
+      ],
+      "scrollHeight": 1200,
+      "viewportHeight": 1200,
+      "fitsViewport": true,
+      "notes": null,
+      "apiEndpoints": [],
+      "containsUnavailable": false
+    },
+    {
+      "slug": "weekly-reset",
+      "title": "Weekly Reset",
+      "files": [
+        "weekly-reset-desktop.png"
+      ],
+      "scrollHeight": 1200,
+      "viewportHeight": 1200,
+      "fitsViewport": true,
+      "notes": null,
+      "apiEndpoints": [],
+      "containsUnavailable": false
+    },
+    {
+      "slug": "shopping",
+      "title": "Shopping",
+      "files": [
+        "shopping-desktop.png"
+      ],
+      "scrollHeight": 1200,
+      "viewportHeight": 1200,
+      "fitsViewport": true,
+      "notes": null,
+      "apiEndpoints": [],
+      "containsUnavailable": false
+    },
+    {
+      "slug": "motivation",
+      "title": "Motivation",
+      "files": [
+        "motivation-desktop-top.png",
+        "motivation-desktop-middle.png",
+        "motivation-desktop-bottom.png"
+      ],
+      "scrollHeight": 1617,
+      "viewportHeight": 1200,
+      "fitsViewport": false,
+      "notes": null,
+      "apiEndpoints": [],
+      "containsUnavailable": false
+    },
+    {
+      "slug": "adult-family-member",
+      "title": "Family Member — adult",
+      "files": [
+        "adult-family-member-desktop-top.png",
+        "adult-family-member-desktop-middle.png",
+        "adult-family-member-desktop-bottom.png"
+      ],
+      "scrollHeight": 1525,
+      "viewportHeight": 1200,
+      "fitsViewport": false,
+      "notes": null,
+      "apiEndpoints": [],
+      "containsUnavailable": false
+    },
+    {
+      "slug": "avatar-editor-default",
+      "title": "Avatar Editor — default",
+      "files": [
+        "avatar-editor-default-desktop-top.png",
+        "avatar-editor-default-desktop-middle.png",
+        "avatar-editor-default-desktop-bottom.png"
+      ],
+      "scrollHeight": 1525,
+      "viewportHeight": 1200,
+      "fitsViewport": false,
+      "notes": "Opened from Alex family member page.",
+      "apiEndpoints": [],
+      "containsUnavailable": false
+    },
+    {
+      "slug": "avatar-editor-unsaved",
+      "title": "Avatar Editor — unsaved changes",
+      "files": [
+        "avatar-editor-unsaved-desktop-top.png",
+        "avatar-editor-unsaved-desktop-middle.png",
+        "avatar-editor-unsaved-desktop-bottom.png"
+      ],
+      "scrollHeight": 1525,
+      "viewportHeight": 1200,
+      "fitsViewport": false,
+      "notes": "Changed control: Soft Crop.",
+      "apiEndpoints": [],
+      "containsUnavailable": false
+    },
+    {
+      "slug": "child-family-member",
+      "title": "Family Member — child",
+      "files": [
+        "child-family-member-desktop-top.png",
+        "child-family-member-desktop-middle.png",
+        "child-family-member-desktop-bottom.png"
+      ],
+      "scrollHeight": 2987,
+      "viewportHeight": 1200,
+      "fitsViewport": false,
+      "notes": null,
+      "apiEndpoints": [],
+      "containsUnavailable": false
+    },
+    {
+      "slug": "settings",
+      "title": "Settings",
+      "files": [
+        "settings-desktop.png"
+      ],
+      "scrollHeight": 1200,
+      "viewportHeight": 1200,
+      "fitsViewport": true,
+      "notes": null,
+      "apiEndpoints": [],
+      "containsUnavailable": false
+    }
+  ],
+  "consoleMessages": [
+    {
+      "type": "debug",
+      "text": "[vite] connecting...",
+      "surface": null
+    },
+    {
+      "type": "debug",
+      "text": "[vite] connected.",
+      "surface": null
+    },
+    {
+      "type": "info",
+      "text": "%cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold",
+      "surface": null
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "surface": "home"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "surface": "agenda"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "surface": "tasks"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "surface": "weekly-reset"
+    },
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "surface": "shopping"
+    }
+  ],
+  "pageErrors": [],
+  "failedRequests": []
+}
