@@ -393,3 +393,6 @@ FamilyAvatar now uses persisted FamilyMember Avatar V2 configuration for core di
 
 ## Completed Slice 2.65 — Avatar V2 Slice 4 Final Legacy Persistence Removal
 Avatar V2 Slice 4 Final Legacy Persistence Removal removes the remaining legacy avatar persistence model from FamilyMember. The backend entity, EF mapping, creation/update defaults, deterministic seeds, visual review fixtures, migration snapshots, and frontend fallback fixture/type definitions no longer carry the old age group, presentation, skin tone, hair color, hair style, glasses, or shirt color fields. Avatar V2 configuration remains the sole avatar model, initials fallback remains permanent, and no legacy avatar DTOs, rendering, or runtime persistence dependency remains.
+
+### Home Dashboard Cleanup — Completed 2026-06-24
+Home Dashboard Cleanup removes the large global Home Quick Capture surface and moves creation/navigation into compact card header icon buttons. Agenda, Tasks, Motivation, and Shopping/Lists bodies now stay summary-only without duplicate open/view controls, while Shopping/List rows show item names directly with optional store context instead of repeating list/container labels. Existing dedicated domain pages remain the full management surfaces, and Home keeps only minimal creation dialogs for supported quick adds.
