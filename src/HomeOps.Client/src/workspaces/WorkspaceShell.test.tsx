@@ -57,7 +57,7 @@ describe('WorkspaceShell API-backed layouts', () => {
     expect(within(dailyWork).getByRole('button', { name: 'Home' })).not.toBeNull();
     expect(within(dailyWork).getByRole('button', { name: 'Agenda' })).not.toBeNull();
     expect(within(dailyWork).getByRole('button', { name: 'Tasks' })).not.toBeNull();
-    expect(within(dailyWork).getByRole('button', { name: 'Lists' })).not.toBeNull();
+    expect(within(dailyWork).getByRole('button', { name: 'Shopping / Lists' })).not.toBeNull();
     expect(within(dailyWork).getByRole('button', { name: 'Motivation' })).not.toBeNull();
     expect(within(dailyWork).queryByRole('button', { name: 'Settings' })).toBeNull();
     expect(within(dailyWork).queryByRole('button', { name: 'Weekly Reset' })).toBeNull();
@@ -66,20 +66,14 @@ describe('WorkspaceShell API-backed layouts', () => {
     expect(within(dailyWork).queryByRole('button', { name: 'Gamification' })).toBeNull();
   });
 
-  it('keeps secondary and future routes reachable outside primary navigation', async () => {
-    const user = userEvent.setup();
-    const workspaceLayout = await mockedWorkspaceLayout();
+  it('removes future surfaces from user-facing beta navigation', async () => {
     render(<WorkspaceShell />);
 
     await screen.findByText('Open Agenda');
-    const secondary = screen.getByLabelText('Occasional and future work');
-    await user.click(within(secondary).getByRole('button', { name: 'House Status' }));
-
-    await waitFor(() => expect(workspaceLayout.loadWorkspaceLayout).toHaveBeenCalledWith('house'));
-    const placeholder = await screen.findByLabelText('House Status placeholder page');
-    expect(within(placeholder).getByText('House Status')).not.toBeNull();
-    expect(within(placeholder).getByText('For home alerts, sensors, and device state.')).not.toBeNull();
-    expect(within(placeholder).getByText('Not implemented yet.')).not.toBeNull();
+    expect(screen.queryByRole('button', { name: 'House Status' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Media' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Gamification' })).toBeNull();
+    expect(screen.queryByLabelText('Occasional and future work')).toBeNull();
   });
 
   it('keeps settings available as administration instead of primary navigation', async () => {
@@ -94,7 +88,7 @@ describe('WorkspaceShell API-backed layouts', () => {
     expect(await screen.findByText('Calendar Export / Restore')).not.toBeNull();
   });
 
-  it('keeps Weekly Reset reachable as occasional work and from Tasks', async () => {
+  it('keeps Weekly Reset reachable contextually from Tasks', async () => {
     const user = userEvent.setup();
     render(<WorkspaceShell />);
 
@@ -104,9 +98,7 @@ describe('WorkspaceShell API-backed layouts', () => {
     expect(await screen.findByRole('heading', { name: 'Weekly Reset' })).not.toBeNull();
 
     await user.click(screen.getByRole('button', { name: 'Home' }));
-    const secondary = screen.getByLabelText('Occasional and future work');
-    await user.click(within(secondary).getByRole('button', { name: 'Weekly Reset' }));
-    expect(await screen.findByRole('heading', { name: 'Weekly Reset' })).not.toBeNull();
+    expect(screen.queryByRole('button', { name: 'Weekly Reset' })).toBeNull();
   });
 
   it('applies the active workspace domain color class to the shell', async () => {

@@ -34,6 +34,7 @@
 | 2.61 | Profile Picker Removal and Family-First Cleanup | Completed |
 | 2.62 | Avatar V2 Slice 1 Frontend/Product Cleanup | Completed |
 | 2.63 | Avatar V2 Slice 2 Renderer Cleanup | Completed |
+| 2.65 | Beta Navigation and Surface Cleanup | Completed |
 | 2.41 | No-Date Task Lifecycle | Completed |
 
 Phase 2 theme: Durable Household Core.
@@ -119,6 +120,9 @@ Avatar V2 Slice 2 Renderer Cleanup removes the legacy CSS/span avatar renderer f
 
 ## Completed Slice 2.64 — Avatar V2 Slice 3 API/Client Contract Cleanup
 Avatar V2 Slice 3 API/Client Contract Cleanup removes legacy avatar DTO/request/response fields from the public Family Member API contracts and regenerates OpenAPI plus the TypeScript client so frontend create/update flows no longer send legacy avatar payloads. The backend still assigns server-side defaults to legacy entity properties only to satisfy the current persistence model. Avatar V2 configuration remains supported, initials fallback remains the display fallback, and EF/database legacy fields, schema, and migrations remain unchanged for Slice 4.
+
+## Completed Slice 2.65 — Beta Navigation and Surface Cleanup
+Beta Navigation and Surface Cleanup removes House Status, Media, and Gamification from user-facing beta navigation while preserving internal workspace identifiers and placeholder routing for future development. Primary navigation is focused on Home, Agenda, Tasks, Shopping / Lists, and Motivation; Weekly Reset is demoted to contextual access from Tasks; and Settings remains available through a compact Administration affordance. Family Members remain contextual people in the Home family experience, and Avatar V2 remains reachable through Family Member flows. No new features, domains, workflows, permissions, authentication, mobile-specific behavior, or Avatar V2 changes were introduced.
 
 ## Recommended Next Slice
 Proceed with Real Google Calendar Read-Only Integration only after preserving HomeOps Calendar as source of truth and local-only portability boundaries. Keep any Google Calendar work optional and integration-scoped; do not add two-way sync, authentication beyond an explicitly scoped integration requirement, sensors, media, notifications, recurring event editing, or offline-first synchronization.
