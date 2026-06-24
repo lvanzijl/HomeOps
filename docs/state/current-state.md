@@ -617,3 +617,10 @@ Showcase Sample C and Showcase Sample D exposed that the wide head variant's ear
 - Removed legacy avatar persistence fields from the FamilyMember entity, EF mapping, seed/default creation paths, visual review fixtures, and frontend fallback/member fixture types.
 - Cleaned EF migration/model snapshot artifacts so new development databases no longer create or seed legacy avatar persistence columns.
 - Avatar V2 configuration remains the sole supported avatar model, and initials fallback remains the permanent display fallback for missing or invalid Avatar V2 data.
+
+## Home Dashboard Cleanup — 2026-06-24
+- Home no longer shows a large global Quick Capture region in the hero; creation is available through compact card header icon actions instead.
+- Agenda, Tasks, Motivation, and Shopping/Lists use compact header actions for add/open behavior, and Home card bodies no longer include duplicate open/view navigation buttons.
+- The Home shopping summary now renders shopping/list item names directly with optional store context instead of repeating the list/container name per item.
+- Home summaries remain bounded with short visible lists and existing `+N more` indicators, while spacing was tightened to move the page closer to a non-scrolling dashboard.
+- Dedicated Agenda, Tasks, Lists, and Motivation pages remain the full management surfaces; Home creation dialogs are intentionally minimal.

@@ -139,6 +139,7 @@ export const homeOpsIconRegistry = {
     fallback: "💛",
     assets: { icon: helpfulKindnessIcon, spot: helpfulKindnessSpot },
   },
+  open: { fallback: "↗" },
   memory: {
     fallback: "💛",
     assets: {
