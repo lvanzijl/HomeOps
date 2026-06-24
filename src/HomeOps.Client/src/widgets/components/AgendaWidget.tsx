@@ -26,6 +26,7 @@ import type {
 import type { WidgetRenderProps } from "../WidgetRenderer";
 
 type AgendaView = "week" | "months";
+type EventDialogQuestion = "title" | "date" | "dayKind" | "details";
 
 type EventFormState = {
   title: string;
@@ -54,6 +55,8 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [deletingEventId, setDeletingEventId] = useState<string | null>(null);
   const [isEventFormOpen, setIsEventFormOpen] = useState(false);
+  const [eventDialogQuestion, setEventDialogQuestion] =
+    useState<EventDialogQuestion>("title");
 
   useEffect(() => {
     let isMounted = true;
@@ -153,12 +156,21 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
   function closeEventForm() {
     setEditingEventId(null);
     setIsEventFormOpen(false);
+    setEventDialogQuestion("title");
     setForm(emptyForm);
+  }
+
+  function openNewEventForm() {
+    setEditingEventId(null);
+    setForm(emptyForm);
+    setEventDialogQuestion("title");
+    setIsEventFormOpen(true);
   }
 
   function startEditing(event: NormalizedEvent) {
     setEditingEventId(event.id);
     setIsEventFormOpen(true);
+    setEventDialogQuestion("title");
     setForm({
       title: event.title,
       description: event.description ?? "",
@@ -216,7 +228,7 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
       <button
         type="button"
         className="compact-action"
-        onClick={() => setIsEventFormOpen(true)}
+        onClick={openNewEventForm}
       >
         Add household event
       </button>
@@ -251,12 +263,13 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
                 ×
               </button>
             </header>
-            <EventForm
+            <EventConversationForm
               form={form}
               isEditing={editingEventId !== null}
               isSaving={isSaving}
-              onCancel={closeEventForm}
+              question={eventDialogQuestion}
               onChange={setForm}
+              onQuestionChange={setEventDialogQuestion}
               onSubmit={handleSubmit}
             />
           </section>
@@ -290,7 +303,7 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
           <p>
             Events help the household remember important dates and activities.
           </p>
-          <button type="button" onClick={() => setIsEventFormOpen(true)}>
+          <button type="button" onClick={openNewEventForm}>
             Start with one household event.
           </button>
         </div>
@@ -313,85 +326,218 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
   );
 }
 
-function EventForm({
+function EventConversationForm({
   form,
   isEditing,
   isSaving,
-  onCancel,
+  question,
   onChange,
+  onQuestionChange,
   onSubmit,
 }: {
   form: EventFormState;
   isEditing: boolean;
   isSaving: boolean;
-  onCancel: () => void;
+  question: EventDialogQuestion;
   onChange: (form: EventFormState) => void;
+  onQuestionChange: (question: EventDialogQuestion) => void;
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
 }) {
+  const titleIsValid = form.title.trim().length > 0;
+  const submitLabel = isEditing ? "Save event" : "Create event";
+
   return (
     <form
-      className="calendar-event-form"
+      className="calendar-event-form task-conversation-form"
       onSubmit={onSubmit}
-      aria-label="Calendar event form"
+      aria-label="Calendar event conversation"
     >
-      <label>
-        Title
-        <input
-          autoFocus
-          value={form.title}
-          onChange={(event) => onChange({ ...form, title: event.target.value })}
-          id="calendar-event-title"
-          placeholder="Calendar event title"
-        />
-      </label>
-      <label>
-        Description
-        <input
-          value={form.description}
-          onChange={(event) =>
-            onChange({ ...form, description: event.target.value })
-          }
-          placeholder="Optional description"
-        />
-      </label>
-      <label>
-        Start
-        <input
-          type={form.allDay ? "date" : "datetime-local"}
-          value={toInputValue(form.startsAt, form.allDay)}
-          onChange={(event) =>
-            onChange({ ...form, startsAt: event.target.value })
-          }
-        />
-      </label>
-      <label>
-        End
-        <input
-          type={form.allDay ? "date" : "datetime-local"}
-          value={toInputValue(form.endsAt, form.allDay)}
-          onChange={(event) =>
-            onChange({ ...form, endsAt: event.target.value })
-          }
-        />
-      </label>
-      <label>
-        <input
-          type="checkbox"
-          checked={form.allDay}
-          onChange={(event) =>
-            onChange(toAllDayState(form, event.target.checked))
-          }
-        />
-        All day
-      </label>
-      <button type="submit" disabled={isSaving}>
-        {isSaving ? "Saving…" : isEditing ? "Update Event" : "Add Event"}
-      </button>
-      {isEditing ? (
-        <button type="button" onClick={onCancel}>
-          Cancel Edit
-        </button>
-      ) : null}
+      <div className="task-conversation-panel" key={question}>
+        {question === "title" ? (
+          <label className="task-conversation-question">
+            <span>What is happening?</span>
+            <input
+              autoFocus
+              value={form.title}
+              onChange={(event) =>
+                onChange({ ...form, title: event.target.value })
+              }
+              id="calendar-event-title"
+              placeholder="Swimming lesson"
+              required
+            />
+          </label>
+        ) : null}
+
+        {question === "date" ? (
+          <div className="task-date-question">
+            <p className="task-question-label">
+              When should the family remember it?
+            </p>
+            <div
+              className="task-choice-group horizontal"
+              aria-label="Event date shortcuts"
+            >
+              <button
+                type="button"
+                onClick={() => onChange(setEventDate(form, demoToday))}
+              >
+                Today
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  onChange(setEventDate(form, addDaysIso(demoToday, 1)))
+                }
+              >
+                Tomorrow
+              </button>
+              <button
+                type="button"
+                onClick={() => onChange(setEventDate(form, getEventDate(form)))}
+              >
+                Pick date
+              </button>
+            </div>
+            <label className="task-conversation-question compact">
+              <span>Pick a date</span>
+              <input
+                autoFocus
+                type="date"
+                value={getEventDate(form)}
+                onChange={(event) =>
+                  onChange(setEventDate(form, event.target.value))
+                }
+              />
+            </label>
+          </div>
+        ) : null}
+
+        {question === "dayKind" ? (
+          <div className="task-date-question">
+            <p className="task-question-label">Is it all day?</p>
+            <div
+              className="task-choice-group horizontal"
+              aria-label="Event time type"
+            >
+              <button
+                type="button"
+                className={form.allDay ? "selected" : ""}
+                onClick={() => onChange(toAllDayState(form, true))}
+              >
+                All day
+              </button>
+              <button
+                type="button"
+                className={!form.allDay ? "selected" : ""}
+                onClick={() => onChange(toAllDayState(form, false))}
+              >
+                Pick a time
+              </button>
+            </div>
+            {form.allDay ? (
+              <div className="agenda-time-grid">
+                <label className="task-conversation-question compact">
+                  <span>Event date</span>
+                  <input
+                    autoFocus
+                    type="date"
+                    value={getEventDate(form)}
+                    onChange={(event) =>
+                      onChange(setEventDate(form, event.target.value))
+                    }
+                  />
+                </label>
+                <label className="task-conversation-question compact">
+                  <span>End date</span>
+                  <input
+                    type="date"
+                    value={
+                      form.endsAt ? form.endsAt.slice(0, 10) : getEventDate(form)
+                    }
+                    onChange={(event) =>
+                      onChange(setAllDayEndDate(form, event.target.value))
+                    }
+                  />
+                </label>
+                <p className="task-dialog-summary">
+                  We’ll keep this as an all-day event.
+                </p>
+              </div>
+            ) : (
+              <div className="agenda-time-grid">
+                <label className="task-conversation-question compact">
+                  <span>Start time</span>
+                  <input
+                    autoFocus
+                    type="time"
+                    value={getEventTime(form.startsAt, "09:00")}
+                    onChange={(event) =>
+                      onChange(
+                        setEventTime(form, "startsAt", event.target.value),
+                      )
+                    }
+                  />
+                </label>
+                <label className="task-conversation-question compact">
+                  <span>End time</span>
+                  <input
+                    type="time"
+                    value={getEventTime(form.endsAt, "10:00")}
+                    onChange={(event) =>
+                      onChange(
+                        setEventTime(form, "endsAt", event.target.value),
+                      )
+                    }
+                  />
+                </label>
+              </div>
+            )}
+          </div>
+        ) : null}
+
+        {question === "details" ? (
+          <div className="task-extras-question">
+            <label className="task-conversation-question">
+              <span>Any details?</span>
+              <input
+                autoFocus
+                value={form.description}
+                onChange={(event) =>
+                  onChange({ ...form, description: event.target.value })
+                }
+                placeholder="Optional note for the family"
+              />
+            </label>
+            <p className="task-dialog-summary">{eventSummary(form)}</p>
+          </div>
+        ) : null}
+      </div>
+
+      <div className="task-conversation-actions">
+        {question !== "title" ? (
+          <button
+            type="button"
+            className="secondary-action"
+            onClick={() => onQuestionChange(previousEventQuestion(question))}
+          >
+            Back
+          </button>
+        ) : null}
+        {question === "details" ? (
+          <button type="submit" disabled={isSaving}>
+            {isSaving ? "Saving…" : submitLabel}
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => onQuestionChange(nextEventQuestion(question))}
+            disabled={question === "title" && !titleIsValid}
+          >
+            Continue
+          </button>
+        )}
+      </div>
     </form>
   );
 }
@@ -563,6 +709,81 @@ function toApiDateValue(value: string, allDay: boolean): string {
 
 function expandDateTime(value: string, fallbackTime: string): string {
   return value.length === 10 ? `${value}T${fallbackTime}` : value;
+}
+
+function nextEventQuestion(question: EventDialogQuestion): EventDialogQuestion {
+  if (question === "title") return "date";
+  if (question === "date") return "dayKind";
+  return "details";
+}
+
+function previousEventQuestion(
+  question: EventDialogQuestion,
+): EventDialogQuestion {
+  if (question === "details") return "dayKind";
+  if (question === "dayKind") return "date";
+  return "title";
+}
+
+function getEventDate(form: EventFormState) {
+  return form.startsAt.slice(0, 10);
+}
+
+function getEventTime(value: string, fallback: string) {
+  return value.length >= 16 ? value.slice(11, 16) : fallback;
+}
+
+function setEventDate(form: EventFormState, date: string): EventFormState {
+  if (form.allDay) {
+    return {
+      ...form,
+      startsAt: date,
+      endsAt: form.endsAt ? date : form.endsAt,
+    };
+  }
+
+  return {
+    ...form,
+    startsAt: `${date}T${getEventTime(form.startsAt, "09:00")}`,
+    endsAt: `${date}T${getEventTime(form.endsAt, "10:00")}`,
+  };
+}
+
+function setEventTime(
+  form: EventFormState,
+  field: "startsAt" | "endsAt",
+  time: string,
+): EventFormState {
+  const date = getEventDate(form);
+  return {
+    ...form,
+    allDay: false,
+    [field]: `${date}T${time}`,
+  };
+}
+
+function setAllDayEndDate(form: EventFormState, date: string): EventFormState {
+  return {
+    ...form,
+    allDay: true,
+    endsAt: date,
+  };
+}
+
+function eventSummary(form: EventFormState) {
+  const title = form.title.trim() || "Untitled event";
+  const date = getEventDate(form);
+  if (form.allDay) return `${title} · ${date} · all day`;
+  return `${title} · ${date} · ${getEventTime(
+    form.startsAt,
+    "09:00",
+  )}-${getEventTime(form.endsAt, "10:00")}`;
+}
+
+function addDaysIso(date: string, days: number) {
+  const next = new Date(`${date}T00:00:00`);
+  next.setDate(next.getDate() + days);
+  return next.toISOString().slice(0, 10);
 }
 
 function toUserFacingError(error: unknown, fallback: string): string {

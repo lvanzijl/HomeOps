@@ -1,5 +1,6 @@
 import {
   cleanup,
+  fireEvent,
   render,
   screen,
   waitFor,
@@ -65,6 +66,22 @@ const widgetProps = {
   },
 };
 
+async function openCreateDialog(user: ReturnType<typeof userEvent.setup>) {
+  await screen.findByText("Dentist Appointment");
+  await user.click(screen.getByRole("button", { name: "Add household event" }));
+  return screen.getByRole("dialog", { name: "Add calendar event" });
+}
+
+async function continueThroughDate(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByRole("button", { name: "Continue" }));
+  await user.click(screen.getByRole("button", { name: "Continue" }));
+}
+
+async function continueToDetails(user: ReturnType<typeof userEvent.setup>) {
+  await continueThroughDate(user);
+  await user.click(screen.getByRole("button", { name: "Continue" }));
+}
+
 afterEach(() => {
   cleanup();
   window.localStorage.clear();
@@ -109,18 +126,16 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     const calendarEventsApi = await mockedCalendarEventsApi();
     render(<AgendaWidget {...widgetProps} />);
 
-    await screen.findByText("Dentist Appointment");
-    await user.click(
-      screen.getByRole("button", { name: "Add household event" }),
-    );
+    await openCreateDialog(user);
     expect(
       screen.getByRole("dialog", { name: "Add calendar event" }),
     ).not.toBeNull();
     await user.type(
-      screen.getByPlaceholderText("Calendar event title"),
+      screen.getByLabelText("What is happening?"),
       "New Calendar Event",
     );
-    await user.click(screen.getByRole("button", { name: "Add Event" }));
+    await continueToDetails(user);
+    await user.click(screen.getByRole("button", { name: "Create event" }));
 
     expect(calendarEventsApi.createCalendarAgendaEvent).toHaveBeenCalledWith(
       expect.objectContaining({ title: "New Calendar Event" }),
@@ -133,12 +148,17 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
         { name: "Edit" },
       ),
     );
-    await user.clear(screen.getByPlaceholderText("Calendar event title"));
+    expect(screen.getByLabelText("What is happening?")).toHaveProperty(
+      "value",
+      "Dentist Appointment",
+    );
+    await user.clear(screen.getByLabelText("What is happening?"));
     await user.type(
-      screen.getByPlaceholderText("Calendar event title"),
+      screen.getByLabelText("What is happening?"),
       "Updated Dentist",
     );
-    await user.click(screen.getByRole("button", { name: "Update Event" }));
+    await continueToDetails(user);
+    await user.click(screen.getByRole("button", { name: "Save event" }));
 
     expect(calendarEventsApi.updateCalendarAgendaEvent).toHaveBeenCalledWith(
       "dentist",
@@ -161,29 +181,75 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     );
   });
 
-  it("shows create validation and prevents invalid timed event submission", async () => {
+  it("keeps Continue disabled until a required title exists", async () => {
     const user = userEvent.setup();
     const calendarEventsApi = await mockedCalendarEventsApi();
     render(<AgendaWidget {...widgetProps} />);
 
-    await screen.findByText("Dentist Appointment");
-    await user.click(
-      screen.getByRole("button", { name: "Add household event" }),
-    );
-    await user.click(screen.getByRole("button", { name: "Add Event" }));
+    await openCreateDialog(user);
 
-    expect((await screen.findByRole("alert")).textContent).toContain(
-      "Calendar event title is required.",
+    expect(screen.getByRole("button", { name: "Continue" })).toHaveProperty(
+      "disabled",
+      true,
     );
     expect(calendarEventsApi.createCalendarAgendaEvent).not.toHaveBeenCalled();
 
-    await user.type(
-      screen.getByPlaceholderText("Calendar event title"),
-      "Invalid Range",
+    await user.type(screen.getByLabelText("What is happening?"), "Family dinner");
+
+    expect(screen.getByRole("button", { name: "Continue" })).toHaveProperty(
+      "disabled",
+      false,
     );
-    await user.clear(screen.getByLabelText("End"));
-    await user.type(screen.getByLabelText("End"), "2026-06-22T08:00");
-    await user.click(screen.getByRole("button", { name: "Add Event" }));
+  });
+
+  it("preserves existing event values when editing through the conversation", async () => {
+    const user = userEvent.setup();
+    render(<AgendaWidget {...widgetProps} />);
+
+    await screen.findByText("Dentist Appointment");
+    await user.click(
+      within(screen.getByText("Dentist Appointment").closest("li")!).getByRole(
+        "button",
+        { name: "Edit" },
+      ),
+    );
+
+    expect(screen.getByLabelText("What is happening?")).toHaveProperty(
+      "value",
+      "Dentist Appointment",
+    );
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+    expect(screen.getByLabelText("Pick a date")).toHaveProperty(
+      "value",
+      "2026-06-18",
+    );
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+    expect(screen.getByRole("button", { name: "Pick a time" }).className).toContain(
+      "selected",
+    );
+    expect(screen.getByLabelText("Start time")).toHaveProperty(
+      "value",
+      "09:30",
+    );
+    expect(screen.getByLabelText("End time")).toHaveProperty(
+      "value",
+      "10:15",
+    );
+  });
+
+  it("prevents invalid timed event submission with existing validation", async () => {
+    const user = userEvent.setup();
+    const calendarEventsApi = await mockedCalendarEventsApi();
+    render(<AgendaWidget {...widgetProps} />);
+
+    await openCreateDialog(user);
+    await user.type(screen.getByLabelText("What is happening?"), "Invalid Range");
+    await continueThroughDate(user);
+    fireEvent.change(screen.getByLabelText("End time"), {
+      target: { value: "08:00" },
+    });
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+    await user.click(screen.getByRole("button", { name: "Create event" }));
 
     expect((await screen.findByRole("alert")).textContent).toContain(
       "Event end must be on or after event start.",
@@ -196,20 +262,19 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     const calendarEventsApi = await mockedCalendarEventsApi();
     render(<AgendaWidget {...widgetProps} />);
 
-    await screen.findByText("Dentist Appointment");
-    await user.click(
-      screen.getByRole("button", { name: "Add household event" }),
-    );
-    await user.type(
-      screen.getByPlaceholderText("Calendar event title"),
-      "All Day Trip",
-    );
-    await user.click(screen.getByLabelText("All day"));
-    await user.clear(screen.getByLabelText("Start"));
-    await user.type(screen.getByLabelText("Start"), "2026-07-01");
-    await user.clear(screen.getByLabelText("End"));
-    await user.type(screen.getByLabelText("End"), "2026-07-02");
-    await user.click(screen.getByRole("button", { name: "Add Event" }));
+    await openCreateDialog(user);
+    await user.type(screen.getByLabelText("What is happening?"), "All Day Trip");
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+    fireEvent.change(screen.getByLabelText("Pick a date"), {
+      target: { value: "2026-07-01" },
+    });
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+    await user.click(screen.getByRole("button", { name: "All day" }));
+    fireEvent.change(screen.getByLabelText("End date"), {
+      target: { value: "2026-07-02" },
+    });
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+    await user.click(screen.getByRole("button", { name: "Create event" }));
 
     expect(calendarEventsApi.createCalendarAgendaEvent).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -223,11 +288,9 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     await user.click(
       screen.getByRole("button", { name: "Add household event" }),
     );
-    await user.type(
-      screen.getByPlaceholderText("Calendar event title"),
-      "Timed Trip",
-    );
-    await user.click(screen.getByRole("button", { name: "Add Event" }));
+    await user.type(screen.getByLabelText("What is happening?"), "Timed Trip");
+    await continueToDetails(user);
+    await user.click(screen.getByRole("button", { name: "Create event" }));
 
     expect(
       calendarEventsApi.createCalendarAgendaEvent,
@@ -239,6 +302,21 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
         allDay: false,
       }),
     );
+  });
+
+  it("closes the agenda event dialog with Escape without saving", async () => {
+    const user = userEvent.setup();
+    const calendarEventsApi = await mockedCalendarEventsApi();
+    render(<AgendaWidget {...widgetProps} />);
+
+    await openCreateDialog(user);
+    await user.type(screen.getByLabelText("What is happening?"), "Draft event");
+    await user.keyboard("{Escape}");
+
+    expect(
+      screen.queryByRole("dialog", { name: "Add calendar event" }),
+    ).toBeNull();
+    expect(calendarEventsApi.createCalendarAgendaEvent).not.toHaveBeenCalled();
   });
 
   it("shows API validation errors during edit and delete failures", async () => {
@@ -265,7 +343,8 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
         { name: "Edit" },
       ),
     );
-    await user.click(screen.getByRole("button", { name: "Update Event" }));
+    await continueToDetails(user);
+    await user.click(screen.getByRole("button", { name: "Save event" }));
 
     expect((await screen.findByRole("alert")).textContent).toContain(
       "Event end must be on or after event start.",
