@@ -1,4 +1,5 @@
 import { useEffect, useState, type CSSProperties, type FormEvent } from "react";
+import { FamilyAvatar } from "./home/FamilyAvatar";
 import type { FamilyMember } from "./home/familyMembers";
 import {
   createHelpfulMoment,
@@ -27,7 +28,7 @@ export function HelpfulMomentsSection({
     "loading",
   );
   const [expanded, setExpanded] = useState(!compact);
-  const [creating, setCreating] = useState(!compact && showCreate);
+  const [creating, setCreating] = useState(false);
   useEffect(() => {
     let ignore = false;
     setStatus("loading");
@@ -69,7 +70,7 @@ export function HelpfulMomentsSection({
                 className="secondary-action compact-action"
                 onClick={() => setCreating((current) => !current)}
               >
-                {creating ? "Close note form" : "Add appreciation"}
+                {creating ? "Close appreciation" : "Add appreciation"}
               </button>
             ) : null}
             <button
@@ -82,14 +83,56 @@ export function HelpfulMomentsSection({
           </div>
         ) : null}
       </div>
+      {!compact && showCreate ? (
+        <button
+          type="button"
+          className="secondary-action compact-action"
+          onClick={() => setCreating(true)}
+        >
+          Add appreciation
+        </button>
+      ) : null}
       {creating && showCreate ? (
-        <HelpfulMomentForm
-          members={members}
-          onCreated={(moment) => {
-            setMoments((current) => [moment, ...current].slice(0, 8));
-            setExpanded(true);
-          }}
-        />
+        <div className="avatar-editor-backdrop" role="presentation">
+          <section
+            className="motivation-dialog helpful-moment-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Share appreciation"
+            style={
+              {
+                "--domain-tint": "#fff7ed",
+                "--domain-accent": "#f59e0b",
+                "--domain-border": "rgba(251, 191, 36, 0.32)",
+              } as CSSProperties
+            }
+          >
+            <header>
+              <div>
+                <p className="eyebrow">My Family Appreciates</p>
+                <h3>Share appreciation</h3>
+                <p>Turn a helpful moment into a warm thank-you.</p>
+              </div>
+              <button
+                type="button"
+                className="icon-button"
+                onClick={() => setCreating(false)}
+                aria-label="Close appreciation dialog"
+              >
+                <HomeOpsIcon name="close" />
+              </button>
+            </header>
+            <HelpfulMomentForm
+              members={members}
+              onCancel={() => setCreating(false)}
+              onCreated={(moment) => {
+                setMoments((current) => [moment, ...current].slice(0, 8));
+                setExpanded(true);
+                setCreating(false);
+              }}
+            />
+          </section>
+        </div>
       ) : null}
       {status === "loading" ? (
         <p>Finding what your family appreciated…</p>
@@ -138,19 +181,34 @@ export function HelpfulMomentsSection({
   );
 }
 
+type HelpfulMomentQuestion = "member" | "title" | "tag" | "note" | "review";
+
 function HelpfulMomentForm({
   members,
   onCreated,
+  onCancel,
 }: {
   members: readonly FamilyMember[];
   onCreated: (moment: HelpfulMoment) => void;
+  onCancel: () => void;
 }) {
-  const [familyMemberId, setFamilyMemberId] = useState(members[0]?.id ?? "");
+  const [question, setQuestion] = useState<HelpfulMomentQuestion>("member");
+  const [familyMemberId, setFamilyMemberId] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [recognitionTag, setRecognitionTag] =
     useState<RecognitionTag>("Kindness");
   const [error, setError] = useState<string | null>(null);
+  const selectedMember = members.find((member) => member.id === familyMemberId);
+
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") onCancel();
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [onCancel]);
+
   async function submit(event: FormEvent) {
     event.preventDefault();
     if (!familyMemberId || !title.trim()) return;
@@ -162,69 +220,174 @@ function HelpfulMomentForm({
         recognitionTag,
       });
       onCreated(moment);
-      setTitle("");
-      setDescription("");
       setError(null);
     } catch {
-      setError("We could not save that appreciation note.");
+      setError("We could not share that appreciation note.");
     }
   }
+
+  function chooseMember(memberId: string) {
+    setFamilyMemberId(memberId);
+    setQuestion("title");
+  }
+
+  function chooseTag(tag: RecognitionTag) {
+    setRecognitionTag(tag);
+    setQuestion("note");
+  }
+
   return (
     <form
-      className="helpful-moment-form"
+      className="helpful-moment-form helpful-moment-conversation"
       aria-label="Create helpful moment"
       onSubmit={submit}
     >
-      <label>
-        Family member
-        <select
-          value={familyMemberId}
-          onChange={(event) => setFamilyMemberId(event.target.value)}
-          required
-        >
-          {members.map((member) => (
-            <option key={member.id} value={member.id}>
-              {member.name}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label>
-        What happened?
-        <input
-          value={title}
-          maxLength={160}
-          onChange={(event) => setTitle(event.target.value)}
-          placeholder="Helped without being asked"
-          required
-        />
-      </label>
-      <label>
-        We appreciated
-        <select
-          value={recognitionTag}
-          onChange={(event) =>
-            setRecognitionTag(event.target.value as RecognitionTag)
-          }
-        >
-          {recognitionTags.map((tag) => (
-            <option key={tag} value={tag}>
-              {tag}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label>
-        Warm note
-        <textarea
-          value={description}
-          maxLength={500}
-          onChange={(event) => setDescription(event.target.value)}
-          placeholder="A short warm note"
-        />
-      </label>
+      <div className="task-conversation-panel" key={question}>
+        {question === "member" ? (
+          <section className="helpful-dialog-question" aria-label="Who helped?">
+            <h4>Who helped?</h4>
+            <div className="helpful-choice-grid">
+              {members.map((member) => (
+                <button
+                  type="button"
+                  className="helpful-member-card"
+                  key={member.id}
+                  onClick={() => chooseMember(member.id)}
+                >
+                  <FamilyAvatar member={member} size="large" />
+                  <strong>{member.name}</strong>
+                </button>
+              ))}
+            </div>
+          </section>
+        ) : null}
+        {question === "title" ? (
+          <section
+            className="helpful-dialog-question"
+            aria-label="What happened?"
+          >
+            <label className="task-conversation-question">
+              <span>What happened?</span>
+              <textarea
+                value={title}
+                maxLength={160}
+                onChange={(event) => setTitle(event.target.value)}
+                placeholder="Riley helped clean up without being asked."
+                required
+                autoFocus
+              />
+            </label>
+          </section>
+        ) : null}
+        {question === "tag" ? (
+          <section
+            className="helpful-dialog-question"
+            aria-label="How would you describe it?"
+          >
+            <h4>How would you describe it?</h4>
+            <div className="helpful-choice-grid helpful-tag-grid">
+              {recognitionTags.map((tag) => (
+                <button
+                  type="button"
+                  className="helpful-tag-card"
+                  key={tag}
+                  onClick={() => chooseTag(tag)}
+                >
+                  <HomeOpsIcon name={getHelpfulMomentIconName(tag)} />
+                  <strong>{tag}</strong>
+                </button>
+              ))}
+            </div>
+          </section>
+        ) : null}
+        {question === "note" ? (
+          <section
+            className="helpful-dialog-question"
+            aria-label="Anything else?"
+          >
+            <label className="task-conversation-question">
+              <span>Anything else?</span>
+              <textarea
+                value={description}
+                maxLength={500}
+                onChange={(event) => setDescription(event.target.value)}
+                placeholder="Add a personal note if you want."
+                autoFocus
+              />
+            </label>
+          </section>
+        ) : null}
+        {question === "review" ? (
+          <section
+            className="helpful-dialog-question helpful-review"
+            aria-label="Review appreciation"
+          >
+            <h4>Ready to share this?</h4>
+            <p>
+              <strong>{selectedMember?.name}</strong>
+            </p>
+            <p>{title}</p>
+            <p>{recognitionTag}</p>
+            {description.trim() ? (
+              <p>{description}</p>
+            ) : (
+              <p>No extra note this time.</p>
+            )}
+          </section>
+        ) : null}
+      </div>
       {error ? <p className="form-error">{error}</p> : null}
-      <button type="submit">Save appreciation</button>
+      <div className="task-conversation-actions">
+        {question !== "member" ? (
+          <button
+            type="button"
+            className="secondary-action"
+            onClick={() => setQuestion(previousHelpfulQuestion(question))}
+          >
+            Back
+          </button>
+        ) : (
+          <span />
+        )}
+        {question === "title" ? (
+          <button
+            type="button"
+            onClick={() => setQuestion("tag")}
+            disabled={!title.trim()}
+          >
+            Continue
+          </button>
+        ) : null}
+        {question === "note" ? (
+          <>
+            <button
+              type="button"
+              className="secondary-action"
+              onClick={() => {
+                setDescription("");
+                setQuestion("review");
+              }}
+            >
+              Skip
+            </button>
+            <button type="button" onClick={() => setQuestion("review")}>
+              Continue
+            </button>
+          </>
+        ) : null}
+        {question === "review" ? (
+          <button type="submit">Share appreciation</button>
+        ) : null}
+      </div>
     </form>
   );
+}
+
+function previousHelpfulQuestion(
+  question: HelpfulMomentQuestion,
+): HelpfulMomentQuestion {
+  if (question === "title") return "member";
+  if (question === "tag") return "title";
+  if (question === "note") return "tag";
+  return "note";
 }

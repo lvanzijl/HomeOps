@@ -1506,7 +1506,6 @@ button {
   padding: 0.65rem 0.75rem;
 }
 
-
 .dialog-question {
   display: grid;
   gap: 0.75rem;
@@ -3299,5 +3298,101 @@ button {
   .task-dialog,
   .motivation-dialog {
     animation: none;
+  }
+}
+
+.helpful-moment-dialog {
+  width: min(100%, 32rem);
+}
+
+.helpful-moment-conversation {
+  align-items: stretch;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  display: grid;
+  grid-template-columns: 1fr;
+  margin: 0;
+  padding: 0;
+}
+
+.helpful-dialog-question {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.helpful-dialog-question h4 {
+  color: #7c2d12;
+  font-size: 1.35rem;
+  margin: 0;
+}
+
+.helpful-choice-grid {
+  display: grid;
+  gap: 0.85rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.helpful-member-card,
+.helpful-tag-card {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(251, 191, 36, 0.34);
+  border-radius: 1.35rem;
+  box-shadow: 0 14px 30px rgba(146, 64, 14, 0.08);
+  color: #7c2d12;
+  cursor: pointer;
+  display: grid;
+  gap: 0.55rem;
+  justify-items: center;
+  min-height: 8.75rem;
+  padding: 0.9rem;
+  transition:
+    transform 140ms ease,
+    box-shadow 140ms ease,
+    border-color 140ms ease;
+}
+
+.helpful-member-card:hover,
+.helpful-member-card:focus-visible,
+.helpful-tag-card:hover,
+.helpful-tag-card:focus-visible {
+  border-color: rgba(245, 158, 11, 0.72);
+  box-shadow: 0 18px 36px rgba(146, 64, 14, 0.14);
+  transform: translateY(-1px);
+}
+
+.helpful-tag-grid {
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+}
+
+.helpful-tag-card {
+  min-height: 7.5rem;
+}
+
+.helpful-tag-card img {
+  height: 2.35rem;
+  width: 2.35rem;
+}
+
+.helpful-moment-conversation textarea {
+  min-height: 8rem;
+  resize: vertical;
+}
+
+.helpful-review {
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(251, 191, 36, 0.24);
+  border-radius: 1.35rem;
+  padding: 1rem;
+}
+
+.helpful-review p {
+  color: #6b3f12;
+}
+
+@media (max-width: 560px) {
+  .helpful-choice-grid {
+    grid-template-columns: 1fr;
   }
 }
