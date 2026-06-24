@@ -92,7 +92,6 @@ button {
 }
 
 .workspace-primary-nav,
-.workspace-secondary-nav,
 .workspace-admin-nav {
   align-items: center;
   display: flex;
@@ -104,10 +103,6 @@ button {
   flex: 1 1 30rem;
 }
 
-.workspace-secondary-nav {
-  flex: 1 1 18rem;
-  justify-content: flex-end;
-}
 
 .workspace-admin-nav {
   flex: 0 0 auto;
@@ -130,7 +125,6 @@ button {
   white-space: nowrap;
 }
 
-.workspace-nav-button-secondary,
 .workspace-admin-button {
   font-size: 0.78rem;
   min-height: 1.9rem;

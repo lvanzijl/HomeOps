@@ -19,7 +19,6 @@ import { loadWorkspaceLayout } from './workspaceLayout';
 import {
   administrationWorkspaceDefinitions,
   primaryWorkspaceDefinitions,
-  secondaryWorkspaceDefinitions,
   WorkspaceDefinition,
   WorkspaceId,
   workspaceDefinitions,
@@ -144,19 +143,6 @@ export function WorkspaceShell() {
           </button>
           ))}
         </div>
-        <div className="workspace-secondary-nav" aria-label="Occasional and future work">
-          {secondaryWorkspaceDefinitions.map((workspace) => (
-            <button
-              aria-current={workspace.id === activeWorkspace.id ? 'page' : undefined}
-              className={`workspace-nav-button workspace-nav-button-secondary ${getDomainColorClass(workspace.id)}`}
-              key={workspace.id}
-              onClick={() => navigateWorkspace(workspace.id)}
-              type="button"
-            >
-              {workspace.label}
-            </button>
-          ))}
-        </div>
         <div className="workspace-admin-nav" aria-label="Administration">
           {administrationWorkspaceDefinitions.map((workspace) => (
             <button
@@ -179,7 +165,7 @@ export function WorkspaceShell() {
         {activeWorkspace.id === 'home' && !activeFamilyMember ? <h2 className="visually-hidden" id="active-workspace-title">Home</h2> : activeFamilyMember ? <h2 className="visually-hidden" id="active-workspace-title">{activeFamilyMember.name}</h2> : (
           <header className="workspace-page-header">
             <p className="workspace-position">
-              {activeWorkspaceIsPrimary ? `Daily work ${primaryWorkspaceDefinitions.findIndex((workspace) => workspace.id === activeWorkspace.id) + 1}/${primaryWorkspaceDefinitions.length}` : activeWorkspaceIsAdministration ? 'Administration' : 'Occasional work'}
+              {activeWorkspaceIsPrimary ? `Daily family focus ${primaryWorkspaceDefinitions.findIndex((workspace) => workspace.id === activeWorkspace.id) + 1}/${primaryWorkspaceDefinitions.length}` : activeWorkspaceIsAdministration ? 'Settings' : 'Family reset'}
             </p>
             <h2 id="active-workspace-title">{activeWorkspace.label}</h2>
             <p>{activeWorkspace.description}</p>

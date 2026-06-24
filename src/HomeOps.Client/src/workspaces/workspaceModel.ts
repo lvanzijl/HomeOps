@@ -6,7 +6,7 @@ export interface WorkspaceDefinition {
   description: string;
 }
 
-export type NavigationRole = 'primary' | 'secondary' | 'administration';
+export type NavigationRole = 'primary' | 'contextual' | 'administration' | 'internal';
 
 const navigationRoles: Readonly<Record<WorkspaceId, NavigationRole>> = {
   home: 'primary',
@@ -14,10 +14,10 @@ const navigationRoles: Readonly<Record<WorkspaceId, NavigationRole>> = {
   tasks: 'primary',
   lists: 'primary',
   motivation: 'primary',
-  weeklyReset: 'secondary',
-  house: 'secondary',
-  media: 'secondary',
-  gamification: 'secondary',
+  weeklyReset: 'contextual',
+  house: 'internal',
+  media: 'internal',
+  gamification: 'internal',
   settings: 'administration',
 };
 
@@ -30,22 +30,22 @@ export const workspaceDefinitions: readonly WorkspaceDefinition[] = [
   {
     id: 'agenda',
     label: 'Agenda',
-    description: 'Full agenda page for calendar browsing and event management.',
+    description: 'Shared family plans and events.',
   },
   {
     id: 'tasks',
     label: 'Tasks',
-    description: 'Urgency-first page for ad-hoc household tasks.',
+    description: 'Daily household tasks and responsibilities.',
   },
   {
     id: 'lists',
-    label: 'Lists',
-    description: 'Full lists page for household list management.',
+    label: 'Shopping / Lists',
+    description: 'Shopping and family lists.',
   },
   {
     id: 'motivation',
     label: 'Motivation',
-    description: 'Family encouragement goals and warm progress.',
+    description: 'Family encouragement, progress, and celebrations.',
   },
   {
     id: 'house',
@@ -65,12 +65,12 @@ export const workspaceDefinitions: readonly WorkspaceDefinition[] = [
   {
     id: 'weeklyReset',
     label: 'Weekly Reset',
-    description: 'A short parent-facing review and recap.',
+    description: 'A short family review and reset.',
   },
   {
     id: 'settings',
     label: 'Settings',
-    description: 'Workspace configuration and household preferences placeholder.',
+    description: 'Household preferences and maintenance tools.',
   },
 ] as const;
 
@@ -82,8 +82,8 @@ export const primaryWorkspaceDefinitions = workspaceDefinitions.filter(
   (workspace) => getNavigationRole(workspace.id) === 'primary',
 );
 
-export const secondaryWorkspaceDefinitions = workspaceDefinitions.filter(
-  (workspace) => getNavigationRole(workspace.id) === 'secondary',
+export const contextualWorkspaceDefinitions = workspaceDefinitions.filter(
+  (workspace) => getNavigationRole(workspace.id) === 'contextual',
 );
 
 export const administrationWorkspaceDefinitions = workspaceDefinitions.filter(
