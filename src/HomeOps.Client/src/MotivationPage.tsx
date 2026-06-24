@@ -682,6 +682,7 @@ function FamilyGoalForm({
   onCancel,
   onSubmit,
 }: FamilyGoalFormProps) {
+  const [step, setStep] = useState<"title" | "progress" | "celebration" | "review">("title");
   const [title, setTitle] = useState(familyGoal?.title ?? "");
   const [targetCount, setTargetCount] = useState(
     String(familyGoal?.targetCount ?? 10),
@@ -697,16 +698,19 @@ function FamilyGoalForm({
   );
   const [saving, setSaving] = useState(false);
 
+  const parsedTarget = Number.parseInt(targetCount, 10);
+  const hasValidTitle = title.trim().length > 0;
+  const hasValidProgress =
+    unitLabel.trim().length > 0 &&
+    Number.isFinite(parsedTarget) &&
+    parsedTarget >= 1 &&
+    parsedTarget <= 999;
+  const actionLabel = familyGoal ? "Save goal" : "Create goal";
+
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    const parsedTarget = Number.parseInt(targetCount, 10);
-    if (
-      !title.trim() ||
-      !unitLabel.trim() ||
-      !Number.isFinite(parsedTarget) ||
-      parsedTarget < 1
-    )
-      return;
+    if (step !== "review") return;
+    if (!hasValidTitle || !hasValidProgress) return;
     setSaving(true);
     await onSubmit({
       title: title.trim(),
@@ -718,9 +722,15 @@ function FamilyGoalForm({
     setSaving(false);
   }
 
+  function goBack() {
+    if (step === "progress") setStep("title");
+    if (step === "celebration") setStep("progress");
+    if (step === "review") setStep("celebration");
+  }
+
   return (
     <form
-      className="family-goal-form"
+      className="family-goal-form conversational-goal-form"
       aria-label={
         familyGoal ? "Edit family goal form" : "Create family goal form"
       }
@@ -728,67 +738,165 @@ function FamilyGoalForm({
     >
       <div>
         <p className="eyebrow">
-          {familyGoal ? "Update the shared target" : "Start a shared target"}
+          {familyGoal ? "Tune the family plan" : "Start a family plan"}
         </p>
         <h3>{familyGoal ? "Edit family goal" : "Create a family goal"}</h3>
         <p className="motivation-copy">
-          Use one clear target. Existing progress is kept when you edit.
+          {familyGoal
+            ? "We’ll keep the progress your family has already earned."
+            : "Let’s pick one thing everyone can cheer for together."}
         </p>
       </div>
-      <label>
-        Goal title
-        <input
-          value={title}
-          maxLength={240}
-          onChange={(event) => setTitle(event.target.value)}
-          placeholder="Complete 20 helpful household tasks"
-          required
-        />
-      </label>
-      <label>
-        Target count
-        <input
-          type="number"
-          min="1"
-          max="999"
-          value={targetCount}
-          onChange={(event) => setTargetCount(event.target.value)}
-          required
-        />
-      </label>
-      <label>
-        Progress label
-        <input
-          value={unitLabel}
-          maxLength={80}
-          onChange={(event) => setUnitLabel(event.target.value)}
-          placeholder="helpful tasks"
-          required
-        />
-      </label>
-      <label>
-        Family celebration title, optional
-        <input
-          value={celebrationTitle}
-          maxLength={240}
-          onChange={(event) => setCelebrationTitle(event.target.value)}
-          placeholder="Movie night together"
-        />
-      </label>
-      <label>
-        Celebration description, optional
-        <input
-          value={celebrationDescription}
-          maxLength={500}
-          onChange={(event) => setCelebrationDescription(event.target.value)}
-          placeholder="Choose a movie and make popcorn together"
-        />
-      </label>
+
+      {step === "title" ? (
+        <section className="dialog-question" aria-label="Family goal title question">
+          <h4>What are we working toward?</h4>
+          <p className="motivation-copy">
+            Keep it short enough that everyone knows what we’re cheering on.
+          </p>
+          <label>
+            Family goal title
+            <input
+              autoFocus
+              value={title}
+              maxLength={240}
+              onChange={(event) => setTitle(event.target.value)}
+              placeholder="Complete helpful household tasks"
+              required
+            />
+          </label>
+        </section>
+      ) : null}
+
+      {step === "progress" ? (
+        <section className="dialog-question" aria-label="Family goal progress">
+          <h4>How will we know we made progress?</h4>
+          <p className="motivation-copy">
+            Choose a clear number and the words your family will count.
+          </p>
+          <div className="conversation-field-row">
+            <label>
+              Target count
+              <input
+                autoFocus
+                type="number"
+                min="1"
+                max="999"
+                value={targetCount}
+                onChange={(event) => setTargetCount(event.target.value)}
+                required
+              />
+            </label>
+            <label>
+              Progress label
+              <input
+                value={unitLabel}
+                maxLength={80}
+                onChange={(event) => setUnitLabel(event.target.value)}
+                placeholder="helpful tasks"
+                required
+              />
+            </label>
+          </div>
+          {!hasValidProgress ? (
+            <p className="form-error">Use a target from 1 to 999 and a progress label.</p>
+          ) : null}
+        </section>
+      ) : null}
+
+      {step === "celebration" ? (
+        <section className="dialog-question" aria-label="Family goal celebration">
+          <h4>What should we look forward to?</h4>
+          <p className="motivation-copy">
+            Add a celebration now, or skip it and decide later.
+          </p>
+          <label>
+            Family celebration title, optional
+            <input
+              autoFocus
+              value={celebrationTitle}
+              maxLength={240}
+              onChange={(event) => setCelebrationTitle(event.target.value)}
+              placeholder="Movie night together"
+            />
+          </label>
+          <label>
+            Celebration description, optional
+            <input
+              value={celebrationDescription}
+              maxLength={500}
+              onChange={(event) => setCelebrationDescription(event.target.value)}
+              placeholder="Choose a movie and make popcorn together"
+            />
+          </label>
+        </section>
+      ) : null}
+
+      {step === "review" ? (
+        <section className="dialog-question goal-review" aria-label="Family goal review">
+          <h4>Does this feel right?</h4>
+          <dl>
+            <div>
+              <dt>Goal</dt>
+              <dd>{title.trim()}</dd>
+            </div>
+            <div>
+              <dt>Progress target</dt>
+              <dd>
+                {parsedTarget} {unitLabel.trim()}
+              </dd>
+            </div>
+            <div>
+              <dt>Celebration</dt>
+              <dd>
+                {celebrationTitle.trim()
+                  ? `${celebrationTitle.trim()}${
+                      celebrationDescription.trim()
+                        ? ` — ${celebrationDescription.trim()}`
+                        : ""
+                    }`
+                  : "No celebration yet — we can add one later."}
+              </dd>
+            </div>
+          </dl>
+        </section>
+      ) : null}
+
       {error ? <p className="form-error">{error}</p> : null}
       <div className="form-actions">
-        <button type="submit" disabled={saving}>
-          {saving ? "Saving…" : "Save family goal"}
-        </button>
+        {step !== "title" ? (
+          <button type="button" className="secondary-action" onClick={goBack}>
+            Back
+          </button>
+        ) : null}
+        {step === "title" ? (
+          <button
+            type="button"
+            disabled={!hasValidTitle}
+            onClick={() => setStep("progress")}
+          >
+            Continue
+          </button>
+        ) : null}
+        {step === "progress" ? (
+          <button
+            type="button"
+            disabled={!hasValidProgress}
+            onClick={() => setStep("celebration")}
+          >
+            Continue
+          </button>
+        ) : null}
+        {step === "celebration" ? (
+          <button type="button" onClick={() => setStep("review")}>
+            Continue
+          </button>
+        ) : null}
+        {step === "review" ? (
+          <button type="submit" disabled={saving || !hasValidTitle || !hasValidProgress}>
+            {saving ? "Saving…" : actionLabel}
+          </button>
+        ) : null}
         <button type="button" onClick={onCancel}>
           Cancel
         </button>
