@@ -105,6 +105,20 @@ export function HomeDashboard({
   }, []);
 
   useEffect(() => {
+    if (!isShoppingCaptureOpen && !isEventCaptureOpen && !isTaskCaptureOpen)
+      return;
+    const close = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsShoppingCaptureOpen(false);
+        setIsEventCaptureOpen(false);
+        setIsTaskCaptureOpen(false);
+      }
+    };
+    window.addEventListener("keydown", close);
+    return () => window.removeEventListener("keydown", close);
+  }, [isShoppingCaptureOpen, isEventCaptureOpen, isTaskCaptureOpen]);
+
+  useEffect(() => {
     let ignore = false;
     setMotivationStatus("loading");
     loadMotivationSnapshot()
@@ -380,7 +394,9 @@ export function HomeDashboard({
                 Events help the household remember important dates and
                 activities.
               </p>
-              <p className="home-context-note">Use the header action to add one.</p>
+              <p className="home-context-note">
+                Use the header action to add one.
+              </p>
             </div>
           ) : null}
           {hiddenAgendaCount > 0 ? (
@@ -448,7 +464,9 @@ export function HomeDashboard({
             <div className="empty-state-card">
               <strong>Create your first task</strong>
               <p>Tasks help organize household responsibilities.</p>
-              <p className="home-context-note">Use the header action to add one.</p>
+              <p className="home-context-note">
+                Use the header action to add one.
+              </p>
             </div>
           ) : null}
           {hiddenTaskCount > 0 ? (
@@ -538,7 +556,9 @@ export function HomeDashboard({
             <div className="empty-state-card">
               <strong>Create your first family goal</strong>
               <p>Family goals help everyone work toward something together.</p>
-              <p className="home-context-note">Open Motivation from the header action.</p>
+              <p className="home-context-note">
+                Open Motivation from the header action.
+              </p>
             </div>
           )}
         </SummaryCard>
@@ -579,7 +599,9 @@ export function HomeDashboard({
             <div className="empty-state-card">
               <strong>Add your first shopping item</strong>
               <p>Lists help remember shopping, packing, and household items.</p>
-              <p className="home-context-note">Use the header action to add one.</p>
+              <p className="home-context-note">
+                Use the header action to add one.
+              </p>
             </div>
           ) : null}
           {hiddenListCount > 0 ? (
@@ -598,12 +620,17 @@ export function HomeDashboard({
       </div>
 
       {isShoppingCaptureOpen ? (
-        <div className="avatar-editor-backdrop" role="presentation">
+        <div
+          className="avatar-editor-backdrop"
+          role="presentation"
+          onClick={() => setIsShoppingCaptureOpen(false)}
+        >
           <section
             className="home-capture-dialog"
             role="dialog"
             aria-modal="true"
             aria-label="Add shopping item from Home"
+            onClick={(event) => event.stopPropagation()}
           >
             <header>
               <div>
@@ -611,20 +638,47 @@ export function HomeDashboard({
                 <h3>Add shopping item</h3>
                 <p>Save one item to the Shopping list.</p>
               </div>
-              <button type="button" className="icon-button" onClick={() => setIsShoppingCaptureOpen(false)} aria-label="Close shopping capture">
+              <button
+                type="button"
+                className="icon-button"
+                onClick={() => setIsShoppingCaptureOpen(false)}
+                aria-label="Close shopping capture"
+              >
                 <HomeOpsIcon name="close" />
               </button>
             </header>
-            <form className="home-quick-form event-dialog-form" onSubmit={handleShoppingSubmit}>
+            <form
+              className="home-quick-form event-dialog-form"
+              onSubmit={handleShoppingSubmit}
+            >
               <label htmlFor="home-shopping-capture">Shopping item</label>
               <div className="home-quick-row">
-                <input id="home-shopping-capture" list="home-shopping-suggestions" value={shoppingText} onChange={(event) => setShoppingText(event.target.value)} placeholder="Milk" aria-label="Shopping item" />
+                <input
+                  id="home-shopping-capture"
+                  autoFocus
+                  list="home-shopping-suggestions"
+                  value={shoppingText}
+                  onChange={(event) => setShoppingText(event.target.value)}
+                  placeholder="Milk"
+                  aria-label="Shopping item"
+                />
                 <button type="submit">Save</button>
               </div>
               <datalist id="home-shopping-suggestions">
-                {history.filter((item) => item.toLowerCase().includes(shoppingText.trim().toLowerCase())).slice(0, 6).map((item) => (
-                  <option key={item} value={item} label={getShoppingSuggestionLabel(item, activeListItems)} />
-                ))}
+                {history
+                  .filter((item) =>
+                    item
+                      .toLowerCase()
+                      .includes(shoppingText.trim().toLowerCase()),
+                  )
+                  .slice(0, 6)
+                  .map((item) => (
+                    <option
+                      key={item}
+                      value={item}
+                      label={getShoppingSuggestionLabel(item, activeListItems)}
+                    />
+                  ))}
               </datalist>
             </form>
           </section>
@@ -632,22 +686,47 @@ export function HomeDashboard({
       ) : null}
 
       {isTaskCaptureOpen ? (
-        <div className="avatar-editor-backdrop" role="presentation">
-          <section className="home-capture-dialog" role="dialog" aria-modal="true" aria-label="Add task from Home">
+        <div
+          className="avatar-editor-backdrop"
+          role="presentation"
+          onClick={() => setIsTaskCaptureOpen(false)}
+        >
+          <section
+            className="home-capture-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Add task from Home"
+            onClick={(event) => event.stopPropagation()}
+          >
             <header>
               <div>
                 <p className="eyebrow">Quick capture</p>
                 <h3>Add task</h3>
                 <p>Save a simple task for today.</p>
               </div>
-              <button type="button" className="icon-button" onClick={() => setIsTaskCaptureOpen(false)} aria-label="Close task capture">
+              <button
+                type="button"
+                className="icon-button"
+                onClick={() => setIsTaskCaptureOpen(false)}
+                aria-label="Close task capture"
+              >
                 <HomeOpsIcon name="close" />
               </button>
             </header>
-            <form className="home-quick-form event-dialog-form" onSubmit={handleTaskSubmit}>
+            <form
+              className="home-quick-form event-dialog-form"
+              onSubmit={handleTaskSubmit}
+            >
               <label htmlFor="home-task-title">Task</label>
               <div className="home-quick-row">
-                <input id="home-task-title" value={taskTitle} onChange={(event) => setTaskTitle(event.target.value)} placeholder="Empty dishwasher" aria-label="Task" />
+                <input
+                  id="home-task-title"
+                  autoFocus
+                  value={taskTitle}
+                  onChange={(event) => setTaskTitle(event.target.value)}
+                  placeholder="Empty dishwasher"
+                  aria-label="Task"
+                />
                 <button type="submit">Save</button>
               </div>
             </form>
@@ -656,12 +735,17 @@ export function HomeDashboard({
       ) : null}
 
       {isEventCaptureOpen ? (
-        <div className="avatar-editor-backdrop" role="presentation">
+        <div
+          className="avatar-editor-backdrop"
+          role="presentation"
+          onClick={() => setIsEventCaptureOpen(false)}
+        >
           <section
             className="home-capture-dialog"
             role="dialog"
             aria-modal="true"
             aria-label="Add event from Home"
+            onClick={(event) => event.stopPropagation()}
           >
             <header>
               <div>
@@ -686,6 +770,7 @@ export function HomeDashboard({
               <div className="home-quick-row">
                 <input
                   id="home-event-title"
+                  autoFocus
                   value={eventTitle}
                   onChange={(event) => setEventTitle(event.target.value)}
                   placeholder="Swimming lesson"
@@ -736,11 +821,27 @@ function HomeCardActions({
   return (
     <span className="home-card-actions">
       {onAdd ? (
-        <button type="button" className="home-card-action" onClick={(event) => { event.stopPropagation(); onAdd(); }} aria-label={addLabel}>
+        <button
+          type="button"
+          className="home-card-action"
+          onClick={(event) => {
+            event.stopPropagation();
+            onAdd();
+          }}
+          aria-label={addLabel}
+        >
           <HomeOpsIcon name="add" />
         </button>
       ) : null}
-      <button type="button" className="home-card-action" onClick={(event) => { event.stopPropagation(); onOpen(); }} aria-label={openLabel}>
+      <button
+        type="button"
+        className="home-card-action"
+        onClick={(event) => {
+          event.stopPropagation();
+          onOpen();
+        }}
+        aria-label={openLabel}
+      >
         <HomeOpsIcon name="open" />
       </button>
     </span>

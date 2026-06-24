@@ -396,3 +396,11 @@ Avatar V2 Slice 4 Final Legacy Persistence Removal removes the remaining legacy 
 
 ### Home Dashboard Cleanup — Completed 2026-06-24
 Home Dashboard Cleanup removes the large global Home Quick Capture surface and moves creation/navigation into compact card header icon buttons. Agenda, Tasks, Motivation, and Shopping/Lists bodies now stay summary-only without duplicate open/view controls, while Shopping/List rows show item names directly with optional store context instead of repeating list/container labels. Existing dedicated domain pages remain the full management surfaces, and Home keeps only minimal creation dialogs for supported quick adds.
+
+
+### Completed Slice 2.55 — Home Dialog and Layout UX Consistency
+Home Dialog and Layout UX Consistency changes Home from a weighted dashboard to a balanced 2x2 summary grid ordered Agenda, Tasks, Shopping, and Motivation. Creation and editing flows that consumed permanent management-page space now open in existing per-surface components presented as HomeOps-styled dialogs with full-screen blurred/tinted backdrops, rounded pastel cards, soft shadows, Escape handling, outside-click dismissal, and initial focus. Agenda event creation/editing, Task creation/editing, Family Goal creation/editing, and Personal Goal creation/editing moved into dialogs, while Shopping item entry remains inline for rapid repeated entry. Existing API contracts, persistence behavior, domain models, Shopping page workflow, Family Member management, onboarding, and business logic remain preserved; no generic dialog framework was introduced.
+
+
+### Completed Slice 2.56 — Task Dialog Conversation
+Task Dialog Conversation redesigns the Task create/edit dialog into the first HomeOps conversational creation reference. The dialog now asks one primary question at a time: what needs to be done, who should do it, when it should happen, and whether anything optional such as recurrence is needed. New tasks default to today, provide Today/Tomorrow/Someday shortcuts, keep recurrence under “Anything else?”, and reuse the existing Task create/update payload path. Agenda, Motivation, Shopping, APIs, persistence, task templates, Weekly Reset, and backend behavior remain unchanged, and no generic dialog framework was introduced.
