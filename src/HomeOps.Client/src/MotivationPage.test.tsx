@@ -225,20 +225,24 @@ describe("MotivationPage", () => {
     await user.click(
       screen.getByRole("button", { name: "Create family goal" }),
     );
-    await user.clear(screen.getByLabelText("Goal title"));
+    expect(screen.getByRole("button", { name: "Continue" }).hasAttribute("disabled")).toBe(true);
     await user.type(
-      screen.getByLabelText("Goal title"),
+      screen.getByLabelText("Family goal title"),
       "Complete 10 helpful tasks",
     );
+    await user.click(screen.getByRole("button", { name: "Continue" }));
     await user.clear(screen.getByLabelText("Target count"));
     await user.type(screen.getByLabelText("Target count"), "10");
     await user.clear(screen.getByLabelText("Progress label"));
     await user.type(screen.getByLabelText("Progress label"), "helpful tasks");
+    await user.click(screen.getByRole("button", { name: "Continue" }));
     await user.type(
       screen.getByLabelText("Family celebration title, optional"),
       "Movie night together",
     );
-    await user.click(screen.getByRole("button", { name: "Save family goal" }));
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+    expect(screen.getByLabelText("Family goal review")).not.toBeNull();
+    await user.click(screen.getByRole("button", { name: "Create goal" }));
 
     expect(vi.mocked(createFamilyGoal)).toHaveBeenCalledWith({
       title: "Complete 10 helpful tasks",
@@ -268,19 +272,26 @@ describe("MotivationPage", () => {
       await screen.findByText("Fill the family helper path"),
     ).not.toBeNull();
     await user.click(screen.getByRole("button", { name: "Edit family goal" }));
-    await user.clear(screen.getByLabelText("Goal title"));
+    expect((screen.getByLabelText("Family goal title") as HTMLInputElement).value).toBe(
+      "Fill the family helper path",
+    );
+    await user.clear(screen.getByLabelText("Family goal title"));
     await user.type(
-      screen.getByLabelText("Goal title"),
+      screen.getByLabelText("Family goal title"),
       "Complete 15 helpful household tasks",
     );
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+    expect((screen.getByLabelText("Target count") as HTMLInputElement).value).toBe("20");
     await user.clear(screen.getByLabelText("Target count"));
     await user.type(screen.getByLabelText("Target count"), "15");
     await user.clear(screen.getByLabelText("Progress label"));
     await user.type(screen.getByLabelText("Progress label"), "helpful tasks");
+    await user.click(screen.getByRole("button", { name: "Continue" }));
     await user.clear(
       screen.getByLabelText("Family celebration title, optional"),
     );
-    await user.click(screen.getByRole("button", { name: "Save family goal" }));
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+    await user.click(screen.getByRole("button", { name: "Save goal" }));
 
     expect(vi.mocked(updateFamilyGoal)).toHaveBeenCalledWith("family-goal", {
       title: "Complete 15 helpful household tasks",
@@ -296,6 +307,80 @@ describe("MotivationPage", () => {
     expect(
       screen.queryByText(/coins?|tokens?|shop|leaderboard|negative points/i),
     ).toBeNull();
+  });
+
+
+  it("validates required title and numeric target in the family goal conversation", async () => {
+    const user = userEvent.setup();
+    vi.mocked(loadMotivationSnapshot).mockResolvedValueOnce({
+      individualGoals: [],
+    });
+
+    render(<MotivationPage members={familyMembers} />);
+
+    await screen.findByText("No family goal yet.");
+    await user.click(screen.getByRole("button", { name: "Create family goal" }));
+    expect(screen.getByRole("button", { name: "Continue" }).hasAttribute("disabled")).toBe(true);
+    await user.type(screen.getByLabelText("Family goal title"), "Try a family reset");
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+    await user.clear(screen.getByLabelText("Target count"));
+    await user.type(screen.getByLabelText("Target count"), "0");
+    expect(screen.getByText("Use a target from 1 to 999 and a progress label.")).not.toBeNull();
+    expect(screen.getByRole("button", { name: "Continue" }).hasAttribute("disabled")).toBe(true);
+    expect(createFamilyGoal).not.toHaveBeenCalled();
+  });
+
+  it("allows creating a family goal while skipping the optional celebration", async () => {
+    const user = userEvent.setup();
+    vi.mocked(loadMotivationSnapshot).mockResolvedValueOnce({
+      individualGoals: [],
+    });
+    vi.mocked(createFamilyGoal).mockResolvedValueOnce({
+      id: "skip-celebration-goal",
+      title: "Clear the landing zone",
+      targetCount: 5,
+      currentProgress: 0,
+      unitLabel: "quick resets",
+      celebration: undefined,
+    });
+
+    render(<MotivationPage members={familyMembers} />);
+
+    await screen.findByText("No family goal yet.");
+    await user.click(screen.getByRole("button", { name: "Create family goal" }));
+    await user.type(screen.getByLabelText("Family goal title"), "Clear the landing zone");
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+    await user.clear(screen.getByLabelText("Target count"));
+    await user.type(screen.getByLabelText("Target count"), "5");
+    await user.clear(screen.getByLabelText("Progress label"));
+    await user.type(screen.getByLabelText("Progress label"), "quick resets");
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+    await user.click(screen.getByRole("button", { name: "Continue" }));
+    expect(screen.getByText("No celebration yet — we can add one later.")).not.toBeNull();
+    await user.click(screen.getByRole("button", { name: "Create goal" }));
+
+    expect(createFamilyGoal).toHaveBeenCalledWith({
+      title: "Clear the landing zone",
+      targetCount: 5,
+      unitLabel: "quick resets",
+      celebrationTitle: undefined,
+      celebrationDescription: undefined,
+    });
+  });
+
+  it("closes the family goal dialog with Escape without saving", async () => {
+    const user = userEvent.setup();
+
+    render(<MotivationPage members={familyMembers} />);
+
+    await screen.findByText("Fill the family helper path");
+    await user.click(screen.getByRole("button", { name: "Edit family goal" }));
+    expect(screen.getByRole("dialog", { name: "Edit family goal" })).not.toBeNull();
+    await user.keyboard("{Escape}");
+
+    expect(screen.queryByRole("dialog", { name: "Edit family goal" })).toBeNull();
+    expect(updateFamilyGoal).not.toHaveBeenCalled();
+    expect(screen.getByText("Fill the family helper path")).not.toBeNull();
   });
 
   it("creates a personal goal for a family member", async () => {

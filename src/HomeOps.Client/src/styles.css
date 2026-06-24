@@ -1506,6 +1506,56 @@ button {
   padding: 0.65rem 0.75rem;
 }
 
+
+.dialog-question {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.dialog-question h4 {
+  color: #7c2d12;
+  font-size: 1.05rem;
+  margin: 0;
+}
+
+.conversation-field-row {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: minmax(8rem, 0.7fr) minmax(10rem, 1fr);
+}
+
+.goal-review dl {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0;
+}
+
+.goal-review div {
+  background: rgba(255, 247, 237, 0.78);
+  border: 1px solid var(--border-emotional);
+  border-radius: 0.9rem;
+  padding: 0.7rem 0.8rem;
+}
+
+.goal-review dt {
+  color: #9a3412;
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.goal-review dd {
+  color: #334155;
+  font-weight: 800;
+  margin: 0.2rem 0 0;
+}
+
+@media (max-width: 560px) {
+  .conversation-field-row {
+    grid-template-columns: 1fr;
+  }
+}
 .compact-overview-section {
   background: rgba(255, 255, 255, 0.82);
   border: 1px solid var(--domain-border, var(--border-emotional));
