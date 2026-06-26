@@ -646,11 +646,6 @@ button {
   padding: 0.6rem;
 }
 
-.agenda-summary .home-summary-list li:first-child {
-  border-left: 0.35rem solid #7c3aed;
-  padding-left: 0.9rem;
-}
-
 
 .tasks-summary .home-summary-list li {
   border-left: 0.3rem solid #14b8a6;
