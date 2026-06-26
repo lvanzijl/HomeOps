@@ -20,7 +20,7 @@ vi.mock("../shopping/listsApi", () => ({
   loadShoppingList: vi.fn(),
   addShoppingListItem: vi.fn(),
 }));
-vi.mock("../shopping/listsSummaryApi", () => ({ loadListSummaries: vi.fn() }));
+vi.mock("../shopping/listsSummaryApi", () => ({ loadShoppingListSummary: vi.fn() }));
 vi.mock("../tasks/tasksApi", () => ({ loadTasks: vi.fn(), createTask: vi.fn() }));
 vi.mock("../motivationData", async (importOriginal) => ({
   ...(await importOriginal<typeof import("../motivationData")>()),
@@ -81,25 +81,19 @@ describe("HomeDashboard", () => {
       })),
     });
     const listsSummary = await listsSummaryApi();
-    vi.mocked(listsSummary.loadListSummaries).mockResolvedValue([
-      {
-        id: "shopping",
-        name: "Shopping",
-        activeItems: [
-          { id: "milk", text: "Milk", preferredStore: "Supermarket" },
-          { id: "bread", text: "Bread" },
-          { id: "apples", text: "Apples" },
-        ],
-      },
-      {
-        id: "packing",
-        name: "Vacation Packing",
-        activeItems: [
-          { id: "sunscreen", text: "Sunscreen" },
-          { id: "chargers", text: "Chargers" },
-        ],
-      },
-    ]);
+    vi.mocked(listsSummary.loadShoppingListSummary).mockResolvedValue({
+      id: "shopping",
+      name: "Shopping",
+      activeItems: [
+        { id: "milk", text: "Milk", preferredStore: "Supermarket" },
+        { id: "bread", text: "Bread", preferredStore: "Supermarket" },
+        { id: "toothpaste", text: "Toothpaste", preferredStore: "Drugstore" },
+        { id: "batteries", text: "Batteries" },
+        { id: "apples", text: "Apples" },
+        { id: "completed-coffee", text: "Coffee", preferredStore: "Supermarket", isCompleted: true },
+        { id: "deleted-tea", text: "Tea", preferredStore: "Supermarket", isDeleted: true },
+      ],
+    });
     const lists = await listsApi();
     vi.mocked(lists.loadShoppingList).mockResolvedValue({
       listId: "shopping",
@@ -205,11 +199,24 @@ describe("HomeDashboard", () => {
     expect(screen.getByText("Alex")).not.toBeNull();
     expect(await screen.findByText("Event 1")).not.toBeNull();
     expect(screen.getAllByText("Tomorrow").length).toBeGreaterThan(0);
-    expect(screen.getByText("Milk (Supermarket)")).not.toBeNull();
+    const listsTile = screen.getByLabelText("Lists summary");
+    expect(within(listsTile).getByRole("heading", { name: "Drugstore" })).not.toBeNull();
+    expect(within(listsTile).getByRole("heading", { name: "Supermarket" })).not.toBeNull();
+    expect(within(listsTile).getByRole("heading", { name: "Zonder winkel" })).not.toBeNull();
+    expect(within(listsTile).getAllByRole("heading", { name: "Supermarket" })).toHaveLength(1);
+    expect(within(listsTile).getByText("Milk")).not.toBeNull();
+    expect(within(listsTile).getByText("Bread")).not.toBeNull();
+    expect(within(listsTile).getByText("Toothpaste")).not.toBeNull();
+    expect(within(listsTile).getByText("Batteries")).not.toBeNull();
+    expect(within(listsTile).queryByText("Milk (Supermarket)")).toBeNull();
+    expect(within(listsTile).queryByText("Shopping")).toBeNull();
     expect(screen.queryByText("Vacation Packing")).toBeNull();
-    expect(screen.getByText("Sunscreen")).not.toBeNull();
-    expect(screen.getByText("+2 more")).not.toBeNull();
-    expect(screen.getAllByText("+1 more")).toHaveLength(2);
+    expect(screen.queryByText("Sunscreen")).toBeNull();
+    expect(screen.queryByText("Camping")).toBeNull();
+    expect(screen.queryByText("Christmas")).toBeNull();
+    expect(within(listsTile).queryByText("Coffee")).toBeNull();
+    expect(within(listsTile).queryByText("Tea")).toBeNull();
+    expect(within(listsTile).getByText("+1 more")).not.toBeNull();
     expect(screen.getByText("Tasks")).not.toBeNull();
     expect(screen.getByText("Overdue")).not.toBeNull();
     expect(screen.getByText("Due Today")).not.toBeNull();
@@ -442,8 +449,8 @@ describe("HomeDashboard empty states", () => {
       sources: [],
       events: [],
     });
-    vi.mocked((await listsSummaryApi()).loadListSummaries).mockResolvedValue(
-      [],
+    vi.mocked((await listsSummaryApi()).loadShoppingListSummary).mockResolvedValue(
+      null,
     );
     vi.mocked((await tasksApi()).loadTasks).mockResolvedValue([]);
     vi.mocked((await motivationApi()).loadMotivationSnapshot).mockResolvedValue(

@@ -659,6 +659,24 @@ button {
   border-left: 0.3rem solid #14b8a6;
 }
 
+.shopping-summary-groups {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0.55rem 0;
+}
+
+.shopping-summary-group h4 {
+  color: #92400e;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  margin: 0 0 0.35rem;
+  text-transform: uppercase;
+}
+
+.shopping-summary-group .home-summary-list {
+  margin: 0;
+}
+
 .task-summary-groups {
   display: grid;
   gap: 0.4rem;

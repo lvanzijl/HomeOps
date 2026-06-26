@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { addShoppingListItem, archiveShoppingList, createListsApiClient, createShoppingList, deleteShoppingList, loadShoppingList, removeShoppingListItem, renameShoppingList, toggleShoppingListItem, undoShoppingListItem, updateShoppingListItemStore } from '../../shopping/listsApi';
 import type { ShoppingListItem } from '../../shopping/shoppingListModel';
+import { groupShoppingItemsByPreferredStore } from '../../shopping/shoppingGrouping';
 import { getActiveShoppingListItems, getCompletedShoppingListItems, getDeletedShoppingListItems, upsertShoppingListItem } from '../../shopping/shoppingListState';
 import type { WidgetRenderProps } from '../WidgetRenderer';
 
@@ -274,9 +275,9 @@ function ShoppingListSection({ className, emptyLabel, items, onRemove, onStoreCh
         <p className="shopping-empty">{emptyLabel}</p>
       ) : (
         <div className="shopping-store-groups">
-          {groupItemsByStore(items).map((group) => (
-            <div className="shopping-store-group" key={group.store ?? 'uncategorized'}>
-              <h5>{group.store ?? 'Uncategorized'}</h5>
+          {groupShoppingItemsByPreferredStore(items, { activeOnly: false }).map((group) => (
+            <div className="shopping-store-group" key={group.store ?? 'zonder-winkel'}>
+              <h5>{group.label}</h5>
               <ul className="shopping-list">
                 {group.items.map((item) => (
                   <li className={`shopping-item${item.deleted ? ' shopping-item-deleted' : ''}`} key={item.id}>
@@ -318,12 +319,4 @@ function ShoppingListSection({ className, emptyLabel, items, onRemove, onStoreCh
       )}
     </section>
   );
-}
-
-
-function groupItemsByStore(items: readonly ShoppingListItem[]): { store: string | null; items: readonly ShoppingListItem[] }[] {
-  const stores = Array.from(new Set(items.map((item) => item.preferredStore).filter((store): store is string => Boolean(store)))).sort((a, b) => a.localeCompare(b));
-  const grouped = stores.map((store) => ({ store, items: items.filter((item) => item.preferredStore === store) }));
-  const uncategorized = items.filter((item) => !item.preferredStore);
-  return uncategorized.length > 0 ? [...grouped, { store: null, items: uncategorized }] : grouped;
 }
