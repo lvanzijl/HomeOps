@@ -208,6 +208,7 @@ describe("HomeDashboard", () => {
     expect(within(listsTile).getByText("Bread")).not.toBeNull();
     expect(within(listsTile).getByText("Toothpaste")).not.toBeNull();
     expect(within(listsTile).getByText("Batteries")).not.toBeNull();
+    expect(within(listsTile).queryByText(/Shared for \d+ household members\./)).toBeNull();
     expect(within(listsTile).queryByText("Milk (Supermarket)")).toBeNull();
     expect(within(listsTile).queryByText("Shopping")).toBeNull();
     expect(screen.queryByText("Vacation Packing")).toBeNull();
@@ -231,6 +232,50 @@ describe("HomeDashboard", () => {
     expect(
       screen.queryByRole("button", { name: "Add Family Member" }),
     ).toBeNull();
+  });
+
+
+  it("hides the Home Shopping group heading when only one visible group is shown", async () => {
+    vi.mocked((await listsSummaryApi()).loadShoppingListSummary).mockResolvedValue({
+      id: "shopping",
+      name: "Shopping",
+      activeItems: [
+        { id: "bread", text: "Bread" },
+        { id: "coffee", text: "Coffee" },
+        { id: "milk", text: "Milk" },
+      ],
+    });
+
+    render(
+      <HomeDashboard
+        members={familyMembers}
+        onNavigate={vi.fn()}
+        onSelectFamilyMember={vi.fn()}
+      />,
+    );
+
+    const listsTile = screen.getByLabelText("Lists summary");
+    expect(await within(listsTile).findByText("Bread")).not.toBeNull();
+    expect(within(listsTile).getByText("Coffee")).not.toBeNull();
+    expect(within(listsTile).getByText("Milk")).not.toBeNull();
+    expect(within(listsTile).queryByRole("heading", { name: "Zonder winkel" })).toBeNull();
+    expect(within(listsTile).queryByText(/Shared for \d+ household members\./)).toBeNull();
+  });
+
+  it("keeps Home Shopping group headings when multiple visible groups are shown", async () => {
+    render(
+      <HomeDashboard
+        members={familyMembers}
+        onNavigate={vi.fn()}
+        onSelectFamilyMember={vi.fn()}
+      />,
+    );
+
+    const listsTile = screen.getByLabelText("Lists summary");
+    expect(await within(listsTile).findByRole("heading", { name: "Supermarket" })).not.toBeNull();
+    expect(within(listsTile).getByRole("heading", { name: "Drugstore" })).not.toBeNull();
+    expect(within(listsTile).getByRole("heading", { name: "Zonder winkel" })).not.toBeNull();
+    expect(within(listsTile).getByText("+1 more")).not.toBeNull();
   });
 
   it("keeps Home card actions compact and avoids duplicate Tasks navigation labels", async () => {
