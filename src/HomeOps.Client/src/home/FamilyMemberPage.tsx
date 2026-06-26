@@ -102,13 +102,13 @@ export function FamilyMemberPage({
           ? draft.dateOfBirth || null
           : draft.dateOfBirth,
     });
-    setStatus("Saved member details.");
+    setStatus("Saved details.");
   }
 
   function requestRemove() {
     if (
       window.confirm(
-        `Remove ${member.name} from normal household lists? Existing task and motivation references are kept.`,
+        `Remove ${member.name} from the household? Existing task and motivation references are kept.`,
       )
     )
       onRemove(member);
@@ -293,81 +293,41 @@ function ParentAdministration({
   return (
     <section
       className="parent-administration"
-      aria-label="Parent administration"
+      aria-label={`${member.name} grown-up settings`}
     >
       <div className="parent-administration-intro">
         <div>
           <p className="eyebrow">Parent Mode</p>
-          <h3>Administration</h3>
-          <p>
-            Edit household records, avatar setup, and management details here so
-            the child experience can stay encouraging first.
-          </p>
-        </div>
-        <div className="parent-administration-actions">
-          {onAddFamilyMember ? (
-            <button
-              className="compact-header-action"
-              type="button"
-              onClick={onAddFamilyMember}
-            >
-              <HomeOpsIcon name="add" />
-              <span>Add Family Member</span>
-            </button>
-          ) : null}
-          <button type="button" onClick={onEditAvatar}>
-            Edit avatar
-          </button>
+          <h3>{member.name}'s grown-up settings</h3>
+          <p>Update {member.name}'s profile and household options.</p>
         </div>
       </div>
-      <div className="family-member-detail-grid parent-administration-grid">
-        <article className="family-member-detail-card">
-          <h3>Edit member</h3>
-          <form className="family-member-form" onSubmit={submit}>
-            <label>
-              Name
-              <input
-                value={draft.name}
-                onChange={(event) =>
-                  setDraft({
-                    ...draft,
-                    name: event.target.value,
-                    initials: buildInitials(event.target.value),
-                  })
-                }
-                required
-              />
-            </label>
-            <label>
-              Member type
-              <select
-                value={draft.memberKind}
-                onChange={(event) =>
-                  setDraft({
-                    ...draft,
-                    memberKind: event.target.value as FamilyMemberKind,
-                  })
-                }
+
+      <form className="parent-settings-form" onSubmit={submit}>
+        <div className="family-member-detail-grid parent-administration-grid">
+          <article className="family-member-detail-card parent-identity-card">
+            <div className="parent-section-heading">
+              <div>
+                <p className="eyebrow">Identity</p>
+                <h3>Appearance</h3>
+              </div>
+              <button
+                className="secondary-action compact-action"
+                type="button"
+                onClick={onEditAvatar}
               >
-                <option value="adult">Adult</option>
-                <option value="child">Child</option>
-              </select>
-            </label>
-            <label>
-              Date of birth
-              <input
-                type="date"
-                value={draft.dateOfBirth ?? ""}
-                onChange={(event) =>
-                  setDraft({
-                    ...draft,
-                    dateOfBirth: event.target.value || null,
-                  })
-                }
-                aria-required={draft.memberKind === "child"}
-              />
-            </label>
-            <label>
+                Edit avatar
+              </button>
+            </div>
+            <div className="parent-identity-preview">
+              <FamilyAvatar member={draft} size="large" />
+              <p>
+                {member.avatarV2Config
+                  ? `${member.name}'s avatar appears across Home, this page, and Motivation.`
+                  : "Initials are used until an avatar is saved."}
+              </p>
+            </div>
+            <label className="family-member-color-field">
               Display color
               <input
                 type="color"
@@ -377,64 +337,104 @@ function ParentAdministration({
                 }
               />
             </label>
-            <div className="family-member-actions">
-              <button type="submit">Save details</button>
-              <button
-                className="danger-button"
-                type="button"
-                onClick={requestRemove}
-              >
-                Remove member
-              </button>
+          </article>
+
+          <article className="family-member-detail-card parent-basic-card">
+            <div className="parent-section-heading">
+              <div>
+                <p className="eyebrow">Basic Information</p>
+                <h3>Personal details</h3>
+              </div>
             </div>
-            {status ? <p role="status">{status}</p> : null}
-          </form>
-        </article>
-        <article className="family-member-detail-card">
-          <h3>Member details</h3>
-          <dl className="family-member-detail-list">
-            <div>
-              <dt>Name</dt>
-              <dd>{member.name}</dd>
-            </div>
-            <div>
-              <dt>Type</dt>
-              <dd>{member.memberKind}</dd>
-            </div>
-            <div>
-              <dt>Date of birth</dt>
-              <dd>{member.dateOfBirth ?? "Not set"}</dd>
-            </div>
-            <div>
-              <dt>Initials</dt>
-              <dd>{member.initials}</dd>
-            </div>
-            <div>
-              <dt>Color</dt>
-              <dd>
-                <span
-                  className="color-swatch"
-                  style={{ background: member.displayColor }}
-                  aria-hidden="true"
+            <div className="family-member-form">
+              <label>
+                Name
+                <input
+                  value={draft.name}
+                  onChange={(event) =>
+                    setDraft({
+                      ...draft,
+                      name: event.target.value,
+                      initials: buildInitials(event.target.value),
+                    })
+                  }
+                  required
                 />
-                {member.displayColor}
-              </dd>
+              </label>
+              <label>
+                Adult / Child
+                <select
+                  value={draft.memberKind}
+                  onChange={(event) =>
+                    setDraft({
+                      ...draft,
+                      memberKind: event.target.value as FamilyMemberKind,
+                    })
+                  }
+                >
+                  <option value="adult">Adult</option>
+                  <option value="child">Child</option>
+                </select>
+              </label>
+              <label>
+                Birthday
+                <input
+                  type="date"
+                  value={draft.dateOfBirth ?? ""}
+                  onChange={(event) =>
+                    setDraft({
+                      ...draft,
+                      dateOfBirth: event.target.value || null,
+                    })
+                  }
+                  aria-required={draft.memberKind === "child"}
+                />
+              </label>
+              <div className="family-member-actions parent-primary-actions">
+                <button type="submit">Save details</button>
+              </div>
+              {status ? <p role="status">{status}</p> : null}
             </div>
-          </dl>
+          </article>
+        </div>
+      </form>
+
+      <div className="parent-support-grid">
+        <article className="family-member-detail-card parent-household-card">
+          <div className="parent-section-heading">
+            <div>
+              <p className="eyebrow">Household</p>
+              <h3>Family</h3>
+              <p>Add another person to your household.</p>
+            </div>
+            {onAddFamilyMember ? (
+              <button
+                className="secondary-action compact-action"
+                type="button"
+                onClick={onAddFamilyMember}
+              >
+                <HomeOpsIcon name="add" />
+                <span>Add Family Member</span>
+              </button>
+            ) : null}
+          </div>
         </article>
-        <article className="family-member-detail-card">
-          <h3>Avatar</h3>
-          {member.avatarV2Config ? (
-            <p>
-              {member.name}'s family avatar is set and appears across Home,
-              this page, and Motivation as a warm ownership cue.
-            </p>
-          ) : (
-            <p>
-              No Avatar V2 choices are saved yet. Initials remain available as
-              the fallback.
-            </p>
-          )}
+
+        <article className="family-member-detail-card parent-safety-card">
+          <div className="parent-section-heading">
+            <div>
+              <p className="eyebrow">Safety</p>
+              <h3>Remove from household</h3>
+              <p>Use this only when {member.name} should no longer appear in the household.</p>
+            </div>
+            <button
+              className="danger-button compact-action"
+              type="button"
+              onClick={requestRemove}
+            >
+              Remove Family Member
+            </button>
+          </div>
         </article>
       </div>
     </section>

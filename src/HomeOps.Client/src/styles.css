@@ -2254,7 +2254,7 @@ button {
   width: fit-content;
 }
 .member-mode-switch button,
-.parent-administration-intro button {
+.parent-section-heading button {
   background: transparent;
   border: 0;
   border-radius: 999px;
@@ -2277,42 +2277,75 @@ button {
   margin-top: 0;
 }
 .parent-administration {
-  background: rgba(248, 250, 252, 0.76);
-  border: 1px dashed #cbd5e1;
+  background: color-mix(in srgb, var(--surface-warm) 72%, white);
+  border: 1px solid var(--border-warm);
   border-radius: var(--radius-card);
   display: grid;
   gap: 1rem;
   padding: 1rem;
 }
-.parent-administration-intro {
-  align-items: center;
+.parent-administration-intro h3,
+.parent-administration-intro p,
+.parent-section-heading h3,
+.parent-section-heading p {
+  margin: 0.15rem 0;
+}
+.parent-administration-intro p,
+.parent-section-heading p {
+  color: #64748b;
+}
+.parent-settings-form {
+  display: grid;
+  gap: 1rem;
+}
+.parent-administration-grid,
+.parent-support-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.parent-administration .family-member-detail-card {
+  background: rgba(255, 255, 255, 0.88);
+}
+.parent-section-heading {
+  align-items: flex-start;
   display: flex;
   gap: 1rem;
   justify-content: space-between;
 }
-.parent-administration-intro h3,
-.parent-administration-intro p {
-  margin: 0.15rem 0;
-}
-.parent-administration-intro p {
-  color: #64748b;
-}
-.parent-administration-grid {
-  opacity: 0.92;
-}
-.parent-administration .family-member-detail-card {
-  background: rgba(255, 255, 255, 0.86);
-}
-.parent-administration-intro button {
+.parent-section-heading button {
   background: var(--surface-default);
   border: 1px solid var(--border-default);
   color: #7c3aed;
 }
+.parent-identity-preview {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+  margin: 0.75rem 0;
+}
+.family-member-color-field {
+  display: grid;
+  gap: 0.3rem;
+  font-weight: 700;
+}
+.family-member-color-field input {
+  width: 5rem;
+}
+.parent-primary-actions {
+  justify-content: flex-start;
+}
+.parent-safety-card {
+  border-color: rgba(248, 113, 113, 0.36);
+}
 @media (max-width: 760px) {
-  .child-mode {
+  .child-mode,
+  .parent-administration-grid,
+  .parent-support-grid {
     grid-template-columns: 1fr;
   }
-  .parent-administration-intro {
+  .parent-section-heading,
+  .parent-identity-preview {
     align-items: flex-start;
     flex-direction: column;
   }
