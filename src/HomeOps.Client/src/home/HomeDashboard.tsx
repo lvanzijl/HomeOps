@@ -604,7 +604,7 @@ export function HomeDashboard({
                 key={group.store ?? "zonder-winkel"}
                 aria-label={group.label}
               >
-                <h4>{group.label}</h4>
+                {visibleListGroups.length > 1 ? <h4>{group.label}</h4> : null}
                 <ul className="home-summary-list">
                   {group.items.map((item) => (
                     <li key={`${item.listId}-${item.id}`}>
@@ -633,9 +633,6 @@ export function HomeDashboard({
               +{hiddenListCount} more
             </button>
           ) : null}
-          <p className="home-context-note">
-            Shared for {members.length} household members.
-          </p>
         </SummaryCard>
       </div>
 

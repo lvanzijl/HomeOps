@@ -651,9 +651,6 @@ button {
   padding-left: 0.9rem;
 }
 
-.lists-summary .home-summary-list li {
-  border-left: 0.3rem solid #f59e0b;
-}
 
 .tasks-summary .home-summary-list li {
   border-left: 0.3rem solid #14b8a6;
