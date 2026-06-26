@@ -903,6 +903,15 @@ button {
   width: min(100%, 44rem);
 }
 
+.avatar-v2-family-editor {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 2rem);
+  max-width: 72rem;
+  overflow: hidden;
+  width: min(100%, 72rem);
+}
+
 .avatar-editor header {
   align-items: flex-start;
   display: flex;
@@ -3094,6 +3103,13 @@ button {
   grid-template-columns: minmax(17rem, 0.8fr) minmax(0, 1.2fr);
 }
 
+.avatar-v2-family-editor .avatar-v2-editor-layout {
+  flex: 1 1 auto;
+  grid-template-columns: minmax(16rem, 0.42fr) minmax(0, 1fr);
+  min-height: 0;
+  overflow: hidden;
+}
+
 .avatar-v2-preview-card {
   align-self: start;
   display: grid;
@@ -3101,6 +3117,13 @@ button {
   padding: 1rem;
   position: sticky;
   top: 1rem;
+}
+
+.avatar-v2-family-editor .avatar-v2-preview-card {
+  align-content: start;
+  gap: 0.75rem;
+  padding: 0.85rem;
+  position: static;
 }
 
 .avatar-v2-preview {
@@ -3112,9 +3135,18 @@ button {
   place-items: center;
 }
 
+.avatar-v2-family-editor .avatar-v2-preview {
+  min-height: 17rem;
+}
+
 .avatar-v2-preview svg {
   height: min(70vw, 18rem);
   width: min(70vw, 18rem);
+}
+
+.avatar-v2-family-editor .avatar-v2-preview svg {
+  height: min(30vw, 15.5rem);
+  width: min(30vw, 15.5rem);
 }
 
 .avatar-v2-actions {
@@ -3148,6 +3180,14 @@ button {
   gap: 0.85rem;
 }
 
+.avatar-v2-family-editor .avatar-v2-controls {
+  align-content: start;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
 .avatar-v2-choice-section,
 .avatar-v2-swatch-section {
   display: grid;
@@ -3155,10 +3195,25 @@ button {
   padding: 0.85rem;
 }
 
+.avatar-v2-family-editor .avatar-v2-choice-section,
+.avatar-v2-family-editor .avatar-v2-swatch-section {
+  gap: 0.5rem;
+  padding: 0.7rem;
+}
+
+.avatar-v2-family-editor .avatar-v2-choice-section:first-child {
+  grid-column: 1 / -1;
+}
+
 .avatar-v2-asset-grid {
   display: grid;
   gap: 0.6rem;
   grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+}
+
+.avatar-v2-family-editor .avatar-v2-asset-grid {
+  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(6.75rem, 1fr));
 }
 
 .avatar-v2-asset-tile {
@@ -3171,6 +3226,10 @@ button {
   padding: 0.45rem;
 }
 
+.avatar-v2-family-editor .avatar-v2-asset-tile {
+  min-height: 7.6rem;
+}
+
 .avatar-v2-asset-tile[aria-pressed="true"],
 .avatar-v2-swatch[aria-pressed="true"] {
   border-color: var(--color-brand-accent);
@@ -3181,6 +3240,11 @@ button {
 .avatar-v2-asset-tile svg {
   height: 5.75rem;
   width: 5.75rem;
+}
+
+.avatar-v2-family-editor .avatar-v2-asset-tile svg {
+  height: 4.75rem;
+  width: 4.75rem;
 }
 
 .avatar-v2-swatch-row {
@@ -3199,12 +3263,18 @@ button {
 }
 
 @media (max-width: 760px) {
-  .avatar-v2-editor-layout {
+  .avatar-v2-editor-layout,
+  .avatar-v2-family-editor .avatar-v2-editor-layout,
+  .avatar-v2-family-editor .avatar-v2-controls {
     grid-template-columns: 1fr;
   }
 
   .avatar-v2-preview-card {
     position: static;
+  }
+
+  .avatar-v2-family-editor .avatar-v2-choice-section:first-child {
+    grid-column: auto;
   }
 }
 
