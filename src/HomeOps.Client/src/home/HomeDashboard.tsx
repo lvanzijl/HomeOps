@@ -327,7 +327,7 @@ export function HomeDashboard({
               minute: "2-digit",
             })}
           </p>
-          <p className="weather-placeholder">Weather ready when connected</p>
+          <p className="weather-connection-note">Weather ready when connected</p>
         </div>
         <section className="family-strip" aria-label="Family Members">
           {members.map((member) => (

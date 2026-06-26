@@ -202,7 +202,7 @@ export function WorkspaceShell() {
               return (
                 <article className="widget-card" key={instance.id}>
                   <h3>{instance.title}</h3>
-                  <p>Widget definition not found.</p>
+                  <p>This family space is not ready yet.</p>
                 </article>
               );
             }
