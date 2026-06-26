@@ -1306,6 +1306,51 @@ button {
   min-width: 8.5rem;
 }
 
+.home-conversation-dialog {
+  max-width: min(30rem, calc(100vw - 2rem));
+}
+
+.home-conversation-heading {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.home-conversation-heading p:last-child {
+  color: var(--color-text-muted);
+  font-weight: 700;
+}
+
+.home-conversation-form {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+}
+
+.home-conversation-panel {
+  animation: task-question-in 170ms ease-out;
+  display: grid;
+  gap: 0.75rem;
+  min-height: 7rem;
+}
+
+.home-question-label,
+.home-choice-group legend {
+  color: var(--domain-accent-strong, #0f766e);
+  font-size: 1.15rem;
+  font-weight: 900;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.home-choice-group {
+  grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
+}
+
+.home-conversation-panel .home-quick-row input:not([type="date"]) {
+  flex: 1 1 13rem;
+}
+
 .home-quick-status {
   color: #065f46;
   flex-basis: 100%;
