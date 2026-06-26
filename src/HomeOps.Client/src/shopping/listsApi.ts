@@ -1,7 +1,11 @@
 import { AddListItemRequest, CreateListRequest, HomeOpsApiClient, ListDto, ListItemDto, RenameListRequest, UpdateListItemStoreRequest } from '../api/homeOpsApiClient';
 import type { ShoppingListItem, ShoppingListState } from './shoppingListModel';
 
-const shoppingListName = 'Shopping';
+export const shoppingListName = 'Shopping';
+
+export function isDedicatedShoppingListName(name: string | undefined): boolean {
+  return name === shoppingListName;
+}
 
 export function createListsApiClient(): HomeOpsApiClient {
   return new HomeOpsApiClient(import.meta.env.VITE_HOMEOPS_API_BASE_URL ?? '');
@@ -9,7 +13,7 @@ export function createListsApiClient(): HomeOpsApiClient {
 
 export async function loadShoppingList(client = createListsApiClient()): Promise<ShoppingListState> {
   const lists = await client.getLists();
-  const shoppingList = lists.find((list) => list.name === shoppingListName) ?? lists[0];
+  const shoppingList = lists.find((list) => isDedicatedShoppingListName(list.name)) ?? lists[0];
 
   if (!shoppingList?.id) {
     return { listId: null, name: shoppingListName, items: [] };

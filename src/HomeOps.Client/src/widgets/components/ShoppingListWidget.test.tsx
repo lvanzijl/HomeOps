@@ -39,6 +39,7 @@ describe('ShoppingListWidget API-backed behavior', () => {
       items: [
         { id: 'bread', label: 'Bread', completed: false, deleted: false, preferredStore: 'Supermarket', storeSuggestions: [{ store: 'Supermarket', purchaseCount: 4 }, { store: 'Corner Shop', purchaseCount: 1 }] },
         { id: 'coffee', label: 'Coffee', completed: true, deleted: false, preferredStore: null },
+        { id: 'batteries', label: 'Batteries', completed: false, deleted: false, preferredStore: null, storeSuggestions: [{ store: 'Hardware Store', purchaseCount: 3 }] },
       ],
     });
     vi.mocked(listsApi.createShoppingList).mockResolvedValue({ listId: 'shopping-list-id', items: [] });
@@ -88,7 +89,8 @@ describe('ShoppingListWidget API-backed behavior', () => {
     render(<ShoppingListWidget {...widgetProps} />);
 
     expect(await screen.findByRole('heading', { name: 'Supermarket' })).not.toBeNull();
-    expect(screen.getByRole('heading', { name: 'Uncategorized' })).not.toBeNull();
+    expect(screen.getAllByRole('heading', { name: 'Zonder winkel' }).length).toBeGreaterThan(0);
+    expect(screen.getByText('Batteries')).not.toBeNull();
     expect(document.querySelector('option[value=\"Corner Shop\"]')).not.toBeNull();
 
     await user.click(within(screen.getByText('Coffee').closest('li')!).getAllByText('Store')[0]);
@@ -98,6 +100,7 @@ describe('ShoppingListWidget API-backed behavior', () => {
     await user.tab();
 
     expect(listsApi.updateShoppingListItemStore).toHaveBeenCalledWith(apiClient, 'shopping-list-id', 'coffee', 'Drugstore');
+    expect(await screen.findByRole('heading', { name: 'Drugstore' })).not.toBeNull();
     expect(await screen.findByText('(Drugstore)')).not.toBeNull();
   });
 

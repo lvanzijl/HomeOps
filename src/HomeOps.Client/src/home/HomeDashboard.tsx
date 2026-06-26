@@ -21,9 +21,13 @@ import {
   loadShoppingList,
 } from "../shopping/listsApi";
 import {
-  loadListSummaries,
+  loadShoppingListSummary,
   type ListSummary,
 } from "../shopping/listsSummaryApi";
+import {
+  groupShoppingItemsByPreferredStore,
+  isActiveShoppingItem,
+} from "../shopping/shoppingGrouping";
 import { createTask, loadTasks } from "../tasks/tasksApi";
 import { groupTasksByUrgency } from "../tasks/taskGrouping";
 import type { HouseholdTask } from "../tasks/tasksModel";
@@ -151,14 +155,15 @@ export function HomeDashboard({
           if (!ignore) setAgendaError("Agenda summary could not be loaded.");
         });
     const refreshLists = () =>
-      loadListSummaries()
+      loadShoppingListSummary()
         .then((data) => {
           if (ignore) return;
-          setLists(data);
+          const shoppingLists = data ? [data] : [];
+          setLists(shoppingLists);
           setHistory((current) =>
             mergeShoppingHistory(
               current,
-              data.flatMap((list) => list.activeItems.map((item) => item.text)),
+              shoppingLists.flatMap((list) => list.activeItems.map((item) => item.text)),
             ),
           );
           setListsError(null);
@@ -187,12 +192,12 @@ export function HomeDashboard({
   async function refreshHomeData() {
     const [agendaData, listData, taskData] = await Promise.all([
       loadCalendarAgendaData(),
-      loadListSummaries(),
+      loadShoppingListSummary(),
       loadTasks(),
     ]);
     setSources([...agendaData.sources, ...demoReadOnlyEventSources]);
     setEvents([...agendaData.events, ...demoReadOnlyEvents]);
-    setLists(listData);
+    setLists(listData ? [listData] : []);
     setTasks(taskData);
   }
 
@@ -277,13 +282,16 @@ export function HomeDashboard({
     agendaItems.length - visibleAgenda.length,
   );
   const activeListItems = lists.flatMap((list) =>
-    list.activeItems.map((item) => ({
-      ...item,
-      listId: list.id,
-      listName: list.name,
-    })),
+    list.activeItems
+      .map((item) => ({
+        ...item,
+        listId: list.id,
+        listName: list.name,
+      }))
+      .filter(isActiveShoppingItem),
   );
   const visibleListItems = activeListItems.slice(0, visibleListLimit);
+  const visibleListGroups = groupShoppingItemsByPreferredStore(visibleListItems);
   const hiddenListCount = Math.max(
     0,
     activeListItems.length - visibleListItems.length,
@@ -589,16 +597,24 @@ export function HomeDashboard({
             meta={`${activeListItems.length} active`}
           />
           {listsError ? <p role="alert">{listsError}</p> : null}
-          <ul className="home-summary-list">
-            {visibleListItems.map((item) => (
-              <li key={`${item.listId}-${item.id}`}>
-                <span>
-                  {item.text}
-                  {item.preferredStore ? ` (${item.preferredStore})` : ""}
-                </span>
-              </li>
+          <div className="shopping-summary-groups">
+            {visibleListGroups.map((group) => (
+              <section
+                className="shopping-summary-group"
+                key={group.store ?? "zonder-winkel"}
+                aria-label={group.label}
+              >
+                <h4>{group.label}</h4>
+                <ul className="home-summary-list">
+                  {group.items.map((item) => (
+                    <li key={`${item.listId}-${item.id}`}>
+                      <span>{item.text}</span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
             ))}
-          </ul>
+          </div>
           {visibleListItems.length === 0 && !listsError ? (
             <div className="empty-state-card">
               <strong>Add your first shopping item</strong>
