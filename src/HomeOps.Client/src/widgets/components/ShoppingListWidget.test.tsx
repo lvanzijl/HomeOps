@@ -7,7 +7,7 @@ const apiClient = {} as never;
 
 vi.mock('../../shopping/listsApi', () => ({
   createListsApiClient: () => apiClient,
-  loadShoppingList: vi.fn(),
+  loadShoppingPageLists: vi.fn(),
   createShoppingList: vi.fn(),
   addShoppingListItem: vi.fn(),
   toggleShoppingListItem: vi.fn(),
@@ -34,12 +34,19 @@ describe('ShoppingListWidget API-backed behavior', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     const listsApi = await mockedListsApi();
-    vi.mocked(listsApi.loadShoppingList).mockResolvedValue({
-      listId: 'shopping-list-id',
-      items: [
-        { id: 'bread', label: 'Bread', completed: false, deleted: false, preferredStore: 'Supermarket', storeSuggestions: [{ store: 'Supermarket', purchaseCount: 4 }, { store: 'Corner Shop', purchaseCount: 1 }] },
-        { id: 'coffee', label: 'Coffee', completed: true, deleted: false, preferredStore: null },
-        { id: 'batteries', label: 'Batteries', completed: false, deleted: false, preferredStore: null, storeSuggestions: [{ store: 'Hardware Store', purchaseCount: 3 }] },
+    vi.mocked(listsApi.loadShoppingPageLists).mockResolvedValue({
+      shoppingList: {
+        listId: 'shopping-list-id',
+        name: 'Shopping',
+        items: [
+          { id: 'bread', label: 'Bread', completed: false, deleted: false, preferredStore: 'Supermarket', storeSuggestions: [{ store: 'Supermarket', purchaseCount: 4 }, { store: 'Corner Shop', purchaseCount: 1 }] },
+          { id: 'coffee', label: 'Coffee', completed: true, deleted: false, preferredStore: null },
+          { id: 'batteries', label: 'Batteries', completed: false, deleted: false, preferredStore: null, storeSuggestions: [{ store: 'Hardware Store', purchaseCount: 3 }] },
+        ],
+      },
+      otherLists: [
+        { listId: 'packing-list-id', name: 'Vacation Packing', items: [{ id: 'sunscreen', label: 'Sunscreen', completed: false, deleted: false, preferredStore: null }] },
+        { listId: 'camping-list-id', name: 'Camping', items: [{ id: 'tent', label: 'Tent', completed: false, deleted: false, preferredStore: null }] },
       ],
     });
     vi.mocked(listsApi.createShoppingList).mockResolvedValue({ listId: 'shopping-list-id', items: [] });
@@ -55,7 +62,7 @@ describe('ShoppingListWidget API-backed behavior', () => {
     render(<ShoppingListWidget {...widgetProps} />);
     expect(await screen.findByText('Bread')).not.toBeNull();
     expect(screen.getByText('Coffee')).not.toBeNull();
-    expect(listsApi.loadShoppingList).toHaveBeenCalledWith(apiClient);
+    expect(listsApi.loadShoppingPageLists).toHaveBeenCalledWith(apiClient);
   });
 
   it('adds an item through the API-backed list service', async () => {
@@ -63,8 +70,8 @@ describe('ShoppingListWidget API-backed behavior', () => {
     const listsApi = await mockedListsApi();
     render(<ShoppingListWidget {...widgetProps} />);
     await screen.findByText('Bread');
-    await user.type(screen.getByPlaceholderText('Add an item'), 'Apples');
-    await user.click(screen.getByRole('button', { name: 'Add' }));
+    await user.type(within(screen.getByLabelText('Shopping')).getByPlaceholderText('Add an item'), 'Apples');
+    await user.click(within(screen.getByLabelText('Shopping')).getByRole('button', { name: 'Add' }));
     expect(listsApi.addShoppingListItem).toHaveBeenCalledWith(apiClient, 'shopping-list-id', 'Apples');
     expect(await screen.findByText('Apples')).not.toBeNull();
   });
@@ -104,29 +111,55 @@ describe('ShoppingListWidget API-backed behavior', () => {
     expect(await screen.findByText('(Drugstore)')).not.toBeNull();
   });
 
+
+
+  it('shows other lists and allows managing a non-Shopping list from the Shopping page', async () => {
+    const user = userEvent.setup();
+    const listsApi = await mockedListsApi();
+    vi.mocked(listsApi.addShoppingListItem).mockResolvedValueOnce({ id: 'passport', label: 'Passport', completed: false, deleted: false, preferredStore: null });
+    vi.mocked(listsApi.toggleShoppingListItem).mockResolvedValueOnce({ id: 'sunscreen', label: 'Sunscreen', completed: true, deleted: false, preferredStore: null });
+
+    render(<ShoppingListWidget {...widgetProps} />);
+
+    expect(await screen.findByRole('heading', { name: 'Shopping' })).not.toBeNull();
+    expect(screen.getByRole('heading', { name: 'Other Lists' })).not.toBeNull();
+    await user.click(screen.getByText('Vacation Packing'));
+    expect(screen.getByText('Sunscreen')).not.toBeNull();
+    expect(screen.getByText('Camping')).not.toBeNull();
+
+    await user.type(within(screen.getByLabelText('Vacation Packing')).getByPlaceholderText('Add an item'), 'Passport');
+    await user.click(within(screen.getByLabelText('Vacation Packing')).getByRole('button', { name: 'Add' }));
+    expect(listsApi.addShoppingListItem).toHaveBeenCalledWith(apiClient, 'packing-list-id', 'Passport');
+    expect(await screen.findByText('Passport')).not.toBeNull();
+
+    await user.click(within(screen.getByText('Sunscreen').closest('label')!).getByRole('checkbox'));
+    expect(listsApi.toggleShoppingListItem).toHaveBeenCalledWith(apiClient, 'packing-list-id', 'sunscreen');
+  });
+
   it('keeps list management available without leading the first scan', async () => {
     const user = userEvent.setup();
     const listsApi = await mockedListsApi();
     render(<ShoppingListWidget {...widgetProps} />);
 
     const bread = await screen.findByText('Bread');
-    const listSettings = screen.getByText('List settings');
-    expect(screen.getByRole('form', { name: 'Add shopping item' })).not.toBeNull();
+    const shoppingSurface = screen.getByLabelText('Shopping');
+    const listSettings = within(shoppingSurface).getByText('List settings');
+    expect(within(shoppingSurface).getByRole('form', { name: 'Add item to Shopping' })).not.toBeNull();
     expect(bread.compareDocumentPosition(listSettings) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 
     await user.click(listSettings);
-    await user.clear(screen.getByLabelText('List name'));
-    await user.type(screen.getByLabelText('List name'), 'Groceries');
-    await user.click(screen.getByRole('button', { name: 'Rename' }));
+    await user.clear(within(shoppingSurface).getByLabelText('List name'));
+    await user.type(within(shoppingSurface).getByLabelText('List name'), 'Groceries');
+    await user.click(within(shoppingSurface).getByRole('button', { name: 'Rename' }));
 
     expect(listsApi.renameShoppingList).toHaveBeenCalledWith(apiClient, 'shopping-list-id', 'Groceries');
-    expect(screen.getByRole('button', { name: 'Archive' })).not.toBeNull();
-    expect(screen.getByRole('button', { name: 'Delete' })).not.toBeNull();
+    expect(within(shoppingSurface).getByRole('button', { name: 'Archive' })).not.toBeNull();
+    expect(within(shoppingSurface).getByRole('button', { name: 'Delete' })).not.toBeNull();
   });
 
   it('guides households when the first list has no items yet', async () => {
     const listsApi = await mockedListsApi();
-    vi.mocked(listsApi.loadShoppingList).mockResolvedValueOnce({ listId: 'shopping-list-id', items: [] });
+    vi.mocked(listsApi.loadShoppingPageLists).mockResolvedValueOnce({ shoppingList: { listId: 'shopping-list-id', name: 'Shopping', items: [] }, otherLists: [] });
     render(<ShoppingListWidget {...widgetProps} />);
     expect(await screen.findByText('Create your first list')).not.toBeNull();
     expect(screen.getByText('Lists help remember shopping, packing, and household items.')).not.toBeNull();
@@ -136,7 +169,7 @@ describe('ShoppingListWidget API-backed behavior', () => {
   it('can create the first Shopping list when no lists exist', async () => {
     const user = userEvent.setup();
     const listsApi = await mockedListsApi();
-    vi.mocked(listsApi.loadShoppingList).mockResolvedValueOnce({ listId: null, items: [] });
+    vi.mocked(listsApi.loadShoppingPageLists).mockResolvedValueOnce({ shoppingList: { listId: null, name: 'Shopping', items: [] }, otherLists: [] });
     render(<ShoppingListWidget {...widgetProps} />);
 
     await user.click(await screen.findByRole('button', { name: 'Create Shopping list' }));

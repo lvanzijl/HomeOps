@@ -3491,3 +3491,41 @@ button {
   gap: 0.5rem;
   justify-content: flex-end;
 }
+
+.shopping-header,
+.other-lists-section > header {
+  align-items: flex-start;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.shopping-primary-list,
+.other-list-surface,
+.other-lists-section {
+  display: grid;
+  gap: 1rem;
+}
+
+.other-lists-section {
+  border-top: 1px solid var(--border-default);
+  margin-top: 0.5rem;
+  padding-top: 1rem;
+}
+
+.other-lists-grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.other-list-card {
+  border: 1px solid var(--border-default);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.56);
+  padding: 0.85rem;
+}
+
+.other-list-card > summary {
+  cursor: pointer;
+  font-weight: 800;
+}

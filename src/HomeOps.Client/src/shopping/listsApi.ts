@@ -11,16 +11,29 @@ export function createListsApiClient(): HomeOpsApiClient {
   return new HomeOpsApiClient(import.meta.env.VITE_HOMEOPS_API_BASE_URL ?? '');
 }
 
+export interface ShoppingPageLists {
+  shoppingList: ShoppingListState;
+  otherLists: readonly ShoppingListState[];
+}
+
 export async function loadShoppingList(client = createListsApiClient()): Promise<ShoppingListState> {
+  return (await loadShoppingPageLists(client)).shoppingList;
+}
+
+export async function loadShoppingPageLists(client = createListsApiClient()): Promise<ShoppingPageLists> {
   const lists = await client.getLists();
-  const shoppingList = lists.find((list) => isDedicatedShoppingListName(list.name)) ?? lists[0];
+  const listDetails = await Promise.all(
+    lists
+      .filter((list) => Boolean(list.id))
+      .map((list) => client.getListById(requireValue(list.id, 'list id'))),
+  );
+  const mappedLists = listDetails.map(toShoppingListState);
+  const shoppingList = mappedLists.find((list) => isDedicatedShoppingListName(list.name));
 
-  if (!shoppingList?.id) {
-    return { listId: null, name: shoppingListName, items: [] };
-  }
-
-  const list = await client.getListById(shoppingList.id);
-  return toShoppingListState(list);
+  return {
+    shoppingList: shoppingList ?? { listId: null, name: shoppingListName, items: [] },
+    otherLists: mappedLists.filter((list) => !isDedicatedShoppingListName(list.name)),
+  };
 }
 
 export async function createShoppingList(client: HomeOpsApiClient): Promise<ShoppingListState> {
@@ -96,4 +109,9 @@ function toShoppingListItem(item: ListItemDto): ShoppingListItem {
       .filter((suggestion) => Boolean(suggestion.store))
       .map((suggestion) => ({ store: suggestion.store!, purchaseCount: suggestion.purchaseCount ?? 0 })),
   };
+}
+
+function requireValue(value: string | undefined, label: string): string {
+  if (!value) throw new Error(`Missing ${label}.`);
+  return value;
 }
