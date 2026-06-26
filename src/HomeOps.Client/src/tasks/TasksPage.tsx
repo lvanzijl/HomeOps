@@ -281,12 +281,21 @@ export function TasksPage({
 
   return (
     <article className="tasks-page" aria-label="Tasks page">
-      <header className="tasks-header">
-        <p className="widget-type">Today’s family help</p>
-        <h3>Tasks for the family</h3>
-        <p>
-          Start with what needs attention, then keep the rest ready for later.
-        </p>
+      <header className="tasks-header page-header-with-actions">
+        <div>
+          <p className="widget-type">Today’s family help</p>
+          <h3>Tasks for the family</h3>
+          <p>
+            Start with what needs attention, then keep the rest ready for later.
+          </p>
+        </div>
+        {!isLoading && tasks.length > 0 ? (
+          <div className="page-header-actions" aria-label="Task primary action">
+            <button className="compact-header-action primary" type="button" onClick={openNewTaskDialog}>
+              Add family task
+            </button>
+          </div>
+        ) : null}
       </header>
       {error ? (
         <p className="shopping-empty" role="alert">
@@ -319,25 +328,28 @@ export function TasksPage({
         ))
       )}
 
-      <div className="task-primary-actions" aria-label="Task actions">
-        <button type="button" onClick={openNewTaskDialog}>
-          Add family task
-        </button>
+      <div className="task-support-actions" aria-label="Task planning actions">
         <button
           type="button"
+          className="secondary-action compact-action"
           onClick={() => setIsTemplatesOpen((open) => !open)}
         >
           Routine starters
         </button>
         <button
           type="button"
+          className="secondary-action compact-action"
           onClick={() => setIsWeeklyResetOpen((open) => !open)}
         >
           Plan the week
           {reviewTasks.length > 0 ? ` (${reviewTasks.length})` : ""}
         </button>
         {onOpenWeeklyReset ? (
-          <button type="button" onClick={onOpenWeeklyReset}>
+          <button
+            type="button"
+            className="secondary-action compact-action"
+            onClick={onOpenWeeklyReset}
+          >
             Open family reset
           </button>
         ) : null}

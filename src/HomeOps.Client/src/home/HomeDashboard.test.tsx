@@ -197,7 +197,6 @@ describe("HomeDashboard", () => {
         members={familyMembers}
         onNavigate={vi.fn()}
         onSelectFamilyMember={vi.fn()}
-        onAddFamilyMember={vi.fn()}
       />,
     );
 
@@ -222,6 +221,9 @@ describe("HomeDashboard", () => {
     expect(
       screen.getByText("Shared Household · Due 2026-06-19"),
     ).not.toBeNull();
+    expect(
+      screen.queryByRole("button", { name: "Add Family Member" }),
+    ).toBeNull();
   });
 
   it("keeps Home card actions compact and avoids duplicate Tasks navigation labels", async () => {
@@ -230,7 +232,6 @@ describe("HomeDashboard", () => {
         members={familyMembers}
         onNavigate={vi.fn()}
         onSelectFamilyMember={vi.fn()}
-        onAddFamilyMember={vi.fn()}
       />,
     );
 
@@ -251,7 +252,6 @@ describe("HomeDashboard", () => {
         members={[{ ...familyMembers[0], avatarV2Config: avatarV2DefaultConfiguration }]}
         onNavigate={vi.fn()}
         onSelectFamilyMember={vi.fn()}
-        onAddFamilyMember={vi.fn()}
       />,
     );
 
@@ -268,7 +268,6 @@ describe("HomeDashboard", () => {
         members={familyMembers}
         onNavigate={onNavigate}
         onSelectFamilyMember={vi.fn()}
-        onAddFamilyMember={vi.fn()}
       />,
     );
 
@@ -300,7 +299,6 @@ describe("HomeDashboard", () => {
         members={familyMembers}
         onNavigate={vi.fn()}
         onSelectFamilyMember={onSelectFamilyMember}
-        onAddFamilyMember={vi.fn()}
       />,
     );
 
@@ -320,7 +318,6 @@ describe("HomeDashboard", () => {
         members={familyMembers}
         onNavigate={onNavigate}
         onSelectFamilyMember={vi.fn()}
-        onAddFamilyMember={vi.fn()}
       />,
     );
     await screen.findByText("Event 1");
@@ -352,7 +349,6 @@ describe("HomeDashboard", () => {
         members={familyMembers}
         onNavigate={vi.fn()}
         onSelectFamilyMember={vi.fn()}
-        onAddFamilyMember={vi.fn()}
       />,
     );
     await screen.findByText("Event 1");
@@ -423,7 +419,6 @@ describe("HomeDashboard", () => {
         members={familyMembers}
         onNavigate={vi.fn()}
         onSelectFamilyMember={vi.fn()}
-        onAddFamilyMember={vi.fn()}
       />,
     );
     await screen.findByText("Event 1");
@@ -462,7 +457,6 @@ describe("HomeDashboard empty states", () => {
         members={familyMembers}
         onNavigate={vi.fn()}
         onSelectFamilyMember={vi.fn()}
-        onAddFamilyMember={vi.fn()}
       />,
     );
 

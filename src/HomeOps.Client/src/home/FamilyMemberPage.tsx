@@ -19,6 +19,7 @@ import type { FamilyMember, FamilyMemberKind } from "./familyMembers";
 
 interface FamilyMemberPageProps {
   member: FamilyMember;
+  onAddFamilyMember?: () => void;
   onBack: () => void;
   onChange: (member: FamilyMember) => void;
   onRemove: (member: FamilyMember) => void;
@@ -26,6 +27,7 @@ interface FamilyMemberPageProps {
 
 export function FamilyMemberPage({
   member,
+  onAddFamilyMember,
   onBack,
   onChange,
   onRemove,
@@ -124,9 +126,12 @@ export function FamilyMemberPage({
       className="family-member-page"
       aria-label={`${member.name} family member page`}
     >
-      <button className="back-link" type="button" onClick={onBack}>
-        <HomeOpsIcon name="arrowBack" /> Back to Home
-      </button>
+      <nav className="page-header-actions family-member-navigation" aria-label="Family member navigation">
+        <button className="compact-header-action" type="button" onClick={onBack}>
+          <HomeOpsIcon name="arrowBack" />
+          <span>Back to Home</span>
+        </button>
+      </nav>
       <header
         className="family-member-hero child-progress-hero"
         style={{ "--member-color": member.displayColor } as CSSProperties}
@@ -203,6 +208,7 @@ export function FamilyMemberPage({
               status={status}
               submit={submit}
               requestRemove={requestRemove}
+              onAddFamilyMember={onAddFamilyMember}
               onEditAvatar={() => setIsEditingAvatar(true)}
             />
           )}
@@ -248,6 +254,7 @@ export function FamilyMemberPage({
             status={status}
             submit={submit}
             requestRemove={requestRemove}
+            onAddFamilyMember={onAddFamilyMember}
             onEditAvatar={() => setIsEditingAvatar(true)}
           />
         </>
@@ -271,6 +278,7 @@ function ParentAdministration({
   status,
   submit,
   requestRemove,
+  onAddFamilyMember,
   onEditAvatar,
 }: {
   member: FamilyMember;
@@ -279,6 +287,7 @@ function ParentAdministration({
   status: string | null;
   submit: (event: FormEvent) => void;
   requestRemove: () => void;
+  onAddFamilyMember?: () => void;
   onEditAvatar: () => void;
 }) {
   return (
@@ -295,9 +304,21 @@ function ParentAdministration({
             the child experience can stay encouraging first.
           </p>
         </div>
-        <button type="button" onClick={onEditAvatar}>
-          Edit avatar
-        </button>
+        <div className="parent-administration-actions">
+          {onAddFamilyMember ? (
+            <button
+              className="compact-header-action"
+              type="button"
+              onClick={onAddFamilyMember}
+            >
+              <HomeOpsIcon name="add" />
+              <span>Add Family Member</span>
+            </button>
+          ) : null}
+          <button type="button" onClick={onEditAvatar}>
+            Edit avatar
+          </button>
+        </div>
       </div>
       <div className="family-member-detail-grid parent-administration-grid">
         <article className="family-member-detail-card">

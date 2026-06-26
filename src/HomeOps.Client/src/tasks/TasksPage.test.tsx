@@ -130,9 +130,10 @@ describe("TasksPage hierarchy compaction", () => {
 
     expect(await screen.findByText("Return library books")).not.toBeNull();
     expect(container.textContent?.indexOf("Return library books")).toBeLessThan(
-      container.textContent?.indexOf("Add family task") ?? -1,
+      container.textContent?.indexOf("Routine starters") ?? -1,
     );
-    expect(screen.queryByLabelText("Add family task")).toBeNull();
+    expect(screen.getByLabelText("Task primary action")).not.toBeNull();
+    expect(screen.getByLabelText("Task planning actions")).not.toBeNull();
     expect(screen.queryByText("Morning Routine")).toBeNull();
   });
 

@@ -172,9 +172,9 @@ export function WorkspaceShell() {
           </header>
         )}
         {activeFamilyMember ? (
-          <FamilyMemberPage member={activeFamilyMember} onBack={() => setActiveFamilyMemberId(null)} onChange={updateFamilyMember} onRemove={deleteFamilyMember} />
+          <FamilyMemberPage member={activeFamilyMember} onAddFamilyMember={() => setIsAddingMember(true)} onBack={() => setActiveFamilyMemberId(null)} onChange={updateFamilyMember} onRemove={deleteFamilyMember} />
         ) : activeWorkspace.id === 'home' ? (
-          <HomeDashboard members={members} onNavigate={navigateWorkspace} onSelectFamilyMember={setActiveFamilyMemberId} onAddFamilyMember={() => setIsAddingMember(true)} />
+          <HomeDashboard members={members} onNavigate={navigateWorkspace} onSelectFamilyMember={setActiveFamilyMemberId} />
         ) : activeWorkspace.id === 'tasks' ? (
           <TasksPage members={members} onOpenWeeklyReset={() => navigateWorkspace('weeklyReset')} />
         ) : activeWorkspace.id === 'motivation' ? (
