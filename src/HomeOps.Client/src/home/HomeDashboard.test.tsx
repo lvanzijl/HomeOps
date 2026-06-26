@@ -359,8 +359,9 @@ describe("HomeDashboard", () => {
 
     expect(screen.queryByLabelText("Quick capture")).toBeNull();
     await user.click(screen.getByRole("button", { name: "Add shopping item" }));
-    await user.type(screen.getByLabelText("Shopping item"), "Oat milk");
-    await user.click(screen.getByRole("button", { name: "Save" }));
+    expect(screen.getByRole("dialog", { name: "Add shopping item from Home" })).not.toBeNull();
+    await user.type(screen.getByLabelText("What do we need?"), "Oat milk");
+    await user.click(screen.getByRole("button", { name: "Add it" }));
 
     const lists = await listsApi();
     expect(lists.loadShoppingList).toHaveBeenCalled();
@@ -373,7 +374,7 @@ describe("HomeDashboard", () => {
       await screen.findByText("Added Oat milk to Shopping."),
     ).not.toBeNull();
 
-    expect(screen.queryByLabelText("Shopping item")).toBeNull();
+    expect(screen.queryByLabelText("What do we need?")).toBeNull();
 
     const tasks = await tasksApi();
     vi.mocked(tasks.createTask).mockResolvedValue({
@@ -388,18 +389,23 @@ describe("HomeDashboard", () => {
       updatedUtc: "2026-06-19T08:30:00.000Z",
     });
     await user.click(screen.getByRole("button", { name: "Add task" }));
-    await user.type(screen.getByLabelText("Task"), "Sweep hallway");
-    await user.click(screen.getByRole("button", { name: "Save" }));
-    expect(tasks.createTask).toHaveBeenCalledWith({ title: "Sweep hallway", dueDate: "2026-06-19" });
+    await user.type(screen.getByLabelText("What needs to be done?"), "Sweep hallway");
+    await user.click(screen.getByRole("button", { name: "Next" }));
+    await user.click(screen.getByRole("button", { name: "Decide later" }));
+    expect(tasks.createTask).toHaveBeenCalledWith({
+      title: "Sweep hallway",
+      dueDate: "2026-06-19",
+      ownershipKind: "Unassigned",
+    });
     expect(await screen.findByText("Added Sweep hallway to Tasks.")).not.toBeNull();
 
     await user.click(screen.getByRole("button", { name: "Add agenda event" }));
     expect(
       screen.getByRole("dialog", { name: "Add event from Home" }),
     ).not.toBeNull();
-    await user.type(screen.getByLabelText("What"), "Swimming lesson");
-    await user.selectOptions(screen.getByLabelText("When"), "tomorrow");
-    await user.click(screen.getByRole("button", { name: "Save" }));
+    await user.type(screen.getByLabelText("What is happening?"), "Swimming lesson");
+    await user.click(screen.getByRole("button", { name: "Next" }));
+    await user.click(screen.getByRole("button", { name: "Tomorrow" }));
 
     const agenda = await agendaApi();
     expect(agenda.createCalendarAgendaEvent).toHaveBeenCalledWith(
@@ -409,6 +415,27 @@ describe("HomeDashboard", () => {
       await screen.findByText("Added Swimming lesson to Agenda."),
     ).not.toBeNull();
   });
+
+  it("keeps Home quick-capture dialogs keyboard dismissible", async () => {
+    const user = userEvent.setup();
+    render(
+      <HomeDashboard
+        members={familyMembers}
+        onNavigate={vi.fn()}
+        onSelectFamilyMember={vi.fn()}
+        onAddFamilyMember={vi.fn()}
+      />,
+    );
+    await screen.findByText("Event 1");
+
+    await user.click(screen.getByRole("button", { name: "Add task" }));
+    expect(screen.getByRole("dialog", { name: "Add task from Home" })).not.toBeNull();
+
+    await user.keyboard("{Escape}");
+
+    expect(screen.queryByRole("dialog", { name: "Add task from Home" })).toBeNull();
+  });
+
 });
 
 describe("HomeDashboard empty states", () => {

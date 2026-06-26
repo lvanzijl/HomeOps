@@ -87,6 +87,9 @@ export function HomeDashboard({
   const [shoppingText, setShoppingText] = useState("");
   const [eventTitle, setEventTitle] = useState("");
   const [taskTitle, setTaskTitle] = useState("");
+  const [taskOwnerId, setTaskOwnerId] = useState("unassigned");
+  const [taskCaptureStep, setTaskCaptureStep] = useState<"title" | "owner">("title");
+  const [eventCaptureStep, setEventCaptureStep] = useState<"title" | "when">("title");
   const [eventWhen, setEventWhen] = useState<"today" | "tomorrow" | "pick">(
     "today",
   );
@@ -222,8 +225,16 @@ export function HomeDashboard({
     const trimmed = taskTitle.trim();
     if (!trimmed) return;
     try {
-      await createTask({ title: trimmed, dueDate: toDateInputValue(now) });
+      const submitter = (event.nativeEvent as SubmitEvent).submitter as HTMLElement | null;
+      const ownerId = submitter?.dataset.owner ?? taskOwnerId;
+      await createTask({
+        title: trimmed,
+        dueDate: toDateInputValue(now),
+        ...taskOwnerInput(ownerId),
+      });
       setTaskTitle("");
+      setTaskOwnerId("unassigned");
+      setTaskCaptureStep("title");
       setIsTaskCaptureOpen(false);
       setQuickStatus(`Added ${trimmed} to Tasks.`);
       await refreshHomeData();
@@ -238,13 +249,17 @@ export function HomeDashboard({
     const trimmed = eventTitle.trim();
     if (!trimmed) return;
     try {
-      const startsAt = quickEventDate(eventWhen, eventDate, now);
+      const submitter = (event.nativeEvent as SubmitEvent).submitter as HTMLElement | null;
+      const when = (submitter?.dataset.when as "today" | "tomorrow" | "pick" | undefined) ?? eventWhen;
+      const startsAt = quickEventDate(when, eventDate, now);
       await createCalendarAgendaEvent({
         title: trimmed,
         startsAt: startsAt.toISOString(),
         allDay: true,
       });
       setEventTitle("");
+      setEventCaptureStep("title");
+      setEventWhen("today");
       setIsEventCaptureOpen(false);
       setQuickStatus(`Added ${trimmed} to Agenda.`);
       await refreshHomeData();
@@ -626,17 +641,17 @@ export function HomeDashboard({
           onClick={() => setIsShoppingCaptureOpen(false)}
         >
           <section
-            className="home-capture-dialog"
+            className="home-capture-dialog home-conversation-dialog"
             role="dialog"
             aria-modal="true"
             aria-label="Add shopping item from Home"
             onClick={(event) => event.stopPropagation()}
           >
             <header>
-              <div>
+              <div className="home-conversation-heading">
                 <p className="eyebrow">Quick capture</p>
                 <h3>Add shopping item</h3>
-                <p>Save one item to the Shopping list.</p>
+                <p>One thing now. More list details can wait for Lists.</p>
               </div>
               <button
                 type="button"
@@ -648,21 +663,25 @@ export function HomeDashboard({
               </button>
             </header>
             <form
-              className="home-quick-form event-dialog-form"
+              className="home-quick-form home-conversation-form event-dialog-form"
               onSubmit={handleShoppingSubmit}
             >
-              <label htmlFor="home-shopping-capture">Shopping item</label>
-              <div className="home-quick-row">
-                <input
-                  id="home-shopping-capture"
-                  autoFocus
-                  list="home-shopping-suggestions"
-                  value={shoppingText}
-                  onChange={(event) => setShoppingText(event.target.value)}
-                  placeholder="Milk"
-                  aria-label="Shopping item"
-                />
-                <button type="submit">Save</button>
+              <div className="home-conversation-panel">
+                <label className="home-question-label" htmlFor="home-shopping-capture">
+                  What do we need?
+                </label>
+                <div className="home-quick-row">
+                  <input
+                    id="home-shopping-capture"
+                    autoFocus
+                    list="home-shopping-suggestions"
+                    value={shoppingText}
+                    onChange={(event) => setShoppingText(event.target.value)}
+                    placeholder="Milk"
+                    aria-label="What do we need?"
+                  />
+                  <button type="submit">Add it</button>
+                </div>
               </div>
               <datalist id="home-shopping-suggestions">
                 {history
@@ -692,17 +711,17 @@ export function HomeDashboard({
           onClick={() => setIsTaskCaptureOpen(false)}
         >
           <section
-            className="home-capture-dialog"
+            className="home-capture-dialog home-conversation-dialog"
             role="dialog"
             aria-modal="true"
             aria-label="Add task from Home"
             onClick={(event) => event.stopPropagation()}
           >
             <header>
-              <div>
+              <div className="home-conversation-heading">
                 <p className="eyebrow">Quick capture</p>
                 <h3>Add task</h3>
-                <p>Save a simple task for today.</p>
+                <p>Due today by default. Fine-tune it later in Tasks.</p>
               </div>
               <button
                 type="button"
@@ -714,21 +733,67 @@ export function HomeDashboard({
               </button>
             </header>
             <form
-              className="home-quick-form event-dialog-form"
+              className="home-quick-form home-conversation-form event-dialog-form"
               onSubmit={handleTaskSubmit}
             >
-              <label htmlFor="home-task-title">Task</label>
-              <div className="home-quick-row">
-                <input
-                  id="home-task-title"
-                  autoFocus
-                  value={taskTitle}
-                  onChange={(event) => setTaskTitle(event.target.value)}
-                  placeholder="Empty dishwasher"
-                  aria-label="Task"
-                />
-                <button type="submit">Save</button>
-              </div>
+              {taskCaptureStep === "title" ? (
+                <div className="home-conversation-panel">
+                  <label className="home-question-label" htmlFor="home-task-title">
+                    What needs to be done?
+                  </label>
+                  <div className="home-quick-row">
+                    <input
+                      id="home-task-title"
+                      autoFocus
+                      value={taskTitle}
+                      onChange={(event) => setTaskTitle(event.target.value)}
+                      placeholder="Empty dishwasher"
+                      aria-label="What needs to be done?"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (taskTitle.trim()) setTaskCaptureStep("owner");
+                      }}
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="home-conversation-panel">
+                  <fieldset className="task-choice-group home-choice-group">
+                    <legend>Who should do it?</legend>
+                    <button
+                      type="submit"
+                      data-owner="unassigned"
+                      className={taskOwnerId === "unassigned" ? "selected" : ""}
+                      onClick={() => setTaskOwnerId("unassigned")}
+                    >
+                      Decide later
+                    </button>
+                    <button
+                      type="submit"
+                      data-owner="shared"
+                      className={taskOwnerId === "shared" ? "selected" : ""}
+                      onClick={() => setTaskOwnerId("shared")}
+                    >
+                      Everyone
+                    </button>
+                    {members.map((member) => (
+                      <button
+                        key={member.id}
+                        type="submit"
+                        data-owner={member.id}
+                        className={taskOwnerId === member.id ? "selected" : ""}
+                        onClick={() => setTaskOwnerId(member.id)}
+                      >
+                        {member.name}
+                      </button>
+                    ))}
+                  </fieldset>
+                </div>
+              )}
             </form>
           </section>
         </div>
@@ -741,17 +806,17 @@ export function HomeDashboard({
           onClick={() => setIsEventCaptureOpen(false)}
         >
           <section
-            className="home-capture-dialog"
+            className="home-capture-dialog home-conversation-dialog"
             role="dialog"
             aria-modal="true"
             aria-label="Add event from Home"
             onClick={(event) => event.stopPropagation()}
           >
             <header>
-              <div>
+              <div className="home-conversation-heading">
                 <p className="eyebrow">Quick capture</p>
                 <h3>Add event</h3>
-                <p>Save a simple all-day event without leaving Home.</p>
+                <p>Quick all-day note. Agenda has the full details.</p>
               </div>
               <button
                 type="button"
@@ -763,48 +828,76 @@ export function HomeDashboard({
               </button>
             </header>
             <form
-              className="home-quick-form event-dialog-form"
+              className="home-quick-form home-conversation-form event-dialog-form"
               onSubmit={handleCalendarSubmit}
             >
-              <label htmlFor="home-event-title">Event</label>
-              <div className="home-quick-row">
-                <input
-                  id="home-event-title"
-                  autoFocus
-                  value={eventTitle}
-                  onChange={(event) => setEventTitle(event.target.value)}
-                  placeholder="Swimming lesson"
-                  aria-label="What"
-                />
-                <select
-                  value={eventWhen}
-                  onChange={(event) =>
-                    setEventWhen(
-                      event.target.value as "today" | "tomorrow" | "pick",
-                    )
-                  }
-                  aria-label="When"
-                >
-                  <option value="today">Today</option>
-                  <option value="tomorrow">Tomorrow</option>
-                  <option value="pick">Pick date</option>
-                </select>
-                {eventWhen === "pick" ? (
-                  <input
-                    type="date"
-                    value={eventDate}
-                    onChange={(event) => setEventDate(event.target.value)}
-                    aria-label="Pick date"
-                  />
-                ) : null}
-                <button type="submit">Save</button>
-              </div>
+              {eventCaptureStep === "title" ? (
+                <div className="home-conversation-panel">
+                  <label className="home-question-label" htmlFor="home-event-title">
+                    What is happening?
+                  </label>
+                  <div className="home-quick-row">
+                    <input
+                      id="home-event-title"
+                      autoFocus
+                      value={eventTitle}
+                      onChange={(event) => setEventTitle(event.target.value)}
+                      placeholder="Swimming lesson"
+                      aria-label="What is happening?"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (eventTitle.trim()) setEventCaptureStep("when");
+                      }}
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="home-conversation-panel">
+                  <fieldset className="task-choice-group home-choice-group horizontal">
+                    <legend>When?</legend>
+                    <button type="submit" data-when="today" onClick={() => setEventWhen("today")}>
+                      Today
+                    </button>
+                    <button type="submit" data-when="tomorrow" onClick={() => setEventWhen("tomorrow")}>
+                      Tomorrow
+                    </button>
+                    <button
+                      type="button"
+                      className={eventWhen === "pick" ? "selected" : ""}
+                      onClick={() => setEventWhen("pick")}
+                    >
+                      Pick date
+                    </button>
+                  </fieldset>
+                  {eventWhen === "pick" ? (
+                    <div className="home-quick-row">
+                      <input
+                        type="date"
+                        value={eventDate}
+                        onChange={(event) => setEventDate(event.target.value)}
+                        aria-label="Pick date"
+                      />
+                      <button type="submit" data-when="pick">Add it</button>
+                    </div>
+                  ) : null}
+                </div>
+              )}
             </form>
           </section>
         </div>
       ) : null}
     </section>
   );
+}
+
+function taskOwnerInput(ownerId: string) {
+  if (ownerId === "shared") return { ownershipKind: "SharedHousehold" as const };
+  if (ownerId === "unassigned") return { ownershipKind: "Unassigned" as const };
+  return { ownershipKind: "FamilyMember" as const, familyMemberId: ownerId };
 }
 
 function HomeCardActions({
