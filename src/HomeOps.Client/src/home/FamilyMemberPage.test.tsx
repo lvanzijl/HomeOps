@@ -282,6 +282,29 @@ describe("FamilyMemberPage", () => {
     expect(screen.getAllByText("Board game night").length).toBeGreaterThan(0);
   });
 
+  it("surfaces Add Family Member only in parent administration", async () => {
+    const user = userEvent.setup();
+    const onAddFamilyMember = vi.fn();
+    render(
+      <FamilyMemberPage
+        member={familyMembers[2]}
+        onAddFamilyMember={onAddFamilyMember}
+        onBack={vi.fn()}
+        onChange={vi.fn()}
+        onRemove={vi.fn()}
+      />,
+    );
+
+    expect(
+      screen.queryByRole("button", { name: "Add Family Member" }),
+    ).toBeNull();
+
+    await user.click(screen.getByRole("tab", { name: "Parent Mode" }));
+    await user.click(screen.getByRole("button", { name: "Add Family Member" }));
+
+    expect(onAddFamilyMember).toHaveBeenCalledOnce();
+  });
+
   it("opens Parent Mode for child administration without making it the landing content", async () => {
     const user = userEvent.setup();
     render(
