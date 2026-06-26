@@ -201,7 +201,7 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
     <article className="widget-card agenda-widget" aria-label={instance.title}>
       <div className="agenda-header">
         <div>
-          <p className="widget-type">Agenda Widget</p>
+          <p className="widget-type">Family agenda</p>
           <h3>{instance.title}</h3>
         </div>
         <div className="agenda-view-toggle" aria-label="Agenda view selector">

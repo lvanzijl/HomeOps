@@ -24,7 +24,13 @@
   --elevation-warm-1: 0 12px 32px rgb(120 90 60 / 10%);
   --elevation-emotional-1: 0 18px 48px
     color-mix(in srgb, var(--domain-accent, #f97316) 12%, transparent);
-  --elevation-dialog: 0 24px 80px rgb(23 32 51 / 24%);
+  --elevation-dialog: 0 28px 90px color-mix(in srgb, var(--domain-accent, #7c3aed) 18%, rgb(23 32 51 / 24%));
+  --radius-card: 1.25rem;
+  --radius-dialog: 1.75rem;
+  --radius-panel: 1rem;
+  --space-card: 1rem;
+  --motion-fast: 140ms ease;
+  --motion-dialog: 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
   --domain-accent: var(--color-brand-accent);
   --domain-accent-strong: var(--color-brand-accent-strong);
   --domain-tint: var(--surface-default);
@@ -111,9 +117,9 @@ button {
 .workspace-nav-button,
 .workspace-panel {
   border: 1px solid var(--border-default);
-  border-radius: 1rem;
+  border-radius: var(--radius-card);
   background: var(--surface-default);
-  box-shadow: var(--elevation-2);
+  box-shadow: var(--elevation-1);
 }
 
 .workspace-nav-button {
@@ -196,9 +202,10 @@ button {
 
 .widget-card {
   border: 1px solid var(--border-default);
-  border-radius: 0.875rem;
-  background: var(--surface-subtle);
-  padding: 0.8rem;
+  border-radius: var(--radius-card);
+  background: var(--surface-warm);
+  box-shadow: var(--elevation-warm-1);
+  padding: var(--space-card);
 }
 
 .widget-card h3 {
@@ -443,7 +450,7 @@ button {
   font-weight: 800;
 }
 
-.weather-placeholder {
+.weather-connection-note {
   color: var(--color-text-muted);
   font-size: 0.8rem;
   font-weight: 700;
@@ -568,10 +575,10 @@ button {
 .home-summary-card {
   background: var(--surface-warm);
   border: 1px solid var(--border-warm);
-  border-radius: 1.25rem;
+  border-radius: var(--radius-card);
   box-shadow: var(--elevation-warm-1);
   cursor: pointer;
-  padding: 1rem;
+  padding: var(--space-card);
 }
 
 .home-card-header {
@@ -633,10 +640,10 @@ button {
 
 .home-summary-list li {
   background: rgb(255 255 255 / 72%);
-  border-radius: 0.9rem;
+  border-radius: var(--radius-panel);
   display: grid;
-  gap: 0.2rem;
-  padding: 0.55rem;
+  gap: 0.25rem;
+  padding: 0.6rem;
 }
 
 .agenda-summary .home-summary-list li:first-child {
@@ -862,7 +869,7 @@ button {
 
 .avatar-editor-backdrop {
   align-items: center;
-  animation: dialog-backdrop-in 160ms ease-out;
+  animation: dialog-backdrop-in var(--motion-dialog);
   backdrop-filter: blur(10px);
   background: color-mix(
     in srgb,
@@ -881,7 +888,7 @@ button {
   background: var(--surface-warm-tint);
   border: 1px solid #f1dcc4;
   border-radius: 1.5rem;
-  box-shadow: 0 24px 70px rgb(23 32 51 / 24%);
+  box-shadow: var(--elevation-dialog);
   max-width: 44rem;
   padding: 1rem;
   width: min(100%, 44rem);
@@ -1234,16 +1241,15 @@ button {
 .home-capture-dialog,
 .task-dialog,
 .motivation-dialog {
-  animation: dialog-card-in 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  animation: dialog-card-in var(--motion-dialog);
   background: linear-gradient(
     135deg,
     color-mix(in srgb, var(--domain-tint, var(--surface-emotional)) 65%, white),
     var(--surface-default) 72%
   );
   border: 1px solid var(--domain-border, var(--border-emotional));
-  border-radius: 1.75rem;
-  box-shadow: 0 28px 90px
-    color-mix(in srgb, var(--domain-accent, #7c3aed) 18%, rgb(23 32 51 / 24%));
+  border-radius: var(--radius-dialog);
+  box-shadow: var(--elevation-dialog);
   display: grid;
   gap: 1rem;
   max-height: min(90vh, 44rem);
@@ -1328,7 +1334,7 @@ button {
 }
 
 .home-conversation-panel {
-  animation: task-question-in 170ms ease-out;
+  animation: task-question-in var(--motion-dialog);
   display: grid;
   gap: 0.75rem;
   min-height: 7rem;
@@ -1377,7 +1383,7 @@ button {
 .family-goal-form {
   background: var(--surface-review);
   border: 1px solid var(--domain-border, var(--border-emotional));
-  border-radius: 1.35rem;
+  border-radius: var(--radius-card);
   box-shadow: var(--elevation-emotional-1);
   padding: 0.8rem;
 }
@@ -1603,7 +1609,7 @@ button {
 .compact-overview-section {
   background: rgba(255, 255, 255, 0.82);
   border: 1px solid var(--domain-border, var(--border-emotional));
-  border-radius: 1.35rem;
+  border-radius: var(--radius-card);
   box-shadow: 0 14px 34px
     color-mix(in srgb, var(--domain-accent, #f97316) 8%, transparent);
   padding: 1rem;
@@ -1839,7 +1845,7 @@ button {
   background: rgba(255, 255, 255, 0.92);
   border: 1px solid
     color-mix(in srgb, var(--member-color, #facc15) 35%, var(--border-warm));
-  border-radius: 1.35rem;
+  border-radius: var(--radius-card);
   box-shadow: 0 16px 40px rgb(120 90 60 / 10%);
   padding: 1rem;
 }
@@ -2014,7 +2020,7 @@ button {
   grid-template-columns: auto 1fr;
   gap: 0.85rem;
   padding: 1rem;
-  border-radius: 24px;
+  border-radius: var(--radius-card);
   background: rgba(255, 255, 255, 0.92);
   border: 1px solid rgba(251, 191, 36, 0.26);
   box-shadow:
@@ -2123,7 +2129,7 @@ button {
   grid-template-columns: auto 1fr;
   gap: 0.85rem;
   padding: 1rem;
-  border-radius: 24px;
+  border-radius: var(--radius-card);
   background: rgba(255, 255, 255, 0.92);
   border: 1px solid rgba(251, 191, 36, 0.26);
   box-shadow:
@@ -2179,7 +2185,7 @@ button {
 
 .task-templates-panel {
   border: 1px solid var(--domain-border, #99f6e4);
-  border-radius: 24px;
+  border-radius: var(--radius-card);
   background: rgba(255, 255, 255, 0.72);
   padding: 1rem;
   display: grid;
@@ -2262,7 +2268,7 @@ button {
 .parent-administration {
   background: rgba(248, 250, 252, 0.76);
   border: 1px dashed #cbd5e1;
-  border-radius: 1.35rem;
+  border-radius: var(--radius-card);
   display: grid;
   gap: 1rem;
   padding: 1rem;
@@ -2412,7 +2418,7 @@ button {
   align-content: center;
   background: rgba(255, 255, 255, 0.72);
   border: 1px solid rgba(251, 146, 60, 0.24);
-  border-radius: 1.35rem;
+  border-radius: var(--radius-card);
   padding: 1rem;
 }
 .child-hero-family strong {
@@ -2587,7 +2593,7 @@ button {
   display: grid;
   gap: 1rem;
   border: 1px solid rgba(245, 158, 11, 0.22);
-  border-radius: 24px;
+  border-radius: var(--radius-card);
   padding: 1.25rem;
   background: linear-gradient(
     135deg,
@@ -2807,7 +2813,7 @@ button {
 
 .task-management-section {
   border: 1px solid rgba(148, 163, 184, 0.28);
-  border-radius: 24px;
+  border-radius: var(--radius-card);
   background: rgba(248, 250, 252, 0.8);
   padding: 1rem;
 }
@@ -2839,7 +2845,7 @@ button {
 }
 
 .task-conversation-panel {
-  animation: task-question-in 170ms ease-out;
+  animation: task-question-in var(--motion-dialog);
   display: grid;
   gap: 0.75rem;
   min-height: 9rem;
@@ -2907,7 +2913,7 @@ button {
 .task-dialog-summary {
   background: rgba(255, 255, 255, 0.72);
   border: 1px solid var(--domain-border, #99f6e4);
-  border-radius: 1rem;
+  border-radius: var(--radius-panel);
   color: #475569;
   font-weight: 700;
   padding: 0.7rem;
@@ -3347,7 +3353,7 @@ button {
 }
 
 .helpful-moment-dialog {
-  width: min(100%, 32rem);
+  width: min(100%, 34rem);
 }
 
 .helpful-moment-conversation {
@@ -3368,7 +3374,7 @@ button {
 
 .helpful-dialog-question h4 {
   color: #7c2d12;
-  font-size: 1.35rem;
+  font-size: 1.05rem;
   margin: 0;
 }
 
@@ -3383,7 +3389,7 @@ button {
   align-items: center;
   background: rgba(255, 255, 255, 0.78);
   border: 1px solid rgba(251, 191, 36, 0.34);
-  border-radius: 1.35rem;
+  border-radius: var(--radius-card);
   box-shadow: 0 14px 30px rgba(146, 64, 14, 0.08);
   color: #7c2d12;
   cursor: pointer;
@@ -3428,7 +3434,7 @@ button {
 .helpful-review {
   background: rgba(255, 255, 255, 0.7);
   border: 1px solid rgba(251, 191, 36, 0.24);
-  border-radius: 1.35rem;
+  border-radius: var(--radius-card);
   padding: 1rem;
 }
 
