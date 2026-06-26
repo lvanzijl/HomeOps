@@ -119,7 +119,7 @@ describe("FamilyMemberPage", () => {
     ]);
   });
 
-  it("renders member management details without legacy avatar configuration fields", () => {
+  it("renders parent settings without legacy avatar configuration fields", () => {
     render(
       <FamilyMemberPage
         member={familyMembers[0]}
@@ -130,10 +130,10 @@ describe("FamilyMemberPage", () => {
     );
 
     expect(screen.getByLabelText("Alex family member page")).not.toBeNull();
-    expect(screen.getByText("Edit member")).not.toBeNull();
-    expect(screen.getAllByText("Date of birth").length).toBeGreaterThan(0);
-    expect(screen.getByRole("heading", { name: "Avatar" })).not.toBeNull();
-    expect(screen.getByText(/family avatar is set/)).not.toBeNull();
+    expect(screen.getByText("Personal details")).not.toBeNull();
+    expect(screen.getAllByText("Birthday").length).toBeGreaterThan(0);
+    expect(screen.getByRole("heading", { name: "Appearance" })).not.toBeNull();
+    expect(screen.getByText(/avatar appears across Home/)).not.toBeNull();
     expect(screen.queryByText("Current avatar configuration")).toBeNull();
     expect(screen.queryByText("Age group")).toBeNull();
     expect(screen.queryByText("Presentation")).toBeNull();
@@ -153,8 +153,11 @@ describe("FamilyMemberPage", () => {
       />,
     );
 
-    const avatar = screen.getByRole("img", { name: "Alex household avatar" });
-    expect(avatar.className).toContain("family-avatar-v2");
+    expect(
+      screen
+        .getAllByRole("img", { name: "Alex household avatar" })
+        .some((avatar) => avatar.className.includes("family-avatar-v2")),
+    ).toBe(true);
   });
 
   it("renders child progress with family and individual goals", async () => {
@@ -282,7 +285,7 @@ describe("FamilyMemberPage", () => {
     expect(screen.getAllByText("Board game night").length).toBeGreaterThan(0);
   });
 
-  it("surfaces Add Family Member only in parent administration", async () => {
+  it("surfaces Add Family Member only in Parent Mode household section", async () => {
     const user = userEvent.setup();
     const onAddFamilyMember = vi.fn();
     render(
@@ -305,7 +308,7 @@ describe("FamilyMemberPage", () => {
     expect(onAddFamilyMember).toHaveBeenCalledOnce();
   });
 
-  it("opens Parent Mode for child administration without making it the landing content", async () => {
+  it("opens Parent Mode grown-up settings without making it the landing content", async () => {
     const user = userEvent.setup();
     render(
       <FamilyMemberPage
@@ -317,13 +320,13 @@ describe("FamilyMemberPage", () => {
     );
 
     expect(screen.getByLabelText("Riley Child Mode")).not.toBeNull();
-    expect(screen.queryByLabelText("Parent administration")).toBeNull();
+    expect(screen.queryByLabelText("Riley grown-up settings")).toBeNull();
 
     await user.click(screen.getByRole("tab", { name: "Parent Mode" }));
 
-    expect(screen.getByLabelText("Parent administration")).not.toBeNull();
-    expect(screen.getByText("Edit member")).not.toBeNull();
-    expect(screen.getByRole("heading", { name: "Avatar" })).not.toBeNull();
+    expect(screen.getByLabelText("Riley grown-up settings")).not.toBeNull();
+    expect(screen.getByText("Personal details")).not.toBeNull();
+    expect(screen.getByRole("heading", { name: "Appearance" })).not.toBeNull();
     expect(screen.queryByText("Current avatar configuration")).toBeNull();
     expect(screen.queryByText("Skin tone")).toBeNull();
     expect(screen.getAllByRole("button", { name: "Edit avatar" }).length).toBeGreaterThan(0);
@@ -385,13 +388,13 @@ describe("FamilyMemberPage", () => {
 
     await user.clear(screen.getByLabelText("Name"));
     await user.type(screen.getByLabelText("Name"), "Alex Parent");
-    await user.selectOptions(screen.getByLabelText("Member type"), "child");
+    await user.selectOptions(screen.getByLabelText("Adult / Child"), "child");
     await user.click(screen.getByRole("button", { name: "Save details" }));
     expect(
       screen.getByText("Date of birth is required for children."),
     ).not.toBeNull();
 
-    await user.type(screen.getByLabelText("Date of birth"), "2015-05-06");
+    await user.type(screen.getByLabelText("Birthday"), "2015-05-06");
     await user.click(screen.getByRole("button", { name: "Save details" }));
     expect(onChange).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -415,7 +418,7 @@ describe("FamilyMemberPage", () => {
       />,
     );
 
-    await user.click(screen.getByRole("button", { name: "Remove member" }));
+    await user.click(screen.getByRole("button", { name: "Remove Family Member" }));
     expect(onRemove).toHaveBeenCalledWith(
       expect.objectContaining({ id: "alex" }),
     );
