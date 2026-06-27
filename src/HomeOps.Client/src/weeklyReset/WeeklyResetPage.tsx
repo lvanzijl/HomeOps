@@ -62,6 +62,8 @@ export function WeeklyResetPage() {
   const completedCount = reset.contributionRecap.completedTaskCount;
   const reviewCount = reset.reviewCandidates.length;
   const resetCount = reset.shoppingReviewCandidates.length + (reset.familyGoal ? 1 : 0) + reset.individualGoals.length;
+  const openChoiceCount = reviewCount + reset.shoppingReviewCandidates.length + (reset.familyGoal ? 1 : 0) + reset.individualGoals.length;
+  const isReadyForNextWeek = openChoiceCount === 0;
 
   return (
     <section className="weekly-reset-page" aria-labelledby="weekly-reset-title">
@@ -231,6 +233,18 @@ export function WeeklyResetPage() {
             </div>
           ))}
         </ReviewCard>
+      </section>
+      <section className={`reset-completion-card${isReadyForNextWeek ? " is-complete" : ""}`} aria-label="Afronding van het weekritueel">
+        <div>
+          <p className="eyebrow">Afronden</p>
+          <h3>{isReadyForNextWeek ? "Jullie zijn klaar voor volgende week" : "Rond samen af wanneer de keuzes helder zijn"}</h3>
+          <p>
+            {isReadyForNextWeek
+              ? "Alles wat aandacht vroeg is rustig bekeken. De week mag dicht; jullie kunnen met een helder hoofd aan de volgende beginnen."
+              : "Neem nog één rustig rondje langs de open keuzes. Daarna is het ritueel klaar en blijft alles bewust gekozen."}
+          </p>
+        </div>
+        <span className="reset-completion-badge" aria-hidden="true">{isReadyForNextWeek ? "✓" : "…"}</span>
       </section>
       <p role="status" className="reset-status">{status}</p>
     </section>

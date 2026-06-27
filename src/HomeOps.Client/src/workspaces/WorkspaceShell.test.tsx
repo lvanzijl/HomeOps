@@ -53,13 +53,13 @@ describe('WorkspaceShell API-backed layouts', () => {
     render(<WorkspaceShell />);
 
     await screen.findByText('Open Agenda');
-    const dailyWork = screen.getByLabelText('Everyday family places');
+    const dailyWork = screen.getByLabelText('Dagelijkse gezinsplekken');
     expect(within(dailyWork).getByRole('button', { name: 'Home' })).not.toBeNull();
     expect(within(dailyWork).getByRole('button', { name: 'Agenda' })).not.toBeNull();
-    expect(within(dailyWork).getByRole('button', { name: 'Tasks' })).not.toBeNull();
-    expect(within(dailyWork).getByRole('button', { name: 'Shopping' })).not.toBeNull();
-    expect(within(dailyWork).getByRole('button', { name: 'Motivation' })).not.toBeNull();
-    expect(within(dailyWork).queryByRole('button', { name: 'Settings' })).toBeNull();
+    expect(within(dailyWork).getByRole('button', { name: 'Taken' })).not.toBeNull();
+    expect(within(dailyWork).getByRole('button', { name: 'Boodschappen' })).not.toBeNull();
+    expect(within(dailyWork).getByRole('button', { name: 'Motivatie' })).not.toBeNull();
+    expect(within(dailyWork).queryByRole('button', { name: 'Instellingen' })).toBeNull();
     expect(within(dailyWork).queryByRole('button', { name: 'Weekritueel' })).toBeNull();
     expect(within(dailyWork).queryByRole('button', { name: 'Media' })).toBeNull();
     expect(within(dailyWork).queryByRole('button', { name: 'House Status' })).toBeNull();
@@ -81,10 +81,10 @@ describe('WorkspaceShell API-backed layouts', () => {
     render(<WorkspaceShell />);
 
     await screen.findByText('Open Agenda');
-    const administration = screen.getByLabelText('Household settings');
-    expect(within(administration).getByRole('button', { name: 'Settings for household setup' })).not.toBeNull();
+    const administration = screen.getByLabelText('Gezinsinstellingen');
+    expect(within(administration).getByRole('button', { name: 'Instellingen voor gezinsinstellingen' })).not.toBeNull();
 
-    await user.click(within(administration).getByRole('button', { name: 'Settings for household setup' }));
+    await user.click(within(administration).getByRole('button', { name: 'Instellingen voor gezinsinstellingen' }));
     expect(await screen.findByText('Calendar Export / Restore')).not.toBeNull();
   });
 
@@ -93,7 +93,7 @@ describe('WorkspaceShell API-backed layouts', () => {
     render(<WorkspaceShell />);
 
     await screen.findByText('Open Agenda');
-    await user.click(screen.getByRole('button', { name: 'Tasks' }));
+    await user.click(screen.getByRole('button', { name: 'Taken' }));
     await user.click(await screen.findByRole('button', { name: 'Gezinsreset openen' }));
     expect(await screen.findByRole('heading', { name: 'Weekritueel' })).not.toBeNull();
 
@@ -109,7 +109,7 @@ describe('WorkspaceShell API-backed layouts', () => {
     const shell = screen.getByLabelText('Workspace shell');
     expect(shell.className).toContain('domain-home');
 
-    await user.click(screen.getByRole('button', { name: 'Tasks' }));
+    await user.click(screen.getByRole('button', { name: 'Taken' }));
     expect(shell.className).toContain('domain-tasks');
   });
 });

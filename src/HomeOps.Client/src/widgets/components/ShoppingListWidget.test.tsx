@@ -70,7 +70,7 @@ describe('ShoppingListWidget API-backed behavior', () => {
     const listsApi = await mockedListsApi();
     render(<ShoppingListWidget {...widgetProps} />);
     await screen.findAllByText('Bread');
-    const quickAddForm = screen.getByRole('form', { name: 'Voeg item toe aan Shopping' });
+    const quickAddForm = screen.getByRole('form', { name: 'Voeg item toe aan Boodschappen' });
     await user.type(within(quickAddForm).getByPlaceholderText('Voeg toe, bijvoorbeeld melk'), 'Apples');
     await user.click(within(quickAddForm).getByRole('button', { name: 'Toevoegen' }));
     expect(listsApi.addShoppingListItem).toHaveBeenCalledWith(apiClient, 'shopping-list-id', 'Apples');
@@ -143,8 +143,8 @@ describe('ShoppingListWidget API-backed behavior', () => {
     render(<ShoppingListWidget {...widgetProps} />);
 
     const bread = (await screen.findAllByText('Bread'))[0];
-    const quickAddForm = screen.getByRole('form', { name: 'Voeg item toe aan Shopping' });
-    const shoppingSurface = screen.getByLabelText('Shopping beheer');
+    const quickAddForm = screen.getByRole('form', { name: 'Voeg item toe aan Boodschappen' });
+    const shoppingSurface = screen.getByLabelText('Boodschappen beheer');
     const listSettings = within(shoppingSurface).getByText('Lijst beheren');
     expect(quickAddForm).not.toBeNull();
     expect(bread.compareDocumentPosition(listSettings) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
@@ -174,7 +174,7 @@ describe('ShoppingListWidget API-backed behavior', () => {
     vi.mocked(listsApi.loadShoppingPageLists).mockResolvedValueOnce({ shoppingList: { listId: null, name: 'Shopping', items: [] }, otherLists: [] });
     render(<ShoppingListWidget {...widgetProps} />);
 
-    await user.click(await screen.findByRole('button', { name: 'Maak Shopping lijst' }));
+    await user.click(await screen.findByRole('button', { name: 'Maak boodschappenlijst' }));
 
     expect(listsApi.createShoppingList).toHaveBeenCalledWith(apiClient);
     expect(await screen.findByRole('link', { name: 'Voeg meteen iets toe.' })).not.toBeNull();
