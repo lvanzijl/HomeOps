@@ -449,3 +449,8 @@ Agenda Event Indicators replaces month-cell count text with frontend-derived typ
 - Added a compact Vandaag orientation summary from existing frontend task data.
 - Reduced Afgerond visual weight with a collapsed history presentation while preserving reopen behavior.
 - Kept task completion, Morgen, recurrence, Weekly Reset, backend, API contracts, and database schema unchanged.
+
+
+### FamilyBoard Final MVP Polish — Completed 2026-06-27
+- Added a subtle Weekly Reset closure moment, Shopping density polish, Dutch shell/copy consistency, and action styling alignment without backend, API, schema, workflow, or navigation-architecture changes.
+- Browser validation covered Home, Motivation, Agenda, Tasks, Shopping, and Weekly Reset at 1366×768 and 1920×1080.

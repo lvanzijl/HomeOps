@@ -124,13 +124,13 @@ export function WorkspaceShell() {
   const widgetInstances = activeWorkspace.id === 'agenda'
     ? [{ id: 'agenda-page', widgetDefinitionId: 'agenda-mvp', title: 'Agenda', settings: {} }]
     : activeWorkspace.id === 'lists'
-      ? [{ id: 'lists-page', widgetDefinitionId: 'shopping-list-mvp', title: 'Shopping', settings: {} }]
+      ? [{ id: 'lists-page', widgetDefinitionId: 'shopping-list-mvp', title: 'Boodschappen', settings: {} }]
       : widgetInstancesByWorkspace[activeWorkspace.id] ?? [];
 
   return (
     <section className={`workspace-shell ${activeDomainClass}`} aria-label="Workspace shell">
       <nav className="workspace-nav" aria-label="Workspace navigation">
-        <div className="workspace-primary-nav" aria-label="Everyday family places">
+        <div className="workspace-primary-nav" aria-label="Dagelijkse gezinsplekken">
           {primaryWorkspaceDefinitions.map((workspace) => (
           <button
             aria-current={workspace.id === activeWorkspace.id ? 'page' : undefined}
@@ -143,11 +143,11 @@ export function WorkspaceShell() {
           </button>
           ))}
         </div>
-        <div className="workspace-admin-nav" aria-label="Household settings">
+        <div className="workspace-admin-nav" aria-label="Gezinsinstellingen">
           {administrationWorkspaceDefinitions.map((workspace) => (
             <button
               aria-current={workspace.id === activeWorkspace.id ? 'page' : undefined}
-              aria-label={`${workspace.label} for household setup`}
+              aria-label={`${workspace.label} voor gezinsinstellingen`}
               className={`workspace-nav-button workspace-admin-button ${getDomainColorClass(workspace.id)}`}
               key={workspace.id}
               onClick={() => navigateWorkspace(workspace.id)}
@@ -165,7 +165,7 @@ export function WorkspaceShell() {
         {activeWorkspace.id === 'home' && !activeFamilyMember ? <h2 className="visually-hidden" id="active-workspace-title">Home</h2> : activeFamilyMember ? <h2 className="visually-hidden" id="active-workspace-title">{activeFamilyMember.name}</h2> : (
           <header className="workspace-page-header">
             <p className="workspace-position">
-              {activeWorkspaceIsPrimary ? 'Everyday family spot' : activeWorkspaceIsAdministration ? 'Household setup' : 'Familiecheck'}
+              {activeWorkspaceIsPrimary ? 'Dagelijkse gezinsplek' : activeWorkspaceIsAdministration ? 'Gezinsinstellingen' : 'Familiecheck'}
             </p>
             <h2 id="active-workspace-title">{activeWorkspace.label}</h2>
             <p>{activeWorkspace.description}</p>
@@ -202,7 +202,7 @@ export function WorkspaceShell() {
               return (
                 <article className="widget-card" key={instance.id}>
                   <h3>{instance.title}</h3>
-                  <p>This family space is not ready yet.</p>
+                  <p>Deze gezinsplek is nog niet klaar.</p>
                 </article>
               );
             }

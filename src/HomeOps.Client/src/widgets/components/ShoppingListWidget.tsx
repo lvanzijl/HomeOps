@@ -5,6 +5,10 @@ import { groupShoppingItemsByPreferredStore } from '../../shopping/shoppingGroup
 import { getActiveShoppingListItems, getCompletedShoppingListItems, getDeletedShoppingListItems, upsertShoppingListItem } from '../../shopping/shoppingListState';
 import type { WidgetRenderProps } from '../WidgetRenderer';
 
+function getDisplayListName(name: string) {
+  return name === 'Shopping' ? 'Boodschappen' : name;
+}
+
 export function ShoppingListWidget({ instance }: WidgetRenderProps) {
   const apiClient = useMemo(() => createListsApiClient(), []);
   const [shoppingList, setShoppingList] = useState<ShoppingListState>({ listId: null, name: 'Shopping', items: [] });
@@ -28,7 +32,7 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
         }
       } catch {
         if (!ignoreResult) {
-          setError('Lists could not be loaded.');
+          setError('Lijsten konden niet worden geladen.');
         }
       } finally {
         if (!ignoreResult) {
@@ -51,7 +55,7 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
       setShoppingList(created);
       setError(null);
     } catch {
-      setError('List could not be created.');
+      setError('Lijst kon niet worden gemaakt.');
     } finally {
       setIsCreatingList(false);
     }
@@ -94,7 +98,7 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
     <article className="widget-card shopping-widget shopping-workspace" aria-label={instance.title}>
       <header className="shopping-workspace-hero">
         <div className="shopping-hero-copy">
-          <p className="widget-type">Shopping</p>
+          <p className="widget-type">Boodschappen</p>
           <h3>Boodschappen</h3>
           <p>Schrijf het meteen op, winkel per winkel en vink af terwijl je onderweg bent.</p>
         </div>
@@ -117,7 +121,7 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
           <ListSurface
             apiClient={apiClient}
             list={shoppingList}
-            listFallbackName="Shopping"
+            listFallbackName="Boodschappen"
             onClearList={clearList}
             onError={setError}
             onReplaceList={replaceList}
@@ -132,7 +136,7 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
         <ListSurface
           apiClient={apiClient}
           list={shoppingList}
-          listFallbackName="Shopping"
+          listFallbackName="Boodschappen"
           onClearList={clearList}
           onError={setError}
           onReplaceList={replaceList}
@@ -145,7 +149,7 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
         <div className="empty-state-card page-empty-state shopping-start-card">
           <strong>Begin met je eerste boodschap</strong>
           <p>Deze werkruimte is bedoeld voor één snelle familielijst: bedenken, toevoegen, kopen en afvinken.</p>
-          {shoppingList.listId ? <a href="#shopping-new-item">Voeg meteen iets toe.</a> : <button disabled={isCreatingList} onClick={createFirstList} type="button">Maak Shopping lijst</button>}
+          {shoppingList.listId ? <a href="#shopping-new-item">Voeg meteen iets toe.</a> : <button disabled={isCreatingList} onClick={createFirstList} type="button">Maak boodschappenlijst</button>}
         </div>
       ) : null}
       {!isLoading && !error ? (
@@ -194,7 +198,7 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
         <ListSurface
           apiClient={apiClient}
           list={shoppingList}
-          listFallbackName="Shopping"
+          listFallbackName="Boodschappen"
           onClearList={clearList}
           onError={setError}
           onReplaceList={replaceList}
@@ -238,7 +242,7 @@ function ListSurface({ apiClient, list, listFallbackName, onClearList, onError, 
       if (createdItem) onUpdateItems(list.listId, (current) => upsertShoppingListItem(current, createdItem));
       setNewItemLabel('');
     } catch {
-      onError('Shopping item could not be added.');
+      onError('Boodschap kon niet worden toegevoegd.');
     }
   }
 
@@ -248,7 +252,7 @@ function ListSurface({ apiClient, list, listFallbackName, onClearList, onError, 
       const updatedItem = await toggleShoppingListItem(apiClient, list.listId, itemId);
       onUpdateItems(list.listId, (current) => upsertShoppingListItem(current, updatedItem));
     } catch {
-      onError('Shopping item could not be updated.');
+      onError('Boodschap kon niet worden bijgewerkt.');
     }
   }
 
@@ -258,7 +262,7 @@ function ListSurface({ apiClient, list, listFallbackName, onClearList, onError, 
       const updatedItem = await updateShoppingListItemStore(apiClient, list.listId, itemId, preferredStore);
       onUpdateItems(list.listId, (current) => upsertShoppingListItem(current, updatedItem));
     } catch {
-      onError('Shopping store could not be updated.');
+      onError('Winkel kon niet worden bijgewerkt.');
     }
   }
 
@@ -269,7 +273,7 @@ function ListSurface({ apiClient, list, listFallbackName, onClearList, onError, 
       onReplaceList(await renameShoppingList(apiClient, list.listId, listName));
       onError('');
     } catch {
-      onError('Shopping list could not be renamed.');
+      onError('Lijst kon niet worden hernoemd.');
     }
   }
 
@@ -280,7 +284,7 @@ function ListSurface({ apiClient, list, listFallbackName, onClearList, onError, 
       onClearList(list.listId);
       onError('');
     } catch {
-      onError('Shopping list could not be archived.');
+      onError('Lijst kon niet worden gearchiveerd.');
     }
   }
 
@@ -291,7 +295,7 @@ function ListSurface({ apiClient, list, listFallbackName, onClearList, onError, 
       onClearList(list.listId);
       onError('');
     } catch {
-      onError('Shopping list could not be deleted.');
+      onError('Lijst kon niet worden verwijderd.');
     }
   }
 
@@ -301,7 +305,7 @@ function ListSurface({ apiClient, list, listFallbackName, onClearList, onError, 
       const updatedItem = await removeShoppingListItem(apiClient, list.listId, itemId);
       onUpdateItems(list.listId, (current) => upsertShoppingListItem(current, updatedItem));
     } catch {
-      onError('Shopping item could not be removed.');
+      onError('Boodschap kon niet worden verwijderd.');
     }
   }
 
@@ -311,12 +315,12 @@ function ListSurface({ apiClient, list, listFallbackName, onClearList, onError, 
       const updatedItem = await undoShoppingListItem(apiClient, list.listId, itemId);
       onUpdateItems(list.listId, (current) => upsertShoppingListItem(current, updatedItem));
     } catch {
-      onError('Shopping item could not be restored.');
+      onError('Boodschap kon niet worden teruggezet.');
     }
   }
 
   const inputId = primary ? 'shopping-new-item' : `list-new-item-${list.listId}`;
-  const listLabel = list.name ?? listFallbackName;
+  const listLabel = getDisplayListName(list.name ?? listFallbackName);
 
   const quickAddForm = (
     <form className="shopping-add-form shopping-execution-form" aria-label={`Voeg item toe aan ${listLabel}`} onSubmit={addItem}>
@@ -363,7 +367,7 @@ function ListSurface({ apiClient, list, listFallbackName, onClearList, onError, 
             </label>
             <button disabled={!list.listId} type="submit">Hernoemen</button>
             <button disabled={!list.listId} onClick={archiveList} type="button">Archiveren</button>
-            <button disabled={!list.listId} onClick={deleteList} type="button">Verwijderen</button>
+            <button disabled={!list.listId} onClick={deleteList} type="button" className="danger-button">Verwijderen</button>
           </form>
         </details>
         <details className="shopping-lifecycle-details">
@@ -388,7 +392,7 @@ function ListSurface({ apiClient, list, listFallbackName, onClearList, onError, 
           </label>
           <button disabled={!list.listId} type="submit">Hernoemen</button>
           <button disabled={!list.listId} onClick={archiveList} type="button">Archiveren</button>
-          <button disabled={!list.listId} onClick={deleteList} type="button">Verwijderen</button>
+          <button disabled={!list.listId} onClick={deleteList} type="button" className="danger-button">Verwijderen</button>
         </form>
       </details>
       <ShoppingListSection emptyLabel="Niets recent verwijderd." items={deletedItems} onRemove={removeItem} onStoreChange={primary ? updateItemStore : undefined} onToggle={toggleItem} onUndo={undoItem} title="Recent verwijderd" />
@@ -465,7 +469,7 @@ function ShoppingListRow({ item, onRemove, onStoreChange, onToggle, onUndo }: Sh
       </label>
       {onStoreChange ? (
         <details className="shopping-item-options">
-          <summary>Winkel</summary>
+          <summary>Meer</summary>
           <label className="shopping-store-field">
             <span className="visually-hidden">Winkel</span>
             <input aria-label={`Winkel voor ${item.label}`} list={`store-suggestions-${item.id}`} onBlur={(event) => onStoreChange(item.id, event.target.value || null)} placeholder="Winkel" type="text" defaultValue={item.preferredStore ?? ''} />
@@ -478,7 +482,7 @@ function ShoppingListRow({ item, onRemove, onStoreChange, onToggle, onUndo }: Sh
         </details>
       ) : null}
       {onUndo ? <button onClick={() => onUndo(item.id)} type="button">Terugzetten</button> : null}
-      {!item.deleted ? <button onClick={() => onRemove(item.id)} type="button">Weg</button> : null}
+      {!item.deleted ? <button onClick={() => onRemove(item.id)} type="button" className="secondary-action">Weg</button> : null}
     </li>
   );
 }

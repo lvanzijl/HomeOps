@@ -1,4 +1,5 @@
 # Current State
+- 2026-06-27: Completed the FamilyBoard Final MVP Polish slice by adding a warm Weekly Reset closure moment, tightening Shopping density and list action styling, improving Dutch navigation/shell/shopping copy, and preserving backend/API/database schema and existing workflows.
 - 2026-06-27: Completed the first Shopping workspace redesign slice by turning Shopping into a warm operational family workspace with a decorative hero, prominent Dutch Quick Add, store-first cards based on existing preferred-store grouping, compact recently-added reassurance, and secondary other-list presentation while preserving backend/API/schema, persistence, preferred-store logic, and lifecycle behaviour.
 - 2026-06-27: Completed the Weekly Reset UX ritual slice by redesigning Weekly Reset as a Dutch family check-in around readiness for next week, adding ritual summary cards, intentional confirmation/skip language, and friendly recap framing while preserving reset execution, undo availability, backend behavior, API contracts, database schema, and task logic.
 - 2026-06-27: Completed the Tasks Morgen action workflow slice by turning Morgen into a real quick action for non-recurring tasks through the existing update-task API, moving normal and overdue tasks to tomorrow without page refresh, hiding Morgen for recurring and already-tomorrow tasks, and preserving backend contracts, API contracts, database schema, recurrence engine, and Weekly Reset logic.
@@ -27,7 +28,7 @@
 Phase 2 — Durable Household Core
 
 ## Current Slice
-Shopping Workspace Redesign — Completed
+FamilyBoard Final MVP Polish — Completed
 
 ## Completed Slices
 - 1.1 Repository Bootstrap

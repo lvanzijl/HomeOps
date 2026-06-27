@@ -25,27 +25,27 @@ export const workspaceDefinitions: readonly WorkspaceDefinition[] = [
   {
     id: 'home',
     label: 'Home',
-    description: 'Today’s family overview.',
+    description: 'Het gezinsoverzicht voor vandaag.',
   },
   {
     id: 'agenda',
     label: 'Agenda',
-    description: 'Shared family plans and events.',
+    description: 'Gedeelde gezinsplanning en afspraken.',
   },
   {
     id: 'tasks',
-    label: 'Tasks',
-    description: 'What the family can take care of today.',
+    label: 'Taken',
+    description: 'Wat het gezin vandaag kan oppakken.',
   },
   {
     id: 'lists',
-    label: 'Shopping',
-    description: 'Groceries and everyday family lists.',
+    label: 'Boodschappen',
+    description: 'Boodschappen en dagelijkse gezinslijstjes.',
   },
   {
     id: 'motivation',
-    label: 'Motivation',
-    description: 'Family encouragement, progress, and celebrations.',
+    label: 'Motivatie',
+    description: 'Aanmoediging, voortgang en vieringen voor het gezin.',
   },
   {
     id: 'house',
@@ -69,8 +69,8 @@ export const workspaceDefinitions: readonly WorkspaceDefinition[] = [
   },
   {
     id: 'settings',
-    label: 'Settings',
-    description: 'Household preferences and maintenance tools.',
+    label: 'Instellingen',
+    description: 'Gezinsvoorkeuren en onderhoud.',
   },
 ] as const;
 
