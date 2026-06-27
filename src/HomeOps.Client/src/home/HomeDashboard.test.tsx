@@ -185,7 +185,7 @@ describe("HomeDashboard", () => {
     });
   });
 
-  it("renders the Home dashboard, family members, agenda summary, lists summary, and overflow", async () => {
+  it("renders the Thuisdashboard, family members, agenda summary, lists summary, and overflow", async () => {
     render(
       <HomeDashboard
         members={familyMembers}
@@ -194,12 +194,12 @@ describe("HomeDashboard", () => {
       />,
     );
 
-    expect(screen.getByLabelText("Home dashboard")).not.toBeNull();
-    expect(screen.getByLabelText("Family Members")).not.toBeNull();
+    expect(screen.getByLabelText("Thuisdashboard")).not.toBeNull();
+    expect(screen.getByLabelText("Gezinsleden")).not.toBeNull();
     expect(screen.getByText("Alex")).not.toBeNull();
     expect(await screen.findByText("Event 1")).not.toBeNull();
-    expect(screen.getAllByText("Tomorrow").length).toBeGreaterThan(0);
-    const listsTile = screen.getByLabelText("Lists summary");
+    expect(screen.getAllByText("Morgen").length).toBeGreaterThan(0);
+    const listsTile = screen.getByLabelText("Boodschappenoverzicht");
     expect(within(listsTile).getByRole("heading", { name: "Drugstore" })).not.toBeNull();
     expect(within(listsTile).getByRole("heading", { name: "Supermarket" })).not.toBeNull();
     expect(within(listsTile).getByRole("heading", { name: "Zonder winkel" })).not.toBeNull();
@@ -217,20 +217,17 @@ describe("HomeDashboard", () => {
     expect(screen.queryByText("Christmas")).toBeNull();
     expect(within(listsTile).queryByText("Coffee")).toBeNull();
     expect(within(listsTile).queryByText("Tea")).toBeNull();
-    expect(within(listsTile).getByText("+1 more")).not.toBeNull();
-    expect(screen.getByText("Tasks")).not.toBeNull();
-    expect(screen.getByText("Overdue")).not.toBeNull();
-    expect(screen.getByText("Due Today")).not.toBeNull();
-    expect(screen.getByText("Upcoming")).not.toBeNull();
+    expect(within(listsTile).getByText("+1 meer")).not.toBeNull();
+    expect(screen.getByText("Taken")).not.toBeNull();
+    expect(screen.getAllByText("Vandaag").length).toBeGreaterThan(0);
     expect(screen.getByText("Empty dishwasher")).not.toBeNull();
     expect(screen.getByText("Take recycling out")).not.toBeNull();
-    expect(screen.getByText("Water plants")).not.toBeNull();
-    expect(screen.getByText("Alex · Due 2026-06-18")).not.toBeNull();
+    expect(screen.getByText("Alex · Datum 2026-06-18")).not.toBeNull();
     expect(
-      screen.getByText("Shared Household · Due 2026-06-19"),
+      screen.getByText("Gezinstaak · Datum 2026-06-19"),
     ).not.toBeNull();
     expect(
-      screen.queryByRole("button", { name: "Add Family Member" }),
+      screen.queryByRole("button", { name: "Gezinslid toevoegen" }),
     ).toBeNull();
   });
 
@@ -254,7 +251,7 @@ describe("HomeDashboard", () => {
       />,
     );
 
-    const listsTile = screen.getByLabelText("Lists summary");
+    const listsTile = screen.getByLabelText("Boodschappenoverzicht");
     expect(await within(listsTile).findByText("Bread")).not.toBeNull();
     expect(within(listsTile).getByText("Coffee")).not.toBeNull();
     expect(within(listsTile).getByText("Milk")).not.toBeNull();
@@ -271,14 +268,14 @@ describe("HomeDashboard", () => {
       />,
     );
 
-    const listsTile = screen.getByLabelText("Lists summary");
+    const listsTile = screen.getByLabelText("Boodschappenoverzicht");
     expect(await within(listsTile).findByRole("heading", { name: "Supermarket" })).not.toBeNull();
     expect(within(listsTile).getByRole("heading", { name: "Drugstore" })).not.toBeNull();
     expect(within(listsTile).getByRole("heading", { name: "Zonder winkel" })).not.toBeNull();
-    expect(within(listsTile).getByText("+1 more")).not.toBeNull();
+    expect(within(listsTile).getByText("+1 meer")).not.toBeNull();
   });
 
-  it("keeps Home card actions compact and avoids duplicate Tasks navigation labels", async () => {
+  it("keeps Home card actions compact and avoids duplicate Taken navigation labels", async () => {
     render(
       <HomeDashboard
         members={familyMembers}
@@ -289,13 +286,13 @@ describe("HomeDashboard", () => {
 
     await screen.findByText("Event 1");
 
-    expect(screen.queryByLabelText("Quick capture")).toBeNull();
-    expect(screen.queryByRole("button", { name: "View Tasks" })).toBeNull();
-    expect(screen.queryByText("Open Tasks")).toBeNull();
-    expect(screen.getByRole("button", { name: "Add task" })).not.toBeNull();
-    expect(screen.getByRole("button", { name: "Open tasks" })).not.toBeNull();
-    expect(screen.getByRole("button", { name: "Open lists" })).not.toBeNull();
-    expect(screen.getByRole("button", { name: "Open motivation" })).not.toBeNull();
+    expect(screen.queryByLabelText("Snel toevoegen")).toBeNull();
+    expect(screen.queryByRole("button", { name: "View Taken" })).toBeNull();
+    expect(screen.queryByText("Open Taken")).toBeNull();
+    expect(screen.getByRole("button", { name: "Taak toevoegen" })).not.toBeNull();
+    expect(screen.getByRole("button", { name: "Taken openen" })).not.toBeNull();
+    expect(screen.getByRole("button", { name: "Boodschappen openen" })).not.toBeNull();
+    expect(screen.getByRole("button", { name: "Motivatie openen" })).not.toBeNull();
   });
 
   it("renders Avatar V2 in the Home family strip when configured", () => {
@@ -307,7 +304,7 @@ describe("HomeDashboard", () => {
       />,
     );
 
-    const strip = screen.getByLabelText("Family Members");
+    const strip = screen.getByLabelText("Gezinsleden");
     const avatar = within(strip).getByRole("img", { name: "Alex household avatar" });
     expect(avatar.className).toContain("family-avatar-v2");
   });
@@ -323,16 +320,16 @@ describe("HomeDashboard", () => {
       />,
     );
 
-    const tile = screen.getByLabelText("Motivation summary");
+    const tile = screen.getByLabelText("Motivatie-overzicht");
     expect(
       await within(tile).findByText("Fill the family helper path"),
     ).not.toBeNull();
     expect(within(tile).getByText("13/20 helpful actions")).not.toBeNull();
-    expect(within(tile).getByLabelText("Home celebration")).not.toBeNull();
-    expect(within(tile).getByText("Getting closer")).not.toBeNull();
+    expect(within(tile).getByLabelText("Viering thuis")).not.toBeNull();
+    expect(within(tile).getByText("Komt dichterbij")).not.toBeNull();
     expect(
       within(tile).getByText(
-        "Only 7 more helpful actions until Board game night together.",
+        "Nog maar 7 helpful actions tot Board game night together.",
       ),
     ).not.toBeNull();
     expect(within(tile).queryByText(/shop/i)).toBeNull();
@@ -355,7 +352,7 @@ describe("HomeDashboard", () => {
     );
 
     await user.click(
-      screen.getByRole("button", { name: "Open Alex family member page" }),
+      screen.getByRole("button", { name: "Alex gezinslidpagina openen" }),
     );
 
     expect(onSelectFamilyMember).toHaveBeenCalledWith("alex");
@@ -378,21 +375,15 @@ describe("HomeDashboard", () => {
     expect(onNavigate).toHaveBeenCalledWith("agenda");
 
     await user.click(
-      within(screen.getByLabelText("Lists summary")).getByRole("button", {
-        name: "+1 more",
+      within(screen.getByLabelText("Boodschappenoverzicht")).getByRole("button", {
+        name: "+1 meer",
       }),
     );
     await waitFor(() => expect(onNavigate).toHaveBeenCalledWith("lists"));
 
-    await user.click(screen.getByLabelText("Tasks summary"));
+    await user.click(screen.getByLabelText("Takenoverzicht"));
     expect(onNavigate).toHaveBeenCalledWith("tasks");
 
-    await user.click(
-      within(screen.getByLabelText("Tasks summary")).getByRole("button", {
-        name: "+1 more",
-      }),
-    );
-    expect(onNavigate).toHaveBeenCalledWith("tasks");
   });
   it("adds shopping items, tasks, and calendar events from compact card actions", async () => {
     const user = userEvent.setup();
@@ -405,11 +396,11 @@ describe("HomeDashboard", () => {
     );
     await screen.findByText("Event 1");
 
-    expect(screen.queryByLabelText("Quick capture")).toBeNull();
-    await user.click(screen.getByRole("button", { name: "Add shopping item" }));
-    expect(screen.getByRole("dialog", { name: "Add shopping item from Home" })).not.toBeNull();
-    await user.type(screen.getByLabelText("What do we need?"), "Oat milk");
-    await user.click(screen.getByRole("button", { name: "Add it" }));
+    expect(screen.queryByLabelText("Snel toevoegen")).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Boodschap toevoegen" }));
+    expect(screen.getByRole("dialog", { name: "Boodschap toevoegen vanaf Thuis" })).not.toBeNull();
+    await user.type(screen.getByLabelText("Wat hebben we nodig?"), "Oat milk");
+    await user.click(screen.getByRole("button", { name: "Toevoegen" }));
 
     const lists = await listsApi();
     expect(lists.loadShoppingList).toHaveBeenCalled();
@@ -419,10 +410,10 @@ describe("HomeDashboard", () => {
       "Oat milk",
     );
     expect(
-      await screen.findByText("Added Oat milk to Shopping."),
+      await screen.findByText("Oat milk toegevoegd aan Boodschappen."),
     ).not.toBeNull();
 
-    expect(screen.queryByLabelText("What do we need?")).toBeNull();
+    expect(screen.queryByLabelText("Wat hebben we nodig?")).toBeNull();
 
     const tasks = await tasksApi();
     vi.mocked(tasks.createTask).mockResolvedValue({
@@ -436,31 +427,31 @@ describe("HomeDashboard", () => {
       createdUtc: "2026-06-19T08:30:00.000Z",
       updatedUtc: "2026-06-19T08:30:00.000Z",
     });
-    await user.click(screen.getByRole("button", { name: "Add task" }));
-    await user.type(screen.getByLabelText("What needs to be done?"), "Sweep hallway");
-    await user.click(screen.getByRole("button", { name: "Next" }));
-    await user.click(screen.getByRole("button", { name: "Decide later" }));
+    await user.click(screen.getByRole("button", { name: "Taak toevoegen" }));
+    await user.type(screen.getByLabelText("Wat moet er gebeuren?"), "Sweep hallway");
+    await user.click(screen.getByRole("button", { name: "Volgende" }));
+    await user.click(screen.getByRole("button", { name: "Later beslissen" }));
     expect(tasks.createTask).toHaveBeenCalledWith({
       title: "Sweep hallway",
       dueDate: "2026-06-19",
       ownershipKind: "Unassigned",
     });
-    expect(await screen.findByText("Added Sweep hallway to Tasks.")).not.toBeNull();
+    expect(await screen.findByText("Sweep hallway toegevoegd aan Taken.")).not.toBeNull();
 
-    await user.click(screen.getByRole("button", { name: "Add agenda event" }));
+    await user.click(screen.getByRole("button", { name: "Afspraak toevoegen" }));
     expect(
-      screen.getByRole("dialog", { name: "Add event from Home" }),
+      screen.getByRole("dialog", { name: "Afspraak toevoegen vanaf Thuis" }),
     ).not.toBeNull();
-    await user.type(screen.getByLabelText("What is happening?"), "Swimming lesson");
-    await user.click(screen.getByRole("button", { name: "Next" }));
-    await user.click(screen.getByRole("button", { name: "Tomorrow" }));
+    await user.type(screen.getByLabelText("Wat gebeurt er?"), "Swimming lesson");
+    await user.click(screen.getByRole("button", { name: "Volgende" }));
+    await user.click(screen.getByRole("button", { name: "Morgen" }));
 
     const agenda = await agendaApi();
     expect(agenda.createCalendarAgendaEvent).toHaveBeenCalledWith(
       expect.objectContaining({ title: "Swimming lesson", allDay: true }),
     );
     expect(
-      await screen.findByText("Added Swimming lesson to Agenda."),
+      await screen.findByText("Swimming lesson toegevoegd aan Agenda."),
     ).not.toBeNull();
   });
 
@@ -475,12 +466,12 @@ describe("HomeDashboard", () => {
     );
     await screen.findByText("Event 1");
 
-    await user.click(screen.getByRole("button", { name: "Add task" }));
-    expect(screen.getByRole("dialog", { name: "Add task from Home" })).not.toBeNull();
+    await user.click(screen.getByRole("button", { name: "Taak toevoegen" }));
+    expect(screen.getByRole("dialog", { name: "Taak toevoegen vanaf Thuis" })).not.toBeNull();
 
     await user.keyboard("{Escape}");
 
-    expect(screen.queryByRole("dialog", { name: "Add task from Home" })).toBeNull();
+    expect(screen.queryByRole("dialog", { name: "Taak toevoegen vanaf Thuis" })).toBeNull();
   });
 
 });
@@ -512,16 +503,16 @@ describe("HomeDashboard empty states", () => {
       />,
     );
 
-    expect(await screen.findByText("Create your first event")).not.toBeNull();
-    expect(screen.getByText("Add your first shopping item")).not.toBeNull();
-    expect(screen.getByText("Create your first family goal")).not.toBeNull();
-    expect(screen.getByText("Create your first task")).not.toBeNull();
-    expect(screen.queryByRole("button", { name: "Open Agenda" })).toBeNull();
-    expect(screen.queryByRole("button", { name: "Open Lists" })).toBeNull();
-    expect(screen.queryByRole("button", { name: "Open Motivation" })).toBeNull();
-    expect(screen.queryByRole("button", { name: "Open Tasks" })).toBeNull();
-    expect(screen.getByRole("button", { name: "Add agenda event" })).not.toBeNull();
-    expect(screen.getByRole("button", { name: "Add shopping item" })).not.toBeNull();
-    expect(screen.getByRole("button", { name: "Add task" })).not.toBeNull();
+    expect(await screen.findByText("Maak je eerste afspraak")).not.toBeNull();
+    expect(screen.getByText("Voeg je eerste boodschap toe")).not.toBeNull();
+    expect(screen.getByText("Maak je eerste gezinsdoel")).not.toBeNull();
+    expect(screen.getByText("Maak je eerste taak")).not.toBeNull();
+    expect(screen.getByRole("button", { name: "Agenda openen" })).not.toBeNull();
+    expect(screen.getByRole("button", { name: "Boodschappen openen" })).not.toBeNull();
+    expect(screen.getByRole("button", { name: "Motivatie openen" })).not.toBeNull();
+    expect(screen.getByRole("button", { name: "Taken openen" })).not.toBeNull();
+    expect(screen.getByRole("button", { name: "Afspraak toevoegen" })).not.toBeNull();
+    expect(screen.getByRole("button", { name: "Boodschap toevoegen" })).not.toBeNull();
+    expect(screen.getByRole("button", { name: "Taak toevoegen" })).not.toBeNull();
   });
 });

@@ -24,7 +24,7 @@ const navigationRoles: Readonly<Record<WorkspaceId, NavigationRole>> = {
 export const workspaceDefinitions: readonly WorkspaceDefinition[] = [
   {
     id: 'home',
-    label: 'Home',
+    label: 'Thuis',
     description: 'Het gezinsoverzicht voor vandaag.',
   },
   {
@@ -49,8 +49,8 @@ export const workspaceDefinitions: readonly WorkspaceDefinition[] = [
   },
   {
     id: 'house',
-    label: 'House Status',
-    description: 'For home alerts, sensors, and device state.',
+    label: 'Huisstatus',
+    description: 'Voor toekomstige huisstatus, meldingen en apparaten.',
   },
   {
     id: 'media',
@@ -59,8 +59,8 @@ export const workspaceDefinitions: readonly WorkspaceDefinition[] = [
   },
   {
     id: 'gamification',
-    label: 'Gamification',
-    description: 'For points, rewards, and family progress after Tasks mature.',
+    label: 'Beloningen',
+    description: 'Voor toekomstige punten, beloningen en gezinsvoortgang.',
   },
   {
     id: 'weeklyReset',

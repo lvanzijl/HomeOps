@@ -19,13 +19,13 @@ export const defaultWorkspaceLayouts: Record<WorkspaceId, readonly WidgetInstanc
     {
       id: 'home-shopping-list-widget',
       widgetDefinitionId: 'shopping-list-mvp',
-      title: 'Shopping List',
+      title: 'Boodschappen',
       settings: {},
     },
     {
       id: 'home-welcome-widget',
       widgetDefinitionId: 'welcome-text',
-      title: 'Welcome widget',
+      title: 'Welkom-widget',
       settings: {},
     },
   ],
@@ -41,7 +41,7 @@ export const defaultWorkspaceLayouts: Record<WorkspaceId, readonly WidgetInstanc
     {
       id: 'lists-page-widget',
       widgetDefinitionId: 'shopping-list-mvp',
-      title: 'Lists',
+      title: 'Boodschappen',
       settings: {},
     },
   ],
@@ -51,7 +51,7 @@ export const defaultWorkspaceLayouts: Record<WorkspaceId, readonly WidgetInstanc
     {
       id: 'house-placeholder-widget',
       widgetDefinitionId: 'house-placeholder',
-      title: 'House placeholder widget',
+      title: 'Huis-placeholder-widget',
       settings: {},
     },
   ],
@@ -59,7 +59,7 @@ export const defaultWorkspaceLayouts: Record<WorkspaceId, readonly WidgetInstanc
     {
       id: 'media-placeholder-widget',
       widgetDefinitionId: 'media-placeholder',
-      title: 'Media placeholder widget',
+      title: 'Media-placeholder-widget',
       settings: {},
     },
   ],

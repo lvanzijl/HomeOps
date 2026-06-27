@@ -114,7 +114,7 @@ export function WorkspaceShell() {
   }, []);
 
   if (!checkedOnboarding) {
-    return <section className="workspace-shell domain-home" aria-label="Workspace shell"><section className="workspace-panel"><p>Loading household setup…</p></section></section>;
+    return <section className="workspace-shell domain-home" aria-label="Gezinsbord"><section className="workspace-panel"><p>Gezinsinstellingen laden…</p></section></section>;
   }
 
   if (requiresOnboarding) {
@@ -128,8 +128,8 @@ export function WorkspaceShell() {
       : widgetInstancesByWorkspace[activeWorkspace.id] ?? [];
 
   return (
-    <section className={`workspace-shell ${activeDomainClass}`} aria-label="Workspace shell">
-      <nav className="workspace-nav" aria-label="Workspace navigation">
+    <section className={`workspace-shell ${activeDomainClass}`} aria-label="Gezinsbord">
+      <nav className="workspace-nav" aria-label="Navigatie gezinsbord">
         <div className="workspace-primary-nav" aria-label="Dagelijkse gezinsplekken">
           {primaryWorkspaceDefinitions.map((workspace) => (
           <button
@@ -162,7 +162,7 @@ export function WorkspaceShell() {
       </nav>
 
       <section className={`workspace-panel workspace-panel-${activeWorkspace.id}`} aria-labelledby="active-workspace-title">
-        {activeWorkspace.id === 'home' && !activeFamilyMember ? <h2 className="visually-hidden" id="active-workspace-title">Home</h2> : activeFamilyMember ? <h2 className="visually-hidden" id="active-workspace-title">{activeFamilyMember.name}</h2> : (
+        {activeWorkspace.id === 'home' && !activeFamilyMember ? <h2 className="visually-hidden" id="active-workspace-title">Thuis</h2> : activeFamilyMember ? <h2 className="visually-hidden" id="active-workspace-title">{activeFamilyMember.name}</h2> : (
           <header className="workspace-page-header">
             <p className="workspace-position">
               {activeWorkspaceIsPrimary ? 'Dagelijkse gezinsplek' : activeWorkspaceIsAdministration ? 'Gezinsinstellingen' : 'Familiecheck'}
@@ -182,17 +182,17 @@ export function WorkspaceShell() {
         ) : activeWorkspace.id === 'weeklyReset' ? (
           <WeeklyResetPage />
         ) : activeWorkspace.id === 'house' ? (
-          <DomainPlaceholderPage title="House Status" purpose="For home alerts, sensors, and device state." />
+          <DomainPlaceholderPage title="Huisstatus" purpose="Voor toekomstige huisstatus, meldingen en apparaten." />
         ) : activeWorkspace.id === 'media' ? (
-          <DomainPlaceholderPage title="Media" purpose="For media reminders and future household media context." />
+          <DomainPlaceholderPage title="Media" purpose="Voor toekomstige mediaherinneringen en gezinscontext." />
         ) : activeWorkspace.id === 'gamification' ? (
-          <DomainPlaceholderPage title="Gamification" purpose="For points, rewards, and family progress after Tasks mature." />
+          <DomainPlaceholderPage title="Beloningen" purpose="Voor toekomstige punten, beloningen en gezinsvoortgang." />
         ) : (
         <div className="widget-host" aria-label={`${activeWorkspace.label} widgets`}>
           {activeWorkspace.id === 'settings' && (
             <WidgetRenderer
               definition={getWidgetDefinition('calendar-portability-admin')!}
-              instance={{ id: 'calendar-portability-admin-instance', widgetDefinitionId: 'calendar-portability-admin', title: 'Calendar Export / Restore', settings: {} }}
+              instance={{ id: 'calendar-portability-admin-instance', widgetDefinitionId: 'calendar-portability-admin', title: 'Agenda exporteren / herstellen', settings: {} }}
             />
           )}
           {widgetInstances.map((instance) => {
@@ -228,7 +228,7 @@ function AddFamilyMemberDialog({ onCancel, onCreate }: { onCancel: () => void; o
     if (!name.trim() || (memberKind === 'child' && !dateOfBirth)) return;
     onCreate({ name: name.trim(), initials: buildInitials(name), memberKind, dateOfBirth: dateOfBirth || null, displayColor, avatarV2Config: avatarV2DefaultConfiguration });
   }
-  return <div className="avatar-editor-backdrop" role="presentation"><section className="avatar-editor" role="dialog" aria-modal="true" aria-label="Add family member"><header><div><p className="eyebrow">Household</p><h3>Add Family Member</h3><p>Add someone to your family dashboard without creating an account.</p></div><button type="button" className="icon-button" onClick={onCancel} aria-label="Close add family member"><HomeOpsIcon name="close" /></button></header><form className="avatar-editor-grid" onSubmit={submit}><label>Name<input value={name} onChange={(event) => setName(event.target.value)} required /></label><label>Member type<select value={memberKind} onChange={(event) => setMemberKind(event.target.value as FamilyMember['memberKind'])}><option value="adult">Adult</option><option value="child">Child</option></select></label><label>Date of birth<input type="date" value={dateOfBirth} onChange={(event) => setDateOfBirth(event.target.value)} aria-required={memberKind === 'child'} /></label><label>Display color<input type="color" value={displayColor} onChange={(event) => setDisplayColor(event.target.value)} /></label><div className="family-member-actions"><button type="submit">Add member</button><button type="button" onClick={onCancel}>Cancel</button></div></form></section></div>;
+  return <div className="avatar-editor-backdrop" role="presentation"><section className="avatar-editor" role="dialog" aria-modal="true" aria-label="Gezinslid toevoegen"><header><div><p className="eyebrow">Gezin</p><h3>Gezinslid toevoegen</h3><p>Voeg iemand toe aan het gezinsbord zonder account aan te maken.</p></div><button type="button" className="icon-button" onClick={onCancel} aria-label="Gezinslid toevoegen sluiten"><HomeOpsIcon name="close" /></button></header><form className="avatar-editor-grid" onSubmit={submit}><label>Naam<input value={name} onChange={(event) => setName(event.target.value)} required /></label><label>Gezinslidtype<select value={memberKind} onChange={(event) => setMemberKind(event.target.value as FamilyMember['memberKind'])}><option value="adult">Volwassene</option><option value="child">Kind</option></select></label><label>Geboortedatum<input type="date" value={dateOfBirth} onChange={(event) => setDateOfBirth(event.target.value)} aria-required={memberKind === 'child'} /></label><label>Weergavekleur<input type="color" value={displayColor} onChange={(event) => setDisplayColor(event.target.value)} /></label><div className="family-member-actions"><button type="submit">Gezinslid toevoegen</button><button type="button" onClick={onCancel}>Annuleren</button></div></form></section></div>;
 }
 
 function buildInitials(name: string) {

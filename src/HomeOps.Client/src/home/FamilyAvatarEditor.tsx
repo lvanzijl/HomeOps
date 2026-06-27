@@ -34,23 +34,23 @@ export function FamilyAvatarEditor({ member, onChange, onClose }: FamilyAvatarEd
 
   return (
     <div className="avatar-editor-backdrop" role="presentation">
-      <section className="avatar-editor avatar-v2-family-editor" role="dialog" aria-modal="true" aria-label={`${member.name} family member Avatar V2 editor`}>
+      <section className="avatar-editor avatar-v2-family-editor" role="dialog" aria-modal="true" aria-label={`Avatarbewerker voor ${member.name}`}>
         <header>
           <div>
-            <p className="eyebrow">Family member avatar</p>
-            <h3>Edit {member.name}'s avatar</h3>
-            <p>Preview changes for {member.name}, then save them to this Family Member record.</p>
+            <p className="eyebrow">Gezinslidavatar</p>
+            <h3>Avatar van {member.name} bewerken</h3>
+            <p>Bekijk wijzigingen voor {member.name} en sla ze op bij dit gezinslid.</p>
           </div>
-          <button type="button" className="icon-button" onClick={onClose} aria-label="Close avatar editor"><HomeOpsIcon name="close" /></button>
+          <button type="button" className="icon-button" onClick={onClose} aria-label="Avatarbewerker sluiten"><HomeOpsIcon name="close" /></button>
         </header>
         <div className="avatar-v2-editor-layout">
-          <aside className="avatar-v2-preview-card" aria-label={`${member.name} avatar live preview`}>
+          <aside className="avatar-v2-preview-card" aria-label={`Live avatarvoorbeeld voor ${member.name}`}>
             <div className="avatar-v2-preview" data-testid="family-avatar-v2-live-preview" dangerouslySetInnerHTML={{ __html: previewSvg }} />
-            <p className={hasUnsavedChanges ? 'avatar-v2-status avatar-v2-status-unsaved' : 'avatar-v2-status'} aria-live="polite">{hasUnsavedChanges ? 'Unsaved changes' : 'Saved'}</p>
+            <p className={hasUnsavedChanges ? 'avatar-v2-status avatar-v2-status-unsaved' : 'avatar-v2-status'} aria-live="polite">{hasUnsavedChanges ? 'Niet-opgeslagen wijzigingen' : 'Opgeslagen'}</p>
             <div className="avatar-v2-actions">
-              <button type="button" onClick={save} disabled={!hasUnsavedChanges}>Save</button>
-              <button type="button" onClick={() => setDraftConfiguration(persistedConfiguration)} disabled={!hasUnsavedChanges}>Cancel</button>
-              <button type="button" onClick={() => setDraftConfiguration(avatarV2DefaultConfiguration)}>Reset</button>
+              <button type="button" onClick={save} disabled={!hasUnsavedChanges}>Opslaan</button>
+              <button type="button" onClick={() => setDraftConfiguration(persistedConfiguration)} disabled={!hasUnsavedChanges}>Annuleren</button>
+              <button type="button" onClick={() => setDraftConfiguration(avatarV2DefaultConfiguration)}>Resetten</button>
             </div>
           </aside>
           <div className="avatar-v2-controls" aria-label={`${member.name} avatar choices`}>

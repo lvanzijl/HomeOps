@@ -114,7 +114,7 @@ export function MotivationPage({ members }: MotivationPageProps) {
   return (
     <section
       className="motivation-page motivation-dashboard-page"
-      aria-label="Motivation dashboard"
+      aria-label="Motivatiedashboard"
     >
       <div className="motivation-dashboard familyboard-dashboard-grid">
         <article
@@ -707,7 +707,7 @@ function IndividualGoalForm({
           value={title}
           maxLength={240}
           onChange={(event) => setTitle(event.target.value)}
-          placeholder="Read books"
+          placeholder="Boeken lezen"
           required
         />
       </label>
@@ -728,7 +728,7 @@ function IndividualGoalForm({
           value={unitLabel}
           maxLength={80}
           onChange={(event) => setUnitLabel(event.target.value)}
-          placeholder="books"
+          placeholder="boeken"
           required
         />
       </label>
@@ -793,7 +793,7 @@ function FamilyCelebrationDisplay({
   return (
     <div
       className={`celebration-surface ${statusClass}`}
-      aria-label="Celebration surface"
+      aria-label="Viering"
     >
       <HomeOpsIcon
         className="celebration-surface-icon"
@@ -862,7 +862,7 @@ function FamilyGoalForm({
     String(familyGoal?.targetCount ?? 10),
   );
   const [unitLabel, setUnitLabel] = useState(
-    familyGoal?.unitLabel ?? "helpful tasks",
+    familyGoal?.unitLabel ?? "helpende acties",
   );
   const [celebrationTitle, setCelebrationTitle] = useState(
     familyGoal?.celebration?.title ?? "",
@@ -906,7 +906,7 @@ function FamilyGoalForm({
     <form
       className="family-goal-form conversational-goal-form"
       aria-label={
-        familyGoal ? "Familiedoel aanpassen form" : "Familiedoel maken form"
+        familyGoal ? "Familiedoel aanpassen formulier" : "Familiedoel maken formulier"
       }
       onSubmit={handleSubmit}
     >
@@ -996,7 +996,7 @@ function FamilyGoalForm({
               value={celebrationTitle}
               maxLength={240}
               onChange={(event) => setCelebrationTitle(event.target.value)}
-              placeholder="Movie night together"
+              placeholder="Samen filmavond"
             />
           </label>
           <label>
@@ -1121,7 +1121,7 @@ function CelebrationMemorySection({
   return (
     <section
       className="celebration-memory-section"
-      aria-label="Celebration memories"
+      aria-label="Vieringsherinneringen"
     >
       <div className="section-heading-row">
         <div>
@@ -1129,7 +1129,7 @@ function CelebrationMemorySection({
           <h3>Vieringen die we onthouden</h3>
         </div>
         <div className="overview-actions">
-          <span>{memories.length} remembered</span>
+          <span>{memories.length} herinnerd</span>
           <button
             type="button"
             className="secondary-action compact-action"

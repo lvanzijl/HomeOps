@@ -50,7 +50,7 @@ interface HomeDashboardProps {
   onSelectFamilyMember: (memberId: string) => void;
 }
 
-type AgendaBucket = "Today" | "Tomorrow" | "Later / Next";
+type AgendaBucket = "Vandaag" | "Morgen" | "Later / Volgende";
 type AgendaSummaryItem = ReturnType<typeof hydrateAgendaEvents>[number] & {
   bucket: AgendaBucket;
 };
@@ -60,9 +60,9 @@ const visibleListLimit = 4;
 const visibleTaskLimit = 4;
 
 const agendaBucketOrder: readonly AgendaBucket[] = [
-  "Today",
-  "Tomorrow",
-  "Later / Next",
+  "Vandaag",
+  "Morgen",
+  "Later / Volgende",
 ];
 
 export function HomeDashboard({
@@ -152,7 +152,7 @@ export function HomeDashboard({
           setAgendaError(null);
         })
         .catch(() => {
-          if (!ignore) setAgendaError("Agenda summary could not be loaded.");
+          if (!ignore) setAgendaError("Agenda-overzicht kon niet worden geladen.");
         });
     const refreshLists = () =>
       loadShoppingListSummary()
@@ -169,7 +169,7 @@ export function HomeDashboard({
           setListsError(null);
         })
         .catch(() => {
-          if (!ignore) setListsError("Lists summary could not be loaded.");
+          if (!ignore) setListsError("Boodschappenoverzicht kon niet worden geladen.");
         });
     const refreshTasks = () =>
       loadTasks()
@@ -179,7 +179,7 @@ export function HomeDashboard({
           setTasksError(null);
         })
         .catch(() => {
-          if (!ignore) setTasksError("Tasks summary could not be loaded.");
+          if (!ignore) setTasksError("Takenoverzicht kon niet worden geladen.");
         });
     refreshAgenda();
     refreshLists();
@@ -215,10 +215,10 @@ export function HomeDashboard({
       setHistory(nextHistory);
       setShoppingText("");
       setIsShoppingCaptureOpen(false);
-      setQuickStatus(`Added ${trimmed} to Shopping.`);
+      setQuickStatus(`${trimmed} toegevoegd aan Boodschappen.`);
       await refreshHomeData();
     } catch {
-      setListsError("Shopping item could not be added from Home.");
+      setListsError("Boodschap kon niet vanaf Thuis worden toegevoegd.");
     }
   }
 
@@ -239,10 +239,10 @@ export function HomeDashboard({
       setTaskOwnerId("unassigned");
       setTaskCaptureStep("title");
       setIsTaskCaptureOpen(false);
-      setQuickStatus(`Added ${trimmed} to Tasks.`);
+      setQuickStatus(`${trimmed} toegevoegd aan Taken.`);
       await refreshHomeData();
     } catch {
-      setTasksError("Task could not be added from Home.");
+      setTasksError("Taak kon niet vanaf Thuis worden toegevoegd.");
     }
   }
 
@@ -264,10 +264,10 @@ export function HomeDashboard({
       setEventCaptureStep("title");
       setEventWhen("today");
       setIsEventCaptureOpen(false);
-      setQuickStatus(`Added ${trimmed} to Agenda.`);
+      setQuickStatus(`${trimmed} toegevoegd aan Agenda.`);
       await refreshHomeData();
     } catch {
-      setAgendaError("Calendar event could not be added from Home.");
+      setAgendaError("Afspraak kon niet vanaf Thuis worden toegevoegd.");
     }
   }
 
@@ -316,26 +316,25 @@ export function HomeDashboard({
     : 0;
 
   return (
-    <section className="home-dashboard" aria-label="Home dashboard">
+    <section className="home-dashboard" aria-label="Thuisdashboard">
       <header className="home-hero">
-        <div className="home-date-card" aria-label="Home date and time">
-          <p className="eyebrow">Today</p>
+        <div className="home-date-card" aria-label="Datum en tijd thuis">
+          <p className="eyebrow">Vandaag</p>
           <h2>
-            {now.toLocaleDateString(undefined, {
+            {now.toLocaleDateString("nl-NL", {
               weekday: "long",
               month: "long",
               day: "numeric",
             })}
           </h2>
-          <p className="home-time" aria-label="Current time">
-            {now.toLocaleTimeString(undefined, {
+          <p className="home-time" aria-label="Huidige tijd">
+            {now.toLocaleTimeString("nl-NL", {
               hour: "numeric",
               minute: "2-digit",
             })}
           </p>
-          <p className="weather-connection-note">Weather ready when connected</p>
         </div>
-        <section className="family-strip" aria-label="Family Members">
+        <section className="family-strip" aria-label="Gezinsleden">
           {members.map((member) => (
             <button
               className="family-chip"
@@ -343,7 +342,7 @@ export function HomeDashboard({
               type="button"
               style={{ "--member-color": member.displayColor } as CSSProperties}
               onClick={() => onSelectFamilyMember(member.id)}
-              aria-label={`Open ${member.name} family member page`}
+              aria-label={`${member.name} gezinslidpagina openen`}
             >
               <FamilyAvatar member={member} />
               <strong>{member.name}</strong>
@@ -364,7 +363,7 @@ export function HomeDashboard({
           role="button"
           tabIndex={0}
           onKeyDown={(e) => e.key === "Enter" && onNavigate("agenda")}
-          aria-label="Agenda summary"
+          aria-label="Agenda-overzicht"
         >
           <CardHeader
             className="home-card-header"
@@ -373,11 +372,11 @@ export function HomeDashboard({
               <HomeCardActions
                 onAdd={() => setIsEventCaptureOpen(true)}
                 onOpen={() => onNavigate("agenda")}
-                addLabel="Add agenda event"
-                openLabel="Open agenda"
+                addLabel="Afspraak toevoegen"
+                openLabel="Agenda openen"
               />
             }
-            meta={`${visibleAgenda.length} showing`}
+            meta={`${visibleAgenda.length} zichtbaar`}
           />
           {agendaError ? <p role="alert">{agendaError}</p> : null}
           <div className="agenda-group-list">
@@ -401,13 +400,12 @@ export function HomeDashboard({
           </div>
           {visibleAgenda.length === 0 && !agendaError ? (
             <div className="empty-state-card">
-              <strong>Create your first event</strong>
+              <strong>Maak je eerste afspraak</strong>
               <p>
-                Events help the household remember important dates and
-                activities.
+                Afspraken helpen het gezin belangrijke dagen en activiteiten te onthouden.
               </p>
               <p className="home-context-note">
-                Use the header action to add one.
+                Gebruik de actie bovenaan om er één toe te voegen.
               </p>
             </div>
           ) : null}
@@ -417,7 +415,7 @@ export function HomeDashboard({
               type="button"
               onClick={() => onNavigate("agenda")}
             >
-              +{hiddenAgendaCount} more
+              +{hiddenAgendaCount} meer
             </button>
           ) : null}
         </SummaryCard>
@@ -428,20 +426,20 @@ export function HomeDashboard({
           role="button"
           tabIndex={0}
           onKeyDown={(e) => e.key === "Enter" && onNavigate("tasks")}
-          aria-label="Tasks summary"
+          aria-label="Takenoverzicht"
         >
           <CardHeader
             className="home-card-header"
-            title="Tasks"
+            title="Taken"
             actions={
               <HomeCardActions
                 onAdd={() => setIsTaskCaptureOpen(true)}
                 onOpen={() => onNavigate("tasks")}
-                addLabel="Add task"
-                openLabel="Open tasks"
+                addLabel="Taak toevoegen"
+                openLabel="Taken openen"
               />
             }
-            meta={`${summaryTasks.length} due soon`}
+            meta={`${summaryTasks.length} binnenkort`}
           />
           {tasksError ? <p role="alert">{tasksError}</p> : null}
           <div className="task-summary-groups">
@@ -474,10 +472,10 @@ export function HomeDashboard({
           </div>
           {visibleTasks.length === 0 && !tasksError ? (
             <div className="empty-state-card">
-              <strong>Create your first task</strong>
-              <p>Tasks help organize household responsibilities.</p>
+              <strong>Maak je eerste taak</strong>
+              <p>Taken helpen gezinsverantwoordelijkheden te organiseren.</p>
               <p className="home-context-note">
-                Use the header action to add one.
+                Gebruik de actie bovenaan om er één toe te voegen.
               </p>
             </div>
           ) : null}
@@ -487,7 +485,7 @@ export function HomeDashboard({
               type="button"
               onClick={() => onNavigate("tasks")}
             >
-              +{hiddenTaskCount} more
+              +{hiddenTaskCount} meer
             </button>
           ) : null}
         </SummaryCard>
@@ -498,23 +496,23 @@ export function HomeDashboard({
           role="button"
           tabIndex={0}
           onKeyDown={(e) => e.key === "Enter" && onNavigate("motivation")}
-          aria-label="Motivation summary"
+          aria-label="Motivatie-overzicht"
         >
           <CardHeader
             className="home-card-header"
-            title="Motivation"
+            title="Motivatie"
             actions={
               <HomeCardActions
                 onOpen={() => onNavigate("motivation")}
-                openLabel="Open motivation"
+                openLabel="Motivatie openen"
               />
             }
             meta={
               motivationFamilyGoal
                 ? `${motivationFamilyGoal.currentProgress}/${motivationFamilyGoal.targetCount} ${motivationFamilyGoal.unitLabel}`
                 : motivationStatus === "error"
-                  ? "Unavailable"
-                  : "Loading"
+                  ? "Niet beschikbaar"
+                  : "Laden"
             }
           />
           {motivationFamilyGoal ? (
@@ -524,14 +522,14 @@ export function HomeDashboard({
               </p>
               <div
                 className="progress-bar"
-                aria-label={`Family goal progress ${motivationFamilyGoal.currentProgress} of ${motivationFamilyGoal.targetCount}`}
+                aria-label={`Voortgang gezinsdoel ${motivationFamilyGoal.currentProgress} van ${motivationFamilyGoal.targetCount}`}
               >
                 <span style={{ width: `${motivationProgress}%` }} />
               </div>
               {motivationFamilyGoal.celebration ? (
                 <div
                   className={`home-celebration-surface ${motivationFamilyGoal.celebration.status === FamilyCelebrationStatus.ReadyToCelebrate ? "ready" : motivationFamilyGoal.celebration.status === FamilyCelebrationStatus.Celebrated ? "celebrated" : "planned"}`}
-                  aria-label="Home celebration"
+                  aria-label="Viering thuis"
                 >
                   <HomeOpsIcon
                     name={
@@ -549,27 +547,27 @@ export function HomeDashboard({
                     <strong>
                       {motivationFamilyGoal.celebration.status ===
                       FamilyCelebrationStatus.ReadyToCelebrate
-                        ? "We did it — ready to celebrate"
+                        ? "Gelukt — klaar om te vieren"
                         : motivationFamilyGoal.celebration.status ===
                             FamilyCelebrationStatus.Celebrated
-                          ? "Celebrated together"
-                          : "Getting closer"}
+                          ? "Samen gevierd"
+                          : "Komt dichterbij"}
                     </strong>
                     <p>{homeCelebrationMessage(motivationFamilyGoal)}</p>
                   </div>
                 </div>
               ) : (
                 <p className="home-context-note">
-                  A shared encouragement goal for the household.
+                  Een gezamenlijk aanmoedigingsdoel voor het gezin.
                 </p>
               )}
             </>
           ) : (
             <div className="empty-state-card">
-              <strong>Create your first family goal</strong>
-              <p>Family goals help everyone work toward something together.</p>
+              <strong>Maak je eerste gezinsdoel</strong>
+              <p>Gezinsdoelen helpen iedereen samen ergens naartoe te werken.</p>
               <p className="home-context-note">
-                Open Motivation from the header action.
+                Open Motivatie via de actie bovenaan.
               </p>
             </div>
           )}
@@ -581,20 +579,20 @@ export function HomeDashboard({
           role="button"
           tabIndex={0}
           onKeyDown={(e) => e.key === "Enter" && onNavigate("lists")}
-          aria-label="Lists summary"
+          aria-label="Boodschappenoverzicht"
         >
           <CardHeader
             className="home-card-header"
-            title={primaryListName ? `${primaryListName} lists` : "Lists"}
+            title={primaryListName ? `${primaryListName}` : "Boodschappen"}
             actions={
               <HomeCardActions
                 onAdd={() => setIsShoppingCaptureOpen(true)}
                 onOpen={() => onNavigate("lists")}
-                addLabel="Add shopping item"
-                openLabel="Open lists"
+                addLabel="Boodschap toevoegen"
+                openLabel="Boodschappen openen"
               />
             }
-            meta={`${activeListItems.length} active`}
+            meta={`${activeListItems.length} actief`}
           />
           {listsError ? <p role="alert">{listsError}</p> : null}
           <div className="shopping-summary-groups">
@@ -608,6 +606,7 @@ export function HomeDashboard({
                 <ul className="home-summary-list">
                   {group.items.map((item) => (
                     <li key={`${item.listId}-${item.id}`}>
+                      <span className="shopping-item-dot" aria-hidden="true" />
                       <span>{item.text}</span>
                     </li>
                   ))}
@@ -617,10 +616,10 @@ export function HomeDashboard({
           </div>
           {visibleListItems.length === 0 && !listsError ? (
             <div className="empty-state-card">
-              <strong>Add your first shopping item</strong>
-              <p>Lists help remember shopping, packing, and household items.</p>
+              <strong>Voeg je eerste boodschap toe</strong>
+              <p>Boodschappen helpen onthouden wat mee moet naar winkel, tas of huis.</p>
               <p className="home-context-note">
-                Use the header action to add one.
+                Gebruik de actie bovenaan om er één toe te voegen.
               </p>
             </div>
           ) : null}
@@ -630,7 +629,7 @@ export function HomeDashboard({
               type="button"
               onClick={() => onNavigate("lists")}
             >
-              +{hiddenListCount} more
+              +{hiddenListCount} meer
             </button>
           ) : null}
         </SummaryCard>
@@ -646,20 +645,20 @@ export function HomeDashboard({
             className="home-capture-dialog home-conversation-dialog"
             role="dialog"
             aria-modal="true"
-            aria-label="Add shopping item from Home"
+            aria-label="Boodschap toevoegen vanaf Thuis"
             onClick={(event) => event.stopPropagation()}
           >
             <header>
               <div className="home-conversation-heading">
-                <p className="eyebrow">Quick capture</p>
-                <h3>Add shopping item</h3>
-                <p>One thing now. More list details can wait for Lists.</p>
+                <p className="eyebrow">Snel toevoegen</p>
+                <h3>Boodschap toevoegen</h3>
+                <p>Eén ding nu. Details kunnen later bij Boodschappen.</p>
               </div>
               <button
                 type="button"
                 className="icon-button"
                 onClick={() => setIsShoppingCaptureOpen(false)}
-                aria-label="Close shopping capture"
+                aria-label="Boodschap toevoegen sluiten"
               >
                 <HomeOpsIcon name="close" />
               </button>
@@ -670,7 +669,7 @@ export function HomeDashboard({
             >
               <div className="home-conversation-panel">
                 <label className="home-question-label" htmlFor="home-shopping-capture">
-                  What do we need?
+                  Wat hebben we nodig?
                 </label>
                 <div className="home-quick-row">
                   <input
@@ -679,10 +678,10 @@ export function HomeDashboard({
                     list="home-shopping-suggestions"
                     value={shoppingText}
                     onChange={(event) => setShoppingText(event.target.value)}
-                    placeholder="Milk"
-                    aria-label="What do we need?"
+                    placeholder="Melk"
+                    aria-label="Wat hebben we nodig?"
                   />
-                  <button type="submit">Add it</button>
+                  <button type="submit">Toevoegen</button>
                 </div>
               </div>
               <datalist id="home-shopping-suggestions">
@@ -716,20 +715,20 @@ export function HomeDashboard({
             className="home-capture-dialog home-conversation-dialog"
             role="dialog"
             aria-modal="true"
-            aria-label="Add task from Home"
+            aria-label="Taak toevoegen vanaf Thuis"
             onClick={(event) => event.stopPropagation()}
           >
             <header>
               <div className="home-conversation-heading">
-                <p className="eyebrow">Quick capture</p>
-                <h3>Add task</h3>
-                <p>Due today by default. Fine-tune it later in Tasks.</p>
+                <p className="eyebrow">Snel toevoegen</p>
+                <h3>Taak toevoegen</h3>
+                <p>Standaard voor vandaag. Pas later aan bij Taken.</p>
               </div>
               <button
                 type="button"
                 className="icon-button"
                 onClick={() => setIsTaskCaptureOpen(false)}
-                aria-label="Close task capture"
+                aria-label="Taak toevoegen sluiten"
               >
                 <HomeOpsIcon name="close" />
               </button>
@@ -741,7 +740,7 @@ export function HomeDashboard({
               {taskCaptureStep === "title" ? (
                 <div className="home-conversation-panel">
                   <label className="home-question-label" htmlFor="home-task-title">
-                    What needs to be done?
+                    Wat moet er gebeuren?
                   </label>
                   <div className="home-quick-row">
                     <input
@@ -749,8 +748,8 @@ export function HomeDashboard({
                       autoFocus
                       value={taskTitle}
                       onChange={(event) => setTaskTitle(event.target.value)}
-                      placeholder="Empty dishwasher"
-                      aria-label="What needs to be done?"
+                      placeholder="Vaatwasser uitruimen"
+                      aria-label="Wat moet er gebeuren?"
                     />
                     <button
                       type="button"
@@ -758,21 +757,21 @@ export function HomeDashboard({
                         if (taskTitle.trim()) setTaskCaptureStep("owner");
                       }}
                     >
-                      Next
+                      Volgende
                     </button>
                   </div>
                 </div>
               ) : (
                 <div className="home-conversation-panel">
                   <fieldset className="task-choice-group home-choice-group">
-                    <legend>Who should do it?</legend>
+                    <legend>Wie doet dit?</legend>
                     <button
                       type="submit"
                       data-owner="unassigned"
                       className={taskOwnerId === "unassigned" ? "selected" : ""}
                       onClick={() => setTaskOwnerId("unassigned")}
                     >
-                      Decide later
+                      Later beslissen
                     </button>
                     <button
                       type="submit"
@@ -780,7 +779,7 @@ export function HomeDashboard({
                       className={taskOwnerId === "shared" ? "selected" : ""}
                       onClick={() => setTaskOwnerId("shared")}
                     >
-                      Everyone
+                      Iedereen
                     </button>
                     {members.map((member) => (
                       <button
@@ -811,20 +810,20 @@ export function HomeDashboard({
             className="home-capture-dialog home-conversation-dialog"
             role="dialog"
             aria-modal="true"
-            aria-label="Add event from Home"
+            aria-label="Afspraak toevoegen vanaf Thuis"
             onClick={(event) => event.stopPropagation()}
           >
             <header>
               <div className="home-conversation-heading">
-                <p className="eyebrow">Quick capture</p>
-                <h3>Add event</h3>
-                <p>Quick all-day note. Agenda has the full details.</p>
+                <p className="eyebrow">Snel toevoegen</p>
+                <h3>Afspraak toevoegen</h3>
+                <p>Snelle dagnotitie. Details staan in Agenda.</p>
               </div>
               <button
                 type="button"
                 className="icon-button"
                 onClick={() => setIsEventCaptureOpen(false)}
-                aria-label="Close event capture"
+                aria-label="Afspraak toevoegen sluiten"
               >
                 <HomeOpsIcon name="close" />
               </button>
@@ -836,7 +835,7 @@ export function HomeDashboard({
               {eventCaptureStep === "title" ? (
                 <div className="home-conversation-panel">
                   <label className="home-question-label" htmlFor="home-event-title">
-                    What is happening?
+                    Wat gebeurt er?
                   </label>
                   <div className="home-quick-row">
                     <input
@@ -844,8 +843,8 @@ export function HomeDashboard({
                       autoFocus
                       value={eventTitle}
                       onChange={(event) => setEventTitle(event.target.value)}
-                      placeholder="Swimming lesson"
-                      aria-label="What is happening?"
+                      placeholder="Zwemles"
+                      aria-label="Wat gebeurt er?"
                     />
                     <button
                       type="button"
@@ -853,26 +852,26 @@ export function HomeDashboard({
                         if (eventTitle.trim()) setEventCaptureStep("when");
                       }}
                     >
-                      Next
+                      Volgende
                     </button>
                   </div>
                 </div>
               ) : (
                 <div className="home-conversation-panel">
                   <fieldset className="task-choice-group home-choice-group horizontal">
-                    <legend>When?</legend>
+                    <legend>Wanneer?</legend>
                     <button type="submit" data-when="today" onClick={() => setEventWhen("today")}>
-                      Today
+                      Vandaag
                     </button>
                     <button type="submit" data-when="tomorrow" onClick={() => setEventWhen("tomorrow")}>
-                      Tomorrow
+                      Morgen
                     </button>
                     <button
                       type="button"
                       className={eventWhen === "pick" ? "selected" : ""}
                       onClick={() => setEventWhen("pick")}
                     >
-                      Pick date
+                      Datum kiezen
                     </button>
                   </fieldset>
                   {eventWhen === "pick" ? (
@@ -881,9 +880,9 @@ export function HomeDashboard({
                         type="date"
                         value={eventDate}
                         onChange={(event) => setEventDate(event.target.value)}
-                        aria-label="Pick date"
+                        aria-label="Datum kiezen"
                       />
-                      <button type="submit" data-when="pick">Add it</button>
+                      <button type="submit" data-when="pick">Toevoegen</button>
                     </div>
                   ) : null}
                 </div>
@@ -951,12 +950,12 @@ function homeCelebrationMessage(goal: MotivationFamilyGoal) {
     celebration.status === FamilyCelebrationStatus.ReadyToCelebrate ||
     remaining === 0
   )
-    return `${celebration.title} is ready now.`;
+    return `${celebration.title} is nu klaar.`;
   if (celebration.status === FamilyCelebrationStatus.Celebrated)
     return celebration.title;
   return remaining === 1
-    ? `Only 1 more ${goal.unitLabel} until ${celebration.title}.`
-    : `Only ${remaining} more ${goal.unitLabel} until ${celebration.title}.`;
+    ? `Nog maar 1 ${goal.unitLabel} tot ${celebration.title}.`
+    : `Nog maar ${remaining} ${goal.unitLabel} tot ${celebration.title}.`;
 }
 
 function buildAgendaSummary(
@@ -968,7 +967,7 @@ function buildAgendaSummary(
     (event) => new Date(event.startsAt) >= startOfDay(now),
   );
   const tomorrow = addDays(startOfDay(now), 1);
-  const afterTomorrow = addDays(startOfDay(now), 2);
+  const afterMorgen = addDays(startOfDay(now), 2);
   return hydrated
     .sort(
       (a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime(),
@@ -977,10 +976,10 @@ function buildAgendaSummary(
       ...event,
       bucket:
         new Date(event.startsAt) < tomorrow
-          ? "Today"
-          : new Date(event.startsAt) < afterTomorrow
-            ? "Tomorrow"
-            : "Later / Next",
+          ? "Vandaag"
+          : new Date(event.startsAt) < afterMorgen
+            ? "Morgen"
+            : "Later / Volgende",
     }));
 }
 
@@ -994,11 +993,11 @@ function groupAgendaItems(items: AgendaSummaryItem[]) {
 }
 
 function getPrimaryListName(lists: ListSummary[]) {
-  return (
-    lists.find((list) =>
-      ["shopping", "boodschappen"].includes(list.name.trim().toLowerCase()),
-    )?.name ?? lists[0]?.name
-  );
+  const primary = lists.find((list) =>
+    ["shopping", "boodschappen"].includes(list.name.trim().toLowerCase()),
+  ) ?? lists[0];
+  if (!primary) return undefined;
+  return primary.name.trim().toLowerCase() === "shopping" ? "Boodschappen" : primary.name;
 }
 
 function startOfDay(date: Date) {
@@ -1077,19 +1076,19 @@ function formatTaskOwner(
   task: HouseholdTask,
   members: readonly FamilyMember[],
 ) {
-  if (task.ownershipKind === "SharedHousehold") return "Shared Household";
+  if (task.ownershipKind === "SharedHousehold") return "Gezinstaak";
   if (task.ownershipKind === "FamilyMember") {
     return (
       members.find((member) => member.id === task.familyMemberId)?.name ??
-      "Family Member"
+      "Gezinslid"
     );
   }
-  return "Unassigned";
+  return "Niet toegewezen";
 }
 
 function formatTaskDue(task: HouseholdTask) {
-  if (!task.dueDate) return "No due date";
-  return `Due ${task.dueDate}`;
+  if (!task.dueDate) return "Geen datum";
+  return `Datum ${task.dueDate}`;
 }
 
 function getShoppingSuggestionLabel(
