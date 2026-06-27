@@ -1,5 +1,8 @@
 # Phase 2 Roadmap
 
+## Completed Slice — Shopping Workspace Redesign
+Shopping Workspace Redesign turns Shopping into an operational family workspace focused on “Wat moeten we kopen, en waar?”. The slice adds a warm decorative hero, makes Quick Add the primary interaction, promotes preferred-store grouping into primary store cards, keeps recently added items compact, and moves other household lists into a secondary support card. Backend behavior, API contracts, database schema, shopping persistence, preferred-store logic, and item lifecycle behavior remain unchanged.
+
 ## Completed Slice — Weekly Reset UX Ritual
 Weekly Reset UX Ritual redesigns the dedicated Weekly Reset surface from a maintenance panel into a Dutch, family-first ritual centered on “Zijn we klaar voor volgende week?”. The slice adds readiness summary cards, clearer family guidance for what is completed, moving forward, resetting, and staying unchanged, and intentional skip/confirmation copy while preserving existing reset execution, undo availability, task actions, backend behavior, API contracts, and database schema.
 
@@ -435,3 +438,8 @@ Motivation Layout Architecture Refactor corrected the prior dashboard redesign's
 Agenda Month Master-Detail establishes Agenda as a family planning workspace rather than a dashboard by making the month grid the primary navigation surface and the selected-day panel the integrated day view. Event creation now starts from the selected day and defaults to that date while preserving existing HomeOps Calendar APIs, persistence, source filtering, edit/delete behavior, and local refresh mechanics. Week workspace, List workspace, event indicators, event-type configuration, Google Calendar integration, backend changes, and database changes remain deferred.
 
 Agenda Event Indicators replaces month-cell count text with frontend-derived type icons, soft type colours, and `+N` overflow while improving selected-day event cards with warmer FamilyBoard presentation. The slice derives visual type from existing source metadata and title keywords only, preserving calendar persistence, Google Calendar integration, backend APIs, database schema, and event editing flows. Week workspace, List workspace, event-type editor/settings, persisted event type metadata, and backend changes remain deferred.
+
+### Completed Slice — Shopping Layout Density (2026-06-27)
+- Reduced Shopping workspace vertical density after browser measurements showed Quick Add and secondary sections were too tall.
+- Kept Shopping behaviour, preferred-store grouping, lifecycle flows, backend, API contracts, and schema unchanged.
+- Added browser validation/reporting for the compact layout at 1366×768 and 1920×1080.

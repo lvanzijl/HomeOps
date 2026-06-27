@@ -60,8 +60,8 @@ describe('ShoppingListWidget API-backed behavior', () => {
   it('loads shopping list items from the API-backed list service', async () => {
     const listsApi = await mockedListsApi();
     render(<ShoppingListWidget {...widgetProps} />);
-    expect(await screen.findByText('Bread')).not.toBeNull();
-    expect(screen.getByText('Coffee')).not.toBeNull();
+    expect(await screen.findAllByText('Bread')).not.toBeNull();
+    expect(screen.getAllByText('Coffee')[0]).not.toBeNull();
     expect(listsApi.loadShoppingPageLists).toHaveBeenCalledWith(apiClient);
   });
 
@@ -69,24 +69,25 @@ describe('ShoppingListWidget API-backed behavior', () => {
     const user = userEvent.setup();
     const listsApi = await mockedListsApi();
     render(<ShoppingListWidget {...widgetProps} />);
-    await screen.findByText('Bread');
-    await user.type(within(screen.getByLabelText('Shopping')).getByPlaceholderText('Add an item'), 'Apples');
-    await user.click(within(screen.getByLabelText('Shopping')).getByRole('button', { name: 'Add' }));
+    await screen.findAllByText('Bread');
+    const quickAddForm = screen.getByRole('form', { name: 'Voeg item toe aan Shopping' });
+    await user.type(within(quickAddForm).getByPlaceholderText('Voeg toe, bijvoorbeeld melk'), 'Apples');
+    await user.click(within(quickAddForm).getByRole('button', { name: 'Toevoegen' }));
     expect(listsApi.addShoppingListItem).toHaveBeenCalledWith(apiClient, 'shopping-list-id', 'Apples');
-    expect(await screen.findByText('Apples')).not.toBeNull();
+    expect((await screen.findAllByText('Apples')).length).toBeGreaterThan(0);
   });
 
   it('toggles and removes items through the API-backed list service', async () => {
     const user = userEvent.setup();
     const listsApi = await mockedListsApi();
     render(<ShoppingListWidget {...widgetProps} />);
-    const bread = await screen.findByText('Bread');
+    const bread = (await screen.findAllByText('Bread'))[0];
     await user.click(within(bread.closest('label')!).getByRole('checkbox'));
     await waitFor(() => expect(listsApi.toggleShoppingListItem).toHaveBeenCalledWith(apiClient, 'shopping-list-id', 'bread'));
-    const breadAfterToggle = await screen.findByText('Bread');
-    await user.click(within(breadAfterToggle.closest('li')!).getByRole('button', { name: 'Remove' }));
+    const breadAfterToggle = (await screen.findAllByText('Bread'))[0];
+    await user.click(within(breadAfterToggle.closest('li')!).getByRole('button', { name: 'Weg' }));
     expect(listsApi.removeShoppingListItem).toHaveBeenCalledWith(apiClient, 'shopping-list-id', 'bread');
-    expect(await screen.findByText('Deleted')).not.toBeNull();
+    expect(await screen.findByText('Verwijderd')).not.toBeNull();
   });
 
 
@@ -97,11 +98,11 @@ describe('ShoppingListWidget API-backed behavior', () => {
 
     expect(await screen.findByRole('heading', { name: 'Supermarket' })).not.toBeNull();
     expect(screen.getAllByRole('heading', { name: 'Zonder winkel' }).length).toBeGreaterThan(0);
-    expect(screen.getByText('Batteries')).not.toBeNull();
+    expect(screen.getAllByText('Batteries')[0]).not.toBeNull();
     expect(document.querySelector('option[value=\"Corner Shop\"]')).not.toBeNull();
 
-    await user.click(within(screen.getByText('Coffee').closest('li')!).getAllByText('Store')[0]);
-    const coffeeStore = screen.getByLabelText('Store for Coffee');
+    await user.click(within(screen.getAllByText('Coffee')[0].closest('li')!).getAllByText('Winkel')[0]);
+    const coffeeStore = screen.getByLabelText('Winkel voor Coffee');
     await user.clear(coffeeStore);
     await user.type(coffeeStore, 'Drugstore');
     await user.tab();
@@ -121,14 +122,14 @@ describe('ShoppingListWidget API-backed behavior', () => {
 
     render(<ShoppingListWidget {...widgetProps} />);
 
-    expect(await screen.findByRole('heading', { name: 'Shopping' })).not.toBeNull();
-    expect(screen.getByRole('heading', { name: 'Other Lists' })).not.toBeNull();
+    expect(await screen.findByRole('heading', { name: 'Boodschappen' })).not.toBeNull();
+    expect(screen.getByRole('heading', { name: 'Ondersteunende lijsten' })).not.toBeNull();
     await user.click(screen.getByText('Vacation Packing'));
     expect(screen.getByText('Sunscreen')).not.toBeNull();
     expect(screen.getByText('Camping')).not.toBeNull();
 
-    await user.type(within(screen.getByLabelText('Vacation Packing')).getByPlaceholderText('Add an item'), 'Passport');
-    await user.click(within(screen.getByLabelText('Vacation Packing')).getByRole('button', { name: 'Add' }));
+    await user.type(within(screen.getByLabelText('Vacation Packing')).getByPlaceholderText('Voeg toe, bijvoorbeeld melk'), 'Passport');
+    await user.click(within(screen.getByLabelText('Vacation Packing')).getByRole('button', { name: 'Toevoegen' }));
     expect(listsApi.addShoppingListItem).toHaveBeenCalledWith(apiClient, 'packing-list-id', 'Passport');
     expect(await screen.findByText('Passport')).not.toBeNull();
 
@@ -141,29 +142,30 @@ describe('ShoppingListWidget API-backed behavior', () => {
     const listsApi = await mockedListsApi();
     render(<ShoppingListWidget {...widgetProps} />);
 
-    const bread = await screen.findByText('Bread');
-    const shoppingSurface = screen.getByLabelText('Shopping');
-    const listSettings = within(shoppingSurface).getByText('List settings');
-    expect(within(shoppingSurface).getByRole('form', { name: 'Add item to Shopping' })).not.toBeNull();
+    const bread = (await screen.findAllByText('Bread'))[0];
+    const quickAddForm = screen.getByRole('form', { name: 'Voeg item toe aan Shopping' });
+    const shoppingSurface = screen.getByLabelText('Shopping beheer');
+    const listSettings = within(shoppingSurface).getByText('Lijst beheren');
+    expect(quickAddForm).not.toBeNull();
     expect(bread.compareDocumentPosition(listSettings) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
 
     await user.click(listSettings);
-    await user.clear(within(shoppingSurface).getByLabelText('List name'));
-    await user.type(within(shoppingSurface).getByLabelText('List name'), 'Groceries');
-    await user.click(within(shoppingSurface).getByRole('button', { name: 'Rename' }));
+    await user.clear(within(shoppingSurface).getByLabelText('Lijstnaam'));
+    await user.type(within(shoppingSurface).getByLabelText('Lijstnaam'), 'Groceries');
+    await user.click(within(shoppingSurface).getByRole('button', { name: 'Hernoemen' }));
 
     expect(listsApi.renameShoppingList).toHaveBeenCalledWith(apiClient, 'shopping-list-id', 'Groceries');
-    expect(within(shoppingSurface).getByRole('button', { name: 'Archive' })).not.toBeNull();
-    expect(within(shoppingSurface).getByRole('button', { name: 'Delete' })).not.toBeNull();
+    expect(within(shoppingSurface).getByRole('button', { name: 'Archiveren' })).not.toBeNull();
+    expect(within(shoppingSurface).getByRole('button', { name: 'Verwijderen' })).not.toBeNull();
   });
 
   it('guides households when the first list has no items yet', async () => {
     const listsApi = await mockedListsApi();
     vi.mocked(listsApi.loadShoppingPageLists).mockResolvedValueOnce({ shoppingList: { listId: 'shopping-list-id', name: 'Shopping', items: [] }, otherLists: [] });
     render(<ShoppingListWidget {...widgetProps} />);
-    expect(await screen.findByText('Create your first list')).not.toBeNull();
-    expect(screen.getByText('Lists help remember shopping, packing, and household items.')).not.toBeNull();
-    expect(screen.getByRole('link', { name: 'Start by adding one item.' })).not.toBeNull();
+    expect(await screen.findByText('Begin met je eerste boodschap')).not.toBeNull();
+    expect(screen.getByText('Deze werkruimte is bedoeld voor één snelle familielijst: bedenken, toevoegen, kopen en afvinken.')).not.toBeNull();
+    expect(screen.getByRole('link', { name: 'Voeg meteen iets toe.' })).not.toBeNull();
   });
 
   it('can create the first Shopping list when no lists exist', async () => {
@@ -172,9 +174,9 @@ describe('ShoppingListWidget API-backed behavior', () => {
     vi.mocked(listsApi.loadShoppingPageLists).mockResolvedValueOnce({ shoppingList: { listId: null, name: 'Shopping', items: [] }, otherLists: [] });
     render(<ShoppingListWidget {...widgetProps} />);
 
-    await user.click(await screen.findByRole('button', { name: 'Create Shopping list' }));
+    await user.click(await screen.findByRole('button', { name: 'Maak Shopping lijst' }));
 
     expect(listsApi.createShoppingList).toHaveBeenCalledWith(apiClient);
-    expect(await screen.findByRole('link', { name: 'Start by adding one item.' })).not.toBeNull();
+    expect(await screen.findByRole('link', { name: 'Voeg meteen iets toe.' })).not.toBeNull();
   });
 });

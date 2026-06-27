@@ -1,4 +1,5 @@
 # Current State
+- 2026-06-27: Completed the first Shopping workspace redesign slice by turning Shopping into a warm operational family workspace with a decorative hero, prominent Dutch Quick Add, store-first cards based on existing preferred-store grouping, compact recently-added reassurance, and secondary other-list presentation while preserving backend/API/schema, persistence, preferred-store logic, and lifecycle behaviour.
 - 2026-06-27: Completed the Weekly Reset UX ritual slice by redesigning Weekly Reset as a Dutch family check-in around readiness for next week, adding ritual summary cards, intentional confirmation/skip language, and friendly recap framing while preserving reset execution, undo availability, backend behavior, API contracts, database schema, and task logic.
 - 2026-06-27: Completed the Tasks Morgen action workflow slice by turning Morgen into a real quick action for non-recurring tasks through the existing update-task API, moving normal and overdue tasks to tomorrow without page refresh, hiding Morgen for recurring and already-tomorrow tasks, and preserving backend contracts, API contracts, database schema, recurrence engine, and Weekly Reset logic.
 - 2026-06-27: Completed the Tasks task card redesign slice by enriching active task cards with FamilyBoard-style visual structure, compact metadata chips, reusable placeholder icon slots, first-class action button presentation, disabled future-ready Morgen affordance, and more recognizable recurring task treatment while preserving backend, API, schema, completion, recurrence, and Weekly Reset behavior.
@@ -26,7 +27,7 @@
 Phase 2 — Durable Household Core
 
 ## Current Slice
-Weekly Reset UX Ritual — Completed
+Shopping Workspace Redesign — Completed
 
 ## Completed Slices
 - 1.1 Repository Bootstrap
@@ -642,3 +643,5 @@ Showcase Sample C and Showcase Sample D exposed that the wide head variant's ear
 - Refactored the Motivation surface from a document-like stack into a wider two-by-two dashboard using the existing workspace header as the single page header.
 - Compacted the Family Goal, recent appreciation, upcoming celebration, and statistics cards so all four dashboard cards validate above the fold at 1366×768 and 1920×1080 in browser measurement.
 - Preserved existing Motivation API/data behavior and kept management/history flows behind existing dialogs/toggles; no binary assets or screenshots were added.
+
+- 2026-06-27: Refined Shopping layout density after browser validation. Quick Add now renders as a compact primary interaction, store cards follow immediately, and lifecycle/other-list content remains secondary without backend/API/schema changes.
