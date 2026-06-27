@@ -60,7 +60,7 @@ describe('WorkspaceShell API-backed layouts', () => {
     expect(within(dailyWork).getByRole('button', { name: 'Shopping' })).not.toBeNull();
     expect(within(dailyWork).getByRole('button', { name: 'Motivation' })).not.toBeNull();
     expect(within(dailyWork).queryByRole('button', { name: 'Settings' })).toBeNull();
-    expect(within(dailyWork).queryByRole('button', { name: 'Weekly Reset' })).toBeNull();
+    expect(within(dailyWork).queryByRole('button', { name: 'Weekritueel' })).toBeNull();
     expect(within(dailyWork).queryByRole('button', { name: 'Media' })).toBeNull();
     expect(within(dailyWork).queryByRole('button', { name: 'House Status' })).toBeNull();
     expect(within(dailyWork).queryByRole('button', { name: 'Gamification' })).toBeNull();
@@ -94,11 +94,11 @@ describe('WorkspaceShell API-backed layouts', () => {
 
     await screen.findByText('Open Agenda');
     await user.click(screen.getByRole('button', { name: 'Tasks' }));
-    await user.click(await screen.findByRole('button', { name: 'Open family reset' }));
-    expect(await screen.findByRole('heading', { name: 'Weekly Reset' })).not.toBeNull();
+    await user.click(await screen.findByRole('button', { name: 'Gezinsreset openen' }));
+    expect(await screen.findByRole('heading', { name: 'Weekritueel' })).not.toBeNull();
 
     await user.click(screen.getByRole('button', { name: 'Home' }));
-    expect(screen.queryByRole('button', { name: 'Weekly Reset' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Weekritueel' })).toBeNull();
   });
 
   it('applies the active workspace domain color class to the shell', async () => {

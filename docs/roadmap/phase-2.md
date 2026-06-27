@@ -1,5 +1,8 @@
 # Phase 2 Roadmap
 
+## Completed Slice — Weekly Reset UX Ritual
+Weekly Reset UX Ritual redesigns the dedicated Weekly Reset surface from a maintenance panel into a Dutch, family-first ritual centered on “Zijn we klaar voor volgende week?”. The slice adds readiness summary cards, clearer family guidance for what is completed, moving forward, resetting, and staying unchanged, and intentional skip/confirmation copy while preserving existing reset execution, undo availability, task actions, backend behavior, API contracts, and database schema.
+
 ## Completed Slice — Tasks Morgen Action
 Tasks Morgen Action turns the previous future affordance into a real frontend workflow for non-recurring tasks by reusing the existing task update API to move normal and overdue tasks to tomorrow immediately. Morgen is hidden for recurring tasks and tasks already due tomorrow to avoid unsupported or duplicate updates, while backend contracts, API contracts, schema, recurrence engine, and Weekly Reset logic remain unchanged.
 

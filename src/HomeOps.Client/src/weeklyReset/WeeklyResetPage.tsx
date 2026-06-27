@@ -19,7 +19,7 @@ import {
 
 export function WeeklyResetPage() {
   const [reset, setReset] = useState<WeeklyReset | null>(null);
-  const [status, setStatus] = useState("Loading weekly reset…");
+  const [status, setStatus] = useState("Weekritueel laden…");
   const [skipped, setSkipped] = useState(false);
   useEffect(() => {
     let ignore = false;
@@ -27,11 +27,11 @@ export function WeeklyResetPage() {
       .then((data) => {
         if (!ignore) {
           setReset(data);
-          setStatus("Ready");
+          setStatus("Klaar voor jullie check-in.");
         }
       })
       .catch(() => {
-        if (!ignore) setStatus("Weekly reset could not be loaded.");
+        if (!ignore) setStatus("Het weekritueel kon niet worden geladen.");
       });
     return () => {
       ignore = true;
@@ -43,12 +43,12 @@ export function WeeklyResetPage() {
   }
   if (skipped)
     return (
-      <section className="weekly-reset-page">
-        <p className="eyebrow">Optional family check-in</p>
-        <h2>Skipped for now</h2>
-        <p>No problem. The family plan will stay as it is for now.</p>
+      <section className="weekly-reset-page weekly-reset-skipped">
+        <p className="eyebrow">Familiecheck</p>
+        <h2>Vandaag slaan we over</h2>
+        <p>Prima. Alles blijft zoals het nu is: taken, doelen en lijstjes veranderen niet.</p>
         <button type="button" onClick={() => setSkipped(false)}>
-          Open family reset again
+          Open het weekritueel weer
         </button>
       </section>
     );
@@ -58,65 +58,92 @@ export function WeeklyResetPage() {
         <p>{status}</p>
       </section>
     );
+
+  const completedCount = reset.contributionRecap.completedTaskCount;
+  const reviewCount = reset.reviewCandidates.length;
+  const resetCount = reset.shoppingReviewCandidates.length + (reset.familyGoal ? 1 : 0) + reset.individualGoals.length;
+
   return (
     <section className="weekly-reset-page" aria-labelledby="weekly-reset-title">
       <header className="weekly-reset-hero">
-        <div>
-          <p className="eyebrow">Family check-in</p>
-          <h2 id="weekly-reset-title">Weekly Reset</h2>
-          <p>Take a quick look at loose tasks, family goals, shopping, and wins from the week.</p>
+        <div className="weekly-reset-hero-copy">
+          <p className="eyebrow">Familiecheck</p>
+          <h2 id="weekly-reset-title">Zijn we klaar voor volgende week?</h2>
+          <p>Neem samen een rustig moment: vier wat af is, kies wat meegaat en laat los wat niet meer helpt.</p>
         </div>
         <button
           type="button"
           className="secondary-action"
           onClick={() => setSkipped(true)}
         >
-          Skip this week
+          Deze week overslaan
         </button>
       </header>
+
+      <section className="reset-readiness-grid" aria-label="Overzicht van het weekritueel">
+        <RitualMetricCard value={completedCount} label="afgeronde taken" description="Verdwijnt uit de werkvoorraad en blijft als voortgang zichtbaar in de terugblik." />
+        <RitualMetricCard value={reviewCount} label="keuzes voor volgende week" description="Blijft actief, gaat naar later of wordt gearchiveerd met dezelfde taakacties als nu." />
+        <RitualMetricCard value={resetCount} label="gezinsafspraken" description="Doelen en lijstjes blijven bestaan, tenzij jullie bewust archiveren." />
+      </section>
+
+      <section className="reset-intention-card" aria-label="Wat gebeurt er tijdens het weekritueel">
+        <div>
+          <p className="eyebrow">Wat verandert er?</p>
+          <h3>Jullie maken alleen bewuste keuzes</h3>
+        </div>
+        <ul>
+          <li>Terugkerende taken komen volgens de bestaande regels weer terug.</li>
+          <li>Open taken kunnen actief blijven of rustig doorschuiven naar later.</li>
+          <li>Afgeronde taken blijven afgerond; de taaklogica verandert niet.</li>
+          <li>Undo blijft beschikbaar waar dat vandaag al bestaat.</li>
+        </ul>
+      </section>
+
       <section className="reset-grid">
-        <ReviewCard>
+        <ReviewCard className="ritual-card">
           <CardHeader
             className="reset-card-heading"
-            title="Loose tasks"
-            actions={`${reset.reviewCandidates.length} to check`}
+            eyebrow="Meenemen"
+            title="Wat schuift door?"
+            actions={`${reset.reviewCandidates.length} keuze${reset.reviewCandidates.length === 1 ? "" : "s"}`}
           />
+          <p className="ritual-card-intro">Kies samen of deze taken nog bij komende week horen.</p>
           {reset.reviewCandidates.length === 0 ? (
-            <p>No loose tasks need a decision right now.</p>
+            <p className="ritual-empty">Geen losse taken die vandaag een keuze nodig hebben.</p>
           ) : (
             reset.reviewCandidates.map((task) => (
-              <div className="reset-row" key={task.id}>
+              <div className="reset-row ritual-decision-row" key={task.id}>
                 <strong>{task.title}</strong>
-                <span>{task.noDateReviewState ?? "Active"}</span>
+                <span>Deze taak wacht op een zachte ja, later of klaar.</span>
                 <div className="reset-actions">
                   <button
                     type="button"
                     onClick={() =>
                       keepTaskActive(task.id).then(() =>
-                        refresh("Kept active."),
+                        refresh("Taak blijft actief voor volgende week."),
                       )
                     }
                   >
-                    Keep this week
+                    Gaat mee
                   </button>
                   <button
                     type="button"
                     onClick={() =>
                       moveTaskToSomeday(task.id).then(() =>
-                        refresh("Moved to someday."),
+                        refresh("Taak staat rustig bij later."),
                       )
                     }
                   >
-                    Later
+                    Later bewaren
                   </button>
                   <button
                     type="button"
                     className="secondary-action"
                     onClick={() =>
-                      archiveTask(task.id).then(() => refresh("Archived."))
+                      archiveTask(task.id).then(() => refresh("Taak is gearchiveerd."))
                     }
                   >
-                    Archive
+                    Niet meer nodig
                   </button>
                 </div>
               </div>
@@ -124,22 +151,24 @@ export function WeeklyResetPage() {
           )}
         </ReviewCard>
         <GoalCard
-          title="Family goal"
+          title="Gezinsdoel"
           goal={reset.familyGoal}
           onArchive={(id) =>
             archiveFamilyGoalForReset(id).then(() =>
-              refresh("Family goal archived."),
+              refresh("Gezinsdoel is gearchiveerd."),
             )
           }
         />
-        <ReviewCard>
+        <ReviewCard className="ritual-card">
           <CardHeader
             className="reset-card-heading"
-            title="Kids’ goals"
-            actions={`${reset.individualGoals.length} active`}
+            eyebrow="Blijft kloppen"
+            title="Kinddoelen"
+            actions={`${reset.individualGoals.length} actief`}
           />
+          <p className="ritual-card-intro">Bevestig of ieder kind nog een passend doel heeft.</p>
           {reset.individualGoals.length === 0 ? (
-            <p>No active kid goals to confirm.</p>
+            <p className="ritual-empty">Geen actieve kinddoelen om vandaag te bespreken.</p>
           ) : (
             reset.individualGoals.map((goal) => (
               <IndividualGoalRow
@@ -147,38 +176,43 @@ export function WeeklyResetPage() {
                 key={goal.id}
                 onArchive={(id) =>
                   archiveIndividualGoal(id).then(() =>
-                    refresh("Kid goal archived."),
+                    refresh("Kinddoel is gearchiveerd."),
                   )
                 }
               />
             ))
           )}
         </ReviewCard>
-        <ReviewCard>
+        <ReviewCard className="ritual-card">
           <CardHeader
             className="reset-card-heading"
-            title="Shopping check"
-            actions={`${reset.shoppingReviewCandidates.length} to check`}
+            eyebrow="Opfrissen"
+            title="Boodschappen"
+            actions={`${reset.shoppingReviewCandidates.length} lijst${reset.shoppingReviewCandidates.length === 1 ? "" : "en"}`}
           />
+          <p className="ritual-card-intro">Kijk alleen naar lijstjes die mogelijk aandacht vragen; er wordt hier niets automatisch verwijderd.</p>
           {reset.shoppingReviewCandidates.length === 0 ? (
-            <p>No shopping cleanup suggested this week.</p>
+            <p className="ritual-empty">Geen boodschappenlijstjes die om aandacht vragen.</p>
           ) : (
             reset.shoppingReviewCandidates.map((list) => (
               <div className="reset-row" key={list.id}>
                 <strong>{list.name}</strong>
-                <span>
-                  {list.reason} · {list.itemCount} items
-                </span>
+                <span>{list.itemCount} items · blijft staan voor een bewuste keuze later</span>
               </div>
             ))
           )}
         </ReviewCard>
-        <ReviewCard className="recap-card">
+        <ReviewCard className="recap-card ritual-card">
           <CardHeader
             className="reset-card-heading"
-            title="Family wins"
-            actions={`${reset.contributionRecap.completedTaskCount} tasks · ${reset.contributionRecap.helpfulMomentCount} moments`}
+            eyebrow="Vieren"
+            title="Wat is gelukt?"
+            actions={`${reset.contributionRecap.completedTaskCount} taken · ${reset.contributionRecap.helpfulMomentCount} momenten`}
           />
+          <p className="ritual-card-intro">Begin positief: dit heeft jullie gezin deze week al gedragen.</p>
+          {reset.contributionRecap.helpfulMoments.length === 0 && reset.contributionRecap.celebrationMemories.length === 0 ? (
+            <p className="ritual-empty">Geen helpmomenten of vieringen in deze terugblik.</p>
+          ) : null}
           {reset.contributionRecap.helpfulMoments.map((moment) => (
             <div className="reset-row helpful-reset-row" key={moment.id}>
               <strong>
@@ -192,14 +226,24 @@ export function WeeklyResetPage() {
           ))}
           {reset.contributionRecap.celebrationMemories.map((memory) => (
             <div className="reset-row" key={memory.familyGoalId}>
-              <strong>Celebrated: {memory.title}</strong>
+              <strong>Gevierd: {memory.title}</strong>
               {memory.description ? <span>{memory.description}</span> : null}
             </div>
           ))}
         </ReviewCard>
       </section>
-      <p role="status">{status}</p>
+      <p role="status" className="reset-status">{status}</p>
     </section>
+  );
+}
+
+function RitualMetricCard({ value, label, description }: { value: number; label: string; description: string }) {
+  return (
+    <article className="ritual-metric-card">
+      <strong>{value}</strong>
+      <span>{label}</span>
+      <p>{description}</p>
+    </article>
   );
 }
 
@@ -213,28 +257,30 @@ function GoalCard({
   onArchive: (id: string) => void;
 }) {
   return (
-    <ReviewCard>
+    <ReviewCard className="ritual-card">
       <CardHeader
         className="reset-card-heading"
+        eyebrow="Richting"
         title={title}
-        actions={goal ? "Active" : "None active"}
+        actions={goal ? "loopt door" : "geen actief doel"}
       />
+      <p className="ritual-card-intro">Bespreek of dit gezinsdoel nog energie geeft voor volgende week.</p>
       {!goal ? (
-        <p>No active family goal to check today.</p>
+        <p className="ritual-empty">Geen actief gezinsdoel om vandaag te bespreken.</p>
       ) : (
-        <div className="reset-row">
+        <div className="reset-row ritual-decision-row">
           <strong>{goal.title}</strong>
           <span>
-            {goal.currentProgress} / {goal.targetCount} {goal.unitLabel}
+            {goal.currentProgress} / {goal.targetCount} {goal.unitLabel} · blijft doorlopen als jullie niets veranderen
           </span>
           <div className="reset-actions">
-            <button type="button">Keep this week</button>
+            <button type="button">Gaat mee</button>
             <button
               type="button"
               className="secondary-action"
               onClick={() => onArchive(goal.id)}
             >
-              Archive
+              Afronden
             </button>
           </div>
         </div>
@@ -250,21 +296,21 @@ function IndividualGoalRow({
   onArchive: (id: string) => void;
 }) {
   return (
-    <div className="reset-row">
+    <div className="reset-row ritual-decision-row">
       <strong>
         {goal.familyMemberName}: {goal.title}
       </strong>
       <span>
-        {goal.currentProgress} / {goal.targetCount} {goal.unitLabel}
+        {goal.currentProgress} / {goal.targetCount} {goal.unitLabel} · blijft doorlopen als jullie niets veranderen
       </span>
       <div className="reset-actions">
-        <button type="button">Keep this week</button>
+        <button type="button">Gaat mee</button>
         <button
           type="button"
           className="secondary-action"
           onClick={() => onArchive(goal.id)}
         >
-          Archive
+          Afronden
         </button>
       </div>
     </div>
