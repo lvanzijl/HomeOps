@@ -1,4 +1,5 @@
 # Current State
+- 2026-06-27: Completed the Motivation Dashboard Redesign UX slice by turning Motivation into a compact FamilyBoard dashboard with one header, a primary family-goal/progress card, compact appreciation, celebration, and statistics cards, smaller intentional illustrations, and preserved goal/appreciation workflows.
 - 2026-06-24: Completed the Task dialog conversation slice by redesigning Task create/edit into a guided one-question-at-a-time flow with Today/Tomorrow/Someday timing shortcuts, optional recurrence at the end, existing task create/update payloads preserved, and focused Task dialog regression coverage.
 - 2026-06-24: Completed the Home dialog and layout UX consistency slice by changing Home to a balanced 2x2 Agenda/Tasks/Shopping/Motivation dashboard, applying a blurred pastel HomeOps dialog treatment, and moving Agenda event, Task, and Motivation goal creation/editing into on-demand dialogs while preserving Shopping inline entry and existing business logic.
 - 2026-06-24: Captured a complete desktop beta-surface visual review package under `docs/reports/2026-06-24-beta-surface-visual-review/`, covering Home, Agenda, Tasks, Shopping, Motivation, adult and child Family Member pages, Avatar Editor default and unsaved states, Weekly Reset, and Settings without implementation changes.
@@ -628,3 +629,8 @@ Showcase Sample C and Showcase Sample D exposed that the wide head variant's ear
 - The Home shopping summary now renders shopping/list item names directly with optional store context instead of repeating the list/container name per item.
 - Home summaries remain bounded with short visible lists and existing `+N more` indicators, while spacing was tightened to move the page closer to a non-scrolling dashboard.
 - Dedicated Agenda, Tasks, Lists, and Motivation pages remain the full management surfaces; Home creation dialogs are intentionally minimal.
+
+## Motivation Layout Architecture Refactor — 2026-06-27
+- Refactored the Motivation surface from a document-like stack into a wider two-by-two dashboard using the existing workspace header as the single page header.
+- Compacted the Family Goal, recent appreciation, upcoming celebration, and statistics cards so all four dashboard cards validate above the fold at 1366×768 and 1920×1080 in browser measurement.
+- Preserved existing Motivation API/data behavior and kept management/history flows behind existing dialogs/toggles; no binary assets or screenshots were added.

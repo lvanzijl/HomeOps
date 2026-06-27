@@ -161,7 +161,7 @@ export function WorkspaceShell() {
         </div>
       </nav>
 
-      <section className="workspace-panel" aria-labelledby="active-workspace-title">
+      <section className={`workspace-panel workspace-panel-${activeWorkspace.id}`} aria-labelledby="active-workspace-title">
         {activeWorkspace.id === 'home' && !activeFamilyMember ? <h2 className="visually-hidden" id="active-workspace-title">Home</h2> : activeFamilyMember ? <h2 className="visually-hidden" id="active-workspace-title">{activeFamilyMember.name}</h2> : (
           <header className="workspace-page-header">
             <p className="workspace-position">

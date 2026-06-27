@@ -1,5 +1,8 @@
 # Phase 2 Roadmap
 
+## Completed Slice 2.66 — Motivation Dashboard Redesign
+Motivation Dashboard Redesign reshapes Motivation into a compact FamilyBoard dashboard without changing APIs, routing, data models, or goal/appreciation behavior. The page now keeps one header, makes Family Goal progress the primary focal point, moves recent appreciation into a compact feed, adds compact celebration and statistics cards, uses smaller HomeOps illustrations intentionally, and keeps deeper memories and personal-goal management behind existing progressive disclosure.
+
 ## Completed Slice 2.47 — Tasks and Weekly Reset Family-First UX Pass
 Tasks and Weekly Reset Family-First UX Pass warms the Tasks surface and contextual Weekly Reset entry without adding features or changing workflows. Tasks now leads with family-help language, softer ownership labels, routine-starter copy, and clearer Weekly Reset discovery from the Tasks page. The beta-facing Shopping label replaces Shopping / Lists for clearer household comprehension while the route and list functionality remain unchanged. Narrow navigation buttons are tightened to reduce wrapping. Existing task lifecycle behavior, Weekly Reset functionality, navigation structure, FamilyMember behavior, and Avatar V2 remain preserved.
 
@@ -38,6 +41,7 @@ Tasks and Weekly Reset Family-First UX Pass warms the Tasks surface and contextu
 | 2.62 | Avatar V2 Slice 1 Frontend/Product Cleanup | Completed |
 | 2.63 | Avatar V2 Slice 2 Renderer Cleanup | Completed |
 | 2.65 | Beta Navigation and Surface Cleanup | Completed |
+| 2.66 | Motivation Dashboard Redesign | Completed |
 | 2.41 | No-Date Task Lifecycle | Completed |
 
 Phase 2 theme: Durable Household Core.
@@ -404,3 +408,6 @@ Home Dialog and Layout UX Consistency changes Home from a weighted dashboard to 
 
 ### Completed Slice 2.56 — Task Dialog Conversation
 Task Dialog Conversation redesigns the Task create/edit dialog into the first HomeOps conversational creation reference. The dialog now asks one primary question at a time: what needs to be done, who should do it, when it should happen, and whether anything optional such as recurrence is needed. New tasks default to today, provide Today/Tomorrow/Someday shortcuts, keep recurrence under “Anything else?”, and reuse the existing Task create/update payload path. Agenda, Motivation, Shopping, APIs, persistence, task templates, Weekly Reset, and backend behavior remain unchanged, and no generic dialog framework was introduced.
+
+### Motivation Layout Architecture Refactor — Completed 2026-06-27
+Motivation Layout Architecture Refactor corrected the prior dashboard redesign's excessive vertical growth by removing the Motivation-level duplicate header, widening the Motivation workspace on desktop, constraining icon/card sizing, and turning Family Goal, Recent Appreciation, Upcoming Celebrations, and Statistics into a measured two-by-two dashboard. Browser validation with a temporary local mock API measured no vertical scrollbar at 1366×768 or 1920×1080, with all four key cards above the fold. Backend behavior, API contracts, routing, database schema, and stored data behavior remained unchanged.
