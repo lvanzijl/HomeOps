@@ -51,6 +51,159 @@ const dentistEvent: NormalizedEvent = {
   editable: true,
 };
 
+const overflowEvents: NormalizedEvent[] = [
+  {
+    id: "football",
+    sourceId: calendarSource.id,
+    title: "Voetbal training",
+    startsAt: "2026-06-18T12:00:00.000Z",
+    endsAt: "2026-06-18T13:00:00.000Z",
+    allDay: false,
+    editable: true,
+  },
+  {
+    id: "shopping",
+    sourceId: calendarSource.id,
+    title: "Boodschappen markt",
+    startsAt: "2026-06-18T14:00:00.000Z",
+    endsAt: "2026-06-18T15:00:00.000Z",
+    allDay: false,
+    editable: true,
+  },
+  {
+    id: "family",
+    sourceId: calendarSource.id,
+    title: "Familie eten",
+    startsAt: "2026-06-18T17:00:00.000Z",
+    endsAt: "2026-06-18T18:00:00.000Z",
+    allDay: false,
+    editable: true,
+  },
+  {
+    id: "work",
+    sourceId: calendarSource.id,
+    title: "Werk overleg",
+    startsAt: "2026-06-18T19:00:00.000Z",
+    endsAt: "2026-06-18T20:00:00.000Z",
+    allDay: false,
+    editable: true,
+  },
+];
+
+const currentWeekEvents: NormalizedEvent[] = [
+  {
+    id: "week-school",
+    sourceId: calendarSource.id,
+    title: "School ouderavond",
+    startsAt: "2026-06-27T08:00:00.000Z",
+    endsAt: "2026-06-27T09:00:00.000Z",
+    allDay: false,
+    editable: true,
+  },
+  {
+    id: "week-sports",
+    sourceId: calendarSource.id,
+    title: "Voetbal wedstrijd",
+    startsAt: "2026-06-27T10:00:00.000Z",
+    endsAt: "2026-06-27T11:00:00.000Z",
+    allDay: false,
+    editable: true,
+  },
+  {
+    id: "week-shopping",
+    sourceId: calendarSource.id,
+    title: "Boodschappen supermarkt",
+    startsAt: "2026-06-27T12:00:00.000Z",
+    endsAt: "2026-06-27T13:00:00.000Z",
+    allDay: false,
+    editable: true,
+  },
+  {
+    id: "week-family",
+    sourceId: calendarSource.id,
+    title: "Familie bezoek",
+    startsAt: "2026-06-27T14:00:00.000Z",
+    endsAt: "2026-06-27T15:00:00.000Z",
+    allDay: false,
+    editable: true,
+  },
+  {
+    id: "week-doctor",
+    sourceId: calendarSource.id,
+    title: "Tandarts controle",
+    startsAt: "2026-06-27T16:00:00.000Z",
+    endsAt: "2026-06-27T16:30:00.000Z",
+    allDay: false,
+    editable: true,
+  },
+  {
+    id: "week-sunday",
+    sourceId: calendarSource.id,
+    title: "Oma eten",
+    startsAt: "2026-06-28T17:00:00.000Z",
+    endsAt: "2026-06-28T18:30:00.000Z",
+    allDay: false,
+    editable: true,
+  },
+];
+
+const timelineEvents: NormalizedEvent[] = [
+  {
+    id: "past-event",
+    sourceId: calendarSource.id,
+    title: "Verleden afspraak",
+    startsAt: "2026-06-26T10:00:00.000Z",
+    endsAt: "2026-06-26T11:00:00.000Z",
+    allDay: false,
+    editable: true,
+  },
+  {
+    id: "today-late",
+    sourceId: calendarSource.id,
+    title: "Voetbal training",
+    startsAt: "2026-06-27T16:00:00.000Z",
+    endsAt: "2026-06-27T17:00:00.000Z",
+    allDay: false,
+    editable: true,
+  },
+  {
+    id: "today-early",
+    sourceId: calendarSource.id,
+    title: "Tandarts controle",
+    startsAt: "2026-06-27T09:00:00.000Z",
+    endsAt: "2026-06-27T09:30:00.000Z",
+    allDay: false,
+    editable: true,
+  },
+  {
+    id: "tomorrow-family",
+    sourceId: calendarSource.id,
+    title: "Familie brunch",
+    startsAt: "2026-06-28T11:00:00.000Z",
+    endsAt: "2026-06-28T12:00:00.000Z",
+    allDay: false,
+    editable: true,
+  },
+  {
+    id: "next-week-school",
+    sourceId: calendarSource.id,
+    title: "School rapportgesprek",
+    startsAt: "2026-06-30T15:00:00.000Z",
+    endsAt: "2026-06-30T15:30:00.000Z",
+    allDay: false,
+    editable: true,
+  },
+  {
+    id: "later-shopping",
+    sourceId: calendarSource.id,
+    title: "Boodschappen voorraad",
+    startsAt: "2026-07-13T10:00:00.000Z",
+    endsAt: "2026-07-13T11:00:00.000Z",
+    allDay: false,
+    editable: true,
+  },
+];
+
 const widgetProps = {
   definition: {
     id: "agenda-mvp",
@@ -66,20 +219,29 @@ const widgetProps = {
   },
 };
 
+async function selectDentistDay(user: ReturnType<typeof userEvent.setup>) {
+  await screen.findByRole("button", { name: /18 juni 2026, 1 gebeurtenis/ });
+  await user.click(
+    screen.getByRole("button", { name: /18 juni 2026, 1 gebeurtenis/ }),
+  );
+}
+
 async function openCreateDialog(user: ReturnType<typeof userEvent.setup>) {
-  await screen.findByText("Dentist Appointment");
-  await user.click(screen.getByRole("button", { name: "Add household event" }));
-  return screen.getByRole("dialog", { name: "Add calendar event" });
+  await screen.findByRole("button", { name: "Gebeurtenis toevoegen" });
+  await user.click(
+    screen.getByRole("button", { name: "Gebeurtenis toevoegen" }),
+  );
+  return screen.getByRole("dialog", { name: "Gebeurtenis toevoegen" });
 }
 
 async function continueThroughDate(user: ReturnType<typeof userEvent.setup>) {
-  await user.click(screen.getByRole("button", { name: "Continue" }));
-  await user.click(screen.getByRole("button", { name: "Continue" }));
+  await user.click(screen.getByRole("button", { name: "Verder" }));
+  await user.click(screen.getByRole("button", { name: "Verder" }));
 }
 
 async function continueToDetails(user: ReturnType<typeof userEvent.setup>) {
   await continueThroughDate(user);
-  await user.click(screen.getByRole("button", { name: "Continue" }));
+  await user.click(screen.getByRole("button", { name: "Verder" }));
 }
 
 afterEach(() => {
@@ -100,8 +262,8 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
       id: "new-event",
       sourceId: calendarSource.id,
       title: "New Calendar Event",
-      startsAt: "2026-06-22T09:00:00.000Z",
-      endsAt: "2026-06-22T10:00:00.000Z",
+      startsAt: "2026-06-27T09:00:00.000Z",
+      endsAt: "2026-06-27T10:00:00.000Z",
       allDay: false,
       editable: true,
     });
@@ -116,6 +278,8 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
 
   it("loads persisted calendar events while keeping birthday events available", async () => {
     render(<AgendaWidget {...widgetProps} />);
+    const user = userEvent.setup();
+    await selectDentistDay(user);
 
     expect(await screen.findByText("Dentist Appointment")).not.toBeNull();
     expect(screen.queryByText("Avery birthday")).toBeNull();
@@ -128,37 +292,40 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
 
     await openCreateDialog(user);
     expect(
-      screen.getByRole("dialog", { name: "Add calendar event" }),
+      screen.getByRole("dialog", { name: "Gebeurtenis toevoegen" }),
     ).not.toBeNull();
     await user.type(
-      screen.getByLabelText("What is happening?"),
+      screen.getByLabelText("Wat gebeurt er?"),
       "New Calendar Event",
     );
     await continueToDetails(user);
-    await user.click(screen.getByRole("button", { name: "Create event" }));
+    await user.click(screen.getByRole("button", { name: "Gebeurtenis maken" }));
 
     expect(calendarEventsApi.createCalendarAgendaEvent).toHaveBeenCalledWith(
       expect.objectContaining({ title: "New Calendar Event" }),
     );
     expect(await screen.findByText("New Calendar Event")).not.toBeNull();
+    await selectDentistDay(user);
 
     await user.click(
       within(screen.getByText("Dentist Appointment").closest("li")!).getByRole(
         "button",
-        { name: "Edit" },
+        { name: "Bewerken" },
       ),
     );
-    expect(screen.getByLabelText("What is happening?")).toHaveProperty(
+    expect(screen.getByLabelText("Wat gebeurt er?")).toHaveProperty(
       "value",
       "Dentist Appointment",
     );
-    await user.clear(screen.getByLabelText("What is happening?"));
+    await user.clear(screen.getByLabelText("Wat gebeurt er?"));
     await user.type(
-      screen.getByLabelText("What is happening?"),
+      screen.getByLabelText("Wat gebeurt er?"),
       "Updated Dentist",
     );
     await continueToDetails(user);
-    await user.click(screen.getByRole("button", { name: "Save event" }));
+    await user.click(
+      screen.getByRole("button", { name: "Gebeurtenis opslaan" }),
+    );
 
     expect(calendarEventsApi.updateCalendarAgendaEvent).toHaveBeenCalledWith(
       "dentist",
@@ -169,7 +336,7 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     await user.click(
       within(screen.getByText("Updated Dentist").closest("li")!).getByRole(
         "button",
-        { name: "Delete" },
+        { name: "Verwijderen" },
       ),
     );
 
@@ -181,22 +348,22 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     );
   });
 
-  it("keeps Continue disabled until a required title exists", async () => {
+  it("keeps Verder disabled until a required title exists", async () => {
     const user = userEvent.setup();
     const calendarEventsApi = await mockedCalendarEventsApi();
     render(<AgendaWidget {...widgetProps} />);
 
     await openCreateDialog(user);
 
-    expect(screen.getByRole("button", { name: "Continue" })).toHaveProperty(
+    expect(screen.getByRole("button", { name: "Verder" })).toHaveProperty(
       "disabled",
       true,
     );
     expect(calendarEventsApi.createCalendarAgendaEvent).not.toHaveBeenCalled();
 
-    await user.type(screen.getByLabelText("What is happening?"), "Family dinner");
+    await user.type(screen.getByLabelText("Wat gebeurt er?"), "Family dinner");
 
-    expect(screen.getByRole("button", { name: "Continue" })).toHaveProperty(
+    expect(screen.getByRole("button", { name: "Verder" })).toHaveProperty(
       "disabled",
       false,
     );
@@ -206,35 +373,29 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     const user = userEvent.setup();
     render(<AgendaWidget {...widgetProps} />);
 
-    await screen.findByText("Dentist Appointment");
+    await selectDentistDay(user);
     await user.click(
       within(screen.getByText("Dentist Appointment").closest("li")!).getByRole(
         "button",
-        { name: "Edit" },
+        { name: "Bewerken" },
       ),
     );
 
-    expect(screen.getByLabelText("What is happening?")).toHaveProperty(
+    expect(screen.getByLabelText("Wat gebeurt er?")).toHaveProperty(
       "value",
       "Dentist Appointment",
     );
-    await user.click(screen.getByRole("button", { name: "Continue" }));
-    expect(screen.getByLabelText("Pick a date")).toHaveProperty(
+    await user.click(screen.getByRole("button", { name: "Verder" }));
+    expect(screen.getByLabelText("Kies datum")).toHaveProperty(
       "value",
       "2026-06-18",
     );
-    await user.click(screen.getByRole("button", { name: "Continue" }));
-    expect(screen.getByRole("button", { name: "Pick a time" }).className).toContain(
-      "selected",
-    );
-    expect(screen.getByLabelText("Start time")).toHaveProperty(
-      "value",
-      "09:30",
-    );
-    expect(screen.getByLabelText("End time")).toHaveProperty(
-      "value",
-      "10:15",
-    );
+    await user.click(screen.getByRole("button", { name: "Verder" }));
+    expect(
+      screen.getByRole("button", { name: "Kies een tijd" }).className,
+    ).toContain("selected");
+    expect(screen.getByLabelText("Begintijd")).toHaveProperty("value", "09:30");
+    expect(screen.getByLabelText("Eindtijd")).toHaveProperty("value", "10:15");
   });
 
   it("prevents invalid timed event submission with existing validation", async () => {
@@ -243,16 +404,16 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     render(<AgendaWidget {...widgetProps} />);
 
     await openCreateDialog(user);
-    await user.type(screen.getByLabelText("What is happening?"), "Invalid Range");
+    await user.type(screen.getByLabelText("Wat gebeurt er?"), "Invalid Range");
     await continueThroughDate(user);
-    fireEvent.change(screen.getByLabelText("End time"), {
+    fireEvent.change(screen.getByLabelText("Eindtijd"), {
       target: { value: "08:00" },
     });
-    await user.click(screen.getByRole("button", { name: "Continue" }));
-    await user.click(screen.getByRole("button", { name: "Create event" }));
+    await user.click(screen.getByRole("button", { name: "Verder" }));
+    await user.click(screen.getByRole("button", { name: "Gebeurtenis maken" }));
 
     expect((await screen.findByRole("alert")).textContent).toContain(
-      "Event end must be on or after event start.",
+      "De eindtijd moet gelijk aan of na de begintijd zijn.",
     );
     expect(calendarEventsApi.createCalendarAgendaEvent).not.toHaveBeenCalled();
   });
@@ -263,18 +424,18 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     render(<AgendaWidget {...widgetProps} />);
 
     await openCreateDialog(user);
-    await user.type(screen.getByLabelText("What is happening?"), "All Day Trip");
-    await user.click(screen.getByRole("button", { name: "Continue" }));
-    fireEvent.change(screen.getByLabelText("Pick a date"), {
+    await user.type(screen.getByLabelText("Wat gebeurt er?"), "All Day Trip");
+    await user.click(screen.getByRole("button", { name: "Verder" }));
+    fireEvent.change(screen.getByLabelText("Kies datum"), {
       target: { value: "2026-07-01" },
     });
-    await user.click(screen.getByRole("button", { name: "Continue" }));
-    await user.click(screen.getByRole("button", { name: "All day" }));
-    fireEvent.change(screen.getByLabelText("End date"), {
+    await user.click(screen.getByRole("button", { name: "Verder" }));
+    await user.click(screen.getByRole("button", { name: "Hele dag" }));
+    fireEvent.change(screen.getByLabelText("Einddatum"), {
       target: { value: "2026-07-02" },
     });
-    await user.click(screen.getByRole("button", { name: "Continue" }));
-    await user.click(screen.getByRole("button", { name: "Create event" }));
+    await user.click(screen.getByRole("button", { name: "Verder" }));
+    await user.click(screen.getByRole("button", { name: "Gebeurtenis maken" }));
 
     expect(calendarEventsApi.createCalendarAgendaEvent).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -286,19 +447,19 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     );
 
     await user.click(
-      screen.getByRole("button", { name: "Add household event" }),
+      screen.getByRole("button", { name: "Gebeurtenis toevoegen" }),
     );
-    await user.type(screen.getByLabelText("What is happening?"), "Timed Trip");
+    await user.type(screen.getByLabelText("Wat gebeurt er?"), "Timed Trip");
     await continueToDetails(user);
-    await user.click(screen.getByRole("button", { name: "Create event" }));
+    await user.click(screen.getByRole("button", { name: "Gebeurtenis maken" }));
 
     expect(
       calendarEventsApi.createCalendarAgendaEvent,
     ).toHaveBeenLastCalledWith(
       expect.objectContaining({
         title: "Timed Trip",
-        startsAt: "2026-06-22T09:00",
-        endsAt: "2026-06-22T10:00",
+        startsAt: "2026-06-27T09:00",
+        endsAt: "2026-06-27T10:00",
         allDay: false,
       }),
     );
@@ -310,11 +471,11 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     render(<AgendaWidget {...widgetProps} />);
 
     await openCreateDialog(user);
-    await user.type(screen.getByLabelText("What is happening?"), "Draft event");
+    await user.type(screen.getByLabelText("Wat gebeurt er?"), "Draft event");
     await user.keyboard("{Escape}");
 
     expect(
-      screen.queryByRole("dialog", { name: "Add calendar event" }),
+      screen.queryByRole("dialog", { name: "Gebeurtenis toevoegen" }),
     ).toBeNull();
     expect(calendarEventsApi.createCalendarAgendaEvent).not.toHaveBeenCalled();
   });
@@ -327,7 +488,9 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     ).mockRejectedValueOnce(
       Object.assign(new Error("Bad Request"), {
         response: JSON.stringify({
-          errors: { EndUtc: ["Event end must be on or after event start."] },
+          errors: {
+            EndUtc: ["De eindtijd moet gelijk aan of na de begintijd zijn."],
+          },
         }),
       }),
     );
@@ -336,24 +499,26 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     ).mockRejectedValueOnce(new Error("Delete failed"));
     render(<AgendaWidget {...widgetProps} />);
 
-    await screen.findByText("Dentist Appointment");
+    await selectDentistDay(user);
     await user.click(
       within(screen.getByText("Dentist Appointment").closest("li")!).getByRole(
         "button",
-        { name: "Edit" },
+        { name: "Bewerken" },
       ),
     );
     await continueToDetails(user);
-    await user.click(screen.getByRole("button", { name: "Save event" }));
+    await user.click(
+      screen.getByRole("button", { name: "Gebeurtenis opslaan" }),
+    );
 
     expect((await screen.findByRole("alert")).textContent).toContain(
-      "Event end must be on or after event start.",
+      "De eindtijd moet gelijk aan of na de begintijd zijn.",
     );
 
     await user.click(
       within(screen.getByText("Dentist Appointment").closest("li")!).getByRole(
         "button",
-        { name: "Delete" },
+        { name: "Verwijderen" },
       ),
     );
 
@@ -370,14 +535,177 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     });
     render(<AgendaWidget {...widgetProps} />);
 
-    expect(await screen.findByText("Create your first event")).not.toBeNull();
     expect(
-      screen.getByText(
-        "Events help the household remember important dates and activities.",
-      ),
+      await screen.findByText("Begin met de eerste gebeurtenis"),
     ).not.toBeNull();
     expect(
-      screen.getByRole("button", { name: "Start with one household event." }),
+      screen.getByText(
+        "Voeg een gebeurtenis toe voor deze datum of kies een andere dag in het maandrooster.",
+      ),
+    ).not.toBeNull();
+  });
+
+  it("renders family-friendly event indicators with overflow and detail card labels", async () => {
+    const user = userEvent.setup();
+    const calendarEventsApi = await mockedCalendarEventsApi();
+    vi.mocked(calendarEventsApi.loadCalendarAgendaData).mockResolvedValueOnce({
+      sources: [calendarSource],
+      events: [dentistEvent, ...overflowEvents],
+    });
+    render(<AgendaWidget {...widgetProps} />);
+
+    const busyDay = await screen.findByRole("button", {
+      name: /18 juni 2026, 5 gebeurtenissen/,
+    });
+    expect(within(busyDay).getByText("🩺")).not.toBeNull();
+    expect(within(busyDay).getByText("⚽")).not.toBeNull();
+    expect(within(busyDay).getByText("🛒")).not.toBeNull();
+    expect(within(busyDay).getByText("+2")).not.toBeNull();
+
+    await user.click(busyDay);
+
+    expect(await screen.findByText("Zorg")).not.toBeNull();
+    expect(screen.getByText("Sport")).not.toBeNull();
+    expect(screen.getByText("Boodschappen")).not.toBeNull();
+    expect(screen.getByText("Familie")).not.toBeNull();
+    expect(screen.getByText("Werk")).not.toBeNull();
+    expect(
+      screen.getByText("Dentist Appointment").closest("li")?.className,
+    ).toContain("agenda-event");
+  });
+
+  it("adds a non-default week workspace with seven family planning day cards", async () => {
+    const user = userEvent.setup();
+    const calendarEventsApi = await mockedCalendarEventsApi();
+    vi.mocked(calendarEventsApi.loadCalendarAgendaData).mockResolvedValueOnce({
+      sources: [calendarSource],
+      events: currentWeekEvents,
+    });
+    render(<AgendaWidget {...widgetProps} />);
+
+    expect(await screen.findByLabelText("Maandplanning")).not.toBeNull();
+    await user.click(screen.getByRole("button", { name: "Week" }));
+
+    expect(screen.getByLabelText("Weekplanning")).not.toBeNull();
+    expect(
+      screen.getByText("Wat gebeurt er deze week, en waar wordt het druk?"),
+    ).not.toBeNull();
+    expect(screen.getByRole("button", { name: "Vorige week" })).not.toBeNull();
+    expect(screen.getByRole("button", { name: "Deze week" })).not.toBeNull();
+    expect(
+      screen.getByRole("button", { name: "Volgende week" }),
+    ).not.toBeNull();
+
+    const dayCards = document.querySelectorAll(".agenda-week-day-card");
+    expect(dayCards).toHaveLength(7);
+    expect(screen.getByText("maandag")).not.toBeNull();
+    expect(screen.getByText("zondag")).not.toBeNull();
+
+    const busyCard = screen.getByLabelText(/27 juni 2026, 5 gebeurtenissen/);
+    expect(within(busyCard).getAllByText("🎒").length).toBeGreaterThan(0);
+    expect(within(busyCard).getAllByText("⚽").length).toBeGreaterThan(0);
+    expect(within(busyCard).getAllByText("🛒").length).toBeGreaterThan(0);
+    expect(within(busyCard).getByText("+2")).not.toBeNull();
+    expect(
+      within(busyCard).getByText("5 momenten op de gezinsplanning."),
+    ).not.toBeNull();
+    expect(within(busyCard).getByText("+2 meer voor deze dag")).not.toBeNull();
+    expect(within(busyCard).getByText("School ouderavond")).not.toBeNull();
+
+    expect(screen.getAllByText("Rustige dag").length).toBeGreaterThan(0);
+
+    await user.click(screen.getByRole("button", { name: "Volgende week" }));
+    expect(await screen.findByText("Een rustige week in zicht")).not.toBeNull();
+
+    await user.click(screen.getByRole("button", { name: "Maand" }));
+    expect(screen.getByLabelText("Maandplanning")).not.toBeNull();
+  });
+
+  it("adds a chronological list workspace with reused event cards and editing actions", async () => {
+    const user = userEvent.setup();
+    const calendarEventsApi = await mockedCalendarEventsApi();
+    vi.mocked(calendarEventsApi.loadCalendarAgendaData).mockResolvedValueOnce({
+      sources: [calendarSource],
+      events: timelineEvents,
+    });
+    render(<AgendaWidget {...widgetProps} />);
+
+    expect(await screen.findByLabelText("Maandplanning")).not.toBeNull();
+    expect(screen.getByRole("button", { name: "Week" })).not.toBeNull();
+    await user.click(screen.getByRole("button", { name: "Lijst" }));
+
+    expect(screen.getByLabelText("Lijstplanning")).not.toBeNull();
+    expect(screen.getByText("Wat komt eraan?")).not.toBeNull();
+    expect(screen.getByText("5 komende momenten")).not.toBeNull();
+    expect(screen.getByText("Vandaag")).not.toBeNull();
+    expect(screen.getByText("Morgen")).not.toBeNull();
+    expect(screen.getByText("Volgende week")).not.toBeNull();
+    expect(screen.getByText("Later")).not.toBeNull();
+    expect(screen.queryByText("Verleden afspraak")).toBeNull();
+
+    const timelineText =
+      screen.getByLabelText("Lijstplanning").textContent ?? "";
+    expect(timelineText.indexOf("Tandarts controle")).toBeLessThan(
+      timelineText.indexOf("Voetbal training"),
+    );
+    expect(timelineText.indexOf("Voetbal training")).toBeLessThan(
+      timelineText.indexOf("Familie brunch"),
+    );
+    expect(timelineText.indexOf("Familie brunch")).toBeLessThan(
+      timelineText.indexOf("School rapportgesprek"),
+    );
+    expect(timelineText.indexOf("School rapportgesprek")).toBeLessThan(
+      timelineText.indexOf("Boodschappen voorraad"),
+    );
+
+    const todayGroup = screen.getByLabelText("Vandaag");
+    expect(within(todayGroup).getAllByText("🩺").length).toBeGreaterThan(0);
+    expect(within(todayGroup).getAllByText("⚽").length).toBeGreaterThan(0);
+    expect(
+      screen.getByText("Tandarts controle").closest("li")?.className,
+    ).toContain("agenda-event");
+
+    await user.click(
+      within(screen.getByText("Tandarts controle").closest("li")!).getByRole(
+        "button",
+        { name: "Bewerken" },
+      ),
+    );
+    expect(
+      screen.getByRole("dialog", { name: "Gebeurtenis bewerken" }),
+    ).not.toBeNull();
+    await user.keyboard("{Escape}");
+
+    await user.click(
+      within(screen.getByText("Tandarts controle").closest("li")!).getByRole(
+        "button",
+        { name: "Verwijderen" },
+      ),
+    );
+
+    expect(calendarEventsApi.deleteCalendarAgendaEvent).toHaveBeenCalledWith(
+      "today-early",
+    );
+    await waitFor(() =>
+      expect(screen.queryByText("Tandarts controle")).toBeNull(),
+    );
+  });
+
+  it("shows a warm list empty state when there are no upcoming events", async () => {
+    const user = userEvent.setup();
+    const calendarEventsApi = await mockedCalendarEventsApi();
+    vi.mocked(calendarEventsApi.loadCalendarAgendaData).mockResolvedValueOnce({
+      sources: [calendarSource],
+      events: [timelineEvents[0]],
+    });
+    render(<AgendaWidget {...widgetProps} />);
+
+    await screen.findByLabelText("Maandplanning");
+    await user.click(screen.getByRole("button", { name: "Lijst" }));
+
+    expect(screen.getByText("Geen komende momenten")).not.toBeNull();
+    expect(
+      screen.getByText("Even niets dat om aandacht vraagt"),
     ).not.toBeNull();
   });
 
@@ -385,7 +713,7 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     const user = userEvent.setup();
     render(<AgendaWidget {...widgetProps} />);
 
-    await screen.findByText("Dentist Appointment");
+    await selectDentistDay(user);
     await user.click(screen.getByLabelText(/HomeOps Calendar/));
 
     expect(screen.queryByText("Dentist Appointment")).toBeNull();

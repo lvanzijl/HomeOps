@@ -1,5 +1,13 @@
 # Phase 2 Roadmap
 
+
+
+## Completed Slice — Agenda List Workspace
+Agenda List Workspace adds a non-default chronological family reference timeline for upcoming events while preserving Month as the primary planning surface and Week as the operational planning workspace. List groups upcoming events into Vandaag, Morgen, Deze week, Volgende week, and Later, reuses existing event indicators and FamilyBoard event cards, preserves edit/delete behaviour, and avoids backend, API, database schema, Google Calendar, event persistence, event-type settings, indicator architecture, and classifier architecture changes.
+
+## Completed Slice — Agenda Week Workspace
+Agenda Week Workspace adds a non-default operational family planning surface for the coming week while preserving Month as the primary Agenda planning surface. Week renders Monday through Sunday as compact FamilyBoard planning cards with reused event indicators, pastel event cards, previous/current/next week navigation, quiet-day states, and an empty-week state. No backend, API contract, database schema, Google Calendar integration, event persistence, event editing flow, event-type settings, hourly timeline, or drag-and-drop scheduling was introduced.
+
 ## Completed Slice 2.66 — Motivation Dashboard Redesign
 Motivation Dashboard Redesign reshapes Motivation into a compact FamilyBoard dashboard without changing APIs, routing, data models, or goal/appreciation behavior. The page now keeps one header, makes Family Goal progress the primary focal point, moves recent appreciation into a compact feed, adds compact celebration and statistics cards, uses smaller HomeOps illustrations intentionally, and keeps deeper memories and personal-goal management behind existing progressive disclosure.
 
@@ -411,3 +419,7 @@ Task Dialog Conversation redesigns the Task create/edit dialog into the first Ho
 
 ### Motivation Layout Architecture Refactor — Completed 2026-06-27
 Motivation Layout Architecture Refactor corrected the prior dashboard redesign's excessive vertical growth by removing the Motivation-level duplicate header, widening the Motivation workspace on desktop, constraining icon/card sizing, and turning Family Goal, Recent Appreciation, Upcoming Celebrations, and Statistics into a measured two-by-two dashboard. Browser validation with a temporary local mock API measured no vertical scrollbar at 1366×768 or 1920×1080, with all four key cards above the fold. Backend behavior, API contracts, routing, database schema, and stored data behavior remained unchanged.
+
+Agenda Month Master-Detail establishes Agenda as a family planning workspace rather than a dashboard by making the month grid the primary navigation surface and the selected-day panel the integrated day view. Event creation now starts from the selected day and defaults to that date while preserving existing HomeOps Calendar APIs, persistence, source filtering, edit/delete behavior, and local refresh mechanics. Week workspace, List workspace, event indicators, event-type configuration, Google Calendar integration, backend changes, and database changes remain deferred.
+
+Agenda Event Indicators replaces month-cell count text with frontend-derived type icons, soft type colours, and `+N` overflow while improving selected-day event cards with warmer FamilyBoard presentation. The slice derives visual type from existing source metadata and title keywords only, preserving calendar persistence, Google Calendar integration, backend APIs, database schema, and event editing flows. Week workspace, List workspace, event-type editor/settings, persisted event type metadata, and backend changes remain deferred.
