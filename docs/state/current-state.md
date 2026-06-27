@@ -645,3 +645,9 @@ Showcase Sample C and Showcase Sample D exposed that the wide head variant's ear
 - Preserved existing Motivation API/data behavior and kept management/history flows behind existing dialogs/toggles; no binary assets or screenshots were added.
 
 - 2026-06-27: Refined Shopping layout density after browser validation. Quick Add now renders as a compact primary interaction, store cards follow immediately, and lifecycle/other-list content remains secondary without backend/API/schema changes.
+
+## Tasks Workspace Polish — 2026-06-27
+- Reduced Tasks card action density by keeping Klaar and eligible Morgen visible while moving lower-frequency edit/recurring-series actions behind Meer.
+- Added a compact Vandaag summary beneath the Tasks hero using existing loaded task data for today, overdue, and routine counts.
+- Made Afgerond a collapsed-by-default history section so active time groups dominate the operational workspace while reopening remains available when expanded.
+- Preserved existing completion, Morgen, recurrence, Weekly Reset, backend, API contract, and database behavior.
