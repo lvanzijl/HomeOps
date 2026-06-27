@@ -41,15 +41,15 @@ describe('CalendarPortabilityWidget restore safety', () => {
 
     render(<CalendarPortabilityWidget />);
 
-    expect(screen.getByText(/Destructive warning: restore replaces all existing local calendar event sources and EventSeries data/i)).not.toBeNull();
-    const restoreButton = screen.getByRole('button', { name: 'Restore calendar data' });
+    expect(screen.getByText(/Restore replaces the current household calendar with the selected backup/i)).not.toBeNull();
+    const restoreButton = screen.getByRole('button', { name: 'Restore calendar' });
     expect(restoreButton).toHaveProperty('disabled', true);
 
-    await user.upload(screen.getByLabelText(/Import JSON export/i), file);
-    await waitFor(() => expect(screen.getByText(/Version 1.1 exported at 2026-06-19T00:00:00.000Z/i)).not.toBeNull());
+    await user.upload(screen.getByLabelText(/Choose backup file/i), file);
+    await waitFor(() => expect(screen.getByText(/Backup from 2026-06-19T00:00:00.000Z/i)).not.toBeNull());
     expect(restoreButton).toHaveProperty('disabled', true);
 
-    await user.click(screen.getByLabelText(/I understand this full restore replaces existing calendar data/i));
+    await user.click(screen.getByLabelText(/I understand restore replaces the current household calendar/i));
     expect(restoreButton).toHaveProperty('disabled', false);
     await user.click(restoreButton);
 

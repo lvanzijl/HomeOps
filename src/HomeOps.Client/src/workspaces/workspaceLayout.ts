@@ -65,14 +65,7 @@ export const defaultWorkspaceLayouts: Record<WorkspaceId, readonly WidgetInstanc
   ],
   gamification: [],
   weeklyReset: [],
-  settings: [
-    {
-      id: 'settings-placeholder-widget',
-      widgetDefinitionId: 'settings-placeholder',
-      title: 'Settings placeholder widget',
-      settings: {},
-    },
-  ],
+  settings: [],
 };
 
 export function createWorkspaceLayoutApiClient(): HomeOpsApiClient {
