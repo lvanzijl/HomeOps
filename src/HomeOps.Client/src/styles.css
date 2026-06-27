@@ -5333,3 +5333,148 @@ button {
   border-color: rgba(251, 191, 36, 0.85);
   color: #b45309;
 }
+
+.shopping-workspace {
+  background: linear-gradient(145deg, rgba(255, 251, 235, 0.96), rgba(255, 247, 237, 0.9));
+  border-color: rgba(251, 191, 36, 0.28);
+  gap: 1.25rem;
+}
+
+.shopping-workspace-hero,
+.shopping-quick-add-panel,
+.shopping-recent-panel {
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(234, 179, 8, 0.18);
+  border-radius: 1.4rem;
+  box-shadow: 0 16px 36px rgba(146, 64, 14, 0.08);
+}
+
+.shopping-workspace-hero {
+  align-items: center;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+  overflow: hidden;
+  padding: 1.25rem;
+}
+
+.shopping-hero-copy h3,
+.shopping-hero-copy p,
+.shopping-quick-add-panel h4,
+.shopping-quick-add-panel p,
+.shopping-recent-panel h4 { margin: 0; }
+.shopping-hero-copy { display: grid; gap: 0.35rem; }
+.shopping-hero-copy h3 { color: #7c2d12; font-size: clamp(2rem, 4vw, 3.2rem); letter-spacing: -0.05em; }
+.shopping-hero-copy > p:last-child,
+.shopping-quick-add-panel > div > p:last-child { color: #7f5539; max-width: 48rem; }
+.shopping-hero-illustration { background: linear-gradient(145deg, #fed7aa, #fde68a); border-radius: 2rem; height: 8rem; position: relative; width: 11rem; }
+.shopping-illustration-sun,
+.shopping-illustration-family,
+.shopping-illustration-bag { position: absolute; }
+.shopping-illustration-sun { background: #facc15; border-radius: 999px; height: 2rem; right: 1rem; top: 0.9rem; width: 2rem; }
+.shopping-illustration-family { background: #fb923c; border-radius: 999px 999px 0.8rem 0.8rem; bottom: 1.2rem; }
+.shopping-illustration-grownup { height: 4.5rem; left: 2.1rem; width: 2.1rem; }
+.shopping-illustration-child { background: #14b8a6; height: 3.2rem; left: 4.7rem; width: 1.7rem; }
+.shopping-illustration-bag { align-items: center; background: #fff7ed; border: 3px solid #c2410c; border-radius: 0.75rem; bottom: 1.2rem; color: #c2410c; display: flex; font-weight: 900; height: 3rem; justify-content: center; right: 1.6rem; width: 2.4rem; }
+.shopping-quick-add-panel,
+.shopping-recent-panel { display: grid; gap: 0.9rem; padding: 1rem; }
+.shopping-execution-form { background: rgba(255, 247, 237, 0.95); border-color: rgba(251, 146, 60, 0.32); }
+.shopping-execution-form input { font-size: 1rem; min-height: 2.9rem; }
+.shopping-execution-form button { background: #c2410c; border-color: #c2410c; color: #fff7ed; font-weight: 800; min-height: 2.9rem; padding-inline: 1.15rem; }
+.shopping-primary-list { gap: 1.1rem; }
+.shopping-section-primary { background: transparent; border: 0; padding: 0; }
+.shopping-section h4 { color: #7c2d12; font-size: 1.05rem; }
+.shopping-store-groups { display: grid; gap: 0.85rem; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); }
+.shopping-store-group { background: rgba(255, 255, 255, 0.86); border: 1px solid rgba(234, 179, 8, 0.22); border-radius: 1.2rem; display: grid; gap: 0.75rem; padding: 0.85rem; }
+.shopping-store-card-header { align-items: baseline; display: flex; justify-content: space-between; gap: 0.75rem; }
+.shopping-store-card-header h5 { color: #7c2d12; font-size: 1.1rem; margin: 0; }
+.shopping-store-card-header span,
+.other-list-card summary small { color: #9a3412; font-size: 0.82rem; font-weight: 800; white-space: nowrap; }
+.shopping-item { background: rgba(255, 251, 235, 0.78); border: 1px solid rgba(253, 186, 116, 0.35); border-radius: 0.9rem; padding: 0.55rem 0.65rem; }
+.shopping-item label { min-width: 0; }
+.shopping-item label span { overflow-wrap: anywhere; }
+.shopping-store-complete-list { border-top: 1px solid rgba(253, 186, 116, 0.45); padding-top: 0.55rem; }
+.shopping-store-complete-list summary { color: #9a3412; cursor: pointer; font-weight: 800; }
+.shopping-recent-list { display: flex; flex-wrap: wrap; gap: 0.5rem; list-style: none; margin: 0; padding: 0; }
+.shopping-recent-list li { background: #ffedd5; border: 1px solid rgba(251, 146, 60, 0.22); border-radius: 999px; color: #7c2d12; font-weight: 700; padding: 0.35rem 0.7rem; }
+.other-lists-section { background: rgba(255, 255, 255, 0.62); border: 1px solid rgba(234, 179, 8, 0.18); border-radius: 1.25rem; margin-top: 0; padding: 1rem; }
+.other-lists-section > header { align-items: flex-start; }
+.other-lists-section > header .shopping-empty { max-width: 34rem; text-align: right; }
+.other-list-card { background: rgba(255, 251, 235, 0.68); border-color: rgba(234, 179, 8, 0.22); }
+.other-list-card summary { align-items: center; display: flex; justify-content: space-between; gap: 1rem; }
+
+@media (max-width: 760px) {
+  .shopping-workspace-hero { grid-template-columns: 1fr; }
+  .shopping-hero-illustration { justify-self: start; }
+  .other-lists-section > header,
+  .shopping-header { display: grid; }
+  .other-lists-section > header .shopping-empty { text-align: left; }
+}
+
+
+.shopping-quick-add-panel {
+  align-items: center;
+  grid-template-columns: minmax(13rem, 0.8fr) minmax(18rem, 1.2fr);
+}
+
+.shopping-quick-add-surface {
+  min-width: 0;
+}
+
+.shopping-quick-add-surface .shopping-execution-form {
+  margin: 0;
+}
+
+.shopping-active-store-workspace {
+  background: rgba(255, 255, 255, 0.54);
+  border: 1px solid rgba(234, 179, 8, 0.16);
+  border-radius: 1.25rem;
+  padding: 0.85rem;
+}
+
+.shopping-active-store-workspace .shopping-section h4 {
+  margin-bottom: 0.5rem;
+}
+
+.shopping-lifecycle-workspace {
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(234, 179, 8, 0.14);
+  border-radius: 1.15rem;
+  gap: 0.55rem;
+  padding: 0.75rem;
+}
+
+.shopping-lifecycle-details,
+.shopping-lifecycle-workspace .shopping-list-management {
+  background: rgba(255, 251, 235, 0.62);
+  border: 1px solid rgba(253, 186, 116, 0.28);
+  border-radius: 0.95rem;
+  padding: 0.65rem 0.75rem;
+}
+
+.shopping-lifecycle-details summary,
+.shopping-lifecycle-workspace .shopping-list-management summary {
+  align-items: center;
+  color: #9a3412;
+  cursor: pointer;
+  display: flex;
+  font-weight: 800;
+  justify-content: space-between;
+}
+
+.shopping-lifecycle-details summary span {
+  background: #ffedd5;
+  border-radius: 999px;
+  color: #7c2d12;
+  padding: 0.15rem 0.55rem;
+}
+
+.shopping-lifecycle-details .shopping-section {
+  margin-top: 0.75rem;
+}
+
+@media (max-width: 760px) {
+  .shopping-quick-add-panel {
+    grid-template-columns: 1fr;
+  }
+}
