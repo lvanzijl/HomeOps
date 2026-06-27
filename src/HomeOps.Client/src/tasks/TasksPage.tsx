@@ -19,7 +19,7 @@ import {
   updateTask as saveTask,
   updateTaskTemplate,
 } from "./tasksApi";
-import { groupTasksByUrgency } from "./taskGrouping";
+import { groupTasksByTime } from "./taskGrouping";
 import type {
   HouseholdTask,
   TaskOwnershipKind,
@@ -68,7 +68,7 @@ export function TasksPage({
     () => tasks.filter((task) => task.noDateReviewState === "Someday"),
     [tasks],
   );
-  const groups = useMemo(() => groupTasksByUrgency(tasks), [tasks]);
+  const groups = useMemo(() => groupTasksByTime(tasks), [tasks]);
 
   useEffect(() => {
     if (
@@ -118,7 +118,7 @@ export function TasksPage({
         setTasks(await loadTasks());
         setTemplates(await loadTaskTemplates());
       } catch {
-        if (!ignore) setError("Tasks could not be loaded.");
+        if (!ignore) setError("Taken konden niet worden geladen.");
       } finally {
         if (!ignore) setIsLoading(false);
       }
@@ -145,7 +145,7 @@ export function TasksPage({
       if (saved) setTasks(await loadTasks());
       resetTaskForm();
     } catch {
-      setError("Task could not be saved.");
+      setError("Taak kon niet worden opgeslagen.");
     }
   }
 
@@ -174,7 +174,7 @@ export function TasksPage({
       setTemplateDescription("");
       setEditingTemplate(null);
     } catch {
-      setError("Task template could not be saved.");
+      setError("Routine kon niet worden opgeslagen.");
     }
   }
 
@@ -199,7 +199,7 @@ export function TasksPage({
       await applyTaskTemplate(templateId);
       setTasks(await loadTasks());
     } catch {
-      setError("Task template could not be applied.");
+      setError("Routine kon niet worden toegepast.");
     }
   }
 
@@ -208,14 +208,14 @@ export function TasksPage({
       await archiveTaskTemplate(templateId);
       setTemplates(await loadTaskTemplates());
     } catch {
-      setError("Task template could not be archived.");
+      setError("Routine kon niet worden gearchiveerd.");
     }
   }
 
   function onEditTaskDue(task: HouseholdTask) {
     startEditing(task);
     const due = window.prompt(
-      "Choose a due date (YYYY-MM-DD)",
+      "Kies een datum (YYYY-MM-DD)",
       new Date().toISOString().slice(0, 10),
     );
     if (due)
@@ -227,7 +227,7 @@ export function TasksPage({
         recurrenceFrequency: task.recurrenceFrequency ?? "None",
       })
         .then(async () => setTasks(await loadTasks()))
-        .catch(() => setError("Due date could not be saved."));
+        .catch(() => setError("Datum kon niet worden opgeslagen."));
   }
 
   function startEditing(task: HouseholdTask) {
@@ -246,7 +246,7 @@ export function TasksPage({
       await deleteRecurringTaskSeries(taskId);
       setTasks(await loadTasks());
     } catch {
-      setError("Recurring task series could not be deleted.");
+      setError("Terugkerende routine kon niet worden verwijderd.");
     }
   }
 
@@ -261,7 +261,7 @@ export function TasksPage({
       if (action === "complete") await completeTask(taskId);
       setTasks(await loadTasks());
     } catch {
-      setError("Review action could not be saved.");
+      setError("Weekcheck kon niet worden opgeslagen.");
     }
   }
 
@@ -275,24 +275,45 @@ export function TasksPage({
         current.map((task) => (task.id === updated.id ? updated : task)),
       );
     } catch {
-      setError("Task could not be updated.");
+      setError("Taak kon niet worden bijgewerkt.");
+    }
+  }
+
+  async function moveTaskToTomorrow(task: HouseholdTask) {
+    const tomorrow = toDateInputValue(addDays(new Date(), 1));
+    const isRecurring = (task.recurrenceFrequency ?? "None") !== "None" || Boolean(task.recurringTaskSeriesId);
+    if (task.isCompleted || isRecurring || task.dueDate === tomorrow) return;
+
+    try {
+      const updated = await saveTask(task.id, {
+        title: task.title,
+        dueDate: tomorrow,
+        ownershipKind: task.ownershipKind,
+        familyMemberId: task.familyMemberId,
+        recurrenceFrequency: task.recurrenceFrequency ?? "None",
+      });
+      setTasks((current) =>
+        current.map((item) => (item.id === updated.id ? updated : item)),
+      );
+    } catch {
+      setError("Taak kon niet naar morgen worden verplaatst.");
     }
   }
 
   return (
-    <article className="tasks-page" aria-label="Tasks page">
+    <article className="tasks-page" aria-label="Takenpagina">
       <header className="tasks-header page-header-with-actions">
         <div>
-          <p className="widget-type">Today’s family help</p>
-          <h3>Tasks for the family</h3>
+          <p className="widget-type">Familie-acties voor vandaag</p>
+          <h3>Taken voor het gezin</h3>
           <p>
-            Start with what needs attention, then keep the rest ready for later.
+            Begin met wat nu aandacht nodig heeft; de rest blijft rustig klaarstaan.
           </p>
         </div>
         {!isLoading && tasks.length > 0 ? (
-          <div className="page-header-actions" aria-label="Task primary action">
+          <div className="page-header-actions" aria-label="Primaire taakactie">
             <button className="compact-header-action primary" type="button" onClick={openNewTaskDialog}>
-              Add family task
+              Gezinstaak toevoegen
             </button>
           </div>
         ) : null}
@@ -303,45 +324,46 @@ export function TasksPage({
         </p>
       ) : null}
       {isLoading ? (
-        <p className="shopping-empty">Loading tasks…</p>
+        <p className="shopping-empty">Taken laden…</p>
       ) : tasks.length === 0 ? (
         <div className="empty-state-card page-empty-state">
-          <strong>Add the first thing to help with</strong>
+          <strong>Voeg de eerste helpende taak toe</strong>
           <p>
-            Tasks keep family help visible without turning the day into admin.
+            Taken maken hulp zichtbaar zonder van de dag administratie te maken.
           </p>
           <button type="button" onClick={openNewTaskDialog}>
-            Add a family task
+            Gezinstaak toevoegen
           </button>
         </div>
       ) : (
         groups.map((group) => (
           <TaskGroup
-            groupTitle={group.title}
+            group={group}
             key={group.id}
             members={members}
             tasks={group.tasks}
             onDeleteSeries={deleteSeries}
             onEdit={startEditing}
+            onMoveToTomorrow={moveTaskToTomorrow}
             onUpdate={updateTask}
           />
         ))
       )}
 
-      <div className="task-support-actions" aria-label="Task planning actions">
+      <div className="task-support-actions" aria-label="Taakplanning acties">
         <button
           type="button"
           className="secondary-action compact-action"
           onClick={() => setIsTemplatesOpen((open) => !open)}
         >
-          Routine starters
+          Routinestarters
         </button>
         <button
           type="button"
           className="secondary-action compact-action"
           onClick={() => setIsWeeklyResetOpen((open) => !open)}
         >
-          Plan the week
+          Week plannen
           {reviewTasks.length > 0 ? ` (${reviewTasks.length})` : ""}
         </button>
         {onOpenWeeklyReset ? (
@@ -350,7 +372,7 @@ export function TasksPage({
             className="secondary-action compact-action"
             onClick={onOpenWeeklyReset}
           >
-            Open family reset
+            Gezinsreset openen
           </button>
         ) : null}
       </div>
@@ -365,15 +387,15 @@ export function TasksPage({
             className="task-dialog task-conversation-dialog task-management-section"
             role="dialog"
             aria-modal="true"
-            aria-label={editingTask ? "Adjust task" : "Add family task"}
+            aria-label={editingTask ? "Taak aanpassen" : "Gezinstaak toevoegen"}
             onClick={(event) => event.stopPropagation()}
           >
             <div className="task-conversation-heading">
-              <p className="widget-type">Family help</p>
+              <p className="widget-type">Gezinshulp</p>
               <h4>
                 {editingTask
-                  ? "Let’s adjust this task"
-                  : "Let’s add one helpful thing"}
+                  ? "Pas deze taak rustig aan"
+                  : "Voeg één helpend ding toe"}
               </h4>
               <p>
                 {taskDialogPrompt(taskDialogQuestion, editingTask !== null)}
@@ -386,12 +408,12 @@ export function TasksPage({
               <div className="task-conversation-panel" key={taskDialogQuestion}>
                 {taskDialogQuestion === "title" ? (
                   <label className="task-conversation-question">
-                    <span>What needs to be done?</span>
+                    <span>Wat moet er gebeuren?</span>
                     <input
                       id="task-title"
                       autoFocus
                       onChange={(event) => setTitle(event.target.value)}
-                      placeholder="Empty dishwasher"
+                      placeholder="Vaatwasser leegruimen"
                       required
                       type="text"
                       value={title}
@@ -401,13 +423,13 @@ export function TasksPage({
 
                 {taskDialogQuestion === "owner" ? (
                   <fieldset className="task-choice-group">
-                    <legend>Who should do this?</legend>
+                    <legend>Wie pakt dit op?</legend>
                     <button
                       type="button"
                       className={ownership === "Unassigned" ? "selected" : ""}
                       onClick={() => setOwnership("Unassigned")}
                     >
-                      Anyone can help
+                      Iedereen kan helpen
                     </button>
                     <button
                       type="button"
@@ -416,18 +438,18 @@ export function TasksPage({
                       }
                       onClick={() => setOwnership("SharedHousehold")}
                     >
-                      Whole family
+                      Hele gezin
                     </button>
                     <button
                       type="button"
                       className={ownership === "FamilyMember" ? "selected" : ""}
                       onClick={() => setOwnership("FamilyMember")}
                     >
-                      One person
+                      Eén persoon
                     </button>
                     {ownership === "FamilyMember" ? (
                       <label className="task-conversation-question compact">
-                        <span>Choose someone</span>
+                        <span>Kies iemand</span>
                         <select
                           autoFocus
                           onChange={(event) =>
@@ -449,17 +471,17 @@ export function TasksPage({
                 {taskDialogQuestion === "date" ? (
                   <div className="task-date-question">
                     <p className="task-question-label">
-                      When should it happen?
+                      Wanneer moet dit gebeuren?
                     </p>
                     <div
                       className="task-choice-group horizontal"
-                      aria-label="Task due date shortcuts"
+                      aria-label="Snelle taakdatums"
                     >
                       <button
                         type="button"
                         onClick={() => setDueDate(toDateInputValue(new Date()))}
                       >
-                        Today
+                        Vandaag
                       </button>
                       <button
                         type="button"
@@ -467,14 +489,14 @@ export function TasksPage({
                           setDueDate(toDateInputValue(addDays(new Date(), 1)))
                         }
                       >
-                        Tomorrow
+                        Morgen
                       </button>
                       <button type="button" onClick={() => setDueDate("")}>
-                        Someday
+                        Ooit
                       </button>
                     </div>
                     <label className="task-conversation-question compact">
-                      <span>Or pick a date</span>
+                      <span>Of kies een datum</span>
                       <input
                         autoFocus
                         onChange={(event) => setDueDate(event.target.value)}
@@ -487,9 +509,9 @@ export function TasksPage({
 
                 {taskDialogQuestion === "extras" ? (
                   <div className="task-extras-question">
-                    <p className="task-question-label">Anything else?</p>
+                    <p className="task-question-label">Nog iets?</p>
                     <label className="task-conversation-question compact">
-                      <span>Repeats</span>
+                      <span>Herhaling</span>
                       <select
                         autoFocus
                         onChange={(event) =>
@@ -499,10 +521,10 @@ export function TasksPage({
                         }
                         value={recurrenceFrequency}
                       >
-                        <option value="None">Does not repeat</option>
-                        <option value="Daily">Daily</option>
-                        <option value="Weekly">Weekly</option>
-                        <option value="Monthly">Monthly</option>
+                        <option value="None">Herhaalt niet</option>
+                        <option value="Daily">Dagelijks</option>
+                        <option value="Weekly">Wekelijks</option>
+                        <option value="Monthly">Maandelijks</option>
                       </select>
                     </label>
                     <p className="task-dialog-summary">
@@ -530,12 +552,12 @@ export function TasksPage({
                       )
                     }
                   >
-                    Back
+                    Terug
                   </button>
                 ) : null}
                 {taskDialogQuestion === "extras" ? (
                   <button type="submit">
-                    {editingTask ? "Save task" : "Create task"}
+                    {editingTask ? "Taak opslaan" : "Taak maken"}
                   </button>
                 ) : (
                   <button
@@ -547,7 +569,7 @@ export function TasksPage({
                     }
                     disabled={taskDialogQuestion === "title" && !title.trim()}
                   >
-                    Continue
+                    Verder
                   </button>
                 )}
               </div>
@@ -558,18 +580,18 @@ export function TasksPage({
 
       <section
         className="task-secondary-stack"
-        aria-label="Family task planning"
+        aria-label="Gezinstaken plannen"
       >
         {isTemplatesOpen ? (
           <section
             className="task-templates-panel"
-            aria-label="Routine starters"
+            aria-label="Routinestarters"
           >
             <div>
-              <p className="widget-type">Routine starters</p>
-              <h4>Saved family rhythms</h4>
+              <p className="widget-type">Routinestarters</p>
+              <h4>Opgeslagen gezinsroutines</h4>
               <p>
-                Reuse common chores and routines after today’s needs are clear.
+                Gebruik vaste klusjes opnieuw nadat duidelijk is wat vandaag nodig is.
               </p>
             </div>
             <form
@@ -577,32 +599,32 @@ export function TasksPage({
               onSubmit={onSaveTemplate}
             >
               <label>
-                <span>Routine name</span>
+                <span>Routinenaam</span>
                 <input
                   onChange={(event) => setTemplateName(event.target.value)}
-                  placeholder="Morning routine"
+                  placeholder="Ochtendroutine"
                   required
                   type="text"
                   value={templateName}
                 />
               </label>
               <label>
-                <span>Description</span>
+                <span>Beschrijving</span>
                 <input
                   onChange={(event) =>
                     setTemplateDescription(event.target.value)
                   }
-                  placeholder="Optional notes"
+                  placeholder="Optionele notities"
                   type="text"
                   value={templateDescription}
                 />
               </label>
               <button type="submit">
-                {editingTemplate ? "Save routine" : "Save as routine starter"}
+                {editingTemplate ? "Routine opslaan" : "Opslaan als routine starter"}
               </button>
             </form>
             {templates.length === 0 ? (
-              <p className="shopping-empty">No saved routines yet.</p>
+              <p className="shopping-empty">Nog geen opgeslagen routines.</p>
             ) : (
               <ul className="task-list">
                 {templates.map((template) => (
@@ -610,28 +632,27 @@ export function TasksPage({
                     <div>
                       <strong>{template.name}</strong>
                       <span>
-                        {template.description ?? "Reusable family routine"} ·{" "}
-                        {template.items.length} task
-                        {template.items.length === 1 ? "" : "s"}
+                        {template.description ?? "Herbruikbare gezinsroutine"} ·{" "}
+                        {template.items.length} {template.items.length === 1 ? "taak" : "taken"}
                       </span>
                     </div>
                     <button
                       onClick={() => applyTemplate(template.id)}
                       type="button"
                     >
-                      Apply
+                      Toepassen
                     </button>
                     <button
                       onClick={() => startEditingTemplate(template)}
                       type="button"
                     >
-                      Adjust
+                      Aanpassen
                     </button>
                     <button
                       onClick={() => archiveTemplate(template.id)}
                       type="button"
                     >
-                      Archive
+                      Archiveren
                     </button>
                   </li>
                 ))}
@@ -640,15 +661,15 @@ export function TasksPage({
           </section>
         ) : null}
         {isWeeklyResetOpen ? (
-          <section className="task-templates-panel" aria-label="Plan the week">
+          <section className="task-templates-panel" aria-label="Week plannen">
             <div>
-              <p className="widget-type">Weekly Reset</p>
-              <h4>Plan the week together</h4>
-              <p>Check loose tasks and decide what still helps the family.</p>
+              <p className="widget-type">Weekreset</p>
+              <h4>Plan de week samen</h4>
+              <p>Bekijk losse taken en kies wat het gezin nog helpt.</p>
             </div>
             {reviewTasks.length === 0 ? (
               <p className="shopping-empty">
-                No loose tasks need a family check-in right now.
+                Geen losse taken nodig voor de gezinscheck op dit moment.
               </p>
             ) : (
               <ul className="task-list">
@@ -656,34 +677,34 @@ export function TasksPage({
                   <li className="task-item" key={task.id}>
                     <div>
                       <strong>{task.title}</strong>
-                      <span>Family check-in · not shown as urgent</span>
+                      <span>Gezinscheck · niet als urgent getoond</span>
                     </div>
                     <button
                       onClick={() => reviewTask(task.id, "keep")}
                       type="button"
                     >
-                      Keep for this week
+                      Deze week houden
                     </button>
                     <button onClick={() => onEditTaskDue(task)} type="button">
-                      Pick a helpful day
+                      Kies een handige dag
                     </button>
                     <button
                       onClick={() => reviewTask(task.id, "someday")}
                       type="button"
                     >
-                      Save for later
+                      Bewaren voor later
                     </button>
                     <button
                       onClick={() => reviewTask(task.id, "complete")}
                       type="button"
                     >
-                      Done
+                      Klaar
                     </button>
                     <button
                       onClick={() => reviewTask(task.id, "archive")}
                       type="button"
                     >
-                      Archive
+                      Archiveren
                     </button>
                   </li>
                 ))}
@@ -693,28 +714,28 @@ export function TasksPage({
         ) : null}
         {somedayTasks.length > 0 ? (
           <section className="task-group task-planning-group">
-            <h4>Someday</h4>
+            <h4>Ooit</h4>
             <p className="shopping-empty">
-              Ideas for later, kept away from today’s pressure.
+              Ideeën voor later, buiten de druk van vandaag.
             </p>
             <ul className="task-list">
               {somedayTasks.map((task) => (
                 <li className="task-item" key={task.id}>
                   <div>
                     <strong>{task.title}</strong>
-                    <span>Someday</span>
+                    <span>Ooit</span>
                   </div>
                   <button
                     onClick={() => reviewTask(task.id, "keep")}
                     type="button"
                   >
-                    Bring back this week
+                    Terughalen voor deze week
                   </button>
                   <button
                     onClick={() => reviewTask(task.id, "archive")}
                     type="button"
                   >
-                    Archive
+                    Archiveren
                   </button>
                 </li>
               ))}
@@ -727,61 +748,122 @@ export function TasksPage({
 }
 
 function TaskGroup({
-  groupTitle,
+  group,
   members,
   tasks,
   onDeleteSeries,
   onEdit,
+  onMoveToTomorrow,
   onUpdate,
 }: {
-  groupTitle: string;
+  group: import("./tasksModel").TaskTimeGroup;
   members: readonly FamilyMember[];
   tasks: readonly HouseholdTask[];
   onDeleteSeries(id: string): void;
   onEdit(task: HouseholdTask): void;
+  onMoveToTomorrow(task: HouseholdTask): void;
   onUpdate(id: string, action: "complete" | "reopen"): void;
 }) {
   return (
-    <section className="task-group">
-      <h4>{groupTitle}</h4>
+    <section className={`task-group task-time-group ${group.emphasis === "primary" ? "today-focus" : ""} ${group.emphasis === "quiet" ? "quiet" : ""}`}>
+      <div className="task-group-heading">
+        <div>
+          <p className="task-group-kicker">{group.id === "today" ? "Nu eerst" : "Daarna"}</p>
+          <h4>{group.title}</h4>
+          <p>{group.description}</p>
+        </div>
+        <span>{tasks.length} {tasks.length === 1 ? "taak" : "taken"}</span>
+      </div>
       {tasks.length === 0 ? (
-        <p className="shopping-empty">Nothing here right now.</p>
+        <p className="shopping-empty">{group.emptyMessage}</p>
       ) : (
         <ul className="task-list">
-          {tasks.map((task) => (
-            <li className="task-item" key={task.id}>
-              <div>
-                <strong>{task.title}</strong>
-                <span>
-                  {formatOwner(task, members)}
-                  {task.dueDate ? ` · Due ${task.dueDate}` : ""}
-                  {(task.recurrenceFrequency ?? "None") !== "None"
-                    ? ` · Repeats ${(task.recurrenceFrequency ?? "None").toLowerCase()}`
-                    : ""}
-                </span>
-              </div>
-              <button onClick={() => onEdit(task)} type="button">
-                Adjust
-              </button>
-              {task.recurringTaskSeriesId ? (
-                <button onClick={() => onDeleteSeries(task.id)} type="button">
-                  Remove routine
-                </button>
-              ) : null}
-              <button
-                onClick={() =>
-                  onUpdate(task.id, task.isCompleted ? "reopen" : "complete")
-                }
-                type="button"
-              >
-                {task.isCompleted ? "Bring back" : "Done"}
-              </button>
-            </li>
-          ))}
+          {tasks.map((task) => {
+            const isRecurring = (task.recurrenceFrequency ?? "None") !== "None" || Boolean(task.recurringTaskSeriesId);
+            const tomorrow = toDateInputValue(addDays(new Date(), 1));
+            const canMoveToTomorrow = !task.isCompleted && !isRecurring && task.dueDate !== tomorrow;
+            return (
+              <li className={`task-item operational-task-card rich-task-card ${task.isCompleted ? "is-completed" : ""} ${isRecurring ? "is-recurring" : ""}`} key={task.id}>
+                <div className="task-card-visual" aria-hidden="true">
+                  <TaskCardIcon variant={task.isCompleted ? "completed" : isRecurring ? "recurring" : group.id} />
+                </div>
+                <div className="task-card-content">
+                  <div className="task-card-main">
+                    <span className="task-card-status">{task.isCompleted ? "Afgerond" : group.id === "today" ? "Vandaag eerst" : "Gepland"}</span>
+                    <strong>{task.title}</strong>
+                  </div>
+                  <span className="task-card-meta" aria-label="Taakdetails">
+                    <TaskMetadataChip tone="family" label={formatOwner(task, members)} />
+                    <TaskMetadataChip tone={group.id === "today" ? "urgent" : "time"} label={formatDue(task, group.id)} />
+                    {isRecurring ? (
+                      <TaskMetadataChip tone="recurring" label={formatRecurrence(task.recurrenceFrequency ?? "None")} />
+                    ) : null}
+                    <TaskMetadataChip tone={task.isCompleted ? "done" : "open"} label={task.isCompleted ? "Afgerond" : "Openstaand"} />
+                  </span>
+                </div>
+                <div className="task-card-actions" aria-label={`Acties voor ${task.title}`}>
+                  {!task.isCompleted ? (
+                    <button
+                      className="task-action-button primary"
+                      onClick={() => onUpdate(task.id, "complete")}
+                      type="button"
+                    >
+                      <TaskActionIcon name="complete" />
+                      <span>Klaar</span>
+                    </button>
+                  ) : (
+                    <button
+                      className="task-action-button"
+                      onClick={() => onUpdate(task.id, "reopen")}
+                      type="button"
+                    >
+                      <TaskActionIcon name="reopen" />
+                      <span>Terugzetten</span>
+                    </button>
+                  )}
+                  {canMoveToTomorrow ? (
+                    <button className="task-action-button tomorrow" onClick={() => onMoveToTomorrow(task)} type="button">
+                      <TaskActionIcon name="tomorrow" />
+                      <span>Morgen</span>
+                    </button>
+                  ) : null}
+                  <button className="task-action-button" onClick={() => onEdit(task)} type="button">
+                    <TaskActionIcon name="edit" />
+                    <span>Aanpassen</span>
+                  </button>
+                  {task.recurringTaskSeriesId ? (
+                    <button className="task-action-button more" onClick={() => onDeleteSeries(task.id)} type="button">
+                      <TaskActionIcon name="more" />
+                      <span>Routine verwijderen</span>
+                    </button>
+                  ) : (
+                    <button className="task-action-button more" disabled title="Meer acties komen later" type="button">
+                      <TaskActionIcon name="more" />
+                      <span>Meer</span>
+                    </button>
+                  )}
+                </div>
+              </li>
+            );
+          })}
         </ul>
       )}
     </section>
   );
+}
+
+function TaskMetadataChip({ label, tone }: { label: string; tone: "family" | "time" | "urgent" | "recurring" | "done" | "open" }) {
+  return <span className={`task-meta-chip ${tone}`}>{label}</span>;
+}
+
+function TaskCardIcon({ variant }: { variant: string }) {
+  const label = variant === "completed" ? "K" : variant === "recurring" ? "R" : variant === "today" ? "V" : "T";
+  return <span className="task-card-icon-slot">{label}</span>;
+}
+
+function TaskActionIcon({ name }: { name: "complete" | "reopen" | "tomorrow" | "edit" | "more" }) {
+  const label = name === "complete" ? "K" : name === "reopen" ? "T" : name === "tomorrow" ? "M" : name === "edit" ? "A" : "Me";
+  return <span className="task-action-icon" aria-hidden="true">{label}</span>;
 }
 
 function nextTaskQuestion(question: TaskDialogQuestion): TaskDialogQuestion {
@@ -801,13 +883,13 @@ function previousTaskQuestion(
 function taskDialogPrompt(question: TaskDialogQuestion, isEditing: boolean) {
   if (question === "title")
     return isEditing
-      ? "Start with the name so everyone recognizes it."
-      : "Start with the one thing that would help the household.";
+      ? "Begin met de naam zodat iedereen de taak herkent."
+      : "Begin met één ding dat het gezin helpt.";
   if (question === "owner")
-    return "Choose a helper, or leave it open for anyone.";
+    return "Kies een helper, of laat het open voor iedereen.";
   if (question === "date")
-    return "Today is ready by default, but you can move it.";
-  return "Optional details stay tucked away unless they help.";
+    return "Vandaag staat klaar, maar je kunt de taak verplaatsen.";
+  return "Extra details blijven klein, tenzij ze helpen.";
 }
 
 function taskSummary(
@@ -821,16 +903,16 @@ function taskSummary(
   const owner =
     ownership === "FamilyMember"
       ? (members.find((member) => member.id === familyMemberId)?.name ??
-        "one person")
+        "één persoon")
       : ownership === "SharedHousehold"
-        ? "the whole family"
-        : "anyone";
-  const when = dueDate ? `on ${dueDate}` : "someday";
+        ? "het hele gezin"
+        : "iedereen";
+  const when = dueDate ? `op ${dueDate}` : "ooit";
   const repeats =
     recurrenceFrequency === "None"
       ? ""
-      : ` and repeats ${recurrenceFrequency.toLowerCase()}`;
-  return `${title.trim() || "This task"} is for ${owner} ${when}${repeats}.`;
+      : ` en herhaalt ${formatRecurrence(recurrenceFrequency).toLowerCase()}`;
+  return `${title.trim() || "Deze taak"} is voor ${owner}, ${when}${repeats}.`;
 }
 
 function toDateInputValue(date: Date): string {
@@ -847,11 +929,26 @@ export function formatOwner(
   task: Pick<HouseholdTask, "ownershipKind" | "familyMemberId">,
   members: readonly FamilyMember[] = fallbackFamilyMembers,
 ): string {
-  if (task.ownershipKind === "SharedHousehold") return "Whole family";
+  if (task.ownershipKind === "SharedHousehold") return "Hele gezin";
   if (task.ownershipKind === "FamilyMember")
     return (
       members.find((member) => member.id === task.familyMemberId)?.name ??
-      "Family member"
+      "Gezinslid"
     );
-  return "Anyone";
+  return "Iedereen";
+}
+
+function formatDue(task: Pick<HouseholdTask, "dueDate" | "isCompleted">, groupId: string): string {
+  if (task.isCompleted) return "Klaar";
+  if (!task.dueDate) return "Geen datum";
+  if (groupId === "today") return task.dueDate < new Date().toISOString().slice(0, 10) ? `Te laat · ${task.dueDate}` : "Vandaag";
+  if (groupId === "tomorrow") return "Morgen";
+  return task.dueDate;
+}
+
+function formatRecurrence(frequency: TaskRecurrenceFrequency): string {
+  if (frequency === "Daily") return "Herhaalt dagelijks";
+  if (frequency === "Weekly") return "Herhaalt wekelijks";
+  if (frequency === "Monthly") return "Herhaalt maandelijks";
+  return "Herhaalt niet";
 }
