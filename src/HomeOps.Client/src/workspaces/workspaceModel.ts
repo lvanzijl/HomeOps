@@ -64,8 +64,8 @@ export const workspaceDefinitions: readonly WorkspaceDefinition[] = [
   },
   {
     id: 'weeklyReset',
-    label: 'Weekly Reset',
-    description: 'A short family review and reset.',
+    label: 'Weekritueel',
+    description: 'Een rustige gezinscheck voor volgende week.',
   },
   {
     id: 'settings',

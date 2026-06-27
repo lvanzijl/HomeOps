@@ -165,7 +165,7 @@ export function WorkspaceShell() {
         {activeWorkspace.id === 'home' && !activeFamilyMember ? <h2 className="visually-hidden" id="active-workspace-title">Home</h2> : activeFamilyMember ? <h2 className="visually-hidden" id="active-workspace-title">{activeFamilyMember.name}</h2> : (
           <header className="workspace-page-header">
             <p className="workspace-position">
-              {activeWorkspaceIsPrimary ? 'Everyday family spot' : activeWorkspaceIsAdministration ? 'Household setup' : 'Family check-in'}
+              {activeWorkspaceIsPrimary ? 'Everyday family spot' : activeWorkspaceIsAdministration ? 'Household setup' : 'Familiecheck'}
             </p>
             <h2 id="active-workspace-title">{activeWorkspace.label}</h2>
             <p>{activeWorkspace.description}</p>

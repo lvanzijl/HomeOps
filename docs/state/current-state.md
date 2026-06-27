@@ -1,4 +1,5 @@
 # Current State
+- 2026-06-27: Completed the Weekly Reset UX ritual slice by redesigning Weekly Reset as a Dutch family check-in around readiness for next week, adding ritual summary cards, intentional confirmation/skip language, and friendly recap framing while preserving reset execution, undo availability, backend behavior, API contracts, database schema, and task logic.
 - 2026-06-27: Completed the Tasks Morgen action workflow slice by turning Morgen into a real quick action for non-recurring tasks through the existing update-task API, moving normal and overdue tasks to tomorrow without page refresh, hiding Morgen for recurring and already-tomorrow tasks, and preserving backend contracts, API contracts, database schema, recurrence engine, and Weekly Reset logic.
 - 2026-06-27: Completed the Tasks task card redesign slice by enriching active task cards with FamilyBoard-style visual structure, compact metadata chips, reusable placeholder icon slots, first-class action button presentation, disabled future-ready Morgen affordance, and more recognizable recurring task treatment while preserving backend, API, schema, completion, recurrence, and Weekly Reset behavior.
 - 2026-06-27: Completed the Tasks time-first workspace slice by reorganizing Tasks into Vandaag, Morgen, Deze week, Volgende week, Later, and Afgerond sections, making Vandaag the primary operational focus, improving compact task cards with assignee/date/recurrence/completion context, and preserving existing completion, editing, deleting, recurring task, Weekly Reset, backend, API, and schema behavior.
@@ -25,7 +26,7 @@
 Phase 2 — Durable Household Core
 
 ## Current Slice
-Task Dialog Conversation — Completed
+Weekly Reset UX Ritual — Completed
 
 ## Completed Slices
 - 1.1 Repository Bootstrap
