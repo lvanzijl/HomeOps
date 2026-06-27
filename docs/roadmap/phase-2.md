@@ -1,5 +1,14 @@
 # Phase 2 Roadmap
 
+## Completed Slice — Tasks Morgen Action
+Tasks Morgen Action turns the previous future affordance into a real frontend workflow for non-recurring tasks by reusing the existing task update API to move normal and overdue tasks to tomorrow immediately. Morgen is hidden for recurring tasks and tasks already due tomorrow to avoid unsupported or duplicate updates, while backend contracts, API contracts, schema, recurrence engine, and Weekly Reset logic remain unchanged.
+
+## Completed Slice — Tasks Task Card Redesign
+Tasks Task Card Redesign enriches active task cards with warmer FamilyBoard visual hierarchy, compact metadata chips, reusable placeholder icon slots ready for future SVG assets, recognizable recurring treatment, and clearer complete/edit/more action buttons. The slice preserves existing task lifecycle, recurrence, Weekly Reset, backend, API contract, and database schema behavior.
+
+## Completed Slice — Tasks Time-First Workspace
+Tasks Time-First Workspace reshapes Tasks from a generic list into an operational family workspace organized by Vandaag, Morgen, Deze week, Volgende week, Later, and Afgerond. The slice makes Vandaag the strongest visual priority, keeps assignee/date/recurrence/completion context inside compact cards, preserves editing, deleting, completion, recurring task, and Weekly Reset behavior, and avoids backend, API contract, and database schema changes.
+
 
 
 ## Completed Slice — Agenda List Workspace

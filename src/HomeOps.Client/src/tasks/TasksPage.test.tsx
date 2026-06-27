@@ -61,15 +61,15 @@ describe("TasksPage empty state", () => {
     render(<TasksPage members={familyMembers} />);
 
     expect(
-      await screen.findByText("Add the first thing to help with"),
+      await screen.findByText("Voeg de eerste helpende taak toe"),
     ).not.toBeNull();
     expect(
       screen.getByText(
-        "Tasks keep family help visible without turning the day into admin.",
+        "Taken maken hulp zichtbaar zonder van de dag administratie te maken.",
       ),
     ).not.toBeNull();
     expect(
-      screen.getByRole("button", { name: "Add a family task" }),
+      screen.getByRole("button", { name: "Gezinstaak toevoegen" }),
     ).not.toBeNull();
   });
 });
@@ -88,6 +88,8 @@ describe("TasksPage hierarchy compaction", () => {
         id: "today",
         title: "Pack lunches",
         dueDate: new Date().toISOString().slice(0, 10),
+        recurrenceFrequency: "Weekly",
+        recurringTaskSeriesId: "series-lunches",
       }),
       task({
         id: "review",
@@ -130,11 +132,59 @@ describe("TasksPage hierarchy compaction", () => {
 
     expect(await screen.findByText("Return library books")).not.toBeNull();
     expect(container.textContent?.indexOf("Return library books")).toBeLessThan(
-      container.textContent?.indexOf("Routine starters") ?? -1,
+      container.textContent?.indexOf("Routinestarters") ?? -1,
     );
-    expect(screen.getByLabelText("Task primary action")).not.toBeNull();
-    expect(screen.getByLabelText("Task planning actions")).not.toBeNull();
+    expect(screen.getByLabelText("Primaire taakactie")).not.toBeNull();
+    expect(screen.getByLabelText("Taakplanning acties")).not.toBeNull();
+    const lunchCard = screen.getByText("Pack lunches").closest("li")!;
+    expect(within(lunchCard).getByText("Herhaalt wekelijks")).not.toBeNull();
+    expect(within(lunchCard).queryByRole("button", { name: "Morgen" })).toBeNull();
+    expect(within(lunchCard).getByRole("button", { name: "Routine verwijderen" })).not.toBeNull();
     expect(screen.queryByText("Morning Routine")).toBeNull();
+  });
+
+
+  it("moves normal and overdue tasks to Morgen without changing recurring tasks", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    vi.setSystemTime(new Date("2026-06-20T08:00:00Z"));
+    const user = userEvent.setup();
+    const api = await tasksApi();
+    vi.mocked(api.loadTasks).mockResolvedValue([
+      task({ id: "normal", title: "Empty dishwasher", dueDate: "2026-06-20" }),
+      task({ id: "overdue", title: "Return library books", dueDate: "2026-06-19" }),
+      task({ id: "recurring", title: "Pack lunches", dueDate: "2026-06-20", recurrenceFrequency: "Weekly", recurringTaskSeriesId: "series-lunches" }),
+      task({ id: "already-tomorrow", title: "Bring gym bag", dueDate: "2026-06-21" }),
+    ]);
+    vi.mocked(api.updateTask).mockImplementation(async (taskId, input) =>
+      task({ id: taskId, title: input.title, dueDate: input.dueDate ?? null, ownershipKind: input.ownershipKind ?? "Unassigned", familyMemberId: input.familyMemberId ?? null, recurrenceFrequency: input.recurrenceFrequency ?? "None" }),
+    );
+
+    render(<TasksPage members={familyMembers} />);
+
+    await screen.findByText("Return library books");
+    const normalCard = screen.getByText("Empty dishwasher").closest("li")!;
+    const overdueCard = screen.getByText("Return library books").closest("li")!;
+    await user.click(within(normalCard).getByRole("button", { name: "Morgen" }));
+    await user.click(within(overdueCard).getByRole("button", { name: "Morgen" }));
+
+    expect(vi.mocked(api.updateTask)).toHaveBeenCalledWith("normal", {
+      title: "Empty dishwasher",
+      dueDate: "2026-06-21",
+      ownershipKind: "Unassigned",
+      familyMemberId: null,
+      recurrenceFrequency: "None",
+    });
+    expect(vi.mocked(api.updateTask)).toHaveBeenCalledWith("overdue", {
+      title: "Return library books",
+      dueDate: "2026-06-21",
+      ownershipKind: "Unassigned",
+      familyMemberId: null,
+      recurrenceFrequency: "None",
+    });
+    expect(screen.getByText("Empty dishwasher").closest("section")?.textContent).toContain("Morgen");
+    expect(screen.getByText("Return library books").closest("section")?.textContent).toContain("Morgen");
+    expect(within(screen.getByText("Pack lunches").closest("li")!).queryByRole("button", { name: "Morgen" })).toBeNull();
+    expect(within(screen.getByText("Bring gym bag").closest("li")!).queryByRole("button", { name: "Morgen" })).toBeNull();
   });
 
   it("guides task creation through one friendly question at a time", async () => {
@@ -148,39 +198,39 @@ describe("TasksPage hierarchy compaction", () => {
     render(<TasksPage members={familyMembers} />);
 
     await screen.findByText("Return library books");
-    await user.click(screen.getByRole("button", { name: "Add family task" }));
+    await user.click(screen.getByRole("button", { name: "Gezinstaak toevoegen" }));
 
-    const dialog = screen.getByRole("dialog", { name: "Add family task" });
-    expect(within(dialog).getByText("What needs to be done?")).not.toBeNull();
-    expect(within(dialog).queryByText("Who should do this?")).toBeNull();
+    const dialog = screen.getByRole("dialog", { name: "Gezinstaak toevoegen" });
+    expect(within(dialog).getByText("Wat moet er gebeuren?")).not.toBeNull();
+    expect(within(dialog).queryByText("Wie pakt dit op?")).toBeNull();
     expect(
       within(dialog)
-        .getByRole("button", { name: "Continue" })
+        .getByRole("button", { name: "Verder" })
         .hasAttribute("disabled"),
     ).toBe(true);
 
     await user.type(
-      within(dialog).getByLabelText("What needs to be done?"),
+      within(dialog).getByLabelText("Wat moet er gebeuren?"),
       "Water plants",
     );
-    await user.click(within(dialog).getByRole("button", { name: "Continue" }));
-    expect(within(dialog).getByText("Who should do this?")).not.toBeNull();
+    await user.click(within(dialog).getByRole("button", { name: "Verder" }));
+    expect(within(dialog).getByText("Wie pakt dit op?")).not.toBeNull();
     await user.click(
-      within(dialog).getByRole("button", { name: "Whole family" }),
+      within(dialog).getByRole("button", { name: "Hele gezin" }),
     );
 
-    await user.click(within(dialog).getByRole("button", { name: "Continue" }));
-    expect(within(dialog).getByText("When should it happen?")).not.toBeNull();
-    await user.click(within(dialog).getByRole("button", { name: "Tomorrow" }));
+    await user.click(within(dialog).getByRole("button", { name: "Verder" }));
+    expect(within(dialog).getByText("Wanneer moet dit gebeuren?")).not.toBeNull();
+    await user.click(within(dialog).getByRole("button", { name: "Morgen" }));
 
-    await user.click(within(dialog).getByRole("button", { name: "Continue" }));
-    expect(within(dialog).getByText("Anything else?")).not.toBeNull();
+    await user.click(within(dialog).getByRole("button", { name: "Verder" }));
+    expect(within(dialog).getByText("Nog iets?")).not.toBeNull();
     await user.selectOptions(
-      within(dialog).getByLabelText("Repeats"),
+      within(dialog).getByLabelText("Herhaling"),
       "Weekly",
     );
     await user.click(
-      within(dialog).getByRole("button", { name: "Create task" }),
+      within(dialog).getByRole("button", { name: "Taak maken" }),
     );
 
     expect(vi.mocked(api.createTask)).toHaveBeenCalledWith({
@@ -204,28 +254,28 @@ describe("TasksPage hierarchy compaction", () => {
     await user.click(
       within(screen.getByText("Return library books").closest("li")!).getByRole(
         "button",
-        { name: "Adjust" },
+        { name: "Aanpassen" },
       ),
     );
 
-    const dialog = screen.getByRole("dialog", { name: "Adjust task" });
-    await user.clear(within(dialog).getByLabelText("What needs to be done?"));
+    const dialog = screen.getByRole("dialog", { name: "Taak aanpassen" });
+    await user.clear(within(dialog).getByLabelText("Wat moet er gebeuren?"));
     await user.type(
-      within(dialog).getByLabelText("What needs to be done?"),
+      within(dialog).getByLabelText("Wat moet er gebeuren?"),
       "Return library bags",
     );
-    await user.click(within(dialog).getByRole("button", { name: "Continue" }));
+    await user.click(within(dialog).getByRole("button", { name: "Verder" }));
     await user.click(
-      within(dialog).getByRole("button", { name: "One person" }),
+      within(dialog).getByRole("button", { name: "Eén persoon" }),
     );
     await user.selectOptions(
-      within(dialog).getByLabelText("Choose someone"),
+      within(dialog).getByLabelText("Kies iemand"),
       "alex",
     );
-    await user.click(within(dialog).getByRole("button", { name: "Continue" }));
-    await user.click(within(dialog).getByRole("button", { name: "Someday" }));
-    await user.click(within(dialog).getByRole("button", { name: "Continue" }));
-    await user.click(within(dialog).getByRole("button", { name: "Save task" }));
+    await user.click(within(dialog).getByRole("button", { name: "Verder" }));
+    await user.click(within(dialog).getByRole("button", { name: "Ooit" }));
+    await user.click(within(dialog).getByRole("button", { name: "Verder" }));
+    await user.click(within(dialog).getByRole("button", { name: "Taak opslaan" }));
 
     expect(vi.mocked(api.updateTask)).toHaveBeenCalledWith("overdue", {
       title: "Return library bags",
@@ -235,13 +285,13 @@ describe("TasksPage hierarchy compaction", () => {
       recurrenceFrequency: "None",
     });
 
-    await user.click(screen.getByRole("button", { name: "Add family task" }));
+    await user.click(screen.getByRole("button", { name: "Gezinstaak toevoegen" }));
     expect(
-      screen.getByRole("dialog", { name: "Add family task" }),
+      screen.getByRole("dialog", { name: "Gezinstaak toevoegen" }),
     ).not.toBeNull();
     await user.keyboard("{Escape}");
     expect(
-      screen.queryByRole("dialog", { name: "Add family task" }),
+      screen.queryByRole("dialog", { name: "Gezinstaak toevoegen" }),
     ).toBeNull();
   });
 });
@@ -279,11 +329,11 @@ describe("TasksPage templates", () => {
     const api = await tasksApi();
     render(<TasksPage members={familyMembers} />);
 
-    await screen.findByText("Add the first thing to help with");
+    await screen.findByText("Voeg de eerste helpende taak toe");
     expect(screen.queryByText("Morning Routine")).toBeNull();
-    await user.click(screen.getByRole("button", { name: "Routine starters" }));
+    await user.click(screen.getByRole("button", { name: "Routinestarters" }));
     expect(await screen.findByText("Morning Routine")).not.toBeNull();
-    await user.click(screen.getByRole("button", { name: "Apply" }));
+    await user.click(screen.getByRole("button", { name: "Toepassen" }));
 
     expect(vi.mocked(api.applyTaskTemplate)).toHaveBeenCalledWith("template-1");
   });
@@ -305,9 +355,9 @@ describe("TasksPage templates", () => {
     render(<TasksPage members={familyMembers} />);
 
     await screen.findByText("Fix hallway hook");
-    await user.click(screen.getByRole("button", { name: "Plan the week (1)" }));
+    await user.click(screen.getByRole("button", { name: "Week plannen (1)" }));
     await user.click(
-      screen.getByRole("button", { name: "Keep for this week" }),
+      screen.getByRole("button", { name: "Deze week houden" }),
     );
 
     expect(vi.mocked(api.keepTaskActive)).toHaveBeenCalledWith("review");

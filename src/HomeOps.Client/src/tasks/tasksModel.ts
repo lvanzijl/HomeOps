@@ -30,13 +30,19 @@ export interface CreateTaskInput {
   archivedUtc?: string | null;
 }
 
-export type TaskUrgencyGroupId = 'overdue' | 'today' | 'upcoming' | 'noDueDate' | 'completedRecently';
+export type TaskTimeGroupId = 'today' | 'tomorrow' | 'thisWeek' | 'nextWeek' | 'later' | 'completedRecently';
 
-export interface TaskUrgencyGroup {
-  id: TaskUrgencyGroupId;
+export interface TaskTimeGroup {
+  id: TaskTimeGroupId;
   title: string;
+  description: string;
+  emptyMessage: string;
+  emphasis: 'primary' | 'normal' | 'quiet';
   tasks: readonly HouseholdTask[];
 }
+
+export type TaskUrgencyGroupId = TaskTimeGroupId;
+export type TaskUrgencyGroup = TaskTimeGroup;
 
 
 export interface TaskTemplateItem {
