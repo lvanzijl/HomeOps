@@ -443,3 +443,9 @@ Agenda Event Indicators replaces month-cell count text with frontend-derived typ
 - Reduced Shopping workspace vertical density after browser measurements showed Quick Add and secondary sections were too tall.
 - Kept Shopping behaviour, preferred-store grouping, lifecycle flows, backend, API contracts, and schema unchanged.
 - Added browser validation/reporting for the compact layout at 1366×768 and 1920×1080.
+
+### Completed Slice — Tasks Workspace Polish (2026-06-27)
+- Reduced visual action density in Tasks by promoting Klaar and Morgen as primary visible actions and placing lower-frequency card actions behind Meer.
+- Added a compact Vandaag orientation summary from existing frontend task data.
+- Reduced Afgerond visual weight with a collapsed history presentation while preserving reopen behavior.
+- Kept task completion, Morgen, recurrence, Weekly Reset, backend, API contracts, and database schema unchanged.

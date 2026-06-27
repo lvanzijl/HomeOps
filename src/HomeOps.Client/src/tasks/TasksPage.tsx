@@ -69,6 +69,15 @@ export function TasksPage({
     [tasks],
   );
   const groups = useMemo(() => groupTasksByTime(tasks), [tasks]);
+  const todaySummary = useMemo(() => {
+    const todayIso = toDateInputValue(new Date());
+    const todayTasks = groups.find((group) => group.id === "today")?.tasks ?? [];
+    return {
+      total: todayTasks.length,
+      overdue: todayTasks.filter((task) => task.dueDate !== null && task.dueDate < todayIso).length,
+      recurring: todayTasks.filter(isRecurringTask).length,
+    };
+  }, [groups]);
 
   useEffect(() => {
     if (
@@ -318,6 +327,14 @@ export function TasksPage({
           </div>
         ) : null}
       </header>
+      {!isLoading && tasks.length > 0 ? (
+        <section className="task-today-summary" aria-label="Vandaag samenvatting">
+          <strong>Vandaag in beeld</strong>
+          <span>{todaySummary.total} {todaySummary.total === 1 ? "taak" : "taken"}</span>
+          <span>{todaySummary.overdue} te laat</span>
+          <span>{todaySummary.recurring} routine{todaySummary.recurring === 1 ? "" : "s"}</span>
+        </section>
+      ) : null}
       {error ? (
         <p className="shopping-empty" role="alert">
           {error}
@@ -764,6 +781,39 @@ function TaskGroup({
   onMoveToTomorrow(task: HouseholdTask): void;
   onUpdate(id: string, action: "complete" | "reopen"): void;
 }) {
+  if (group.id === "completedRecently") {
+    return (
+      <details className="task-group task-time-group quiet task-completed-history">
+        <summary>
+          <div>
+            <p className="task-group-kicker">Terugkijken</p>
+            <h4>{group.title}</h4>
+            <p>{group.description}</p>
+          </div>
+          <span>{tasks.length} {tasks.length === 1 ? "taak" : "taken"}</span>
+        </summary>
+        {tasks.length === 0 ? (
+          <p className="shopping-empty">{group.emptyMessage}</p>
+        ) : (
+          <ul className="task-list">
+            {tasks.map((task) => (
+              <TaskCard
+                groupId={group.id}
+                key={task.id}
+                members={members}
+                task={task}
+                onDeleteSeries={onDeleteSeries}
+                onEdit={onEdit}
+                onMoveToTomorrow={onMoveToTomorrow}
+                onUpdate={onUpdate}
+              />
+            ))}
+          </ul>
+        )}
+      </details>
+    );
+  }
+
   return (
     <section className={`task-group task-time-group ${group.emphasis === "primary" ? "today-focus" : ""} ${group.emphasis === "quiet" ? "quiet" : ""}`}>
       <div className="task-group-heading">
@@ -778,77 +828,109 @@ function TaskGroup({
         <p className="shopping-empty">{group.emptyMessage}</p>
       ) : (
         <ul className="task-list">
-          {tasks.map((task) => {
-            const isRecurring = (task.recurrenceFrequency ?? "None") !== "None" || Boolean(task.recurringTaskSeriesId);
-            const tomorrow = toDateInputValue(addDays(new Date(), 1));
-            const canMoveToTomorrow = !task.isCompleted && !isRecurring && task.dueDate !== tomorrow;
-            return (
-              <li className={`task-item operational-task-card rich-task-card ${task.isCompleted ? "is-completed" : ""} ${isRecurring ? "is-recurring" : ""}`} key={task.id}>
-                <div className="task-card-visual" aria-hidden="true">
-                  <TaskCardIcon variant={task.isCompleted ? "completed" : isRecurring ? "recurring" : group.id} />
-                </div>
-                <div className="task-card-content">
-                  <div className="task-card-main">
-                    <span className="task-card-status">{task.isCompleted ? "Afgerond" : group.id === "today" ? "Vandaag eerst" : "Gepland"}</span>
-                    <strong>{task.title}</strong>
-                  </div>
-                  <span className="task-card-meta" aria-label="Taakdetails">
-                    <TaskMetadataChip tone="family" label={formatOwner(task, members)} />
-                    <TaskMetadataChip tone={group.id === "today" ? "urgent" : "time"} label={formatDue(task, group.id)} />
-                    {isRecurring ? (
-                      <TaskMetadataChip tone="recurring" label={formatRecurrence(task.recurrenceFrequency ?? "None")} />
-                    ) : null}
-                    <TaskMetadataChip tone={task.isCompleted ? "done" : "open"} label={task.isCompleted ? "Afgerond" : "Openstaand"} />
-                  </span>
-                </div>
-                <div className="task-card-actions" aria-label={`Acties voor ${task.title}`}>
-                  {!task.isCompleted ? (
-                    <button
-                      className="task-action-button primary"
-                      onClick={() => onUpdate(task.id, "complete")}
-                      type="button"
-                    >
-                      <TaskActionIcon name="complete" />
-                      <span>Klaar</span>
-                    </button>
-                  ) : (
-                    <button
-                      className="task-action-button"
-                      onClick={() => onUpdate(task.id, "reopen")}
-                      type="button"
-                    >
-                      <TaskActionIcon name="reopen" />
-                      <span>Terugzetten</span>
-                    </button>
-                  )}
-                  {canMoveToTomorrow ? (
-                    <button className="task-action-button tomorrow" onClick={() => onMoveToTomorrow(task)} type="button">
-                      <TaskActionIcon name="tomorrow" />
-                      <span>Morgen</span>
-                    </button>
-                  ) : null}
-                  <button className="task-action-button" onClick={() => onEdit(task)} type="button">
-                    <TaskActionIcon name="edit" />
-                    <span>Aanpassen</span>
-                  </button>
-                  {task.recurringTaskSeriesId ? (
-                    <button className="task-action-button more" onClick={() => onDeleteSeries(task.id)} type="button">
-                      <TaskActionIcon name="more" />
-                      <span>Routine verwijderen</span>
-                    </button>
-                  ) : (
-                    <button className="task-action-button more" disabled title="Meer acties komen later" type="button">
-                      <TaskActionIcon name="more" />
-                      <span>Meer</span>
-                    </button>
-                  )}
-                </div>
-              </li>
-            );
-          })}
+          {tasks.map((task) => (
+            <TaskCard
+              groupId={group.id}
+              key={task.id}
+              members={members}
+              task={task}
+              onDeleteSeries={onDeleteSeries}
+              onEdit={onEdit}
+              onMoveToTomorrow={onMoveToTomorrow}
+              onUpdate={onUpdate}
+            />
+          ))}
         </ul>
       )}
     </section>
+  );
+}
+
+function TaskCard({
+  groupId,
+  members,
+  task,
+  onDeleteSeries,
+  onEdit,
+  onMoveToTomorrow,
+  onUpdate,
+}: {
+  groupId: string;
+  members: readonly FamilyMember[];
+  task: HouseholdTask;
+  onDeleteSeries(id: string): void;
+  onEdit(task: HouseholdTask): void;
+  onMoveToTomorrow(task: HouseholdTask): void;
+  onUpdate(id: string, action: "complete" | "reopen"): void;
+}) {
+  const isRecurring = isRecurringTask(task);
+  const tomorrow = toDateInputValue(addDays(new Date(), 1));
+  const canMoveToTomorrow = !task.isCompleted && !isRecurring && task.dueDate !== tomorrow;
+  return (
+    <li className={`task-item operational-task-card rich-task-card ${task.isCompleted ? "is-completed" : ""} ${isRecurring ? "is-recurring" : ""}`} key={task.id}>
+      <div className="task-card-visual" aria-hidden="true">
+        <TaskCardIcon variant={task.isCompleted ? "completed" : isRecurring ? "recurring" : groupId} />
+      </div>
+      <div className="task-card-content">
+        <div className="task-card-main">
+          <span className="task-card-status">{task.isCompleted ? "Afgerond" : groupId === "today" ? "Vandaag eerst" : "Gepland"}</span>
+          <strong>{task.title}</strong>
+        </div>
+        <span className="task-card-meta" aria-label="Taakdetails">
+          <TaskMetadataChip tone="family" label={formatOwner(task, members)} />
+          <TaskMetadataChip tone={groupId === "today" ? "urgent" : "time"} label={formatDue(task, groupId)} />
+          {isRecurring ? (
+            <TaskMetadataChip tone="recurring" label={formatRecurrence(task.recurrenceFrequency ?? "None")} />
+          ) : null}
+          <TaskMetadataChip tone={task.isCompleted ? "done" : "open"} label={task.isCompleted ? "Afgerond" : "Openstaand"} />
+        </span>
+      </div>
+      <div className="task-card-actions" aria-label={`Acties voor ${task.title}`}>
+        {!task.isCompleted ? (
+          <button
+            className="task-action-button primary"
+            onClick={() => onUpdate(task.id, "complete")}
+            type="button"
+          >
+            <TaskActionIcon name="complete" />
+            <span>Klaar</span>
+          </button>
+        ) : (
+          <button
+            className="task-action-button"
+            onClick={() => onUpdate(task.id, "reopen")}
+            type="button"
+          >
+            <TaskActionIcon name="reopen" />
+            <span>Terugzetten</span>
+          </button>
+        )}
+        {canMoveToTomorrow ? (
+          <button className="task-action-button tomorrow" onClick={() => onMoveToTomorrow(task)} type="button">
+            <TaskActionIcon name="tomorrow" />
+            <span>Morgen</span>
+          </button>
+        ) : null}
+        <details className="task-more-actions">
+          <summary>
+            <TaskActionIcon name="more" />
+            <span>Meer</span>
+          </summary>
+          <div>
+            <button className="task-action-button secondary" onClick={() => onEdit(task)} type="button">
+              <TaskActionIcon name="edit" />
+              <span>Aanpassen</span>
+            </button>
+            {task.recurringTaskSeriesId ? (
+              <button className="task-action-button secondary" onClick={() => onDeleteSeries(task.id)} type="button">
+                <TaskActionIcon name="more" />
+                <span>Routine verwijderen</span>
+              </button>
+            ) : null}
+          </div>
+        </details>
+      </div>
+    </li>
   );
 }
 
@@ -923,6 +1005,10 @@ function addDays(date: Date, days: number): Date {
   const next = new Date(date);
   next.setDate(next.getDate() + days);
   return next;
+}
+
+function isRecurringTask(task: Pick<HouseholdTask, "recurrenceFrequency" | "recurringTaskSeriesId">): boolean {
+  return (task.recurrenceFrequency ?? "None") !== "None" || Boolean(task.recurringTaskSeriesId);
 }
 
 export function formatOwner(
