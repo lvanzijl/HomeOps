@@ -12,45 +12,45 @@ export const widgetDefinitions: readonly WidgetDefinition[] = [
   {
     id: 'shopping-list-mvp',
     type: 'shoppingList',
-    title: 'Shopping List',
+    title: 'Boodschappen',
     settings: {},
   },
   {
     id: 'welcome-text',
     type: 'text',
-    title: 'Welcome',
+    title: 'Welkom',
     settings: {
-      body: 'HomeOps workspace foundation is ready for future household widgets.',
+      body: 'FamilyBoard is klaar voor toekomstige gezinswidgets.',
     },
   },
   {
     id: 'house-placeholder',
     type: 'placeholder',
-    title: 'House Placeholder',
+    title: 'Huis-placeholder',
     settings: {
-      body: 'House widgets will appear here in future slices.',
+      body: 'Huiswidgets komen in latere fases.',
     },
   },
   {
     id: 'media-placeholder',
     type: 'placeholder',
-    title: 'Media Placeholder',
+    title: 'Media-placeholder',
     settings: {
-      body: 'Media widgets will appear here in future slices.',
+      body: 'Mediawidgets komen in latere fases.',
     },
   },
   {
     id: 'calendar-portability-admin',
     type: 'calendarPortability',
-    title: 'Calendar Export / Restore',
+    title: 'Agenda exporteren / herstellen',
     settings: {},
   },
   {
     id: 'settings-placeholder',
     type: 'placeholder',
-    title: 'Settings Placeholder',
+    title: 'Instellingen-placeholder',
     settings: {
-      body: 'Settings widgets will appear here in future slices.',
+      body: 'Instellingenwidgets komen in latere fases.',
     },
   },
 ] as const;

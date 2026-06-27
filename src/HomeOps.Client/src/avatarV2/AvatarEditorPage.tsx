@@ -27,32 +27,32 @@ export function AvatarEditorPage() {
     <section className="avatar-v2-editor-page" aria-labelledby="avatar-v2-editor-title">
       <header className="avatar-v2-editor-hero">
         <div>
-          <p className="eyebrow">Avatar V2 editor</p>
-          <h2 id="avatar-v2-editor-title">Build a family avatar</h2>
-          <p>Try styles instantly. Family Member management is the persistence entry point for real avatar saves.</p>
+          <p className="eyebrow">Avatarbewerker</p>
+          <h2 id="avatar-v2-editor-title">Gezinsavatar maken</h2>
+          <p>Probeer stijlen direct. Sla echte avatars op via gezinslidbeheer.</p>
         </div>
         <p className={hasUnsavedChanges ? 'avatar-v2-status avatar-v2-status-unsaved' : 'avatar-v2-status'} aria-live="polite">
-          {hasUnsavedChanges ? 'Unsaved changes' : 'Saved'}
+          {hasUnsavedChanges ? 'Niet-opgeslagen wijzigingen' : 'Opgeslagen'}
         </p>
       </header>
 
       <div className="avatar-v2-editor-layout">
-        <aside className="avatar-v2-preview-card" aria-label="Avatar live preview">
+        <aside className="avatar-v2-preview-card" aria-label="Live voorbeeld avatar">
           <div className="avatar-v2-preview" data-testid="avatar-v2-live-preview" dangerouslySetInnerHTML={{ __html: previewSvg }} />
           <div className="avatar-v2-actions">
-            <button type="button" onClick={save} disabled={!hasUnsavedChanges}>Save</button>
-            <button type="button" onClick={() => setDraftConfiguration(savedConfiguration)} disabled={!hasUnsavedChanges}>Cancel</button>
-            <button type="button" onClick={() => setDraftConfiguration(avatarV2DefaultConfiguration)}>Reset</button>
+            <button type="button" onClick={save} disabled={!hasUnsavedChanges}>Opslaan</button>
+            <button type="button" onClick={() => setDraftConfiguration(savedConfiguration)} disabled={!hasUnsavedChanges}>Annuleren</button>
+            <button type="button" onClick={() => setDraftConfiguration(avatarV2DefaultConfiguration)}>Resetten</button>
           </div>
         </aside>
 
-        <div className="avatar-v2-controls" aria-label="Avatar choices">
-          <AssetSection title="Hair" description="Pick a hairstyle." options={hairOptions} selected={draftConfiguration.hairStyle} renderPreview={(style) => renderAvatarV2Svg(toAvatarV2RenderConfig({ ...draftConfiguration, hairStyle: style, accessory: 'none' }))} getLabel={(style) => avatarV2HairAssets[style].metadata.displayName} onSelect={(hairStyle) => updateConfiguration({ hairStyle })} />
-          <SwatchSection title="Hair color" swatches={hairSwatches} selected={draftConfiguration.hairColor} onSelect={(hairColor) => updateConfiguration({ hairColor })} />
-          <AssetSection title="Clothing" description="Pick an outfit shape." options={clothingOptions} selected={draftConfiguration.clothingStyle} renderPreview={(style) => renderAvatarV2Svg(toAvatarV2RenderConfig({ ...draftConfiguration, clothingStyle: style }))} getLabel={(style) => avatarV2ClothingAssets[style].metadata.displayName} onSelect={(clothingStyle) => updateConfiguration({ clothingStyle })} />
-          <SwatchSection title="Clothing color" swatches={clothingSwatches} selected={draftConfiguration.clothingColor} onSelect={(clothingColor) => updateConfiguration({ clothingColor })} />
-          <AssetSection title="Accessory" description="Pick a finishing touch." options={accessoryOptions} selected={draftConfiguration.accessory} renderPreview={(style) => renderAvatarV2Svg(toAvatarV2RenderConfig({ ...draftConfiguration, accessory: style }))} getLabel={(style) => style === 'none' ? 'No accessory' : avatarV2AccessoryAssets[style].metadata.displayName} onSelect={(accessory) => updateConfiguration({ accessory })} />
-          <SwatchSection title="Accessory color" swatches={accessorySwatches} selected={draftConfiguration.accessoryColor} onSelect={(accessoryColor) => updateConfiguration({ accessoryColor })} />
+        <div className="avatar-v2-controls" aria-label="Avatarkeuzes">
+          <AssetSection title="Haar" description="Kies een kapsel." options={hairOptions} selected={draftConfiguration.hairStyle} renderPreview={(style) => renderAvatarV2Svg(toAvatarV2RenderConfig({ ...draftConfiguration, hairStyle: style, accessory: 'none' }))} getLabel={(style) => avatarV2HairAssets[style].metadata.displayName} onSelect={(hairStyle) => updateConfiguration({ hairStyle })} />
+          <SwatchSection title="Haarkleur" swatches={hairSwatches} selected={draftConfiguration.hairColor} onSelect={(hairColor) => updateConfiguration({ hairColor })} />
+          <AssetSection title="Kleding" description="Kies een outfitvorm." options={clothingOptions} selected={draftConfiguration.clothingStyle} renderPreview={(style) => renderAvatarV2Svg(toAvatarV2RenderConfig({ ...draftConfiguration, clothingStyle: style }))} getLabel={(style) => avatarV2ClothingAssets[style].metadata.displayName} onSelect={(clothingStyle) => updateConfiguration({ clothingStyle })} />
+          <SwatchSection title="Kledingkleur" swatches={clothingSwatches} selected={draftConfiguration.clothingColor} onSelect={(clothingColor) => updateConfiguration({ clothingColor })} />
+          <AssetSection title="Accessoire" description="Kies iets extra’s." options={accessoryOptions} selected={draftConfiguration.accessory} renderPreview={(style) => renderAvatarV2Svg(toAvatarV2RenderConfig({ ...draftConfiguration, accessory: style }))} getLabel={(style) => style === 'none' ? 'Geen accessoire' : avatarV2AccessoryAssets[style].metadata.displayName} onSelect={(accessory) => updateConfiguration({ accessory })} />
+          <SwatchSection title="Accessoirekleur" swatches={accessorySwatches} selected={draftConfiguration.accessoryColor} onSelect={(accessoryColor) => updateConfiguration({ accessoryColor })} />
         </div>
       </div>
     </section>
@@ -64,5 +64,5 @@ function AssetSection<T extends string>({ title, description, options, selected,
 }
 
 function SwatchSection({ title, swatches, selected, onSelect }: { title: string; swatches: PaletteToken[]; selected: PaletteToken; onSelect: (value: PaletteToken) => void }) {
-  return <section className="avatar-v2-swatch-section" aria-labelledby={`${title}-title`}><h3 id={`${title}-title`}>{title}</h3><div className="avatar-v2-swatch-row">{swatches.map((swatch) => <button aria-label={`${title} option ${swatches.indexOf(swatch) + 1}`} aria-pressed={swatch === selected} className="avatar-v2-swatch" key={swatch} onClick={() => onSelect(swatch)} style={{ background: expandAvatarPaletteToken(swatch).base }} type="button" />)}</div></section>;
+  return <section className="avatar-v2-swatch-section" aria-labelledby={`${title}-title`}><h3 id={`${title}-title`}>{title}</h3><div className="avatar-v2-swatch-row">{swatches.map((swatch) => <button aria-label={`${title} optie ${swatches.indexOf(swatch) + 1}`} aria-pressed={swatch === selected} className="avatar-v2-swatch" key={swatch} onClick={() => onSelect(swatch)} style={{ background: expandAvatarPaletteToken(swatch).base }} type="button" />)}</div></section>;
 }

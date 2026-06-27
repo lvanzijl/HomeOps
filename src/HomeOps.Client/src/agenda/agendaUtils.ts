@@ -1,9 +1,9 @@
 import type { EventSource, NormalizedEvent } from '../events/eventSourceModel';
 import type { AgendaDayGroup, AgendaEvent, AgendaMonthGroup } from './agendaModel';
 
-const dayFormatter = new Intl.DateTimeFormat('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' });
-const monthFormatter = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' });
-const timeFormatter = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'UTC' });
+const dayFormatter = new Intl.DateTimeFormat('nl-NL', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' });
+const monthFormatter = new Intl.DateTimeFormat('nl-NL', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+const timeFormatter = new Intl.DateTimeFormat('nl-NL', { hour: 'numeric', minute: '2-digit', timeZone: 'UTC' });
 
 export function createSourceSelection(sources: readonly EventSource[]): Record<string, boolean> {
   return Object.fromEntries(sources.map((source) => [source.id, source.enabled]));
@@ -67,7 +67,7 @@ export function groupEventsByMonth(events: readonly AgendaEvent[]): readonly Age
 
 export function formatEventTime(event: NormalizedEvent): string {
   if (event.allDay) {
-    return 'All day';
+    return 'Hele dag';
   }
 
   const startsAt = timeFormatter.format(new Date(event.startsAt));

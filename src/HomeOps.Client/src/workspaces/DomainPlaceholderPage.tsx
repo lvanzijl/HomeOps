@@ -5,11 +5,11 @@ interface DomainPlaceholderPageProps {
 
 export function DomainPlaceholderPage({ title, purpose }: DomainPlaceholderPageProps) {
   return (
-    <article className="domain-placeholder-page" aria-label={`${title} placeholder page`}>
-      <p className="widget-type">Coming later</p>
+    <article className="domain-placeholder-page" aria-label={`${title} placeholderpagina`}>
+      <p className="widget-type">Komt later</p>
       <h3>{title}</h3>
       <p>{purpose}</p>
-      <strong>Not implemented yet.</strong>
+      <strong>Nog niet beschikbaar.</strong>
     </article>
   );
 }

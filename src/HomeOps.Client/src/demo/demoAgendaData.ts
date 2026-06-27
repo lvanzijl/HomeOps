@@ -47,7 +47,7 @@ export const demoReadOnlyEvents: readonly NormalizedEvent[] = [
   {
     id: 'tomorrow-tv-premiere',
     sourceId: 'tv-series',
-    title: 'Premiere night watch reminder',
+    title: 'Premièreavond kijken',
     startsAt: '2026-06-19T20:00:00Z',
     endsAt: '2026-06-19T21:00:00Z',
     allDay: false,
@@ -57,7 +57,7 @@ export const demoReadOnlyEvents: readonly NormalizedEvent[] = [
   {
     id: 'next-month-camp',
     sourceId: 'school-holidays',
-    title: 'Summer camp registration confirmation day',
+    title: 'Inschrijving zomerkamp bevestigen',
     startsAt: '2026-07-10T00:00:00Z',
     allDay: true,
     editable: false,
@@ -66,7 +66,7 @@ export const demoReadOnlyEvents: readonly NormalizedEvent[] = [
   {
     id: 'future-tv-marathon',
     sourceId: 'tv-series',
-    title: 'Season finale marathon',
+    title: 'Seizoensfinale-marathon',
     startsAt: '2026-09-05T19:30:00Z',
     endsAt: '2026-09-05T22:00:00Z',
     allDay: false,
@@ -76,7 +76,7 @@ export const demoReadOnlyEvents: readonly NormalizedEvent[] = [
   {
     id: 'birthday-avery-20260620',
     sourceId: 'birthdays',
-    title: 'Avery birthday',
+    title: 'Verjaardag Avery',
     startsAt: '2026-06-20T00:00:00Z',
     endsAt: '2026-06-21T00:00:00Z',
     allDay: true,
@@ -86,7 +86,7 @@ export const demoReadOnlyEvents: readonly NormalizedEvent[] = [
   {
     id: 'birthday-morgan-20260625',
     sourceId: 'birthdays',
-    title: 'Morgan birthday',
+    title: 'Verjaardag Morgan',
     startsAt: '2026-06-25T00:00:00Z',
     endsAt: '2026-06-26T00:00:00Z',
     allDay: true,
@@ -96,7 +96,7 @@ export const demoReadOnlyEvents: readonly NormalizedEvent[] = [
   {
     id: 'birthday-riley-20261103',
     sourceId: 'birthdays',
-    title: 'Riley birthday',
+    title: 'Verjaardag Riley',
     startsAt: '2026-11-03T00:00:00Z',
     endsAt: '2026-11-04T00:00:00Z',
     allDay: true,
@@ -106,7 +106,7 @@ export const demoReadOnlyEvents: readonly NormalizedEvent[] = [
   {
     id: 'birthday-casey-20270115',
     sourceId: 'birthdays',
-    title: 'Casey birthday',
+    title: 'Verjaardag Casey',
     startsAt: '2027-01-15T00:00:00Z',
     endsAt: '2027-01-16T00:00:00Z',
     allDay: true,

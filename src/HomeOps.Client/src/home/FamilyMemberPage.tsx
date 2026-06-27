@@ -92,7 +92,7 @@ export function FamilyMemberPage({
   function submit(event: FormEvent) {
     event.preventDefault();
     if (draft.memberKind === "child" && !draft.dateOfBirth) {
-      setStatus("Date of birth is required for children.");
+      setStatus("Geboortedatum is verplicht voor kinderen.");
       return;
     }
     onChange({
@@ -102,13 +102,13 @@ export function FamilyMemberPage({
           ? draft.dateOfBirth || null
           : draft.dateOfBirth,
     });
-    setStatus("Saved details.");
+    setStatus("Gegevens opgeslagen.");
   }
 
   function requestRemove() {
     if (
       window.confirm(
-        `Remove ${member.name} from the household? Existing task and motivation references are kept.`,
+        `${member.name} uit het gezin verwijderen? Bestaande taak- en motivatieverwijzingen blijven bewaard.`,
       )
     )
       onRemove(member);
@@ -124,12 +124,12 @@ export function FamilyMemberPage({
   return (
     <section
       className="family-member-page"
-      aria-label={`${member.name} family member page`}
+      aria-label={`${member.name} gezinslidpagina`}
     >
-      <nav className="page-header-actions family-member-navigation" aria-label="Family member navigation">
+      <nav className="page-header-actions family-member-navigation" aria-label="Gezinslidnavigatie">
         <button className="compact-header-action" type="button" onClick={onBack}>
           <HomeOpsIcon name="arrowBack" />
-          <span>Back to Home</span>
+          <span>Terug naar Thuis</span>
         </button>
       </nav>
       <header
@@ -141,12 +141,12 @@ export function FamilyMemberPage({
         </div>
         <div>
           <p className="eyebrow">
-            {member.memberKind === "child" ? "My page" : "Household member"}
+            {member.memberKind === "child" ? "Mijn pagina" : "Gezinslid"}
           </p>
           <h2>{member.name}</h2>
           <p>{ageContext(member, age)}</p>
           {member.memberKind === "child" ? (
-            <p className="child-mode-question">What is next?</p>
+            <p className="child-mode-question">Wat is de volgende stap?</p>
           ) : null}
         </div>
       </header>
@@ -156,7 +156,7 @@ export function FamilyMemberPage({
           {activeMode === "child" ? (
             <section
               className={`child-progress-view child-mode ${ageBand}`}
-              aria-label={`${member.name} Child Mode`}
+              aria-label={`${member.name} kindmodus`}
             >
               <TodaySection
                 member={member}
@@ -173,11 +173,11 @@ export function FamilyMemberPage({
               <HelpfulMomentsSection
                 members={[member]}
                 familyMemberId={member.id}
-                title="Latest Appreciation"
+                title="Nieuwste waardering"
                 compact
               />
               <details className="child-detail-disclosure">
-                <summary>Explore my progress</summary>
+                <summary>Mijn voortgang bekijken</summary>
                 <IndividualGoalProgress
                   goals={memberGoals}
                   ageBand={ageBand}
@@ -185,7 +185,7 @@ export function FamilyMemberPage({
                 />
               </details>
               <details className="child-detail-disclosure">
-                <summary>Explore our family goal</summary>
+                <summary>Ons gezinsdoel bekijken</summary>
                 <FamilyGoalParticipation
                   familyGoal={motivationSnapshot.familyGoal}
                   status={motivationStatus}
@@ -193,7 +193,7 @@ export function FamilyMemberPage({
                 />
               </details>
               <details className="child-detail-disclosure">
-                <summary>Explore memories</summary>
+                <summary>Herinneringen bekijken</summary>
                 <ChildCelebrationMemories
                   memories={motivationSnapshot.celebrationMemories ?? []}
                   ageBand={ageBand}
@@ -213,12 +213,12 @@ export function FamilyMemberPage({
             />
           )}
           <div className="member-mode-discovery">
-            <p>Grown-ups can use Parent Mode for settings.</p>
+            <p>Volwassenen kunnen de oudermodus gebruiken voor instellingen.</p>
           </div>
           <div
             className="member-mode-switch"
             role="tablist"
-            aria-label="Family member page mode"
+            aria-label="Modus gezinslidpagina"
           >
             <button
               type="button"
@@ -227,7 +227,7 @@ export function FamilyMemberPage({
               className={activeMode === "child" ? "active" : ""}
               onClick={() => setActiveMode("child")}
             >
-              Child Mode
+              Kindmodus
             </button>
             <button
               type="button"
@@ -236,7 +236,7 @@ export function FamilyMemberPage({
               className={activeMode === "parent" ? "active" : ""}
               onClick={() => setActiveMode("parent")}
             >
-              Parent Mode
+              Oudermodus
             </button>
           </div>
         </div>
@@ -245,7 +245,7 @@ export function FamilyMemberPage({
           <HelpfulMomentsSection
             members={[member]}
             familyMemberId={member.id}
-            title="Things My Family Appreciates"
+            title="Wat mijn gezin waardeert"
           />
           <ParentAdministration
             member={member}
@@ -293,13 +293,13 @@ function ParentAdministration({
   return (
     <section
       className="parent-administration"
-      aria-label={`${member.name} grown-up settings`}
+      aria-label={`${member.name} instellingen voor volwassenen`}
     >
       <div className="parent-administration-intro">
         <div>
-          <p className="eyebrow">Parent Mode</p>
-          <h3>{member.name}'s grown-up settings</h3>
-          <p>Update {member.name}'s profile and household options.</p>
+          <p className="eyebrow">Oudermodus</p>
+          <h3>Instellingen voor {member.name}</h3>
+          <p>Werk het profiel van {member.name} en gezinsopties bij.</p>
         </div>
       </div>
 
@@ -308,27 +308,27 @@ function ParentAdministration({
           <article className="family-member-detail-card parent-identity-card">
             <div className="parent-section-heading">
               <div>
-                <p className="eyebrow">Identity</p>
-                <h3>Appearance</h3>
+                <p className="eyebrow">Identiteit</p>
+                <h3>Uiterlijk</h3>
               </div>
               <button
                 className="secondary-action compact-action"
                 type="button"
                 onClick={onEditAvatar}
               >
-                Edit avatar
+                Avatar bewerken
               </button>
             </div>
             <div className="parent-identity-preview">
               <FamilyAvatar member={draft} size="large" />
               <p>
                 {member.avatarV2Config
-                  ? `${member.name}'s avatar appears across Home, this page, and Motivation.`
-                  : "Initials are used until an avatar is saved."}
+                  ? `De avatar van ${member.name} verschijnt bij Thuis, deze pagina en Motivatie.`
+                  : "Initialen worden gebruikt tot er een avatar is opgeslagen."}
               </p>
             </div>
             <label className="family-member-color-field">
-              Display color
+              Weergavekleur
               <input
                 type="color"
                 value={draft.displayColor}
@@ -342,8 +342,8 @@ function ParentAdministration({
           <article className="family-member-detail-card parent-basic-card">
             <div className="parent-section-heading">
               <div>
-                <p className="eyebrow">Basic Information</p>
-                <h3>Personal details</h3>
+                <p className="eyebrow">Basisinformatie</p>
+                <h3>Persoonlijke gegevens</h3>
               </div>
             </div>
             <div className="family-member-form">
@@ -362,7 +362,7 @@ function ParentAdministration({
                 />
               </label>
               <label>
-                Adult / Child
+                Volwassene / kind
                 <select
                   value={draft.memberKind}
                   onChange={(event) =>
@@ -372,12 +372,12 @@ function ParentAdministration({
                     })
                   }
                 >
-                  <option value="adult">Adult</option>
-                  <option value="child">Child</option>
+                  <option value="adult">Volwassene</option>
+                  <option value="child">Kind</option>
                 </select>
               </label>
               <label>
-                Birthday
+                Verjaardag
                 <input
                   type="date"
                   value={draft.dateOfBirth ?? ""}
@@ -391,7 +391,7 @@ function ParentAdministration({
                 />
               </label>
               <div className="family-member-actions parent-primary-actions">
-                <button type="submit">Save details</button>
+                <button type="submit">Gegevens opslaan</button>
               </div>
               {status ? <p role="status">{status}</p> : null}
             </div>
@@ -403,9 +403,9 @@ function ParentAdministration({
         <article className="family-member-detail-card parent-household-card">
           <div className="parent-section-heading">
             <div>
-              <p className="eyebrow">Household</p>
-              <h3>Family</h3>
-              <p>Add another person to your household.</p>
+              <p className="eyebrow">Gezin</p>
+              <h3>Gezin</h3>
+              <p>Voeg iemand toe aan het gezin.</p>
             </div>
             {onAddFamilyMember ? (
               <button
@@ -414,7 +414,7 @@ function ParentAdministration({
                 onClick={onAddFamilyMember}
               >
                 <HomeOpsIcon name="add" />
-                <span>Add Family Member</span>
+                <span>Gezinslid toevoegen</span>
               </button>
             ) : null}
           </div>
@@ -423,16 +423,16 @@ function ParentAdministration({
         <article className="family-member-detail-card parent-safety-card">
           <div className="parent-section-heading">
             <div>
-              <p className="eyebrow">Safety</p>
-              <h3>Remove from household</h3>
-              <p>Use this only when {member.name} should no longer appear in the household.</p>
+              <p className="eyebrow">Veiligheid</p>
+              <h3>Uit gezin verwijderen</h3>
+              <p>Gebruik dit alleen wanneer {member.name} niet meer in het gezin moet verschijnen.</p>
             </div>
             <button
               className="danger-button compact-action"
               type="button"
               onClick={requestRemove}
             >
-              Remove Family Member
+              Gezinslid verwijderen
             </button>
           </div>
         </article>
@@ -468,65 +468,65 @@ function ChildHeroArea({
     : false;
   const celebrationStatus = celebration
     ? celebration.status === FamilyCelebrationStatus.Celebrated
-      ? "Celebrated together"
+      ? "Samen gevierd"
       : celebration.status === FamilyCelebrationStatus.ReadyToCelebrate ||
           celebrationComplete
-        ? "We did it — ready to celebrate"
-        : "When we finish"
+        ? "Gelukt — klaar om te vieren"
+        : "Als we klaar zijn"
     : undefined;
 
   return (
     <section
       className={`child-hero-area ${ageBand}`}
-      aria-label="Child hero area"
+      aria-label="Kindoverzicht"
       style={{ "--member-color": member.displayColor } as CSSProperties}
     >
-      <div className="child-hero-identity" aria-label="Who I am">
+      <div className="child-hero-identity" aria-label="Wie ik ben">
         <FamilyAvatar member={member} size="large" />
         <div>
-          <p className="eyebrow">This is me</p>
+          <p className="eyebrow">Dit ben ik</p>
           <h3>{member.name}</h3>
-          <p>My jobs and goals</p>
+          <p>Mijn taken en doelen</p>
         </div>
       </div>
 
-      <div className="child-hero-main" aria-label="Current goal and progress">
+      <div className="child-hero-main" aria-label="Huidig doel en voortgang">
         <HomeOpsIcon
           className="child-section-asset"
           name="childMyProgress"
           variant="spot"
         />
-        <p className="eyebrow">How am I doing?</p>
+        <p className="eyebrow">Hoe gaat het?</p>
         <h2>
-          {primaryGoal?.title ?? familyGoal?.title ?? "A new goal is coming"}
+          {primaryGoal?.title ?? familyGoal?.title ?? "Er komt een nieuw doel"}
         </h2>
         {progressGoal ? (
           <>
-            <div className="hero-progress-visual" aria-label="Hero progress">
+            <div className="hero-progress-visual" aria-label="Voortgang">
               <div
                 className="hero-progress-ring"
                 style={{ "--progress": `${percent}%` } as CSSProperties}
               >
                 <strong>{percent}%</strong>
-                <span>done</span>
+                <span>klaar</span>
               </div>
               <div>
                 <p className="hero-progress-copy">
                   {remaining > 0
                     ? childAnticipationMessage(progressGoal, familyGoal)
-                    : "Goal done!"}
+                    : "Doel gehaald!"}
                 </p>
                 {ageBand === "school-age" ? (
                   <p className="hero-progress-detail">
                     {progressGoal.currentProgress} of {progressGoal.targetCount}{" "}
-                    {progressGoal.unitLabel} complete
+                    {progressGoal.unitLabel} afgerond
                   </p>
                 ) : null}
               </div>
             </div>
             <div
               className="progress-bar hero-progress-bar"
-              aria-label={`${progressGoal.currentProgress} of ${progressGoal.targetCount} ${progressGoal.unitLabel}`}
+              aria-label={`${progressGoal.currentProgress} van ${progressGoal.targetCount} ${progressGoal.unitLabel}`}
             >
               <span style={{ width: `${percent}%` }} />
             </div>
@@ -534,8 +534,8 @@ function ChildHeroArea({
         ) : (
           <p className="hero-progress-copy">
             {status === "loading"
-              ? "Finding today’s encouraging progress…"
-              : "A grown-up can add a goal."}
+              ? "Voortgang voor vandaag ophalen…"
+              : "Een volwassene kan een doel toevoegen."}
           </p>
         )}
       </div>
@@ -546,21 +546,21 @@ function ChildHeroArea({
           name="childFamilyParticipation"
           variant="group"
         />
-        <p className="eyebrow">Family Goal</p>
+        <p className="eyebrow">Gezinsdoel</p>
         {familyGoal ? (
           <>
             <h4>{familyGoal.title}</h4>
-            <p>We are working toward this together.</p>
+            <p>Hier werken we samen naartoe.</p>
             <strong>
               {familyGoal.currentProgress}/{familyGoal.targetCount}{" "}
               {familyGoal.unitLabel}
             </strong>
           </>
         ) : (
-          <p>No family goal yet.</p>
+          <p>Nog geen gezinsdoel.</p>
         )}
         {celebration ? (
-          <p className="child-family-cue" aria-label="Family celebration summary">
+          <p className="child-family-cue" aria-label="Samenvatting gezinsviering">
             {celebrationStatus}: {celebration.title}
           </p>
         ) : null}
@@ -584,9 +584,9 @@ function childAnticipationMessage(
     familyGoal.currentProgress < familyGoal.targetCount
   ) {
     const familyRemaining = familyGoal.targetCount - familyGoal.currentProgress;
-    return `${familyRemaining === 1 ? "Only 1 more" : `Only ${familyRemaining} more`} ${familyGoal.unitLabel} until ${celebration.title}.`;
+    return `${familyRemaining === 1 ? "Nog maar 1" : `Nog maar ${familyRemaining}`} ${familyGoal.unitLabel} tot ${celebration.title}.`;
   }
-  return `${remaining} ${progressGoal.unitLabel} to go.`;
+  return `${remaining} ${progressGoal.unitLabel} te gaan.`;
 }
 
 function TodaySection({
@@ -622,30 +622,30 @@ function TodaySection({
   return (
     <article
       className="child-progress-card child-journey-today"
-      aria-label="Today"
+      aria-label="Vandaag"
     >
       <HomeOpsIcon
         className="child-card-asset"
         name="childToday"
         variant="section"
       />
-      <p className="eyebrow">Today</p>
-      <h3>What should I do today?</h3>
-      {status === "loading" ? <p>Finding your helpful jobs…</p> : null}
-      {status === "error" ? <p>Tasks are unavailable right now.</p> : null}
+      <p className="eyebrow">Vandaag</p>
+      <h3>Wat kan ik vandaag doen?</h3>
+      {status === "loading" ? <p>Je helptaken ophalen…</p> : null}
+      {status === "error" ? <p>Taken zijn nu niet beschikbaar.</p> : null}
       {status === "ready" && childTasks.length === 0 ? (
-        <p>No jobs right now. A grown-up can add one.</p>
+        <p>Nu geen taken. Een volwassene kan er één toevoegen.</p>
       ) : null}
       {childTasks.length > 0 ? (
         <>
           <p className="child-journey-summary">
             {dueTodayCount > 0
               ? `${dueTodayCount} ${
-                  dueTodayCount === 1 ? "thing" : "things"
-                } to try today.`
+                  dueTodayCount === 1 ? "ding" : "dingen"
+                } om vandaag te proberen.`
               : `${childTasks.length} active ${
-                  childTasks.length === 1 ? "task" : "tasks"
-                } waiting for you.`}
+                  childTasks.length === 1 ? "taak" : "taken"
+                } wachten op je.`}
           </p>
           <ul className="child-task-list">
             {visibleTasks.map((task) => (
@@ -677,7 +677,7 @@ function FamilyGoalParticipation({
     return (
       <article className="child-progress-card">
         <p className="eyebrow">Family goal</p>
-        <h3>Finding family goal…</h3>
+        <h3>Gezinsdoel ophalen…</h3>
       </article>
     );
   if (!familyGoal)
@@ -686,10 +686,10 @@ function FamilyGoalParticipation({
         <p className="eyebrow">Family goal</p>
         <h3>
           {status === "error"
-            ? "Family goal unavailable"
+            ? "Gezinsdoel niet beschikbaar"
             : "No family goal yet"}
         </h3>
-        <p>A grown-up can add one.</p>
+        <p>Een volwassene kan er één toevoegen.</p>
       </article>
     );
   const percent = clampProgress(
@@ -703,21 +703,21 @@ function FamilyGoalParticipation({
   return (
     <article
       className="child-progress-card family-goal-participation"
-      aria-label="Family goal participation"
+      aria-label="Meedoen met gezinsdoel"
     >
       <HomeOpsIcon
         className="child-card-asset"
         name="childFamilyParticipation"
         variant="spot"
       />
-      <p className="eyebrow">Family Goal</p>
+      <p className="eyebrow">Gezinsdoel</p>
       <h3>{familyGoal.title}</h3>
       <p>
         {remaining > 0
           ? familyGoal.celebration
-            ? `${remaining === 1 ? "Only 1 more" : `Only ${remaining} more`} ${familyGoal.unitLabel} until ${familyGoal.celebration.title}. You helped.`
-            : `${remaining} more ${familyGoal.unitLabel} to go.`
-          : "We did it together!"}
+            ? `${remaining === 1 ? "Nog maar 1" : `Only ${remaining} more`} ${familyGoal.unitLabel} tot ${familyGoal.celebration.title}. Jij hebt geholpen.`
+            : `${remaining} more ${familyGoal.unitLabel} te gaan.`
+          : "Samen gelukt!"}
       </p>
       <div
         className="progress-bar"
@@ -745,22 +745,22 @@ function FamilyCelebrationCard({
 }) {
   const celebration = familyGoal.celebration;
   if (!celebration) return null;
-  const complete = familyGoal.currentProgress >= familyGoal.targetCount;
+  const afgerond = familyGoal.currentProgress >= familyGoal.targetCount;
   const statusText =
     celebration.status === FamilyCelebrationStatus.Celebrated
-      ? "Celebrated together"
+      ? "Samen gevierd"
       : celebration.status === FamilyCelebrationStatus.ReadyToCelebrate ||
-          complete
-        ? "We did it — ready to celebrate"
-        : "When we finish";
+          afgerond
+        ? "Gelukt — klaar om te vieren"
+        : "Als we klaar zijn";
   const detail =
-    celebration.status === FamilyCelebrationStatus.ReadyToCelebrate || complete
-      ? `${celebration.title} is ready now.`
+    celebration.status === FamilyCelebrationStatus.ReadyToCelebrate || afgerond
+      ? `${celebration.title} is nu klaar.`
       : celebration.status === FamilyCelebrationStatus.Celebrated
-        ? "We celebrated together."
-        : `Keep helping — ${celebration.title} is getting closer.`;
+        ? "We hebben samen gevierd."
+        : `Blijf helpen — ${celebration.title} komt dichterbij.`;
   const statusClass =
-    celebration.status === FamilyCelebrationStatus.ReadyToCelebrate || complete
+    celebration.status === FamilyCelebrationStatus.ReadyToCelebrate || afgerond
       ? "ready"
       : celebration.status === FamilyCelebrationStatus.Celebrated
         ? "celebrated"
@@ -768,7 +768,7 @@ function FamilyCelebrationCard({
   return (
     <aside
       className={`family-celebration-card ${statusClass}`}
-      aria-label="Family celebration"
+      aria-label="Gezinsviering"
     >
       <HomeOpsIcon
         name={
@@ -786,9 +786,9 @@ function FamilyCelebrationCard({
         <p>
           {ageBand === "early-child"
             ? celebration.status === FamilyCelebrationStatus.ReadyToCelebrate ||
-              complete
-              ? "Ready now!"
-              : "Getting closer."
+              afgerond
+              ? "Nu klaar!"
+              : "Komt dichterbij."
             : detail}
         </p>
         {ageBand === "school-age" && celebration.description ? (
@@ -811,22 +811,22 @@ function ChildCelebrationMemories({
   return (
     <article
       className="child-progress-card child-memory-card"
-      aria-label="Celebration memories"
+      aria-label="Vieringsherinneringen"
     >
-      <p className="eyebrow">Family Memories</p>
+      <p className="eyebrow">Gezinsherinneringen</p>
       <h3>
         {ageBand === "early-child"
-          ? "We did it together"
-          : "Celebrations we remember"}
+          ? "Samen gelukt"
+          : "Vieringen om te onthouden"}
       </h3>
-      <p>We made these happen together.</p>
+      <p>Dit hebben we samen bereikt.</p>
       <div className="child-memory-list">
         {recent.map((memory) => (
           <div key={`${memory.familyGoalId}-${memory.celebratedUtc}`}>
             <HomeOpsIcon name="memory" variant="keepsake" />
             <div>
               <strong>{memory.title}</strong>
-              <p>We helped make this happen.</p>
+              <p>We hebben geholpen om dit mogelijk te maken.</p>
             </div>
           </div>
         ))}
@@ -845,16 +845,16 @@ function IndividualGoalProgress({
   member: FamilyMember;
 }) {
   return (
-    <article className="child-progress-card" aria-label="This Week">
+    <article className="child-progress-card" aria-label="Deze week">
       <HomeOpsIcon
         className="child-card-asset"
         name="childThisWeek"
         variant="section"
       />
-      <p className="eyebrow">This Week</p>
-      <h3>{ageBand === "early-child" ? "Stars to collect" : "My progress"}</h3>
+      <p className="eyebrow">Deze week</p>
+      <h3>{ageBand === "early-child" ? "Sterren om te verzamelen" : "Mijn voortgang"}</h3>
       {goals.length === 0 ? (
-        <p>No personal goal right now. A grown-up can add one.</p>
+        <p>No personal goal right now. Een volwassene kan er één toevoegen.</p>
       ) : null}
       <div className="child-goal-list">
         {goals.map((goal) => {
@@ -897,15 +897,15 @@ function IndividualGoalProgress({
               {ageBand === "school-age" ? (
                 <div
                   className="progress-bar"
-                  aria-label={`Progress for ${goal.title}`}
+                  aria-label={`Voortgang voor ${goal.title}`}
                 >
                   <span style={{ width: `${percent}%` }} />
                 </div>
               ) : null}
               <p>
                 {remaining > 0
-                  ? `${remaining} ${goal.unitLabel} to go. Keep going!`
-                  : "Goal done!"}
+                  ? `${remaining} ${goal.unitLabel} te gaan. Ga zo door!`
+                  : "Doel gehaald!"}
               </p>
             </section>
           );
@@ -917,10 +917,10 @@ function IndividualGoalProgress({
 
 function friendlyTaskDue(task: HouseholdTask) {
   const todayIso = new Date().toISOString().slice(0, 10);
-  if (!task.dueDate) return "Ready when you are.";
-  if (task.dueDate < todayIso) return "This one is waiting for you.";
-  if (task.dueDate === todayIso) return "For today.";
-  return `Coming up on ${task.dueDate}.`;
+  if (!task.dueDate) return "Klaar wanneer jij dat bent.";
+  if (task.dueDate < todayIso) return "Deze wacht op jou.";
+  if (task.dueDate === todayIso) return "Voor vandaag.";
+  return `Komt eraan op ${task.dueDate}.`;
 }
 
 function calculateAge(dateOfBirth?: string | null) {
@@ -939,11 +939,11 @@ function calculateAge(dateOfBirth?: string | null) {
 
 function ageContext(member: FamilyMember, age: number | null) {
   if (member.memberKind !== "child")
-    return "Family Members are household entities for shared home context. They are not users, login identities, accounts, or permission holders.";
-  if (age === null) return "A simple progress view for this child.";
-  if (age <= 5) return `${age} years old · stars and simple goals.`;
-  if (age <= 12) return `${age} years old · goals and progress.`;
-  return `${age} years old · goals and progress.`;
+    return "Gezinsleden horen bij het gedeelde gezinsbord. Ze zijn geen gebruikers, accounts of permissies.";
+  if (age === null) return "Een eenvoudige voortgangspagina voor dit kind.";
+  if (age <= 5) return `${age} jaar · sterren en eenvoudige doelen.`;
+  if (age <= 12) return `${age} jaar · doelen en voortgang.`;
+  return `${age} jaar · doelen en voortgang.`;
 }
 
 function buildInitials(name: string) {
