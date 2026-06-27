@@ -16,9 +16,9 @@ interface RestoreStatus {
 }
 
 export function CalendarPortabilityWidget() {
-  const [exportSummary, setExportSummary] = useState<string>('No export loaded yet.');
+  const [exportSummary, setExportSummary] = useState<string>('No backup saved in this session yet.');
   const [restoreDocument, setRestoreDocument] = useState<CalendarExportDocument | null>(null);
-  const [restoreSummary, setRestoreSummary] = useState<string>('Choose a local JSON export file before restoring.');
+  const [restoreSummary, setRestoreSummary] = useState<string>('Choose a calendar backup file before restoring.');
   const [status, setStatus] = useState<RestoreStatus | null>(null);
   const [restoreConfirmed, setRestoreConfirmed] = useState(false);
   const [isBusy, setIsBusy] = useState(false);
@@ -29,7 +29,7 @@ export function CalendarPortabilityWidget() {
     try {
       const document = await createCalendarPortabilityClient().exportCalendar();
       const summary = summarizeCalendarExport(document);
-      setExportSummary(`Version ${summary.schemaVersion}.${summary.payloadVersion} exported at ${summary.exportedUtc} with ${summary.eventSeriesCount} EventSeries records.`);
+      setExportSummary(`Backup saved at ${summary.exportedUtc} with ${summary.eventSeriesCount} calendar items.`);
       downloadCalendarExport(document);
     } catch (error) {
       setStatus({ kind: 'error', message: getFriendlyCalendarPortabilityError(error), validationErrors: [] });
@@ -49,23 +49,23 @@ export function CalendarPortabilityWidget() {
       const document = parseCalendarExportJson(await file.text());
       const summary = summarizeCalendarExport(document);
       setRestoreDocument(document);
-      setRestoreSummary(`Version ${summary.schemaVersion}.${summary.payloadVersion} exported at ${summary.exportedUtc} with ${summary.eventSeriesCount} EventSeries records.`);
+      setRestoreSummary(`Backup from ${summary.exportedUtc} with ${summary.eventSeriesCount} calendar items.`);
     } catch (error) {
-      setRestoreSummary('The selected file cannot be restored.');
+      setRestoreSummary('This backup file cannot be restored.');
       setStatus({ kind: 'error', message: getFriendlyCalendarPortabilityError(error), validationErrors: [] });
     }
   }
 
   async function handleRestore() {
     if (!restoreDocument || !restoreConfirmed) {
-      setStatus({ kind: 'error', message: 'Confirm that restore will replace existing calendar data before continuing.', validationErrors: [] });
+      setStatus({ kind: 'error', message: 'Confirm that restore will replace the current household calendar before continuing.', validationErrors: [] });
       return;
     }
     setIsBusy(true);
     setStatus(null);
     try {
       await createCalendarPortabilityClient().restoreCalendar(restoreDocument);
-      setStatus({ kind: 'success', message: 'Calendar restore completed successfully.', validationErrors: [] });
+      setStatus({ kind: 'success', message: 'Household calendar restored successfully.', validationErrors: [] });
     } catch (error) {
       setStatus({ kind: 'error', message: getFriendlyCalendarPortabilityError(error), validationErrors: getValidationErrors(error) });
     } finally {
@@ -74,31 +74,39 @@ export function CalendarPortabilityWidget() {
   }
 
   return (
-    <section className="calendar-portability-widget" aria-label="Calendar export and restore">
-      <p className="widget-type">Calendar administration</p>
-      <h3>Calendar export / restore</h3>
-      <p className="restore-warning">Destructive warning: restore replaces all existing local calendar event sources and EventSeries data with the selected JSON export. This is a full restore, not a merge.</p>
+    <section className="calendar-portability-widget" aria-label="Calendar backup and restore">
+      <p className="widget-type">Household maintenance</p>
+      <h3>Calendar</h3>
+      <p className="calendar-portability-intro">Save a backup of the household calendar or restore one when you need to replace it.</p>
       <div className="calendar-portability-actions">
+        <div>
+          <h4>Save a backup</h4>
+          <p>Download a copy of the current household calendar.</p>
+        </div>
         <button disabled={isBusy} onClick={handleExport} type="button">Export calendar</button>
         <span>{exportSummary}</span>
       </div>
-      <div className="calendar-portability-actions">
+      <div className="calendar-portability-actions calendar-restore-actions">
+        <div>
+          <h4>Restore from a backup</h4>
+          <p className="restore-warning">Restore replaces the current household calendar with the selected backup. It does not merge calendars.</p>
+        </div>
         <label>
-          Import JSON export
+          Choose backup file
           <input accept="application/json,.json" disabled={isBusy} onChange={handleFileChange} type="file" />
         </label>
         <span>{restoreSummary}</span>
+        <label className="restore-confirmation">
+          <input
+            checked={restoreConfirmed}
+            disabled={isBusy || !restoreDocument}
+            onChange={(event) => setRestoreConfirmed(event.target.checked)}
+            type="checkbox"
+          />
+          I understand restore replaces the current household calendar.
+        </label>
+        <button disabled={isBusy || !restoreDocument || !restoreConfirmed} onClick={handleRestore} type="button">Restore calendar</button>
       </div>
-      <label className="restore-confirmation">
-        <input
-          checked={restoreConfirmed}
-          disabled={isBusy || !restoreDocument}
-          onChange={(event) => setRestoreConfirmed(event.target.checked)}
-          type="checkbox"
-        />
-        I understand this full restore replaces existing calendar data.
-      </label>
-      <button disabled={isBusy || !restoreDocument || !restoreConfirmed} onClick={handleRestore} type="button">Restore calendar data</button>
       {status && (
         <div className={`calendar-portability-status ${status.kind}`} role={status.kind === 'error' ? 'alert' : 'status'}>
           <p>{status.message}</p>
