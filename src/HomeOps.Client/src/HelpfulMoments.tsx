@@ -14,7 +14,7 @@ export function HelpfulMomentsSection({
   members,
   familyMemberId,
   showCreate = false,
-  title = "Things My Family Appreciates",
+  title = "Wat wij waarderen",
   compact = false,
 }: {
   members: readonly FamilyMember[];
@@ -46,7 +46,7 @@ export function HelpfulMomentsSection({
       ignore = true;
     };
   }, [familyMemberId]);
-  const visibleMoments = compact && !expanded ? moments.slice(0, 1) : moments;
+  const visibleMoments = compact && !expanded ? moments.slice(0, 2) : moments;
   return (
     <section
       className={`helpful-moments-section ${compact ? "compact-overview-section" : ""}`}
@@ -54,12 +54,12 @@ export function HelpfulMomentsSection({
     >
       <div className="section-heading">
         <div>
-          <p className="eyebrow">My Family Appreciates</p>
+          <p className="eyebrow">Waardering</p>
           <h3>{title}</h3>
           <p>
             {compact
-              ? `${moments.length} appreciation ${moments.length === 1 ? "note" : "notes"} · latest example first.`
-              : "Kind things your family noticed."}
+              ? `${moments.length} waarderingen · nieuwste eerst.`
+              : "Lieve dingen die jullie hebben gezien."}
           </p>
         </div>
         {compact ? (
@@ -70,7 +70,7 @@ export function HelpfulMomentsSection({
                 className="secondary-action compact-action"
                 onClick={() => setCreating((current) => !current)}
               >
-                {creating ? "Close appreciation" : "Add appreciation"}
+                {creating ? "Waardering sluiten" : "Waardering toevoegen"}
               </button>
             ) : null}
             <button
@@ -78,7 +78,7 @@ export function HelpfulMomentsSection({
               className="secondary-action compact-action"
               onClick={() => setExpanded((current) => !current)}
             >
-              {expanded ? "Show preview" : "View all appreciation"}
+              {expanded ? "Voorbeeld tonen" : "Alles bekijken"}
             </button>
           </div>
         ) : null}
@@ -89,7 +89,7 @@ export function HelpfulMomentsSection({
           className="secondary-action compact-action"
           onClick={() => setCreating(true)}
         >
-          Add appreciation
+          Waardering toevoegen
         </button>
       ) : null}
       {creating && showCreate ? (
@@ -98,7 +98,7 @@ export function HelpfulMomentsSection({
             className="motivation-dialog helpful-moment-dialog"
             role="dialog"
             aria-modal="true"
-            aria-label="Share appreciation"
+            aria-label="Waardering delen"
             style={
               {
                 "--domain-tint": "#fff7ed",
@@ -109,22 +109,22 @@ export function HelpfulMomentsSection({
           >
             <header>
               <div>
-                <p className="eyebrow">My Family Appreciates</p>
-                <h3>Share appreciation</h3>
-                <p>Turn a helpful moment into a warm thank-you.</p>
+                <p className="eyebrow">Waardering</p>
+                <h3>Waardering delen</h3>
+                <p>Maak van een helpend moment een warm bedankje.</p>
               </div>
               <button
                 type="button"
                 className="icon-button"
                 onClick={() => setCreating(false)}
-                aria-label="Close appreciation dialog"
+                aria-label="Waardering sluiten dialog"
               >
                 <HomeOpsIcon name="close" />
               </button>
             </header>
             <HelpfulMomentForm
               members={members}
-              onCancel={() => setCreating(false)}
+              onAnnuleren={() => setCreating(false)}
               onCreated={(moment) => {
                 setMoments((current) => [moment, ...current].slice(0, 8));
                 setExpanded(true);
@@ -134,14 +134,12 @@ export function HelpfulMomentsSection({
           </section>
         </div>
       ) : null}
-      {status === "loading" ? (
-        <p>Finding what your family appreciated…</p>
-      ) : null}
+      {status === "loading" ? <p>Waarderingen ophalen…</p> : null}
       {status === "error" ? (
-        <p>Family appreciation notes are unavailable right now.</p>
+        <p>Waarderingen zijn nu niet beschikbaar.</p>
       ) : null}
       {status === "ready" && moments.length === 0 ? (
-        <p>No appreciation notes yet. A grown-up can add one.</p>
+        <p>Nog geen waarderingen. Een volwassene kan er één toevoegen.</p>
       ) : null}
       <div className="helpful-moment-feed">
         {visibleMoments.map((moment) => {
@@ -157,11 +155,19 @@ export function HelpfulMomentsSection({
               }
             >
               <div className="moment-avatar" aria-hidden="true">
-                <HomeOpsIcon name={iconName} />
+                <FamilyAvatar
+                  member={{
+                    id: moment.familyMemberId,
+                    name: moment.familyMemberName,
+                    initials: moment.familyMemberInitials,
+                    displayColor: moment.familyMemberDisplayColor,
+                    memberKind: "child",
+                  }}
+                />
               </div>
               <div>
                 <div className="moment-card-heading">
-                  <strong>We noticed {moment.familyMemberName}</strong>
+                  <strong>{moment.familyMemberName}</strong>
                   <span>
                     <HomeOpsIcon name={iconName} />
                     {moment.recognitionTag}
@@ -171,7 +177,7 @@ export function HelpfulMomentsSection({
                 {moment.description && (!compact || expanded) ? (
                   <p>{moment.description}</p>
                 ) : null}
-                <p className="moment-bridge">You helped.</p>
+                <p className="moment-bridge">Dank je wel.</p>
               </div>
             </article>
           );
@@ -186,11 +192,11 @@ type HelpfulMomentQuestion = "member" | "title" | "tag" | "note" | "review";
 function HelpfulMomentForm({
   members,
   onCreated,
-  onCancel,
+  onAnnuleren,
 }: {
   members: readonly FamilyMember[];
   onCreated: (moment: HelpfulMoment) => void;
-  onCancel: () => void;
+  onAnnuleren: () => void;
 }) {
   const [question, setQuestion] = useState<HelpfulMomentQuestion>("member");
   const [familyMemberId, setFamilyMemberId] = useState("");
@@ -203,11 +209,11 @@ function HelpfulMomentForm({
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") onCancel();
+      if (event.key === "Escape") onAnnuleren();
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [onCancel]);
+  }, [onAnnuleren]);
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -222,7 +228,7 @@ function HelpfulMomentForm({
       onCreated(moment);
       setError(null);
     } catch {
-      setError("We could not share that appreciation note.");
+      setError("We konden deze waardering niet delen.");
     }
   }
 
@@ -239,13 +245,13 @@ function HelpfulMomentForm({
   return (
     <form
       className="helpful-moment-form helpful-moment-conversation"
-      aria-label="Create helpful moment"
+      aria-label="Waardering maken"
       onSubmit={submit}
     >
       <div className="task-conversation-panel" key={question}>
         {question === "member" ? (
-          <section className="helpful-dialog-question" aria-label="Who helped?">
-            <h4>Who helped?</h4>
+          <section className="helpful-dialog-question" aria-label="Wie hielp?">
+            <h4>Wie hielp?</h4>
             <div className="helpful-choice-grid">
               {members.map((member) => (
                 <button
@@ -264,15 +270,15 @@ function HelpfulMomentForm({
         {question === "title" ? (
           <section
             className="helpful-dialog-question"
-            aria-label="What happened?"
+            aria-label="Wat gebeurde er?"
           >
             <label className="task-conversation-question">
-              <span>What happened?</span>
+              <span>Wat gebeurde er?</span>
               <textarea
                 value={title}
                 maxLength={160}
                 onChange={(event) => setTitle(event.target.value)}
-                placeholder="Riley helped clean up without being asked."
+                placeholder="Riley hielp opruimen zonder dat iemand het vroeg."
                 required
                 autoFocus
               />
@@ -282,9 +288,9 @@ function HelpfulMomentForm({
         {question === "tag" ? (
           <section
             className="helpful-dialog-question"
-            aria-label="How would you describe it?"
+            aria-label="Hoe zou je het noemen?"
           >
-            <h4>How would you describe it?</h4>
+            <h4>Hoe zou je het noemen?</h4>
             <div className="helpful-choice-grid helpful-tag-grid">
               {recognitionTags.map((tag) => (
                 <button
@@ -303,15 +309,15 @@ function HelpfulMomentForm({
         {question === "note" ? (
           <section
             className="helpful-dialog-question"
-            aria-label="Anything else?"
+            aria-label="Nog iets erbij?"
           >
             <label className="task-conversation-question">
-              <span>Anything else?</span>
+              <span>Nog iets erbij?</span>
               <textarea
                 value={description}
                 maxLength={500}
                 onChange={(event) => setDescription(event.target.value)}
-                placeholder="Add a personal note if you want."
+                placeholder="Voeg eventueel een persoonlijk bericht toe."
                 autoFocus
               />
             </label>
@@ -320,9 +326,9 @@ function HelpfulMomentForm({
         {question === "review" ? (
           <section
             className="helpful-dialog-question helpful-review"
-            aria-label="Review appreciation"
+            aria-label="Waardering controleren"
           >
-            <h4>Ready to share this?</h4>
+            <h4>Klaar om te delen?</h4>
             <p>
               <strong>{selectedMember?.name}</strong>
             </p>
@@ -331,7 +337,7 @@ function HelpfulMomentForm({
             {description.trim() ? (
               <p>{description}</p>
             ) : (
-              <p>No extra note this time.</p>
+              <p>Deze keer geen extra bericht.</p>
             )}
           </section>
         ) : null}
@@ -344,7 +350,7 @@ function HelpfulMomentForm({
             className="secondary-action"
             onClick={() => setQuestion(previousHelpfulQuestion(question))}
           >
-            Back
+            Terug
           </button>
         ) : (
           <span />
@@ -355,7 +361,7 @@ function HelpfulMomentForm({
             onClick={() => setQuestion("tag")}
             disabled={!title.trim()}
           >
-            Continue
+            Verder
           </button>
         ) : null}
         {question === "note" ? (
@@ -368,15 +374,15 @@ function HelpfulMomentForm({
                 setQuestion("review");
               }}
             >
-              Skip
+              Overslaan
             </button>
             <button type="button" onClick={() => setQuestion("review")}>
-              Continue
+              Verder
             </button>
           </>
         ) : null}
         {question === "review" ? (
-          <button type="submit">Share appreciation</button>
+          <button type="submit">Waardering delen</button>
         ) : null}
       </div>
     </form>
