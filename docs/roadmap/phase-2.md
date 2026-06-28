@@ -1,4 +1,10 @@
+## Completed Slice — Frontend Test Maintenance
+Frontend test maintenance refreshed stale test expectations and fixtures to match the current Dutch FamilyBoard MVP UI, dialog polish, Motivation/Family Member progressive disclosure, settings/calendar portability labels, onboarding labels, and current Agenda date grouping. The slice changed tests and documentation only; production source, CSS, backend behavior, API contracts, database schema, workflows, and UI layout remained unchanged.
+
 # Phase 2 Roadmap
+
+## Completed Slice — FamilyBoard Dialog Design System
+FamilyBoard Dialog Design System introduces a shared dialog presentation layer for existing dialogs without changing dialog workflows. Dialogs now use wider, calmer cards, softer blurred overlay dimming, spacious controls, rounded FamilyBoard action buttons, and subtle workspace accents for Agenda, Taken, Boodschappen, and Motivation surfaces. Redundant explanatory copy was reduced where it repeated the current question. Backend behavior, API contracts, database schema, validation, wizard logic, and form behavior remain unchanged.
 
 ## Completed Slice — Shopping Workspace Redesign
 Shopping Workspace Redesign turns Shopping into an operational family workspace focused on “Wat moeten we kopen, en waar?”. The slice adds a warm decorative hero, makes Quick Add the primary interaction, promotes preferred-store grouping into primary store cards, keeps recently added items compact, and moves other household lists into a secondary support card. Backend behavior, API contracts, database schema, shopping persistence, preferred-store logic, and item lifecycle behavior remain unchanged.

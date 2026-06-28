@@ -23,11 +23,11 @@ describe('FamilyAvatarEditor', () => {
     const onChange = vi.fn();
     render(<FamilyAvatarEditor member={member} onChange={onChange} onClose={vi.fn()} />);
 
-    expect(screen.getByRole('heading', { name: /Edit Riley's avatar/i })).not.toBeNull();
+    expect(screen.getByRole('heading', { name: /Avatar van Riley bewerken/i })).not.toBeNull();
     expect(screen.getByRole('button', { name: /Long Soft/i }).getAttribute('aria-pressed')).toBe('true');
 
     await user.click(screen.getByRole('button', { name: /Bow/i }));
-    await user.click(screen.getByRole('button', { name: 'Save' }));
+    await user.click(screen.getByRole('button', { name: 'Opslaan' }));
 
     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ id: 'riley', avatarV2Config: expect.objectContaining({ accessory: 'bow' }) }));
   });
@@ -37,10 +37,10 @@ describe('FamilyAvatarEditor', () => {
     render(<FamilyAvatarEditor member={member} onChange={vi.fn()} onClose={vi.fn()} />);
 
     await user.click(screen.getByRole('button', { name: /Bow/i }));
-    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+    await user.click(screen.getByRole('button', { name: 'Annuleren' }));
 
     expect(screen.getByRole('button', { name: /Flower Clip/i }).getAttribute('aria-pressed')).toBe('true');
-    expect(screen.getByText('Saved')).not.toBeNull();
+    expect(screen.getByText('Opgeslagen')).not.toBeNull();
   });
 
   it('resets the draft to Avatar V2 defaults without saving automatically', async () => {
@@ -48,10 +48,10 @@ describe('FamilyAvatarEditor', () => {
     const onChange = vi.fn();
     render(<FamilyAvatarEditor member={member} onChange={onChange} onClose={vi.fn()} />);
 
-    await user.click(screen.getByRole('button', { name: 'Reset' }));
+    await user.click(screen.getByRole('button', { name: 'Resetten' }));
 
     expect(screen.getByRole('button', { name: /Short Messy/i }).getAttribute('aria-pressed')).toBe('true');
-    expect(screen.getByText('Unsaved changes')).not.toBeNull();
+    expect(screen.getByText('Niet-opgeslagen wijzigingen')).not.toBeNull();
     expect(onChange).not.toHaveBeenCalled();
   });
 });

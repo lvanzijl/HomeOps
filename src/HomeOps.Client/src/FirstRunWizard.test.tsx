@@ -38,13 +38,13 @@ describe('FirstRunWizard', () => {
     const onComplete = vi.fn();
     render(<FirstRunWizard initialMembers={[]} onComplete={onComplete} />);
 
-    expect(screen.getByLabelText('First Run Wizard')).not.toBeNull();
-    expect(screen.getByText('Welcome to HomeOps')).not.toBeNull();
-    await user.click(screen.getByRole('button', { name: 'Start setup' }));
+    expect(screen.getByLabelText('Eerste installatie')).not.toBeNull();
+    expect(screen.getByText('Welkom bij FamilyBoard')).not.toBeNull();
+    await user.click(screen.getByRole('button', { name: 'Installatie starten' }));
 
-    expect(screen.getByText('Add Adults')).not.toBeNull();
-    await user.type(screen.getByLabelText('Name'), 'Alex');
-    await user.click(screen.getByRole('button', { name: 'Add adult' }));
+    expect(screen.getByText('Volwassenen toevoegen')).not.toBeNull();
+    await user.type(screen.getByLabelText('Naam'), 'Alex');
+    await user.click(screen.getByRole('button', { name: 'Volwassene toevoegen' }));
     expect(await screen.findByText('Alex')).not.toBeNull();
     const family = await familyApi();
     expect(vi.mocked(family.createFamilyMember).mock.calls[0][0].avatarV2Config).toEqual({
@@ -56,12 +56,12 @@ describe('FirstRunWizard', () => {
       accessory: 'star',
       accessoryColor: 'accessoryCoral',
     });
-    await user.click(screen.getByRole('button', { name: 'Continue' }));
+    await user.click(screen.getByRole('button', { name: 'Doorgaan' }));
 
-    expect(screen.getByText('Add Children')).not.toBeNull();
-    await user.type(screen.getByLabelText('Name'), 'Riley');
-    await user.type(screen.getByLabelText('Date of birth'), '2018-04-12');
-    await user.click(screen.getByRole('button', { name: 'Add child' }));
+    expect(screen.getByText('Kinderen toevoegen')).not.toBeNull();
+    await user.type(screen.getByLabelText('Naam'), 'Riley');
+    await user.type(screen.getByLabelText('Geboortedatum'), '2018-04-12');
+    await user.click(screen.getByRole('button', { name: 'Kind toevoegen' }));
     expect(await screen.findByText('Riley')).not.toBeNull();
     expect(vi.mocked(family.createFamilyMember).mock.calls[1][0].avatarV2Config).toEqual({
       headVariant: 'round',
@@ -72,14 +72,14 @@ describe('FirstRunWizard', () => {
       accessory: 'star',
       accessoryColor: 'accessoryCoral',
     });
-    await user.click(screen.getByRole('button', { name: 'Review household' }));
+    await user.click(screen.getByRole('button', { name: 'Gezin controleren' }));
 
-    const review = screen.getByLabelText('Review Household');
-    expect(within(review).getByText('Adults')).not.toBeNull();
-    expect(within(review).getByText('Children')).not.toBeNull();
+    const review = screen.getByLabelText('Gezin controleren');
+    expect(within(review).getByText('Volwassenen')).not.toBeNull();
+    expect(within(review).getByText('Kinderen')).not.toBeNull();
     expect(within(review).queryByText(/Goals|Tasks|Rewards|Motivation/)).toBeNull();
-    await user.click(screen.getByRole('button', { name: 'Continue' }));
-    await user.click(screen.getByRole('button', { name: 'Finish and open Home' }));
+    await user.click(screen.getByRole('button', { name: 'Doorgaan' }));
+    await user.click(screen.getByRole('button', { name: 'Afronden en Thuis openen' }));
 
     const onboarding = await onboardingApi();
     expect(onboarding.completeOnboarding).toHaveBeenCalled();
@@ -89,12 +89,12 @@ describe('FirstRunWizard', () => {
   it('shows onboarding for first-run households and bypasses existing completed households', async () => {
     const onboarding = await onboardingApi();
     render(<WorkspaceShell />);
-    expect(await screen.findByLabelText('First Run Wizard')).not.toBeNull();
+    expect(await screen.findByLabelText('Eerste installatie')).not.toBeNull();
     cleanup();
 
     vi.mocked(onboarding.loadOnboardingStatus).mockResolvedValue({ onboardingCompleted: true, hasActiveFamilyMembers: true, requiresOnboarding: false });
     render(<WorkspaceShell />);
-    await waitFor(() => expect(screen.queryByLabelText('First Run Wizard')).toBeNull());
+    await waitFor(() => expect(screen.queryByLabelText('Eerste installatie')).toBeNull());
     expect(await screen.findByLabelText('Home dashboard')).not.toBeNull();
   });
 });
