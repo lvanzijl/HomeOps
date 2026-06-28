@@ -464,3 +464,6 @@ Agenda Event Indicators replaces month-cell count text with frontend-derived typ
 ### FamilyBoard Final MVP Polish — Completed 2026-06-27
 - Added a subtle Weekly Reset closure moment, Shopping density polish, Dutch shell/copy consistency, and action styling alignment without backend, API, schema, workflow, or navigation-architecture changes.
 - Browser validation covered Home, Motivation, Agenda, Tasks, Shopping, and Weekly Reset at 1366×768 and 1920×1080.
+
+### Avatar Editor Final Polish — Completed 2026-06-28
+Avatar Editor Final Polish resolves the remaining Friends & Family visual blocker from the authoritative round-2 review by reducing the Family Member Avatar Editor's desktop vertical footprint. The current categories, accessory options, accessory colour controls, Save, and Cancel now fit in the initial 1920×1080 dialog view without introducing new avatar features, new controls, scrolling behavior, renderer changes, persistence changes, backend/API/schema changes, workflow changes, or binary artifacts.
