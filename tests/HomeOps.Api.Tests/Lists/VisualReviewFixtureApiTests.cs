@@ -19,7 +19,7 @@ public sealed class VisualReviewFixtureApiTests
         var scenarios = await client.GetFromJsonAsync<List<VisualReviewScenarioDto>>("/api/visual-review-fixtures/scenarios");
 
         Assert.NotNull(scenarios);
-        Assert.Equal(new[] { "visual-full", "visual-mixed", "visual-empty", "visual-child-young", "visual-child-older", "visual-weekly-reset", "visual-shopping-lifecycle" }, scenarios.Select(s => s.Name));
+        Assert.Equal(new[] { "visual-full", "visual-mixed", "visual-empty", "visual-child-young", "visual-child-older", "visual-weekly-reset", "visual-shopping-lifecycle", "visual-marketing-home", "visual-marketing-family", "visual-marketing-agenda", "visual-marketing-tasks", "visual-marketing-shopping", "visual-marketing-motivation", "visual-marketing-weekly-reset", "visual-marketing-settings" }, scenarios.Select(s => s.Name));
     }
 
     [Fact]
@@ -49,6 +49,38 @@ public sealed class VisualReviewFixtureApiTests
         var verifyDb = verifyScope.ServiceProvider.GetRequiredService<HomeOpsDbContext>();
         Assert.DoesNotContain(verifyDb.Lists, list => list.Name == "Manual setup should be removed");
         Assert.Contains(verifyDb.ListItems, item => item.Id == Guid.Parse("77000000-0000-0000-0000-000000000201") && item.Text == "Milk");
+    }
+
+    [Theory]
+    [InlineData("visual-marketing-home")]
+    [InlineData("visual-marketing-family")]
+    [InlineData("visual-marketing-agenda")]
+    [InlineData("visual-marketing-tasks")]
+    [InlineData("visual-marketing-shopping")]
+    [InlineData("visual-marketing-motivation")]
+    [InlineData("visual-marketing-weekly-reset")]
+    [InlineData("visual-marketing-settings")]
+    public async Task MarketingScenariosUseCanonicalHousehold(string scenarioName)
+    {
+        await using var factory = new HomeOpsWebApplicationFactory();
+        var client = factory.CreateClient();
+
+        var response = await client.PostAsync($"/api/visual-review-fixtures/{scenarioName}/reset", null);
+        var body = await response.Content.ReadFromJsonAsync<ApplyVisualReviewScenarioResponse>();
+
+        response.EnsureSuccessStatusCode();
+        Assert.NotNull(body);
+        Assert.Equal(new DateTimeOffset(2026, 6, 16, 7, 5, 0, TimeSpan.Zero), body.AnchorUtc);
+        Assert.Equal(4, body.FamilyMembers);
+        Assert.True(body.Tasks > 0);
+        Assert.True(body.ListItems > 0);
+        Assert.True(body.Events > 0);
+        using var verifyScope = factory.Services.CreateScope();
+        var verifyDb = verifyScope.ServiceProvider.GetRequiredService<HomeOpsDbContext>();
+        Assert.Equal(new[] { "Dad", "Mom", "Robin", "Thomas" }, verifyDb.FamilyMembers.Select(member => member.Name).OrderBy(name => name));
+        Assert.Contains(verifyDb.EventSeries, series => series.Title == "Zwemles Thomas" && series.StartDate == new DateOnly(2026, 6, 16));
+        Assert.Contains(verifyDb.ListItems, item => item.Text == "Zwemluiers voor Robin" && item.PreferredStore == "Jumbo");
+        Assert.Contains(verifyDb.MotivationFamilyGoals, goal => goal.Title == "20 helpful moments before Sunday pancake breakfast");
     }
 
     [Fact]
