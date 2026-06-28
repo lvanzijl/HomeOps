@@ -41,15 +41,15 @@ describe('CalendarPortabilityWidget restore safety', () => {
 
     render(<CalendarPortabilityWidget />);
 
-    expect(screen.getByText(/Restore replaces the current household calendar with the selected backup/i)).not.toBeNull();
-    const restoreButton = screen.getByRole('button', { name: 'Restore calendar' });
+    expect(screen.getByText(/Herstellen vervangt de huidige gezinsagenda door de gekozen back-up/i)).not.toBeNull();
+    const restoreButton = screen.getByRole('button', { name: 'Agenda herstellen' });
     expect(restoreButton).toHaveProperty('disabled', true);
 
-    await user.upload(screen.getByLabelText(/Choose backup file/i), file);
-    await waitFor(() => expect(screen.getByText(/Backup from 2026-06-19T00:00:00.000Z/i)).not.toBeNull());
+    await user.upload(screen.getByLabelText(/Back-upbestand kiezen/i), file);
+    await waitFor(() => expect(screen.getByText(/Back-up van 2026-06-19T00:00:00.000Z/i)).not.toBeNull());
     expect(restoreButton).toHaveProperty('disabled', true);
 
-    await user.click(screen.getByLabelText(/I understand restore replaces the current household calendar/i));
+    await user.click(screen.getByLabelText(/Ik begrijp dat herstellen de huidige gezinsagenda vervangt/i));
     expect(restoreButton).toHaveProperty('disabled', false);
     await user.click(restoreButton);
 

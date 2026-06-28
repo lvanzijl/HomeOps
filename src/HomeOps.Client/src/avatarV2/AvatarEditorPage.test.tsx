@@ -16,7 +16,7 @@ describe('AvatarEditorPage', () => {
     await user.click(screen.getByRole('button', { name: /Long Soft/i }));
 
     expect(preview.innerHTML).not.toBe(initial);
-    expect(screen.getByText('Unsaved changes')).not.toBeNull();
+    expect(screen.getByText('Niet-opgeslagen wijzigingen')).not.toBeNull();
   });
 
   it('saves and cancels changes against the last saved configuration', async () => {
@@ -24,27 +24,27 @@ describe('AvatarEditorPage', () => {
     render(<AvatarEditorPage />);
 
     await user.click(screen.getByRole('button', { name: /Flower Clip/i }));
-    await user.click(screen.getByRole('button', { name: 'Save' }));
-    expect(screen.getByText('Saved')).not.toBeNull();
+    await user.click(screen.getByRole('button', { name: 'Opslaan' }));
+    expect(screen.getByText('Opgeslagen')).not.toBeNull();
 
     await user.click(screen.getByRole('button', { name: /Bow/i }));
-    expect(screen.getByText('Unsaved changes')).not.toBeNull();
-    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(screen.getByText('Niet-opgeslagen wijzigingen')).not.toBeNull();
+    await user.click(screen.getByRole('button', { name: 'Annuleren' }));
 
     expect(screen.getByRole('button', { name: /Flower Clip/i }).getAttribute('aria-pressed')).toBe('true');
-    expect(screen.getByText('Saved')).not.toBeNull();
+    expect(screen.getByText('Opgeslagen')).not.toBeNull();
   });
 
   it('resets the draft to Avatar V2 defaults without saving automatically', async () => {
     const user = userEvent.setup();
     render(<AvatarEditorPage />);
     await user.click(screen.getByRole('button', { name: /Long Soft/i }));
-    await user.click(screen.getByRole('button', { name: 'Save' }));
+    await user.click(screen.getByRole('button', { name: 'Opslaan' }));
 
-    await user.click(screen.getByRole('button', { name: 'Reset' }));
+    await user.click(screen.getByRole('button', { name: 'Resetten' }));
 
     expect(screen.getByRole('button', { name: /Short Messy/i }).getAttribute('aria-pressed')).toBe('true');
-    expect(within(screen.getByLabelText('Avatar choices')).getByRole('button', { name: /Hoodie/i }).getAttribute('aria-pressed')).toBe('true');
-    expect(screen.getByText('Unsaved changes')).not.toBeNull();
+    expect(within(screen.getByLabelText('Avatarkeuzes')).getByRole('button', { name: /Hoodie/i }).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByText('Niet-opgeslagen wijzigingen')).not.toBeNull();
   });
 });

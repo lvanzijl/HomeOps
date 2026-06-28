@@ -401,7 +401,7 @@ export function TasksPage({
           onClick={resetTaskForm}
         >
           <section
-            className="task-dialog task-conversation-dialog task-management-section"
+            className="task-dialog task-conversation-dialog domain-tasks"
             role="dialog"
             aria-modal="true"
             aria-label={editingTask ? "Taak aanpassen" : "Gezinstaak toevoegen"}
@@ -414,9 +414,6 @@ export function TasksPage({
                   ? "Pas deze taak rustig aan"
                   : "Voeg één helpend ding toe"}
               </h4>
-              <p>
-                {taskDialogPrompt(taskDialogQuestion, editingTask !== null)}
-              </p>
             </div>
             <form
               className="task-create-form compact-task-form task-conversation-form"
@@ -960,18 +957,6 @@ function previousTaskQuestion(
   if (question === "extras") return "date";
   if (question === "date") return "owner";
   return "title";
-}
-
-function taskDialogPrompt(question: TaskDialogQuestion, isEditing: boolean) {
-  if (question === "title")
-    return isEditing
-      ? "Begin met de naam zodat iedereen de taak herkent."
-      : "Begin met één ding dat het gezin helpt.";
-  if (question === "owner")
-    return "Kies een helper, of laat het open voor iedereen.";
-  if (question === "date")
-    return "Vandaag staat klaar, maar je kunt de taak verplaatsen.";
-  return "Extra details blijven klein, tenzij ze helpen.";
 }
 
 function taskSummary(

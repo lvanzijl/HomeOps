@@ -36,21 +36,21 @@ describe("HelpfulMomentsSection", () => {
     render(
       <HelpfulMomentsSection
         members={familyMembers}
-        title="Things My Family Appreciates"
+        title="Wat wij waarderen"
       />,
     );
 
-    const section = screen.getByLabelText("Things My Family Appreciates");
+    const section = screen.getByLabelText("Wat wij waarderen");
     expect(
       await within(section).findByText("Helped Jordan clean up"),
     ).not.toBeNull();
-    expect(within(section).getByText("We noticed Riley")).not.toBeNull();
-    expect(within(section).getByText("My Family Appreciates")).not.toBeNull();
+    expect(within(section).getByText("Riley")).not.toBeNull();
+    expect(within(section).getByText("Wat wij waarderen")).not.toBeNull();
     expect(within(section).getByText("Kindness")).not.toBeNull();
     expect(
-      within(section).getByText("Kind things your family noticed."),
+      within(section).getByText("Lieve dingen die jullie hebben gezien."),
     ).not.toBeNull();
-    expect(within(section).getByText("You helped.")).not.toBeNull();
+    expect(within(section).getByText("Dank je wel.")).not.toBeNull();
     expect(
       section.querySelector("img[src*='helpful-kindness']"),
     ).not.toBeNull();
@@ -80,37 +80,37 @@ describe("HelpfulMomentsSection", () => {
       <HelpfulMomentsSection
         members={familyMembers}
         showCreate
-        title="Things My Family Appreciates"
+        title="Wat wij waarderen"
       />,
     );
 
-    await user.click(screen.getByRole("button", { name: "Add appreciation" }));
-    const dialog = screen.getByRole("dialog", { name: "Share appreciation" });
-    expect(within(dialog).getByText("Who helped?")).not.toBeNull();
+    await user.click(screen.getByRole("button", { name: "Waardering toevoegen" }));
+    const dialog = screen.getByRole("dialog", { name: "Waardering delen" });
+    expect(within(dialog).getByText("Wie hielp?")).not.toBeNull();
 
     await user.click(within(dialog).getByRole("button", { name: /Riley/ }));
-    expect(within(dialog).getByText("What happened?")).not.toBeNull();
+    expect(within(dialog).getByText("Wat gebeurde er?")).not.toBeNull();
     expect(
       within(dialog)
-        .getByRole("button", { name: "Continue" })
+        .getByRole("button", { name: "Verder" })
         .hasAttribute("disabled"),
     ).toBe(true);
 
     await user.type(within(dialog).getByRole("textbox"), "Took initiative");
-    await user.click(within(dialog).getByRole("button", { name: "Continue" }));
+    await user.click(within(dialog).getByRole("button", { name: "Verder" }));
     expect(
-      within(dialog).getByText("How would you describe it?"),
+      within(dialog).getByText("Hoe zou je het noemen?"),
     ).not.toBeNull();
 
     await user.click(
       within(dialog).getByRole("button", { name: /Initiative/ }),
     );
-    expect(within(dialog).getByText("Anything else?")).not.toBeNull();
+    expect(within(dialog).getByText("Nog iets erbij?")).not.toBeNull();
 
-    await user.click(within(dialog).getByRole("button", { name: "Skip" }));
-    expect(within(dialog).getByText("Ready to share this?")).not.toBeNull();
+    await user.click(within(dialog).getByRole("button", { name: "Overslaan" }));
+    expect(within(dialog).getByText("Klaar om te delen?")).not.toBeNull();
     await user.click(
-      within(dialog).getByRole("button", { name: "Share appreciation" }),
+      within(dialog).getByRole("button", { name: "Waardering delen" }),
     );
 
     expect(vi.mocked(createHelpfulMoment)).toHaveBeenCalledWith({
@@ -141,23 +141,23 @@ describe("HelpfulMomentsSection", () => {
       <HelpfulMomentsSection
         members={familyMembers}
         showCreate
-        title="Things My Family Appreciates"
+        title="Wat wij waarderen"
       />,
     );
 
-    await user.click(screen.getByRole("button", { name: "Add appreciation" }));
-    const dialog = screen.getByRole("dialog", { name: "Share appreciation" });
+    await user.click(screen.getByRole("button", { name: "Waardering toevoegen" }));
+    const dialog = screen.getByRole("dialog", { name: "Waardering delen" });
     await user.click(within(dialog).getByRole("button", { name: /Jordan/ }));
     await user.type(within(dialog).getByRole("textbox"), "Shared blocks");
-    await user.click(within(dialog).getByRole("button", { name: "Continue" }));
+    await user.click(within(dialog).getByRole("button", { name: "Verder" }));
     await user.click(within(dialog).getByRole("button", { name: /Kindness/ }));
     await user.type(
       within(dialog).getByRole("textbox"),
       "That made the afternoon feel kind.",
     );
-    await user.click(within(dialog).getByRole("button", { name: "Continue" }));
+    await user.click(within(dialog).getByRole("button", { name: "Verder" }));
     await user.click(
-      within(dialog).getByRole("button", { name: "Share appreciation" }),
+      within(dialog).getByRole("button", { name: "Waardering delen" }),
     );
 
     expect(vi.mocked(createHelpfulMoment)).toHaveBeenCalledWith({
@@ -175,18 +175,18 @@ describe("HelpfulMomentsSection", () => {
       <HelpfulMomentsSection
         members={familyMembers}
         showCreate
-        title="Things My Family Appreciates"
+        title="Wat wij waarderen"
       />,
     );
 
-    await user.click(screen.getByRole("button", { name: "Add appreciation" }));
+    await user.click(screen.getByRole("button", { name: "Waardering toevoegen" }));
     expect(
-      screen.getByRole("dialog", { name: "Share appreciation" }),
+      screen.getByRole("dialog", { name: "Waardering delen" }),
     ).not.toBeNull();
 
     await user.keyboard("{Escape}");
     expect(
-      screen.queryByRole("dialog", { name: "Share appreciation" }),
+      screen.queryByRole("dialog", { name: "Waardering delen" }),
     ).toBeNull();
     expect(vi.mocked(createHelpfulMoment)).not.toHaveBeenCalled();
   });

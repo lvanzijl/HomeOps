@@ -83,12 +83,12 @@ describe("MotivationPage", () => {
   it("renders the family goal and individual family member goal cards", async () => {
     render(<MotivationPage members={familyMembers} />);
 
-    expect(screen.getByLabelText("Motivation page")).not.toBeNull();
+    expect(await screen.findByLabelText("Motivatiedashboard")).not.toBeNull();
     expect(
-      await screen.findByLabelText("Things My Family Appreciates"),
+      await screen.findByLabelText("Recente waardering"),
     ).not.toBeNull();
-    expect(screen.getByText("My Family Appreciates")).not.toBeNull();
-    const familyGoal = screen.getByLabelText("Active family goal");
+    expect(screen.getByText("Recente waardering")).not.toBeNull();
+    const familyGoal = screen.getByLabelText("Actief familiedoel");
     expect(
       await within(familyGoal).findByText("Fill the family helper path"),
     ).not.toBeNull();
@@ -97,37 +97,39 @@ describe("MotivationPage", () => {
         .querySelector(".motivation-ownership-asset img")
         ?.getAttribute("src"),
     ).toContain("data-asset-name='child-family-participation'");
-    expect(within(familyGoal).getByText("13/20")).not.toBeNull();
+    expect(within(familyGoal).getByLabelText("13 van 20 helpful actions")).not.toBeNull();
     expect(
       within(familyGoal).getAllByText(
-        "Only 7 more helpful actions until Board game night together.",
+        "Nog 7 helpful actions tot Board game night together.",
       ).length,
     ).toBeGreaterThan(0);
     expect(
-      within(familyGoal).getByLabelText("Celebration surface"),
+      within(familyGoal).getByLabelText("Viering"),
     ).not.toBeNull();
     expect(
       within(familyGoal)
-        .getByLabelText("Celebration surface")
+        .getByLabelText("Viering")
         .querySelector("img")
         ?.getAttribute("src"),
     ).toContain("data-asset-name='celebration-upcoming'");
     expect(
       within(familyGoal).getAllByText(/Board game night together/).length,
     ).toBeGreaterThan(0);
-    expect(screen.getByLabelText("Celebration memories")).not.toBeNull();
-    expect(screen.getByText("Celebrations we remember")).not.toBeNull();
-    expect(screen.getByText("Ice Cream")).not.toBeNull();
-    expect(screen.getByText(/We made this happen together/)).not.toBeNull();
+    await userEvent.setup().click(screen.getByRole("button", { name: "Historie bekijken" }));
+    expect(await screen.findByLabelText("Vieringsherinneringen")).not.toBeNull();
+    expect(screen.getByText("Vieringen die we onthouden")).not.toBeNull();
+    expect(screen.getAllByText("Ice Cream").length).toBeGreaterThan(0);
+    expect(screen.getByText(/Dit hebben we samen/)).not.toBeNull();
     expect(
       screen
-        .getByText(/We made this happen together/)
+        .getByText(/Dit hebben we samen/)
         .querySelector("img")
         ?.getAttribute("src"),
     ).toContain("data-asset-name='child-my-help-mattered'");
 
-    const individualGoals = screen.getByLabelText(
-      "Individual encouragement goals",
+    await userEvent.setup().click(screen.getByRole("button", { name: "Doelen beheren" }));
+    const individualGoals = await screen.findByLabelText(
+      "Persoonlijke aanmoedigingsdoelen",
     );
     expect(within(individualGoals).getByText("Alex")).not.toBeNull();
     expect(
@@ -178,14 +180,15 @@ describe("MotivationPage", () => {
 
     render(<MotivationPage members={familyMembers} />);
 
-    expect(await screen.findByLabelText("Celebration surface")).not.toBeNull();
-    expect(screen.getByText("We did it — ready to celebrate")).not.toBeNull();
-    await user.click(screen.getByRole("button", { name: "Mark celebrated" }));
+    expect(await screen.findByLabelText("Viering")).not.toBeNull();
+    expect(screen.getByText("Gelukt — klaar om te vieren")).not.toBeNull();
+    await user.click(screen.getByRole("button", { name: "Als gevierd markeren" }));
 
     expect(markFamilyGoalCelebrated).toHaveBeenCalledWith("family-goal");
-    expect(await screen.findByText("Celebrated together")).not.toBeNull();
+    expect(await screen.findByText("Samen gevierd")).not.toBeNull();
     expect(screen.getAllByText("Movie night").length).toBeGreaterThanOrEqual(2);
-    expect(screen.getByLabelText("Celebration memories")).not.toBeNull();
+    await user.click(screen.getByRole("button", { name: "Historie bekijken" }));
+    expect(await screen.findByLabelText("Vieringsherinneringen")).not.toBeNull();
   });
 
   it("does not render reward economy or competitive wording", async () => {
@@ -219,30 +222,30 @@ describe("MotivationPage", () => {
 
     render(<MotivationPage members={familyMembers} />);
 
-    expect(await screen.findByText("No family goal yet.")).not.toBeNull();
-    expect(screen.getByText("Create one shared goal.")).not.toBeNull();
+    expect(await screen.findByText("Nog geen familiedoel.")).not.toBeNull();
+    expect(screen.getByText("Maak één gezamenlijk doel.")).not.toBeNull();
 
     await user.click(
-      screen.getByRole("button", { name: "Create family goal" }),
+      screen.getByRole("button", { name: "Familiedoel maken" }),
     );
-    expect(screen.getByRole("button", { name: "Continue" }).hasAttribute("disabled")).toBe(true);
+    expect(screen.getByRole("button", { name: "Verder" }).hasAttribute("disabled")).toBe(true);
     await user.type(
-      screen.getByLabelText("Family goal title"),
+      screen.getByLabelText("Titel van familiedoel"),
       "Complete 10 helpful tasks",
     );
-    await user.click(screen.getByRole("button", { name: "Continue" }));
-    await user.clear(screen.getByLabelText("Target count"));
-    await user.type(screen.getByLabelText("Target count"), "10");
-    await user.clear(screen.getByLabelText("Progress label"));
-    await user.type(screen.getByLabelText("Progress label"), "helpful tasks");
-    await user.click(screen.getByRole("button", { name: "Continue" }));
+    await user.click(screen.getByRole("button", { name: "Verder" }));
+    await user.clear(screen.getByLabelText("Doelaantal"));
+    await user.type(screen.getByLabelText("Doelaantal"), "10");
+    await user.clear(screen.getByLabelText("Voortgangslabel"));
+    await user.type(screen.getByLabelText("Voortgangslabel"), "helpful tasks");
+    await user.click(screen.getByRole("button", { name: "Verder" }));
     await user.type(
-      screen.getByLabelText("Family celebration title, optional"),
+      screen.getByLabelText("Titel van familieviering, optioneel"),
       "Movie night together",
     );
-    await user.click(screen.getByRole("button", { name: "Continue" }));
-    expect(screen.getByLabelText("Family goal review")).not.toBeNull();
-    await user.click(screen.getByRole("button", { name: "Create goal" }));
+    await user.click(screen.getByRole("button", { name: "Verder" }));
+    expect(screen.getByLabelText("Controle familiedoel")).not.toBeNull();
+    await user.click(screen.getByRole("button", { name: "Doel maken" }));
 
     expect(vi.mocked(createFamilyGoal)).toHaveBeenCalledWith({
       title: "Complete 10 helpful tasks",
@@ -252,7 +255,7 @@ describe("MotivationPage", () => {
       celebrationDescription: undefined,
     });
     expect(await screen.findByText("Complete 10 helpful tasks")).not.toBeNull();
-    expect(screen.getByText("0/10")).not.toBeNull();
+    expect(screen.getByLabelText("0 van 10 helpful tasks")).not.toBeNull();
   });
 
   it("edits the active family goal without introducing reward economy concepts", async () => {
@@ -271,27 +274,27 @@ describe("MotivationPage", () => {
     expect(
       await screen.findByText("Fill the family helper path"),
     ).not.toBeNull();
-    await user.click(screen.getByRole("button", { name: "Edit family goal" }));
-    expect((screen.getByLabelText("Family goal title") as HTMLInputElement).value).toBe(
+    await user.click(screen.getByRole("button", { name: "Familiedoel aanpassen" }));
+    expect((screen.getByLabelText("Titel van familiedoel") as HTMLInputElement).value).toBe(
       "Fill the family helper path",
     );
-    await user.clear(screen.getByLabelText("Family goal title"));
+    await user.clear(screen.getByLabelText("Titel van familiedoel"));
     await user.type(
-      screen.getByLabelText("Family goal title"),
+      screen.getByLabelText("Titel van familiedoel"),
       "Complete 15 helpful household tasks",
     );
-    await user.click(screen.getByRole("button", { name: "Continue" }));
-    expect((screen.getByLabelText("Target count") as HTMLInputElement).value).toBe("20");
-    await user.clear(screen.getByLabelText("Target count"));
-    await user.type(screen.getByLabelText("Target count"), "15");
-    await user.clear(screen.getByLabelText("Progress label"));
-    await user.type(screen.getByLabelText("Progress label"), "helpful tasks");
-    await user.click(screen.getByRole("button", { name: "Continue" }));
+    await user.click(screen.getByRole("button", { name: "Verder" }));
+    expect((screen.getByLabelText("Doelaantal") as HTMLInputElement).value).toBe("20");
+    await user.clear(screen.getByLabelText("Doelaantal"));
+    await user.type(screen.getByLabelText("Doelaantal"), "15");
+    await user.clear(screen.getByLabelText("Voortgangslabel"));
+    await user.type(screen.getByLabelText("Voortgangslabel"), "helpful tasks");
+    await user.click(screen.getByRole("button", { name: "Verder" }));
     await user.clear(
-      screen.getByLabelText("Family celebration title, optional"),
+      screen.getByLabelText("Titel van familieviering, optioneel"),
     );
-    await user.click(screen.getByRole("button", { name: "Continue" }));
-    await user.click(screen.getByRole("button", { name: "Save goal" }));
+    await user.click(screen.getByRole("button", { name: "Verder" }));
+    await user.click(screen.getByRole("button", { name: "Doel bewaren" }));
 
     expect(vi.mocked(updateFamilyGoal)).toHaveBeenCalledWith("family-goal", {
       title: "Complete 15 helpful household tasks",
@@ -303,7 +306,7 @@ describe("MotivationPage", () => {
     expect(
       await screen.findByText("Complete 15 helpful household tasks"),
     ).not.toBeNull();
-    expect(screen.getByText("13/15")).not.toBeNull();
+    expect(screen.getByLabelText("13 van 15 helpful tasks")).not.toBeNull();
     expect(
       screen.queryByText(/coins?|tokens?|shop|leaderboard|negative points/i),
     ).toBeNull();
@@ -318,15 +321,15 @@ describe("MotivationPage", () => {
 
     render(<MotivationPage members={familyMembers} />);
 
-    await screen.findByText("No family goal yet.");
-    await user.click(screen.getByRole("button", { name: "Create family goal" }));
-    expect(screen.getByRole("button", { name: "Continue" }).hasAttribute("disabled")).toBe(true);
-    await user.type(screen.getByLabelText("Family goal title"), "Try a family reset");
-    await user.click(screen.getByRole("button", { name: "Continue" }));
-    await user.clear(screen.getByLabelText("Target count"));
-    await user.type(screen.getByLabelText("Target count"), "0");
-    expect(screen.getByText("Use a target from 1 to 999 and a progress label.")).not.toBeNull();
-    expect(screen.getByRole("button", { name: "Continue" }).hasAttribute("disabled")).toBe(true);
+    await screen.findByText("Nog geen familiedoel.");
+    await user.click(screen.getByRole("button", { name: "Familiedoel maken" }));
+    expect(screen.getByRole("button", { name: "Verder" }).hasAttribute("disabled")).toBe(true);
+    await user.type(screen.getByLabelText("Titel van familiedoel"), "Try a family reset");
+    await user.click(screen.getByRole("button", { name: "Verder" }));
+    await user.clear(screen.getByLabelText("Doelaantal"));
+    await user.type(screen.getByLabelText("Doelaantal"), "0");
+    expect(screen.getByText("Gebruik een doel van 1 tot 999 en een voortgangslabel.")).not.toBeNull();
+    expect(screen.getByRole("button", { name: "Verder" }).hasAttribute("disabled")).toBe(true);
     expect(createFamilyGoal).not.toHaveBeenCalled();
   });
 
@@ -346,18 +349,18 @@ describe("MotivationPage", () => {
 
     render(<MotivationPage members={familyMembers} />);
 
-    await screen.findByText("No family goal yet.");
-    await user.click(screen.getByRole("button", { name: "Create family goal" }));
-    await user.type(screen.getByLabelText("Family goal title"), "Clear the landing zone");
-    await user.click(screen.getByRole("button", { name: "Continue" }));
-    await user.clear(screen.getByLabelText("Target count"));
-    await user.type(screen.getByLabelText("Target count"), "5");
-    await user.clear(screen.getByLabelText("Progress label"));
-    await user.type(screen.getByLabelText("Progress label"), "quick resets");
-    await user.click(screen.getByRole("button", { name: "Continue" }));
-    await user.click(screen.getByRole("button", { name: "Continue" }));
-    expect(screen.getByText("No celebration yet — we can add one later.")).not.toBeNull();
-    await user.click(screen.getByRole("button", { name: "Create goal" }));
+    await screen.findByText("Nog geen familiedoel.");
+    await user.click(screen.getByRole("button", { name: "Familiedoel maken" }));
+    await user.type(screen.getByLabelText("Titel van familiedoel"), "Clear the landing zone");
+    await user.click(screen.getByRole("button", { name: "Verder" }));
+    await user.clear(screen.getByLabelText("Doelaantal"));
+    await user.type(screen.getByLabelText("Doelaantal"), "5");
+    await user.clear(screen.getByLabelText("Voortgangslabel"));
+    await user.type(screen.getByLabelText("Voortgangslabel"), "quick resets");
+    await user.click(screen.getByRole("button", { name: "Verder" }));
+    await user.click(screen.getByRole("button", { name: "Verder" }));
+    expect(screen.getByText("Nog geen viering — die kunnen we later toevoegen.")).not.toBeNull();
+    await user.click(screen.getByRole("button", { name: "Doel maken" }));
 
     expect(createFamilyGoal).toHaveBeenCalledWith({
       title: "Clear the landing zone",
@@ -374,11 +377,11 @@ describe("MotivationPage", () => {
     render(<MotivationPage members={familyMembers} />);
 
     await screen.findByText("Fill the family helper path");
-    await user.click(screen.getByRole("button", { name: "Edit family goal" }));
-    expect(screen.getByRole("dialog", { name: "Edit family goal" })).not.toBeNull();
+    await user.click(screen.getByRole("button", { name: "Familiedoel aanpassen" }));
+    expect(screen.getByRole("dialog", { name: "Familiedoel aanpassen" })).not.toBeNull();
     await user.keyboard("{Escape}");
 
-    expect(screen.queryByRole("dialog", { name: "Edit family goal" })).toBeNull();
+    expect(screen.queryByRole("dialog", { name: "Familiedoel aanpassen" })).toBeNull();
     expect(updateFamilyGoal).not.toHaveBeenCalled();
     expect(screen.getByText("Fill the family helper path")).not.toBeNull();
   });
@@ -398,23 +401,25 @@ describe("MotivationPage", () => {
 
     render(<MotivationPage members={familyMembers} />);
 
-    expect(await screen.findByText("Personal goals this week")).not.toBeNull();
-    await user.click(screen.getByRole("button", { name: "Add personal goal" }));
-    const createForm = screen.getByLabelText("Create individual goal form");
+    expect(await screen.findByLabelText("Motivatiedashboard")).not.toBeNull();
+    await user.click(screen.getByRole("button", { name: "Doelen beheren" }));
+    expect(await screen.findByText("Persoonlijke doelen deze week")).not.toBeNull();
+    await user.click(screen.getByRole("button", { name: "Doel toevoegen" }));
+    const createForm = screen.getByLabelText("Persoonlijk doel maken formulier");
     await user.selectOptions(
-      within(createForm).getByLabelText("Family member"),
+      within(createForm).getByLabelText("Gezinslid"),
       "alex",
     );
     await user.type(
-      within(createForm).getByLabelText("Goal title"),
+      within(createForm).getByLabelText("Doeltitel"),
       "Read books",
     );
-    await user.clear(within(createForm).getByLabelText("Target count"));
-    await user.type(within(createForm).getByLabelText("Target count"), "4");
-    await user.clear(within(createForm).getByLabelText("Unit label"));
-    await user.type(within(createForm).getByLabelText("Unit label"), "books");
+    await user.clear(within(createForm).getByLabelText("Doelaantal"));
+    await user.type(within(createForm).getByLabelText("Doelaantal"), "4");
+    await user.clear(within(createForm).getByLabelText("Eenheid"));
+    await user.type(within(createForm).getByLabelText("Eenheid"), "books");
     await user.click(
-      screen.getByRole("button", { name: "Save personal goal" }),
+      screen.getByRole("button", { name: "Persoonlijk doel bewaren" }),
     );
 
     expect(createIndividualGoal).toHaveBeenCalledWith({
@@ -441,30 +446,31 @@ describe("MotivationPage", () => {
 
     render(<MotivationPage members={familyMembers} />);
 
-    expect(await screen.findByText("Finish morning routine")).not.toBeNull();
+    expect(await screen.findByLabelText("Motivatiedashboard")).not.toBeNull();
     await user.click(
-      screen.getByRole("button", { name: "Manage personal goals" }),
+      screen.getByRole("button", { name: "Doelen beheren" }),
     );
+    expect(await screen.findByText("Finish morning routine")).not.toBeNull();
     const alexCard = screen
       .getByText("Finish morning routine")
       .closest("article")!;
-    await user.click(within(alexCard).getByRole("button", { name: "Edit" }));
-    const editForm = screen.getByLabelText("Edit individual goal form");
+    await user.click(within(alexCard).getByRole("button", { name: "Aanpassen" }));
+    const editForm = screen.getByLabelText("Persoonlijk doel aanpassen formulier");
     await user.selectOptions(
-      within(editForm).getByLabelText("Family member"),
+      within(editForm).getByLabelText("Gezinslid"),
       "sam",
     );
-    await user.clear(within(editForm).getByLabelText("Goal title"));
+    await user.clear(within(editForm).getByLabelText("Doeltitel"));
     await user.type(
-      within(editForm).getByLabelText("Goal title"),
+      within(editForm).getByLabelText("Doeltitel"),
       "Bedtime routine",
     );
-    await user.clear(within(editForm).getByLabelText("Target count"));
-    await user.type(within(editForm).getByLabelText("Target count"), "2");
-    await user.clear(within(editForm).getByLabelText("Unit label"));
-    await user.type(within(editForm).getByLabelText("Unit label"), "nights");
+    await user.clear(within(editForm).getByLabelText("Doelaantal"));
+    await user.type(within(editForm).getByLabelText("Doelaantal"), "2");
+    await user.clear(within(editForm).getByLabelText("Eenheid"));
+    await user.type(within(editForm).getByLabelText("Eenheid"), "nights");
     await user.click(
-      screen.getByRole("button", { name: "Save personal goal" }),
+      screen.getByRole("button", { name: "Persoonlijk doel bewaren" }),
     );
 
     expect(updateIndividualGoal).toHaveBeenCalledWith("alex-goal", {
@@ -483,15 +489,16 @@ describe("MotivationPage", () => {
 
     render(<MotivationPage members={familyMembers} />);
 
-    expect(await screen.findByText("Finish morning routine")).not.toBeNull();
+    expect(await screen.findByLabelText("Motivatiedashboard")).not.toBeNull();
     await user.click(
-      screen.getByRole("button", { name: "Manage personal goals" }),
+      screen.getByRole("button", { name: "Doelen beheren" }),
     );
+    expect(await screen.findByText("Finish morning routine")).not.toBeNull();
     const alexCard = screen
       .getByText("Finish morning routine")
       .closest("article")!;
-    await user.click(within(alexCard).getByRole("button", { name: "Edit" }));
-    await user.click(screen.getByRole("button", { name: "Retire goal" }));
+    await user.click(within(alexCard).getByRole("button", { name: "Aanpassen" }));
+    await user.click(screen.getByRole("button", { name: "Doel stoppen" }));
 
     expect(archiveIndividualGoal).toHaveBeenCalledWith("alex-goal");
     expect(screen.queryByText("Finish morning routine")).toBeNull();
@@ -506,15 +513,15 @@ describe("MotivationPage", () => {
     expect(
       await screen.findByText("Fill the family helper path"),
     ).not.toBeNull();
-    expect(screen.queryByRole("button", { name: "Edit" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "Aanpassen" })).toBeNull();
     expect(
-      screen.getByRole("button", { name: "Manage personal goals" }),
+      screen.getByRole("button", { name: "Doelen beheren" }),
     ).not.toBeNull();
     await user.click(
-      screen.getByRole("button", { name: "Manage personal goals" }),
+      screen.getByRole("button", { name: "Doelen beheren" }),
     );
     expect(
-      screen.getAllByRole("button", { name: "Edit" }).length,
+      screen.getAllByRole("button", { name: "Aanpassen" }).length,
     ).toBeGreaterThan(0);
   });
 
@@ -523,24 +530,25 @@ describe("MotivationPage", () => {
 
     render(<MotivationPage members={familyMembers} />);
 
-    expect(await screen.findByLabelText("Celebration memories")).not.toBeNull();
+    expect(await screen.findByText("Fill the family helper path")).not.toBeNull();
     expect(
-      screen.getByRole("button", { name: "View memory history" }),
+      screen.getByRole("button", { name: "Historie bekijken" }),
     ).not.toBeNull();
     await user.click(
-      screen.getByRole("button", { name: "View memory history" }),
+      screen.getByRole("button", { name: "Historie bekijken" }),
     );
+    expect(await screen.findByLabelText("Vieringsherinneringen")).not.toBeNull();
     expect(
-      screen.getByRole("button", { name: "Show recent memory" }),
+      screen.getByRole("button", { name: "Recente herinnering tonen" }),
     ).not.toBeNull();
 
     expect(
-      await screen.findByLabelText("Things My Family Appreciates"),
+      await screen.findByLabelText("Recente waardering"),
     ).not.toBeNull();
-    await user.click(screen.getByRole("button", { name: "Add appreciation" }));
-    expect(screen.getByLabelText("Create helpful moment")).not.toBeNull();
+    await user.click(screen.getByRole("button", { name: "Waardering toevoegen" }));
+    expect(screen.getByLabelText("Waardering delen")).not.toBeNull();
     expect(
-      screen.getByRole("button", { name: "View all appreciation" }),
+      screen.getByRole("button", { name: "Alles bekijken" }),
     ).not.toBeNull();
   });
 });

@@ -238,7 +238,7 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
           onClick={closeEventForm}
         >
           <section
-            className="home-capture-dialog"
+            className="home-capture-dialog domain-agenda"
             role="dialog"
             aria-modal="true"
             aria-label={
@@ -254,9 +254,6 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
                     ? "Gebeurtenis bewerken"
                     : "Gebeurtenis toevoegen"}
                 </h3>
-                <p>
-                  Begin met wat er gebeurt. De gekozen dag staat alvast klaar.
-                </p>
               </div>
               <button
                 type="button"
@@ -472,9 +469,6 @@ function EventConversationForm({
                     }
                   />
                 </label>
-                <p className="task-dialog-summary">
-                  We bewaren dit als gebeurtenis voor de hele dag.
-                </p>
               </div>
             ) : (
               <div className="agenda-time-grid">

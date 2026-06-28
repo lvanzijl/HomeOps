@@ -642,7 +642,7 @@ export function HomeDashboard({
           onClick={() => setIsShoppingCaptureOpen(false)}
         >
           <section
-            className="home-capture-dialog home-conversation-dialog"
+            className="home-capture-dialog home-conversation-dialog domain-lists"
             role="dialog"
             aria-modal="true"
             aria-label="Boodschap toevoegen vanaf Thuis"
@@ -652,7 +652,6 @@ export function HomeDashboard({
               <div className="home-conversation-heading">
                 <p className="eyebrow">Snel toevoegen</p>
                 <h3>Boodschap toevoegen</h3>
-                <p>Eén ding nu. Details kunnen later bij Boodschappen.</p>
               </div>
               <button
                 type="button"
@@ -712,7 +711,7 @@ export function HomeDashboard({
           onClick={() => setIsTaskCaptureOpen(false)}
         >
           <section
-            className="home-capture-dialog home-conversation-dialog"
+            className="home-capture-dialog home-conversation-dialog domain-tasks"
             role="dialog"
             aria-modal="true"
             aria-label="Taak toevoegen vanaf Thuis"
@@ -722,7 +721,6 @@ export function HomeDashboard({
               <div className="home-conversation-heading">
                 <p className="eyebrow">Snel toevoegen</p>
                 <h3>Taak toevoegen</h3>
-                <p>Standaard voor vandaag. Pas later aan bij Taken.</p>
               </div>
               <button
                 type="button"
@@ -807,7 +805,7 @@ export function HomeDashboard({
           onClick={() => setIsEventCaptureOpen(false)}
         >
           <section
-            className="home-capture-dialog home-conversation-dialog"
+            className="home-capture-dialog home-conversation-dialog domain-agenda"
             role="dialog"
             aria-modal="true"
             aria-label="Afspraak toevoegen vanaf Thuis"
@@ -817,7 +815,6 @@ export function HomeDashboard({
               <div className="home-conversation-heading">
                 <p className="eyebrow">Snel toevoegen</p>
                 <h3>Afspraak toevoegen</h3>
-                <p>Snelle dagnotitie. Details staan in Agenda.</p>
               </div>
               <button
                 type="button"
