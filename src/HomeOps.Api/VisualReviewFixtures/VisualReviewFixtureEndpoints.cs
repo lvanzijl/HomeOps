@@ -10,10 +10,17 @@ public static class VisualReviewFixtureEndpoints
         group.MapGet("/scenarios", () => Results.Ok(VisualReviewFixtureService.Scenarios))
             .WithName("GetVisualReviewFixtureScenarios")
             .Produces<IReadOnlyCollection<VisualReviewScenarioDto>>();
-        group.MapPost("/{scenarioName}/reset", async (string scenarioName, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        group.MapGet("/marketing-time", (VisualReviewMarketingTimeProvider timeProvider) =>
+        {
+            var anchorUtc = timeProvider.ActiveMarketingAnchorUtc;
+            return Results.Ok(new VisualReviewMarketingTimeDto(anchorUtc, anchorUtc is null ? null : DateOnly.FromDateTime(anchorUtc.Value.UtcDateTime)));
+        }).WithName("GetVisualReviewMarketingTime").Produces<VisualReviewMarketingTimeDto>();
+        group.MapPost("/{scenarioName}/reset", async (string scenarioName, HomeOpsDbContext dbContext, VisualReviewMarketingTimeProvider timeProvider, CancellationToken cancellationToken) =>
         {
             var result = await VisualReviewFixtureService.ApplyScenario(dbContext, scenarioName, cancellationToken);
-            return result is null ? Results.NotFound(new { error = $"Unknown visual review scenario '{scenarioName}'." }) : Results.Ok(result);
+            if (result is null) return Results.NotFound(new { error = $"Unknown visual review scenario '{scenarioName}'." });
+            timeProvider.SetActiveScenario(result.ScenarioName, result.AnchorUtc);
+            return Results.Ok(result);
         }).WithName("ResetVisualReviewFixtureScenario").Produces<ApplyVisualReviewScenarioResponse>().Produces(StatusCodes.Status404NotFound);
         return app;
     }

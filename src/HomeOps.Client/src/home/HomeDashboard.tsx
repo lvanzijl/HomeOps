@@ -41,6 +41,7 @@ import {
   type MotivationFamilyGoal,
 } from "../motivationData";
 import type { FamilyMember } from "./familyMembers";
+import { useVisualReviewNow } from "../visualReviewTime";
 
 interface HomeDashboardProps {
   members: readonly FamilyMember[];
@@ -70,7 +71,8 @@ export function HomeDashboard({
   onNavigate,
   onSelectFamilyMember,
 }: HomeDashboardProps) {
-  const [now, setNow] = useState(() => new Date());
+  const visualReviewNow = useVisualReviewNow();
+  const [now, setNow] = useState(() => visualReviewNow ?? new Date());
   const [motivationFamilyGoal, setMotivationFamilyGoal] = useState<
     MotivationFamilyGoal | undefined
   >();
@@ -96,7 +98,7 @@ export function HomeDashboard({
     "today",
   );
   const [eventDate, setEventDate] = useState(() =>
-    toDateInputValue(new Date()),
+    toDateInputValue(visualReviewNow ?? new Date()),
   );
   const [quickStatus, setQuickStatus] = useState<string | null>(null);
   const [isShoppingCaptureOpen, setIsShoppingCaptureOpen] = useState(false);
@@ -105,9 +107,15 @@ export function HomeDashboard({
   const [history, setHistory] = useState<string[]>(() => loadShoppingHistory());
 
   useEffect(() => {
+    if (visualReviewNow) {
+      setNow(visualReviewNow);
+      setEventDate(toDateInputValue(visualReviewNow));
+      return;
+    }
+
     const timer = window.setInterval(() => setNow(new Date()), 30_000);
     return () => window.clearInterval(timer);
-  }, []);
+  }, [visualReviewNow]);
 
   useEffect(() => {
     if (!isShoppingCaptureOpen && !isEventCaptureOpen && !isTaskCaptureOpen)

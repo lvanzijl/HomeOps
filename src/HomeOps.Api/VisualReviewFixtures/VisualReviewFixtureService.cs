@@ -41,7 +41,7 @@ public static class VisualReviewFixtureService
         if (TryApplyMarketingScenario(db, scenarioName))
         {
             await db.SaveChangesAsync(ct);
-            return new(scenarioName, MarketingHouseholdFixtureBuilder.AnchorUtc, db.FamilyMembers.Local.Count, db.HouseholdTasks.Local.Count, db.Lists.Local.Count, db.ListItems.Local.Count, db.MotivationFamilyGoals.Local.Count, db.MotivationIndividualGoals.Local.Count, db.HelpfulMoments.Local.Count, db.EventSeries.Local.Count);
+            return new(scenarioName, MarketingHouseholdFixtureBuilder.GetAnchorUtc(GetMarketingScene(scenarioName)!.Value), db.FamilyMembers.Local.Count, db.HouseholdTasks.Local.Count, db.Lists.Local.Count, db.ListItems.Local.Count, db.MotivationFamilyGoals.Local.Count, db.MotivationIndividualGoals.Local.Count, db.HelpfulMoments.Local.Count, db.EventSeries.Local.Count);
         }
         if (scenarioName != "visual-empty") AddFamily(db);
         AddCalendarSource(db);
@@ -58,9 +58,7 @@ public static class VisualReviewFixtureService
         return new(scenarioName, AnchorUtc, db.FamilyMembers.Local.Count, db.HouseholdTasks.Local.Count, db.Lists.Local.Count, db.ListItems.Local.Count, db.MotivationFamilyGoals.Local.Count, db.MotivationIndividualGoals.Local.Count, db.HelpfulMoments.Local.Count, db.EventSeries.Local.Count);
     }
 
-    private static bool TryApplyMarketingScenario(HomeOpsDbContext db, string scenarioName)
-    {
-        var scene = scenarioName.ToLowerInvariant() switch
+    private static MarketingScene? GetMarketingScene(string scenarioName) => scenarioName.ToLowerInvariant() switch
         {
             "visual-marketing-home" => MarketingScene.Home,
             "visual-marketing-family" => MarketingScene.Family,
@@ -72,6 +70,10 @@ public static class VisualReviewFixtureService
             "visual-marketing-settings" => MarketingScene.Settings,
             _ => (MarketingScene?)null,
         };
+
+    private static bool TryApplyMarketingScenario(HomeOpsDbContext db, string scenarioName)
+    {
+        var scene = GetMarketingScene(scenarioName);
         if (scene is null) return false;
         MarketingHouseholdFixtureBuilder.Add(db, scene.Value);
         return true;

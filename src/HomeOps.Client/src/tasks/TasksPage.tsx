@@ -20,6 +20,7 @@ import {
   updateTaskTemplate,
 } from "./tasksApi";
 import { groupTasksByTime } from "./taskGrouping";
+import { useVisualReviewNow } from "../visualReviewTime";
 import type {
   HouseholdTask,
   TaskOwnershipKind,
@@ -36,6 +37,9 @@ export function TasksPage({
   members?: readonly FamilyMember[];
   onOpenWeeklyReset?: () => void;
 }) {
+  const visualReviewNow = useVisualReviewNow();
+  const todayDate = visualReviewNow ?? new Date();
+  const todayIso = toDateInputValue(todayDate);
   const [tasks, setTasks] = useState<readonly HouseholdTask[]>([]);
   const [templates, setTemplates] = useState<readonly TaskTemplate[]>([]);
   const [title, setTitle] = useState("");
@@ -68,16 +72,15 @@ export function TasksPage({
     () => tasks.filter((task) => task.noDateReviewState === "Someday"),
     [tasks],
   );
-  const groups = useMemo(() => groupTasksByTime(tasks), [tasks]);
+  const groups = useMemo(() => groupTasksByTime(tasks, todayIso), [tasks, todayIso]);
   const todaySummary = useMemo(() => {
-    const todayIso = toDateInputValue(new Date());
     const todayTasks = groups.find((group) => group.id === "today")?.tasks ?? [];
     return {
       total: todayTasks.length,
       overdue: todayTasks.filter((task) => task.dueDate !== null && task.dueDate < todayIso).length,
       recurring: todayTasks.filter(isRecurringTask).length,
     };
-  }, [groups]);
+  }, [groups, todayIso]);
 
   useEffect(() => {
     if (
@@ -112,7 +115,7 @@ export function TasksPage({
   function openNewTaskDialog() {
     setEditingTask(null);
     setTitle("");
-    setDueDate(toDateInputValue(new Date()));
+    setDueDate(todayIso);
     setOwnership("Unassigned");
     setFamilyMemberId(members[0]?.id ?? "");
     setRecurrenceFrequency("None");
@@ -225,7 +228,7 @@ export function TasksPage({
     startEditing(task);
     const due = window.prompt(
       "Kies een datum (YYYY-MM-DD)",
-      new Date().toISOString().slice(0, 10),
+      todayIso,
     );
     if (due)
       void saveTask(task.id, {
@@ -242,7 +245,7 @@ export function TasksPage({
   function startEditing(task: HouseholdTask) {
     setEditingTask(task);
     setTitle(task.title);
-    setDueDate(task.dueDate ?? toDateInputValue(new Date()));
+    setDueDate(task.dueDate ?? todayIso);
     setOwnership(task.ownershipKind);
     setFamilyMemberId(task.familyMemberId ?? members[0]?.id ?? "");
     setRecurrenceFrequency(task.recurrenceFrequency ?? "None");
@@ -289,7 +292,7 @@ export function TasksPage({
   }
 
   async function moveTaskToTomorrow(task: HouseholdTask) {
-    const tomorrow = toDateInputValue(addDays(new Date(), 1));
+    const tomorrow = toDateInputValue(addDays(todayDate, 1));
     const isRecurring = (task.recurrenceFrequency ?? "None") !== "None" || Boolean(task.recurringTaskSeriesId);
     if (task.isCompleted || isRecurring || task.dueDate === tomorrow) return;
 
@@ -359,6 +362,8 @@ export function TasksPage({
             key={group.id}
             members={members}
             tasks={group.tasks}
+            todayDate={todayDate}
+            todayIso={todayIso}
             onDeleteSeries={deleteSeries}
             onEdit={startEditing}
             onMoveToTomorrow={moveTaskToTomorrow}
@@ -493,14 +498,14 @@ export function TasksPage({
                     >
                       <button
                         type="button"
-                        onClick={() => setDueDate(toDateInputValue(new Date()))}
+                        onClick={() => setDueDate(todayIso)}
                       >
                         Vandaag
                       </button>
                       <button
                         type="button"
                         onClick={() =>
-                          setDueDate(toDateInputValue(addDays(new Date(), 1)))
+                          setDueDate(toDateInputValue(addDays(todayDate, 1)))
                         }
                       >
                         Morgen
@@ -765,6 +770,8 @@ function TaskGroup({
   group,
   members,
   tasks,
+  todayDate,
+  todayIso,
   onDeleteSeries,
   onEdit,
   onMoveToTomorrow,
@@ -773,6 +780,8 @@ function TaskGroup({
   group: import("./tasksModel").TaskTimeGroup;
   members: readonly FamilyMember[];
   tasks: readonly HouseholdTask[];
+  todayDate: Date;
+  todayIso: string;
   onDeleteSeries(id: string): void;
   onEdit(task: HouseholdTask): void;
   onMoveToTomorrow(task: HouseholdTask): void;
@@ -799,6 +808,8 @@ function TaskGroup({
                 key={task.id}
                 members={members}
                 task={task}
+                todayDate={todayDate}
+                todayIso={todayIso}
                 onDeleteSeries={onDeleteSeries}
                 onEdit={onEdit}
                 onMoveToTomorrow={onMoveToTomorrow}
@@ -831,6 +842,8 @@ function TaskGroup({
               key={task.id}
               members={members}
               task={task}
+              todayDate={todayDate}
+              todayIso={todayIso}
               onDeleteSeries={onDeleteSeries}
               onEdit={onEdit}
               onMoveToTomorrow={onMoveToTomorrow}
@@ -847,6 +860,8 @@ function TaskCard({
   groupId,
   members,
   task,
+  todayDate,
+  todayIso,
   onDeleteSeries,
   onEdit,
   onMoveToTomorrow,
@@ -855,13 +870,15 @@ function TaskCard({
   groupId: string;
   members: readonly FamilyMember[];
   task: HouseholdTask;
+  todayDate: Date;
+  todayIso: string;
   onDeleteSeries(id: string): void;
   onEdit(task: HouseholdTask): void;
   onMoveToTomorrow(task: HouseholdTask): void;
   onUpdate(id: string, action: "complete" | "reopen"): void;
 }) {
   const isRecurring = isRecurringTask(task);
-  const tomorrow = toDateInputValue(addDays(new Date(), 1));
+  const tomorrow = toDateInputValue(addDays(todayDate, 1));
   const canMoveToTomorrow = !task.isCompleted && !isRecurring && task.dueDate !== tomorrow;
   return (
     <li className={`task-item operational-task-card rich-task-card ${task.isCompleted ? "is-completed" : ""} ${isRecurring ? "is-recurring" : ""}`} key={task.id}>
@@ -875,7 +892,7 @@ function TaskCard({
         </div>
         <span className="task-card-meta" aria-label="Taakdetails">
           <TaskMetadataChip tone="family" label={formatOwner(task, members)} />
-          <TaskMetadataChip tone={groupId === "today" ? "urgent" : "time"} label={formatDue(task, groupId)} />
+          <TaskMetadataChip tone={groupId === "today" ? "urgent" : "time"} label={formatDue(task, groupId, todayIso)} />
           {isRecurring ? (
             <TaskMetadataChip tone="recurring" label={formatRecurrence(task.recurrenceFrequency ?? "None")} />
           ) : null}
@@ -1009,10 +1026,10 @@ export function formatOwner(
   return "Iedereen";
 }
 
-function formatDue(task: Pick<HouseholdTask, "dueDate" | "isCompleted">, groupId: string): string {
+function formatDue(task: Pick<HouseholdTask, "dueDate" | "isCompleted">, groupId: string, todayIso: string): string {
   if (task.isCompleted) return "Klaar";
   if (!task.dueDate) return "Geen datum";
-  if (groupId === "today") return task.dueDate < new Date().toISOString().slice(0, 10) ? `Te laat · ${task.dueDate}` : "Vandaag";
+  if (groupId === "today") return task.dueDate < todayIso ? `Te laat · ${task.dueDate}` : "Vandaag";
   if (groupId === "tomorrow") return "Morgen";
   return task.dueDate;
 }

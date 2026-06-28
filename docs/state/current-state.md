@@ -680,3 +680,9 @@ Showcase Sample C and Showcase Sample D exposed that the wide head variant's ear
 - Expanded the FamilyBoard Design Asset System registry with Phase 1 `agenda.*`, `shopping.bag`, `core.open`, and `status.pending` icons using `currentColor` and existing icon sizing tokens.
 - Preserved Avatar V2, backend, API contracts, database schema, business logic, workflows, and navigation behavior; this slice only changes presentation and tests/documentation.
 - Browser validation used VisualReview `visual-full` and `visual-weekly-reset` at 1920×1080; the current preview movie scene order was manually replayed in-browser for Home, Agenda, Shopping, Weekly Reset, and Settings assessment without regenerating the movie.
+
+## 2026-06-28 Marketing time provider
+
+- Added a VisualReview marketing time provider so marketing fixture rendering derives Today and the current week from the active canonical fixture anchor instead of the machine clock.
+- Weekly Reset now uses the active marketing anchor for contribution recap windows, fixing the zero-recap mismatch for `visual-marketing-weekly-reset`.
+- Validation report: `docs/reports/2026-06-28-marketing-time-provider/marketing-time-provider.md`.

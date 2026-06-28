@@ -19,6 +19,7 @@ CalendarPortabilityService.ConfigurePreRestoreSnapshotDirectory(
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApiDocument();
+builder.Services.AddSingleton<VisualReviewMarketingTimeProvider>();
 if (builder.Environment.IsEnvironment("VisualReview"))
 {
     builder.Services.AddCors(options =>

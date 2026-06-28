@@ -2,6 +2,7 @@ using HomeOps.Api.Data;
 using HomeOps.Api.Households;
 using HomeOps.Api.Motivation;
 using HomeOps.Api.Tasks;
+using HomeOps.Api.VisualReviewFixtures;
 using Microsoft.EntityFrameworkCore;
 
 namespace HomeOps.Api.WeeklyReset;
@@ -11,9 +12,9 @@ public static class WeeklyResetEndpoints
     public static IEndpointRouteBuilder MapWeeklyResetEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/api/weekly-reset").WithTags("Weekly Reset");
-        group.MapGet("/", async (HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        group.MapGet("/", async (HomeOpsDbContext dbContext, VisualReviewMarketingTimeProvider visualReviewTimeProvider, CancellationToken cancellationToken) =>
         {
-            var now = DateTimeOffset.UtcNow; var weekStart = now.AddDays(-7); var oldActiveTaskCutoff = now.AddDays(-21); var somedayCutoff = now.AddDays(-30);
+            var now = visualReviewTimeProvider.ActiveMarketingAnchorUtc ?? DateTimeOffset.UtcNow; var weekStart = now.AddDays(-7); var oldActiveTaskCutoff = now.AddDays(-21); var somedayCutoff = now.AddDays(-30);
             var reviewCandidates = await dbContext.HouseholdTasks.AsNoTracking().Where(t => t.HouseholdId == SeedHousehold.Id && !t.IsCompleted && !t.IsExpired && t.NoDateReviewState != NoDateTaskReviewState.Archived)
                 .Where(t => t.NoDateReviewState == NoDateTaskReviewState.NeedsReview || (t.NoDateReviewState == NoDateTaskReviewState.Active && (t.NoDateLastReviewedUtc ?? t.CreatedUtc) <= oldActiveTaskCutoff) || (t.NoDateReviewState == NoDateTaskReviewState.Someday && (t.NoDateLastReviewedUtc ?? t.UpdatedUtc) <= somedayCutoff))
                 .OrderBy(t => t.NoDateReviewState == NoDateTaskReviewState.NeedsReview ? 0 : t.NoDateReviewState == NoDateTaskReviewState.Active ? 1 : 2).ThenBy(t => t.NoDateLastReviewedUtc ?? t.CreatedUtc).Take(8)
