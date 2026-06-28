@@ -3,6 +3,8 @@ Frontend test maintenance refreshed stale test expectations and fixtures to matc
 
 # Phase 2 Roadmap
 
+FamilyBoard Wide Viewport Layout improves the global responsive shell so the app uses large desktop displays more like a dashboard instead of a narrow centered document. The slice replaces the fixed 1040px app-shell cap with responsive board width tokens, lets Home add columns before stretching cards, and keeps Settings constrained for readable administrative content. Backend behavior, API contracts, database schema, workflows, navigation, VisualReview runtime, fixture data, screenshots, videos, and binary assets remain unchanged.
+
 ## Completed Slice — FamilyBoard Final Visual Polish
 FamilyBoard Final Visual Polish resolves the actionable defects from the first authoritative populated visual UX review. The slice keeps the Avatar Editor within a 1920×1080 viewport with contained editor scrolling, completes Dutch Avatar Editor wording, reduces the visual weight of Tasks Klaar/Morgen action buttons while preserving touch targets, separates Motivation celebration title/status text, and renames the personal-goal add action to match the existing personal-goal form. Backend behavior, API contracts, database schema, workflows, navigation, screenshots, and binary assets remain unchanged.
 
