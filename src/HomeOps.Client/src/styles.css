@@ -968,6 +968,7 @@ button {
 .avatar-v2-family-editor {
   display: flex;
   flex-direction: column;
+  height: min(100%, calc(100vh - 2rem));
   max-height: calc(100vh - 2rem);
   max-width: 72rem;
   overflow: hidden;
@@ -3506,8 +3507,8 @@ button {
 
 .avatar-v2-family-editor .avatar-v2-preview-card {
   align-content: start;
-  gap: 0.75rem;
-  padding: 0.85rem;
+  gap: 0.55rem;
+  padding: 0.7rem;
   position: static;
 }
 
@@ -3521,7 +3522,7 @@ button {
 }
 
 .avatar-v2-family-editor .avatar-v2-preview {
-  min-height: 17rem;
+  min-height: 13.5rem;
 }
 
 .avatar-v2-preview svg {
@@ -3530,8 +3531,8 @@ button {
 }
 
 .avatar-v2-family-editor .avatar-v2-preview svg {
-  height: min(30vw, 15.5rem);
-  width: min(30vw, 15.5rem);
+  height: min(24vw, 12.75rem);
+  width: min(24vw, 12.75rem);
 }
 
 .avatar-v2-actions {
@@ -3597,8 +3598,8 @@ button {
 }
 
 .avatar-v2-family-editor .avatar-v2-asset-grid {
-  gap: 0.5rem;
-  grid-template-columns: repeat(auto-fit, minmax(6.75rem, 1fr));
+  gap: 0.42rem;
+  grid-template-columns: repeat(auto-fit, minmax(6.25rem, 1fr));
 }
 
 .avatar-v2-asset-tile {
@@ -3612,7 +3613,7 @@ button {
 }
 
 .avatar-v2-family-editor .avatar-v2-asset-tile {
-  min-height: 7.6rem;
+  min-height: 6.75rem;
 }
 
 .avatar-v2-asset-tile[aria-pressed="true"],
@@ -3628,8 +3629,8 @@ button {
 }
 
 .avatar-v2-family-editor .avatar-v2-asset-tile svg {
-  height: 4.75rem;
-  width: 4.75rem;
+  height: 3.85rem;
+  width: 3.85rem;
 }
 
 .avatar-v2-swatch-row {
@@ -4157,6 +4158,18 @@ button {
   flex: 0 0 auto;
   font-size: 2rem;
   padding: 0.3rem;
+}
+
+.celebration-mini-copy {
+  display: grid;
+  gap: 0.16rem;
+  min-width: 0;
+}
+
+.celebration-mini-copy strong,
+.celebration-mini-copy span {
+  display: block;
+  line-height: 1.2;
 }
 
 .family-stat-grid {
@@ -5532,9 +5545,9 @@ button {
 }
 
 .task-action-button.primary {
-  background: #0f766e;
-  border-color: #0f766e;
-  color: white;
+  background: #e6fffb;
+  border-color: rgba(20, 184, 166, 0.9);
+  color: #0f5f59;
 }
 
 .task-action-button.more {
@@ -5623,8 +5636,9 @@ button {
 }
 
 .task-action-button.tomorrow {
-  border-color: rgba(251, 191, 36, 0.85);
-  color: #b45309;
+  background: #fffbeb;
+  border-color: rgba(245, 158, 11, 0.78);
+  color: #8a3f05;
 }
 
 .task-completed-history {

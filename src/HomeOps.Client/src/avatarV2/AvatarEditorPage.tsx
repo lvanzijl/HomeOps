@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { avatarV2AccessoryAssets, avatarV2ClothingAssets, avatarV2HairAssets, expandAvatarPaletteToken, renderAvatarV2Svg, type AccessoryStyle, type HairStyle, type PaletteToken, type ShirtStyle } from './avatarV2';
+import { expandAvatarPaletteToken, renderAvatarV2Svg, type AccessoryStyle, type HairStyle, type PaletteToken, type ShirtStyle } from './avatarV2';
 import { avatarV2ConfigurationsEqual, avatarV2DefaultConfiguration, toAvatarV2RenderConfig, type AvatarV2Configuration } from './avatarConfig';
 
 const hairOptions: HairStyle[] = ['softCrop', 'curlyCloud', 'sideBob', 'swoop', 'layeredMessy', 'shortMessy', 'longSoft', 'curlyPlayful'];
@@ -8,6 +8,38 @@ const accessoryOptions: AccessoryStyle[] = ['none', 'star', 'flower', 'headband'
 const hairSwatches: PaletteToken[] = ['hairCocoa', 'hairChestnut', 'hairPlum'];
 const clothingSwatches: PaletteToken[] = ['shirtSky', 'shirtMint', 'shirtRose', 'shirtSun'];
 const accessorySwatches: PaletteToken[] = ['accessoryLilac', 'accessoryCoral'];
+
+const hairLabels: Record<HairStyle, string> = {
+  softCrop: 'Zachte coupe',
+  curlyCloud: 'Krullenwolk',
+  sideBob: 'Bob opzij',
+  swoop: 'Zijslag',
+  layeredMessy: 'Speelse laagjes',
+  shortMessy: 'Kort speels',
+  longSoft: 'Lang zacht',
+  curlyPlayful: 'Speelse krullen',
+};
+
+const clothingLabels: Record<ShirtStyle, string> = {
+  tShirt: 'T-shirt',
+  roundedTee: 'Rond shirt',
+  collar: 'Shirt met kraag',
+  hoodie: 'Hoodie',
+  sweater: 'Trui',
+  overall: 'Tuinbroek',
+};
+
+const accessoryLabels: Record<AccessoryStyle, string> = {
+  none: 'Geen accessoire',
+  star: 'Ster',
+  starClip: 'Sterspeld',
+  flower: 'Bloemspeld',
+  headband: 'Haarband',
+  bow: 'Strik',
+  chestStar: 'Ster op trui',
+  leafPin: 'Bladspeld',
+  tinyCrown: 'Kroontje',
+};
 
 export function AvatarEditorPage() {
   const [savedConfiguration, setSavedConfiguration] = useState(avatarV2DefaultConfiguration);
@@ -47,11 +79,11 @@ export function AvatarEditorPage() {
         </aside>
 
         <div className="avatar-v2-controls" aria-label="Avatarkeuzes">
-          <AssetSection title="Haar" description="Kies een kapsel." options={hairOptions} selected={draftConfiguration.hairStyle} renderPreview={(style) => renderAvatarV2Svg(toAvatarV2RenderConfig({ ...draftConfiguration, hairStyle: style, accessory: 'none' }))} getLabel={(style) => avatarV2HairAssets[style].metadata.displayName} onSelect={(hairStyle) => updateConfiguration({ hairStyle })} />
+          <AssetSection title="Haar" description="Kies een kapsel." options={hairOptions} selected={draftConfiguration.hairStyle} renderPreview={(style) => renderAvatarV2Svg(toAvatarV2RenderConfig({ ...draftConfiguration, hairStyle: style, accessory: 'none' }))} getLabel={(style) => hairLabels[style]} onSelect={(hairStyle) => updateConfiguration({ hairStyle })} />
           <SwatchSection title="Haarkleur" swatches={hairSwatches} selected={draftConfiguration.hairColor} onSelect={(hairColor) => updateConfiguration({ hairColor })} />
-          <AssetSection title="Kleding" description="Kies een outfitvorm." options={clothingOptions} selected={draftConfiguration.clothingStyle} renderPreview={(style) => renderAvatarV2Svg(toAvatarV2RenderConfig({ ...draftConfiguration, clothingStyle: style }))} getLabel={(style) => avatarV2ClothingAssets[style].metadata.displayName} onSelect={(clothingStyle) => updateConfiguration({ clothingStyle })} />
+          <AssetSection title="Kleding" description="Kies een outfit." options={clothingOptions} selected={draftConfiguration.clothingStyle} renderPreview={(style) => renderAvatarV2Svg(toAvatarV2RenderConfig({ ...draftConfiguration, clothingStyle: style }))} getLabel={(style) => clothingLabels[style]} onSelect={(clothingStyle) => updateConfiguration({ clothingStyle })} />
           <SwatchSection title="Kledingkleur" swatches={clothingSwatches} selected={draftConfiguration.clothingColor} onSelect={(clothingColor) => updateConfiguration({ clothingColor })} />
-          <AssetSection title="Accessoire" description="Kies iets extra’s." options={accessoryOptions} selected={draftConfiguration.accessory} renderPreview={(style) => renderAvatarV2Svg(toAvatarV2RenderConfig({ ...draftConfiguration, accessory: style }))} getLabel={(style) => style === 'none' ? 'Geen accessoire' : avatarV2AccessoryAssets[style].metadata.displayName} onSelect={(accessory) => updateConfiguration({ accessory })} />
+          <AssetSection title="Accessoire" description="Kies iets extra’s." options={accessoryOptions} selected={draftConfiguration.accessory} renderPreview={(style) => renderAvatarV2Svg(toAvatarV2RenderConfig({ ...draftConfiguration, accessory: style }))} getLabel={(style) => accessoryLabels[style]} onSelect={(accessory) => updateConfiguration({ accessory })} />
           <SwatchSection title="Accessoirekleur" swatches={accessorySwatches} selected={draftConfiguration.accessoryColor} onSelect={(accessoryColor) => updateConfiguration({ accessoryColor })} />
         </div>
       </div>

@@ -24,9 +24,9 @@ describe('FamilyAvatarEditor', () => {
     render(<FamilyAvatarEditor member={member} onChange={onChange} onClose={vi.fn()} />);
 
     expect(screen.getByRole('heading', { name: /Avatar van Riley bewerken/i })).not.toBeNull();
-    expect(screen.getByRole('button', { name: /Long Soft/i }).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByRole('button', { name: /Lang zacht/i }).getAttribute('aria-pressed')).toBe('true');
 
-    await user.click(screen.getByRole('button', { name: /Bow/i }));
+    await user.click(screen.getByRole('button', { name: /Strik/i }));
     await user.click(screen.getByRole('button', { name: 'Opslaan' }));
 
     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ id: 'riley', avatarV2Config: expect.objectContaining({ accessory: 'bow' }) }));
@@ -36,10 +36,10 @@ describe('FamilyAvatarEditor', () => {
     const user = userEvent.setup();
     render(<FamilyAvatarEditor member={member} onChange={vi.fn()} onClose={vi.fn()} />);
 
-    await user.click(screen.getByRole('button', { name: /Bow/i }));
+    await user.click(screen.getByRole('button', { name: /Strik/i }));
     await user.click(screen.getByRole('button', { name: 'Annuleren' }));
 
-    expect(screen.getByRole('button', { name: /Flower Clip/i }).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByRole('button', { name: /Bloemspeld/i }).getAttribute('aria-pressed')).toBe('true');
     expect(screen.getByText('Opgeslagen')).not.toBeNull();
   });
 
@@ -50,7 +50,7 @@ describe('FamilyAvatarEditor', () => {
 
     await user.click(screen.getByRole('button', { name: 'Resetten' }));
 
-    expect(screen.getByRole('button', { name: /Short Messy/i }).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByRole('button', { name: /Kort speels/i }).getAttribute('aria-pressed')).toBe('true');
     expect(screen.getByText('Niet-opgeslagen wijzigingen')).not.toBeNull();
     expect(onChange).not.toHaveBeenCalled();
   });
