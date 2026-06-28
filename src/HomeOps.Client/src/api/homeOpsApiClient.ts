@@ -2534,40 +2534,6 @@ export class HomeOpsApiClient {
         return Promise.resolve<VisualReviewScenarioDto[]>(null as any);
     }
 
-    getVisualReviewMarketingTime(): Promise<VisualReviewMarketingTimeDto> {
-        let url_ = this.baseUrl + "/api/visual-review-fixtures/marketing-time";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "GET",
-            headers: {
-                "Accept": "application/json"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processGetVisualReviewMarketingTime(_response);
-        });
-    }
-
-    protected processGetVisualReviewMarketingTime(response: Response): Promise<VisualReviewMarketingTimeDto> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = VisualReviewMarketingTimeDto.fromJS(resultData200);
-            return result200;
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<VisualReviewMarketingTimeDto>(null as any);
-    }
-
     resetVisualReviewFixtureScenario(scenarioName: string): Promise<ApplyVisualReviewScenarioResponse> {
         let url_ = this.baseUrl + "/api/visual-review-fixtures/{scenarioName}/reset";
         if (scenarioName === undefined || scenarioName === null)
@@ -6067,46 +6033,6 @@ export class VisualReviewScenarioDto implements IVisualReviewScenarioDto {
 export interface IVisualReviewScenarioDto {
     name?: string;
     purpose?: string;
-}
-
-export class VisualReviewMarketingTimeDto implements IVisualReviewMarketingTimeDto {
-    anchorUtc?: Date | undefined;
-    today?: Date | undefined;
-
-    constructor(data?: IVisualReviewMarketingTimeDto) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (this as any)[property] = (data as any)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.anchorUtc = _data["anchorUtc"] ? new Date(_data["anchorUtc"].toString()) : undefined as any;
-            this.today = _data["today"] ? new Date(_data["today"].toString()) : undefined as any;
-        }
-    }
-
-    static fromJS(data: any): VisualReviewMarketingTimeDto {
-        data = typeof data === 'object' ? data : {};
-        let result = new VisualReviewMarketingTimeDto();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["anchorUtc"] = this.anchorUtc ? this.anchorUtc.toISOString() : undefined as any;
-        data["today"] = this.today ? formatDate(this.today) : undefined as any;
-        return data;
-    }
-}
-
-export interface IVisualReviewMarketingTimeDto {
-    anchorUtc?: Date | undefined;
-    today?: Date | undefined;
 }
 
 export class ApplyVisualReviewScenarioResponse implements IApplyVisualReviewScenarioResponse {
