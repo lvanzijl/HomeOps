@@ -3,6 +3,9 @@ Frontend test maintenance refreshed stale test expectations and fixtures to matc
 
 # Phase 2 Roadmap
 
+## Completed Slice — FamilyBoard Marketing Director
+FamilyBoard Marketing Director adds the reusable storytelling layer above the existing marketing recording framework. The Director owns storyboard sequencing, narrative validation, pacing profiles, transition selection, scene metadata, and recording event publication while the Recording Session remains execution-only. The slice includes one minimal internal sample storyboard and intentionally avoids movie generation, audio playback, screenshots, Playwright tests, production UI changes, and binary artifacts.
+
 FamilyBoard Marketing Recording Framework adds reusable infrastructure for future marketing, release, conference, and documentation videos. It introduces a tablet-landscape recording session abstraction, configuration-driven scenes, deterministic touch-first gestures, temporary recording-only touch/chapter/transition overlays, and an internal sample sequence for framework validation. The slice intentionally does not record the final movie, create screenshots, add audio, add Playwright tests, change production UI, or add binary artifacts.
 
 FamilyBoard Wide Viewport Layout improves the global responsive shell so the app uses large desktop displays more like a dashboard instead of a narrow centered document. The slice replaces the fixed 1040px app-shell cap with responsive board width tokens, lets Home add columns before stretching cards, and keeps Settings constrained for readable administrative content. Backend behavior, API contracts, database schema, workflows, navigation, VisualReview runtime, fixture data, screenshots, videos, and binary assets remain unchanged.
