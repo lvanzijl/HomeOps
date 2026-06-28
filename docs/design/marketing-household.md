@@ -8,7 +8,7 @@ This is a design artifact only. It must not be treated as production seed data, 
 
 ## Canonical Household Identity
 
-- **Household name:** De Vries family
+- **Household name:** Van Zijl family
 - **Home city context:** Utrecht area, Netherlands
 - **Primary language in UI examples:** Dutch for family-facing content, with product/navigation labels matching the current screen being demonstrated.
 - **Canonical fixture date:** Tuesday, 16 June 2026
@@ -22,15 +22,15 @@ The family is intentionally ordinary: two working parents, one school-age child,
 
 | Member | Display name | Age | Role | Personality | Avatar concept |
 | --- | --- | ---: | --- | --- | --- |
-| Dad | Mark | 38 | Parent / planning anchor for sports, errands, and weekend logistics | Patient, dry humor, likes clear lists, tends to remember gear and transport but forgets small school notes | Warm medium skin tone, short dark-brown soft crop, light stubble, round glasses, navy hoodie, calm smile |
-| Mom | Eva | 36 | Parent / emotional anchor for school, daycare, birthdays, and family rhythm | Energetic, caring, pragmatic, likes routines but accepts mess, notices when someone needs encouragement | Light skin tone, shoulder-length wavy auburn hair, soft green sweater, small hoop earrings, bright but tired smile |
+| Dad | Dad | 38 | Parent / planning anchor for sports, errands, and weekend logistics | Patient, dry humor, likes clear lists, tends to remember gear and transport but forgets small school notes | Warm medium skin tone, short dark-brown soft crop, light stubble, round glasses, navy hoodie, calm smile |
+| Mom | Mom | 36 | Parent / emotional anchor for school, daycare, birthdays, and family rhythm | Energetic, caring, pragmatic, likes routines but accepts mess, notices when someone needs encouragement | Light skin tone, shoulder-length wavy auburn hair, soft green sweater, small hoop earrings, bright but tired smile |
 | Thomas | Thomas | 6 | Older child / groep 3 pupil, learning responsibility with small tasks | Curious, chatty, football-obsessed, proud when trusted, sometimes slow in the morning | Light skin tone, sandy-blond tousled hair, freckles, blue football shirt, optional small star accessory |
 | Robin | Robin | 2 | Younger child / daycare toddler, included through parent-managed routines | Cheerful, determined, loves animals and snacks, unpredictable at transitions, naps still matter | Light skin tone, soft brown curly toddler hair, yellow jumper, rounded cheeks, no complex accessories |
 
 ### Member Rules
 
-- Mark is always Dad and always 38 years old.
-- Eva is always Mom and always 36 years old.
+- Dad is always Dad and always 38 years old.
+- Mom is always Mom and always 36 years old.
 - Thomas is always six years old.
 - Robin is always two years old.
 - Thomas is the only school-age child; Robin attends daycare.
@@ -41,9 +41,9 @@ The family is intentionally ordinary: two working parents, one school-age child,
 
 ### Weekday Routine
 
-Weekdays start around 06:45. Mark makes coffee and checks the FamilyBoard home screen while Eva gets breakfast started. Thomas needs reminders for shoes, school bag, and football days. Robin wants to choose a cup, then usually needs help getting dressed. School drop-off is at 08:20 and daycare drop-off follows at 08:35.
+Weekdays start around 06:45. Dad makes coffee and checks the FamilyBoard home screen while Mom gets breakfast started. Thomas needs reminders for shoes, school bag, and football days. Robin wants to choose a cup, then usually needs help getting dressed. School drop-off is at 08:20 and daycare drop-off follows at 08:35.
 
-Afternoons are staggered. Eva usually handles school pickup on Tuesdays and Thursdays. Mark handles football practice on Wednesday and Saturday. Dinner is simple on activity days: pasta, wraps, soup, or leftovers. FamilyBoard is checked again after dinner for tomorrow's agenda and tasks.
+Afternoons are staggered. Mom usually handles school pickup on Tuesdays and Thursdays. Dad handles football practice on Wednesday and Saturday. Dinner is simple on activity days: pasta, wraps, soup, or leftovers. FamilyBoard is checked again after dinner for tomorrow's agenda and tasks.
 
 ### Weekend Routine
 
@@ -69,20 +69,20 @@ Use Tuesday, 16 June 2026 as the default Home screenshot day.
 
 | Time | Item | Member/context | Notes |
 | --- | --- | --- | --- |
-| 08:20 | Thomas naar school | Thomas, Eva | School bag and fruit snack needed. |
-| 08:35 | Robin naar daycare | Robin, Eva | Spare clothes should be in the daycare bag. |
+| 08:20 | Thomas naar school | Thomas, Mom | School bag and fruit snack needed. |
+| 08:35 | Robin naar daycare | Robin, Mom | Spare clothes should be in the daycare bag. |
 | 15:15 | Playdate: Thomas bij Noor | Thomas | Pickup at Noor's house at 17:00. |
 | 17:30 | Snelle pasta voor zwemles | Household | Keep dinner easy before swimming. |
-| 18:15 | Zwemles Thomas | Thomas, Mark | Bring towel, goggles, and clean clothes. |
+| 18:15 | Zwemles Thomas | Thomas, Dad | Bring towel, goggles, and clean clothes. |
 
 ### Today's Tasks
 
 | Task | Owner | Status | Agenda link |
 | --- | --- | --- | --- |
-| Zwemtas klaarzetten | Mark | Open | Supports Thomas's swimming lesson. |
-| Fruitbakje en drinkbeker school | Eva | Open | Supports school day. |
-| Cadeau voor Noor inpakken | Thomas with Eva | Open | Supports playdate/birthday visit later this week. |
-| Reservekleren daycare tas | Eva | Open | Supports Robin's daycare drop-off. |
+| Zwemtas klaarzetten | Dad | Open | Supports Thomas's swimming lesson. |
+| Fruitbakje en drinkbeker school | Mom | Open | Supports school day. |
+| Cadeau voor Noor inpakken | Thomas with Mom | Open | Supports playdate/birthday visit later this week. |
+| Reservekleren daycare tas | Mom | Open | Supports Robin's daycare drop-off. |
 
 ### Shopping Summary
 
@@ -117,32 +117,32 @@ The month should feel naturally busy but not overloaded. Use recurring structure
 | --- | --- | --- | --- |
 | Monday-Friday | 08:20-14:45 | School Thomas | Thomas |
 | Monday, Tuesday, Thursday | 08:35-17:15 | Daycare Robin | Robin |
-| Monday | 19:30-20:00 | Weekplanning ouders | Mark, Eva |
-| Tuesday | 18:15-18:45 | Zwemles Thomas | Thomas, Mark |
-| Wednesday | 16:30-17:30 | Football training Thomas | Thomas, Mark |
-| Friday | 17:00-17:45 | Weekboodschappen | Eva or Mark |
-| Saturday | 09:30-10:30 | Football match/training | Thomas, Mark |
+| Monday | 19:30-20:00 | Weekplanning ouders | Dad, Mom |
+| Tuesday | 18:15-18:45 | Zwemles Thomas | Thomas, Dad |
+| Wednesday | 16:30-17:30 | Football training Thomas | Thomas, Dad |
+| Friday | 17:00-17:45 | Weekboodschappen | Mom or Dad |
+| Saturday | 09:30-10:30 | Football match/training | Thomas, Dad |
 | Sunday | 19:30-19:50 | Weekly Reset | Household; Thomas joins first 10 minutes |
 
 ### One-Off June Events
 
 | Date | Time | Title | Member/context | Notes |
 | --- | --- | --- | --- | --- |
-| Tue 2 Jun | 15:30-16:30 | Dentist check-up | Thomas, Eva | Calm appointment after school. |
-| Thu 4 Jun | 10:00-11:00 | Consultatiebureau | Robin, Mark | Toddler growth check. |
+| Tue 2 Jun | 15:30-16:30 | Dentist check-up | Thomas, Mom | Calm appointment after school. |
+| Thu 4 Jun | 10:00-11:00 | Consultatiebureau | Robin, Dad | Toddler growth check. |
 | Sat 6 Jun | 14:00-16:30 | Visit opa and oma | Household | Bring drawings from Thomas. |
 | Sun 7 Jun | 19:30-19:50 | Weekly Reset | Household | Reset after family visit weekend. |
 | Wed 10 Jun | 12:30-14:30 | School half day | Thomas | Extra pickup needed. |
 | Fri 12 Jun | 18:00-20:00 | Pizza with neighbours | Household | Keep shopping light. |
-| Sat 13 Jun | 10:00-11:00 | Football mini tournament | Thomas, Mark | Packed snacks needed. |
+| Sat 13 Jun | 10:00-11:00 | Football mini tournament | Thomas, Dad | Packed snacks needed. |
 | Tue 16 Jun | 15:15-17:00 | Playdate at Noor's | Thomas | Canonical Home day. |
-| Tue 16 Jun | 18:15-18:45 | Zwemles Thomas | Thomas, Mark | Canonical Home day. |
-| Thu 18 Jun | 09:00-09:15 | Bring library books to school | Thomas, Eva | Supports school reading. |
+| Tue 16 Jun | 18:15-18:45 | Zwemles Thomas | Thomas, Dad | Canonical Home day. |
+| Thu 18 Jun | 09:00-09:15 | Bring library books to school | Thomas, Mom | Supports school reading. |
 | Sat 20 Jun | 11:00-13:00 | Noor's birthday party | Thomas | Gift and card needed. |
 | Sun 21 Jun | 10:00-12:00 | Father's Day breakfast | Household | Pancake celebration if goal is complete. |
 | Sun 21 Jun | 19:30-19:50 | Weekly Reset | Household | Close canonical week. |
 | Wed 24 Jun | 16:30-17:30 | Last football training before break | Thomas | Bring team shirt. |
-| Fri 26 Jun | 15:00-16:00 | Daycare summer picnic | Robin, Eva | Bring fruit and blanket. |
+| Fri 26 Jun | 15:00-16:00 | Daycare summer picnic | Robin, Mom | Bring fruit and blanket. |
 | Sun 28 Jun | 15:00-17:00 | Family visit: tante Lotte | Household | Coffee, fruit, and simple cake. |
 | Sun 28 Jun | 19:30-19:50 | Weekly Reset | Household | Prepare final school week. |
 
@@ -154,37 +154,37 @@ Tasks should support the agenda directly and remain practical. Avoid inventing t
 
 | Task | Owner | Due | Motivation link |
 | --- | --- | --- | --- |
-| Zwemtas klaarzetten | Mark | Today | Counts as helpful household preparation. |
-| Fruitbakje en drinkbeker school | Eva | Today | Morning routine support. |
-| Cadeau voor Noor inpakken | Thomas with Eva | Today | Thomas contributes by choosing the card sticker. |
-| Reservekleren daycare tas | Eva | Today | Prevents daycare stress. |
-| Pasta saus uit vriezer halen | Mark | Today | Supports quick dinner before swimming. |
+| Zwemtas klaarzetten | Dad | Today | Counts as helpful household preparation. |
+| Fruitbakje en drinkbeker school | Mom | Today | Morning routine support. |
+| Cadeau voor Noor inpakken | Thomas with Mom | Today | Thomas contributes by choosing the card sticker. |
+| Reservekleren daycare tas | Mom | Today | Prevents daycare stress. |
+| Pasta saus uit vriezer halen | Dad | Today | Supports quick dinner before swimming. |
 
 ### Tomorrow: Wednesday, 17 June 2026
 
 | Task | Owner | Due | Agenda link |
 | --- | --- | --- | --- |
-| Football shirt wassen | Mark | Tomorrow | Needed before Wednesday training/Saturday match. |
-| Bibliotheekboeken zoeken | Thomas with Eva | Tomorrow | Needed for Thursday school return. |
-| Daycare forms checken | Eva | Tomorrow | Keeps Robin's daycare notes current. |
+| Football shirt wassen | Dad | Tomorrow | Needed before Wednesday training/Saturday match. |
+| Bibliotheekboeken zoeken | Thomas with Mom | Tomorrow | Needed for Thursday school return. |
+| Daycare forms checken | Mom | Tomorrow | Keeps Robin's daycare notes current. |
 
 ### Later
 
 | Task | Owner | Timing | Agenda link |
 | --- | --- | --- | --- |
-| Cadeauzakje en kaart voor Noor kopen | Eva | Before Sat 20 Jun | Birthday party. |
-| Picknickkleed wassen | Mark | Before Fri 26 Jun | Daycare summer picnic. |
-| Father's Day pancake ingredients checken | Eva and Thomas | Before Sun 21 Jun | Family goal celebration. |
+| Cadeauzakje en kaart voor Noor kopen | Mom | Before Sat 20 Jun | Birthday party. |
+| Picknickkleed wassen | Dad | Before Fri 26 Jun | Daycare summer picnic. |
+| Father's Day pancake ingredients checken | Mom and Thomas | Before Sun 21 Jun | Family goal celebration. |
 | Library tote by front door | Thomas | Thu 18 Jun morning | School library return. |
-| Plan simple dinner after football | Mark | Wed 24 Jun | Last training before break. |
+| Plan simple dinner after football | Dad | Wed 24 Jun | Last training before break. |
 
 ### Recently Completed
 
 | Task | Completed | Owner | Appreciation/agenda link |
 | --- | --- | --- | --- |
-| Football water bottle filled | Mon 15 Jun | Thomas with Mark | Thomas remembered after one reminder. |
-| Weekend laundry folded | Sun 14 Jun | Mark and Eva | Kept Monday morning easier. |
-| Robin's daycare sunscreen labelled | Sun 14 Jun | Eva | Supports warm June daycare days. |
+| Football water bottle filled | Mon 15 Jun | Thomas with Dad | Thomas remembered after one reminder. |
+| Weekend laundry folded | Sun 14 Jun | Dad and Mom | Kept Monday morning easier. |
+| Robin's daycare sunscreen labelled | Sun 14 Jun | Mom | Supports warm June daycare days. |
 | Grocery bags returned to hallway hook | Fri 12 Jun | Thomas | Helpful moment toward family goal. |
 
 ## Shopping
@@ -260,11 +260,11 @@ Shopping content should be grouped by real Dutch shopping destinations and shoul
 
 ### Appreciations
 
-- Mark appreciated Eva for packing the daycare bag before breakfast when Robin had a hard morning.
-- Eva appreciated Mark for keeping swimming calm by putting the towel and goggles near the door.
-- Mark and Eva appreciated Thomas for helping Robin find her bunny before daycare.
-- Eva appreciated Thomas for putting the grocery bags back on the hallway hook.
-- Mark appreciated Robin for trying to put her shoes by the mat, even though they were on the wrong feet.
+- Dad appreciated Mom for packing the daycare bag before breakfast when Robin had a hard morning.
+- Mom appreciated Dad for keeping swimming calm by putting the towel and goggles near the door.
+- Dad and Mom appreciated Thomas for helping Robin find her bunny before daycare.
+- Mom appreciated Thomas for putting the grocery bags back on the hallway hook.
+- Dad appreciated Robin for trying to put her shoes by the mat, even though they were on the wrong feet.
 
 ### Celebrations
 
@@ -281,7 +281,7 @@ Shopping content should be grouped by real Dutch shopping destinations and shoul
 
 ## Weekly Reset
 
-Treat Weekly Reset as a calm Sunday evening ritual, usually 19:30-19:50 after Robin is asleep. Thomas joins the first 10 minutes for recognition, then Mark and Eva finish carried-forward planning.
+Treat Weekly Reset as a calm Sunday evening ritual, usually 19:30-19:50 after Robin is asleep. Thomas joins the first 10 minutes for recognition, then Dad and Mom finish carried-forward planning.
 
 ### Completed Tasks for Canonical Week
 
@@ -326,14 +326,14 @@ Settings examples should communicate safety and confidence without exposing impl
 - **Latest backup:** Sunday, 21 June 2026 at 19:58, after Weekly Reset.
 - **Calendar connection:** Family calendar connected and last refreshed Tuesday, 16 June 2026 at 07:05.
 - **Restore availability:** Restore point available from Sunday, 21 June 2026 after Weekly Reset and from Friday, 19 June 2026 before weekend changes.
-- **Household members:** Mark, Eva, Thomas, Robin.
+- **Household members:** Dad, Mom, Thomas, Robin.
 - **Maintenance tone:** Reassuring and non-technical; avoid database, API, file, or infrastructure language.
 
 ## Consistency Rules for Future Marketing Fixtures
 
 1. This is the canonical FamilyBoard marketing household.
 2. Future marketing fixtures must derive household data from this document instead of inventing new names, ages, roles, avatars, or routines.
-3. Mark is always Dad, age 38; Eva is always Mom, age 36; Thomas is always age 6; Robin is always age 2.
+3. Dad is always Dad, age 38; Mom is always Mom, age 36; Thomas is always age 6; Robin is always age 2.
 4. Thomas is always the school-age child; Robin is always the toddler in daycare.
 5. Avatar concepts must remain visually stable unless a later design change explicitly updates this document.
 6. Tasks must align with agenda events. For example, swimming tasks only appear near swimming lessons.

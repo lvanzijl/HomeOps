@@ -23,6 +23,14 @@ public static class VisualReviewFixtureService
         new("visual-child-older", "Older child workspace review with a personal goal, contributions, helpful moments, and celebration context."),
         new("visual-weekly-reset", "Weekly Reset review with candidates, goal confirmation, shopping review, and contribution recap."),
         new("visual-shopping-lifecycle", "Shopping lifecycle review with active, completed, deleted, store-suggested, and archived list states."),
+        new("visual-marketing-home", "Canonical Van Zijl marketing household opening-shot dashboard fixture."),
+        new("visual-marketing-family", "Canonical Van Zijl marketing household family-member and avatar-editing fixture."),
+        new("visual-marketing-agenda", "Canonical Van Zijl marketing household agenda fixture for month, week, and list review."),
+        new("visual-marketing-tasks", "Canonical Van Zijl marketing household task completion and add-task fixture."),
+        new("visual-marketing-shopping", "Canonical Van Zijl marketing household grouped-shopping fixture."),
+        new("visual-marketing-motivation", "Canonical Van Zijl marketing household motivation, appreciation, celebration, and statistics fixture."),
+        new("visual-marketing-weekly-reset", "Canonical Van Zijl marketing household Weekly Reset walkthrough fixture."),
+        new("visual-marketing-settings", "Canonical Van Zijl marketing household reassuring settings fixture."),
     ];
 
     public static async Task<ApplyVisualReviewScenarioResponse?> ApplyScenario(HomeOpsDbContext db, string scenarioName, CancellationToken ct)
@@ -30,6 +38,11 @@ public static class VisualReviewFixtureService
         if (!Scenarios.Any(s => string.Equals(s.Name, scenarioName, StringComparison.OrdinalIgnoreCase))) return null;
         await ClearReviewData(db, ct);
         await EnsureHousehold(db, ct);
+        if (TryApplyMarketingScenario(db, scenarioName))
+        {
+            await db.SaveChangesAsync(ct);
+            return new(scenarioName, MarketingHouseholdFixtureBuilder.AnchorUtc, db.FamilyMembers.Local.Count, db.HouseholdTasks.Local.Count, db.Lists.Local.Count, db.ListItems.Local.Count, db.MotivationFamilyGoals.Local.Count, db.MotivationIndividualGoals.Local.Count, db.HelpfulMoments.Local.Count, db.EventSeries.Local.Count);
+        }
         if (scenarioName != "visual-empty") AddFamily(db);
         AddCalendarSource(db);
         switch (scenarioName)
@@ -43,6 +56,25 @@ public static class VisualReviewFixtureService
         }
         await db.SaveChangesAsync(ct);
         return new(scenarioName, AnchorUtc, db.FamilyMembers.Local.Count, db.HouseholdTasks.Local.Count, db.Lists.Local.Count, db.ListItems.Local.Count, db.MotivationFamilyGoals.Local.Count, db.MotivationIndividualGoals.Local.Count, db.HelpfulMoments.Local.Count, db.EventSeries.Local.Count);
+    }
+
+    private static bool TryApplyMarketingScenario(HomeOpsDbContext db, string scenarioName)
+    {
+        var scene = scenarioName.ToLowerInvariant() switch
+        {
+            "visual-marketing-home" => MarketingScene.Home,
+            "visual-marketing-family" => MarketingScene.Family,
+            "visual-marketing-agenda" => MarketingScene.Agenda,
+            "visual-marketing-tasks" => MarketingScene.Tasks,
+            "visual-marketing-shopping" => MarketingScene.Shopping,
+            "visual-marketing-motivation" => MarketingScene.Motivation,
+            "visual-marketing-weekly-reset" => MarketingScene.WeeklyReset,
+            "visual-marketing-settings" => MarketingScene.Settings,
+            _ => (MarketingScene?)null,
+        };
+        if (scene is null) return false;
+        MarketingHouseholdFixtureBuilder.Add(db, scene.Value);
+        return true;
     }
 
     private static async Task ClearReviewData(HomeOpsDbContext db, CancellationToken ct)
