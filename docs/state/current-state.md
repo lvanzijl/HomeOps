@@ -1,4 +1,5 @@
 # Current State
+- 2026-06-28: Added the executable FamilyBoard marketing preview storyboard module for the canonical 9-scene Marketing Storyboard V1, including Chapter Card, emotional curve, fixture, duration, semantic action, and recording-plan validation metadata without browser recording, screenshots, audio, WAV files, production UI changes, or generated media.
 - 2026-06-28: Added the reusable FamilyBoard marketing audio framework with event-bus subscription, replaceable placeholder WAV generation, optional music/timeline/mixer/export helpers, and ignored local validation mix support without committed audio binaries, production UI, screenshots, videos, or application sound effects.
 - 2026-06-28: Added the FamilyBoard Marketing Director storytelling layer with storyboard configuration, richer scene metadata, reusable timing profiles, narrative validation, recording event infrastructure, and a sample internal storyboard without production UI, audio playback, screenshots, videos, Playwright tests, or binary artifacts.
 - 2026-06-28: Added the reusable FamilyBoard marketing recording framework with tablet-landscape session orchestration, scene definitions, touch-first deterministic gesture helpers, temporary recording overlays, scene transitions, and a sample validation sequence without production UI, screenshots, videos, audio, or Playwright tests.
@@ -43,7 +44,7 @@
 Phase 2 — Durable Household Core
 
 ## Current Slice
-FamilyBoard Marketing Audio Framework — Completed
+Executable FamilyBoard Marketing Storyboard — Completed
 
 ## Completed Slices
 - 1.1 Repository Bootstrap
