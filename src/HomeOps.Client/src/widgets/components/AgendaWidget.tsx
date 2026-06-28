@@ -23,6 +23,7 @@ import type {
 } from "../../events/eventSourceModel";
 import { FamilyBoardIcon, type FamilyBoardIconName } from "../../design";
 import type { WidgetRenderProps } from "../WidgetRenderer";
+import { useVisualReviewNow } from "../../visualReviewTime";
 
 type EventDialogQuestion = "title" | "date" | "dayKind" | "details";
 type AgendaWorkspaceMode = "month" | "week" | "list";
@@ -48,10 +49,12 @@ function createEmptyForm(date = todayIsoDate()): EventFormState {
 const emptyForm: EventFormState = createEmptyForm();
 
 export function AgendaWidget({ instance }: WidgetRenderProps) {
-  const [selectedDate, setSelectedDate] = useState(todayIsoDate());
+  const visualReviewNow = useVisualReviewNow();
+  const today = visualReviewNow ? toIsoDate(visualReviewNow) : todayIsoDate();
+  const [selectedDate, setSelectedDate] = useState(today);
   const [activeWorkspaceMode, setActiveWorkspaceMode] =
     useState<AgendaWorkspaceMode>("month");
-  const [weekAnchorDate, setWeekAnchorDate] = useState(todayIsoDate());
+  const [weekAnchorDate, setWeekAnchorDate] = useState(today);
   const [calendarEvents, setCalendarEvents] = useState<NormalizedEvent[]>([]);
   const [calendarSources, setCalendarSources] = useState<EventSource[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -158,7 +161,7 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
     setForm(emptyForm);
   }
 
-  function openNewEventForm(date = selectedDate || todayIsoDate()) {
+  function openNewEventForm(date = selectedDate || today) {
     setEditingEventId(null);
     setSelectedDate(date);
     setForm(createEmptyForm(date));
@@ -309,7 +312,7 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
           onEdit={startEditing}
           onSelectDate={setSelectedDate}
           selectedDate={selectedDate}
-          today={todayIsoDate()}
+          today={today}
         />
       ) : activeWorkspaceMode === "week" ? (
         <WeekWorkspace
@@ -319,7 +322,7 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
           onDelete={removeEvent}
           onEdit={startEditing}
           onNavigate={setWeekAnchorDate}
-          today={todayIsoDate()}
+          today={today}
         />
       ) : (
         <ListWorkspace
@@ -327,7 +330,7 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
           events={agendaEvents}
           onDelete={removeEvent}
           onEdit={startEditing}
-          today={todayIsoDate()}
+          today={today}
         />
       )}
     </article>

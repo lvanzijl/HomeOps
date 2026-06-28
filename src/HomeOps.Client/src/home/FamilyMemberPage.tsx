@@ -16,6 +16,7 @@ import {
 import { FamilyAvatar } from "./FamilyAvatar";
 import { FamilyAvatarEditor } from "./FamilyAvatarEditor";
 import type { FamilyMember, FamilyMemberKind } from "./familyMembers";
+import { useVisualReviewNow } from "../visualReviewTime";
 
 interface FamilyMemberPageProps {
   member: FamilyMember;
@@ -114,7 +115,9 @@ export function FamilyMemberPage({
       onRemove(member);
   }
 
-  const age = calculateAge(member.dateOfBirth);
+  const visualReviewNow = useVisualReviewNow();
+  const todayIso = (visualReviewNow ?? new Date()).toISOString().slice(0, 10);
+  const age = calculateAge(member.dateOfBirth, visualReviewNow ?? undefined);
   const ageBand =
     member.memberKind === "child" && age !== null && age <= 5
       ? "early-child"
@@ -192,6 +195,7 @@ export function FamilyMemberPage({
                 member={member}
                 tasks={tasks}
                 status={tasksStatus}
+                todayIso={todayIso}
               />
               <ChildHeroArea
                 member={member}
@@ -594,10 +598,12 @@ function TodaySection({
   member,
   tasks,
   status,
+  todayIso,
 }: {
   member: FamilyMember;
   tasks: readonly HouseholdTask[];
   status: "loading" | "ready" | "error";
+  todayIso: string;
 }) {
   const childTasks = tasks
     .filter(
@@ -615,7 +621,6 @@ function TodaySection({
         a.createdUtc.localeCompare(b.createdUtc),
     );
   const visibleTasks = childTasks.slice(0, 3);
-  const todayIso = new Date().toISOString().slice(0, 10);
   const dueTodayCount = childTasks.filter(
     (task) => task.dueDate === null || task.dueDate <= todayIso,
   ).length;
@@ -654,7 +659,7 @@ function TodaySection({
                 <HomeOpsIcon name="completed" />
                 <div>
                   <strong>{task.title}</strong>
-                  <p>{friendlyTaskDue(task)}</p>
+                  <p>{friendlyTaskDue(task, todayIso)}</p>
                 </div>
               </li>
             ))}
@@ -916,19 +921,18 @@ function IndividualGoalProgress({
   );
 }
 
-function friendlyTaskDue(task: HouseholdTask) {
-  const todayIso = new Date().toISOString().slice(0, 10);
+function friendlyTaskDue(task: HouseholdTask, todayIso: string) {
   if (!task.dueDate) return "Klaar wanneer jij dat bent.";
   if (task.dueDate < todayIso) return "Deze wacht op jou.";
   if (task.dueDate === todayIso) return "Voor vandaag.";
   return `Komt eraan op ${task.dueDate}.`;
 }
 
-function calculateAge(dateOfBirth?: string | null) {
+function calculateAge(dateOfBirth?: string | null, todayOverride?: Date) {
   if (!dateOfBirth) return null;
   const birthDate = new Date(`${dateOfBirth}T00:00:00Z`);
   if (Number.isNaN(birthDate.getTime())) return null;
-  const today = new Date();
+  const today = todayOverride ?? new Date();
   let age = today.getUTCFullYear() - birthDate.getUTCFullYear();
   const birthdayPassed =
     today.getUTCMonth() > birthDate.getUTCMonth() ||
