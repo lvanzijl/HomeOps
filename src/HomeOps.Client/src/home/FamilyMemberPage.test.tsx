@@ -187,11 +187,8 @@ describe("FamilyMemberPage", () => {
     expect(screen.getAllByText("✓").length).toBeGreaterThan(0);
     expect(screen.getByText("Mijn voortgang")).not.toBeNull();
     expect(
-      screen
-        .getByLabelText("Huidig doel en voortgang")
-        .querySelector("img")
-        ?.getAttribute("src"),
-    ).toContain("data-asset-name='child-my-progress'");
+      screen.getByLabelText("Huidig doel en voortgang").querySelector("img"),
+    ).toBeNull();
     expect(
       screen.getByLabelText("Vandaag").querySelector("img")?.getAttribute("src"),
     ).toContain("data-asset-name='child-today'");
@@ -356,17 +353,17 @@ describe("FamilyMemberPage", () => {
     expect(pageText.indexOf("Mijn voortgang bekijken")).toBeLessThan(
       familyGoalAfterDisclosure,
     );
-    expect(pageText.indexOf("Recente waardering")).toBeLessThan(
+    expect(pageText.indexOf("Nieuwste waardering")).toBeLessThan(
       pageText.indexOf("Mijn voortgang bekijken"),
     );
-    expect(pageText.indexOf("Recente waardering")).toBeLessThan(
-      pageText.indexOf("Oudermodus"),
+    expect(pageText.indexOf("Oudermodus")).toBeLessThan(
+      pageText.indexOf("Nieuwste waardering"),
     );
-    expect(pageText.indexOf("Mijn voortgang")).toBeLessThan(
-      pageText.indexOf("Oudermodus"),
+    expect(pageText.indexOf("Oudermodus")).toBeLessThan(
+      pageText.indexOf("Mijn voortgang"),
     );
-    expect(pageText.indexOf("Fill the family helper path")).toBeLessThan(
-      pageText.indexOf("Oudermodus"),
+    expect(pageText.indexOf("Oudermodus")).toBeLessThan(
+      pageText.indexOf("Fill the family helper path"),
     );
     expect(pageText).not.toContain("Edit member");
   });
@@ -433,14 +430,16 @@ describe("FamilyMemberPage", () => {
       />,
     );
 
-    await user.click(screen.getByRole("button", { name: "Avatar bewerken" }));
+    await user.click(
+      screen.getAllByRole("button", { name: "Avatar bewerken" })[0],
+    );
 
     expect(
       screen.getByRole("dialog", {
         name: "Avatarbewerker voor Alex",
       }),
     ).not.toBeNull();
-    await user.click(screen.getByRole("button", { name: /Curly Playful/i }));
+    await user.click(screen.getByRole("button", { name: /Speelse krullen/i }));
     await user.click(screen.getByRole("button", { name: "Opslaan" }));
     expect(onChange).toHaveBeenCalledWith(
       expect.objectContaining({

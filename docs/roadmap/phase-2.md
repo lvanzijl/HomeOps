@@ -467,3 +467,7 @@ Agenda Event Indicators replaces month-cell count text with frontend-derived typ
 
 ### Avatar Editor Final Polish — Completed 2026-06-28
 Avatar Editor Final Polish resolves the remaining Friends & Family visual blocker from the authoritative round-2 review by reducing the Family Member Avatar Editor's desktop vertical footprint. The current categories, accessory options, accessory colour controls, Save, and Cancel now fit in the initial 1920×1080 dialog view without introducing new avatar features, new controls, scrolling behavior, renderer changes, persistence changes, backend/API/schema changes, workflow changes, or binary artifacts.
+
+
+### Family Member Compact Layout — Completed 2026-06-28
+Family Member Compact Layout resolves a Friends & Family blocker found in the preview video by making Family Member detail pages feel like part of FamilyBoard instead of profile landing pages. The slice replaces the dominant back action with compact header navigation, removes the large non-avatar decorative progress image from the child member hero, promotes Avatar V2 and Avatar editing in the compact identity header, and surfaces parent/child mode controls before the child content. Backend behavior, API contracts, database schema, Avatar V2 renderer and persistence, family-member persistence, workflows, navigation routes, and binary assets remain unchanged.

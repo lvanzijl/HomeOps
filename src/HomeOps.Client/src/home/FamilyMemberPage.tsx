@@ -129,11 +129,11 @@ export function FamilyMemberPage({
       <nav className="page-header-actions family-member-navigation" aria-label="Gezinslidnavigatie">
         <button className="compact-header-action" type="button" onClick={onBack}>
           <HomeOpsIcon name="arrowBack" />
-          <span>Terug naar Thuis</span>
+          <span>Terug</span>
         </button>
       </nav>
       <header
-        className="family-member-hero child-progress-hero"
+        className="family-member-hero family-member-compact-header"
         style={{ "--member-color": member.displayColor } as CSSProperties}
       >
         <div className="family-member-hero-avatar">
@@ -145,14 +145,44 @@ export function FamilyMemberPage({
           </p>
           <h2>{member.name}</h2>
           <p>{ageContext(member, age)}</p>
-          {member.memberKind === "child" ? (
-            <p className="child-mode-question">Wat is de volgende stap?</p>
-          ) : null}
+          <div className="family-member-header-actions">
+            <button
+              className="secondary-action compact-action"
+              type="button"
+              onClick={() => setIsEditingAvatar(true)}
+            >
+              Avatar bewerken
+            </button>
+          </div>
         </div>
       </header>
 
       {member.memberKind === "child" ? (
         <div className="member-mode-shell">
+          <div
+            className="member-mode-switch"
+            role="tablist"
+            aria-label="Modus gezinslidpagina"
+          >
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeMode === "child"}
+              className={activeMode === "child" ? "active" : ""}
+              onClick={() => setActiveMode("child")}
+            >
+              Kindmodus
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeMode === "parent"}
+              className={activeMode === "parent" ? "active" : ""}
+              onClick={() => setActiveMode("parent")}
+            >
+              Oudermodus
+            </button>
+          </div>
           {activeMode === "child" ? (
             <section
               className={`child-progress-view child-mode ${ageBand}`}
@@ -214,30 +244,6 @@ export function FamilyMemberPage({
           )}
           <div className="member-mode-discovery">
             <p>Volwassenen kunnen de oudermodus gebruiken voor instellingen.</p>
-          </div>
-          <div
-            className="member-mode-switch"
-            role="tablist"
-            aria-label="Modus gezinslidpagina"
-          >
-            <button
-              type="button"
-              role="tab"
-              aria-selected={activeMode === "child"}
-              className={activeMode === "child" ? "active" : ""}
-              onClick={() => setActiveMode("child")}
-            >
-              Kindmodus
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={activeMode === "parent"}
-              className={activeMode === "parent" ? "active" : ""}
-              onClick={() => setActiveMode("parent")}
-            >
-              Oudermodus
-            </button>
           </div>
         </div>
       ) : (
@@ -491,11 +497,6 @@ function ChildHeroArea({
       </div>
 
       <div className="child-hero-main" aria-label="Huidig doel en voortgang">
-        <HomeOpsIcon
-          className="child-section-asset"
-          name="childMyProgress"
-          variant="spot"
-        />
         <p className="eyebrow">Hoe gaat het?</p>
         <h2>
           {primaryGoal?.title ?? familyGoal?.title ?? "Er komt een nieuw doel"}
