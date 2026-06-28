@@ -404,7 +404,7 @@ describe("MotivationPage", () => {
     expect(await screen.findByLabelText("Motivatiedashboard")).not.toBeNull();
     await user.click(screen.getByRole("button", { name: "Doelen beheren" }));
     expect(await screen.findByText("Persoonlijke doelen deze week")).not.toBeNull();
-    await user.click(screen.getByRole("button", { name: "Doel toevoegen" }));
+    await user.click(screen.getByRole("button", { name: "Persoonlijk doel toevoegen" }));
     const createForm = screen.getByLabelText("Persoonlijk doel maken formulier");
     await user.selectOptions(
       within(createForm).getByLabelText("Gezinslid"),

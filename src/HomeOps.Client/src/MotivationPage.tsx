@@ -490,7 +490,7 @@ function UpcomingCelebrationsCard({
             key={`${item.label}-${item.title}`}
           >
             <HomeOpsIcon name={item.icon} />
-            <div>
+            <div className="celebration-mini-copy">
               <strong>{item.title}</strong>
               <span>{item.label}</span>
             </div>
@@ -570,7 +570,7 @@ function FamilyStatsCard({
           onClick={onAddPersonalGoal}
         >
           <HomeOpsIcon name="add" />
-          Doel toevoegen
+          Persoonlijk doel toevoegen
         </button>
       </div>
     </section>

@@ -3,6 +3,10 @@ Frontend test maintenance refreshed stale test expectations and fixtures to matc
 
 # Phase 2 Roadmap
 
+## Completed Slice — FamilyBoard Final Visual Polish
+FamilyBoard Final Visual Polish resolves the actionable defects from the first authoritative populated visual UX review. The slice keeps the Avatar Editor within a 1920×1080 viewport with contained editor scrolling, completes Dutch Avatar Editor wording, reduces the visual weight of Tasks Klaar/Morgen action buttons while preserving touch targets, separates Motivation celebration title/status text, and renames the personal-goal add action to match the existing personal-goal form. Backend behavior, API contracts, database schema, workflows, navigation, screenshots, and binary assets remain unchanged.
+
+
 ## Completed Slice — FamilyBoard Dialog Design System
 FamilyBoard Dialog Design System introduces a shared dialog presentation layer for existing dialogs without changing dialog workflows. Dialogs now use wider, calmer cards, softer blurred overlay dimming, spacious controls, rounded FamilyBoard action buttons, and subtle workspace accents for Agenda, Taken, Boodschappen, and Motivation surfaces. Redundant explanatory copy was reduced where it repeated the current question. Backend behavior, API contracts, database schema, validation, wizard logic, and form behavior remain unchanged.
 
