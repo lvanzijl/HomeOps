@@ -252,18 +252,31 @@ button {
 }
 
 .source-selector {
-  border: 1px solid var(--border-default);
-  border-radius: 0.75rem;
+  border: 1px solid var(--border-warm);
+  border-radius: 999px;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem 1rem;
+  gap: 0.5rem;
+  padding: 0.55rem 0.7rem;
+}
+
+.source-selector legend {
+  color: var(--color-text-muted);
+  font-size: 0.78rem;
+  font-weight: 850;
+  letter-spacing: 0.05em;
+  padding: 0 0.35rem;
+  text-transform: uppercase;
 }
 
 .source-selector label {
   align-items: center;
+  background: rgb(255 255 255 / 70%);
+  border: 1px solid var(--border-warm);
+  border-radius: 999px;
   display: inline-flex;
   gap: 0.4rem;
+  padding: 0.28rem 0.55rem;
 }
 
 .source-color {
@@ -4582,6 +4595,10 @@ button {
   font-size: 1.25rem;
 }
 
+.agenda-month-title h4 {
+  font-size: 1.55rem;
+}
+
 .agenda-month-title > p,
 .agenda-detail-header p:last-child {
   color: var(--color-text-muted);
@@ -4689,14 +4706,22 @@ button {
 }
 
 .agenda-detail-header button {
-  background: var(--color-brand-accent);
-  border: 1px solid var(--color-brand-accent);
+  background: rgb(255 255 255 / 76%);
+  border: 1px solid var(--border-warm);
   border-radius: 999px;
-  color: white;
+  color: var(--color-text-strong);
   cursor: pointer;
-  font-weight: 800;
-  padding: 0.55rem 0.8rem;
+  font-size: 0.84rem;
+  font-weight: 850;
+  padding: 0.38rem 0.65rem;
   white-space: nowrap;
+}
+
+.agenda-detail-header button:hover,
+.agenda-detail-header button:focus-visible {
+  background: var(--surface-warm-tint);
+  border-color: var(--color-brand-accent);
+  outline: none;
 }
 
 .agenda-day-empty-state {
@@ -4869,6 +4894,7 @@ button {
 }
 
 .agenda-workspace-toggle button[aria-pressed="true"],
+.agenda-week-navigation button.current,
 .agenda-week-navigation button:hover,
 .agenda-week-navigation button:focus-visible,
 .agenda-workspace-toggle button:hover,
@@ -4877,6 +4903,11 @@ button {
   border-color: var(--color-brand-accent);
   color: white;
   outline: none;
+}
+
+.agenda-week-navigation button.secondary {
+  color: var(--color-text-muted);
+  font-weight: 750;
 }
 
 .agenda-week-workspace {
@@ -4905,7 +4936,7 @@ button {
 
 .agenda-week-header h4 {
   color: var(--color-text-strong);
-  font-size: 1.25rem;
+  font-size: 1.35rem;
 }
 
 .agenda-week-header p:last-child {
@@ -4951,8 +4982,9 @@ button {
 }
 
 .agenda-week-day-card.today {
-  background: color-mix(in srgb, var(--color-brand-accent) 10%, white);
+  background: color-mix(in srgb, var(--color-brand-accent) 8%, white);
   border-color: var(--color-brand-accent);
+  box-shadow: inset 0 0 0 2px rgb(255 255 255 / 72%);
 }
 
 .agenda-week-day-header {
@@ -5007,13 +5039,10 @@ button {
 }
 
 .agenda-week-day-empty {
-  background: rgb(255 255 255 / 58%);
-  border: 1px dashed var(--border-warm);
+  background: rgb(255 255 255 / 42%);
+  border: 1px dashed rgb(234 223 209 / 72%);
   border-radius: 0.85rem;
-  color: var(--color-text-muted);
-  display: grid;
-  gap: 0.25rem;
-  padding: 0.65rem;
+  min-height: 2.25rem;
 }
 
 .agenda-week-day-empty strong {
@@ -5106,7 +5135,7 @@ button {
 
 .agenda-list-header h4 {
   color: var(--color-text-strong);
-  font-size: 1.25rem;
+  font-size: 1.45rem;
 }
 
 .agenda-list-header p:last-child {

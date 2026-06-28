@@ -281,7 +281,7 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
       ) : null}
 
       <fieldset className="source-selector">
-        <legend>Bronnen</legend>
+        <legend>Zichtbaar in de agenda</legend>
         {eventSources.map((source) => (
           <label key={source.id}>
             <input
@@ -296,7 +296,7 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
               style={{ backgroundColor: source.color.hex }}
               aria-hidden="true"
             />
-            {source.name}
+            {formatFamilyFilterLabel(source.name)}
           </label>
         ))}
       </fieldset>
@@ -569,29 +569,12 @@ function ListWorkspace({
     () => buildTimelineGroups(events, today),
     [events, today],
   );
-  const upcomingEventCount = timelineGroups.reduce(
-    (count, group) => count + group.events.length,
-    0,
-  );
-
   return (
     <section className="agenda-list-workspace" aria-label="Lijstplanning">
       <header className="agenda-list-header">
         <div>
-          <p className="eyebrow">Chronologisch overzicht</p>
           <h4>Wat komt eraan?</h4>
-          <p>
-            Een rustige tijdlijn van de komende gezinsmomenten, van vandaag naar
-            later.
-          </p>
         </div>
-        <span>
-          {upcomingEventCount === 0
-            ? "Geen komende momenten"
-            : upcomingEventCount === 1
-              ? "1 komend moment"
-              : `${upcomingEventCount} komende momenten`}
-        </span>
       </header>
 
       {timelineGroups.length > 0 ? (
@@ -698,21 +681,26 @@ function WeekWorkspace({
     <section className="agenda-week-workspace" aria-label="Weekplanning">
       <header className="agenda-week-header">
         <div>
-          <p className="eyebrow">Weekplanning</p>
+          <p className="eyebrow">Week {getIsoWeekNumber(weekStart)}</p>
           <h4>{formatWeekRange(weekStart, weekEnd)}</h4>
-          <p>Wat gebeurt er deze week, en waar wordt het druk?</p>
         </div>
         <div className="agenda-week-navigation" aria-label="Weeknavigatie">
           <button
+            className="secondary"
             type="button"
             onClick={() => onNavigate(addDaysIso(weekStart, -7))}
           >
             Vorige week
           </button>
-          <button type="button" onClick={() => onNavigate(today)}>
+          <button
+            className="current"
+            type="button"
+            onClick={() => onNavigate(today)}
+          >
             Deze week
           </button>
           <button
+            className="secondary"
             type="button"
             onClick={() => onNavigate(addDaysIso(weekStart, 7))}
           >
@@ -780,7 +768,6 @@ function WeekDayCard({
           <p>{formatDutchWeekday(date)}</p>
           <h5>{formatDutchShortDate(date)}</h5>
         </div>
-        {isToday ? <span>Vandaag</span> : null}
       </header>
 
       {events.length > 0 ? (
@@ -803,11 +790,6 @@ function WeekDayCard({
               <span className="agenda-event-overflow">+{overflowCount}</span>
             ) : null}
           </div>
-          <p className="agenda-week-day-summary">
-            {events.length === 1
-              ? "1 moment om rekening mee te houden."
-              : `${events.length} momenten op de gezinsplanning.`}
-          </p>
           <AgendaEventList
             deletingEventId={deletingEventId}
             events={visibleEvents}
@@ -821,10 +803,7 @@ function WeekDayCard({
           ) : null}
         </>
       ) : (
-        <div className="agenda-week-day-empty">
-          <strong>Rustige dag</strong>
-          <p>Ruimte om adem te halen of iets kleins voor te bereiden.</p>
-        </div>
+        <div className="agenda-week-day-empty" aria-hidden="true" />
       )}
     </article>
   );
@@ -899,10 +878,9 @@ function MonthGrid({
     <section className="agenda-month-grid-card" aria-label="Maandrooster">
       <header className="agenda-month-title">
         <div>
-          <p className="eyebrow">Maandoverzicht</p>
+          <p className="eyebrow">Maand</p>
           <h4>{formatDutchMonth(selectedDate)}</h4>
         </div>
-        <p>Kies een dag om de planning te bekijken.</p>
       </header>
       <div className="agenda-weekday-row" aria-hidden="true">
         {dutchWeekdays.map((weekday) => (
@@ -959,9 +937,7 @@ function MonthGrid({
                     </span>
                   ) : null}
                 </span>
-              ) : (
-                <span className="agenda-day-empty">Rustige dag</span>
-              )}
+              ) : null}
             </button>
           );
         })}
@@ -999,7 +975,7 @@ function SelectedDayPanel({
               : `${events.length} op de planning.`}
           </p>
         </div>
-        <button type="button" onClick={onAddEvent}>
+        <button className="compact-action" type="button" onClick={onAddEvent}>
           Gebeurtenis toevoegen
         </button>
       </header>
@@ -1017,10 +993,7 @@ function SelectedDayPanel({
               ? "Begin met de eerste gebeurtenis"
               : "Deze dag is nog leeg"}
           </strong>
-          <p>
-            Voeg een gebeurtenis toe voor deze datum of kies een andere dag in
-            het maandrooster.
-          </p>
+          <p>Ruimte in de agenda.</p>
         </div>
       )}
     </aside>
@@ -1055,8 +1028,7 @@ function AgendaEventList({
               <span className="agenda-event-card-kicker">{visual.label}</span>
               <strong>{event.title}</strong>
               <small>
-                {formatEventTime(event)} · {event.source.name} ·{" "}
-                {event.editable ? "Bewerkbaar" : "Alleen lezen"}
+                {formatEventTime(event)} · {visual.label}
               </small>
             </span>
             {event.editable ? (
@@ -1562,6 +1534,35 @@ function formatDutchMonth(date: string) {
 function formatDutchDay(date: string) {
   return dutchDayFormatter.format(new Date(`${date}T12:00:00`));
 }
+function formatFamilyFilterLabel(sourceName: string) {
+  const normalized = sourceName.toLowerCase();
+
+  if (normalized.includes("school")) return "School";
+  if (normalized.includes("birthday") || normalized.includes("verjaardag")) {
+    return "Verjaardagen";
+  }
+  if (normalized.includes("tv") || normalized.includes("series")) {
+    return "TV-series";
+  }
+  if (normalized.includes("holiday") || normalized.includes("vakantie")) {
+    return "Vakanties";
+  }
+  if (normalized.includes("homeops") || normalized.includes("calendar")) {
+    return "Gezin";
+  }
+
+  return sourceName;
+}
+
+function getIsoWeekNumber(date: string) {
+  const value = new Date(`${date}T00:00:00.000Z`);
+  value.setUTCDate(value.getUTCDate() + 4 - (value.getUTCDay() || 7));
+  const yearStart = new Date(Date.UTC(value.getUTCFullYear(), 0, 1));
+  return Math.ceil(
+    ((value.getTime() - yearStart.getTime()) / 86400000 + 1) / 7,
+  );
+}
+
 function todayIsoDate() {
   return toIsoDate(new Date());
 }
