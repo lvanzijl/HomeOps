@@ -3,6 +3,7 @@ import { addShoppingListItem, archiveShoppingList, createListsApiClient, createS
 import type { ShoppingListItem, ShoppingListState } from '../../shopping/shoppingListModel';
 import { groupShoppingItemsByPreferredStore } from '../../shopping/shoppingGrouping';
 import { getActiveShoppingListItems, getCompletedShoppingListItems, getDeletedShoppingListItems, upsertShoppingListItem } from '../../shopping/shoppingListState';
+import { FamilyBoardIcon } from '../../design';
 import type { WidgetRenderProps } from '../WidgetRenderer';
 
 function getDisplayListName(name: string) {
@@ -106,7 +107,7 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
           <span className="shopping-illustration-sun" />
           <span className="shopping-illustration-family shopping-illustration-grownup" />
           <span className="shopping-illustration-family shopping-illustration-child" />
-          <span className="shopping-illustration-bag">↟</span>
+          <span className="shopping-illustration-bag"><FamilyBoardIcon name="shopping.bag" size={32} /></span>
         </div>
       </header>
       <section className="shopping-quick-add-panel" aria-labelledby="shopping-quick-add-title">

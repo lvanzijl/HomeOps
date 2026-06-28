@@ -9,3 +9,15 @@ export function ReadyIcon({ children, ...props }: FamilyBoardIconSvgProps) {
     </svg>
   );
 }
+
+export function PendingIcon({ children, ...props }: FamilyBoardIconSvgProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" {...props}>
+      {children}
+      <path d="M20 12a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z" />
+      <path d="M9 12h.01" />
+      <path d="M12 12h.01" />
+      <path d="M15 12h.01" />
+    </svg>
+  );
+}

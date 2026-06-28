@@ -43,6 +43,7 @@ Tasks and Weekly Reset Family-First UX Pass warms the Tasks surface and contextu
 
 | Slice | Name | Status |
 | --- | --- | --- |
+| 2.68 | FamilyBoard Design Asset System Phase 1 | Completed |
 | 2.67 | FamilyBoard Design Asset System Foundation | Completed |
 | 2.1 | Durable Lists Foundation | Completed |
 | 2.2 | Widget/Layout Persistence | Completed |
@@ -81,6 +82,9 @@ Tasks and Weekly Reset Family-First UX Pass warms the Tasks surface and contextu
 | 2.41 | No-Date Task Lifecycle | Completed |
 
 Phase 2 theme: Durable Household Core.
+
+## Completed Slice 2.68 — FamilyBoard Design Asset System Phase 1
+FamilyBoard Design Asset System Phase 1 replaces the highest-impact preview-movie glyph debt with semantic inline React SVG assets. Agenda event type emoji, the shell Settings gear glyph, open action fallback, Shopping placeholder glyph, and Weekly Reset ready/pending status glyphs now render through the FamilyBoard semantic icon registry using `currentColor`. The slice preserves Avatar V2, VisualReview runtime behavior, backend, API contracts, database schema, workflows, and navigation while adding only production icon migrations, tests, state/roadmap documentation, and a report.
 
 ## Completed Slice 2.67 — FamilyBoard Design Asset System Foundation
 FamilyBoard Design Asset System Foundation establishes the frontend design asset infrastructure for future semantic icons, illustrations, decorations, and status graphics. The slice adds inline React SVG icon components, shared icon sizing tokens, a typed semantic registry, reserved SVG-only illustration and decoration folders, and authoring documentation while intentionally avoiding production page migrations, emoji replacement, Agenda/Shopping icon families, Avatar V2 changes, backend/API/schema changes, and binary assets.

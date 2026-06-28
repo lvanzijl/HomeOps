@@ -19,3 +19,14 @@ export function CloseIcon({ children, ...props }: FamilyBoardIconSvgProps) {
     </svg>
   );
 }
+
+export function OpenIcon({ children, ...props }: FamilyBoardIconSvgProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" {...props}>
+      {children}
+      <path d="M8 7h9v9" />
+      <path d="M17 7 7 17" />
+      <path d="M7 9.75V17h7.25" />
+    </svg>
+  );
+}

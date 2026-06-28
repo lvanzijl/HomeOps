@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { FamilyBoardIcon } from "../design";
 import { getHelpfulMomentIconName, HomeOpsIcon } from "../icons/homeOpsIcons";
 import { CardHeader, ReviewCard } from "../components/cards/Card";
 import {
@@ -244,7 +245,7 @@ export function WeeklyResetPage() {
               : "Neem nog één rustig rondje langs de open keuzes. Daarna is het ritueel klaar en blijft alles bewust gekozen."}
           </p>
         </div>
-        <span className="reset-completion-badge" aria-hidden="true">{isReadyForNextWeek ? "✓" : "…"}</span>
+        <span className="reset-completion-badge" aria-hidden="true"><FamilyBoardIcon name={isReadyForNextWeek ? "status.ready" : "status.pending"} size={32} /></span>
       </section>
       <p role="status" className="reset-status">{status}</p>
     </section>

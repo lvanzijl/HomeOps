@@ -1,4 +1,5 @@
 import type { HTMLAttributes } from "react";
+import { FamilyBoardIcon, type FamilyBoardIconName } from "../design";
 
 import childFamilyParticipationGroup from "../assets/homeops/child-ownership/child-family-participation-group.svg";
 import childFamilyParticipationIcon from "../assets/homeops/child-ownership/child-family-participation-icon.svg";
@@ -48,6 +49,7 @@ export type HomeOpsIconVariant =
 type HomeOpsIconRegistryEntry = {
   fallback: string;
   assets?: Partial<Record<HomeOpsIconVariant, string>>;
+  familyBoardIcon?: FamilyBoardIconName;
 };
 
 export const homeOpsIconRegistry = {
@@ -92,7 +94,7 @@ export const homeOpsIconRegistry = {
       hero: celebrationUpcomingHero,
     },
   },
-  checkmark: { fallback: "✓" },
+  checkmark: { fallback: "status.ready", familyBoardIcon: "status.ready" },
   close: { fallback: "×", assets: { icon: uiCloseIcon } },
   childFamilyParticipation: {
     fallback: "🤝",
@@ -130,7 +132,7 @@ export const homeOpsIconRegistry = {
       spot: childTodaySection,
     },
   },
-  completed: { fallback: "✓" },
+  completed: { fallback: "status.ready", familyBoardIcon: "status.ready" },
   initiative: {
     fallback: "💛",
     assets: { icon: helpfulInitiativeIcon, spot: helpfulInitiativeSpot },
@@ -139,7 +141,7 @@ export const homeOpsIconRegistry = {
     fallback: "💛",
     assets: { icon: helpfulKindnessIcon, spot: helpfulKindnessSpot },
   },
-  open: { fallback: "↗" },
+  open: { fallback: "core.open", familyBoardIcon: "core.open" },
   memory: {
     fallback: "💛",
     assets: {
@@ -153,7 +155,7 @@ export const homeOpsIconRegistry = {
     assets: { icon: childMyProgressIcon, spot: childMyProgressSpot },
   },
   responsibility: {
-    fallback: "✓",
+    fallback: "status.ready",
     assets: {
       icon: helpfulResponsibilityIcon,
       spot: helpfulResponsibilitySpot,
@@ -205,6 +207,7 @@ export function HomeOpsIcon({
 }: HomeOpsIconProps) {
   const asset = getHomeOpsIconAsset(name, variant);
   const fallback = getHomeOpsIconSymbol(name);
+  const familyBoardIcon = (homeOpsIconRegistry[name] as HomeOpsIconRegistryEntry).familyBoardIcon;
 
   return (
     <span
@@ -214,7 +217,7 @@ export function HomeOpsIcon({
       className={["homeops-icon-asset", className].filter(Boolean).join(" ")}
       {...props}
     >
-      {asset ? <img alt="" draggable="false" src={asset} /> : fallback}
+      {asset ? <img alt="" draggable="false" src={asset} /> : familyBoardIcon ? <FamilyBoardIcon name={familyBoardIcon} size="small" /> : fallback}
     </span>
   );
 }

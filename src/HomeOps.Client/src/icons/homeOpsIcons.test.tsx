@@ -85,7 +85,7 @@ describe("HomeOpsIcon", () => {
   it("keeps fallback symbols stable when a semantic asset is unavailable", () => {
     expect(getHomeOpsIconAsset("completed")).toBeUndefined();
     expect(getHomeOpsIconSymbol("memory")).toBe("💛");
-    expect(getHomeOpsIconSymbol("completed")).toBe("✓");
+    expect(getHomeOpsIconSymbol("completed")).toBe("status.ready");
     expect(getHomeOpsIconSymbol("progress")).toBe("★");
     expect(homeOpsIconRegistry.celebration.fallback).toBe("🎉");
   });

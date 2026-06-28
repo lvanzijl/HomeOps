@@ -553,9 +553,9 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     const busyDay = await screen.findByRole("button", {
       name: /18 juni 2026, 5 gebeurtenissen/,
     });
-    expect(within(busyDay).getByText("🩺")).not.toBeNull();
-    expect(within(busyDay).getByText("⚽")).not.toBeNull();
-    expect(within(busyDay).getByText("🛒")).not.toBeNull();
+    expect(within(busyDay).getByTitle("Zorg")).not.toBeNull();
+    expect(within(busyDay).getByTitle("Sport")).not.toBeNull();
+    expect(within(busyDay).getByTitle("Boodschappen")).not.toBeNull();
     expect(within(busyDay).getByText("+2")).not.toBeNull();
 
     await user.click(busyDay);
@@ -596,9 +596,9 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     expect(screen.getByText("zondag")).not.toBeNull();
 
     const busyCard = screen.getByLabelText(/27 juni 2026, 5 gebeurtenissen/);
-    expect(within(busyCard).getAllByText("🎒").length).toBeGreaterThan(0);
-    expect(within(busyCard).getAllByText("⚽").length).toBeGreaterThan(0);
-    expect(within(busyCard).getAllByText("🛒").length).toBeGreaterThan(0);
+    expect(within(busyCard).getAllByTitle("School").length).toBeGreaterThan(0);
+    expect(within(busyCard).getAllByTitle("Sport").length).toBeGreaterThan(0);
+    expect(within(busyCard).getAllByTitle("Boodschappen").length).toBeGreaterThan(0);
     expect(within(busyCard).getByText("+2")).not.toBeNull();
     expect(within(busyCard).getByText("+2 meer voor deze dag")).not.toBeNull();
     expect(within(busyCard).getByText("School ouderavond")).not.toBeNull();
@@ -651,8 +651,8 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     );
 
     const todayGroup = screen.getByLabelText("Vandaag");
-    expect(within(todayGroup).getAllByText("🩺").length).toBeGreaterThan(0);
-    expect(within(todayGroup).getAllByText("⚽").length).toBeGreaterThan(0);
+    expect(within(todayGroup).getAllByTitle("Zorg").length).toBeGreaterThan(0);
+    expect(within(todayGroup).getAllByTitle("Sport").length).toBeGreaterThan(0);
     expect(
       screen.getByText("Tandarts controle").closest("li")?.className,
     ).toContain("agenda-event");

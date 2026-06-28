@@ -667,3 +667,10 @@ Showcase Sample C and Showcase Sample D exposed that the wide head variant's ear
 - Refined Agenda Month, Week, and List presentation to reduce explanatory copy and repeated quiet-day narration while preserving existing Month/Week/List architecture and workflows.
 - Reframed Agenda source controls as family visibility filters with labels such as School, Verjaardagen, TV-series, Vakanties, and Gezin.
 - Kept backend, API contracts, database schema, calendar persistence, event editing, and navigation unchanged.
+
+
+## FamilyBoard Design Asset System Phase 1 — 2026-06-28
+- Migrated the highest-impact preview-movie glyphs to inline React SVG semantic assets: Agenda event types, Settings navigation, open action fallback, Shopping bag placeholder, and Weekly Reset ready/pending status badges.
+- Expanded the FamilyBoard Design Asset System registry with Phase 1 `agenda.*`, `shopping.bag`, `core.open`, and `status.pending` icons using `currentColor` and existing icon sizing tokens.
+- Preserved Avatar V2, backend, API contracts, database schema, business logic, workflows, and navigation behavior; this slice only changes presentation and tests/documentation.
+- Browser validation used VisualReview `visual-full` and `visual-weekly-reset` at 1920×1080; the current preview movie scene order was manually replayed in-browser for Home, Agenda, Shopping, Weekly Reset, and Settings assessment without regenerating the movie.
