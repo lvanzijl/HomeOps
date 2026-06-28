@@ -17,7 +17,7 @@ Expected viewer feeling: calm, warmth, clarity, confidence, family, and routine.
 - Household: Van Zijl family.
 - Fixture date: Tuesday, 16 June 2026, with the canonical week ending Sunday, 21 June 2026.
 - Marketing fixtures used by this storyboard: `visual-marketing-home`, `visual-marketing-family`, `visual-marketing-agenda`, `visual-marketing-tasks`, `visual-marketing-shopping`, `visual-marketing-motivation`, and `visual-marketing-weekly-reset`.
-- Marketing Director compatibility: scenes use fixture names, chapter copy, purpose, emotional tone, visual focus, min/preferred/max durations, transitions, and semantic actions.
+- Marketing Director compatibility: scenes use fixture names, chapter copy, purpose, emotional tone, visual focus, min/preferred/max durations, branded Chapter Card direction, transitions, and semantic actions.
 - Recording Framework compatibility: directions map to existing scene, camera, transition, and touch concepts without adding execution code.
 - Audio Framework compatibility: audio cues reference existing event categories only.
 
@@ -51,7 +51,7 @@ Reflection
 
 Calm
 
-This curve should guide future Marketing Director pacing, transitions, chapter overlays, touch restraint, and audio decisions. The early scenes should feel observant and gently curious; the middle scenes should build recognition and confidence through purposeful actions; Motivation should create warmth by recognizing kindness; Weekly Reset should slow into reflection; the Outro should return to calm without a call to action.
+This curve should guide future Marketing Director pacing, transitions, branded Chapter Cards, touch restraint, and audio decisions. The early scenes should feel observant and gently curious; the middle scenes should build recognition and confidence through purposeful actions; Motivation should create warmth by recognizing kindness; Weekly Reset should slow into reflection; the Outro should return to calm without a call to action.
 
 ## Continuity Thread
 
@@ -60,9 +60,27 @@ The preview should feel like one ordinary Van Zijl family week, not a chain of i
 - Home introduces Thomas's swimming lesson and the practical pressure of the day. Tasks later resolves that pressure by completing `Zwemtas klaarzetten`.
 - Family personalization makes Thomas feel like the same child whose school, swimming, cookies, and helpful moments appear later.
 - Agenda expands the family's view from today to the week and adds `Filmavond`; after saving, the event should remain visible long enough to feel like part of the same week.
-- Shopping supports the upcoming family rhythm with one ordinary `Bananen` addition while grouped errands remain the visual anchor.
+- Shopping supports `Koekjes bakken` from Tasks: `Bloem`, `Roomboter`, `Chocoladestukjes`, and `Vanillesuiker` are already present in the fixture, while one ordinary `Bananen` addition keeps the interaction simple and believable.
 - Motivation should feel earned by the earlier helping actions, especially the completed swim-bag task and the general household reset work.
 - Weekly Reset reflects the same week: swimming preparation, Filmavond, cookies, groceries, helpful moments, and appreciation all resolve into Sunday evening calm.
+
+## Chapter Card Language
+
+Every scene begins with a branded FamilyBoard Chapter Card instead of a persistent feature overlay. The card should appear gently, show the scene title and optional subtitle, hold for approximately one second, then fade away before the main scene continues. After the fade, the UI owns the full screen with no lingering instructional label, badge, callout, or feature overlay.
+
+Chapter Cards are part of the FamilyBoard brand identity: calm, warm, readable, and subtle. They orient the viewer emotionally, then step aside so the family's week and the interface can carry the story.
+
+## Visual Brand Language
+
+Future FamilyBoard marketing storyboards should follow this visual language:
+
+- Use Chapter Cards instead of instructional overlays or persistent feature labels.
+- Keep transitions calm, warm, and unhurried.
+- Show touch-first interaction through restrained, purposeful gestures.
+- Leave breathing room between actions so the viewer can feel what changed.
+- Let the interface be the hero after each Chapter Card fades.
+- Keep branding subtle and confident rather than promotional.
+- Put the family story before the feature list every time.
 
 ## Timing Summary
 
@@ -79,7 +97,7 @@ Maximum total duration: **90 seconds**.
 | Family | `visual-marketing-family` | 10s | “This is our family.” |
 | Agenda | `visual-marketing-agenda` | 14s | Month, week, list, and one realistic plan. |
 | Tasks | `visual-marketing-tasks` | 10s | Add one task and complete one helpful job. |
-| Shopping | `visual-marketing-shopping` | 7s | Add bananas while grouped errands stay clear. |
+| Shopping | `visual-marketing-shopping` | 7s | Baking errands connect to cookies; add bananas. |
 | Motivation | `visual-marketing-motivation` | 10s | Appreciation recognizes kindness. |
 | Weekly Reset | `visual-marketing-weekly-reset` | 14s | Sunday reflection becomes the emotional high point. |
 | Outro | `visual-marketing-home` | 7s | The family ends together, ready. |
@@ -93,6 +111,7 @@ Maximum total duration: **90 seconds**.
 - **Emotional tone:** Calm.
 - **Chapter title:** Home
 - **Optional subtitle:** A calmer start to the day
+- **Chapter Card:** `Home` appears with `A calmer start to the day`, holds for approximately one second, then gently fades out before the Home dashboard owns the screen.
 - **Fixture:** `visual-marketing-home`
 - **Duration:** 5 seconds
 - **Minimum duration:** 4 seconds
@@ -113,6 +132,7 @@ Maximum total duration: **90 seconds**.
 - **Emotional tone:** Calm shifting into curiosity.
 - **Chapter title:** Today
 - **Optional subtitle:** Everything that matters is already here
+- **Chapter Card:** `Today` appears with `Everything that matters is already here`, holds for approximately one second, then gently fades out before the dashboard continues without an overlay.
 - **Fixture:** `visual-marketing-home`
 - **Duration:** 7 seconds
 - **Minimum duration:** 6 seconds
@@ -133,6 +153,7 @@ Maximum total duration: **90 seconds**.
 - **Emotional tone:** Recognition, personal, familial.
 - **Chapter title:** Family
 - **Optional subtitle:** This is our family
+- **Chapter Card:** `Family` appears with `This is our family`, holds for approximately one second, then gently fades out before the Family overview fills the screen.
 - **Fixture:** `visual-marketing-family`
 - **Duration:** 10 seconds
 - **Minimum duration:** 8 seconds
@@ -153,12 +174,13 @@ Maximum total duration: **90 seconds**.
 - **Emotional tone:** Confidence without rigidity.
 - **Chapter title:** Agenda
 - **Optional subtitle:** One rhythm for the whole family
+- **Chapter Card:** `Agenda` appears with `One rhythm for the whole family`, holds for approximately one second, then gently fades out before agenda views begin.
 - **Fixture:** `visual-marketing-agenda`
 - **Duration:** 14 seconds
 - **Minimum duration:** 11 seconds
 - **Maximum duration:** 15 seconds
 - **Visual focus:** Month view, week view, list view, the saved `Filmavond` event remaining visible, and the returned agenda overview.
-- **Transition:** Dissolve with chapter overlay in a quiet corner.
+- **Transition:** Dissolve after the Chapter Card fades; no persistent overlay remains.
 - **Camera pacing:** Show Month and pause. Move to Week and pause. Move to List and pause. During event creation, keep the camera steady and readable. After saving Filmavond, remain on the updated agenda long enough for the event to be noticed, then return to the overview and hold.
 - **Touch gestures:** Tap Month, tap Week, tap List, tap add event, enter `Filmavond`, save, and return to overview.
 - **Interaction sequence:** Show Month; pause. Show Week; pause. Show List; pause. Add one event named `Filmavond`. Save it. Stay briefly on the updated agenda so Filmavond feels part of the family week. Return to the agenda overview without demonstrating editing or advanced calendar features.
@@ -173,6 +195,7 @@ Maximum total duration: **90 seconds**.
 - **Emotional tone:** Confidence shifting into helpful relief.
 - **Chapter title:** Tasks
 - **Optional subtitle:** Small jobs, shared rhythm
+- **Chapter Card:** `Tasks` appears with `Small jobs, shared rhythm`, holds for approximately one second, then gently fades out before the task list becomes the full focus.
 - **Fixture:** `visual-marketing-tasks`
 - **Duration:** 10 seconds
 - **Minimum duration:** 8 seconds
@@ -188,23 +211,24 @@ Maximum total duration: **90 seconds**.
 
 ### 6. Shopping
 
-- **Purpose:** Show one tiny grocery addition that supports the family's upcoming week while keeping the emphasis on grouped shopping.
-- **Narrative role:** Helpful planning continues into practical errands for meals, children, and the family rhythm already seen in Agenda.
+- **Purpose:** Show one tiny grocery addition while the existing shopping list clearly supports `Koekjes bakken` from the same week.
+- **Narrative role:** Helpful planning continues into practical errands: baking ingredients for `Koekjes bakken` are already waiting, and one remembered `Bananen` addition keeps the scene ordinary.
 - **Emotional tone:** Grounded, useful, unhurried.
 - **Chapter title:** Shopping
 - **Optional subtitle:** Errands that make sense
+- **Chapter Card:** `Shopping` appears with `Errands that make sense`, holds for approximately one second, then gently fades out before grouped errands own the screen.
 - **Fixture:** `visual-marketing-shopping`
 - **Duration:** 7 seconds
 - **Minimum duration:** 6 seconds
 - **Maximum duration:** 8 seconds
-- **Visual focus:** Store-grouped shopping lists and the quick addition of `Bananen`.
+- **Visual focus:** Store-grouped shopping lists with `Bloem`, `Roomboter`, `Chocoladestukjes`, and `Vanillesuiker` already present for `Koekjes bakken`, plus the quick addition of `Bananen`.
 - **Transition:** Warm dissolve.
-- **Camera pacing:** Start still on the grouped list. Add the item quickly and return attention to the grouped structure. Hold briefly after `Bananen` appears so it reads as preparation, not a separate feature beat.
+- **Camera pacing:** Start still on the grouped list so the baking ingredients read as preparation for `Koekjes bakken`. Add `Bananen` quickly and return attention to the grouped structure. Hold briefly after `Bananen` appears so it reads as one remembered item inside the same errands, not a separate feature beat.
 - **Touch gestures:** Tap add item, enter `Bananen`, save. No extra scrolling unless needed for readability.
-- **Interaction sequence:** Show grouped errands; add `Bananen`; hold on the grouped list with the new item visible or clearly implied.
+- **Interaction sequence:** Show grouped errands with the existing baking ingredients already present; add only `Bananen`; hold on the grouped list with the new item visible or clearly implied.
 - **Audio events:** `TransitionStarted`, `TransitionCompleted`, `TouchStarted`, `TouchCompleted`, `ActionCompleted`, optional `save`.
-- **Expected final state:** Shopping remains organized by real destinations, with `Bananen` added as a small piece of the same family week.
-- **Director notes:** Keep the addition extremely short. This should feel like remembering bananas, not operating a list manager.
+- **Expected final state:** Shopping remains organized by real destinations, the cookie ingredients remain visible as support for `Koekjes bakken`, and `Bananen` has been added as a small piece of the same family week.
+- **Director notes:** Keep the addition extremely short. This should feel like remembering bananas while already preparing for cookies, not operating a list manager.
 
 ### 7. Motivation
 
@@ -213,6 +237,7 @@ Maximum total duration: **90 seconds**.
 - **Emotional tone:** Warmth, encouragement, tenderness.
 - **Chapter title:** Motivation
 - **Optional subtitle:** Helpful moments add up
+- **Chapter Card:** `Motivation` appears with `Helpful moments add up`, holds for approximately one second, then gently fades out before the appreciation moment begins.
 - **Fixture:** `visual-marketing-motivation`
 - **Duration:** 10 seconds
 - **Minimum duration:** 8 seconds
@@ -233,15 +258,16 @@ Maximum total duration: **90 seconds**.
 - **Emotional tone:** Reflection, togetherness, satisfaction.
 - **Chapter title:** Weekly Reset
 - **Optional subtitle:** Ready for next week
+- **Chapter Card:** `Weekly Reset` appears with `Ready for next week`, holds for approximately one second, then gently fades out before the Sunday reset fills the screen.
 - **Fixture:** `visual-marketing-weekly-reset`
 - **Duration:** 14 seconds
 - **Minimum duration:** 12 seconds
 - **Maximum duration:** 15 seconds
-- **Visual focus:** Completed week, carried-forward tasks, family goal celebration, or reset summary that feels connected to swimming, Filmavond, cookies, groceries, and appreciation from earlier scenes.
+- **Visual focus:** Completed week, carried-forward tasks, family goal celebration, or reset summary that visibly connects swimming preparation, Filmavond, Koekjes bakken, groceries, appreciation, and helpful moments from earlier scenes.
 - **Transition:** Longest transition in the movie: a slow warm dissolve into the Sunday evening ritual.
 - **Camera pacing:** Move slower than every earlier scene. Enter gently, hold on the reset summary, move with extra breathing room to the completed or carried-forward outcome, and use the longest pauses on the completion state.
 - **Touch gestures:** One calm, slow tap to complete or acknowledge the reset moment if available; otherwise no touch.
-- **Interaction sequence:** Show the same week closing; acknowledge the reset or completion state; allow the completion state to breathe before leaving.
+- **Interaction sequence:** Show the same week closing with visible traces of swimming preparation, Filmavond, Koekjes bakken, shopping, appreciation, and helpful moments; acknowledge the reset or completion state; allow the completion state to breathe before leaving.
 - **Audio events:** `ChapterStarted`, optional `TouchStarted`, optional `TouchCompleted`, `weekly reset complete`, `ChapterCompleted`.
 - **Expected final state:** Weekly Reset communicates the family gently finishing the same week together and feeling ready, not a checklist burden.
 - **Director notes:** Weekly Reset is the emotional climax. Use the slowest movement, slowest touch, longest pause, and longest transition here so it feels like a Sunday evening family ritual.
@@ -253,31 +279,37 @@ Maximum total duration: **90 seconds**.
 - **Emotional tone:** Calm, warm, complete.
 - **Chapter title:** FamilyBoard
 - **Optional subtitle:** Everyday family life, a little easier
+- **Chapter Card:** `FamilyBoard` appears without a feature subtitle, holds for approximately one second, then gently fades out before the Home return and final brand card.
 - **Fixture:** `visual-marketing-home`
 - **Duration:** 7 seconds
 - **Minimum duration:** 5 seconds
 - **Maximum duration:** 7 seconds
 - **Visual focus:** Home dashboard, then a simple brand card.
 - **Transition:** Fade back to Home, then fade to branding, then fade to black.
-- **Camera pacing:** Return Home and hold the dashboard briefly so the opening and ending connect. Then fade to a centered brand card reading `FamilyBoard` and `Everyday family life,\na little easier.` Hold the brand card for approximately two seconds before fading to black.
+- **Camera pacing:** Return Home and hold the dashboard briefly so the opening and ending visually mirror one another. Then fade to a centered FamilyBoard brand card. Hold the brand card for approximately two seconds before fading to black.
 - **Touch gestures:** None.
-- **Interaction sequence:** No interaction; the Home dashboard resolves the family week, then the brand card provides quiet recognition.
+- **Interaction sequence:** No interaction; the Home dashboard resolves the family week, then the brand card provides quiet recognition with no call to action, website, buttons, or feature list.
 - **Audio events:** `ChapterStarted`, `ChapterCompleted`, `RecordingFinished`.
 - **Expected final state:** Brand card holds briefly, then fades to black.
 - **Director notes:** End together. Do not add calls to action, feature claims, buttons, URLs, or a final interaction.
 
 ## Sequence Justification
 
-Settings has been removed because it interrupted the emotional narrative and did not contribute to the central question of making everyday family life easier. The remaining sequence keeps the family story continuous: Home establishes the day and the swimming need, Family personalizes Thomas, Agenda broadens the same week with Filmavond, Tasks resolves the swim-bag pressure and adds cookies, Shopping supports the upcoming week with bananas, Motivation recognizes the family helping, Weekly Reset reflects the week, and Outro returns to calm.
+Settings has been removed because it interrupted the emotional narrative and did not contribute to the central question of making everyday family life easier. The remaining sequence keeps the family story continuous: Home establishes the day and the swimming need, Family personalizes Thomas, Agenda broadens the same week with Filmavond, Tasks resolves the swim-bag pressure and adds cookies, Shopping supports Koekjes bakken with existing baking ingredients and adds bananas, Motivation recognizes the family helping, Weekly Reset reflects the week, and Outro returns to calm.
 
 The Family scene remains before Agenda so the viewer meets the household before seeing the full planning surface. Weekly Reset remains near the end as the emotional climax, and the final Home/brand outro resolves the story without turning into a call to action.
 
 ## Storyboard Validation
 
-- **Coherent narrative:** Yes. The story moves through one ordinary week: morning calm, Thomas's family identity, today's planning, Filmavond, swim-bag help, groceries, appreciation, Sunday reflection, and ending together.
+- **Coherent narrative:** Yes. The story moves through one ordinary week: morning calm, Thomas's family identity, today's planning, Filmavond, swim-bag help, Koekjes bakken, groceries, appreciation, Sunday reflection, and ending together.
 - **No feature dumping:** Yes. Expanded interactions are limited to one meaningful family identity action, three readable agenda views plus one event, one task addition, one task completion, one shopping addition, and one appreciation.
+- **No persistent feature overlays:** Yes. Every scene uses a brief Chapter Card that fades away before the UI owns the screen.
+- **Chapter Cards consistently described:** Yes. Each scene includes the Chapter Card title/subtitle experience and approximate one-second hold.
 - **Every interaction has purpose:** Yes. Touch is limited to identity, planning, helping, remembering, appreciating, and closing the same week.
-- **Stronger continuity between scenes:** Yes. Swimming, Thomas, Filmavond, cookies, bananas, helpful actions, appreciation, and Weekly Reset now carry across scenes rather than appearing as disconnected interactions.
+- **Stronger continuity between scenes:** Yes. Swimming, Thomas, Filmavond, cookies, baking ingredients, bananas, helpful actions, appreciation, and Weekly Reset now carry across scenes rather than appearing as disconnected interactions.
+- **Shopping supports Koekjes bakken:** Yes. `Bloem`, `Roomboter`, `Chocoladestukjes`, and `Vanillesuiker` are already present, while only `Bananen` is added.
+- **Appreciation follows helping:** Yes. `Bedankt voor het helpen met opruimen.` is framed as recognition of earlier helping moments.
+- **Home and Outro visually mirror one another:** Yes. Home opens the story with calm readability, and Outro returns to Home before the final FamilyBoard brand card and fade to black.
 - **Home and Weekly Reset feel connected:** Yes. Home introduces the day's practical needs, and Weekly Reset reflects the same family's completed week with the slowest movement, slowest touch, longest transition, longest holds, and most reflective tone.
 - **Settings removed:** Yes. There is no Settings scene in the storyboard sequence or timing table.
 - **Emotional curve documented:** Yes. The curve is defined as Calm → Curiosity → Recognition → Confidence → Warmth → Reflection → Calm.
