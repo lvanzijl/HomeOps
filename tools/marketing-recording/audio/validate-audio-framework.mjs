@@ -1,0 +1,14 @@
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { AudioTimeline, SoundLibrary, AudioMixer, exportMixedWav } from './index.mjs';
+const here = dirname(fileURLToPath(import.meta.url));
+const timeline = new AudioTimeline();
+const library = new SoundLibrary();
+library.addToTimeline(timeline, 'tap', { startMs: 0 });
+library.addToTimeline(timeline, 'transition', { startMs: 450 });
+library.addToTimeline(timeline, 'taskComplete', { startMs: 1050 });
+library.addToTimeline(timeline, 'appreciation', { startMs: 1650 });
+library.addToTimeline(timeline, 'celebration', { startMs: 2350 });
+const mixed = await new AudioMixer().mix(timeline, { durationMs: 3500 });
+const result = await exportMixedWav(join(here, 'validation', 'internal-validation-mix.wav'), mixed);
+console.log(JSON.stringify({ ...result, clips: timeline.clips.length }, null, 2));
