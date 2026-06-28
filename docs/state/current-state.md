@@ -1,4 +1,5 @@
 # Current State
+- 2026-06-28: Added the reusable FamilyBoard marketing recording framework with tablet-landscape session orchestration, scene definitions, touch-first deterministic gesture helpers, temporary recording overlays, scene transitions, and a sample validation sequence without production UI, screenshots, videos, audio, or Playwright tests.
 - 2026-06-28: Canonicalized the FamilyBoard marketing household to the Van Zijl family with Dad and Mom as parent display names across the marketing design document, VisualReview marketing fixtures, marketing tests, and reports without production feature, UI, recording helper, Playwright, screenshot, video, or audio changes.
 - 2026-06-28: Implemented deterministic FamilyBoard marketing VisualReview fixtures for the canonical Van Zijl household by adding a shared marketing household builder, eight scene-specific reset scenarios, API coverage, and a validation report without production UI, recording helper, audio, Playwright, screenshot, or video changes.
 - 2026-06-28: Completed the FamilyBoard Design Asset System foundation by adding the frontend design tree, inline React SVG icon component, shared icon size tokens, semantic icon registry, reserved illustration/decoration folders, authoring documentation, and validation report without page migrations, emoji replacement, Avatar V2 changes, backend/API/schema changes, or binary assets.
@@ -40,7 +41,7 @@
 Phase 2 — Durable Household Core
 
 ## Current Slice
-FamilyBoard Final MVP Polish — Completed
+FamilyBoard Marketing Recording Framework — Completed
 
 ## Completed Slices
 - 1.1 Repository Bootstrap
