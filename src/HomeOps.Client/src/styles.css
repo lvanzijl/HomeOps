@@ -40,6 +40,9 @@
   --member-accent: var(--member-color, var(--domain-accent));
   --member-surface: color-mix(in srgb, var(--member-accent) 35%, white);
   --member-border: var(--member-accent);
+  --board-max-width: clamp(65rem, 78vw, 94rem);
+  --board-edge-padding: clamp(0.75rem, 1.6vw, 1.5rem);
+  --readable-panel-width: 64rem;
 
   color: var(--color-text-default);
   background: var(--surface-app);
@@ -76,8 +79,10 @@ button {
   display: grid;
   gap: 0.55rem;
   margin: 0 auto;
-  max-width: 1040px;
-  padding: 0.65rem 1rem;
+  box-sizing: border-box;
+  max-width: var(--board-max-width);
+  padding: 0.65rem var(--board-edge-padding);
+  width: 100%;
 }
 
 .eyebrow {
@@ -152,7 +157,9 @@ button {
 }
 
 .workspace-panel {
+  box-sizing: border-box;
   min-height: 18rem;
+  min-width: 0;
   padding: 0.45rem 0.55rem;
 }
 
@@ -199,6 +206,12 @@ button {
   display: grid;
   gap: 1rem;
   margin-top: 1.5rem;
+}
+
+.workspace-panel-settings {
+  justify-self: center;
+  max-width: var(--readable-panel-width);
+  width: 100%;
 }
 
 .widget-card {
@@ -4330,12 +4343,6 @@ button {
   padding: 0.45rem;
 }
 
-@media (min-width: 1180px) {
-  .app-shell:has(.workspace-panel-motivation) {
-    max-width: min(1440px, calc(100vw - 2rem));
-  }
-}
-
 .motivation-dashboard-page {
   gap: 0;
 }
@@ -4560,6 +4567,10 @@ button {
 }
 
 @media (min-width: 1180px) {
+  .home-summary-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
   .familyboard-dashboard-grid {
     grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
   }
