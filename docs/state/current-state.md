@@ -654,3 +654,8 @@ Showcase Sample C and Showcase Sample D exposed that the wide head variant's ear
 - Added a compact Vandaag summary beneath the Tasks hero using existing loaded task data for today, overdue, and routine counts.
 - Made Afgerond a collapsed-by-default history section so active time groups dominate the operational workspace while reopening remains available when expanded.
 - Preserved existing completion, Morgen, recurrence, Weekly Reset, backend, API contract, and database behavior.
+
+## Agenda Final Polish — 2026-06-27
+- Refined Agenda Month, Week, and List presentation to reduce explanatory copy and repeated quiet-day narration while preserving existing Month/Week/List architecture and workflows.
+- Reframed Agenda source controls as family visibility filters with labels such as School, Verjaardagen, TV-series, Vakanties, and Gezin.
+- Kept backend, API contracts, database schema, calendar persistence, event editing, and navigation unchanged.

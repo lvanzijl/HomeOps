@@ -538,11 +538,7 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     expect(
       await screen.findByText("Begin met de eerste gebeurtenis"),
     ).not.toBeNull();
-    expect(
-      screen.getByText(
-        "Voeg een gebeurtenis toe voor deze datum of kies een andere dag in het maandrooster.",
-      ),
-    ).not.toBeNull();
+    expect(screen.getByText("Ruimte in de agenda.")).not.toBeNull();
   });
 
   it("renders family-friendly event indicators with overflow and detail card labels", async () => {
@@ -587,9 +583,7 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     await user.click(screen.getByRole("button", { name: "Week" }));
 
     expect(screen.getByLabelText("Weekplanning")).not.toBeNull();
-    expect(
-      screen.getByText("Wat gebeurt er deze week, en waar wordt het druk?"),
-    ).not.toBeNull();
+    expect(screen.getByText("Week 26")).not.toBeNull();
     expect(screen.getByRole("button", { name: "Vorige week" })).not.toBeNull();
     expect(screen.getByRole("button", { name: "Deze week" })).not.toBeNull();
     expect(
@@ -606,13 +600,12 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     expect(within(busyCard).getAllByText("⚽").length).toBeGreaterThan(0);
     expect(within(busyCard).getAllByText("🛒").length).toBeGreaterThan(0);
     expect(within(busyCard).getByText("+2")).not.toBeNull();
-    expect(
-      within(busyCard).getByText("5 momenten op de gezinsplanning."),
-    ).not.toBeNull();
     expect(within(busyCard).getByText("+2 meer voor deze dag")).not.toBeNull();
     expect(within(busyCard).getByText("School ouderavond")).not.toBeNull();
 
-    expect(screen.getAllByText("Rustige dag").length).toBeGreaterThan(0);
+    expect(
+      document.querySelectorAll(".agenda-week-day-empty").length,
+    ).toBeGreaterThan(0);
 
     await user.click(screen.getByRole("button", { name: "Volgende week" }));
     expect(await screen.findByText("Een rustige week in zicht")).not.toBeNull();
@@ -636,7 +629,6 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
 
     expect(screen.getByLabelText("Lijstplanning")).not.toBeNull();
     expect(screen.getByText("Wat komt eraan?")).not.toBeNull();
-    expect(screen.getByText("5 komende momenten")).not.toBeNull();
     expect(screen.getByText("Vandaag")).not.toBeNull();
     expect(screen.getByText("Morgen")).not.toBeNull();
     expect(screen.getByText("Volgende week")).not.toBeNull();
@@ -703,7 +695,6 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     await screen.findByLabelText("Maandplanning");
     await user.click(screen.getByRole("button", { name: "Lijst" }));
 
-    expect(screen.getByText("Geen komende momenten")).not.toBeNull();
     expect(
       screen.getByText("Even niets dat om aandacht vraagt"),
     ).not.toBeNull();
@@ -714,7 +705,7 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     render(<AgendaWidget {...widgetProps} />);
 
     await selectDentistDay(user);
-    await user.click(screen.getByLabelText(/HomeOps Calendar/));
+    await user.click(screen.getByLabelText(/Gezin/));
 
     expect(screen.queryByText("Dentist Appointment")).toBeNull();
   });
