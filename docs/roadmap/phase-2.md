@@ -486,3 +486,7 @@ Avatar Editor Final Polish resolves the remaining Friends & Family visual blocke
 
 ### Family Member Compact Layout — Completed 2026-06-28
 Family Member Compact Layout resolves a Friends & Family blocker found in the preview video by making Family Member detail pages feel like part of FamilyBoard instead of profile landing pages. The slice replaces the dominant back action with compact header navigation, removes the large non-avatar decorative progress image from the child member hero, promotes Avatar V2 and Avatar editing in the compact identity header, and surfaces parent/child mode controls before the child content. Backend behavior, API contracts, database schema, Avatar V2 renderer and persistence, family-member persistence, workflows, navigation routes, and binary assets remain unchanged.
+
+
+### FamilyBoard Marketing Audio Framework — Completed 2026-06-28
+FamilyBoard Marketing Audio Framework adds a reusable marketing-only audio layer under `tools/marketing-recording/audio/` with an event-subscribing audio director, replaceable on-demand placeholder WAV generation, optional background music configuration, timeline scheduling, mixing, normalization, and WAV export helpers. The slice intentionally excludes generated audio binaries from the PR; validation mixes are local ignored artifacts, and it avoided production UI changes, application sound effects, screenshots, and movies.

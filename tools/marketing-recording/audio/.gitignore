@@ -1,0 +1,4 @@
+# Generated marketing audio artifacts. Keep framework source and generators in git;
+# generate WAV output locally only when validating or producing marketing videos.
+/assets/*.wav
+/validation/*.wav
