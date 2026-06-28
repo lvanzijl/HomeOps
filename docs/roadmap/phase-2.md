@@ -490,3 +490,7 @@ Family Member Compact Layout resolves a Friends & Family blocker found in the pr
 
 ### FamilyBoard Marketing Audio Framework — Completed 2026-06-28
 FamilyBoard Marketing Audio Framework adds a reusable marketing-only audio layer under `tools/marketing-recording/audio/` with an event-subscribing audio director, replaceable on-demand placeholder WAV generation, optional background music configuration, timeline scheduling, mixing, normalization, and WAV export helpers. The slice intentionally excludes generated audio binaries from the PR; validation mixes are local ignored artifacts, and it avoided production UI changes, application sound effects, screenshots, and movies.
+
+
+### Executable FamilyBoard Marketing Storyboard — Completed 2026-06-28
+Executable FamilyBoard Marketing Storyboard converts the canonical 9-scene Marketing Storyboard V1 into a source-only Marketing Director storyboard module under `tools/marketing-recording/storyboards/`. The module preserves fixture names, chapter card direction, emotional curve metadata, durations, semantic touch-first actions, camera pacing, audio event references, expected final states, and director notes while allowing source-only validation and recording-plan creation. The slice intentionally produced no movie, screenshots, audio, WAV files, browser session, production UI changes, or generated media.

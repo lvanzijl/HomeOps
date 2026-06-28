@@ -38,7 +38,7 @@ export const marketingPacingProfiles = Object.freeze({
   }),
 });
 
-const defaultNarrative = Object.freeze(['introduction', 'todays-family', 'planning', 'helping', 'shopping', 'motivation', 'weekly-reflection', 'closing']);
+const defaultNarrative = Object.freeze(['introduction', 'todays-family', 'family', 'planning', 'helping', 'shopping', 'motivation', 'weekly-reflection', 'closing']);
 
 export class MarketingDirector {
   constructor({ pacingProfile = marketingPacingProfiles.calmMarketing, eventBus = new RecordingEventBus(), narrativeOrder = defaultNarrative } = {}) {
