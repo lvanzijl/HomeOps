@@ -2082,6 +2082,26 @@
         }
       }
     },
+    "/api/visual-review-fixtures/marketing-time": {
+      "get": {
+        "tags": [
+          "Visual Review Fixtures"
+        ],
+        "operationId": "GetVisualReviewMarketingTime",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VisualReviewMarketingTimeDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/visual-review-fixtures/{scenarioName}/reset": {
       "post": {
         "tags": [
@@ -3806,6 +3826,22 @@
           },
           "purpose": {
             "type": "string"
+          }
+        }
+      },
+      "VisualReviewMarketingTimeDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "anchorUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "today": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
           }
         }
       },
