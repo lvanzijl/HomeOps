@@ -19,9 +19,25 @@ CalendarPortabilityService.ConfigurePreRestoreSnapshotDirectory(
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApiDocument();
+if (builder.Environment.IsEnvironment("VisualReview"))
+{
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("VisualReviewCors", policy => policy
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowAnyOrigin());
+    });
+}
+
 if (builder.Environment.IsEnvironment("Testing"))
 {
     builder.Services.AddDbContext<HomeOpsDbContext>();
+}
+else if (builder.Environment.IsEnvironment("VisualReview"))
+{
+    builder.Services.AddDbContext<HomeOpsDbContext>(options =>
+        options.UseInMemoryDatabase("homeops-visual-review"));
 }
 else
 {
@@ -36,7 +52,7 @@ else
 
 var app = builder.Build();
 
-if (!app.Environment.IsEnvironment("Testing"))
+if (!app.Environment.IsEnvironment("Testing") && !app.Environment.IsEnvironment("VisualReview"))
 {
     using var scope = app.Services.CreateScope();
     var dbContext = scope.ServiceProvider.GetRequiredService<HomeOpsDbContext>();
@@ -46,6 +62,11 @@ if (!app.Environment.IsEnvironment("Testing"))
 if (app.Environment.IsDevelopment())
 {
     app.UseOpenApi(settings => settings.Path = "/openapi/{documentName}.json");
+}
+
+if (app.Environment.IsEnvironment("VisualReview"))
+{
+    app.UseCors("VisualReviewCors");
 }
 
 app.MapGet("/health", () => Results.Ok(new { status = "Healthy" }))
@@ -62,7 +83,7 @@ app.MapTaskTemplateEndpoints();
 app.MapMotivationEndpoints();
 app.MapHelpfulMomentEndpoints();
 app.MapWeeklyResetEndpoints();
-if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Testing"))
+if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Testing") || app.Environment.IsEnvironment("VisualReview"))
 {
     app.MapVisualReviewFixtureEndpoints();
 }
