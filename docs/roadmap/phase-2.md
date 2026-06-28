@@ -43,6 +43,7 @@ Tasks and Weekly Reset Family-First UX Pass warms the Tasks surface and contextu
 
 | Slice | Name | Status |
 | --- | --- | --- |
+| 2.67 | FamilyBoard Design Asset System Foundation | Completed |
 | 2.1 | Durable Lists Foundation | Completed |
 | 2.2 | Widget/Layout Persistence | Completed |
 | 2.3 | Manual Events Source | Completed |
@@ -80,6 +81,9 @@ Tasks and Weekly Reset Family-First UX Pass warms the Tasks surface and contextu
 | 2.41 | No-Date Task Lifecycle | Completed |
 
 Phase 2 theme: Durable Household Core.
+
+## Completed Slice 2.67 — FamilyBoard Design Asset System Foundation
+FamilyBoard Design Asset System Foundation establishes the frontend design asset infrastructure for future semantic icons, illustrations, decorations, and status graphics. The slice adds inline React SVG icon components, shared icon sizing tokens, a typed semantic registry, reserved SVG-only illustration and decoration folders, and authoring documentation while intentionally avoiding production page migrations, emoji replacement, Agenda/Shopping icon families, Avatar V2 changes, backend/API/schema changes, and binary assets.
 
 ## Completed Slice 2.1 — Durable Lists Foundation
 Durable Lists Foundation combines the persistence foundation, generic Lists domain, deterministic development seed data, generated NSwag client workflow, and Shopping List widget conversion from in-memory state to API-backed persisted list data.
