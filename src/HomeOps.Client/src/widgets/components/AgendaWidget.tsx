@@ -21,6 +21,7 @@ import type {
   EventSource,
   NormalizedEvent,
 } from "../../events/eventSourceModel";
+import { FamilyBoardIcon, type FamilyBoardIconName } from "../../design";
 import type { WidgetRenderProps } from "../WidgetRenderer";
 
 type EventDialogQuestion = "title" | "date" | "dayKind" | "details";
@@ -261,7 +262,7 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
                 onClick={closeEventForm}
                 aria-label="Sluit gebeurtenisvenster"
               >
-                ×
+                <FamilyBoardIcon name="core.close" size="small" />
               </button>
             </header>
             <EventConversationForm
@@ -627,7 +628,7 @@ function AgendaTimelineGroup({
                 style={toEventVisualStyle(visual)}
                 title={visual.label}
               >
-                {visual.icon}
+                <FamilyBoardIcon name={visual.icon} size="small" />
               </span>
             );
           })}
@@ -776,7 +777,7 @@ function WeekDayCard({
                   style={toEventVisualStyle(visual)}
                   title={visual.label}
                 >
-                  {visual.icon}
+                  <FamilyBoardIcon name={visual.icon} size="small" />
                 </span>
               );
             })}
@@ -921,7 +922,7 @@ function MonthGrid({
                         style={toEventVisualStyle(visual)}
                         title={visual.label}
                       >
-                        {visual.icon}
+                        <FamilyBoardIcon name={visual.icon} size="small" />
                       </span>
                     );
                   })}
@@ -1016,7 +1017,7 @@ function AgendaEventList({
             style={toEventVisualStyle(visual)}
           >
             <span className="agenda-event-card-icon" aria-hidden="true">
-              {visual.icon}
+              <FamilyBoardIcon name={visual.icon} size="small" />
             </span>
             <span className="agenda-event-card-body">
               <span className="agenda-event-card-kicker">{visual.label}</span>
@@ -1201,7 +1202,7 @@ type AgendaEventType =
 type AgendaEventVisual = {
   type: AgendaEventType;
   label: string;
-  icon: string;
+  icon: FamilyBoardIconName;
   color: string;
   background: string;
   border: string;
@@ -1213,7 +1214,7 @@ const agendaEventVisuals: Record<AgendaEventType, AgendaEventVisual> = {
   birthday: {
     type: "birthday",
     label: "Verjaardag",
-    icon: "🎂",
+    icon: "agenda.birthday",
     color: "#9a5b13",
     background: "#fff4d6",
     border: "#f6d58c",
@@ -1221,7 +1222,7 @@ const agendaEventVisuals: Record<AgendaEventType, AgendaEventVisual> = {
   holiday: {
     type: "holiday",
     label: "Vakantie",
-    icon: "🏖️",
+    icon: "agenda.holiday",
     color: "#176b73",
     background: "#e7f8f7",
     border: "#a8e0dc",
@@ -1229,7 +1230,7 @@ const agendaEventVisuals: Record<AgendaEventType, AgendaEventVisual> = {
   school: {
     type: "school",
     label: "School",
-    icon: "🎒",
+    icon: "agenda.school",
     color: "#315f9f",
     background: "#edf4ff",
     border: "#bdd4f7",
@@ -1237,7 +1238,7 @@ const agendaEventVisuals: Record<AgendaEventType, AgendaEventVisual> = {
   sports: {
     type: "sports",
     label: "Sport",
-    icon: "⚽",
+    icon: "agenda.sport",
     color: "#3f6f2a",
     background: "#edf8e7",
     border: "#bee2ad",
@@ -1245,7 +1246,7 @@ const agendaEventVisuals: Record<AgendaEventType, AgendaEventVisual> = {
   medical: {
     type: "medical",
     label: "Zorg",
-    icon: "🩺",
+    icon: "agenda.health",
     color: "#9a4a55",
     background: "#fff0f2",
     border: "#f3bbc4",
@@ -1253,7 +1254,7 @@ const agendaEventVisuals: Record<AgendaEventType, AgendaEventVisual> = {
   shopping: {
     type: "shopping",
     label: "Boodschappen",
-    icon: "🛒",
+    icon: "agenda.shopping",
     color: "#77522c",
     background: "#fff4e8",
     border: "#e8c7a2",
@@ -1261,7 +1262,7 @@ const agendaEventVisuals: Record<AgendaEventType, AgendaEventVisual> = {
   family: {
     type: "family",
     label: "Familie",
-    icon: "🏡",
+    icon: "agenda.home",
     color: "#6b4d92",
     background: "#f4efff",
     border: "#d6c6f2",
@@ -1269,7 +1270,7 @@ const agendaEventVisuals: Record<AgendaEventType, AgendaEventVisual> = {
   work: {
     type: "work",
     label: "Werk",
-    icon: "💼",
+    icon: "agenda.work",
     color: "#53606f",
     background: "#eef2f6",
     border: "#c9d3df",
@@ -1277,7 +1278,7 @@ const agendaEventVisuals: Record<AgendaEventType, AgendaEventVisual> = {
   media: {
     type: "media",
     label: "Kijken",
-    icon: "🎬",
+    icon: "agenda.media",
     color: "#884b7d",
     background: "#fff0fb",
     border: "#ecc4e5",
@@ -1285,7 +1286,7 @@ const agendaEventVisuals: Record<AgendaEventType, AgendaEventVisual> = {
   general: {
     type: "general",
     label: "Afspraak",
-    icon: "📌",
+    icon: "agenda.default",
     color: "#5c667a",
     background: "#f4f6fb",
     border: "#d7ddea",

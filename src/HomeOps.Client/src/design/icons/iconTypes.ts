@@ -18,4 +18,17 @@ export type FamilyBoardIconName =
   | "core.close"
   | "navigation.home"
   | "navigation.settings"
-  | "status.ready";
+  | "status.ready"
+  | "status.pending"
+  | "core.open"
+  | "shopping.bag"
+  | "agenda.birthday"
+  | "agenda.holiday"
+  | "agenda.school"
+  | "agenda.sport"
+  | "agenda.health"
+  | "agenda.shopping"
+  | "agenda.home"
+  | "agenda.work"
+  | "agenda.media"
+  | "agenda.default";

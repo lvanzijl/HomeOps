@@ -184,7 +184,7 @@ describe("FamilyMemberPage", () => {
     expect(await screen.findByText("Vandaag")).not.toBeNull();
     expect(screen.getByText("Wat kan ik vandaag doen?")).not.toBeNull();
     expect(screen.getByText("Pack school bag")).not.toBeNull();
-    expect(screen.getAllByText("✓").length).toBeGreaterThan(0);
+    expect(document.querySelectorAll(".homeops-icon-asset svg").length).toBeGreaterThan(0);
     expect(screen.getByText("Mijn voortgang")).not.toBeNull();
     expect(
       screen.getByLabelText("Huidig doel en voortgang").querySelector("img"),

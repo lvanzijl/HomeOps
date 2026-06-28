@@ -29,13 +29,26 @@ describe("FamilyBoardIcon", () => {
     expect(container.querySelector("svg")?.getAttribute("width")).toBe("24");
   });
 
-  it("exposes semantic registry entries without agenda or shopping migration icons", () => {
+  it("exposes Phase 1 semantic registry entries", () => {
     expect(Object.keys(familyBoardIconRegistry)).toEqual([
       "core.add",
       "core.close",
+      "core.open",
       "navigation.home",
       "navigation.settings",
       "status.ready",
+      "status.pending",
+      "shopping.bag",
+      "agenda.birthday",
+      "agenda.holiday",
+      "agenda.school",
+      "agenda.sport",
+      "agenda.health",
+      "agenda.shopping",
+      "agenda.home",
+      "agenda.work",
+      "agenda.media",
+      "agenda.default",
     ]);
   });
 });

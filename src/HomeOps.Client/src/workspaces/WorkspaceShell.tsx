@@ -1,3 +1,4 @@
+import { FamilyBoardIcon } from '../design';
 import { HomeOpsIcon } from '../icons/homeOpsIcons';
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { avatarV2DefaultConfiguration } from '../avatarV2/avatarConfig';
@@ -154,7 +155,7 @@ export function WorkspaceShell() {
               title={workspace.label}
               type="button"
             >
-              <span aria-hidden="true">⚙</span>
+              <FamilyBoardIcon name="navigation.settings" size="small" />
               <span>{workspace.label}</span>
             </button>
           ))}
