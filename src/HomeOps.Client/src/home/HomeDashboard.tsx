@@ -18,6 +18,7 @@ import type { EventSource, NormalizedEvent } from "../events/eventSourceModel";
 import {
   addShoppingListItem,
   createListsApiClient,
+  toggleShoppingListItem,
   loadShoppingList,
 } from "../shopping/listsApi";
 import {
@@ -56,7 +57,7 @@ type AgendaSummaryItem = ReturnType<typeof hydrateAgendaEvents>[number] & {
   bucket: AgendaBucket;
 };
 
-const visibleAgendaLimit = 5;
+const visibleAgendaLimit = 8;
 const visibleListLimit = 4;
 const visibleTaskLimit = 4;
 
@@ -227,6 +228,17 @@ export function HomeDashboard({
       await refreshHomeData();
     } catch {
       setListsError("Boodschap kon niet vanaf Thuis worden toegevoegd.");
+    }
+  }
+
+  async function handleShoppingToggle(listId: string, itemId: string, itemText: string) {
+    try {
+      const client = createListsApiClient();
+      await toggleShoppingListItem(client, listId, itemId);
+      setQuickStatus(`${itemText} afgevinkt in Boodschappen.`);
+      await refreshHomeData();
+    } catch {
+      setListsError("Boodschap kon niet vanaf Thuis worden afgevinkt.");
     }
   }
 
@@ -614,7 +626,17 @@ export function HomeDashboard({
                 <ul className="home-summary-list">
                   {group.items.map((item) => (
                     <li key={`${item.listId}-${item.id}`}>
-                      <span className="shopping-item-dot" aria-hidden="true" />
+                      <button
+                        className="shopping-check-action"
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          handleShoppingToggle(item.listId, item.id, item.text);
+                        }}
+                        aria-label={`${item.text} afvinken`}
+                      >
+                        <span aria-hidden="true" />
+                      </button>
                       <span>{item.text}</span>
                     </li>
                   ))}
