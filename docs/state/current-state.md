@@ -1,4 +1,5 @@
 # Current State
+- 2026-06-29: Redesigned the FamilyBoard Home dashboard composition for desktop by enlarging the family anchor, making Agenda and Boodschappen the dominant cards, keeping Taken and Motivatie supportive, adding large Home shopping check targets through the existing list toggle API, and updating source-only marketing storyboard references without backend/API/schema/database changes or binary artifacts.
 - 2026-06-29: Improved marketing Audio Framework missing-asset handling so absent generated placeholder WAV files produce silence and diagnostics instead of blocking director subscription, timeline creation, or mixing, while locally generated WAVs are still used automatically when present and no audio, movie, screenshots, videos, production UI, storyboard, Marketing Director, Recording Framework, or binary artifacts were produced.
 - 2026-06-29: Aligned the VisualReview marketing shopping fixture with the approved Koekjes bakken continuity by adding ordinary baking ingredients to grouped shopping and removing pre-seeded Bananen so the storyboard quick-add remains consistent, without production shopping behavior, UI redesign, Marketing Director, Recording Framework, Audio Framework, screenshots, videos, audio, or binary changes.
 - 2026-06-29: Aligned the Weekly Reset VisualReview marketing fixture API test with the approved Sunday canonical anchor while preserving Tuesday anchors for the remaining marketing fixtures, restoring clean baseline validation without production code, runtime, fixture, storyboard, recording, audio, screenshot, video, or binary changes.
@@ -50,7 +51,7 @@
 Phase 2 — Durable Household Core
 
 ## Current Slice
-FamilyBoard Audio Framework Missing-Assets Handling — Completed
+FamilyBoard Home Layout Redesign — Completed
 
 ## Completed Slices
 - 1.1 Repository Bootstrap

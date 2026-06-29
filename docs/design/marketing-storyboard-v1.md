@@ -116,7 +116,7 @@ Maximum total duration: **90 seconds**.
 - **Duration:** 5 seconds
 - **Minimum duration:** 4 seconds
 - **Maximum duration:** 6 seconds
-- **Visual focus:** The whole FamilyBoard surface with the day already prepared.
+- **Visual focus:** The redesigned full desktop Home dashboard with the larger family anchor and dominant Agenda/Boodschappen cards already prepared.
 - **Transition:** Fade in from warm neutral black.
 - **Camera pacing:** Start still. Hold for a full breath before any motion. Use only a very slow settle toward the center of the screen so the viewer reads the board as part of the room.
 - **Touch gestures:** None.
@@ -137,9 +137,9 @@ Maximum total duration: **90 seconds**.
 - **Duration:** 7 seconds
 - **Minimum duration:** 6 seconds
 - **Maximum duration:** 8 seconds
-- **Visual focus:** Today's agenda and today's tasks on the home dashboard, especially the swimming lesson that will be supported later by the swim-bag task.
+- **Visual focus:** The dominant Home Agenda and Boodschappen cards, the larger family member area, and the swimming lesson that will be supported later by the swim-bag task.
 - **Transition:** Gentle dissolve from the intro hold.
-- **Camera pacing:** Pause on the full dashboard, drift slightly toward today's agenda, then wait long enough for the swim lesson and school rhythm to register as the first continuity thread.
+- **Camera pacing:** Pause on the full dashboard, drift from the larger family area toward today's Agenda and Boodschappen cards, then wait long enough for the swim lesson and school rhythm to register as the first continuity thread.
 - **Touch gestures:** One tap on the Today area or first practical card, only to show the board is touch-first.
 - **Interaction sequence:** Tap once, then stop. Do not open quick capture; the scene is about seeing, not entering.
 - **Audio events:** `ChapterStarted`, `TouchStarted`, `TouchCompleted`.
