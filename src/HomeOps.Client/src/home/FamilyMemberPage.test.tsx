@@ -133,7 +133,7 @@ describe("FamilyMemberPage", () => {
     expect(screen.getByText("Persoonlijke gegevens")).not.toBeNull();
     expect(screen.getAllByText("Verjaardag").length).toBeGreaterThan(0);
     expect(screen.getByRole("heading", { name: "Uiterlijk" })).not.toBeNull();
-    expect(screen.getByText(/avatar van Alex verschijnt bij Thuis/)).not.toBeNull();
+    expect(screen.getByText(/administratieve kleurinstelling/)).not.toBeNull();
     expect(screen.queryByText("Current avatar configuration")).toBeNull();
     expect(screen.queryByText("Age group")).toBeNull();
     expect(screen.queryByText("Presentation")).toBeNull();
@@ -172,7 +172,6 @@ describe("FamilyMemberPage", () => {
 
     expect(screen.getByLabelText("Riley kindmodus")).not.toBeNull();
     expect(screen.getByLabelText("Kindoverzicht")).not.toBeNull();
-    expect(screen.getByLabelText("Wie ik ben")).not.toBeNull();
     expect(screen.getAllByRole("img", { name: "Riley household avatar" }).some((avatar) => avatar.className.includes("family-avatar-v2"))).toBe(true);
     expect(screen.getByLabelText("Huidig doel en voortgang")).not.toBeNull();
     expect(screen.getByLabelText("Family goal")).not.toBeNull();
@@ -180,7 +179,6 @@ describe("FamilyMemberPage", () => {
       await screen.findByLabelText("Samenvatting gezinsviering"),
     ).not.toBeNull();
     expect(screen.getByText("Herinneringen bekijken")).not.toBeNull();
-    expect(screen.getByText("Dit ben ik")).not.toBeNull();
     expect(await screen.findByText("Vandaag")).not.toBeNull();
     expect(screen.getByText("Wat kan ik vandaag doen?")).not.toBeNull();
     expect(screen.getByText("Pack school bag")).not.toBeNull();
@@ -292,17 +290,18 @@ describe("FamilyMemberPage", () => {
       />,
     );
 
-    expect(
-      screen.queryByRole("button", { name: "Gezinslid toevoegen" }),
-    ).toBeNull();
+    const adminDisclosure = screen
+      .getByText("Ouderinstellingen")
+      .closest("details");
+    expect(adminDisclosure?.hasAttribute("open")).toBe(false);
 
-    await user.click(screen.getByRole("tab", { name: "Oudermodus" }));
+    await user.click(screen.getByText("Ouderinstellingen"));
     await user.click(screen.getByRole("button", { name: "Gezinslid toevoegen" }));
 
     expect(onAddFamilyMember).toHaveBeenCalledOnce();
   });
 
-  it("opens Oudermodus grown-up settings without making it the landing content", async () => {
+  it("opens Ouderinstellingen grown-up settings without making them the landing content", async () => {
     const user = userEvent.setup();
     render(
       <FamilyMemberPage
@@ -314,10 +313,15 @@ describe("FamilyMemberPage", () => {
     );
 
     expect(screen.getByLabelText("Riley kindmodus")).not.toBeNull();
-    expect(screen.queryByLabelText("Riley instellingen voor volwassenen")).toBeNull();
+    expect(screen.getByText("Vandaag")).not.toBeNull();
+    const adminDisclosure = screen
+      .getByText("Ouderinstellingen")
+      .closest("details");
+    expect(adminDisclosure?.hasAttribute("open")).toBe(false);
 
-    await user.click(screen.getByRole("tab", { name: "Oudermodus" }));
+    await user.click(screen.getByText("Ouderinstellingen"));
 
+    expect(adminDisclosure?.hasAttribute("open")).toBe(true);
     expect(screen.getByLabelText("Riley instellingen voor volwassenen")).not.toBeNull();
     expect(screen.getByText("Persoonlijke gegevens")).not.toBeNull();
     expect(screen.getByRole("heading", { name: "Uiterlijk" })).not.toBeNull();
@@ -340,8 +344,8 @@ describe("FamilyMemberPage", () => {
       (await screen.findAllByText("Fill the family helper path")).length,
     ).toBeGreaterThan(0);
     const pageText = document.body.textContent ?? "";
-    expect(pageText.indexOf("Vandaag")).toBeLessThan(
-      pageText.indexOf("Dit ben ik"),
+    expect(pageText.indexOf("Pagina van Riley")).toBeLessThan(
+      pageText.indexOf("Vandaag"),
     );
     expect(pageText.indexOf("Vandaag")).toBeLessThan(
       pageText.indexOf("Mijn voortgang bekijken"),
@@ -356,14 +360,14 @@ describe("FamilyMemberPage", () => {
     expect(pageText.indexOf("Nieuwste waardering")).toBeLessThan(
       pageText.indexOf("Mijn voortgang bekijken"),
     );
-    expect(pageText.indexOf("Oudermodus")).toBeLessThan(
-      pageText.indexOf("Nieuwste waardering"),
+    expect(pageText.indexOf("Nieuwste waardering")).toBeLessThan(
+      pageText.indexOf("Ouderinstellingen"),
     );
-    expect(pageText.indexOf("Oudermodus")).toBeLessThan(
-      pageText.indexOf("Mijn voortgang"),
+    expect(pageText.indexOf("Mijn voortgang bekijken")).toBeLessThan(
+      pageText.indexOf("Ouderinstellingen"),
     );
-    expect(pageText.indexOf("Oudermodus")).toBeLessThan(
-      pageText.indexOf("Fill the family helper path"),
+    expect(pageText.indexOf("Fill the family helper path")).toBeLessThan(
+      pageText.indexOf("Ouderinstellingen"),
     );
     expect(pageText).not.toContain("Edit member");
   });

@@ -158,9 +158,9 @@ Maximum total duration: **90 seconds**.
 - **Duration:** 10 seconds
 - **Minimum duration:** 8 seconds
 - **Maximum duration:** 11 seconds
-- **Visual focus:** Thomas as a recognizable child in the family, the updated avatar after save, then the saved family overview.
+- **Visual focus:** Thomas's redesigned Mijn Pagina opens as a recognizable child-first page: normal header/back action, dominant avatar identity, then the existing Today/appreciation/progress content before the brief Avatar Editor save and return.
 - **Transition:** Soft crossfade.
-- **Camera pacing:** Move slowly from the family overview to Thomas. Pause after opening Thomas, pause briefly in the Avatar Editor, save, then hold for a beat on the updated avatar before returning to the family overview.
+- **Camera pacing:** Move slowly from the family overview to Thomas. Pause on the identity-led Mijn Pagina composition so the avatar and name read first, pause briefly in the Avatar Editor, save, then hold for a beat on the updated avatar before returning to the family overview.
 - **Touch gestures:** Tap Thomas, tap Avatar Editor, make one simple visual-property change, tap save, tap return.
 - **Interaction sequence:** Open Thomas; open Avatar Editor; change one simple visual property such as a color, accessory, or equally small appearance option; save; pause briefly so the updated avatar can be noticed; return to the Family overview.
 - **Audio events:** `TransitionStarted`, `TransitionCompleted`, `TouchStarted`, `TouchCompleted`, `ActionCompleted`, optional `save`.

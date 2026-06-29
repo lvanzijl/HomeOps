@@ -39,9 +39,6 @@ export function FamilyMemberPage({
   const [motivationStatus, setMotivationStatus] = useState<
     "loading" | "ready" | "error"
   >("loading");
-  const [activeMode, setActiveMode] = useState<"child" | "parent">(
-    member.memberKind === "child" ? "child" : "parent",
-  );
   const [motivationSnapshot, setMotivationSnapshot] =
     useState<MotivationSnapshot>({ individualGoals: [] });
   const [tasks, setTasks] = useState<readonly HouseholdTask[]>([]);
@@ -51,7 +48,6 @@ export function FamilyMemberPage({
 
   useEffect(() => {
     setDraft(member);
-    setActiveMode(member.memberKind === "child" ? "child" : "parent");
   }, [member]);
 
   useEffect(() => {
@@ -129,20 +125,30 @@ export function FamilyMemberPage({
       className="family-member-page"
       aria-label={`${member.name} gezinslidpagina`}
     >
-      <nav className="page-header-actions family-member-navigation" aria-label="Gezinslidnavigatie">
-        <button className="compact-header-action" type="button" onClick={onBack}>
-          <HomeOpsIcon name="arrowBack" />
-          <span>Terug</span>
-        </button>
-      </nav>
+      <div className="page-header-with-actions family-member-page-heading">
+        <div>
+          <p className="eyebrow">Familie</p>
+          <h1>
+            {member.memberKind === "child"
+              ? `Pagina van ${member.name}`
+              : member.name}
+          </h1>
+        </div>
+        <nav className="page-header-actions family-member-navigation" aria-label="Gezinslidnavigatie">
+          <button className="compact-header-action" type="button" onClick={onBack}>
+            <HomeOpsIcon name="arrowBack" />
+            <span>Terug</span>
+          </button>
+        </nav>
+      </div>
       <header
-        className="family-member-hero family-member-compact-header"
+        className="family-member-hero family-member-identity-header"
         style={{ "--member-color": member.displayColor } as CSSProperties}
       >
         <div className="family-member-hero-avatar">
           <FamilyAvatar member={member} size="large" />
         </div>
-        <div>
+        <div className="family-member-identity-copy">
           <p className="eyebrow">
             {member.memberKind === "child" ? "Mijn pagina" : "Gezinslid"}
           </p>
@@ -162,79 +168,55 @@ export function FamilyMemberPage({
 
       {member.memberKind === "child" ? (
         <div className="member-mode-shell">
-          <div
-            className="member-mode-switch"
-            role="tablist"
-            aria-label="Modus gezinslidpagina"
+          <section
+            className={`child-progress-view child-mode ${ageBand}`}
+            aria-label={`${member.name} kindmodus`}
           >
-            <button
-              type="button"
-              role="tab"
-              aria-selected={activeMode === "child"}
-              className={activeMode === "child" ? "active" : ""}
-              onClick={() => setActiveMode("child")}
-            >
-              Kindmodus
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={activeMode === "parent"}
-              className={activeMode === "parent" ? "active" : ""}
-              onClick={() => setActiveMode("parent")}
-            >
-              Oudermodus
-            </button>
-          </div>
-          {activeMode === "child" ? (
-            <section
-              className={`child-progress-view child-mode ${ageBand}`}
-              aria-label={`${member.name} kindmodus`}
-            >
-              <TodaySection
-                member={member}
-                tasks={tasks}
-                status={tasksStatus}
-                todayIso={todayIso}
-              />
-              <ChildHeroArea
-                member={member}
+            <TodaySection
+              member={member}
+              tasks={tasks}
+              status={tasksStatus}
+              todayIso={todayIso}
+            />
+            <HelpfulMomentsSection
+              members={[member]}
+              familyMemberId={member.id}
+              title="Nieuwste waardering"
+              compact
+            />
+            <ChildHeroArea
+              member={member}
+              goals={memberGoals}
+              familyGoal={motivationSnapshot.familyGoal}
+              status={motivationStatus}
+              ageBand={ageBand}
+            />
+            <details className="child-detail-disclosure">
+              <summary>Mijn voortgang bekijken</summary>
+              <IndividualGoalProgress
                 goals={memberGoals}
+                ageBand={ageBand}
+                member={member}
+              />
+            </details>
+            <details className="child-detail-disclosure">
+              <summary>Ons gezinsdoel bekijken</summary>
+              <FamilyGoalParticipation
                 familyGoal={motivationSnapshot.familyGoal}
                 status={motivationStatus}
                 ageBand={ageBand}
               />
-              <HelpfulMomentsSection
-                members={[member]}
-                familyMemberId={member.id}
-                title="Nieuwste waardering"
-                compact
+            </details>
+            <details className="child-detail-disclosure">
+              <summary>Herinneringen bekijken</summary>
+              <ChildCelebrationMemories
+                memories={motivationSnapshot.celebrationMemories ?? []}
+                ageBand={ageBand}
               />
-              <details className="child-detail-disclosure">
-                <summary>Mijn voortgang bekijken</summary>
-                <IndividualGoalProgress
-                  goals={memberGoals}
-                  ageBand={ageBand}
-                  member={member}
-                />
-              </details>
-              <details className="child-detail-disclosure">
-                <summary>Ons gezinsdoel bekijken</summary>
-                <FamilyGoalParticipation
-                  familyGoal={motivationSnapshot.familyGoal}
-                  status={motivationStatus}
-                  ageBand={ageBand}
-                />
-              </details>
-              <details className="child-detail-disclosure">
-                <summary>Herinneringen bekijken</summary>
-                <ChildCelebrationMemories
-                  memories={motivationSnapshot.celebrationMemories ?? []}
-                  ageBand={ageBand}
-                />
-              </details>
-            </section>
-          ) : (
+            </details>
+          </section>
+          <details className="parent-admin-disclosure">
+            <summary>Ouderinstellingen</summary>
             <ParentAdministration
               member={member}
               draft={draft}
@@ -243,12 +225,8 @@ export function FamilyMemberPage({
               submit={submit}
               requestRemove={requestRemove}
               onAddFamilyMember={onAddFamilyMember}
-              onEditAvatar={() => setIsEditingAvatar(true)}
             />
-          )}
-          <div className="member-mode-discovery">
-            <p>Volwassenen kunnen de oudermodus gebruiken voor instellingen.</p>
-          </div>
+          </details>
         </div>
       ) : (
         <>
@@ -265,7 +243,6 @@ export function FamilyMemberPage({
             submit={submit}
             requestRemove={requestRemove}
             onAddFamilyMember={onAddFamilyMember}
-            onEditAvatar={() => setIsEditingAvatar(true)}
           />
         </>
       )}
@@ -289,7 +266,6 @@ function ParentAdministration({
   submit,
   requestRemove,
   onAddFamilyMember,
-  onEditAvatar,
 }: {
   member: FamilyMember;
   draft: FamilyMember;
@@ -298,7 +274,6 @@ function ParentAdministration({
   submit: (event: FormEvent) => void;
   requestRemove: () => void;
   onAddFamilyMember?: () => void;
-  onEditAvatar: () => void;
 }) {
   return (
     <section
@@ -321,22 +296,11 @@ function ParentAdministration({
                 <p className="eyebrow">Identiteit</p>
                 <h3>Uiterlijk</h3>
               </div>
-              <button
-                className="secondary-action compact-action"
-                type="button"
-                onClick={onEditAvatar}
-              >
-                Avatar bewerken
-              </button>
             </div>
-            <div className="parent-identity-preview">
-              <FamilyAvatar member={draft} size="large" />
-              <p>
-                {member.avatarV2Config
-                  ? `De avatar van ${member.name} verschijnt bij Thuis, deze pagina en Motivatie.`
-                  : "Initialen worden gebruikt tot er een avatar is opgeslagen."}
-              </p>
-            </div>
+            <p className="parent-identity-note">
+              De avatar blijft bovenaan deze pagina zichtbaar. Gebruik hier alleen
+              de administratieve kleurinstelling.
+            </p>
             <label className="family-member-color-field">
               Weergavekleur
               <input
@@ -491,15 +455,6 @@ function ChildHeroArea({
       aria-label="Kindoverzicht"
       style={{ "--member-color": member.displayColor } as CSSProperties}
     >
-      <div className="child-hero-identity" aria-label="Wie ik ben">
-        <FamilyAvatar member={member} size="large" />
-        <div>
-          <p className="eyebrow">Dit ben ik</p>
-          <h3>{member.name}</h3>
-          <p>Mijn taken en doelen</p>
-        </div>
-      </div>
-
       <div className="child-hero-main" aria-label="Huidig doel en voortgang">
         <p className="eyebrow">Hoe gaat het?</p>
         <h2>
