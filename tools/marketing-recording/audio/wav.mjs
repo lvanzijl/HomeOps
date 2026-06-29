@@ -1,4 +1,5 @@
-import { readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { dirname } from 'node:path';
 
 export const defaultSampleRate = 48000;
 
@@ -45,5 +46,6 @@ export async function writeWav(filePath, audio) {
   buffer.writeUInt32LE(sampleRate, 24); buffer.writeUInt32LE(sampleRate * channels * 2, 28); buffer.writeUInt16LE(channels * 2, 32); buffer.writeUInt16LE(16, 34);
   buffer.write('data', 36); buffer.writeUInt32LE(dataSize, 40);
   for (let index = 0; index < samples.length; index += 1) buffer.writeInt16LE(Math.max(-32768, Math.min(32767, Math.round(samples[index] * 32767))), 44 + index * 2);
+  await mkdir(dirname(filePath), { recursive: true });
   await writeFile(filePath, buffer);
 }

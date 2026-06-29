@@ -70,7 +70,10 @@ public sealed class VisualReviewFixtureApiTests
 
         response.EnsureSuccessStatusCode();
         Assert.NotNull(body);
-        Assert.Equal(new DateTimeOffset(2026, 6, 16, 7, 5, 0, TimeSpan.Zero), body.AnchorUtc);
+        var expectedAnchorUtc = scenarioName == "visual-marketing-weekly-reset"
+            ? new DateTimeOffset(2026, 6, 21, 17, 35, 0, TimeSpan.Zero)
+            : new DateTimeOffset(2026, 6, 16, 7, 5, 0, TimeSpan.Zero);
+        Assert.Equal(expectedAnchorUtc, body.AnchorUtc);
         Assert.Equal(4, body.FamilyMembers);
         Assert.True(body.Tasks > 0);
         Assert.True(body.ListItems > 0);
@@ -81,6 +84,31 @@ public sealed class VisualReviewFixtureApiTests
         Assert.Contains(verifyDb.EventSeries, series => series.Title == "Zwemles Thomas" && series.StartDate == new DateOnly(2026, 6, 16));
         Assert.Contains(verifyDb.ListItems, item => item.Text == "Zwemluiers voor Robin" && item.PreferredStore == "Jumbo");
         Assert.Contains(verifyDb.MotivationFamilyGoals, goal => goal.Title == "20 helpful moments before Sunday pancake breakfast");
+    }
+
+    [Fact]
+    public async Task MarketingShoppingScenarioSupportsCookieStoryWithoutPreAddingBananas()
+    {
+        await using var factory = new HomeOpsWebApplicationFactory();
+        var client = factory.CreateClient();
+
+        var response = await client.PostAsync("/api/visual-review-fixtures/visual-marketing-shopping/reset", null);
+
+        response.EnsureSuccessStatusCode();
+        using var verifyScope = factory.Services.CreateScope();
+        var verifyDb = verifyScope.ServiceProvider.GetRequiredService<HomeOpsDbContext>();
+        var activeItemNames = verifyDb.ListItems
+            .Where(item => !item.IsCompleted && !item.IsDeleted)
+            .Select(item => item.Text)
+            .ToArray();
+
+        Assert.Contains("Bloem", activeItemNames);
+        Assert.Contains("Roomboter", activeItemNames);
+        Assert.Contains("Chocoladestukjes", activeItemNames);
+        Assert.Contains("Vanillesuiker", activeItemNames);
+        Assert.DoesNotContain("Bananen", activeItemNames);
+        Assert.Contains(verifyDb.ListItems, item => item.Text == "Bloem" && item.PreferredStore == "Albert Heijn");
+        Assert.Contains(verifyDb.ListItems, item => item.Text == "Roomboter" && item.PreferredStore == "HEMA");
     }
 
     [Fact]

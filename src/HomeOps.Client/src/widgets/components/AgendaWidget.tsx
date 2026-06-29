@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   filterEventsBySource,
   formatEventTime,
@@ -15,7 +15,6 @@ import { useAgendaLayerSettings } from "../../agenda/layerSettings";
 import {
   demoReadOnlyEvents,
   demoReadOnlyEventSources,
-  demoToday,
 } from "../../demo/demoAgendaData";
 import type {
   EventSource,
@@ -46,11 +45,10 @@ function createEmptyForm(date = todayIsoDate()): EventFormState {
   };
 }
 
-const emptyForm: EventFormState = createEmptyForm();
-
 export function AgendaWidget({ instance }: WidgetRenderProps) {
   const visualReviewNow = useVisualReviewNow();
   const today = visualReviewNow ? toIsoDate(visualReviewNow) : todayIsoDate();
+  const previousTodayRef = useRef(today);
   const [selectedDate, setSelectedDate] = useState(today);
   const [activeWorkspaceMode, setActiveWorkspaceMode] =
     useState<AgendaWorkspaceMode>("month");
@@ -59,13 +57,24 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
   const [calendarSources, setCalendarSources] = useState<EventSource[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [form, setForm] = useState<EventFormState>(emptyForm);
+  const [form, setForm] = useState<EventFormState>(() => createEmptyForm(today));
   const [editingEventId, setEditingEventId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [deletingEventId, setDeletingEventId] = useState<string | null>(null);
   const [isEventFormOpen, setIsEventFormOpen] = useState(false);
   const [eventDialogQuestion, setEventDialogQuestion] =
     useState<EventDialogQuestion>("title");
+
+  useEffect(() => {
+    const previousToday = previousTodayRef.current;
+    if (previousToday === today) return;
+
+    setSelectedDate((current) => (current === previousToday ? today : current));
+    setWeekAnchorDate((current) =>
+      current === previousToday ? today : current,
+    );
+    previousTodayRef.current = today;
+  }, [today]);
 
   useEffect(() => {
     let isMounted = true;
@@ -158,7 +167,7 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
     setEditingEventId(null);
     setIsEventFormOpen(false);
     setEventDialogQuestion("title");
-    setForm(emptyForm);
+    setForm(createEmptyForm(today));
   }
 
   function openNewEventForm(date = selectedDate || today) {
@@ -276,6 +285,7 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
               onChange={setForm}
               onQuestionChange={setEventDialogQuestion}
               onSubmit={handleSubmit}
+              today={today}
             />
           </section>
         </div>
@@ -345,6 +355,7 @@ function EventConversationForm({
   onChange,
   onQuestionChange,
   onSubmit,
+  today,
 }: {
   form: EventFormState;
   isEditing: boolean;
@@ -353,6 +364,7 @@ function EventConversationForm({
   onChange: (form: EventFormState) => void;
   onQuestionChange: (question: EventDialogQuestion) => void;
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
+  today: string;
 }) {
   const titleIsValid = form.title.trim().length > 0;
   const submitLabel = isEditing ? "Gebeurtenis opslaan" : "Gebeurtenis maken";
@@ -391,14 +403,14 @@ function EventConversationForm({
             >
               <button
                 type="button"
-                onClick={() => onChange(setEventDate(form, demoToday))}
+                onClick={() => onChange(setEventDate(form, today))}
               >
                 Vandaag
               </button>
               <button
                 type="button"
                 onClick={() =>
-                  onChange(setEventDate(form, addDaysIso(demoToday, 1)))
+                  onChange(setEventDate(form, addDaysIso(today, 1)))
                 }
               >
                 Morgen

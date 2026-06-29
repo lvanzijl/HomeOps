@@ -2,9 +2,10 @@ import { AddListItemRequest, CreateListRequest, HomeOpsApiClient, ListDto, ListI
 import type { ShoppingListItem, ShoppingListState } from './shoppingListModel';
 
 export const shoppingListName = 'Shopping';
+const localizedShoppingListNames = new Set(['shopping', 'boodschappen']);
 
 export function isDedicatedShoppingListName(name: string | undefined): boolean {
-  return name === shoppingListName;
+  return name ? localizedShoppingListNames.has(name.trim().toLowerCase()) : false;
 }
 
 export function createListsApiClient(): HomeOpsApiClient {
