@@ -147,6 +147,36 @@ const currentWeekEvents: NormalizedEvent[] = [
   },
 ];
 
+const marketingAgendaEvents: NormalizedEvent[] = [
+  {
+    id: "canonical-tuesday",
+    sourceId: calendarSource.id,
+    title: "Zwemles Thomas",
+    startsAt: "2026-06-16T15:30:00.000Z",
+    endsAt: "2026-06-16T16:15:00.000Z",
+    allDay: false,
+    editable: true,
+  },
+  {
+    id: "canonical-sunday",
+    sourceId: calendarSource.id,
+    title: "Pannenkoeken ontbijt",
+    startsAt: "2026-06-21T08:30:00.000Z",
+    endsAt: "2026-06-21T09:30:00.000Z",
+    allDay: false,
+    editable: true,
+  },
+  {
+    id: "following-monday",
+    sourceId: calendarSource.id,
+    title: "Volgende maandag",
+    startsAt: "2026-06-22T09:00:00.000Z",
+    endsAt: "2026-06-22T10:00:00.000Z",
+    allDay: false,
+    editable: true,
+  },
+];
+
 const timelineEvents: NormalizedEvent[] = [
   {
     id: "past-event",
@@ -247,6 +277,7 @@ async function continueToDetails(user: ReturnType<typeof userEvent.setup>) {
 afterEach(() => {
   cleanup();
   window.localStorage.clear();
+  vi.unstubAllGlobals();
 });
 
 describe("AgendaWidget HomeOps Calendar event integration", () => {
@@ -598,7 +629,9 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     const busyCard = screen.getByLabelText(/27 juni 2026, 5 gebeurtenissen/);
     expect(within(busyCard).getAllByTitle("School").length).toBeGreaterThan(0);
     expect(within(busyCard).getAllByTitle("Sport").length).toBeGreaterThan(0);
-    expect(within(busyCard).getAllByTitle("Boodschappen").length).toBeGreaterThan(0);
+    expect(
+      within(busyCard).getAllByTitle("Boodschappen").length,
+    ).toBeGreaterThan(0);
     expect(within(busyCard).getByText("+2")).not.toBeNull();
     expect(within(busyCard).getByText("+2 meer voor deze dag")).not.toBeNull();
     expect(within(busyCard).getByText("School ouderavond")).not.toBeNull();
@@ -612,6 +645,61 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
 
     await user.click(screen.getByRole("button", { name: "Maand" }));
     expect(screen.getByLabelText("Maandplanning")).not.toBeNull();
+  });
+
+  it("synchronizes month, week, and list views to the VisualReview marketing anchor", async () => {
+    const user = userEvent.setup();
+    const calendarEventsApi = await mockedCalendarEventsApi();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ anchorUtc: "2026-06-16T07:05:00+00:00" }),
+      }),
+    );
+    vi.mocked(calendarEventsApi.loadCalendarAgendaData).mockResolvedValueOnce({
+      sources: [calendarSource],
+      events: marketingAgendaEvents,
+    });
+
+    render(<AgendaWidget {...widgetProps} />);
+
+    await waitFor(() => {
+      const canonicalToday = screen.getByRole("button", {
+        name: /dinsdag 16 juni 2026, 1 gebeurtenis/,
+      });
+      expect(canonicalToday.className).toContain("today");
+      expect(within(canonicalToday).getByText("Vandaag")).not.toBeNull();
+    });
+
+    await user.click(screen.getByRole("button", { name: "Week" }));
+
+    expect(await screen.findByText("Week 25")).not.toBeNull();
+    expect(screen.getByText("15 jun – 21 jun")).not.toBeNull();
+    expect(
+      screen.getByLabelText(/dinsdag 16 juni 2026, 1 gebeurtenis/).className,
+    ).toContain("today");
+    expect(screen.getByText("Zwemles Thomas")).not.toBeNull();
+    expect(screen.queryByText("Volgende maandag")).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: "Lijst" }));
+
+    expect(screen.getByLabelText("Vandaag")).not.toBeNull();
+    expect(screen.getByLabelText("Deze week")).not.toBeNull();
+    expect(screen.getByLabelText("Volgende week")).not.toBeNull();
+    expect(
+      within(screen.getByLabelText("Vandaag")).getByText("Zwemles Thomas"),
+    ).not.toBeNull();
+    expect(
+      within(screen.getByLabelText("Deze week")).getByText(
+        "Pannenkoeken ontbijt",
+      ),
+    ).not.toBeNull();
+    expect(
+      within(screen.getByLabelText("Volgende week")).getByText(
+        "Volgende maandag",
+      ),
+    ).not.toBeNull();
   });
 
   it("adds a chronological list workspace with reused event cards and editing actions", async () => {

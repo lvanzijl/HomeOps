@@ -1,9 +1,9 @@
 const OVERLAY_ID = 'familyboard-recording-overlays';
+const OVERLAY_STYLE_ID = `${OVERLAY_ID}-styles`;
 
-export async function installRecordingOverlays(page, options = {}) {
-  const touchSize = options.touchSize ?? 34;
-  await page.addStyleTag({ content: `
-    #${OVERLAY_ID} { position: fixed; inset: 0; pointer-events: none; z-index: 2147483647; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+function recordingOverlayStyles(id) {
+  return `
+    #${id} { position: fixed; inset: 0; pointer-events: none; z-index: 2147483647; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
     .fb-touch-point { position: absolute; width: var(--touch-size); height: var(--touch-size); border-radius: 999px; background: rgba(255,255,255,.62); box-shadow: 0 0 26px rgba(255,255,255,.38); opacity: 0; transform: translate(-50%, -50%) scale(.82); transition: opacity 180ms ease, transform 260ms cubic-bezier(.22,.61,.36,1), left 80ms linear, top 80ms linear; }
     .fb-touch-point.is-visible { opacity: 1; transform: translate(-50%, -50%) scale(1); }
     .fb-ripple { position: absolute; width: var(--ripple-size); height: var(--ripple-size); border: 2px solid rgba(255,255,255,.44); border-radius: 999px; opacity: .56; transform: translate(-50%, -50%) scale(.55); animation: fb-ripple var(--ripple-duration) ease-out forwards; }
@@ -14,20 +14,36 @@ export async function installRecordingOverlays(page, options = {}) {
     .fb-chapter-subtitle { margin-top: 8px; font-size: 16px; line-height: 1.45; color: rgba(255,255,255,.82); }
     .fb-transition { position: absolute; inset: 0; background: #f8f1e8; opacity: 0; transition: opacity var(--transition-duration) ease; }
     .fb-transition.is-visible { opacity: 1; }
-  ` });
+  `;
+}
 
-  await page.evaluate(({ id, touchSize }) => {
+export async function ensureRecordingOverlayRoot(page, options = {}) {
+  const touchSize = options.touchSize ?? 34;
+  await page.evaluate(({ id, styleId, styles, touchSize }) => {
+    let style = document.getElementById(styleId);
+    if (!style) {
+      style = document.createElement('style');
+      style.id = styleId;
+      style.textContent = styles;
+      document.head.appendChild(style);
+    }
+
     let root = document.getElementById(id);
     if (!root) {
       root = document.createElement('div');
       root.id = id;
-      root.style.setProperty('--touch-size', `${touchSize}px`);
       document.body.appendChild(root);
     }
-  }, { id: OVERLAY_ID, touchSize });
+    root.style.setProperty('--touch-size', `${touchSize}px`);
+  }, { id: OVERLAY_ID, styleId: OVERLAY_STYLE_ID, styles: recordingOverlayStyles(OVERLAY_ID), touchSize });
+}
+
+export async function installRecordingOverlays(page, options = {}) {
+  await ensureRecordingOverlayRoot(page, options);
 }
 
 export async function showTouchPoint(page, point) {
+  await ensureRecordingOverlayRoot(page);
   await page.evaluate(({ id, point }) => {
     const root = document.getElementById(id);
     let el = root.querySelector('.fb-touch-point');
@@ -43,6 +59,7 @@ export async function showTouchPoint(page, point) {
 }
 
 export async function moveTouchPoint(page, point) {
+  await ensureRecordingOverlayRoot(page);
   await page.evaluate(({ id, point }) => {
     const el = document.getElementById(id)?.querySelector('.fb-touch-point');
     if (el) { el.style.left = `${point.x}px`; el.style.top = `${point.y}px`; }
@@ -50,10 +67,12 @@ export async function moveTouchPoint(page, point) {
 }
 
 export async function hideTouchPoint(page) {
+  await ensureRecordingOverlayRoot(page);
   await page.evaluate((id) => document.getElementById(id)?.querySelector('.fb-touch-point')?.classList.remove('is-visible'), OVERLAY_ID);
 }
 
 export async function ripple(page, point, options = {}) {
+  await ensureRecordingOverlayRoot(page);
   await page.evaluate(({ id, point, options }) => {
     const root = document.getElementById(id);
     const el = document.createElement('div');
@@ -68,6 +87,7 @@ export async function ripple(page, point, options = {}) {
 }
 
 export async function showChapter(page, chapter, options = {}) {
+  await ensureRecordingOverlayRoot(page);
   const position = options.position ?? 'lower-left';
   const durationMs = options.durationMs ?? 1800;
   await page.evaluate(({ id, chapter, position }) => {

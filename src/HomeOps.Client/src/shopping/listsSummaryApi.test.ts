@@ -56,6 +56,34 @@ describe('lists summary API mapping', () => {
     expect(client.getListById).toHaveBeenCalledWith('shopping-list-id');
   });
 
+
+  it('loads localized Boodschappen summaries even when generated list summaries omit item counts', async () => {
+    const client = {
+      getLists: vi.fn().mockResolvedValue([
+        new ListDto({ id: 'shopping-list-id', name: 'Boodschappen' }),
+      ]),
+      getListById: vi.fn().mockResolvedValue(new ListDto({
+        id: 'shopping-list-id',
+        name: 'Boodschappen',
+        items: [
+          new ListItemDto({ id: 'bloem', listId: 'shopping-list-id', text: 'Bloem', isCompleted: false, preferredStore: 'Jumbo' }),
+          new ListItemDto({ id: 'roomboter', listId: 'shopping-list-id', text: 'Roomboter', isCompleted: false, preferredStore: 'Jumbo' }),
+        ],
+      })),
+    };
+
+    await expect(loadShoppingListSummary(client as never)).resolves.toEqual({
+      id: 'shopping-list-id',
+      name: 'Boodschappen',
+      activeItems: [
+        { id: 'bloem', text: 'Bloem', preferredStore: 'Jumbo', isCompleted: false, isDeleted: false },
+        { id: 'roomboter', text: 'Roomboter', preferredStore: 'Jumbo', isCompleted: false, isDeleted: false },
+      ],
+    });
+    expect(client.getListById).toHaveBeenCalledTimes(1);
+    expect(client.getListById).toHaveBeenCalledWith('shopping-list-id');
+  });
+
   it('does not fall back to another list when Shopping does not exist', async () => {
     const client = {
       getLists: vi.fn().mockResolvedValue([

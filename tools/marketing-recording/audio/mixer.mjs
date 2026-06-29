@@ -1,10 +1,19 @@
 import { readWav, createSilentBuffer, secondsToSamples } from './wav.mjs';
 
 export class AudioMixer {
-  constructor({ sampleRate = 48000 } = {}) { this.sampleRate = sampleRate; this.cache = new Map(); }
-  async load(source) { if (!this.cache.has(source)) this.cache.set(source, await readWav(source)); return this.cache.get(source); }
+  constructor({ sampleRate = 48000, logger = console } = {}) { this.sampleRate = sampleRate; this.cache = new Map(); this.logger = logger; this.missingSources = new Set(); }
+  async load(source) {
+    if (!this.cache.has(source)) {
+      this.cache.set(source, readWav(source).catch((error) => {
+        if (error?.code === 'ENOENT') { this.warnMissingSource(source); return undefined; }
+        throw error;
+      }));
+    }
+    return this.cache.get(source);
+  }
+  warnMissingSource(source) { if (this.missingSources.has(source)) return; this.missingSources.add(source); this.logger?.warn?.(`Marketing audio source is missing at ${source}; skipping clip.`); }
   async mix(timeline, { durationMs } = {}) {
-    const loaded = await Promise.all(timeline.clips.map(async (clip) => [clip, await this.load(clip.source)]));
+    const loaded = (await Promise.all(timeline.clips.map(async (clip) => [clip, await this.load(clip.source)]))).filter(([, audio]) => audio);
     const computedDurationMs = durationMs ?? loaded.reduce((max, [clip, audio]) => Math.max(max, clip.startMs + (clip.trimEndMs ?? (audio.samples.length / audio.sampleRate) * 1000)), 0);
     const output = createSilentBuffer(computedDurationMs / 1000, { sampleRate: this.sampleRate });
     for (const [clip, audio] of loaded) this.mixClip(output, audio, clip, computedDurationMs);

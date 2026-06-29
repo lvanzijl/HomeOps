@@ -13,7 +13,7 @@ export async function loadShoppingListSummary(client = createListsSummaryApiClie
   const lists = await client.getLists();
   const shoppingList = lists.find((list) => isDedicatedShoppingListName(list.name));
 
-  if (!shoppingList?.id || (shoppingList.itemCount ?? 0) <= 0) {
+  if (!shoppingList?.id) {
     return null;
   }
 

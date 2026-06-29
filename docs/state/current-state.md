@@ -1,4 +1,10 @@
 # Current State
+- 2026-06-29: Improved marketing Audio Framework missing-asset handling so absent generated placeholder WAV files produce silence and diagnostics instead of blocking director subscription, timeline creation, or mixing, while locally generated WAVs are still used automatically when present and no audio, movie, screenshots, videos, production UI, storyboard, Marketing Director, Recording Framework, or binary artifacts were produced.
+- 2026-06-29: Aligned the VisualReview marketing shopping fixture with the approved Koekjes bakken continuity by adding ordinary baking ingredients to grouped shopping and removing pre-seeded Bananen so the storyboard quick-add remains consistent, without production shopping behavior, UI redesign, Marketing Director, Recording Framework, Audio Framework, screenshots, videos, audio, or binary changes.
+- 2026-06-29: Aligned the Weekly Reset VisualReview marketing fixture API test with the approved Sunday canonical anchor while preserving Tuesday anchors for the remaining marketing fixtures, restoring clean baseline validation without production code, runtime, fixture, storyboard, recording, audio, screenshot, video, or binary changes.
+- 2026-06-29: Fixed the Shopping VisualReview marketing rendering mismatch by recognizing localized `Boodschappen` lists as the primary shopping list in Shopping page and Home summary data loading, restoring grouped active-list rendering after `visual-marketing-shopping` reset without production UI redesign, storyboard, fixture, recording, audio, screenshot, video, or binary changes.
+- 2026-06-28: Fixed the Agenda Week VisualReview canonical-time bug by synchronizing Agenda selected-day and week-anchor state after the marketing time provider anchor loads, keeping Month, Week, and List aligned to `visual-marketing-agenda` without production UI, storyboard, fixture, recording, audio, screenshot, video, or binary changes.
+- 2026-06-28: Fixed the FamilyBoard marketing recording overlay root lifecycle by making overlay root/style installation idempotent across scene transitions and page reloads, unblocking first-scene Chapter Card initialization in a no-recording dry run without production UI, storyboard, fixture, screenshot, video, audio, or WAV changes.
 - 2026-06-28: Added the executable FamilyBoard marketing preview storyboard module for the canonical 9-scene Marketing Storyboard V1, including Chapter Card, emotional curve, fixture, duration, semantic action, and recording-plan validation metadata without browser recording, screenshots, audio, WAV files, production UI changes, or generated media.
 - 2026-06-28: Added the reusable FamilyBoard marketing audio framework with event-bus subscription, replaceable placeholder WAV generation, optional music/timeline/mixer/export helpers, and ignored local validation mix support without committed audio binaries, production UI, screenshots, videos, or application sound effects.
 - 2026-06-28: Added the FamilyBoard Marketing Director storytelling layer with storyboard configuration, richer scene metadata, reusable timing profiles, narrative validation, recording event infrastructure, and a sample internal storyboard without production UI, audio playback, screenshots, videos, Playwright tests, or binary artifacts.
@@ -44,7 +50,7 @@
 Phase 2 — Durable Household Core
 
 ## Current Slice
-Executable FamilyBoard Marketing Storyboard — Completed
+FamilyBoard Audio Framework Missing-Assets Handling — Completed
 
 ## Completed Slices
 - 1.1 Repository Bootstrap

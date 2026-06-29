@@ -1,3 +1,5 @@
+import { ensureRecordingOverlayRoot } from './overlays.mjs';
+
 const transitionStyles = Object.freeze({
   fade: { background: '#f8f1e8', opacity: 1 },
   crossfade: { background: 'rgba(248,241,232,.92)', opacity: 1 },
@@ -5,6 +7,7 @@ const transitionStyles = Object.freeze({
 });
 
 export async function runTransition(page, transition = { type: 'fade' }, fn = async () => {}) {
+  await ensureRecordingOverlayRoot(page);
   const durationMs = transition.durationMs ?? 650;
   const style = transitionStyles[transition.type] ?? transitionStyles.fade;
   await page.evaluate(({ durationMs, style }) => {
@@ -21,7 +24,9 @@ export async function runTransition(page, transition = { type: 'fade' }, fn = as
   }, { durationMs, style });
   await page.waitForTimeout(durationMs);
   await fn();
+  await ensureRecordingOverlayRoot(page);
   await page.evaluate(() => document.querySelector('.fb-transition')?.classList.remove('is-visible'));
   await page.waitForTimeout(durationMs);
   await page.evaluate(() => document.querySelector('.fb-transition')?.remove());
+  await ensureRecordingOverlayRoot(page);
 }
