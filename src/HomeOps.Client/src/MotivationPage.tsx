@@ -531,9 +531,9 @@ function FamilyStatsCard({
     : 0;
   const stats = [
     { label: "Helpacties", value: familyGoal?.currentProgress ?? 0 },
-    { label: "Gezinsleden", value: members.length },
+    { label: "Gezin", value: members.length },
     { label: "Persoonlijke doelen", value: individualGoals.length },
-    { label: "Voortgang", value: `${progress}%` },
+    { label: "Samen op weg", value: `${progress}%` },
   ];
   return (
     <section
@@ -542,8 +542,8 @@ function FamilyStatsCard({
     >
       <div className="dashboard-card-heading">
         <div>
-          <p className="eyebrow">Statistieken</p>
-          <h3>In één oogopslag</h3>
+          <p className="eyebrow">Rustige voortgang</p>
+          <h3>Wat groeit er mee?</h3>
         </div>
         <HomeOpsIcon name="childMyProgress" variant="spot" />
       </div>

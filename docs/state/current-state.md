@@ -1,4 +1,9 @@
 # Current State
+- 2026-06-30: Completed the Shopping layout redesign by replacing narrow per-store desktop columns with a full-width vertical store stack, making active shopping rows larger and easier to scan, reducing Quick Add visual weight, improving touch targets, and preserving preferred-store grouping, quick add, completion, undo, delete, backend/API/schema behavior, storyboard source, media policy, and binary artifact policy.
+- 2026-06-29: Completed the Motivation layout redesign by turning Motivatie into a calm desktop encouragement dashboard with a dominant family-goal anchor, clearer appreciation hierarchy, supporting celebration/progress surfaces, improved emotional readability, and FamilyBoard-aligned warm card styling while preserving goals, helpful moments, celebrations, memories, dialogs, navigation, backend/API/schema behavior, storyboard source, media policy, and binary artifact policy.
+- 2026-06-29: Completed the Tasks layout redesign by turning Taken into a desktop task dashboard with a primary Today surface, secondary planning grid, improved task-row density, clearer metadata/action touch targets, and FamilyBoard-aligned warm card language while preserving task creation/editing/completion/reopen, templates, weekly reset entry points, backend/API/schema behavior, storyboard source, media policy, and binary artifact policy.
+- 2026-06-29: Completed a FamilyBoard UX consistency pass by aligning shared workspace headers, widget/card surfaces, Settings action panels, and Tasks container treatment with the warm FamilyBoard visual language, while reviewing Home, Mijn Pagina, Agenda, Taken, Boodschappen, Motivatie, and Settings without backend/API/schema, workflow, storyboard, media, or binary artifact changes.
+- 2026-06-29: Completed the Agenda composition redesign by aligning Agenda with the FamilyBoard Home and Mijn Pagina design language, expanding desktop surface usage, tightening source controls, strengthening Today/upcoming hierarchy across Month/Week/List, preserving event creation/editing/deletion/filtering/navigation/backend/API/schema behavior, and leaving no prohibited binary artifacts.
 - 2026-06-29: Completed the Mijn Pagina polish slice by tightening identity/header spacing, strengthening avatar prominence, balancing child desktop cards, reducing progress-card vertical weight, adding subtle disclosure feedback, and preserving existing child content, parent settings, avatar editing, backend/API/schema behavior, and binary artifact policy.
 - 2026-06-29: Completed Mijn Pagina layout redesign slice 2 by simplifying child pages around identity and Today, removing duplicated child-mode identity and parent avatar preview emphasis, moving parent settings into a quiet administrative disclosure on child pages, and preserving existing avatar editing, parent settings, tasks, motivation, Helpful Moments, navigation, backend/API/schema behavior, and binary artifact policy.
 - 2026-06-29: Completed the first Mijn Pagina layout redesign slice by giving Family Member child pages a clear page header, making identity/avatar the lead section, reordering child content to identity then Today then appreciation/progress/history, and reducing parent administration dominance while preserving existing functionality, navigation, data, backend/API/schema behavior, and binary artifact policy.
@@ -54,7 +59,7 @@
 Phase 2 — Durable Household Core
 
 ## Current Slice
-FamilyBoard Home Layout Redesign — Completed
+Shopping Layout Redesign — Completed
 
 ## Completed Slices
 - 1.1 Repository Bootstrap

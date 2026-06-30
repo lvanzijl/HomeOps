@@ -73,6 +73,18 @@ export function TasksPage({
     [tasks],
   );
   const groups = useMemo(() => groupTasksByTime(tasks, todayIso), [tasks, todayIso]);
+  const primaryTaskGroups = useMemo(
+    () => groups.filter((group) => group.id === "today"),
+    [groups],
+  );
+  const planningTaskGroups = useMemo(
+    () => groups.filter((group) => group.id !== "today" && group.id !== "completedRecently"),
+    [groups],
+  );
+  const completedTaskGroup = useMemo(
+    () => groups.find((group) => group.id === "completedRecently") ?? null,
+    [groups],
+  );
   const todaySummary = useMemo(() => {
     const todayTasks = groups.find((group) => group.id === "today")?.tasks ?? [];
     return {
@@ -356,20 +368,67 @@ export function TasksPage({
           </button>
         </div>
       ) : (
-        groups.map((group) => (
-          <TaskGroup
-            group={group}
-            key={group.id}
-            members={members}
-            tasks={group.tasks}
-            todayDate={todayDate}
-            todayIso={todayIso}
-            onDeleteSeries={deleteSeries}
-            onEdit={startEditing}
-            onMoveToTomorrow={moveTaskToTomorrow}
-            onUpdate={updateTask}
-          />
-        ))
+        <section className="tasks-dashboard-grid" aria-label="Taken dashboard">
+          <div className="tasks-dashboard-primary" aria-label="Aandacht voor nu">
+            {primaryTaskGroups.length > 0 ? (
+              primaryTaskGroups.map((group) => (
+                <TaskGroup
+                  group={group}
+                  key={group.id}
+                  members={members}
+                  tasks={group.tasks}
+                  todayDate={todayDate}
+                  todayIso={todayIso}
+                  onDeleteSeries={deleteSeries}
+                  onEdit={startEditing}
+                  onMoveToTomorrow={moveTaskToTomorrow}
+                  onUpdate={updateTask}
+                />
+              ))
+            ) : (
+              <section className="task-group task-time-group today-focus empty-today-panel">
+                <div className="task-group-heading">
+                  <div>
+                    <p className="task-group-kicker">Nu eerst</p>
+                    <h4>Vandaag</h4>
+                    <p>Vandaag is alles gedaan.</p>
+                  </div>
+                  <span>0 taken</span>
+                </div>
+                <p className="shopping-empty">Er vraagt nu niets direct aandacht.</p>
+              </section>
+            )}
+          </div>
+          <div className="tasks-dashboard-planning" aria-label="Wat daarna komt">
+            {planningTaskGroups.map((group) => (
+              <TaskGroup
+                group={group}
+                key={group.id}
+                members={members}
+                tasks={group.tasks}
+                todayDate={todayDate}
+                todayIso={todayIso}
+                onDeleteSeries={deleteSeries}
+                onEdit={startEditing}
+                onMoveToTomorrow={moveTaskToTomorrow}
+                onUpdate={updateTask}
+              />
+            ))}
+            {completedTaskGroup ? (
+              <TaskGroup
+                group={completedTaskGroup}
+                members={members}
+                tasks={completedTaskGroup.tasks}
+                todayDate={todayDate}
+                todayIso={todayIso}
+                onDeleteSeries={deleteSeries}
+                onEdit={startEditing}
+                onMoveToTomorrow={moveTaskToTomorrow}
+                onUpdate={updateTask}
+              />
+            ) : null}
+          </div>
+        </section>
       )}
 
       <div className="task-support-actions" aria-label="Taakplanning acties">
@@ -823,7 +882,7 @@ function TaskGroup({
   }
 
   return (
-    <section className={`task-group task-time-group ${group.emphasis === "primary" ? "today-focus" : ""} ${group.emphasis === "quiet" ? "quiet" : ""}`}>
+    <section className={`task-group task-time-group task-time-group-${group.id} ${group.emphasis === "primary" ? "today-focus" : ""} ${group.emphasis === "quiet" ? "quiet" : ""}`}>
       <div className="task-group-heading">
         <div>
           <p className="task-group-kicker">{group.id === "today" ? "Nu eerst" : "Daarna"}</p>
