@@ -66,6 +66,43 @@ public sealed class EventSeriesApiTests
         Assert.Equal(HttpStatusCode.NotFound, getResponse.StatusCode);
     }
 
+
+    [Fact]
+    public async Task CreateEventUsesCurrentWritableManualSourceForHousehold()
+    {
+        await using var factory = new HomeOpsWebApplicationFactory();
+        var client = factory.CreateClient();
+        var visualReviewSourceId = Guid.Parse("88000000-0000-0000-0000-000000000001");
+        var now = DateTimeOffset.UtcNow;
+
+        using (var scope = factory.Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<HomeOpsDbContext>();
+            dbContext.EventSeries.RemoveRange(dbContext.EventSeries);
+            dbContext.EventSources.RemoveRange(dbContext.EventSources.Where(source => source.HouseholdId == SeedHousehold.Id));
+            dbContext.EventSources.Add(new HomeOps.Api.CalendarEvents.EventSource
+            {
+                Id = visualReviewSourceId,
+                HouseholdId = SeedHousehold.Id,
+                Name = "Van Zijl Family Calendar",
+                SourceType = "manual",
+                IsWritable = true,
+                CreatedUtc = now,
+                UpdatedUtc = now,
+            });
+            await dbContext.SaveChangesAsync();
+        }
+
+        var start = new DateTimeOffset(2026, 6, 16, 19, 0, 0, TimeSpan.Zero);
+        var response = await client.PostAsJsonAsync("/api/events", new CreateEventSeriesRequest("Filmavond", null, start, start.AddHours(2), false));
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var created = await response.Content.ReadFromJsonAsync<EventSeriesDto>();
+        Assert.NotNull(created);
+        Assert.Equal(visualReviewSourceId, created.EventSourceId);
+        Assert.Equal("Filmavond", created.Title);
+    }
+
     [Fact]
     public async Task CreateEventPreservesMultiDayAllDayExclusiveEndDate()
     {

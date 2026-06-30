@@ -27,6 +27,123 @@ function action(id, type, description, metadata = {}) {
   return Object.freeze({ id, type, description, ...metadata });
 }
 
+async function expectSingle(locator, description) {
+  const count = await locator.count();
+  if (count !== 1) throw new Error(`${description} expected exactly 1 match, found ${count}.`);
+  await locator.waitFor({ state: 'visible' });
+  return locator;
+}
+
+async function expectEnabled(locator, description) {
+  const target = await expectSingle(locator, description);
+  const disabled = await target.evaluate((element) => element.disabled === true || element.getAttribute('aria-disabled') === 'true');
+  if (disabled) throw new Error(`${description} is disabled.`);
+  return target;
+}
+
+async function tapLocator(touch, locator, description, options = {}) {
+  const target = options.requireEnabled ? await expectEnabled(locator, description) : await expectSingle(locator, description);
+  const box = await target.boundingBox();
+  if (!box) throw new Error(`${description} is visible but has no bounding box.`);
+  const point = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+  if (options.locatorClick) {
+    const handle = await target.elementHandle();
+    if (!handle) throw new Error(`${description} could not be resolved to an element handle.`);
+    await touch.moveTo(point, options);
+    await handle.click();
+    await touch.page.waitForTimeout(options.holdAfterMs ?? 320);
+    return;
+  }
+  await touch.tap(point, { hesitationMs: options.hesitationMs, afterMs: options.holdAfterMs });
+}
+
+function agendaRoot(page) {
+  return page.getByRole('article', { name: 'Agenda', exact: true });
+}
+
+async function ensureAgendaPage(page) {
+  const root = agendaRoot(page);
+  if (await root.count() === 1 && await root.isVisible()) return root;
+  const primaryNav = page.getByLabel('Dagelijkse gezinsplekken', { exact: true });
+  const agendaNav = primaryNav.getByRole('button', { name: 'Agenda', exact: true });
+  await expectSingle(agendaNav, 'Primary Agenda navigation button');
+  await agendaNav.click();
+  await expectSingle(root, 'Agenda page root');
+  return root;
+}
+
+function agendaViewToggle(page) {
+  return agendaRoot(page).getByLabel('Agenda weergave', { exact: true });
+}
+
+function agendaDialog(page) {
+  return page.getByRole('dialog', { name: 'Gebeurtenis toevoegen', exact: true });
+}
+
+async function waitForFilmavondDetailsOrSaved(page, dialog) {
+  await Promise.race([
+    dialog.getByText('Nog details?', { exact: true }).waitFor({ state: 'visible' }),
+    agendaRoot(page).getByText('Filmavond', { exact: true }).waitFor({ state: 'visible' }),
+  ]);
+}
+
+const agendaRecordingActions = Object.freeze({
+  async showMonth({ page, touch }, action) {
+    await ensureAgendaPage(page);
+    await tapLocator(touch, agendaViewToggle(page).getByRole('button', { name: 'Maand', exact: true }), 'Agenda Month view toggle', action);
+    await expectSingle(agendaRoot(page).getByLabel('Maandplanning', { exact: true }), 'Agenda Month workspace');
+  },
+  async showWeek({ page, touch }, action) {
+    await ensureAgendaPage(page);
+    await tapLocator(touch, agendaViewToggle(page).getByRole('button', { name: 'Week', exact: true }), 'Agenda Week view toggle', action);
+    await expectSingle(agendaRoot(page).getByLabel('Weekplanning', { exact: true }), 'Agenda Week workspace');
+  },
+  async showList({ page, touch }, action) {
+    await ensureAgendaPage(page);
+    await tapLocator(touch, agendaViewToggle(page).getByRole('button', { name: 'Lijst', exact: true }), 'Agenda List view toggle', action);
+    await expectSingle(agendaRoot(page).getByLabel('Lijstplanning', { exact: true }), 'Agenda List workspace');
+  },
+  async addFilmavond({ page, touch }, action) {
+    await ensureAgendaPage(page);
+    await tapLocator(touch, agendaViewToggle(page).getByRole('button', { name: 'Maand', exact: true }), 'Agenda Month view toggle before adding Filmavond', action);
+    const selectedDayPanel = agendaRoot(page).getByLabel('Gekozen dag', { exact: true });
+    await tapLocator(touch, selectedDayPanel.getByRole('button', { name: 'Gebeurtenis toevoegen', exact: true }), 'Agenda selected-day Add event button', action);
+    const dialog = agendaDialog(page);
+    await expectSingle(dialog, 'Agenda add-event dialog');
+    await expectSingle(dialog.getByLabel('Calendar event conversation', { exact: true }), 'Agenda event conversation form');
+    const titleInput = dialog.locator('#calendar-event-title');
+    await expectSingle(titleInput, 'Agenda event title input');
+    await titleInput.click();
+    await titleInput.fill('');
+    await page.keyboard.type('Filmavond', { delay: 12 });
+    await tapLocator(touch, dialog.getByRole('button', { name: 'Verder', exact: true }), 'Agenda event title Continue button', { ...action, locatorClick: true, requireEnabled: true });
+    await expectSingle(dialog.getByText('Wanneer moet het gezin dit onthouden?', { exact: true }), 'Agenda event date question');
+    await tapLocator(touch, dialog.getByRole('button', { name: 'Verder', exact: true }), 'Agenda event date Continue button', { ...action, locatorClick: true });
+    await expectSingle(dialog.getByText('Duurt het de hele dag?', { exact: true }), 'Agenda event time-kind question');
+    await tapLocator(touch, dialog.getByRole('button', { name: 'Verder', exact: true }), 'Agenda event time Continue button', { ...action, locatorClick: true });
+    await waitForFilmavondDetailsOrSaved(page, dialog);
+    if (await dialog.isVisible().catch(() => false)) await expectSingle(dialog.getByRole('button', { name: 'Gebeurtenis maken', exact: true }), 'Agenda create-event Save button after details step');
+  },
+  async saveFilmavond({ page, touch }, action) {
+    await ensureAgendaPage(page);
+    if (await agendaRoot(page).getByText('Filmavond', { exact: true }).count() === 1) return;
+    const dialog = agendaDialog(page);
+    await tapLocator(touch, dialog.getByRole('button', { name: 'Gebeurtenis maken', exact: true }), 'Agenda create-event Save button', { ...action, locatorClick: true });
+    await dialog.waitFor({ state: 'hidden' });
+    await expectSingle(agendaRoot(page).getByText('Filmavond', { exact: true }), 'Saved Filmavond event text scoped to Agenda');
+  },
+  async returnOverview({ page, touch }, action) {
+    await ensureAgendaPage(page);
+    await tapLocator(touch, agendaViewToggle(page).getByRole('button', { name: 'Maand', exact: true }), 'Agenda return-to-overview Month toggle', action);
+    await expectSingle(agendaRoot(page).getByLabel('Maandplanning', { exact: true }), 'Agenda overview Month workspace');
+  },
+});
+
+
+function agendaAction(id, description, execute, metadata = {}) {
+  return action(id, 'touch', description, { ...metadata, execute: (context) => execute(context, metadata) });
+}
+
 function scene({
   id,
   fixture,
@@ -93,7 +210,7 @@ export const marketingPreviewV1Storyboard = Object.freeze({
     { id: 'intro', narrativeStep: 'introduction', scenes: Object.freeze([scene({ id: 'intro', fixture: 'visual-marketing-home', title: 'Home', subtitle: 'A calmer start to the day', purpose: 'Open the preview as a family story, not as a technical product tour.', narrativeRole: "Establish a quiet Tuesday morning before the board becomes the family's shared memory.", emotionalTone: 'Calm', visualFocus: 'The redesigned full desktop Home dashboard with the larger family anchor and dominant Agenda/Boodschappen cards already prepared.', minimumDurationMs: 4000, preferredDurationMs: 5000, maximumDurationMs: 6000, transition: { type: 'fade', from: 'warm-neutral-black' }, cameraPacing: 'Start still. Hold for a full breath before any motion. Use only a very slow settle toward the center of the screen.', touchGestures: ['None'], interactionSequence: ['No interaction; the value is immediate readability.'], audioEvents: ['RecordingStarted', 'ChapterStarted', 'TransitionCompleted'], expectedFinalState: 'Home dashboard visible, steady, and readable.', directorNotes: 'Let this scene breathe. Do not introduce touch yet; the opening should feel observed rather than operated.', timing: { initialHoldMs: 1400, postSceneHoldMs: 900 }, actions: [action('hold-home-dashboard', 'pause', 'Hold the Home dashboard with no touch interaction.', { holdMs: 1700 })] })]) },
     { id: 'home', narrativeStep: 'todays-family', scenes: Object.freeze([scene({ id: 'home', fixture: 'visual-marketing-home', title: 'Today', subtitle: 'Everything that matters is already here', purpose: 'Show that FamilyBoard answers the morning question: what matters today?', narrativeRole: 'Move from atmosphere into practical morning clarity for school, daycare, swimming, dinner, and tasks.', emotionalTone: 'Calm shifting into curiosity', visualFocus: "The dominant Home Agenda and Boodschappen cards, the larger family member area, and Thomas's swimming lesson.", minimumDurationMs: 6000, preferredDurationMs: 7000, maximumDurationMs: 8000, transition: { type: 'dissolve' }, cameraPacing: "Pause on the full dashboard, drift from the larger family area toward today's Agenda and Boodschappen cards, then wait long enough for the swim lesson to register.", touchGestures: ['One tap on the Today area or first practical card only.'], interactionSequence: ['Tap once, then stop. Do not open quick capture.'], audioEvents: ['ChapterStarted', 'TouchStarted', 'TouchCompleted'], expectedFinalState: 'Home remains on the same calm dashboard state, with the swimming lesson remembered as a practical need for later.', directorNotes: 'Avoid feature dumping. The tap should feel like Dad checking the board while coffee is brewing.', timing: { initialHoldMs: 1300, postActionHoldMs: 850, postSceneHoldMs: 700 }, actions: [action('tap-today-area', 'touch', "Tap once on today's agenda area to show tablet-first use without opening a workflow.", { hesitationMs: 180, holdAfterMs: 900 })] })]) },
     { id: 'family', narrativeStep: 'family', scenes: Object.freeze([scene({ id: 'family', fixture: 'visual-marketing-family', title: 'Family', subtitle: 'This is our family', purpose: 'Communicate “This is our family” through a brief, personal Avatar demonstration.', narrativeRole: 'Humanize the household before moving deeper into planning.', emotionalTone: 'Recognition, personal, familial', visualFocus: 'Thomas, the updated avatar after save, then the saved family overview.', minimumDurationMs: 8000, preferredDurationMs: 10000, maximumDurationMs: 11000, transition: { type: 'crossfade' }, cameraPacing: 'Move slowly from family overview to Thomas; pause after opening Thomas; pause briefly in Avatar Editor; save; hold; return.', touchGestures: ['Tap Thomas', 'Tap Avatar Editor', 'Change one simple visual property', 'Tap save', 'Tap return'], interactionSequence: ['Open Thomas', 'Open Avatar Editor', 'Change one simple visual property', 'Save', 'Pause on updated avatar', 'Return to Family overview'], audioEvents: ['TransitionStarted', 'TransitionCompleted', 'TouchStarted', 'TouchCompleted', 'ActionCompleted', 'save'], expectedFinalState: 'Family overview is visible again, with Thomas subtly personalized and recognizable.', directorNotes: 'This is not an editing demo. Keep it brief and affectionate.', timing: { initialHoldMs: 1200, postActionHoldMs: 750, postSaveHoldMs: 1000 }, actions: [action('open-thomas', 'touch', 'Open Thomas from the Family overview.', { hesitationMs: 170, holdAfterMs: 700 }), action('open-avatar-editor', 'touch', 'Open the Avatar Editor.', { hesitationMs: 170, holdAfterMs: 700 }), action('change-simple-avatar-property', 'touch', 'Change one simple visual property such as color or small accessory.', { hesitationMs: 170, holdAfterMs: 650 }), action('save-avatar', 'touch', 'Save the updated avatar.', { hesitationMs: 180, holdAfterMs: 1000 }), action('pause-updated-avatar', 'pause', 'Pause about one second on the updated avatar before returning.', { holdMs: 1000 }), action('return-family-overview', 'touch', 'Return to the Family overview.', { hesitationMs: 180, holdAfterMs: 750 })] })]) },
-    { id: 'agenda', narrativeStep: 'planning', scenes: Object.freeze([scene({ id: 'agenda', fixture: 'visual-marketing-agenda', title: 'Agenda', subtitle: 'One rhythm for the whole family', purpose: 'Show month, week, day/list rhythm, then add one realistic plan.', narrativeRole: "Today's planning grows into a wider family rhythm with Filmavond.", emotionalTone: 'Confidence without rigidity', visualFocus: 'Month view, week view, list view, saved Filmavond event, and returned overview.', minimumDurationMs: 11000, preferredDurationMs: 14000, maximumDurationMs: 15000, transition: { type: 'dissolve' }, cameraPacing: 'Show Month and pause. Move to Week and pause. Move to List and pause. Keep event creation steady and readable.', touchGestures: ['Tap Month', 'Tap Week', 'Tap List', 'Tap add event', 'Enter Filmavond', 'Save', 'Return to overview'], interactionSequence: ['Show Month', 'Pause', 'Show Week', 'Pause', 'Show List', 'Pause', 'Add Filmavond', 'Save', 'Hold briefly so Filmavond is visible', 'Return to overview'], audioEvents: ['ChapterStarted', 'TouchStarted', 'TouchCompleted', 'ActionCompleted', 'save'], expectedFinalState: 'Agenda overview is visible with Filmavond added as a believable event.', directorNotes: 'Pause between views and after the save. The point is confidence across time scales.', timing: { initialHoldMs: 1300, viewHoldMs: 900, postSaveHoldMs: 1200, postSceneHoldMs: 700 }, actions: [action('show-month', 'touch', 'Show Month view.', { hesitationMs: 170, holdAfterMs: 650 }), action('pause-month', 'pause', 'Pause on Month view.', { holdMs: 900 }), action('show-week', 'touch', 'Show Week view.', { hesitationMs: 170, holdAfterMs: 650 }), action('pause-week', 'pause', 'Pause on Week view.', { holdMs: 900 }), action('show-list', 'touch', 'Show List view.', { hesitationMs: 170, holdAfterMs: 650 }), action('pause-list', 'pause', 'Pause on List view.', { holdMs: 900 }), action('add-filmavond', 'touch', 'Add one event named Filmavond.', { hesitationMs: 180, holdAfterMs: 750 }), action('save-filmavond', 'touch', 'Save Filmavond.', { hesitationMs: 180, holdAfterMs: 900 }), action('hold-filmavond-visible', 'pause', 'Hold briefly so Filmavond is visible.', { holdMs: 1200 }), action('return-agenda-overview', 'touch', 'Return to the agenda overview.', { hesitationMs: 180, holdAfterMs: 700 })] })]) },
+    { id: 'agenda', narrativeStep: 'planning', scenes: Object.freeze([scene({ id: 'agenda', fixture: 'visual-marketing-agenda', title: 'Agenda', subtitle: 'One rhythm for the whole family', purpose: 'Show month, week, day/list rhythm, then add one realistic plan.', narrativeRole: "Today's planning grows into a wider family rhythm with Filmavond.", emotionalTone: 'Confidence without rigidity', visualFocus: 'Month view, week view, list view, saved Filmavond event, and returned overview.', minimumDurationMs: 11000, preferredDurationMs: 14000, maximumDurationMs: 15000, transition: { type: 'dissolve' }, cameraPacing: 'Show Month and pause. Move to Week and pause. Move to List and pause. Keep event creation steady and readable.', touchGestures: ['Tap Month', 'Tap Week', 'Tap List', 'Tap add event', 'Enter Filmavond', 'Save', 'Return to overview'], interactionSequence: ['Show Month', 'Pause', 'Show Week', 'Pause', 'Show List', 'Pause', 'Add Filmavond', 'Save', 'Hold briefly so Filmavond is visible', 'Return to overview'], audioEvents: ['ChapterStarted', 'TouchStarted', 'TouchCompleted', 'ActionCompleted', 'save'], expectedFinalState: 'Agenda overview is visible with Filmavond added as a believable event.', directorNotes: 'Pause between views and after the save. The point is confidence across time scales.', timing: { initialHoldMs: 1300, viewHoldMs: 900, postSaveHoldMs: 1200, postSceneHoldMs: 700 }, actions: [agendaAction('show-month', 'Show Month view.', agendaRecordingActions.showMonth, { hesitationMs: 170, holdAfterMs: 650 }), action('pause-month', 'pause', 'Pause on Month view.', { holdMs: 900 }), agendaAction('show-week', 'Show Week view.', agendaRecordingActions.showWeek, { hesitationMs: 170, holdAfterMs: 650 }), action('pause-week', 'pause', 'Pause on Week view.', { holdMs: 900 }), agendaAction('show-list', 'Show List view.', agendaRecordingActions.showList, { hesitationMs: 170, holdAfterMs: 650 }), action('pause-list', 'pause', 'Pause on List view.', { holdMs: 900 }), agendaAction('add-filmavond', 'Add one event named Filmavond.', agendaRecordingActions.addFilmavond, { hesitationMs: 180, holdAfterMs: 750 }), agendaAction('save-filmavond', 'Save Filmavond.', agendaRecordingActions.saveFilmavond, { hesitationMs: 180, holdAfterMs: 900 }), action('hold-filmavond-visible', 'pause', 'Hold briefly so Filmavond is visible.', { holdMs: 1200 }), agendaAction('return-agenda-overview', 'Return to the agenda overview.', agendaRecordingActions.returnOverview, { hesitationMs: 180, holdAfterMs: 700 })] })]) },
     { id: 'tasks', narrativeStep: 'helping', scenes: Object.freeze([scene({ id: 'tasks', fixture: 'visual-marketing-tasks', title: 'Tasks', subtitle: 'Small jobs, shared rhythm', purpose: 'Show practical tasks added and completed without drama.', narrativeRole: 'Planning turns into helping each other.', emotionalTone: 'Confidence shifting into helpful relief', visualFocus: 'Task list, new Koekjes bakken task, and completion of Zwemtas klaarzetten.', minimumDurationMs: 8000, preferredDurationMs: 10000, maximumDurationMs: 11000, transition: { type: 'crossfade' }, cameraPacing: 'Hold on task list first; keep add-task steady; center Zwemtas klaarzetten; pause longer after completion.', touchGestures: ['Tap add task', 'Enter Koekjes bakken', 'Save', 'Tap completion affordance'], interactionSequence: ['Add Koekjes bakken', 'Wait for it to appear', 'Complete Zwemtas klaarzetten', 'Wait for completion animation'], audioEvents: ['TouchStarted', 'TouchCompleted', 'ActionCompleted', 'save', 'task completed'], expectedFinalState: 'Koekjes bakken is visible and Zwemtas klaarzetten has completed with visual state settled.', directorNotes: 'The completion animation must finish before transition. This resolves the swimming-lesson thread.', timing: { initialHoldMs: 1200, postAddHoldMs: 850, completionAnimationHoldMs: 1200 }, actions: [action('add-koekjes-bakken', 'touch', 'Add Koekjes bakken.', { hesitationMs: 170, holdAfterMs: 800 }), action('wait-koekjes-visible', 'pause', 'Wait for Koekjes bakken to appear.', { holdMs: 850 }), action('complete-zwemtas', 'touch', 'Complete Zwemtas klaarzetten.', { hesitationMs: 190, holdAfterMs: 900 }), action('wait-completion-animation', 'pause', 'Wait for the completion animation to finish.', { holdMs: 1200 })] })]) },
     { id: 'shopping', narrativeStep: 'shopping', scenes: Object.freeze([scene({ id: 'shopping', fixture: 'visual-marketing-shopping', title: 'Shopping', subtitle: 'Errands that make sense', purpose: 'Show one tiny grocery addition while existing list supports Koekjes bakken.', narrativeRole: 'Helpful planning continues into practical errands.', emotionalTone: 'Grounded, useful, unhurried', visualFocus: 'Grouped lists with Bloem, Roomboter, Chocoladestukjes, Vanillesuiker already present, plus Bananen.', minimumDurationMs: 6000, preferredDurationMs: 7000, maximumDurationMs: 8000, transition: { type: 'dissolve' }, cameraPacing: 'Start still on grouped list; add Bananen quickly; hold after it appears.', touchGestures: ['Tap add item', 'Enter Bananen', 'Save'], interactionSequence: ['Show grouped errands', 'Ensure baking ingredients are visible or clearly implied', 'Add Bananen', 'Hold briefly on grouped list'], audioEvents: ['TransitionStarted', 'TransitionCompleted', 'TouchStarted', 'TouchCompleted', 'ActionCompleted', 'save'], expectedFinalState: 'Shopping remains organized by destinations, cookie ingredients remain visible, and Bananen has been added.', directorNotes: 'Keep the addition extremely short; ingredients are fixture data and are not added during recording.', timing: { initialHoldMs: 1200, postAddHoldMs: 900, postSceneHoldMs: 700 }, actions: [action('show-grouped-errands', 'pause', 'Show grouped errands with baking ingredients already present.', { holdMs: 1200, fixtureItems: ['Bloem', 'Roomboter', 'Chocoladestukjes', 'Vanillesuiker'] }), action('add-bananen', 'touch', 'Add only Bananen.', { hesitationMs: 170, holdAfterMs: 850, addedItem: 'Bananen' }), action('hold-grouped-list', 'pause', 'Hold briefly after Bananen appears on the grouped list.', { holdMs: 1000 })] })]) },
     { id: 'motivation', narrativeStep: 'motivation', scenes: Object.freeze([scene({ id: 'motivation', fixture: 'visual-marketing-motivation', title: 'Motivation', subtitle: 'Helpful moments add up', purpose: 'Demonstrate adding one appreciation so kindness becomes visible.', narrativeRole: 'The family recognizes small help adding up toward Sunday pancake breakfast.', emotionalTone: 'Warmth, encouragement, tenderness', visualFocus: 'Family goal progress, appreciation entry, and newly visible appreciation.', minimumDurationMs: 8000, preferredDurationMs: 10000, maximumDurationMs: 11000, transition: { type: 'crossfade' }, cameraPacing: 'Pause on progress first; move gently to appreciation; keep entry steady; wait after save until readable.', touchGestures: ['Tap add appreciation', 'Enter Bedankt voor het helpen met opruimen.', 'Save'], interactionSequence: ['Show family goal progress', 'Add appreciation: Bedankt voor het helpen met opruimen.', 'Save', 'Pause until the appreciation is readable'], audioEvents: ['ChapterStarted', 'TouchStarted', 'TouchCompleted', 'ActionCompleted', 'appreciation shown', 'save'], expectedFinalState: 'The new appreciation is visible and emotionally clear.', directorNotes: 'Do not make motivation feel gamified. The emotional point is recognizing kindness.', timing: { initialHoldMs: 1300, progressHoldMs: 900, appreciationReadHoldMs: 1700 }, actions: [action('show-family-goal-progress', 'pause', 'Show family goal progress.', { holdMs: 1000 }), action('add-appreciation', 'touch', 'Add appreciation: Bedankt voor het helpen met opruimen.', { hesitationMs: 180, holdAfterMs: 900 }), action('save-appreciation', 'touch', 'Save the appreciation.', { hesitationMs: 180, holdAfterMs: 900 }), action('pause-appreciation-readable', 'pause', 'Pause until the appreciation is comfortably readable.', { holdMs: 1700 })] })]) },
