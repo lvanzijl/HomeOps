@@ -43,6 +43,37 @@
   --board-max-width: clamp(65rem, 78vw, 94rem);
   --board-edge-padding: clamp(0.75rem, 1.6vw, 1.5rem);
   --readable-panel-width: 64rem;
+  --fb-button-radius-pill: 999px;
+  --fb-button-line-height: 1.15;
+  --fb-button-nav-min-height: 3rem;
+  --fb-button-nav-padding-block: 0.62rem;
+  --fb-button-nav-padding-inline: 0.9rem;
+  --fb-button-admin-min-height: 1.9rem;
+  --fb-button-admin-padding-block: 0.3rem;
+  --fb-button-admin-padding-inline: 0.68rem;
+  --fb-button-compact-min-height: 2.25rem;
+  --fb-button-compact-padding-block: 0.45rem;
+  --fb-button-compact-padding-inline: 0.75rem;
+  --fb-button-standard-min-height: 2.45rem;
+  --fb-button-standard-padding-block: 0.55rem;
+  --fb-button-standard-padding-inline: 0.95rem;
+  --fb-button-segmented-padding-block: 0.52rem;
+  --fb-button-segmented-padding-inline: 0.95rem;
+  --fb-button-inline-action-padding-block: 0.38rem;
+  --fb-button-inline-action-padding-inline: 0.88rem;
+  --fb-button-calendar-cell-padding-inline: 0.625rem;
+  --fb-button-dialog-min-height: 2.75rem;
+  --fb-button-dialog-padding-block: 0.68rem;
+  --fb-button-dialog-padding-inline: 1.05rem;
+  --fb-button-card-min-height: 2.55rem;
+  --fb-button-card-padding-block: 0.5rem;
+  --fb-button-card-padding-inline: 1rem;
+  --fb-button-icon-size: 2.5rem;
+  --fb-button-icon-glyph-size: 1.25rem;
+  --fb-button-back-size: 3rem;
+  --fb-button-icon-gap: 0.55rem;
+  --fb-button-compact-gap: 0.35rem;
+  --fb-avatar-tile-min-width: 8.6rem;
 
   color: var(--color-text-default);
   background: var(--surface-app);
@@ -66,12 +97,18 @@ button {
 
 .homeops-icon-asset {
   display: inline-grid;
+  height: 1em;
   place-items: center;
+  width: 1em;
 }
 
-.homeops-icon-asset img {
+.homeops-icon-asset img,
+.homeops-icon-asset svg {
   display: block;
   height: 1em;
+  max-height: 1em;
+  max-width: 1em;
+  object-fit: contain;
   width: 1em;
 }
 
@@ -104,6 +141,41 @@ button {
   gap: 0.35rem;
 }
 
+.workspace-back-slot {
+  box-sizing: border-box;
+  flex: 0 0 var(--fb-button-back-size);
+  height: var(--fb-button-back-size);
+  width: var(--fb-button-back-size);
+}
+
+.workspace-back-button {
+  align-items: center;
+  background: var(--surface-default);
+  border: 1px solid var(--border-default);
+  border-radius: var(--fb-button-radius-pill);
+  box-shadow: var(--elevation-1);
+  color: var(--color-text-default);
+  cursor: pointer;
+  display: inline-grid;
+  font-size: var(--fb-button-icon-glyph-size, 1.25rem);
+  justify-items: center;
+  padding: 0;
+}
+
+.workspace-back-button .homeops-icon-asset,
+.workspace-back-button .homeops-icon-asset img,
+.workspace-back-button .homeops-icon-asset svg {
+  height: 1em;
+  max-height: 1em;
+  max-width: 1em;
+  width: 1em;
+}
+
+.workspace-back-slot-hidden {
+  display: inline-block;
+  pointer-events: none;
+}
+
 .workspace-primary-nav,
 .workspace-admin-nav {
   align-items: center;
@@ -132,16 +204,17 @@ button {
   color: var(--color-text-strong);
   cursor: pointer;
   font-size: 0.88rem;
-  min-height: 2.15rem;
-  padding: 0.35rem 0.55rem;
+  min-height: var(--fb-button-nav-min-height);
+  line-height: var(--fb-button-line-height);
+  padding: var(--fb-button-nav-padding-block) var(--fb-button-nav-padding-inline);
   white-space: nowrap;
 }
 
 .workspace-admin-button {
   font-size: 0.78rem;
-  min-height: 1.9rem;
+  min-height: var(--fb-button-admin-min-height);
   opacity: 0.78;
-  padding: 0.28rem 0.48rem;
+  padding: var(--fb-button-admin-padding-block) var(--fb-button-admin-padding-inline);
 }
 
 .workspace-admin-button {
@@ -290,7 +363,7 @@ button {
   border-radius: 999px;
   background: var(--surface-default);
   cursor: pointer;
-  padding: 0.45rem 0.75rem;
+  padding: var(--fb-button-compact-padding-block) 0.9rem;
 }
 
 .agenda-view-toggle button[aria-pressed="true"] {
@@ -1179,11 +1252,11 @@ button {
 .icon-button {
   background: var(--surface-default);
   border: 1px solid var(--border-default);
-  border-radius: 999px;
+  border-radius: var(--fb-button-radius-pill);
   cursor: pointer;
   font-size: 1.3rem;
-  height: 2.5rem;
-  width: 2.5rem;
+  height: var(--fb-button-icon-size);
+  width: var(--fb-button-icon-size);
 }
 
 @media (max-width: 680px) {
@@ -1715,7 +1788,7 @@ button {
 .compact-action {
   align-self: flex-start;
   margin-top: 0.25rem;
-  padding: 0.35rem 0.65rem;
+  padding: var(--fb-button-compact-padding-block) var(--fb-button-compact-padding-inline);
 }
 .family-progress {
   display: grid;
@@ -1973,6 +2046,11 @@ button {
   display: flex;
   flex-wrap: wrap;
   gap: 0.65rem;
+}
+
+.family-member-actions button {
+  min-height: var(--fb-button-standard-min-height);
+  padding-inline: var(--fb-button-standard-padding-inline);
 }
 .danger-button {
   background: #fee2e2;
@@ -2839,7 +2917,6 @@ button {
   box-shadow: 0 20px 52px rgb(249 115 22 / 24%);
 }
 
-.homeops-icon-asset img,
 .celebration-surface-icon img,
 .home-celebration-surface > span img,
 .family-celebration-card > span img,
@@ -3223,7 +3300,7 @@ button {
 .weekly-reset-skipped button {
   border-radius: 999px;
   min-height: 2.75rem;
-  padding-inline: 1rem;
+  padding-inline: var(--fb-button-card-padding-inline);
 }
 
 .weekly-reset-page .secondary-action {
@@ -3463,8 +3540,8 @@ button {
   cursor: pointer;
   font: inherit;
   font-weight: 850;
-  min-height: 2.75rem;
-  padding: 0.68rem 1.05rem;
+  min-height: var(--fb-button-dialog-min-height);
+  padding: var(--fb-button-dialog-padding-block) var(--fb-button-dialog-padding-inline);
 }
 
 .home-capture-dialog button:not(.icon-button):hover,
@@ -3689,7 +3766,7 @@ button {
   color: #166534;
   flex: 0 0 auto;
   font-weight: 800;
-  padding: 0.35rem 0.65rem;
+  padding: var(--fb-button-compact-padding-block) var(--fb-button-compact-padding-inline);
 }
 
 .avatar-v2-status-unsaved {
@@ -3814,7 +3891,7 @@ button {
 
 .avatar-v2-family-editor .avatar-v2-asset-grid {
   gap: 0.32rem;
-  grid-template-columns: repeat(auto-fit, minmax(4.85rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(var(--fb-avatar-tile-min-width), 1fr));
 }
 
 .avatar-v2-asset-tile {
@@ -4121,16 +4198,16 @@ button {
   align-items: center;
   background: var(--surface-default);
   border: 1px solid var(--border-default);
-  border-radius: 999px;
+  border-radius: var(--fb-button-radius-pill);
   color: var(--color-text-default);
   cursor: pointer;
   display: inline-flex;
   font: inherit;
   font-size: 0.86rem;
   font-weight: 800;
-  gap: 0.35rem;
-  min-height: 2.25rem;
-  padding: 0.45rem 0.75rem;
+  gap: var(--fb-button-compact-gap);
+  min-height: var(--fb-button-compact-min-height);
+  padding: var(--fb-button-compact-padding-block) var(--fb-button-compact-padding-inline);
   width: fit-content;
 }
 
@@ -4958,7 +5035,7 @@ button {
   display: grid;
   gap: 0.25rem;
   min-height: clamp(5.4rem, 9vh, 7.4rem);
-  padding: 0.55rem;
+  padding: 0.55rem var(--fb-button-calendar-cell-padding-inline);
   text-align: left;
 }
 
@@ -5043,7 +5120,7 @@ button {
   cursor: pointer;
   font-size: 0.84rem;
   font-weight: 850;
-  padding: 0.38rem 0.65rem;
+  padding: var(--fb-button-inline-action-padding-block) var(--fb-button-inline-action-padding-inline);
   white-space: nowrap;
 }
 
@@ -5202,7 +5279,7 @@ button {
   cursor: pointer;
   font-size: 0.8rem;
   font-weight: 800;
-  padding: 0.35rem 0.55rem;
+  padding: var(--fb-button-inline-action-padding-block) var(--fb-button-inline-action-padding-inline);
 }
 
 .agenda-event-card-actions button:disabled {
@@ -5226,7 +5303,7 @@ button {
   color: var(--color-text-strong);
   cursor: pointer;
   font-weight: 850;
-  padding: 0.52rem 0.78rem;
+  padding: var(--fb-button-segmented-padding-block) var(--fb-button-segmented-padding-inline);
 }
 
 .agenda-workspace-toggle button[aria-pressed="true"],
@@ -5667,7 +5744,7 @@ button {
   flex: 0 0 auto;
   font-size: 0.82rem;
   font-weight: 900;
-  padding: 0.35rem 0.65rem;
+  padding: var(--fb-button-compact-padding-block) var(--fb-button-compact-padding-inline);
 }
 .task-group-heading p:not(.task-group-kicker) { color: #64748b; font-size: 0.92rem; margin-top: 0.15rem; }
 .task-group-kicker { color: #0f766e; font-size: 0.76rem; font-weight: 900; letter-spacing: 0.08em; text-transform: uppercase; }
@@ -6492,8 +6569,13 @@ button {
 
 .motivation-page button,
 .helpful-moments-section button {
-  min-height: 2.55rem;
-  padding: 0.5rem 0.85rem;
+  min-height: var(--fb-button-card-min-height);
+  padding: var(--fb-button-card-padding-block) var(--fb-button-card-padding-inline);
+}
+
+.motivation-dashboard .familyboard-card-action {
+  gap: var(--fb-button-icon-gap);
+  padding-inline: calc(var(--fb-button-card-padding-inline) + 0.12rem);
 }
 
 .individual-goals.compact-overview-section,
@@ -6716,7 +6798,11 @@ button {
   border: 1px solid color-mix(in srgb, var(--domain-border, #fed7aa) 68%, white);
   border-radius: 999px;
   color: #9a3412;
-  padding: 0.35rem 0.65rem;
+  padding: var(--fb-button-inline-action-padding-block) var(--fb-button-compact-padding-inline);
+}
+
+.shopping-list-name-form button {
+  padding-inline: var(--fb-button-card-padding-inline);
 }
 
 .shopping-item-options[open] summary {

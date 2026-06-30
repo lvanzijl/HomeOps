@@ -8,9 +8,20 @@ vi.mock('./workspaceLayout', () => ({
   loadWorkspaceLayout: vi.fn(),
 }));
 
+
+vi.mock('../home/familyMembersApi', () => ({
+  loadFamilyMembers: vi.fn(async () => [{ id: 'alex', name: 'Alex', displayColor: '#f8c8dc', initials: 'A', memberKind: 'adult', dateOfBirth: null }]),
+  createFamilyMember: vi.fn(),
+  saveFamilyMember: vi.fn(async (member) => member),
+  removeFamilyMember: vi.fn(async () => undefined),
+}));
+
 vi.mock('../home/HomeDashboard', () => ({
-  HomeDashboard: ({ onNavigate }: { onNavigate: (destination: WorkspaceId) => void }) => (
-    <section aria-label="Home dashboard"><button onClick={() => onNavigate('agenda')} type="button">Open Agenda</button></section>
+  HomeDashboard: ({ onNavigate, onSelectFamilyMember }: { onNavigate: (destination: WorkspaceId) => void; onSelectFamilyMember: (memberId: string) => void }) => (
+    <section aria-label="Home dashboard">
+      <button onClick={() => onNavigate('agenda')} type="button">Open Agenda</button>
+      <button onClick={() => onSelectFamilyMember('alex')} type="button">Open Alex</button>
+    </section>
   ),
 }));
 
@@ -47,6 +58,25 @@ describe('WorkspaceShell API-backed layouts', () => {
     expect(await screen.findByText('Open Agenda')).not.toBeNull();
     expect(screen.getByLabelText('Home dashboard')).not.toBeNull();
     expect(workspaceLayout.loadWorkspaceLayout).toHaveBeenCalledWith('home');
+  });
+
+  it('reserves a non-interactive back slot until a family member detail page needs it', async () => {
+    const user = userEvent.setup();
+    render(<WorkspaceShell />);
+
+    await screen.findByText('Open Agenda');
+    const reservedSlot = document.querySelector('.workspace-back-slot-hidden');
+    expect(reservedSlot).not.toBeNull();
+    expect(screen.queryByRole('button', { name: 'Terug naar familieoverzicht' })).toBeNull();
+
+    await user.click(screen.getByRole('button', { name: 'Open Alex' }));
+
+    const backButton = await screen.findByRole('button', { name: 'Terug naar familieoverzicht' });
+    expect(backButton.className).toContain('workspace-back-button');
+    expect(document.querySelector('.workspace-back-slot-hidden')).toBeNull();
+
+    await user.click(backButton);
+    expect(await screen.findByText('Open Agenda')).not.toBeNull();
   });
 
   it('restricts primary navigation to daily household work', async () => {
