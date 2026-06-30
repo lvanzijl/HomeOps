@@ -49,7 +49,6 @@ export class RecordingSession {
       eventBus.publish(recordingEventTypes.ActionCompleted, { sceneId: scene.id, actionId, actionType });
     }
     await this.touch.hide();
-    await this.camera.pause(Math.max(300, scene.durationHintMs * 0.12));
     eventBus.publish(recordingEventTypes.SceneCompleted, { sceneId: scene.id, chapterId: scene.chapterId });
   }
   async run(scenes, options = {}) { for (const scene of scenes) await this.runScene(scene, options); }
