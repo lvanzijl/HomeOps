@@ -158,16 +158,22 @@ button {
 
 .workspace-panel {
   box-sizing: border-box;
-  min-height: 18rem;
+  min-height: max(18rem, calc(100vh - 4.75rem));
   min-width: 0;
-  padding: 0.45rem 0.55rem;
+  padding: clamp(0.55rem, 1vw, 0.95rem);
 }
 
 .workspace-page-header {
   align-items: center;
+  background: linear-gradient(135deg, rgb(255 255 255 / 78%), color-mix(in srgb, var(--domain-tint, white) 72%, white));
+  border: 1px solid color-mix(in srgb, var(--domain-border, var(--border-default)) 72%, white);
+  border-radius: 1.15rem;
+  box-shadow: 0 12px 30px rgb(23 32 51 / 6%);
   display: flex;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  margin-bottom: 0.65rem;
+  padding: 0.65rem 0.75rem;
 }
 
 .workspace-page-header h2,
@@ -176,20 +182,21 @@ button {
 }
 
 .workspace-page-header h2 {
-  font-size: 1.25rem;
+  font-size: clamp(1.25rem, 1.55vw, 1.65rem);
+  letter-spacing: -0.025em;
 }
 
 .workspace-page-header p:last-child {
   color: var(--color-text-muted);
-  font-size: 0.86rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  flex: 1 1 24rem;
+  font-size: 0.9rem;
+  line-height: 1.35;
+  max-width: 58rem;
 }
 
 .workspace-position {
-  background: rgba(255, 255, 255, 0.7);
-  border: 1px solid var(--border-default);
+  background: color-mix(in srgb, var(--domain-tint, white) 78%, white);
+  border: 1px solid color-mix(in srgb, var(--domain-border, var(--border-default)) 72%, white);
   border-radius: 999px;
   flex: 0 0 auto;
   font-size: 0.75rem;
@@ -204,8 +211,20 @@ button {
 
 .widget-host {
   display: grid;
-  gap: 1rem;
-  margin-top: 1.5rem;
+  gap: clamp(0.75rem, 1vw, 1rem);
+  margin-top: 0.65rem;
+}
+
+.workspace-panel-agenda {
+  padding: clamp(0.55rem, 1vw, 0.95rem);
+}
+
+.workspace-panel-agenda .workspace-page-header {
+  margin-bottom: 0.45rem;
+}
+
+.workspace-panel-agenda .widget-host {
+  margin-top: 0;
 }
 
 .workspace-panel-settings {
@@ -215,9 +234,9 @@ button {
 }
 
 .widget-card {
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-card);
-  background: var(--surface-warm);
+  background: rgb(255 255 255 / 88%);
+  border: 1px solid color-mix(in srgb, var(--domain-border, var(--border-default)) 78%, white);
+  border-radius: 1.35rem;
   box-shadow: var(--elevation-warm-1);
   padding: var(--space-card);
 }
@@ -234,8 +253,13 @@ button {
 }
 
 .agenda-widget {
+  background:
+    linear-gradient(135deg, rgb(255 255 255 / 90%), rgb(255 251 246 / 88%)),
+    radial-gradient(circle at top left, color-mix(in srgb, var(--domain-accent) 14%, transparent), transparent 36%);
   display: grid;
-  gap: 1rem;
+  gap: clamp(0.65rem, 1vw, 0.95rem);
+  min-height: calc(100vh - 8.8rem);
+  padding: clamp(0.75rem, 1.2vw, 1.15rem);
 }
 
 .agenda-header,
@@ -247,7 +271,18 @@ button {
 }
 
 .agenda-header {
+  background: linear-gradient(135deg, var(--domain-tint), rgb(255 255 255 / 82%));
+  border: 1px solid var(--domain-border);
+  border-radius: 1.15rem;
+  box-shadow: 0 12px 32px rgb(120 90 60 / 7%);
   justify-content: space-between;
+  padding: clamp(0.7rem, 1vw, 1rem);
+}
+
+.agenda-header h3 {
+  font-size: clamp(1.5rem, 2vw, 2.15rem);
+  line-height: 1.05;
+  margin-bottom: 0.1rem;
 }
 
 .agenda-view-toggle button {
@@ -265,12 +300,14 @@ button {
 }
 
 .source-selector {
+  align-items: center;
+  background: rgb(255 255 255 / 68%);
   border: 1px solid var(--border-warm);
-  border-radius: 999px;
+  border-radius: 1rem;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
-  padding: 0.55rem 0.7rem;
+  gap: 0.45rem;
+  padding: 0.45rem 0.65rem;
 }
 
 .source-selector legend {
@@ -406,9 +443,9 @@ button {
 }
 
 .calendar-portability-actions {
-  background: var(--surface-default);
-  border: 1px solid var(--border-default);
-  border-radius: 0.9rem;
+  background: rgb(255 255 255 / 78%);
+  border: 1px solid color-mix(in srgb, var(--domain-border, var(--border-default)) 78%, white);
+  border-radius: 1.1rem;
   display: grid;
   gap: 0.65rem;
   padding: 0.85rem;
@@ -416,10 +453,12 @@ button {
 
 .calendar-portability-actions button,
 .calendar-portability-widget > button {
-  border: 1px solid var(--border-default);
+  background: rgb(255 255 255 / 86%);
+  border: 1px solid color-mix(in srgb, var(--domain-border, var(--border-default)) 78%, white);
   border-radius: 999px;
-  background: var(--surface-elevated);
+  color: var(--domain-accent-strong, var(--color-text-strong));
   cursor: pointer;
+  font-weight: 850;
   justify-self: start;
   padding: 0.45rem 0.75rem;
 }
@@ -1166,11 +1205,11 @@ button {
 }
 
 .tasks-page {
-  background: rgba(255, 255, 255, 0.82);
-  border: 1px solid rgba(148, 163, 184, 0.22);
-  border-radius: 28px;
-  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.12);
-  padding: 0.9rem;
+  background: rgb(255 255 255 / 86%);
+  border: 1px solid color-mix(in srgb, var(--domain-border, rgba(148, 163, 184, 0.22)) 76%, white);
+  border-radius: 1.45rem;
+  box-shadow: var(--elevation-warm-1);
+  padding: clamp(0.75rem, 1vw, 1rem);
 }
 
 .tasks-header {
@@ -4839,8 +4878,9 @@ button {
 .agenda-month-workspace {
   align-items: stretch;
   display: grid;
-  gap: 1rem;
-  grid-template-columns: minmax(0, 1fr) 21rem;
+  gap: clamp(0.75rem, 1vw, 1rem);
+  grid-template-columns: minmax(0, 1fr) minmax(20rem, 25vw);
+  min-height: 0;
 }
 
 .agenda-month-grid-card,
@@ -4855,7 +4895,7 @@ button {
   display: grid;
   gap: 0.55rem;
   min-width: 0;
-  padding: 0.85rem;
+  padding: clamp(0.75rem, 1vw, 1rem);
 }
 
 .agenda-month-title,
@@ -4905,7 +4945,7 @@ button {
 }
 
 .agenda-month-grid {
-  gap: 0.35rem;
+  gap: clamp(0.35rem, 0.55vw, 0.55rem);
 }
 
 .agenda-day-cell {
@@ -4917,7 +4957,7 @@ button {
   cursor: pointer;
   display: grid;
   gap: 0.25rem;
-  min-height: 5.2rem;
+  min-height: clamp(5.4rem, 9vh, 7.4rem);
   padding: 0.55rem;
   text-align: left;
 }
@@ -4932,6 +4972,12 @@ button {
   background: color-mix(in srgb, var(--color-brand-accent) 12%, white);
   border-color: var(--color-brand-accent);
   box-shadow: inset 0 0 0 2px rgb(255 255 255 / 75%);
+}
+
+.agenda-day-cell.today {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--domain-accent) 16%, white), white 82%);
+  border-color: var(--domain-accent);
+  box-shadow: inset 0 0 0 2px rgb(255 255 255 / 78%), 0 10px 24px color-mix(in srgb, var(--domain-accent) 14%, transparent);
 }
 
 .agenda-day-cell.today .agenda-day-number {
@@ -4974,10 +5020,10 @@ button {
 }
 
 .agenda-selected-day-panel {
-  align-self: start;
+  align-self: stretch;
   display: grid;
   gap: 0.85rem;
-  max-height: min(34rem, calc(100vh - 8rem));
+  max-height: calc(100vh - 10rem);
   overflow: auto;
   padding: 0.95rem;
   position: sticky;
@@ -5097,6 +5143,12 @@ button {
   padding: 0.78rem;
 }
 
+.agenda-selected-day-panel .agenda-event:first-child,
+.agenda-timeline-group:first-child .agenda-event:first-child {
+  border-color: var(--domain-accent);
+  box-shadow: 0 12px 28px color-mix(in srgb, var(--domain-accent) 13%, transparent);
+}
+
 .agenda-event-card-icon {
   align-items: center;
   background: rgb(255 255 255 / 78%);
@@ -5201,6 +5253,7 @@ button {
   box-shadow: var(--elevation-1);
   display: grid;
   gap: 0.9rem;
+  min-height: calc(100vh - 12.5rem);
   padding: 0.95rem;
 }
 
@@ -5250,7 +5303,7 @@ button {
 .agenda-week-grid {
   align-items: stretch;
   display: grid;
-  gap: 0.65rem;
+  gap: clamp(0.55rem, 0.7vw, 0.75rem);
   grid-template-columns: repeat(7, minmax(0, 1fr));
 }
 
@@ -5261,6 +5314,7 @@ button {
   border-radius: 1.05rem;
   display: grid;
   gap: 0.55rem;
+  min-height: clamp(18rem, 50vh, 31rem);
   min-width: 0;
   padding: 0.68rem;
 }
@@ -5400,6 +5454,7 @@ button {
   box-shadow: var(--elevation-1);
   display: grid;
   gap: 0.95rem;
+  min-height: calc(100vh - 12.5rem);
   padding: 0.95rem;
 }
 
@@ -5442,6 +5497,7 @@ button {
 .agenda-timeline-groups {
   display: grid;
   gap: 0.85rem;
+  grid-template-columns: minmax(18rem, 1.2fr) repeat(3, minmax(14rem, 1fr));
 }
 
 .agenda-timeline-group {
@@ -5518,11 +5574,21 @@ button {
   margin: 0;
 }
 
+@media (max-width: 1200px) {
+  .agenda-timeline-groups {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 860px) {
   .agenda-list-header,
   .agenda-timeline-group-header {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .agenda-timeline-groups {
+    grid-template-columns: 1fr;
   }
 
   .agenda-list-header > span,
@@ -6025,4 +6091,679 @@ button {
   background: rgba(255, 255, 255, 0.72);
   border-color: rgba(251, 146, 60, 0.28);
   color: #9a3412;
+}
+
+/* Tasks desktop dashboard redesign */
+.workspace-panel-tasks .workspace-page-header {
+  margin-bottom: 0.55rem;
+}
+
+.tasks-page {
+  background:
+    linear-gradient(135deg, rgb(255 255 255 / 92%), rgb(240 253 250 / 82%)),
+    radial-gradient(circle at 0 0, color-mix(in srgb, var(--domain-accent) 18%, transparent), transparent 34%);
+  display: grid;
+  gap: clamp(0.65rem, 0.9vw, 0.95rem);
+  min-height: calc(100vh - 8.9rem);
+}
+
+.tasks-header {
+  align-items: center;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--domain-tint) 82%, white), rgb(255 255 255 / 84%));
+  border: 1px solid color-mix(in srgb, var(--domain-border) 78%, white);
+  border-radius: 1.2rem;
+  box-shadow: 0 12px 30px rgb(15 118 110 / 7%);
+  padding: clamp(0.75rem, 1vw, 1rem);
+}
+
+.tasks-header h3 {
+  color: var(--color-text-strong);
+  font-size: clamp(1.55rem, 2vw, 2.15rem);
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+}
+
+.tasks-header p:last-child {
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+  line-height: 1.35;
+  max-width: 48rem;
+}
+
+.tasks-header .compact-header-action.primary,
+.task-create-form button,
+.task-management-section button,
+.empty-state-card button {
+  background: var(--domain-accent, #14b8a6);
+  border: 1px solid var(--domain-accent, #14b8a6);
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--domain-accent, #14b8a6) 18%, transparent);
+  color: white;
+}
+
+.task-today-summary {
+  background: rgb(255 255 255 / 78%);
+  border-color: color-mix(in srgb, var(--domain-border) 86%, white);
+  border-radius: 1rem;
+  margin-top: 0;
+}
+
+.tasks-dashboard-grid {
+  align-items: start;
+  display: grid;
+  gap: clamp(0.75rem, 1vw, 1rem);
+  grid-template-columns: minmax(28rem, 1.22fr) minmax(24rem, 0.9fr);
+  min-height: 0;
+}
+
+.tasks-dashboard-primary,
+.tasks-dashboard-planning {
+  display: grid;
+  gap: clamp(0.65rem, 0.85vw, 0.85rem);
+  min-width: 0;
+}
+
+.tasks-dashboard-primary .task-time-group {
+  min-height: clamp(22rem, 55vh, 36rem);
+}
+
+.tasks-dashboard-planning {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.tasks-dashboard-planning .task-time-group {
+  align-content: start;
+  min-height: 0;
+}
+
+.tasks-dashboard-planning .task-completed-history {
+  grid-column: 1 / -1;
+}
+
+.task-time-group {
+  background: rgb(255 255 255 / 76%);
+  border-color: color-mix(in srgb, var(--domain-border, #99f6e4) 82%, white);
+  box-shadow: 0 14px 34px rgb(15 118 110 / 6%);
+  margin-top: 0;
+  padding: clamp(0.75rem, 1vw, 1rem);
+}
+
+.task-time-group.today-focus {
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--domain-accent, #14b8a6) 18%, white), rgb(255 255 255 / 94%) 58%, #fff7ed);
+  border-color: var(--domain-accent, #14b8a6);
+}
+
+.task-group-heading {
+  margin-bottom: 0.7rem;
+}
+
+.task-group-heading h4 {
+  font-size: clamp(1.12rem, 1.4vw, 1.45rem);
+  letter-spacing: -0.025em;
+}
+
+.task-group-heading > span,
+.task-today-summary span {
+  min-height: 1.9rem;
+}
+
+.task-list {
+  gap: 0.55rem;
+}
+
+.rich-task-card {
+  align-items: center;
+  border-radius: 1rem;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  min-height: 4.6rem;
+  padding: 0.68rem 0.75rem 0.68rem 0.9rem;
+}
+
+.today-focus .rich-task-card {
+  min-height: 5.15rem;
+}
+
+.rich-task-card::before {
+  inset: 0.7rem auto 0.7rem 0.42rem;
+}
+
+.task-card-icon-slot {
+  height: 2.65rem;
+  width: 2.65rem;
+}
+
+.task-card-main strong {
+  font-size: clamp(0.98rem, 1.1vw, 1.12rem);
+}
+
+.task-card-status {
+  font-size: 0.7rem;
+}
+
+.task-card-meta {
+  gap: 0.3rem;
+  margin-top: 0.32rem;
+}
+
+.task-card-meta span {
+  min-height: 1.65rem;
+}
+
+.task-card-actions,
+.task-support-actions {
+  gap: 0.45rem;
+}
+
+.task-action-button,
+.task-more-actions summary {
+  min-height: 2.55rem;
+  padding: 0.48rem 0.78rem;
+}
+
+.task-action-icon {
+  background: color-mix(in srgb, currentColor 14%, white);
+  color: currentColor;
+  font-size: 0.72rem;
+  height: 1.45rem;
+  width: 1.45rem;
+}
+
+.task-support-actions {
+  background: rgb(255 255 255 / 62%);
+  border: 1px solid color-mix(in srgb, var(--domain-border, var(--border-default)) 68%, white);
+  border-radius: 1rem;
+  justify-content: flex-start;
+  margin-top: 0;
+  padding: 0.55rem 0.65rem;
+}
+
+.task-secondary-stack {
+  margin-top: 0;
+}
+
+.task-templates-panel,
+.task-planning-group {
+  background: rgb(255 255 255 / 76%);
+  border: 1px solid color-mix(in srgb, var(--domain-border, var(--border-default)) 70%, white);
+  border-radius: 1.15rem;
+  box-shadow: 0 10px 24px rgb(15 118 110 / 5%);
+  padding: 0.85rem;
+}
+
+.task-templates-panel .task-item,
+.task-planning-group .task-item {
+  align-items: center;
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: minmax(0, 1fr) repeat(3, auto);
+}
+
+@media (max-width: 1180px) {
+  .tasks-dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tasks-dashboard-primary .task-time-group {
+    min-height: 0;
+  }
+}
+
+@media (max-width: 860px) {
+  .tasks-dashboard-planning,
+  .task-templates-panel .task-item,
+  .task-planning-group .task-item {
+    grid-template-columns: 1fr;
+  }
+
+  .rich-task-card {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+}
+
+/* Motivation desktop dashboard redesign */
+.workspace-panel-motivation {
+  overflow: visible;
+  padding: clamp(0.55rem, 1vw, 0.95rem);
+}
+
+.workspace-panel-motivation .workspace-page-header {
+  margin-bottom: 0.55rem;
+}
+
+.motivation-dashboard-page {
+  background:
+    linear-gradient(135deg, rgb(255 255 255 / 90%), rgb(255 247 237 / 84%)),
+    radial-gradient(circle at 0 0, color-mix(in srgb, var(--domain-accent, #f97316) 16%, transparent), transparent 36%);
+  border: 1px solid color-mix(in srgb, var(--domain-border, #fed7aa) 78%, white);
+  border-radius: 1.45rem;
+  box-shadow: var(--elevation-warm-1);
+  display: grid;
+  gap: clamp(0.75rem, 1vw, 1rem);
+  min-height: calc(100vh - 8.9rem);
+  padding: clamp(0.75rem, 1.1vw, 1rem);
+}
+
+.motivation-dashboard.familyboard-dashboard-grid {
+  align-items: stretch;
+  gap: clamp(0.75rem, 1vw, 1rem);
+  grid-template-columns: minmax(30rem, 1.25fr) minmax(24rem, 0.9fr);
+  grid-template-areas:
+    "goal appreciations"
+    "goal celebrations"
+    "stats stats";
+  min-height: 0;
+}
+
+.motivation-dashboard-card,
+.motivation-dashboard .compact-overview-section {
+  background: rgb(255 255 255 / 78%);
+  border-color: color-mix(in srgb, var(--domain-border, #fed7aa) 78%, white);
+  border-radius: 1.25rem;
+  box-shadow: 0 14px 34px rgb(120 53 15 / 7%);
+  gap: clamp(0.55rem, 0.8vw, 0.75rem);
+  padding: clamp(0.75rem, 1vw, 1rem);
+}
+
+.motivation-dashboard-primary {
+  align-content: stretch;
+  background:
+    radial-gradient(circle at 7% 10%, color-mix(in srgb, var(--domain-accent, #f97316) 20%, transparent), transparent 30%),
+    linear-gradient(135deg, rgb(255 247 237 / 96%), rgb(255 255 255 / 90%));
+  border-color: color-mix(in srgb, var(--domain-accent, #f97316) 34%, white);
+  min-height: clamp(24rem, 58vh, 38rem);
+}
+
+.family-goal-summary {
+  align-content: start;
+  gap: clamp(0.7rem, 1vw, 1rem);
+}
+
+.family-goal-title-row {
+  gap: clamp(0.7rem, 1vw, 1rem);
+}
+
+.family-goal-title-row h3 {
+  color: #7c2d12;
+  font-size: clamp(1.65rem, 2.6vw, 2.45rem);
+  letter-spacing: -0.045em;
+}
+
+.family-goal-title-row .motivation-copy {
+  color: #7f5539;
+  font-size: 1rem;
+  line-height: 1.35;
+  max-width: 42rem;
+}
+
+.motivation-dashboard .family-goal-illustration {
+  background: #fff7ed;
+  border: 1px solid color-mix(in srgb, var(--domain-accent, #f97316) 24%, white);
+  border-radius: 1.15rem;
+  box-shadow: 0 12px 30px rgb(154 52 18 / 9%);
+  height: clamp(4rem, 6vw, 5.25rem);
+  width: clamp(4rem, 6vw, 5.25rem);
+}
+
+.family-progress {
+  background: rgb(255 255 255 / 72%);
+  border-color: color-mix(in srgb, var(--domain-accent, #f97316) 22%, white);
+  border-radius: 1.2rem;
+  gap: 0.65rem;
+  padding: clamp(0.8rem, 1vw, 1rem);
+}
+
+.family-progress strong {
+  color: #9a3412;
+  font-size: clamp(2.45rem, 4.8vw, 4.1rem);
+}
+
+.family-progress .progress-bar {
+  background: #ffedd5;
+  height: 0.85rem;
+}
+
+.family-goal-card .celebration-surface {
+  background: rgb(255 251 235 / 82%);
+  border-color: color-mix(in srgb, var(--domain-accent, #f97316) 24%, white);
+  border-radius: 1.15rem;
+  gap: 0.65rem;
+  padding: 0.75rem;
+}
+
+.family-goal-card .celebration-surface span:not(.celebration-surface-icon) {
+  display: inline;
+}
+
+.family-goal-primary-action {
+  align-self: end;
+  margin-top: auto;
+}
+
+.motivation-dashboard .compact-overview-section {
+  min-height: clamp(15rem, 28vh, 22rem);
+}
+
+.celebration-mini-card {
+  min-height: clamp(12rem, 22vh, 17rem);
+}
+
+.family-stats-card {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.family-stats-card .dashboard-card-heading {
+  grid-column: 1 / -1;
+}
+
+.family-stat-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.family-stat-tile {
+  background: rgb(255 247 237 / 78%);
+  border-color: color-mix(in srgb, var(--domain-accent, #f97316) 18%, white);
+  min-height: 4.8rem;
+  padding: 0.7rem;
+}
+
+.family-stat-tile strong {
+  color: #9a3412;
+  font-size: clamp(1.45rem, 2vw, 1.9rem);
+}
+
+.family-stat-actions {
+  align-self: center;
+  justify-content: flex-end;
+  margin-top: 0;
+}
+
+.motivation-dashboard .helpful-moment-feed,
+.celebration-mini-list {
+  gap: 0.55rem;
+}
+
+.motivation-dashboard .helpful-moment-card,
+.celebration-mini-item {
+  background: rgb(255 251 235 / 72%);
+  border-color: color-mix(in srgb, var(--domain-accent, #f97316) 18%, white);
+  border-radius: 1rem;
+  padding: 0.55rem;
+}
+
+.motivation-page button,
+.helpful-moments-section button {
+  min-height: 2.55rem;
+  padding: 0.5rem 0.85rem;
+}
+
+.individual-goals.compact-overview-section,
+.celebration-memory-section {
+  background: rgb(255 255 255 / 76%);
+  border: 1px solid color-mix(in srgb, var(--domain-border, #fed7aa) 72%, white);
+  border-radius: 1.25rem;
+  box-shadow: 0 12px 28px rgb(120 53 15 / 6%);
+  padding: clamp(0.75rem, 1vw, 1rem);
+}
+
+@media (max-width: 1180px) {
+  .motivation-dashboard.familyboard-dashboard-grid {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "goal"
+      "appreciations"
+      "celebrations"
+      "stats";
+  }
+
+  .motivation-dashboard-primary,
+  .motivation-dashboard .compact-overview-section,
+  .celebration-mini-card {
+    min-height: 0;
+  }
+
+  .family-stats-card {
+    grid-template-columns: 1fr;
+  }
+
+  .family-stat-actions {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 760px) {
+  .family-stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .family-goal-title-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Shopping active-store workspace redesign */
+.workspace-panel-lists .workspace-page-header {
+  margin-bottom: 0.55rem;
+}
+
+.shopping-workspace {
+  background:
+    linear-gradient(135deg, rgb(255 255 255 / 90%), rgb(255 247 237 / 86%)),
+    radial-gradient(circle at 0 0, color-mix(in srgb, var(--domain-accent, #f97316) 16%, transparent), transparent 34%);
+  border: 1px solid color-mix(in srgb, var(--domain-border, #fed7aa) 76%, white);
+  border-radius: 1.45rem;
+  box-shadow: var(--elevation-warm-1);
+  display: grid;
+  gap: clamp(0.65rem, 0.9vw, 0.95rem);
+  min-height: calc(100vh - 8.9rem);
+  padding: clamp(0.75rem, 1.1vw, 1rem);
+}
+
+.shopping-workspace-hero {
+  align-items: center;
+  background: linear-gradient(135deg, rgb(255 247 237 / 88%), rgb(255 255 255 / 78%));
+  border-color: color-mix(in srgb, var(--domain-border, #fed7aa) 76%, white);
+  border-radius: 1.15rem;
+  box-shadow: 0 12px 30px rgb(146 64 14 / 7%);
+  min-height: 0;
+  padding: clamp(0.75rem, 1vw, 1rem);
+}
+
+.shopping-hero-copy h3 {
+  font-size: clamp(1.55rem, 2vw, 2.15rem);
+  line-height: 1.05;
+}
+
+.shopping-hero-copy > p:last-child {
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+
+.shopping-hero-illustration {
+  height: 4.8rem;
+  width: 6.6rem;
+}
+
+.shopping-quick-add-panel {
+  align-items: center;
+  background: rgb(255 255 255 / 72%);
+  border-color: color-mix(in srgb, var(--domain-border, #fed7aa) 70%, white);
+  border-radius: 1.1rem;
+  box-shadow: 0 10px 24px rgb(146 64 14 / 5%);
+  gap: 0.75rem;
+  grid-template-columns: minmax(12rem, 0.48fr) minmax(22rem, 1fr);
+  padding: 0.7rem 0.8rem;
+}
+
+.shopping-quick-add-panel h4 {
+  font-size: 1rem;
+}
+
+.shopping-quick-add-panel > div > p:last-child {
+  font-size: 0.86rem;
+  line-height: 1.3;
+}
+
+.shopping-execution-form {
+  background: rgb(255 247 237 / 88%);
+  border-color: color-mix(in srgb, var(--domain-accent, #f97316) 22%, white);
+  border-radius: 1rem;
+  gap: 0.55rem;
+  padding: 0.45rem;
+}
+
+.shopping-execution-form input {
+  min-height: 3rem;
+}
+
+.shopping-execution-form button {
+  min-height: 3rem;
+}
+
+.shopping-active-store-workspace {
+  background: rgb(255 255 255 / 64%);
+  border-color: color-mix(in srgb, var(--domain-border, #fed7aa) 68%, white);
+  border-radius: 1.25rem;
+  padding: clamp(0.65rem, 0.9vw, 0.9rem);
+}
+
+.shopping-section-primary h4 {
+  color: #7c2d12;
+  font-size: clamp(1.2rem, 1.5vw, 1.55rem);
+  margin-bottom: 0.7rem;
+}
+
+.shopping-store-groups {
+  display: grid;
+  gap: clamp(0.7rem, 0.9vw, 0.9rem);
+  grid-template-columns: 1fr;
+}
+
+.shopping-store-group {
+  background: rgb(255 255 255 / 82%);
+  border-color: color-mix(in srgb, var(--domain-border, #fed7aa) 76%, white);
+  border-radius: 1.15rem;
+  box-shadow: 0 10px 24px rgb(146 64 14 / 5%);
+  gap: 0.65rem;
+  padding: clamp(0.65rem, 0.9vw, 0.85rem);
+}
+
+.shopping-store-card-header {
+  align-items: center;
+  border-bottom: 1px solid color-mix(in srgb, var(--domain-border, #fed7aa) 62%, white);
+  padding-bottom: 0.55rem;
+}
+
+.shopping-store-card-header h5 {
+  font-size: clamp(1.05rem, 1.35vw, 1.3rem);
+}
+
+.shopping-store-card-header span {
+  background: #ffedd5;
+  border: 1px solid color-mix(in srgb, var(--domain-accent, #f97316) 18%, white);
+  border-radius: 999px;
+  padding: 0.2rem 0.6rem;
+}
+
+.shopping-list {
+  gap: 0.48rem;
+}
+
+.shopping-item {
+  align-items: center;
+  background: rgb(255 251 235 / 78%);
+  border-color: color-mix(in srgb, var(--domain-accent, #f97316) 18%, white);
+  border-radius: 0.95rem;
+  display: grid;
+  gap: 0.45rem;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  min-height: 3.8rem;
+  padding: 0.55rem 0.65rem;
+}
+
+.shopping-item label {
+  align-items: center;
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+.shopping-item input[type="checkbox"] {
+  height: 1.55rem;
+  width: 1.55rem;
+}
+
+.shopping-item label span {
+  color: #3f2a17;
+  font-size: clamp(1rem, 1.15vw, 1.12rem);
+  font-weight: 850;
+  line-height: 1.2;
+}
+
+.shopping-item label small {
+  grid-column: 2;
+  margin-top: -0.25rem;
+}
+
+.shopping-item-options summary,
+.shopping-item button,
+.shopping-store-complete-list summary {
+  min-height: 2.4rem;
+}
+
+.shopping-item-options summary,
+.shopping-item .secondary-action {
+  background: rgb(255 255 255 / 62%);
+  border: 1px solid color-mix(in srgb, var(--domain-border, #fed7aa) 68%, white);
+  border-radius: 999px;
+  color: #9a3412;
+  padding: 0.35rem 0.65rem;
+}
+
+.shopping-item-options[open] summary {
+  background: #ffedd5;
+}
+
+.shopping-recent-panel,
+.shopping-lifecycle-workspace,
+.other-lists-section {
+  background: rgb(255 255 255 / 62%);
+  border-color: color-mix(in srgb, var(--domain-border, #fed7aa) 64%, white);
+  border-radius: 1.1rem;
+  box-shadow: none;
+}
+
+.shopping-recent-panel {
+  align-items: center;
+  grid-template-columns: auto minmax(0, 1fr);
+  padding: 0.65rem 0.75rem;
+}
+
+.shopping-recent-list li {
+  min-height: 2rem;
+}
+
+.shopping-lifecycle-workspace {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.shopping-lifecycle-workspace .shopping-list-management,
+.shopping-lifecycle-details {
+  background: rgb(255 251 235 / 60%);
+}
+
+@media (max-width: 900px) {
+  .shopping-quick-add-panel,
+  .shopping-recent-panel,
+  .shopping-lifecycle-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .shopping-item {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .shopping-item-options,
+  .shopping-item button {
+    justify-self: start;
+  }
 }

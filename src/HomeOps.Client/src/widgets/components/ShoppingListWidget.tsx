@@ -429,20 +429,10 @@ function ShoppingListSection({ className, emptyLabel, items, onRemove, onStoreCh
                 </header>
               ) : null}
               <ul className="shopping-list">
-                {group.items.slice(0, onStoreChange ? 3 : group.items.length).map((item) => (
+                {group.items.map((item) => (
                   <ShoppingListRow item={item} key={item.id} onRemove={onRemove} onStoreChange={onStoreChange} onToggle={onToggle} onUndo={onUndo} />
                 ))}
               </ul>
-              {onStoreChange && group.items.length > 3 ? (
-                <details className="shopping-store-complete-list">
-                  <summary>Toon alle {group.items.length} boodschappen</summary>
-                  <ul className="shopping-list">
-                    {group.items.slice(3).map((item) => (
-                      <ShoppingListRow item={item} key={item.id} onRemove={onRemove} onStoreChange={onStoreChange} onToggle={onToggle} onUndo={onUndo} />
-                    ))}
-                  </ul>
-                </details>
-              ) : null}
             </div>
           ))}
         </div>
