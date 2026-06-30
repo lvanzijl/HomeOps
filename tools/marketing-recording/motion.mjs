@@ -1,7 +1,7 @@
 export const timingProfiles = Object.freeze({
-  calm: { pauseMs: 900, animationMs: 420, transitionMs: 700, touchMs: 180, speedPxPerSecond: 950 },
-  warm: { pauseMs: 1200, animationMs: 520, transitionMs: 850, touchMs: 220, speedPxPerSecond: 820 },
-  brisk: { pauseMs: 550, animationMs: 300, transitionMs: 480, touchMs: 140, speedPxPerSecond: 1200 },
+  calm: { pauseMs: 900, animationMs: 420, transitionMs: 700, touchMs: 300, hesitationMs: 130, speedPxPerSecond: 900 },
+  warm: { pauseMs: 1200, animationMs: 520, transitionMs: 850, touchMs: 340, hesitationMs: 160, speedPxPerSecond: 760 },
+  brisk: { pauseMs: 550, animationMs: 300, transitionMs: 480, touchMs: 250, hesitationMs: 110, speedPxPerSecond: 1080 },
 });
 
 export function easeInOutCubic(t) {
