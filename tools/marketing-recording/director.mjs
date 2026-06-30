@@ -89,7 +89,8 @@ export class MarketingDirector {
     const scenes = [];
     for (const chapter of storyboard.chapters ?? []) {
       for (const rawScene of chapter.scenes ?? []) {
-        const transitionDuration = Math.round((rawScene.transition?.durationMs ?? this.pacingProfile.motion.transitionMs) * this.pacingProfile.transitionMultiplier);
+        const scenePacing = rawScene.scenePacing ? { ...this.pacingProfile, ...rawScene.scenePacing } : this.pacingProfile;
+        const transitionDuration = Math.round((rawScene.transition?.durationMs ?? scenePacing.motion.transitionMs) * (scenePacing.transitionMultiplier ?? this.pacingProfile.transitionMultiplier));
         scenes.push(defineScene({
           ...rawScene,
           chapter: {
@@ -100,9 +101,9 @@ export class MarketingDirector {
           },
           chapterId: chapter.id,
           narrativeStep: chapter.narrativeStep,
-          transition: { type: rawScene.transition?.type ?? 'fade', durationMs: transitionDuration },
+          transition: { ...rawScene.transition, type: rawScene.transition?.type ?? 'fade', durationMs: transitionDuration },
           durationHintMs: rawScene.preferredDurationMs,
-          pacing: this.pacingProfile,
+          pacing: scenePacing,
         }));
       }
     }

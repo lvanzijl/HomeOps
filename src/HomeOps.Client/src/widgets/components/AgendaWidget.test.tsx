@@ -234,6 +234,23 @@ const timelineEvents: NormalizedEvent[] = [
   },
 ];
 
+const fallbackToday = new Date("2026-06-28T07:05:00+00:00");
+const canonicalMarketingAnchorUtc = "2026-06-16T07:05:00+00:00";
+
+function setupUser() {
+  return userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+}
+
+function mockVisualReviewMarketingTime(anchorUtc: string | null = null) {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ anchorUtc }),
+    }),
+  );
+}
+
 const widgetProps = {
   definition: {
     id: "agenda-mvp",
@@ -278,12 +295,16 @@ afterEach(() => {
   cleanup();
   window.localStorage.clear();
   vi.unstubAllGlobals();
+  vi.useRealTimers();
 });
 
 describe("AgendaWidget HomeOps Calendar event integration", () => {
   beforeEach(async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    vi.setSystemTime(fallbackToday);
     vi.clearAllMocks();
     window.localStorage.clear();
+    mockVisualReviewMarketingTime(null);
     const calendarEventsApi = await mockedCalendarEventsApi();
     vi.mocked(calendarEventsApi.loadCalendarAgendaData).mockResolvedValue({
       sources: [calendarSource],
@@ -309,7 +330,7 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
 
   it("loads persisted calendar events while keeping birthday events available", async () => {
     render(<AgendaWidget {...widgetProps} />);
-    const user = userEvent.setup();
+    const user = setupUser();
     await selectDentistDay(user);
 
     expect(await screen.findByText("Dentist Appointment")).not.toBeNull();
@@ -317,7 +338,7 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
   });
 
   it("creates, updates, and deletes calendar events through the API-backed widget UI", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     const calendarEventsApi = await mockedCalendarEventsApi();
     render(<AgendaWidget {...widgetProps} />);
 
@@ -380,7 +401,7 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
   });
 
   it("keeps Verder disabled until a required title exists", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     const calendarEventsApi = await mockedCalendarEventsApi();
     render(<AgendaWidget {...widgetProps} />);
 
@@ -400,8 +421,32 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     );
   });
 
+  it("uses the controlled fallback date for Today and Tomorrow quick choices when no VisualReview anchor is active", async () => {
+    const user = setupUser();
+    render(<AgendaWidget {...widgetProps} />);
+
+    await openCreateDialog(user);
+    await user.type(
+      screen.getByLabelText("Wat gebeurt er?"),
+      "Fallback date check",
+    );
+    await user.click(screen.getByRole("button", { name: "Verder" }));
+
+    await user.click(screen.getByRole("button", { name: "Vandaag" }));
+    expect(screen.getByLabelText("Kies datum")).toHaveProperty(
+      "value",
+      "2026-06-28",
+    );
+
+    await user.click(screen.getByRole("button", { name: "Morgen" }));
+    expect(screen.getByLabelText("Kies datum")).toHaveProperty(
+      "value",
+      "2026-06-29",
+    );
+  });
+
   it("preserves existing event values when editing through the conversation", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     render(<AgendaWidget {...widgetProps} />);
 
     await selectDentistDay(user);
@@ -430,7 +475,7 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
   });
 
   it("prevents invalid timed event submission with existing validation", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     const calendarEventsApi = await mockedCalendarEventsApi();
     render(<AgendaWidget {...widgetProps} />);
 
@@ -450,7 +495,7 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
   });
 
   it("submits all-day and timed events with matching payloads", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     const calendarEventsApi = await mockedCalendarEventsApi();
     render(<AgendaWidget {...widgetProps} />);
 
@@ -497,7 +542,7 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
   });
 
   it("closes the agenda event dialog with Escape without saving", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     const calendarEventsApi = await mockedCalendarEventsApi();
     render(<AgendaWidget {...widgetProps} />);
 
@@ -512,7 +557,7 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
   });
 
   it("shows API validation errors during edit and delete failures", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     const calendarEventsApi = await mockedCalendarEventsApi();
     vi.mocked(
       calendarEventsApi.updateCalendarAgendaEvent,
@@ -573,7 +618,7 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
   });
 
   it("renders family-friendly event indicators with overflow and detail card labels", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     const calendarEventsApi = await mockedCalendarEventsApi();
     vi.mocked(calendarEventsApi.loadCalendarAgendaData).mockResolvedValueOnce({
       sources: [calendarSource],
@@ -602,7 +647,7 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
   });
 
   it("adds a non-default week workspace with seven family planning day cards", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     const calendarEventsApi = await mockedCalendarEventsApi();
     vi.mocked(calendarEventsApi.loadCalendarAgendaData).mockResolvedValueOnce({
       sources: [calendarSource],
@@ -648,15 +693,9 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
   });
 
   it("synchronizes month, week, and list views to the VisualReview marketing anchor", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     const calendarEventsApi = await mockedCalendarEventsApi();
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve({ anchorUtc: "2026-06-16T07:05:00+00:00" }),
-      }),
-    );
+    mockVisualReviewMarketingTime(canonicalMarketingAnchorUtc);
     vi.mocked(calendarEventsApi.loadCalendarAgendaData).mockResolvedValueOnce({
       sources: [calendarSource],
       events: marketingAgendaEvents,
@@ -702,8 +741,47 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     ).not.toBeNull();
   });
 
+  it("uses the VisualReview marketing anchor for Today and Tomorrow quick choices", async () => {
+    const user = setupUser();
+    const calendarEventsApi = await mockedCalendarEventsApi();
+    mockVisualReviewMarketingTime(canonicalMarketingAnchorUtc);
+    vi.mocked(calendarEventsApi.loadCalendarAgendaData).mockResolvedValueOnce({
+      sources: [calendarSource],
+      events: marketingAgendaEvents,
+    });
+
+    render(<AgendaWidget {...widgetProps} />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", {
+          name: /dinsdag 16 juni 2026, 1 gebeurtenis/,
+        }),
+      ).not.toBeNull();
+    });
+
+    await openCreateDialog(user);
+    await user.type(
+      screen.getByLabelText("Wat gebeurt er?"),
+      "Marketing date check",
+    );
+    await user.click(screen.getByRole("button", { name: "Verder" }));
+
+    await user.click(screen.getByRole("button", { name: "Vandaag" }));
+    expect(screen.getByLabelText("Kies datum")).toHaveProperty(
+      "value",
+      "2026-06-16",
+    );
+
+    await user.click(screen.getByRole("button", { name: "Morgen" }));
+    expect(screen.getByLabelText("Kies datum")).toHaveProperty(
+      "value",
+      "2026-06-17",
+    );
+  });
+
   it("adds a chronological list workspace with reused event cards and editing actions", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     const calendarEventsApi = await mockedCalendarEventsApi();
     vi.mocked(calendarEventsApi.loadCalendarAgendaData).mockResolvedValueOnce({
       sources: [calendarSource],
@@ -772,7 +850,7 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
   });
 
   it("shows a warm list empty state when there are no upcoming events", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     const calendarEventsApi = await mockedCalendarEventsApi();
     vi.mocked(calendarEventsApi.loadCalendarAgendaData).mockResolvedValueOnce({
       sources: [calendarSource],
@@ -789,7 +867,7 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
   });
 
   it("keeps source filtering functional for persisted calendar sources", async () => {
-    const user = userEvent.setup();
+    const user = setupUser();
     render(<AgendaWidget {...widgetProps} />);
 
     await selectDentistDay(user);
