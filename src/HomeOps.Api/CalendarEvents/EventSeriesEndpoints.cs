@@ -79,10 +79,10 @@ public static class EventSeriesEndpoints
             }
 
             var writableSourceId = await dbContext.EventSources
-                .Where(source => source.HouseholdId == SeedHousehold.Id && source.IsWritable)
+                .Where(source => source.HouseholdId == SeedHousehold.Id && source.IsWritable && source.SourceType == "manual")
+                .OrderBy(source => source.CreatedUtc)
                 .Select(source => (Guid?)source.Id)
                 .FirstOrDefaultAsync(cancellationToken);
-
             if (writableSourceId is null)
             {
                 return Results.NotFound();
