@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using HomeOps.Api.CalendarEvents;
 using HomeOps.Api.Data;
 using HomeOps.Api.Households;
 using HomeOps.Api.Lists;
@@ -109,6 +110,30 @@ public sealed class VisualReviewFixtureApiTests
         Assert.DoesNotContain("Bananen", activeItemNames);
         Assert.Contains(verifyDb.ListItems, item => item.Text == "Bloem" && item.PreferredStore == "Albert Heijn");
         Assert.Contains(verifyDb.ListItems, item => item.Text == "Roomboter" && item.PreferredStore == "HEMA");
+    }
+
+    [Fact]
+    public async Task MarketingAgendaScenarioAllowsCreatingManualEvents()
+    {
+        await using var factory = new HomeOpsWebApplicationFactory();
+        var client = factory.CreateClient();
+
+        var resetResponse = await client.PostAsync("/api/visual-review-fixtures/visual-marketing-agenda/reset", null);
+        resetResponse.EnsureSuccessStatusCode();
+
+        var start = new DateTimeOffset(2026, 6, 16, 20, 0, 0, TimeSpan.Zero);
+        var createResponse = await client.PostAsJsonAsync(
+            "/api/events",
+            new CreateEventSeriesRequest("Filmavond", null, start, start.AddHours(1), false));
+
+        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+
+        using var verifyScope = factory.Services.CreateScope();
+        var verifyDb = verifyScope.ServiceProvider.GetRequiredService<HomeOpsDbContext>();
+        Assert.Contains(
+            verifyDb.EventSeries,
+            series => series.Title == "Filmavond" &&
+                      series.EventSourceId == Guid.Parse("88000000-0000-0000-0000-000000000001"));
     }
 
     [Fact]
