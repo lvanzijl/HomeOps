@@ -131,6 +131,7 @@ export function WorkspaceShell() {
   return (
     <section className={`workspace-shell ${activeDomainClass}`} aria-label="Gezinsbord">
       <nav className="workspace-nav" aria-label="Navigatie gezinsbord">
+        <WorkspaceBackSlot isVisible={Boolean(activeFamilyMember)} onBack={() => setActiveFamilyMemberId(null)} />
         <div className="workspace-primary-nav" aria-label="Dagelijkse gezinsplekken">
           {primaryWorkspaceDefinitions.map((workspace) => (
           <button
@@ -218,6 +219,18 @@ export function WorkspaceShell() {
   );
 }
 
+function WorkspaceBackSlot({ isVisible, onBack }: { isVisible: boolean; onBack: () => void }) {
+  if (!isVisible) {
+    return <span aria-hidden="true" className="workspace-back-slot workspace-back-slot-hidden" />;
+  }
+
+  return (
+    <button aria-label="Terug naar familieoverzicht" className="workspace-back-slot workspace-back-button" onClick={onBack} type="button">
+      <HomeOpsIcon name="arrowBack" />
+      <span className="visually-hidden">Terug naar familieoverzicht</span>
+    </button>
+  );
+}
 
 function AddFamilyMemberDialog({ onCancel, onCreate }: { onCancel: () => void; onCreate: (member: Omit<FamilyMember, 'id'>) => void }) {
   const [name, setName] = useState('');

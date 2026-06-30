@@ -21,7 +21,7 @@ import { useVisualReviewNow } from "../visualReviewTime";
 interface FamilyMemberPageProps {
   member: FamilyMember;
   onAddFamilyMember?: () => void;
-  onBack: () => void;
+  onBack?: () => void;
   onChange: (member: FamilyMember) => void;
   onRemove: (member: FamilyMember) => void;
 }
@@ -29,7 +29,6 @@ interface FamilyMemberPageProps {
 export function FamilyMemberPage({
   member,
   onAddFamilyMember,
-  onBack,
   onChange,
   onRemove,
 }: FamilyMemberPageProps) {
@@ -125,21 +124,13 @@ export function FamilyMemberPage({
       className="family-member-page"
       aria-label={`${member.name} gezinslidpagina`}
     >
-      <div className="page-header-with-actions family-member-page-heading">
-        <div>
-          <p className="eyebrow">Familie</p>
-          <h1>
-            {member.memberKind === "child"
-              ? `Pagina van ${member.name}`
-              : member.name}
-          </h1>
-        </div>
-        <nav className="page-header-actions family-member-navigation" aria-label="Gezinslidnavigatie">
-          <button className="compact-header-action" type="button" onClick={onBack}>
-            <HomeOpsIcon name="arrowBack" />
-            <span>Terug</span>
-          </button>
-        </nav>
+      <div className="family-member-page-heading">
+        <p className="eyebrow">Familie</p>
+        <h1>
+          {member.memberKind === "child"
+            ? `Pagina van ${member.name}`
+            : member.name}
+        </h1>
       </div>
       <header
         className="family-member-hero family-member-identity-header"
