@@ -1121,11 +1121,11 @@ button {
 
 .avatar-editor {
   background: var(--surface-warm-tint);
-  border: 1px solid #f1dcc4;
-  border-radius: 1.5rem;
+  border: 1px solid color-mix(in srgb, var(--domain-border, #f1dcc4) 72%, white);
+  border-radius: var(--radius-dialog);
   box-shadow: var(--elevation-dialog);
   max-width: 44rem;
-  padding: 1rem;
+  padding: clamp(1rem, 1.6vw, 1.35rem);
   width: min(100%, 44rem);
 }
 
@@ -1149,6 +1149,21 @@ button {
 .avatar-editor p {
   margin: 0.15rem 0;
 }
+
+.avatar-editor h3 {
+  font-size: clamp(1.35rem, 2vw, 1.85rem);
+  letter-spacing: -0.03em;
+}
+
+.avatar-editor header p:not(.eyebrow) {
+  color: var(--color-text-muted);
+  line-height: 1.45;
+  margin-top: 0.25rem;
+}
+
+.avatar-editor .eyebrow {
+  margin-bottom: 0.25rem;
+}
 .avatar-editor-preview {
   display: flex;
   justify-content: center;
@@ -1160,17 +1175,49 @@ button {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 .avatar-editor label {
-  color: var(--color-text-muted);
+  color: var(--color-text-strong);
   display: grid;
   font-size: 0.82rem;
   font-weight: 800;
   gap: 0.25rem;
 }
-.avatar-editor select {
-  border: 1px solid var(--border-default);
-  border-radius: 0.75rem;
+
+.avatar-editor input,
+.avatar-editor select,
+.avatar-editor textarea {
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid color-mix(in srgb, var(--domain-border, #ddd6fe) 72%, var(--border-default));
+  border-radius: 1rem;
+  color: var(--color-text-strong);
   font: inherit;
-  padding: 0.55rem;
+  min-height: 2.65rem;
+  padding: 0.68rem 0.85rem;
+}
+
+.avatar-editor input[type="color"] {
+  min-width: 5rem;
+  padding: 0.25rem;
+}
+
+.avatar-editor button:not(.icon-button) {
+  background: color-mix(in srgb, var(--domain-accent, #7c3aed) 12%, white);
+  border: 1px solid color-mix(in srgb, var(--domain-accent, #7c3aed) 24%, var(--domain-border, #ddd6fe));
+  border-radius: 999px;
+  color: var(--domain-accent-strong, var(--color-brand-accent-strong));
+  cursor: pointer;
+  font: inherit;
+  font-weight: 850;
+  min-height: 2.75rem;
+  padding: 0.68rem 1.05rem;
+}
+
+.avatar-editor button:not(.icon-button):hover {
+  background: color-mix(in srgb, var(--domain-accent, #7c3aed) 17%, white);
+}
+
+.avatar-editor :is(button, input, select, textarea):focus-visible {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--domain-accent, var(--color-brand-accent)) 24%, transparent);
+  outline: none;
 }
 .checkbox-label {
   align-content: end;

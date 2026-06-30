@@ -1,4 +1,5 @@
 # Current State
+- 2026-06-30: Completed the FamilyBoard beta readiness UX review by validating the full product loop across Home, Mijn Pagina, Agenda, Taken, Boodschappen, Motivatie, Settings, Weekly Reset, VisualReview browser navigation, desktop responsiveness, and marketing storyboard alignment; implemented only small shared avatar/family-member dialog polish without backend/API/schema, workflow, storyboard, media, or binary artifact changes.
 - 2026-06-30: Completed the Shopping layout redesign by replacing narrow per-store desktop columns with a full-width vertical store stack, making active shopping rows larger and easier to scan, reducing Quick Add visual weight, improving touch targets, and preserving preferred-store grouping, quick add, completion, undo, delete, backend/API/schema behavior, storyboard source, media policy, and binary artifact policy.
 - 2026-06-29: Completed the Motivation layout redesign by turning Motivatie into a calm desktop encouragement dashboard with a dominant family-goal anchor, clearer appreciation hierarchy, supporting celebration/progress surfaces, improved emotional readability, and FamilyBoard-aligned warm card styling while preserving goals, helpful moments, celebrations, memories, dialogs, navigation, backend/API/schema behavior, storyboard source, media policy, and binary artifact policy.
 - 2026-06-29: Completed the Tasks layout redesign by turning Taken into a desktop task dashboard with a primary Today surface, secondary planning grid, improved task-row density, clearer metadata/action touch targets, and FamilyBoard-aligned warm card language while preserving task creation/editing/completion/reopen, templates, weekly reset entry points, backend/API/schema behavior, storyboard source, media policy, and binary artifact policy.
@@ -59,7 +60,7 @@
 Phase 2 — Durable Household Core
 
 ## Current Slice
-Shopping Layout Redesign — Completed
+FamilyBoard Beta Readiness UX Review — Completed
 
 ## Completed Slices
 - 1.1 Repository Bootstrap
