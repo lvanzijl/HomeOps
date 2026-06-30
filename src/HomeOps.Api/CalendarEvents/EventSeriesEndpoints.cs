@@ -78,8 +78,12 @@ public static class EventSeriesEndpoints
                 return Results.ValidationProblem(validationErrors);
             }
 
-            var sourceExists = await dbContext.EventSources.AnyAsync(source => source.Id == SeedCalendarEvents.EventSourceId && source.HouseholdId == SeedHousehold.Id && source.IsWritable, cancellationToken);
-            if (!sourceExists)
+            var writableSourceId = await dbContext.EventSources
+                .Where(source => source.HouseholdId == SeedHousehold.Id && source.IsWritable)
+                .Select(source => (Guid?)source.Id)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (writableSourceId is null)
             {
                 return Results.NotFound();
             }
@@ -87,7 +91,7 @@ public static class EventSeriesEndpoints
             var now = DateTimeOffset.UtcNow;
             var eventSeries = EventOccurrenceProjector.FromRequest(
                 Guid.NewGuid(),
-                SeedCalendarEvents.EventSourceId,
+                writableSourceId.Value,
                 request.Title.Trim(),
                 NormalizeDescription(request.Description),
                 request.StartUtc,

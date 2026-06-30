@@ -3,6 +3,9 @@ Frontend test maintenance refreshed stale test expectations and fixtures to matc
 
 # Phase 2 Roadmap
 
+## Completed Slice — Marketing Preview VisualReview Event Create Compatibility
+Marketing Preview VisualReview Event Create Compatibility removes the hard-coded seeded calendar-source dependency from manual event creation so Agenda recordings can add `Filmavond` inside the approved marketing fixtures while preserving existing household event CRUD, schema, and API behavior.
+
 ## Completed Slice — FamilyBoard Marketing Director
 Home Layout Redesign recomposes the existing Home concepts into a fuller desktop dashboard without product or backend changes: the family member area becomes a larger human anchor, Agenda and Boodschappen become dominant Home cards, Taken and Motivatie become supporting cards, and Home shopping items gain larger supermarket-friendly check targets using the existing list completion contract. The source-only marketing storyboard was updated to describe the redesigned Home scenes; no screenshots, movies, audio, binaries, new widgets, new pages, API changes, schema changes, or backend behavior were introduced.
 
