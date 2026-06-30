@@ -64,7 +64,12 @@ export async function runMetadataStage(config, { storyboardStatus, recordingPlan
         environment: config.runtime?.environment,
         started: runtimeStatus?.started === true,
       }),
+      productionMode: config.productionMode ?? 'validation',
+      productionTimestamp: config.productionTimestamp,
       outputPath: exportStatus.outputPath,
+      publishedOutputPath: (config.productionMode ?? 'validation') === 'publish' ? exportStatus.outputPath : undefined,
+      temporaryExportPath: (config.productionMode ?? 'validation') === 'validation' ? exportStatus.outputPath : undefined,
+      cleanupRetentionDecision: config.cleanup?.retentionDecision ?? ((config.productionMode ?? 'validation') === 'publish' ? 'retain-published-mp4' : 'remove-temporary-mp4'),
       duration: Object.freeze({
         preferredDurationMs: recordingPlan?.preferredDurationMs,
         preferredDurationSeconds: recordingPlan?.preferredDurationSeconds,
