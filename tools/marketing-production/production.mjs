@@ -2,7 +2,8 @@
 import { access } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
-import { defaultProductionConfig, validateProductionConfig } from './config/default-production-config.mjs';
+import { createDefaultProductionConfig, defaultProductionConfig, validateProductionConfig } from './config/default-production-config.mjs';
+import { resolveProductionMode } from './config/production-mode.mjs';
 import { createProductionPipeline, validateProductionPipeline } from './pipeline.mjs';
 import { startRuntimeStage } from './runtime/runtime-stage.mjs';
 import { runStoryboardStage } from './storyboard/storyboard-stage.mjs';
@@ -56,9 +57,12 @@ export async function runProductionEngine(config = defaultProductionConfig) {
   const metadataStage = exportStage.status.exportCompleted ? await runMetadataStage(config, { storyboardStatus: storyboardStage.status, recordingPlan: storyboardStage.recordingPlan, runtimeStatus: runtimeStage.status, recordingStatus: recordingStage.status, audioStatus: audioStage.status, exportStatus: exportStage.status }) : Object.freeze({ status: Object.freeze({ phase: 'metadata', metadataGenerated: false, metadataPath: config.metadata?.path, metadataLoaded: false, timingGenerated: false, timingPath: config.metadata?.timingPath, timingLoaded: false, failure: Object.freeze({ message: 'Export stage failed before metadata generation.' }) }) });
   const cleanupStage = metadataStage.status.metadataGenerated ? await runCleanupStage(config, { recordingStatus: recordingStage.status, audioStatus: audioStage.status, exportStatus: exportStage.status }) : Object.freeze({ status: Object.freeze({ phase: 'cleanup', cleanupStarted: false, cleanupCompleted: false, removedArtifacts: Object.freeze([]), remainingArtifacts: Object.freeze([]), failure: Object.freeze({ message: 'Metadata stage failed before cleanup.' }) }) });
   const runtimeShutdown = typeof runtimeStage.shutdown === 'function' ? await runtimeStage.shutdown() : runtimeStage.shutdown;
+  const productionSucceeded = validation.valid && runtimeStage.status.started === true && storyboardStage.status.recordingPlanGenerated === true && recordingStage.status.recordingCompleted === true && Boolean(recordingStage.status.rawRecordingPath) && audioStage.status.soundtrackMixed === true && Boolean(audioStage.status.mixedAudioPath) && exportStage.status.exportCompleted === true && exportStage.status.outputExists === true && metadataStage.status.metadataLoaded === true && metadataStage.status.timingLoaded === true && cleanupStage.status.cleanupCompleted === true;
   const result = Object.freeze({
     ...validation,
-    valid: validation.valid && runtimeStage.status.started === true && storyboardStage.status.recordingPlanGenerated === true && recordingStage.status.recordingCompleted === true && Boolean(recordingStage.status.rawRecordingPath) && audioStage.status.soundtrackMixed === true && Boolean(audioStage.status.mixedAudioPath) && exportStage.status.exportCompleted === true && exportStage.status.outputExists === true && metadataStage.status.metadataLoaded === true && metadataStage.status.timingLoaded === true && cleanupStage.status.cleanupCompleted === true,
+    productionMode: config.productionMode,
+    productionTimestamp: config.productionTimestamp,
+    valid: productionSucceeded,
     runtime: Object.freeze({ ...runtimeStage.status, shutdown: runtimeShutdown }),
     storyboard: storyboardStage.status,
     recordingPlan: storyboardStage.recordingPlan,
@@ -67,8 +71,12 @@ export async function runProductionEngine(config = defaultProductionConfig) {
     export: exportStage.status,
     metadata: metadataStage.status,
     cleanup: cleanupStage.status,
-    producedMovie: false,
-    message: 'Marketing Production Engine Phase 9 ran the configuration-driven production pipeline, generated metadata with execution timing, and cleaned temporary production artifacts. No final repository movie or subjective review was produced.',
+    producedMovie: productionSucceeded && config.productionMode === 'publish',
+    message: productionSucceeded
+      ? (config.productionMode === 'publish'
+        ? 'Marketing Production Engine ran in publish mode, retained the timestamped repository MP4, generated metadata with execution timing, and cleaned temporary production artifacts. No subjective review was performed.'
+        : 'Marketing Production Engine ran in validation mode, generated metadata with execution timing, and cleaned temporary production artifacts including the temporary MP4. No final repository movie or subjective review was produced.')
+      : `Marketing Production Engine ${config.productionMode ?? 'validation'} mode did not complete successfully. No subjective review was performed.`,
   });
   console.log(JSON.stringify(result, null, 2));
   if (!result.valid) process.exitCode = 1;
@@ -76,5 +84,6 @@ export async function runProductionEngine(config = defaultProductionConfig) {
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  await runProductionEngine();
+  const mode = resolveProductionMode();
+  await runProductionEngine(createDefaultProductionConfig({ mode }));
 }

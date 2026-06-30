@@ -3,6 +3,10 @@ Frontend test maintenance refreshed stale test expectations and fixtures to matc
 
 # Phase 2 Roadmap
 
+## Completed Slice — FamilyBoard Marketing Production Engine Publish Mode
+FamilyBoard Marketing Production Engine Publish Mode adds configuration-driven `validation` and `publish` execution without duplicating the production pipeline. Validation remains the default and removes the temporary MP4, while publish mode exports a uniquely timestamped `docs/demo/familyboard-preview-YYYYMMDD-HHmmss.mp4`, records mode/timestamp/output/retention metadata, keeps timing JSON unchanged, and continues cleaning raw WebM, WAV, mixed soundtrack, and temporary browser-profile artifacts without production UI, storyboard, Recording Framework, Marketing Director, or Audio Framework changes.
+
+
 ## Completed Slice — FamilyBoard Marketing Production Engine Phase 6 Export
 FamilyBoard Marketing Production Engine Phase 6 gives the Production Engine ownership of deterministic MP4 export after Runtime, Storyboard, Recording, and Audio pass. The Export stage locates the raw WebM recording and mixed WAV soundtrack from structured stage status, resolves FFmpeg through the configured executable, PATH, or imageio-ffmpeg fallback, exports `docs/demo/familyboard-preview.mp4` as H.264/AAC at 1920×1080 and approximately 30 FPS, verifies the output path, and intentionally avoids metadata generation, timing reports, cleanup implementation, subjective movie review, production UI changes, storyboard changes, Recording Framework changes, Marketing Director changes, and Audio Framework redesign.
 

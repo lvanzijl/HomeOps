@@ -3,20 +3,37 @@ import { timingConfig } from './timing-config.mjs';
 import { audioConfig } from './audio-config.mjs';
 import { exportConfig } from './export-config.mjs';
 import { cleanupConfig } from './cleanup-config.mjs';
+import { createProductionRunContext } from './production-mode.mjs';
 
-export const defaultProductionConfig = Object.freeze({
-  ...productionConfig,
-  timing: timingConfig,
-  audio: audioConfig,
-  export: exportConfig,
-  video: Object.freeze({
-    resolution: exportConfig.resolution,
-    frameRate: exportConfig.frameRate,
-    codec: exportConfig.videoCodecLabel,
-    container: exportConfig.container,
-  }),
-  cleanup: cleanupConfig,
-});
+export function createDefaultProductionConfig({ mode = 'validation', timestamp } = {}) {
+  const run = createProductionRunContext({ mode, timestamp });
+  const exportSettings = Object.freeze({
+    ...exportConfig,
+    outputPath: run.publishedOutputPath ?? exportConfig.outputPath,
+  });
+  const cleanupSettings = Object.freeze({
+    ...cleanupConfig,
+    removeIntermediateFiles: run.mode === 'validation',
+    retentionDecision: run.mode === 'publish' ? 'retain-published-mp4' : 'remove-temporary-mp4',
+  });
+  return Object.freeze({
+    ...productionConfig,
+    productionMode: run.mode,
+    productionTimestamp: run.timestamp,
+    timing: timingConfig,
+    audio: audioConfig,
+    export: exportSettings,
+    video: Object.freeze({
+      resolution: exportSettings.resolution,
+      frameRate: exportSettings.frameRate,
+      codec: exportSettings.videoCodecLabel,
+      container: exportSettings.container,
+    }),
+    cleanup: cleanupSettings,
+  });
+}
+
+export const defaultProductionConfig = createDefaultProductionConfig();
 
 function validateNumber(errors, value, key) {
   if (!Number.isFinite(value)) errors.push(`${key} is required.`);
@@ -29,6 +46,8 @@ function validateBoolean(errors, value, key) {
 export function validateProductionConfig(config = defaultProductionConfig) {
   const errors = [];
   if (!config.productionName) errors.push('productionName is required.');
+  if (!['validation', 'publish'].includes(config.productionMode ?? 'validation')) errors.push('productionMode must be validation or publish.');
+  if (!config.productionTimestamp) errors.push('productionTimestamp is required.');
   if (!config.storyboard?.modulePath) errors.push('storyboard.modulePath is required.');
   if (!config.storyboard?.exportName) errors.push('storyboard.exportName is required.');
   if (!config.runtime?.apiProject) errors.push('runtime.apiProject is required.');
