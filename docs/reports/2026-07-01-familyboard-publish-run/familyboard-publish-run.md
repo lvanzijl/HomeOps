@@ -2,7 +2,7 @@
 
 ## Summary
 
-Publish mode completed successfully. A timestamped FamilyBoard MP4 was retained in `docs/demo/`, metadata and timing JSON were generated, cleanup completed, and no manual orchestration was needed.
+Publish mode completed successfully. A timestamped FamilyBoard MP4 was retained in `docs/demo/`, metadata and timing JSON were generated, cleanup completed, and the Marketing Production Engine handled the full pipeline.
 
 ## Publish command used
 
@@ -10,7 +10,7 @@ Publish mode completed successfully. A timestamped FamilyBoard MP4 was retained 
 
 ## Published movie path
 
-`/home/runner/work/HomeOps/HomeOps/docs/demo/familyboard-preview-20260701-112023.mp4`
+`/home/runner/work/HomeOps/HomeOps/docs/demo/familyboard-preview-20260701-151704.mp4`
 
 ## Metadata path
 
@@ -22,7 +22,7 @@ Publish mode completed successfully. A timestamped FamilyBoard MP4 was retained 
 
 ## Duration
 
-70.366s
+70.623s
 
 ## Resolution
 
@@ -46,7 +46,7 @@ Cleanup completed successfully. Temporary WebM, WAV, mixed audio, and browser pr
 
 ## Modified files
 
-- `docs/demo/familyboard-preview-20260701-112023.mp4`
+- `docs/demo/familyboard-preview-20260701-151704.mp4`
 - `docs/reports/2026-07-01-familyboard-publish-run/familyboard-publish-run.md`
 
 ## Explicit answers
@@ -55,4 +55,4 @@ Cleanup completed successfully. Temporary WebM, WAV, mixed audio, and browser pr
 - Was a timestamped MP4 retained? Yes.
 - Were metadata and timing generated? Yes.
 - Was cleanup executed? Yes.
-- Was production completed without manual orchestration? Yes.
+- Was production completed entirely by the Marketing Production Engine? Yes.
