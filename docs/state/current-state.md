@@ -742,3 +742,8 @@ Showcase Sample C and Showcase Sample D exposed that the wide head variant's ear
 ## Final Marketing Timing Calibration — 2026-07-01
 - Calibrated only the remaining measured timing outliers: Intro, Shopping, and Outro.
 - Validation mode completed all 9 scenes with metadata/timing generation and cleanup; total measured runtime is now 89.0s, and no final movie was published.
+
+## FamilyBoard Marketing Visual Polish — 2026-07-01
+- Increased Home family-strip Avatar V2 visual prominence by enlarging the visible Home avatar container about 15–20%, reducing name dominance, and preserving the existing touch target and Avatar V2 renderer.
+- Added shared wall-tablet operational typography tokens and applied them to key operational content across Home summaries, Agenda events, Tasks rows, Shopping rows, Motivation copy, and Weekly Reset supporting text without flattening hierarchy.
+- Verified Shopping remains a grouped-shopping scene with calibrated timing and no storyboard/order change; validation mode was used intentionally without publishing a final movie.
