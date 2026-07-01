@@ -722,3 +722,22 @@ Showcase Sample C and Showcase Sample D exposed that the wide head variant's ear
 - Added a VisualReview marketing time provider so marketing fixture rendering derives Today and the current week from the active canonical fixture anchor instead of the machine clock.
 - Weekly Reset now uses the active marketing anchor for contribution recap windows, fixing the zero-recap mismatch for `visual-marketing-weekly-reset`.
 - Validation report: `docs/reports/2026-06-28-marketing-time-provider/marketing-time-provider.md`.
+
+## Marketing Recording Navigation and Home Avatar Corrective Pass — 2026-06-30
+- Recording stage timing now preserves executable storyboard scene actions instead of replacing them with wait-only callbacks.
+- RecordingSession now navigates to the intended fixture surface after VisualReview fixture reset/reload using real FamilyBoard UI navigation rather than DOM fakes.
+- Home Avatar V2 presentation removes the decorative colored avatar square, increases the visible drawing, and reduces Home strip name dominance while preserving touch target size and initials fallback styling.
+- Validation mode was run without publishing a final movie; it proved navigation from Home to Family to Agenda before an existing Agenda save-dialog timeout stopped the full nine-scene run.
+
+## Agenda Recording Action Reliability — 2026-07-01
+- Fixed Agenda recording reliability by routing Agenda API clients through `VITE_HOMEOPS_API_BASE_URL` in the VisualReview marketing runtime instead of the static Vite proxy.
+- Hardened the executable `saveFilmavond` storyboard action with request/response instrumentation and saved-event-card synchronization so it does not wait indefinitely on broad dialog text.
+- Validation mode completed the executable 9-scene storyboard, generated metadata and timing, cleaned temporary media artifacts, and intentionally did not publish a final movie.
+
+## Marketing Timing Calibration — 2026-07-01
+- Calibrated the executable marketing storyboard timing after measuring completed Production Engine metadata: Agenda improved from a measured 131.4s baseline in this environment to 15.0s against the 14.0s target.
+- Kept the 9-scene storyboard order intact and used validation mode only; metadata and timing were generated, cleanup succeeded, and no final movie was published.
+
+## Final Marketing Timing Calibration — 2026-07-01
+- Calibrated only the remaining measured timing outliers: Intro, Shopping, and Outro.
+- Validation mode completed all 9 scenes with metadata/timing generation and cleanup; total measured runtime is now 89.0s, and no final movie was published.

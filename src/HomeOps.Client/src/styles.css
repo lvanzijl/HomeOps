@@ -706,14 +706,13 @@ button {
 }
 
 .home-hero .family-chip strong {
-  font-size: clamp(1.08rem, 1.4vw, 1.35rem);
+  font-size: clamp(1rem, 1.15vw, 1.18rem);
 }
 
 .home-hero .family-avatar {
-  box-shadow: 0 12px 26px rgb(23 32 51 / 16%);
   font-size: clamp(1.9rem, 3vw, 2.8rem);
-  height: clamp(4.7rem, 8vw, 6.6rem);
-  width: clamp(4.7rem, 8vw, 6.6rem);
+  height: clamp(5.6rem, 9.2vw, 7.4rem);
+  width: clamp(5.6rem, 9.2vw, 7.4rem);
 }
 
 .quick-capture .quick-capture-action {
@@ -1141,6 +1140,24 @@ button {
 .family-avatar-portrait,
 .family-avatar-fallback {
   align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  display: inline-flex;
+  flex-shrink: 0;
+  justify-content: center;
+  position: relative;
+}
+
+.family-avatar-compact {
+  height: 2.35rem;
+  width: 2.35rem;
+}
+.family-avatar-large {
+  height: 7.5rem;
+  width: 7.5rem;
+}
+.family-avatar-fallback {
   background: color-mix(
     in srgb,
     var(--avatar-bg, var(--member-color)) 55%,
@@ -1149,30 +1166,19 @@ button {
   border: 2px solid rgb(255 255 255 / 85%);
   border-radius: 42% 58% 48% 52%;
   box-shadow: 0 5px 12px rgb(23 32 51 / 12%);
-  display: inline-flex;
-  flex-shrink: 0;
-  justify-content: center;
-  position: relative;
-}
-
-.family-avatar-compact {
-  height: 2rem;
-  width: 2rem;
-}
-.family-avatar-large {
-  height: 7.5rem;
-  width: 7.5rem;
-}
-.family-avatar-fallback {
   font-weight: 900;
 }
 
 .family-avatar-v2 {
-  overflow: hidden;
+  overflow: visible;
 }
 .family-avatar-v2 svg {
-  height: 100%;
-  width: 100%;
+  height: 112%;
+  width: 112%;
+}
+.home-hero .family-avatar-v2 svg {
+  height: 118%;
+  width: 118%;
 }
 
 .avatar-editor-backdrop {

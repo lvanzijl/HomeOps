@@ -92,7 +92,7 @@ export function getOrCreateAgendaDeviceKey(storage: KeyValueStorage | undefined)
 
 export function useAgendaLayerSettings(sources: readonly EventSource[]) {
   const storage = getBrowserStorage();
-  const client = useMemo(() => new HomeOpsApiClient(), []);
+  const client = useMemo(() => new HomeOpsApiClient(import.meta.env.VITE_HOMEOPS_API_BASE_URL ?? ''), []);
   const [deviceKey] = useState(() => getOrCreateAgendaDeviceKey(storage));
   const [settings, setSettings] = useState(() => createDefaultAgendaLayerSettings(sources));
   const [hasLoaded, setHasLoaded] = useState(false);
