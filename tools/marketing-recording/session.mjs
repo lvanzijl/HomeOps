@@ -41,9 +41,9 @@ export class RecordingSession {
   }
 
   async inspectRenderedSurface(scene = {}) {
-    const pageHeading = await this.page.locator('#active-workspace-title').textContent().catch(() => undefined);
-    const activeNavigationButton = await this.page.locator('[aria-current=page], .workspace-nav-button.active, .workspace-nav-button[aria-pressed=true]').first().textContent().catch(() => undefined);
-    const articleLabel = await this.page.locator('.workspace-panel [aria-label]').first().getAttribute('aria-label').catch(() => undefined);
+    const pageHeading = await this.page.locator('#active-workspace-title').textContent({ timeout: 500 }).catch(() => undefined);
+    const activeNavigationButton = await this.page.locator('[aria-current=page], .workspace-nav-button.active, .workspace-nav-button[aria-pressed=true]').first().textContent({ timeout: 500 }).catch(() => undefined);
+    const articleLabel = await this.page.locator('.workspace-panel [aria-label]').first().getAttribute('aria-label', { timeout: 500 }).catch(() => undefined);
     return Object.freeze({
       sceneId: scene.id,
       fixture: scene.fixture,

@@ -51,11 +51,11 @@ function configuredActionHoldMs(config, sceneConfig, action) {
   const fallbackHoldMs = actionType === 'touch'
     ? (interactionTiming.tapDelayMs ?? globalTiming.defaultPageHoldMs ?? 350)
     : (globalTiming.defaultPostActionHoldMs ?? globalTiming.defaultPageHoldMs ?? 350);
-  const sourceHoldMs = action.holdMs ?? action.transitionMs ?? action.holdAfterMs ?? fallbackHoldMs;
+  const sourceHoldMs = action.resultHoldMs ?? action.holdMs ?? action.transitionMs ?? action.holdAfterMs ?? fallbackHoldMs;
   const touchHesitationMs = actionType === 'touch' ? (globalTiming.defaultTouchHesitationMs ?? 0) : 0;
   const swipeMultiplier = actionType === 'gesture' ? (interactionTiming.swipeMultiplier ?? 1) : 1;
   const longPressMs = actionType === 'long-press' ? (interactionTiming.longPressDelayMs ?? sourceHoldMs) : sourceHoldMs;
-  return Math.round((longPressMs + touchHesitationMs + (sceneConfig.additionalHoldMs ?? 0)) * (sceneConfig.sceneMultiplier ?? 1) * swipeMultiplier);
+  return Math.max(1000, Math.round((longPressMs + touchHesitationMs + (sceneConfig.additionalHoldMs ?? 0)) * (sceneConfig.sceneMultiplier ?? 1) * swipeMultiplier));
 }
 
 function createRecordingScenes(recordingPlan, config) {
@@ -284,20 +284,26 @@ export async function runRecordingStage(config, { recordingPlan, runtimeStatus, 
 
     const recordingScenes = createRecordingScenes(recordingPlan, config);
     timingRecorder = createTimingRecorder(recordingPlan, recordingScenes);
-    await mkdir(visualNavigationScreenshotDirectory, { recursive: true });
-    status.visualNavigationScreenshotDirectory = visualNavigationScreenshotDirectory;
+    const captureVisualNavigationScreenshots = config.recording?.captureVisualNavigationScreenshots === true;
+    if (captureVisualNavigationScreenshots) {
+      await mkdir(visualNavigationScreenshotDirectory, { recursive: true });
+      status.visualNavigationScreenshotDirectory = visualNavigationScreenshotDirectory;
+    }
     for (const scene of recordingScenes) {
       failingScene = scene.id;
       const sceneStart = new Date().toISOString();
       await session.runScene(scene, { storyboardId: recordingPlan.storyboardId, eventBus: timingRecorder.eventBus });
       const rendered = await session.inspectRenderedSurface(scene);
-      const screenshotPath = join(visualNavigationScreenshotDirectory, `${String(status.completedSceneCount + 1).padStart(2, '0')}-${scene.id}.png`);
-      await session.page.screenshot({ path: screenshotPath, fullPage: false });
+      let screenshotPath;
+      if (captureVisualNavigationScreenshots) {
+        screenshotPath = join(visualNavigationScreenshotDirectory, `${String(status.completedSceneCount + 1).padStart(2, '0')}-${scene.id}.png`);
+        await session.page.screenshot({ path: screenshotPath, fullPage: false });
+      }
       status.visualNavigation.push(Object.freeze({
         ...rendered,
         sceneStart,
         sceneCompletion: new Date().toISOString(),
-        screenshotPath,
+        ...(screenshotPath ? { screenshotPath } : {}),
       }));
       status.completedSceneCount += 1;
     }
