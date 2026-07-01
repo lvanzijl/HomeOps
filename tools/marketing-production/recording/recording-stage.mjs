@@ -217,6 +217,8 @@ export async function runRecordingStage(config, { recordingPlan, runtimeStatus, 
     toolchainReady: false,
     timingCaptured: false,
     timing: undefined,
+    visualNavigation: [],
+    visualNavigationScreenshotDirectory: undefined,
     failure: undefined,
   };
 
@@ -226,6 +228,7 @@ export async function runRecordingStage(config, { recordingPlan, runtimeStatus, 
   let timingRecorder;
   const rawRecordingPath = config.output?.rawRecordingPath ?? defaultRawRecordingPath(config);
   const recordVideoDir = config.output?.rawRecordingDirectory ?? join(tmpdir(), 'homeops-marketing-recording');
+  const visualNavigationScreenshotDirectory = join(tmpdir(), 'familyboard-recording-visual-navigation');
 
   try {
     if (!runtimeStatus?.started) throw new Error('Runtime stage must pass before recording can start.');
@@ -252,9 +255,21 @@ export async function runRecordingStage(config, { recordingPlan, runtimeStatus, 
 
     const recordingScenes = createRecordingScenes(recordingPlan, config);
     timingRecorder = createTimingRecorder(recordingPlan, recordingScenes);
+    await mkdir(visualNavigationScreenshotDirectory, { recursive: true });
+    status.visualNavigationScreenshotDirectory = visualNavigationScreenshotDirectory;
     for (const scene of recordingScenes) {
       failingScene = scene.id;
+      const sceneStart = new Date().toISOString();
       await session.runScene(scene, { storyboardId: recordingPlan.storyboardId, eventBus: timingRecorder.eventBus });
+      const rendered = await session.inspectRenderedSurface(scene);
+      const screenshotPath = join(visualNavigationScreenshotDirectory, `${String(status.completedSceneCount + 1).padStart(2, '0')}-${scene.id}.png`);
+      await session.page.screenshot({ path: screenshotPath, fullPage: false });
+      status.visualNavigation.push(Object.freeze({
+        ...rendered,
+        sceneStart,
+        sceneCompletion: new Date().toISOString(),
+        screenshotPath,
+      }));
       status.completedSceneCount += 1;
     }
 
