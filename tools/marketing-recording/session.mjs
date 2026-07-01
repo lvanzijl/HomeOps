@@ -7,11 +7,11 @@ import { createNoopEventBus, recordingEventTypes } from './events.mjs';
 
 
 const fixtureWorkspaceTargets = Object.freeze({
-  'visual-marketing-home': Object.freeze({ label: 'Thuis', title: 'Thuis' }),
-  'visual-marketing-agenda': Object.freeze({ label: 'Agenda', title: 'Agenda' }),
-  'visual-marketing-tasks': Object.freeze({ label: 'Taken', title: 'Taken' }),
-  'visual-marketing-shopping': Object.freeze({ label: 'Boodschappen', title: 'Boodschappen' }),
-  'visual-marketing-motivation': Object.freeze({ label: 'Motivatie', title: 'Motivatie' }),
+  'visual-marketing-home': Object.freeze({ label: 'Thuis', title: 'Thuis', verification: 'home-dashboard' }),
+  'visual-marketing-agenda': Object.freeze({ label: 'Agenda', title: 'Agenda', verificationLabel: 'Agenda widgets' }),
+  'visual-marketing-tasks': Object.freeze({ label: 'Taken', title: 'Taken', verificationLabel: 'Takenpagina' }),
+  'visual-marketing-shopping': Object.freeze({ label: 'Boodschappen', title: 'Boodschappen', verificationLabel: 'Boodschappen widgets' }),
+  'visual-marketing-motivation': Object.freeze({ label: 'Motivatie', title: 'Motivatie', verificationLabel: 'Motivatiedashboard' }),
 });
 
 export const tabletLandscapeViewport = Object.freeze({ width: 1920, height: 1080, deviceScaleFactor: 1, isMobile: true, hasTouch: true });
@@ -30,6 +30,48 @@ export class RecordingSession {
     await installRecordingOverlays(this.page);
     await this.camera.waitForIdle();
     return this;
+  }
+
+  async inspectRenderedSurface(scene = {}) {
+    const pageHeading = await this.page.locator('#active-workspace-title').textContent().catch(() => undefined);
+    const activeNavigationButton = await this.page.locator('[aria-current=page], .workspace-nav-button.active, .workspace-nav-button[aria-pressed=true]').first().textContent().catch(() => undefined);
+    const articleLabel = await this.page.locator('.workspace-panel [aria-label]').first().getAttribute('aria-label').catch(() => undefined);
+    return Object.freeze({
+      sceneId: scene.id,
+      fixture: scene.fixture,
+      expectedWorkspace: this.expectedWorkspaceForFixture(scene.fixture),
+      expectedUrl: this.appUrl,
+      actualUrl: this.page.url(),
+      activeWorkspace: articleLabel ?? pageHeading,
+      activePageHeading: pageHeading,
+      activeNavigationButton,
+      timestamp: new Date().toISOString(),
+    });
+  }
+
+  expectedWorkspaceForFixture(fixture) {
+    if (fixture === 'visual-marketing-family') return 'Thomas';
+    if (fixture === 'visual-marketing-weekly-reset') return 'Weekritueel';
+    return fixtureWorkspaceTargets[fixture]?.title;
+  }
+
+  async verifyFixtureSurface(fixture) {
+    if (fixture === 'visual-marketing-family') {
+      await this.page.getByRole('heading', { name: 'Thomas', exact: true }).first().waitFor({ state: 'visible', timeout: 10000 });
+      return;
+    }
+    if (fixture === 'visual-marketing-weekly-reset') {
+      await this.page.getByRole('heading', { name: 'Weekritueel', exact: true }).first().waitFor({ state: 'visible', timeout: 10000 });
+      return;
+    }
+    const target = fixtureWorkspaceTargets[fixture];
+    if (!target) return;
+    if (target.verification === 'home-dashboard') {
+      await this.page.getByLabel('Gezinsleden', { exact: true }).waitFor({ state: 'visible', timeout: 10000 });
+      return;
+    }
+    await this.page.locator('#active-workspace-title').filter({ hasText: target.title }).waitFor({ state: 'attached', timeout: 10000 });
+    if (target.verificationLabel) await this.page.getByLabel(target.verificationLabel, { exact: true }).first().waitFor({ state: 'visible', timeout: 10000 });
   }
 
   async navigateToFixtureSurface(fixture) {
@@ -66,14 +108,17 @@ export class RecordingSession {
         return;
       } catch {}
     }
-    const current = this.page.getByRole('heading', { name: target.title, exact: true });
-    if (await current.count()) return;
+    const current = this.page.locator('#active-workspace-title').filter({ hasText: target.title });
+    if (await current.count()) {
+      await this.verifyFixtureSurface(fixture);
+      await this.camera.waitForIdle();
+      return;
+    }
     await this.page.getByLabel('Dagelijkse gezinsplekken', { exact: true }).waitFor({ state: 'visible', timeout: 10000 });
     const navButton = this.page.getByRole('button', { name: target.label, exact: true });
     if (!(await navButton.count())) throw new Error(`Navigation target ${target.label} was not found for fixture ${fixture}.`);
     await navButton.first().click();
-    if (fixture === 'visual-marketing-home') await this.page.getByLabel('Gezinsleden', { exact: true }).waitFor({ state: 'visible' });
-    else await this.page.getByRole('heading', { name: target.title, exact: true }).first().waitFor({ state: 'visible' });
+    await this.verifyFixtureSurface(fixture);
     await this.camera.waitForIdle();
   }
   async resetFixture(fixture) {
@@ -86,6 +131,7 @@ export class RecordingSession {
     eventBus.publish(recordingEventTypes.TransitionStarted, { sceneId: scene.id, transition: scene.transition });
     await runTransition(this.page, scene.transition, async () => { await this.resetFixture(scene.fixture); await this.page.reload({ waitUntil: 'domcontentloaded' }); await this.navigateToFixtureSurface(scene.fixture); });
     eventBus.publish(recordingEventTypes.TransitionCompleted, { sceneId: scene.id, transition: scene.transition });
+    await this.verifyFixtureSurface(scene.fixture);
     await this.camera.waitForIdle();
     eventBus.publish(recordingEventTypes.ChapterStarted, { sceneId: scene.id, chapterId: scene.chapterId, chapter: scene.chapter });
     await showChapter(this.page, scene.chapter, scene.chapter);
