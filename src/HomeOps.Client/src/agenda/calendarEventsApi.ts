@@ -23,8 +23,10 @@ export interface EventSeriesInput {
   allDay: boolean;
 }
 
+const apiBaseUrl = import.meta.env.VITE_HOMEOPS_API_BASE_URL ?? '';
+
 export function createAgendaApiClient(): HomeOpsApiClient {
-  return new HomeOpsApiClient();
+  return new HomeOpsApiClient(apiBaseUrl);
 }
 
 export async function loadCalendarAgendaData(client = createAgendaApiClient()): Promise<CalendarAgendaData> {

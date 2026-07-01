@@ -65,13 +65,17 @@ function createRecordingScenes(recordingPlan, config) {
     return Object.freeze({
       ...scene,
       transition: Object.freeze({ ...(scene.transition ?? {}), durationMs: Math.round((scene.transition?.durationMs ?? 0) * transitionMultiplier) }),
-      chapter: Object.freeze({ ...(scene.chapter ?? {}), durationMs: config.timing?.global?.chapterCardDurationMs ?? scene.chapter?.durationMs ?? 1000 }),
-      actions: Object.freeze((scene.actions ?? []).map((action) => Object.freeze({
-        ...action,
-        async execute({ page }) {
-          await page.waitForTimeout(configuredActionHoldMs(config, sceneConfig, action));
-        },
-      }))),
+      chapter: Object.freeze({ ...(scene.chapter ?? {}), durationMs: sceneConfig.chapterCardDurationMs ?? config.timing?.global?.chapterCardDurationMs ?? scene.chapter?.durationMs ?? 1000 }),
+      actions: Object.freeze((scene.actions ?? []).map((action) => {
+        const originalExecute = typeof action.execute === 'function' ? action.execute : undefined;
+        return Object.freeze({
+          ...action,
+          async execute(context) {
+            if (originalExecute) await originalExecute(context);
+            await context.page.waitForTimeout(configuredActionHoldMs(config, sceneConfig, action));
+          },
+        });
+      })),
     });
   });
 }

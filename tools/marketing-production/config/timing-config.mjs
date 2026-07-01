@@ -7,15 +7,15 @@ export const timingConfig = Object.freeze({
     defaultTouchHesitationMs: 0,
   }),
   scenes: Object.freeze({
-    intro: Object.freeze({ sceneMultiplier: 1, additionalHoldMs: 0, transitionMultiplier: 1 }),
+    intro: Object.freeze({ sceneMultiplier: 1, additionalHoldMs: 0, transitionMultiplier: 0.3, chapterCardDurationMs: 500 }),
     home: Object.freeze({ sceneMultiplier: 1, additionalHoldMs: 0, transitionMultiplier: 1 }),
     family: Object.freeze({ sceneMultiplier: 1, additionalHoldMs: 0, transitionMultiplier: 1 }),
     agenda: Object.freeze({ sceneMultiplier: 1, additionalHoldMs: 0, transitionMultiplier: 1 }),
     tasks: Object.freeze({ sceneMultiplier: 1, additionalHoldMs: 0, transitionMultiplier: 1 }),
-    shopping: Object.freeze({ sceneMultiplier: 1, additionalHoldMs: 0, transitionMultiplier: 1 }),
+    shopping: Object.freeze({ sceneMultiplier: 1, additionalHoldMs: 0, transitionMultiplier: 0.4 }),
     motivation: Object.freeze({ sceneMultiplier: 1, additionalHoldMs: 0, transitionMultiplier: 1 }),
     'weekly-reset': Object.freeze({ sceneMultiplier: 1, additionalHoldMs: 0, transitionMultiplier: 1 }),
-    outro: Object.freeze({ sceneMultiplier: 1, additionalHoldMs: 0, transitionMultiplier: 1 }),
+    outro: Object.freeze({ sceneMultiplier: 1, additionalHoldMs: 0, transitionMultiplier: 0.3 }),
   }),
   interactionTypes: Object.freeze({
     tapDelayMs: 350,
