@@ -13,6 +13,21 @@ export const recordingEventTypes = Object.freeze({
   GestureCompleted: 'GestureCompleted',
   ActionStarted: 'ActionStarted',
   ActionCompleted: 'ActionCompleted',
+  SceneEntryTransitionCoverStarted: 'SceneEntryTransitionCoverStarted',
+  SceneEntryFixtureResetStarted: 'SceneEntryFixtureResetStarted',
+  SceneEntryFixtureResetCompleted: 'SceneEntryFixtureResetCompleted',
+  SceneEntryReloadStarted: 'SceneEntryReloadStarted',
+  SceneEntryReloadCompleted: 'SceneEntryReloadCompleted',
+  SceneEntryNavigationStarted: 'SceneEntryNavigationStarted',
+  SceneEntryNavigationCompleted: 'SceneEntryNavigationCompleted',
+  SceneEntryTargetVerified: 'SceneEntryTargetVerified',
+  SceneEntryVisibleRevealStarted: 'SceneEntryVisibleRevealStarted',
+  FirstVisibleInteraction: 'FirstVisibleInteraction',
+  DialogOpenStarted: 'DialogOpenStarted',
+  DialogOpenVisible: 'DialogOpenVisible',
+  DialogSaveOrCancelClicked: 'DialogSaveOrCancelClicked',
+  DialogCloseCompleted: 'DialogCloseCompleted',
+  DialogResultVisible: 'DialogResultVisible',
 });
 
 export class RecordingEventBus {

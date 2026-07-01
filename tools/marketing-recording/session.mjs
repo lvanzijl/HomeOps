@@ -23,6 +23,14 @@ export class RecordingSession {
   async start() {
     if (!this.browser && this.playwright) this.browser = await this.playwright.chromium.launch({ headless: true });
     this.context = await this.browser.newContext({ viewport: this.viewport, recordVideo: this.recordVideoDir ? { dir: this.recordVideoDir, size: { width: 1920, height: 1080 } } : undefined });
+    await this.context.addInitScript(() => {
+      if (window.localStorage?.getItem('familyboard-recording-scene-entry-covered') === 'true') {
+        const style = document.createElement('style');
+        style.id = 'familyboard-recording-scene-entry-cover';
+        style.textContent = `html, body { background: #f8f1e8 !important; } body > * { opacity: 0 !important; }`;
+        document.documentElement.appendChild(style);
+      }
+    });
     this.page = await this.context.newPage();
     this.camera = new Camera(this.page, this.profile);
     this.touch = new TouchDriver(this.page, { profile: this.profile });
@@ -121,6 +129,16 @@ export class RecordingSession {
     await this.verifyFixtureSurface(fixture);
     await this.camera.waitForIdle();
   }
+
+  async enableSceneEntryCover() {
+    await this.page.evaluate(() => window.localStorage?.setItem('familyboard-recording-scene-entry-covered', 'true'));
+  }
+  async disableSceneEntryCover() {
+    await this.page.evaluate(() => {
+      window.localStorage?.removeItem('familyboard-recording-scene-entry-covered');
+      document.getElementById('familyboard-recording-scene-entry-cover')?.remove();
+    });
+  }
   async resetFixture(fixture) {
     const response = await this.page.request.post(`${this.fixtureBaseUrl}/api/visual-review-fixtures/${fixture}/reset`);
     if (!response.ok()) throw new Error(`Fixture reset failed for ${fixture}: ${response.status()}`);
@@ -129,16 +147,43 @@ export class RecordingSession {
     const eventBus = options.eventBus ?? this.eventBus;
     eventBus.publish(recordingEventTypes.SceneStarted, { sceneId: scene.id, chapterId: scene.chapterId, fixture: scene.fixture });
     eventBus.publish(recordingEventTypes.TransitionStarted, { sceneId: scene.id, transition: scene.transition });
-    await runTransition(this.page, scene.transition, async () => { await this.resetFixture(scene.fixture); await this.page.reload({ waitUntil: 'domcontentloaded' }); await this.navigateToFixtureSurface(scene.fixture); });
+    await runTransition(this.page, scene.transition, async () => {
+      eventBus.publish(recordingEventTypes.SceneEntryFixtureResetStarted, { sceneId: scene.id, fixture: scene.fixture });
+      await this.resetFixture(scene.fixture);
+      eventBus.publish(recordingEventTypes.SceneEntryFixtureResetCompleted, { sceneId: scene.id, fixture: scene.fixture });
+      eventBus.publish(recordingEventTypes.SceneEntryReloadStarted, { sceneId: scene.id, fixture: scene.fixture });
+      await this.page.reload({ waitUntil: 'domcontentloaded' });
+      eventBus.publish(recordingEventTypes.SceneEntryReloadCompleted, { sceneId: scene.id, fixture: scene.fixture });
+      eventBus.publish(recordingEventTypes.SceneEntryNavigationStarted, { sceneId: scene.id, fixture: scene.fixture });
+      await this.navigateToFixtureSurface(scene.fixture);
+      eventBus.publish(recordingEventTypes.SceneEntryNavigationCompleted, { sceneId: scene.id, fixture: scene.fixture });
+      await this.verifyFixtureSurface(scene.fixture);
+      await this.camera.waitForIdle();
+      eventBus.publish(recordingEventTypes.SceneEntryTargetVerified, { sceneId: scene.id, fixture: scene.fixture });
+    }, {
+      onCovered: async () => {
+        eventBus.publish(recordingEventTypes.SceneEntryTransitionCoverStarted, { sceneId: scene.id, fixture: scene.fixture });
+        await this.enableSceneEntryCover();
+      },
+      beforeReveal: async () => {
+        eventBus.publish(recordingEventTypes.SceneEntryVisibleRevealStarted, { sceneId: scene.id, fixture: scene.fixture });
+        await this.disableSceneEntryCover();
+      },
+    });
     eventBus.publish(recordingEventTypes.TransitionCompleted, { sceneId: scene.id, transition: scene.transition });
     await this.verifyFixtureSurface(scene.fixture);
     await this.camera.waitForIdle();
     eventBus.publish(recordingEventTypes.ChapterStarted, { sceneId: scene.id, chapterId: scene.chapterId, chapter: scene.chapter });
     await showChapter(this.page, scene.chapter, scene.chapter);
     eventBus.publish(recordingEventTypes.ChapterCompleted, { sceneId: scene.id, chapterId: scene.chapterId });
+    let firstVisibleInteractionPublished = false;
     for (const action of scene.actions) {
       const actionId = action.id ?? action.name ?? 'anonymous-action';
       const actionType = action.type ?? 'function';
+      if (!firstVisibleInteractionPublished) {
+        eventBus.publish(recordingEventTypes.FirstVisibleInteraction, { sceneId: scene.id, actionId, actionType });
+        firstVisibleInteractionPublished = true;
+      }
       eventBus.publish(recordingEventTypes.ActionStarted, { sceneId: scene.id, actionId, actionType });
       if (actionType === 'touch') eventBus.publish(recordingEventTypes.TouchStarted, { sceneId: scene.id, actionId });
       if (actionType === 'gesture') eventBus.publish(recordingEventTypes.GestureStarted, { sceneId: scene.id, actionId });

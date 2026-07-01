@@ -113,11 +113,18 @@ function createTimingRecorder(recordingPlan, configuredScenes) {
   const transitions = new Map();
   const chapterCards = new Map();
   const actions = new Map();
+  const sceneEntryMarkers = new Map();
+  const dialogMarkers = [];
   let recordingStartMs;
   let recordingFinishMs;
 
   function now() {
     return roundMs(performance.now() - origin);
+  }
+
+  function ensureSceneEntry(sceneId) {
+    if (!sceneEntryMarkers.has(sceneId)) sceneEntryMarkers.set(sceneId, { sceneId });
+    return sceneEntryMarkers.get(sceneId);
   }
 
   function ensureScene(sceneId) {
@@ -170,6 +177,26 @@ function createTimingRecorder(recordingPlan, configuredScenes) {
         chapterCard.actualDurationMs = roundMs(chapterCard.finishMs - chapterCard.startMs);
         chapterCards.set(sceneId, chapterCard);
       }
+      const sceneEntryMarkerMap = Object.freeze({
+        SceneEntryTransitionCoverStarted: 'transitionCoverStartMs',
+        SceneEntryFixtureResetStarted: 'fixtureResetStartMs',
+        SceneEntryFixtureResetCompleted: 'fixtureResetEndMs',
+        SceneEntryReloadStarted: 'reloadStartMs',
+        SceneEntryReloadCompleted: 'reloadEndMs',
+        SceneEntryNavigationStarted: 'targetNavigationStartMs',
+        SceneEntryNavigationCompleted: 'targetNavigationEndMs',
+        SceneEntryTargetVerified: 'targetSurfaceVerifiedMs',
+        SceneEntryVisibleRevealStarted: 'visibleRevealStartMs',
+        FirstVisibleInteraction: 'firstVisibleInteractionMs',
+      });
+      if (sceneEntryMarkerMap[type]) {
+        const marker = ensureSceneEntry(sceneId);
+        marker[sceneEntryMarkerMap[type]] = atMs;
+        if (type === 'FirstVisibleInteraction') marker.firstVisibleActionId = payload.actionId;
+      }
+      if (type === 'DialogOpenStarted' || type === 'DialogOpenVisible' || type === 'DialogSaveOrCancelClicked' || type === 'DialogCloseCompleted' || type === 'DialogResultVisible') {
+        dialogMarkers.push(Object.freeze({ type, atMs, sceneId, actionId: payload.actionId, dialogId: payload.dialogId, phase: payload.phase }));
+      }
       if (type === 'ActionStarted') actions.set(`${sceneId}:${payload.actionId}`, { sceneId, actionId: payload.actionId, actionType: payload.actionType, startMs: atMs });
       if (type === 'ActionCompleted') {
         const key = `${sceneId}:${payload.actionId}`;
@@ -195,6 +222,8 @@ function createTimingRecorder(recordingPlan, configuredScenes) {
       transitions: Object.freeze(recordingPlan.orderedScenes.map((scene) => Object.freeze({ sceneId: scene.id, ...(transitions.get(scene.id) ?? { plannedDurationMs: scene.transition?.durationMs ?? 0, actualDurationMs: 0 }) }))),
       chapterCards: Object.freeze(recordingPlan.orderedScenes.map((scene) => Object.freeze({ sceneId: scene.id, chapterId: scene.chapterId, ...(chapterCards.get(scene.id) ?? { plannedDurationMs: scene.chapterCard?.holdApproxMs ?? 0, actualDurationMs: 0 }) }))),
       actions: Object.freeze([...actions.values()].map((action) => Object.freeze({ ...action }))),
+      sceneEntryMarkers: Object.freeze(recordingPlan.orderedScenes.map((scene) => Object.freeze({ sceneId: scene.id, ...(sceneEntryMarkers.get(scene.id) ?? {}) }))),
+      dialogMarkers: Object.freeze(dialogMarkers),
     });
   }
 
