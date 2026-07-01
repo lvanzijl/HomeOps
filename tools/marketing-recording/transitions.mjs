@@ -6,7 +6,7 @@ const transitionStyles = Object.freeze({
   dissolve: { background: 'radial-gradient(circle at 50% 45%, rgba(255,255,255,.95), rgba(248,241,232,.96) 54%, rgba(236,224,210,.98))', opacity: 1 },
 });
 
-export async function runTransition(page, transition = { type: 'fade' }, fn = async () => {}) {
+export async function runTransition(page, transition = { type: 'fade' }, fn = async () => {}, options = {}) {
   await ensureRecordingOverlayRoot(page);
   const durationMs = transition.durationMs ?? 650;
   const style = transitionStyles[transition.type] ?? transitionStyles.fade;
@@ -23,8 +23,10 @@ export async function runTransition(page, transition = { type: 'fade' }, fn = as
     });
   }, { durationMs, style });
   await page.waitForTimeout(durationMs);
+  await options.onCovered?.();
   await fn();
   await ensureRecordingOverlayRoot(page);
+  await options.beforeReveal?.();
   await page.evaluate(() => document.querySelector('.fb-transition')?.classList.remove('is-visible'));
   await page.waitForTimeout(durationMs);
   await page.evaluate(() => document.querySelector('.fb-transition')?.remove());

@@ -1,4 +1,5 @@
 import { MarketingDirector, marketingPacingProfiles } from '../director.mjs';
+import { recordingEventTypes } from '../events.mjs';
 
 export const approvedMarketingFixtures = Object.freeze([
   'visual-marketing-home',
@@ -113,13 +114,15 @@ const agendaRecordingActions = Object.freeze({
     await tapLocator(touch, agendaViewToggle(page).getByRole('button', { name: 'Lijst', exact: true }), 'Agenda List view toggle', action);
     await expectSingle(agendaRoot(page).getByLabel('Lijstplanning', { exact: true }), 'Agenda List workspace');
   },
-  async addFilmavond({ page, touch }, action) {
+  async addFilmavond({ page, touch, eventBus, scene }, action) {
     await ensureAgendaPage(page);
     await tapLocator(touch, agendaViewToggle(page).getByRole('button', { name: 'Maand', exact: true }), 'Agenda Month view toggle before adding Filmavond', action);
     const selectedDayPanel = agendaRoot(page).getByLabel('Gekozen dag', { exact: true });
+    eventBus?.publish(recordingEventTypes.DialogOpenStarted, { sceneId: scene?.id, actionId: 'add-filmavond', dialogId: 'agenda-add-event' });
     await tapLocator(touch, selectedDayPanel.getByRole('button', { name: 'Gebeurtenis toevoegen', exact: true }), 'Agenda selected-day Add event button', action);
     const dialog = agendaDialog(page);
     await expectSingle(dialog, 'Agenda add-event dialog');
+    eventBus?.publish(recordingEventTypes.DialogOpenVisible, { sceneId: scene?.id, actionId: 'add-filmavond', dialogId: 'agenda-add-event' });
     await expectSingle(dialog.getByLabel('Calendar event conversation', { exact: true }), 'Agenda event conversation form');
     const titleInput = dialog.locator('#calendar-event-title');
     await expectSingle(titleInput, 'Agenda event title input');
@@ -131,10 +134,16 @@ const agendaRecordingActions = Object.freeze({
     await tapLocator(touch, dialog.getByRole('button', { name: 'Verder', exact: true }), 'Agenda event date Continue button', { ...action, locatorClick: true });
     await expectSingle(dialog.getByText('Duurt het de hele dag?', { exact: true }), 'Agenda event time-kind question');
     await tapLocator(touch, dialog.getByRole('button', { name: 'Verder', exact: true }), 'Agenda event time Continue button', { ...action, locatorClick: true });
+    eventBus?.publish(recordingEventTypes.DialogSaveOrCancelClicked, { sceneId: scene?.id, actionId: 'add-filmavond', dialogId: 'agenda-add-event', phase: 'final-continue-or-save-step' });
     await waitForFilmavondDetailsOrSaved(page, dialog);
     if (await dialog.isVisible().catch(() => false)) await expectSingle(dialog.getByRole('button', { name: 'Gebeurtenis maken', exact: true }), 'Agenda create-event Save button after details step');
+    else {
+      eventBus?.publish(recordingEventTypes.DialogCloseCompleted, { sceneId: scene?.id, actionId: 'add-filmavond', dialogId: 'agenda-add-event', phase: 'closed-after-final-step' });
+      if (await savedFilmavondEvent(page).count() === 1) eventBus?.publish(recordingEventTypes.DialogResultVisible, { sceneId: scene?.id, actionId: 'add-filmavond', dialogId: 'agenda-add-event', phase: 'saved-event-visible' });
+    }
+    await page.waitForTimeout(action.dialogReadableHoldMs ?? 450);
   },
-  async saveFilmavond({ page, touch }, action) {
+  async saveFilmavond({ page, touch, eventBus, scene }, action) {
     await ensureAgendaPage(page);
     if (await savedFilmavondEvent(page).count() === 1) {
       return;
@@ -148,6 +157,7 @@ const agendaRecordingActions = Object.freeze({
     const box = await saveButton.boundingBox();
     if (!box) throw new Error('Agenda create-event Save button is visible but has no bounding box.');
     await touch.moveTo({ x: box.x + box.width / 2, y: box.y + box.height / 2 }, action);
+    eventBus?.publish(recordingEventTypes.DialogSaveOrCancelClicked, { sceneId: scene?.id, actionId: 'save-filmavond', dialogId: 'agenda-add-event' });
     const [saveResponse] = await Promise.all([
       page.waitForResponse((response) => response.request().method() === 'POST' && new URL(response.url()).pathname === '/api/events', { timeout: 15000 }),
       saveButton.click({ force: true, timeout: 5000 }),
@@ -161,7 +171,10 @@ const agendaRecordingActions = Object.freeze({
       dialog.waitFor({ state: 'hidden', timeout: 10000 }),
       savedFilmavondEvent(page).waitFor({ state: 'visible', timeout: 10000 }),
     ]);
+    eventBus?.publish(recordingEventTypes.DialogCloseCompleted, { sceneId: scene?.id, actionId: 'save-filmavond', dialogId: 'agenda-add-event' });
     await expectSingle(savedFilmavondEvent(page), 'Saved Filmavond event text scoped to Agenda event card');
+    eventBus?.publish(recordingEventTypes.DialogResultVisible, { sceneId: scene?.id, actionId: 'save-filmavond', dialogId: 'agenda-add-event' });
+    await page.waitForTimeout(action.resultReadableHoldMs ?? 650);
   },
   async returnOverview({ page, touch }, action) {
     await ensureAgendaPage(page);

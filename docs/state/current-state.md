@@ -747,3 +747,18 @@ Showcase Sample C and Showcase Sample D exposed that the wide head variant's ear
 - Increased Home family-strip Avatar V2 visual prominence by enlarging the visible Home avatar container about 15–20%, reducing name dominance, and preserving the existing touch target and Avatar V2 renderer.
 - Added shared wall-tablet operational typography tokens and applied them to key operational content across Home summaries, Agenda events, Tasks rows, Shopping rows, Motivation copy, and Weekly Reset supporting text without flattening hierarchy.
 - Verified Shopping remains a grouped-shopping scene with calibrated timing and no storyboard/order change; validation mode was used intentionally without publishing a final movie.
+
+## Home Avatar Container Removal — 2026-07-01
+- Measured the VisualReview `visual-marketing-home` family strip and confirmed the decorative blue Home tile container still existed before correction, originating from the Home `.family-chip` background/border rather than `FamilyAvatar` or the Avatar V2 renderer.
+- Removed the Home-only decorative tile background/border, enlarged the Home Avatar V2 portrait, reduced caption dominance, and preserved the measured four-member touch target size.
+- Added the measured report at `docs/reports/2026-07-01-home-avatar-container-removal/home-avatar-container-removal.md`; no screenshots, movies, MP4, WebM, or WAV artifacts were produced.
+
+## Marketing Recording Scene Entry Polish — 2026-07-01
+- Hid VisualReview fixture reset, reload, real UI navigation, target-surface verification, and idle wait behind a persistent recording scene-entry cover so rapid Home-to-target setup is not exposed in validation recordings.
+- Added scene-entry timing markers and Agenda dialog readability markers to generated timing metadata, including cover/reset/reload/navigation/verification/reveal/first-interaction timestamps.
+- Validation mode completed all 9 scenes with metadata and timing generated, cleanup succeeded, and no final movie was published or retained.
+
+## Home Portrait Identity Layout — 2026-07-01
+- Replaced the Home family strip's `family-chip` member buttons with a dedicated `home-family-portrait` presentation and `home-family-portrait-caption` names while preserving button behavior, accessibility labels, and measured touch target size.
+- Reused `FamilyAvatar` and increased the Home visible portrait to 144.0px high, about 83.7% of the Family page reference SVG height, without changing Avatar V2 rendering or the Family Member page.
+- Added the measured report at `docs/reports/2026-07-01-home-portrait-identity-layout/home-portrait-identity-layout.md`; no screenshots, movies, MP4, WebM, or WAV artifacts were produced.

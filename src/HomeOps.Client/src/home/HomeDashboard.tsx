@@ -357,7 +357,7 @@ export function HomeDashboard({
         <section className="family-strip" aria-label="Gezinsleden">
           {members.map((member) => (
             <button
-              className="family-chip"
+              className="home-family-portrait"
               key={member.id}
               type="button"
               style={{ "--member-color": member.displayColor } as CSSProperties}
@@ -365,7 +365,7 @@ export function HomeDashboard({
               aria-label={`${member.name} gezinslidpagina openen`}
             >
               <FamilyAvatar member={member} />
-              <strong>{member.name}</strong>
+              <span className="home-family-portrait-caption">{member.name}</span>
             </button>
           ))}
         </section>
