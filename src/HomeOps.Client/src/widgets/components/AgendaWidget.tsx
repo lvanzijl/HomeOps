@@ -211,38 +211,77 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
   return (
     <article className="widget-card agenda-widget" aria-label={instance.title}>
       <div className="agenda-header">
-        <div>
-          <p className="widget-type">Familieplanning</p>
-          <h3>{instance.title}</h3>
-          <p>Plan de maand, bekijk de week en zie wat eraan komt.</p>
+        <div className="agenda-command-main">
+          <div className="agenda-command-title">
+            <p className="widget-type">Familieplanning</p>
+            <h3>{instance.title}</h3>
+          </div>
+          <button
+            className="agenda-command-action"
+            type="button"
+            onClick={() => openNewEventForm(selectedDate || today)}
+          >
+            Gebeurtenis toevoegen
+          </button>
         </div>
-        <div className="agenda-workspace-toggle" aria-label="Agenda weergave">
-          <button
-            aria-pressed={activeWorkspaceMode === "month"}
-            onClick={() => setActiveWorkspaceMode("month")}
-            type="button"
-          >
-            Maand
-          </button>
-          <button
-            aria-pressed={activeWorkspaceMode === "week"}
-            onClick={() => setActiveWorkspaceMode("week")}
-            type="button"
-          >
-            Week
-          </button>
-          <button
-            aria-pressed={activeWorkspaceMode === "list"}
-            onClick={() => setActiveWorkspaceMode("list")}
-            type="button"
-          >
-            Lijst
-          </button>
+        <div className="agenda-command-meta">
+          <div className="agenda-workspace-toggle" aria-label="Agenda weergave">
+            <button
+              aria-pressed={activeWorkspaceMode === "month"}
+              onClick={() => setActiveWorkspaceMode("month")}
+              type="button"
+            >
+              Maand
+            </button>
+            <button
+              aria-pressed={activeWorkspaceMode === "week"}
+              onClick={() => setActiveWorkspaceMode("week")}
+              type="button"
+            >
+              Week
+            </button>
+            <button
+              aria-pressed={activeWorkspaceMode === "list"}
+              onClick={() => setActiveWorkspaceMode("list")}
+              type="button"
+            >
+              Lijst
+            </button>
+          </div>
+          <div className="agenda-command-rail">
+            {isLoading ? (
+              <p className="agenda-status" role="status">
+                Agenda laden…
+              </p>
+            ) : null}
+            {errorMessage ? (
+              <p className="agenda-status agenda-status-error" role="alert">
+                {errorMessage}
+              </p>
+            ) : null}
+            <div className="source-selector" role="group" aria-label="Zichtbaar in de agenda">
+              <span className="source-selector-label">Bronnen</span>
+              {eventSources.map((source) => (
+                <label key={source.id}>
+                  <input
+                    checked={selectedSources[source.id] ?? false}
+                    onChange={(event) =>
+                      setSourceEnabled(layerView, source.id, event.target.checked)
+                    }
+                    type="checkbox"
+                  />
+                  <span
+                    className="source-color"
+                    style={{ backgroundColor: source.color.hex }}
+                    aria-hidden="true"
+                  />
+                  {formatFamilyFilterLabel(source.name)}
+                </label>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
-
-      {isLoading ? <p role="status">Agenda laden…</p> : null}
-      {errorMessage ? <p role="alert">{errorMessage}</p> : null}
 
       {isEventFormOpen || editingEventId !== null ? (
         <div
@@ -291,58 +330,39 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
         </div>
       ) : null}
 
-      <fieldset className="source-selector">
-        <legend>Zichtbaar in de agenda</legend>
-        {eventSources.map((source) => (
-          <label key={source.id}>
-            <input
-              checked={selectedSources[source.id] ?? false}
-              onChange={(event) =>
-                setSourceEnabled(layerView, source.id, event.target.checked)
-              }
-              type="checkbox"
-            />
-            <span
-              className="source-color"
-              style={{ backgroundColor: source.color.hex }}
-              aria-hidden="true"
-            />
-            {formatFamilyFilterLabel(source.name)}
-          </label>
-        ))}
-      </fieldset>
-
-      {activeWorkspaceMode === "month" ? (
-        <MonthWorkspace
-          deletingEventId={deletingEventId}
-          events={agendaEvents}
-          isEmpty={agendaEvents.length === 0 && !isLoading && !errorMessage}
-          onAddEvent={openNewEventForm}
-          onDelete={removeEvent}
-          onEdit={startEditing}
-          onSelectDate={setSelectedDate}
-          selectedDate={selectedDate}
-          today={today}
-        />
-      ) : activeWorkspaceMode === "week" ? (
-        <WeekWorkspace
-          anchorDate={weekAnchorDate}
-          deletingEventId={deletingEventId}
-          events={agendaEvents}
-          onDelete={removeEvent}
-          onEdit={startEditing}
-          onNavigate={setWeekAnchorDate}
-          today={today}
-        />
-      ) : (
-        <ListWorkspace
-          deletingEventId={deletingEventId}
-          events={agendaEvents}
-          onDelete={removeEvent}
-          onEdit={startEditing}
-          today={today}
-        />
-      )}
+      <div className="agenda-mode-canvas">
+        {activeWorkspaceMode === "month" ? (
+          <MonthWorkspace
+            deletingEventId={deletingEventId}
+            events={agendaEvents}
+            isEmpty={agendaEvents.length === 0 && !isLoading && !errorMessage}
+            onAddEvent={openNewEventForm}
+            onDelete={removeEvent}
+            onEdit={startEditing}
+            onSelectDate={setSelectedDate}
+            selectedDate={selectedDate}
+            today={today}
+          />
+        ) : activeWorkspaceMode === "week" ? (
+          <WeekWorkspace
+            anchorDate={weekAnchorDate}
+            deletingEventId={deletingEventId}
+            events={agendaEvents}
+            onDelete={removeEvent}
+            onEdit={startEditing}
+            onNavigate={setWeekAnchorDate}
+            today={today}
+          />
+        ) : (
+          <ListWorkspace
+            deletingEventId={deletingEventId}
+            events={agendaEvents}
+            onDelete={removeEvent}
+            onEdit={startEditing}
+            today={today}
+          />
+        )}
+      </div>
     </article>
   );
 }
@@ -986,7 +1006,7 @@ function SelectedDayPanel({
           </p>
         </div>
         <button className="compact-action" type="button" onClick={onAddEvent}>
-          Gebeurtenis toevoegen
+          Toevoegen
         </button>
       </header>
       {events.length > 0 ? (

@@ -336,12 +336,29 @@ button {
   padding: clamp(0.55rem, 1vw, 0.95rem);
 }
 
+.workspace-panel-agenda .workspace-page-body {
+  overflow: hidden;
+}
+
 .workspace-panel-agenda .workspace-page-header {
   margin-bottom: 0.45rem;
+  padding: 0.5rem 0.7rem;
+}
+
+.workspace-panel-agenda .workspace-page-header p:last-child {
+  display: none;
 }
 
 .workspace-panel-agenda .widget-host {
+  height: 100%;
   margin-top: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.workspace-panel-agenda .widget-host > * {
+  height: 100%;
+  min-height: 0;
 }
 
 .workspace-panel-settings {
@@ -374,8 +391,11 @@ button {
     linear-gradient(135deg, rgb(255 255 255 / 90%), rgb(255 251 246 / 88%)),
     radial-gradient(circle at top left, color-mix(in srgb, var(--domain-accent) 14%, transparent), transparent 36%);
   display: grid;
-  gap: clamp(0.65rem, 1vw, 0.95rem);
-  min-height: 100%;
+  gap: clamp(0.55rem, 0.85vw, 0.85rem);
+  grid-template-rows: auto minmax(0, 1fr);
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
   padding: clamp(0.75rem, 1.2vw, 1.15rem);
 }
 
@@ -392,28 +412,80 @@ button {
   border: 1px solid var(--domain-border);
   border-radius: 1.15rem;
   box-shadow: 0 12px 32px rgb(120 90 60 / 7%);
+  display: grid;
+  gap: 0.55rem;
+  min-width: 0;
+  padding: clamp(0.65rem, 0.95vw, 0.85rem);
+}
+
+.agenda-command-main,
+.agenda-command-meta {
+  align-items: center;
+  display: flex;
+  gap: 0.65rem;
   justify-content: space-between;
-  padding: clamp(0.7rem, 1vw, 1rem);
+  min-width: 0;
 }
 
-.agenda-header h3 {
-  font-size: clamp(1.5rem, 2vw, 2.15rem);
+.agenda-command-title {
+  min-width: 0;
+}
+
+.agenda-command-title h3,
+.agenda-command-title p,
+.agenda-header p {
+  margin: 0;
+}
+
+.agenda-command-title h3 {
+  font-size: clamp(1.15rem, 1.5vw, 1.45rem);
   line-height: 1.05;
-  margin-bottom: 0.1rem;
 }
 
-.agenda-view-toggle button {
-  border: 1px solid var(--border-default);
+.agenda-command-action,
+.agenda-detail-header button {
+  background: rgb(255 255 255 / 76%);
+  border: 1px solid var(--border-warm);
   border-radius: 999px;
-  background: var(--surface-default);
+  color: var(--color-text-strong);
   cursor: pointer;
-  padding: var(--fb-button-compact-padding-block) 0.9rem;
+  font-size: 0.84rem;
+  font-weight: 850;
+  padding: var(--fb-button-inline-action-padding-block) var(--fb-button-inline-action-padding-inline);
+  white-space: nowrap;
 }
 
-.agenda-view-toggle button[aria-pressed="true"] {
+.agenda-command-action:hover,
+.agenda-command-action:focus-visible,
+.agenda-detail-header button:hover,
+.agenda-detail-header button:focus-visible {
+  background: var(--surface-warm-tint);
   border-color: var(--color-brand-accent);
-  color: var(--color-brand-accent-strong);
+  outline: none;
+}
+
+.agenda-command-rail {
+  align-items: center;
+  display: flex;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.agenda-status {
+  background: rgb(255 255 255 / 72%);
+  border: 1px solid var(--border-warm);
+  border-radius: 999px;
+  color: var(--color-text-muted);
+  flex: 0 0 auto;
+  font-size: 0.78rem;
   font-weight: 700;
+  padding: 0.3rem 0.55rem;
+}
+
+.agenda-status-error {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #991b1b;
 }
 
 .source-selector {
@@ -422,17 +494,20 @@ button {
   border: 1px solid var(--border-warm);
   border-radius: 1rem;
   display: flex;
-  flex-wrap: wrap;
+  flex: 1 1 auto;
+  flex-wrap: nowrap;
   gap: 0.45rem;
+  min-width: 0;
+  overflow-x: auto;
   padding: 0.45rem 0.65rem;
 }
 
-.source-selector legend {
+.source-selector-label {
   color: var(--color-text-muted);
   font-size: 0.78rem;
   font-weight: 850;
+  flex: 0 0 auto;
   letter-spacing: 0.05em;
-  padding: 0 0.35rem;
   text-transform: uppercase;
 }
 
@@ -442,8 +517,10 @@ button {
   border: 1px solid var(--border-warm);
   border-radius: 999px;
   display: inline-flex;
+  flex: 0 0 auto;
   gap: 0.4rem;
   padding: 0.28rem 0.55rem;
+  white-space: nowrap;
 }
 
 .source-color {
@@ -457,6 +534,11 @@ button {
 .agenda-view {
   display: grid;
   gap: 1rem;
+}
+
+.agenda-mode-canvas {
+  min-height: 0;
+  overflow: hidden;
 }
 
 .agenda-months-view {
@@ -5068,17 +5150,14 @@ button {
   padding: 0.36rem;
 }
 
-.agenda-header p {
-  color: var(--color-text-muted);
-  margin: 0.15rem 0 0;
-}
-
 .agenda-month-workspace {
   align-items: stretch;
   display: grid;
   gap: clamp(0.75rem, 1vw, 1rem);
-  grid-template-columns: minmax(0, 1fr) minmax(20rem, 25vw);
+  grid-template-columns: minmax(0, 1fr) clamp(17rem, 24vw, 22rem);
+  height: 100%;
   min-height: 0;
+  overflow: hidden;
 }
 
 .agenda-month-grid-card,
@@ -5091,8 +5170,11 @@ button {
 
 .agenda-month-grid-card {
   display: grid;
-  gap: 0.55rem;
+  gap: 0.5rem;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  min-height: 0;
   min-width: 0;
+  overflow: hidden;
   padding: clamp(0.75rem, 1vw, 1rem);
 }
 
@@ -5144,6 +5226,8 @@ button {
 
 .agenda-month-grid {
   gap: clamp(0.35rem, 0.55vw, 0.55rem);
+  grid-template-rows: repeat(6, minmax(0, 1fr));
+  min-height: 0;
 }
 
 .agenda-day-cell {
@@ -5154,9 +5238,12 @@ button {
   color: var(--color-text-default);
   cursor: pointer;
   display: grid;
-  gap: 0.25rem;
-  min-height: clamp(5.4rem, 9vh, 7.4rem);
-  padding: 0.55rem var(--fb-button-calendar-cell-padding-inline);
+  gap: 0.18rem;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0.45rem 0.4rem;
   text-align: left;
 }
 
@@ -5220,36 +5307,16 @@ button {
 .agenda-selected-day-panel {
   align-self: stretch;
   display: grid;
-  gap: 0.85rem;
-  max-height: calc(100vh - 10rem);
-  overflow: auto;
+  gap: 0.75rem;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 0;
+  overflow: hidden;
   padding: 0.95rem;
-  position: sticky;
-  top: 0.75rem;
 }
 
 .agenda-detail-header {
   border-bottom: 1px solid var(--border-warm);
   padding-bottom: 0.8rem;
-}
-
-.agenda-detail-header button {
-  background: rgb(255 255 255 / 76%);
-  border: 1px solid var(--border-warm);
-  border-radius: 999px;
-  color: var(--color-text-strong);
-  cursor: pointer;
-  font-size: 0.84rem;
-  font-weight: 850;
-  padding: var(--fb-button-inline-action-padding-block) var(--fb-button-inline-action-padding-inline);
-  white-space: nowrap;
-}
-
-.agenda-detail-header button:hover,
-.agenda-detail-header button:focus-visible {
-  background: var(--surface-warm-tint);
-  border-color: var(--color-brand-accent);
-  outline: none;
 }
 
 .agenda-day-empty-state {
@@ -5273,11 +5340,11 @@ button {
 @media (max-width: 860px) {
   .agenda-month-workspace {
     grid-template-columns: 1fr;
+    overflow: auto;
   }
 
   .agenda-selected-day-panel {
-    max-height: none;
-    position: static;
+    min-height: 14rem;
   }
 
   .agenda-day-cell {
@@ -5296,6 +5363,7 @@ button {
   flex-wrap: wrap;
   gap: 0.25rem;
   margin-top: auto;
+  overflow: hidden;
 }
 
 .agenda-event-indicator,
@@ -5327,6 +5395,12 @@ button {
 
 .agenda-event-list {
   gap: 0.75rem;
+  min-height: 0;
+}
+
+.agenda-selected-day-panel .agenda-event-list {
+  overflow: auto;
+  padding-right: 0.15rem;
 }
 
 .agenda-event {
@@ -5451,7 +5525,10 @@ button {
   box-shadow: var(--elevation-1);
   display: grid;
   gap: 0.9rem;
-  min-height: calc(100vh - 12.5rem);
+  grid-template-rows: auto auto minmax(0, 1fr);
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
   padding: 0.95rem;
 }
 
@@ -5502,7 +5579,10 @@ button {
   align-items: stretch;
   display: grid;
   gap: clamp(0.55rem, 0.7vw, 0.75rem);
+  grid-auto-rows: minmax(0, 1fr);
   grid-template-columns: repeat(7, minmax(0, 1fr));
+  min-height: 0;
+  overflow: auto;
 }
 
 .agenda-week-day-card {
@@ -5512,8 +5592,10 @@ button {
   border-radius: 1.05rem;
   display: grid;
   gap: 0.55rem;
-  min-height: clamp(18rem, 50vh, 31rem);
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  min-height: 0;
   min-width: 0;
+  overflow: hidden;
   padding: 0.68rem;
 }
 
@@ -5593,6 +5675,8 @@ button {
 
 .agenda-week-day-card .agenda-event-list {
   gap: 0.45rem;
+  overflow: auto;
+  padding-right: 0.1rem;
 }
 
 .agenda-week-day-card .agenda-event {
@@ -5634,14 +5718,19 @@ button {
 }
 
 @media (max-width: 860px) {
-  .agenda-header,
+  .agenda-command-main,
+  .agenda-command-meta,
   .agenda-week-header {
     align-items: stretch;
     flex-direction: column;
   }
 
+  .agenda-command-rail {
+    flex-wrap: wrap;
+  }
+
   .agenda-week-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -5652,7 +5741,10 @@ button {
   box-shadow: var(--elevation-1);
   display: grid;
   gap: 0.95rem;
-  min-height: calc(100vh - 12.5rem);
+  grid-template-rows: auto minmax(0, 1fr);
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
   padding: 0.95rem;
 }
 
@@ -5695,7 +5787,10 @@ button {
 .agenda-timeline-groups {
   display: grid;
   gap: 0.85rem;
+  grid-auto-rows: minmax(0, 1fr);
   grid-template-columns: minmax(18rem, 1.2fr) repeat(3, minmax(14rem, 1fr));
+  min-height: 0;
+  overflow: hidden;
 }
 
 .agenda-timeline-group {
@@ -5704,6 +5799,9 @@ button {
   border-radius: 1.1rem;
   display: grid;
   gap: 0.7rem;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 0;
+  overflow: hidden;
   padding: 0.78rem;
   position: relative;
 }
@@ -5751,7 +5849,9 @@ button {
 }
 
 .agenda-timeline-group .agenda-event-list {
+  overflow: auto;
   padding-left: 0.65rem;
+  padding-right: 0.15rem;
 }
 
 .agenda-list-empty-state {
@@ -5787,6 +5887,7 @@ button {
 
   .agenda-timeline-groups {
     grid-template-columns: 1fr;
+    overflow: auto;
   }
 
   .agenda-list-header > span,
