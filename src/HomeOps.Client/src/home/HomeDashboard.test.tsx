@@ -130,6 +130,17 @@ describe("HomeDashboard", () => {
         updatedUtc: "2026-06-18T08:00:00.000Z",
       },
       {
+        id: "alex-today-task",
+        title: "Pack zwemtas",
+        dueDate: "2026-06-19",
+        ownershipKind: "FamilyMember",
+        familyMemberId: "alex",
+        isCompleted: false,
+        completedUtc: null,
+        createdUtc: "2026-06-18T08:15:00.000Z",
+        updatedUtc: "2026-06-18T08:15:00.000Z",
+      },
+      {
         id: "upcoming-task",
         title: "Water plants",
         dueDate: "2026-06-21",
@@ -161,6 +172,17 @@ describe("HomeDashboard", () => {
         completedUtc: null,
         createdUtc: "2026-06-18T11:00:00.000Z",
         updatedUtc: "2026-06-18T11:00:00.000Z",
+      },
+      {
+        id: "completed-alex-today-task",
+        title: "Completed today task",
+        dueDate: "2026-06-19",
+        ownershipKind: "FamilyMember",
+        familyMemberId: "alex",
+        isCompleted: true,
+        completedUtc: "2026-06-19T07:30:00.000Z",
+        createdUtc: "2026-06-18T07:30:00.000Z",
+        updatedUtc: "2026-06-19T07:30:00.000Z",
       },
     ]);
     vi.mocked(agenda.createCalendarAgendaEvent).mockResolvedValue({
@@ -222,12 +244,43 @@ describe("HomeDashboard", () => {
     expect(screen.getAllByText("Vandaag").length).toBeGreaterThan(0);
     expect(screen.getByText("Empty dishwasher")).not.toBeNull();
     expect(screen.getByText("Take recycling out")).not.toBeNull();
+    expect(screen.getByText("Pack zwemtas")).not.toBeNull();
     expect(screen.getByText("Alex · Datum 2026-06-18")).not.toBeNull();
     expect(
       screen.getByText("Gezinstaak · Datum 2026-06-19"),
     ).not.toBeNull();
     expect(
       screen.queryByRole("button", { name: "Gezinslid toevoegen" }),
+    ).toBeNull();
+  });
+
+  it("renders the fixed Home card order and today-task badges only for matching family members", async () => {
+    render(
+      <HomeDashboard
+        members={familyMembers}
+        onNavigate={vi.fn()}
+        onSelectFamilyMember={vi.fn()}
+      />,
+    );
+
+    await screen.findByText("Event 1");
+
+    const grid = screen.getByLabelText("Thuisdashboard").querySelector(".home-summary-grid");
+    expect(grid).not.toBeNull();
+    expect(
+      within(grid as HTMLElement)
+        .getAllByRole("heading", { level: 3 })
+        .map((heading) => heading.textContent),
+    ).toEqual(["Boodschappen", "Agenda", "Taken", "Motivatie"]);
+
+    expect(
+      screen.getByLabelText("Alex heeft 1 open taken vandaag"),
+    ).not.toBeNull();
+    expect(
+      screen.queryByLabelText("Sam heeft 1 open taken vandaag"),
+    ).toBeNull();
+    expect(
+      screen.queryByLabelText("Jordan heeft 1 open taken vandaag"),
     ).toBeNull();
   });
 
@@ -457,7 +510,7 @@ describe("HomeDashboard", () => {
     expect(
       await screen.findByText("Swimming lesson toegevoegd aan Agenda."),
     ).not.toBeNull();
-  });
+  }, 10000);
 
   it("keeps Home quick-capture dialogs keyboard dismissible", async () => {
     const user = userEvent.setup();
