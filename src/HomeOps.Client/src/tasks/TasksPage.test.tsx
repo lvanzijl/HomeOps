@@ -69,8 +69,8 @@ describe("TasksPage empty state", () => {
       ),
     ).not.toBeNull();
     expect(
-      screen.getByRole("button", { name: "Gezinstaak toevoegen" }),
-    ).not.toBeNull();
+      screen.getAllByRole("button", { name: "Gezinstaak toevoegen" }).length,
+    ).toBeGreaterThan(0);
   });
 });
 
@@ -127,20 +127,55 @@ describe("TasksPage hierarchy compaction", () => {
     ]);
   });
 
-  it("renders active task groups before management sections", async () => {
-    const { container } = render(<TasksPage members={familyMembers} />);
+  it("keeps planning and management secondary until opened", async () => {
+    const user = userEvent.setup();
+    render(<TasksPage members={familyMembers} />);
 
     expect(await screen.findByText("Return library books")).not.toBeNull();
-    expect(container.textContent?.indexOf("Return library books")).toBeLessThan(
-      container.textContent?.indexOf("Routinestarters") ?? -1,
-    );
     expect(screen.getByLabelText("Primaire taakactie")).not.toBeNull();
     expect(screen.getByLabelText("Taakplanning acties")).not.toBeNull();
+    expect(screen.getByText("Planning")).not.toBeNull();
+    expect(screen.queryByText("Morning Routine")).toBeNull();
+    expect(screen.queryByText("Fix hallway hook")).toBeNull();
+    expect(screen.queryByText("Paint garage")).toBeNull();
     const lunchCard = screen.getByText("Pack lunches").closest("li")!;
     expect(within(lunchCard).getByText("Herhaalt wekelijks")).not.toBeNull();
     expect(within(lunchCard).queryByRole("button", { name: "Morgen" })).toBeNull();
     expect(within(lunchCard).getByRole("button", { name: "Routine verwijderen" })).not.toBeNull();
-    expect(screen.queryByText("Morning Routine")).toBeNull();
+    await user.click(screen.getByRole("button", { name: /Week plannen \(1\)/ }));
+    expect(await screen.findByText("Fix hallway hook")).not.toBeNull();
+    await user.click(screen.getByRole("button", { name: /Ooit/ }));
+    expect(await screen.findByText("Paint garage")).not.toBeNull();
+  });
+
+  it("opens bounded planning detail instead of showing future lists by default", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    vi.setSystemTime(new Date("2026-06-20T08:00:00Z"));
+    const user = userEvent.setup();
+    const api = await tasksApi();
+    vi.mocked(api.loadTasks).mockResolvedValue([
+      task({ id: "today", title: "Pack lunches", dueDate: "2026-06-20" }),
+      task({ id: "tomorrow", title: "Prep swim bag", dueDate: "2026-06-21" }),
+      task({ id: "week", title: "Book dentist", dueDate: "2026-06-24" }),
+    ]);
+
+    render(<TasksPage members={familyMembers} />);
+
+    await screen.findByText("Pack lunches");
+    expect(screen.queryByText("Prep swim bag")).toBeNull();
+    expect(screen.queryByText("Book dentist")).toBeNull();
+
+    await user.click(
+      within(screen.getByLabelText("Planning")).getByRole("button", {
+        name: /Morgen/,
+      }),
+    );
+    expect(await screen.findByRole("dialog", { name: "Planning" })).not.toBeNull();
+    expect(screen.getByText("Prep swim bag")).not.toBeNull();
+    expect(screen.queryByText("Book dentist")).toBeNull();
+
+    await user.click(screen.getByRole("tab", { name: /Deze week \(1\)/ }));
+    expect(await screen.findByText("Book dentist")).not.toBeNull();
   });
 
 
@@ -161,9 +196,20 @@ describe("TasksPage hierarchy compaction", () => {
 
     render(<TasksPage members={familyMembers} />);
 
-    await screen.findByText("Return library books");
-    const normalCard = screen.getByText("Empty dishwasher").closest("li")!;
-    const overdueCard = screen.getByText("Return library books").closest("li")!;
+    await screen.findByText("Pack lunches");
+    let searchRoot = document.body;
+
+    if (!screen.queryByText("Empty dishwasher")) {
+      await user.click(
+        within(screen.getByLabelText("Planning")).getByRole("button", {
+          name: /Morgen/,
+        }),
+      );
+      searchRoot = await screen.findByRole("dialog", { name: "Planning" });
+    }
+
+    const normalCard = within(searchRoot).getByText("Empty dishwasher").closest("li")!;
+    const overdueCard = within(searchRoot).getByText("Return library books").closest("li")!;
     await user.click(within(normalCard).getByRole("button", { name: "Morgen" }));
     await user.click(within(overdueCard).getByRole("button", { name: "Morgen" }));
 
@@ -181,10 +227,8 @@ describe("TasksPage hierarchy compaction", () => {
       familyMemberId: null,
       recurrenceFrequency: "None",
     });
-    expect(screen.getByText("Empty dishwasher").closest("section")?.textContent).toContain("Morgen");
-    expect(screen.getByText("Return library books").closest("section")?.textContent).toContain("Morgen");
     expect(within(screen.getByText("Pack lunches").closest("li")!).queryByRole("button", { name: "Morgen" })).toBeNull();
-    expect(within(screen.getByText("Bring gym bag").closest("li")!).queryByRole("button", { name: "Morgen" })).toBeNull();
+    expect(vi.mocked(api.updateTask)).toHaveBeenCalledTimes(2);
   });
 
   it("guides task creation through one friendly question at a time", async () => {
@@ -331,7 +375,7 @@ describe("TasksPage templates", () => {
 
     await screen.findByText("Voeg de eerste helpende taak toe");
     expect(screen.queryByText("Morning Routine")).toBeNull();
-    await user.click(screen.getByRole("button", { name: "Routinestarters" }));
+    await user.click(screen.getByRole("button", { name: /Routinestarters/ }));
     expect(await screen.findByText("Morning Routine")).not.toBeNull();
     await user.click(screen.getByRole("button", { name: "Toepassen" }));
 
@@ -354,8 +398,9 @@ describe("TasksPage templates", () => {
     );
     render(<TasksPage members={familyMembers} />);
 
-    await screen.findByText("Fix hallway hook");
-    await user.click(screen.getByRole("button", { name: "Week plannen (1)" }));
+    expect(await screen.findByText("Planning")).not.toBeNull();
+    expect(screen.queryByText("Fix hallway hook")).toBeNull();
+    await user.click(screen.getByRole("button", { name: /Week plannen \(1\)/ }));
     await user.click(
       screen.getByRole("button", { name: "Deze week houden" }),
     );

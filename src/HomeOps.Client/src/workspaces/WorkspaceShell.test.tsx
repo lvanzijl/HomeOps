@@ -124,7 +124,7 @@ describe('WorkspaceShell API-backed layouts', () => {
 
     await screen.findByText('Open Agenda');
     await user.click(screen.getByRole('button', { name: 'Taken' }));
-    await user.click(await screen.findByRole('button', { name: 'Gezinsreset openen' }));
+    await user.click(await screen.findByRole('button', { name: /Gezinsreset openen/ }));
     expect(await screen.findByRole('heading', { name: 'Weekritueel' })).not.toBeNull();
 
     await user.click(screen.getByRole('button', { name: 'Thuis' }));
