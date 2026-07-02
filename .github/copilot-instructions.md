@@ -55,6 +55,52 @@ Small implementation adjustments are acceptable when they do not change the appr
 
 The implementation phase exists to realise the approved design, not to redesign it.
 
+## Scope Sanity Check
+
+Before reporting a task as complete, compare the resulting changeset against the expected scope of the work.
+
+If the changeset is significantly larger than expected, stop immediately and investigate before continuing.
+
+Examples include, but are not limited to:
+
+- hundreds or thousands of changed files;
+- unexpectedly large line-count changes;
+- generated caches;
+- build artifacts;
+- temporary files;
+- package caches;
+- test output;
+- browser artifacts;
+- screenshots;
+- videos;
+- binary assets;
+- generated documentation outside the requested scope.
+
+Do not assume these files are acceptable simply because they were produced during the task.
+
+Determine:
+
+- which directory introduced the unexpected files;
+- why they were created;
+- whether they are required by the repository;
+- whether they are intended to be version controlled.
+
+Unless the repository explicitly requires them, remove all generated artifacts from the changeset before continuing.
+
+After cleanup:
+
+- regenerate the git diff;
+- verify that the remaining changes match the intended feature scope.
+
+Every implementation should have a proportionate changeset.
+
+For example:
+
+- a UI layout improvement should primarily modify frontend source files, styles, tests (if needed), and the implementation report.
+- it should not unexpectedly introduce thousands of generated files or unrelated repository changes.
+
+If the cause cannot be determined with confidence, stop and report the issue instead of completing the task.
+
 ## FamilyBoard Viewport & Layout Rule
 
 FamilyBoard is a dashboard application, not a document-style web application.
