@@ -4,6 +4,15 @@ Frontend test maintenance refreshed stale test expectations and fixtures to matc
 
 # Phase 2 Roadmap
 
+## Completed Slice — Tasks Horizontal Planning Dashboard
+Tasks Horizontal Planning Dashboard re-evaluates the stacked secondary task layout and keeps the desktop planning horizon in one weighted row: Vandaag remains the widest active workspace, Morgen and Deze week become lighter planning columns, and Later plus Voltooid/Review become compact queues. Existing progressive disclosure, task workflows, backend behavior, APIs, schema, routing, and validation remain unchanged.
+
+## Completed Slice — Tasks Page Redesign Refinement
+Tasks Page Redesign Refinement tightens the Tasks workspace around a clearer Today/Tomorrow/This Week scan path. Today receives the widest and richest column, Tomorrow and This Week remain lighter planning columns, later/completed groups move below the primary dashboard, and selected-card-only vertical actions reduce visual noise without changing backend behavior, APIs, schema, routing, validation, or task lifecycle functionality.
+
+## Completed Slice — Tasks Page Mockup-Aligned Redesign
+Tasks Page Mockup-Aligned Redesign refines the existing Tasks workspace without changing task APIs, routing, data models, dialogs, permissions, backend behavior, or schema. The desktop layout now gives Vandaag the widest primary column while Morgen and Deze week remain narrower secondary/tertiary columns, and task cards keep metadata visible while revealing completion, Morgen, edit, and routine actions only for the selected card.
+
 ## Completed Slice — FamilyBoard Marketing Production Engine Publish Mode
 FamilyBoard Marketing Production Engine Publish Mode adds configuration-driven `validation` and `publish` execution without duplicating the production pipeline. Validation remains the default and removes the temporary MP4, while publish mode exports a uniquely timestamped `docs/demo/familyboard-preview-YYYYMMDD-HHmmss.mp4`, records mode/timestamp/output/retention metadata, keeps timing JSON unchanged, and continues cleaning raw WebM, WAV, mixed soundtrack, and temporary browser-profile artifacts without production UI, storyboard, Recording Framework, Marketing Director, or Audio Framework changes.
 
