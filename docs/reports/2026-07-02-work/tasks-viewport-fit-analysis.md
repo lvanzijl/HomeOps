@@ -4,7 +4,7 @@
 
 The Tasks page should be redesigned as a viewport-bounded dashboard, not a document-style page containing every task queue at once. The current implementation attempts to show Today, Tomorrow, This Week, Later, Completed, support actions, optional templates, optional weekly reset review, and Someday in one page body. It also relies on `.workspace-page-body { overflow: auto; }`, so overflow is absorbed by the shared page-body scroll region instead of being contained by task sections.
 
-Recommended direction: reduce the default viewport to three stable regions: a compact command/header band, a two-column main work area, and a compact secondary-access rail/footer. Show Today as the primary operational list and Tomorrow/This Week as a single wider planning panel with tabs or segmented summary rows. Move Later, Completed, Templates, Week Planning review, and Someday out of the default viewport into collapsed drill-in panels or secondary routes/panels opened from fixed-height summary tiles. This intentionally shows less information by default to make the page more useful and permanently viewport-fit.
+Recommended direction after the additional planning-density investigation: reduce the default viewport to three stable regions: a compact command/header band, a Today-first main work area, and a compact Planning summary/secondary-access region. Show Today as the primary operational list. Replace the previously recommended default Planning panel that simultaneously exposes Tomorrow and This Week lists with a lower-density Planning summary that communicates upcoming workload through counts, urgency, ownership, and one or two exception signals. Tomorrow, This Week, and Later remain available after interaction through a bounded planning detail surface. Move Later, Completed, Templates, Week Planning review, and Someday out of the default viewport into collapsed drill-in panels or secondary routes/panels opened from fixed-height summary tiles. This intentionally shows less information by default to make the page more useful and permanently viewport-fit.
 
 ## Scope
 
@@ -29,7 +29,7 @@ Out of scope:
 - There are too many competing sections for a dashboard page. Today should be the page's operational focus; future and administrative queues should not compete visually with it.
 - The current five-column desktop grid makes the non-primary columns narrow. Narrow columns reduce task-title readability, force metadata chip wrapping/truncation, and make each queue feel like an equal destination even when it is secondary.
 - Later, Completed, Templates, Week Planning, and Someday are useful capabilities but should not be default dashboard content.
-- Tomorrow and This Week are both planning information and can be merged into one secondary planning panel with a segmented view, small row limits, and summary counts.
+- Tomorrow and This Week are both planning information, but the additional planning-density investigation concludes they should not both remain visible as task lists by default. They should roll up into a Planning summary, with detailed Tomorrow, This Week, and Later lists exposed only after interaction.
 - Completed is recovery/history, not planning; it should be summarized by count and opened only on demand.
 - Someday is intentionally non-urgent; showing all Someday items below the dashboard undermines the no-pressure mental model and creates page overflow.
 - The recommended design intentionally reduces default visible information while preserving access to every existing task capability.
@@ -262,9 +262,96 @@ Cons:
 - Planning is less visible by default.
 - Could make the page feel too sparse on large desktop displays.
 
-### Why Alternative A is preferred
+### Previous rationale for Alternative A
 
-Alternative A best balances operational clarity and planning awareness. It removes the current five-column density problem, keeps the next planning horizon visible, and stops tertiary queues from consuming default viewport space. It also gives implementation a clear viewport contract: one fixed command band, one bounded two-column content region, and one fixed secondary access rail.
+Before the additional planning-density investigation below, Alternative A was preferred because it best balanced operational clarity and planning awareness among the original alternatives. It removed the current five-column density problem, kept the next planning horizon visible, and stopped tertiary queues from consuming default viewport space. It also gave implementation a clear viewport contract: one fixed command band, one bounded two-column content region, and one fixed secondary access rail.
+
+The addendum below re-opens that conclusion and supersedes it where the default Planning hierarchy is concerned.
+
+
+## Additional planning-density investigation
+
+### Question being re-opened
+
+The completed analysis recommended a two-column dashboard where Today remains the dominant operational column and a merged Planning panel keeps Tomorrow and This Week simultaneously visible in condensed form. This addendum challenges that assumption: even when Tomorrow and This Week are merged into one wider panel, the page may still ask the family to process multiple planning horizons before the current day has been handled.
+
+The investigation focuses on whether the default Tasks dashboard should show multiple future task lists, or whether it should communicate future workload as a summary until a user intentionally asks for planning detail.
+
+### Option A — Today plus Planning detail by default
+
+Option A is the previous recommendation:
+
+- Today remains the primary operational list.
+- Planning is visible by default as a detail panel containing Tomorrow and This Week.
+- Tomorrow and This Week may be represented as tabs, segments, or two compact blocks.
+- Later remains outside the default detail view.
+
+Strengths:
+
+- Strong short-term planning visibility.
+- Helpful for evening preparation, handoff moments, and adults checking whether tomorrow is overloaded.
+- Clearer than the current five-column board because future lists are consolidated into one secondary area.
+- Good for users who already understand Tasks as a time-horizon board.
+
+Weaknesses:
+
+- Still presents at least three mental buckets by default: Today, Tomorrow, and This Week.
+- Risks turning the right panel into a small planning dashboard inside the main dashboard.
+- Encourages scanning future work even when the household's immediate question is “what needs doing now?”
+- May make the page feel administratively dense for children or quick family check-ins.
+- Uses precious viewport height for future task rows that may not need row-level visibility every time the page opens.
+
+### Option B — Today plus Planning summary by default
+
+Option B changes the default hierarchy:
+
+- Today remains the primary operational list.
+- The default Planning area becomes a summary, not a pair of task lists.
+- The summary communicates upcoming workload without listing Tomorrow and This Week simultaneously.
+- Interaction with the Planning summary opens bounded planning detail for Tomorrow, This Week, and Later.
+
+The summary could communicate:
+
+- number of tasks coming tomorrow;
+- number of tasks due this week;
+- whether any upcoming task is overdue-risk, unassigned, high-effort, recurring, or needs review;
+- the next one urgent exception only, if necessary;
+- a plain-language state such as “Tomorrow looks light,” “3 things coming tomorrow,” or “This week has 8 planned tasks.”
+
+This is not a feature implementation proposal; it is an information-hierarchy conclusion for the analysis. The important design point is that the default page answers “is planning under control?” without asking the family to read multiple future lists.
+
+### Comparative evaluation
+
+| Criterion | Option A: Today + Planning detail | Option B: Today + Planning summary |
+| --- | --- | --- |
+| Cognitive load | Lower than the current five-column board, but still requires comparing Today, Tomorrow, and This Week. | Lowest default load; users first process Today, then a compact signal about future workload. |
+| Dashboard clarity | Clear two-column structure, but the Planning panel can still become a secondary dashboard. | Strongest clarity: one work area and one planning signal. |
+| Information density | Moderate; row-level future tasks remain visible. | Low by default; detail is deferred until intent is expressed. |
+| Discoverability | Future tasks are highly discoverable because they are already visible. | Requires strong affordance on the summary so families know they can open Tomorrow, This Week, and Later. |
+| Family usability | Good for adult planning; potentially busy for children or quick shared glances. | Better for shared household use because it separates doing from planning and uses simpler status language. |
+| Viewport efficiency | Better than five columns, but future rows still consume the main content budget. | Best efficiency; the summary can stay compact and preserve more stable space for Today. |
+| Hierarchy | Today is primary, but Tomorrow and This Week still have default row-level presence. | Strongest hierarchy: Today is the default task workspace; planning detail is a secondary mode. |
+| Daily household suitability | Good for a planning session or end-of-day review. | Better for repeated daily use, morning checks, and quick family coordination. |
+
+### Critical finding
+
+The previous two-column recommendation solved the most obvious viewport problem, but it did not fully solve the information hierarchy problem. It reduced five columns to two regions while still preserving multiple future horizons as default row-level content. That is an improvement, but it keeps the Tasks page oriented partly toward planning administration rather than daily household action.
+
+For a FamilyBoard dashboard, the default Tasks page should be biased toward the current household moment. Most openings of the page should answer: “what are we doing today?” and “is anything upcoming becoming a problem?” They should not require reading Tomorrow and This Week as separate lists unless the user chooses to plan.
+
+### Final recommendation from this investigation
+
+Replace the previous default Planning detail recommendation with the Planning summary hierarchy.
+
+The recommended default viewport should contain:
+
+1. **Today** as the only row-level task list shown by default.
+2. **Planning summary** as a compact signal of upcoming workload, not multiple simultaneous future task lists.
+3. **Detailed planning after interaction**, exposing Tomorrow, This Week, and Later in a bounded panel, drawer, segmented detail view, or equivalent non-page-scrolling surface.
+
+This replacement is superior because it better matches the FamilyBoard principle that primary pages are dashboards, not document-style planning boards. It lowers cognitive load, improves dashboard clarity, protects viewport space, and creates a cleaner household hierarchy: do today first; inspect future detail only when planning is the user's intent.
+
+The main trade-off is discoverability. Option B must make the Planning summary visibly actionable and informative enough that future work does not feel hidden. The summary should therefore carry clear counts, plain-language status, and an obvious affordance to open planning details. With that caveat, Option B is the stronger default design for daily household use.
 
 ## Overflow strategy for every section
 
