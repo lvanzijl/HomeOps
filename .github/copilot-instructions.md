@@ -31,6 +31,30 @@ Implementation must follow the approved analysis rather than iteratively changin
 
 The objective is to intentionally design each page to fit the viewport instead of treating viewport overflow as a styling problem.
 
+## Analysis Authority Rule
+
+For any task that follows the Viewport-First Workflow, the approved analysis becomes the implementation contract.
+
+Once implementation begins:
+
+- Follow the approved analysis.
+- Do not redesign the page while implementing.
+- Do not introduce alternative layouts because they appear easier to implement.
+- Do not gradually drift away from the approved composition.
+- Treat the approved report as the source of truth for the implementation.
+
+If implementation reveals a significant technical limitation or an unforeseen UX issue:
+
+- Stop implementation.
+- Document the issue.
+- Update or replace the analysis.
+- Explain why the original proposal is no longer appropriate.
+- Only continue implementation after the analysis has been revised.
+
+Small implementation adjustments are acceptable when they do not change the approved information architecture, layout strategy, viewport strategy, or UX goals.
+
+The implementation phase exists to realise the approved design, not to redesign it.
+
 ## FamilyBoard Viewport & Layout Rule
 
 FamilyBoard is a dashboard application, not a document-style web application.
