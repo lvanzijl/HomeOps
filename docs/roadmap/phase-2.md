@@ -585,3 +585,7 @@ Marketing Recording Scene Entry Polish hides fixture reset, reload, and real UI 
 
 ### Completed Slice 2.79 — Home Portrait Identity Layout
 Home Portrait Identity Layout replaces the Home family strip's chip-based member abstraction with a dedicated portrait presentation. The Home strip now renders `home-family-portrait` buttons with caption names, uses the available vertical space for a larger shared `FamilyAvatar`, preserves the measured touch target, and keeps four members fitting across the Home hero. Avatar V2 rendering, Family Member page presentation, production UI outside the Home family strip, storyboard, Production Engine, Recording Framework, Marketing Director, Audio Framework, screenshots, movies, MP4/WebM/WAV artifacts, and unrelated behavior remained unchanged.
+
+
+### Completed Slice 2.80 — Marketing Video Tasks Storyboard Update
+Marketing Video Tasks Storyboard Update revises the existing FamilyBoard executable marketing preview storyboard so the Tasks chapter showcases the redesigned Today-first task dashboard instead of the prior task-list flow. The slice preserves the canonical 9-scene narrative, fixtures, pacing totals, Marketing Director structure, and downstream Shopping/Motivation/Weekly Reset continuity while updating Tasks scene direction and recording actions for progressive task creation, visible desktop columns, cleaner scanning, and completed-task state validation. No new standalone Tasks video, product functionality, screenshots, movies, audio, or binary artifacts were introduced.
