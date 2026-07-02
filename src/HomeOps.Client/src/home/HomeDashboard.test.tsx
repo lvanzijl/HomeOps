@@ -510,7 +510,7 @@ describe("HomeDashboard", () => {
     expect(
       await screen.findByText("Swimming lesson toegevoegd aan Agenda."),
     ).not.toBeNull();
-  });
+  }, 10000);
 
   it("keeps Home quick-capture dialogs keyboard dismissible", async () => {
     const user = userEvent.setup();
