@@ -147,6 +147,60 @@ If it is not already ignored:
 - explain why the ignore rule is required;
 - ensure future executions cannot accidentally commit the cache.
 
+## Feature Boundary Rule
+
+Every task has an expected architectural boundary.
+
+Before completing an implementation, verify that every modified file belongs to the requested feature scope.
+
+The implementation should only modify files that are reasonably necessary to deliver the requested work.
+
+If implementation unexpectedly requires changes outside the expected feature boundary:
+
+- stop implementation;
+- identify which additional subsystem requires modification;
+- explain why it is necessary;
+- determine whether the change is architectural, accidental, or a side effect;
+- continue only if the expanded scope is justified.
+
+Do not gradually expand the scope simply because additional improvements become apparent during implementation.
+
+Examples:
+
+A viewport/layout improvement should primarily modify:
+
+- page components;
+- shared layout components;
+- styles;
+- related frontend utilities;
+- directly related tests;
+- implementation report.
+
+It should not unexpectedly modify unrelated areas such as:
+
+- backend services;
+- APIs;
+- database schema;
+- migrations;
+- authentication;
+- shopping;
+- motivation;
+- agenda;
+- unrelated pages;
+- build infrastructure;
+- deployment configuration.
+
+Likewise, a backend feature should not unexpectedly redesign frontend pages unless explicitly required.
+
+When reviewing the final changeset, verify:
+
+- every modified file belongs to the requested feature;
+- unrelated files have not been changed;
+- unrelated formatting-only changes have been reverted;
+- opportunistic refactoring outside the requested scope has not been included.
+
+If the requested work genuinely requires crossing feature boundaries, stop and explain why before continuing.
+
 ## FamilyBoard Viewport & Layout Rule
 
 FamilyBoard is a dashboard application, not a document-style web application.
