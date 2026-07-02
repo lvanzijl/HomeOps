@@ -101,6 +101,52 @@ For example:
 
 If the cause cannot be determined with confidence, stop and report the issue instead of completing the task.
 
+
+## Repository-Local Cache Rule
+
+Repository-local cache directories exist only to isolate the execution environment.
+
+They are temporary execution artifacts and are never part of the implementation.
+
+Examples include, but are not limited to:
+
+- .dotnet-home/
+- .nuget/
+- .nuget/packages/
+- .npm-cache/
+- Playwright browser caches
+- temporary build caches
+- temporary package caches
+- temporary tool caches
+
+These directories must never appear in the final changeset unless the repository explicitly versions them.
+
+Before completing any task:
+
+- inspect the changeset for repository-local cache directories;
+- verify they are not staged for commit;
+- remove any generated cache content from the changeset;
+- regenerate the git diff;
+- verify that only implementation-related files remain.
+
+If a repository-local cache directory appears in the changeset unexpectedly:
+
+- stop completion;
+- determine why it was created;
+- determine why it became tracked;
+- clean the changeset;
+- continue only after the cache artifacts have been removed.
+
+### Git ignore verification
+
+Whenever a new repository-local cache directory is introduced by the repository workflow, verify that it is appropriately ignored.
+
+If it is not already ignored:
+
+- update the repository's .gitignore;
+- explain why the ignore rule is required;
+- ensure future executions cannot accidentally commit the cache.
+
 ## FamilyBoard Viewport & Layout Rule
 
 FamilyBoard is a dashboard application, not a document-style web application.

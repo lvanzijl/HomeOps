@@ -11,6 +11,11 @@ dist/
 .vite/
 npm-debug.log*
 
+# Repository-local execution caches
+.dotnet-home/
+.npm-cache/
+.nuget/
+
 # Environment
 .env
 
