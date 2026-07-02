@@ -6907,3 +6907,245 @@ button {
 .motivation-dashboard .helpful-moment-card p {
   font-size: var(--fb-type-operational-compact);
 }
+
+/* Tasks mockup-aligned focus redesign */
+.tasks-dashboard-grid {
+  align-items: stretch;
+  grid-template-columns: minmax(34rem, 1.5fr) minmax(18rem, 0.78fr) minmax(17rem, 0.72fr) minmax(14rem, 0.56fr) minmax(14rem, 0.56fr);
+}
+
+.tasks-dashboard-primary,
+.tasks-dashboard-planning,
+.tasks-dashboard-queues {
+  display: contents;
+}
+
+.tasks-dashboard-primary .task-time-group,
+.tasks-dashboard-planning .task-time-group,
+.tasks-dashboard-queues .task-time-group {
+  min-height: clamp(31rem, 60vh, 43rem);
+}
+
+.tasks-dashboard-primary .task-time-group {
+  padding: clamp(0.9rem, 1.1vw, 1.12rem);
+}
+
+.tasks-dashboard-planning .task-time-group,
+.tasks-dashboard-queues .task-time-group,
+.tasks-empty-planning-column {
+  padding: clamp(0.78rem, 0.95vw, 0.95rem);
+}
+
+.tasks-dashboard-planning .task-time-group-tomorrow {
+  background: linear-gradient(145deg, rgb(255 251 235 / 78%), rgb(255 255 255 / 90%));
+  border-color: rgb(253 186 116 / 50%);
+  box-shadow: 0 14px 32px rgb(180 83 9 / 7%);
+}
+
+.tasks-dashboard-planning .task-time-group-thisWeek {
+  background: linear-gradient(145deg, rgb(239 246 255 / 72%), rgb(255 255 255 / 90%));
+  border-color: rgb(147 197 253 / 52%);
+  box-shadow: 0 14px 32px rgb(29 78 216 / 6%);
+}
+
+.tasks-dashboard-queues .task-time-group-later,
+.tasks-dashboard-queues .task-time-group-laterQueue {
+  background: linear-gradient(145deg, rgb(239 246 255 / 62%), rgb(255 255 255 / 86%));
+  border-color: rgb(147 197 253 / 42%);
+  box-shadow: 0 10px 24px rgb(29 78 216 / 4%);
+}
+
+.tasks-dashboard-queues .task-completed-history,
+.tasks-dashboard-queues .task-time-group-completedRecently {
+  background: linear-gradient(145deg, rgb(248 250 252 / 78%), rgb(255 255 255 / 88%));
+  border-color: rgb(203 213 225 / 62%);
+  box-shadow: 0 10px 24px rgb(15 23 42 / 4%);
+}
+
+.task-time-group.today-focus {
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--domain-accent, #14b8a6) 20%, white), rgb(255 255 255 / 95%) 56%, #fff7ed);
+  box-shadow: 0 20px 46px rgb(15 118 110 / 12%);
+}
+
+.task-time-group-tomorrow .task-group-kicker,
+.task-time-group-tomorrow .task-group-heading h4 {
+  color: #b45309;
+}
+
+.task-time-group-thisWeek .task-group-kicker,
+.task-time-group-nextWeek .task-group-kicker,
+.task-time-group-later .task-group-kicker,
+.task-time-group-laterQueue .task-group-kicker,
+.task-time-group-thisWeek .task-group-heading h4,
+.task-time-group-nextWeek .task-group-heading h4,
+.task-time-group-later .task-group-heading h4,
+.task-time-group-laterQueue .task-group-heading h4 {
+  color: #1d4ed8;
+}
+
+.rich-task-card {
+  cursor: pointer;
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: 0.98rem 1rem 0.98rem 1.12rem;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease, background 160ms ease;
+}
+
+.rich-task-card.is-primary-card {
+  min-height: 5.55rem;
+}
+
+.rich-task-card.is-planning-card {
+  min-height: 4.85rem;
+  padding-block: 0.82rem;
+}
+
+.rich-task-card.is-compact-card {
+  border-radius: 0.9rem;
+  min-height: 3.95rem;
+  padding: 0.66rem 0.68rem 0.66rem 0.82rem;
+}
+
+.rich-task-card:hover,
+.rich-task-card:focus-visible {
+  border-color: rgb(45 212 191 / 72%);
+  box-shadow: 0 14px 30px rgb(15 118 110 / 10%);
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.rich-task-card.is-selected {
+  background: linear-gradient(135deg, rgb(255 255 255 / 98%), rgb(236 253 245 / 84%));
+  border-color: rgb(20 184 166 / 80%);
+  box-shadow: 0 18px 36px rgb(15 118 110 / 15%);
+}
+
+.task-card-visual,
+.task-action-icon,
+.task-card-status {
+  display: none;
+}
+
+.task-card-main strong {
+  overflow-wrap: anywhere;
+}
+
+.rich-task-card.is-primary-card .task-card-main strong {
+  font-size: clamp(1rem, 1.08vw, 1.18rem);
+  line-height: 1.25;
+}
+
+.rich-task-card.is-planning-card .task-card-main strong {
+  font-size: 0.98rem;
+  line-height: 1.25;
+}
+
+.rich-task-card.is-compact-card .task-card-main strong {
+  font-size: 0.9rem;
+  line-height: 1.22;
+}
+
+.task-card-content {
+  gap: 0.35rem;
+}
+
+.task-card-meta {
+  gap: 0.42rem;
+  margin-top: 0.5rem;
+}
+
+.task-card-meta span {
+  padding-inline: 0.68rem;
+}
+
+.rich-task-card.is-planning-card .task-card-meta {
+  gap: 0.32rem;
+  margin-top: 0.42rem;
+}
+
+.rich-task-card.is-compact-card .task-card-meta {
+  gap: 0.24rem;
+  margin-top: 0.28rem;
+}
+
+.rich-task-card.is-compact-card .task-card-meta span {
+  font-size: 0.68rem;
+  min-height: 1.35rem;
+  padding: 0.12rem 0.42rem;
+}
+
+.rich-task-card.is-planning-card .task-meta-chip.family,
+.rich-task-card.is-planning-card .task-meta-chip.recurring,
+.rich-task-card.is-compact-card .task-meta-chip.family,
+.rich-task-card.is-compact-card .task-meta-chip.recurring,
+.rich-task-card.is-compact-card .task-meta-chip.open {
+  display: none;
+}
+
+.task-card-actions {
+  align-self: stretch;
+  display: grid;
+  gap: 0.36rem;
+  justify-items: stretch;
+  max-width: 0;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+  transform: translateX(0.25rem);
+  transition: max-width 180ms ease, opacity 140ms ease, transform 160ms ease;
+}
+
+.rich-task-card.is-selected .task-card-actions,
+.rich-task-card:focus-within .task-card-actions {
+  max-width: 9rem;
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(0);
+}
+
+.task-action-button,
+.task-more-actions summary {
+  border-radius: 0.85rem;
+  justify-content: center;
+  min-height: 2.15rem;
+  padding: 0.38rem 0.62rem;
+  white-space: nowrap;
+}
+
+.task-more-actions > div {
+  right: 100%;
+  top: 0;
+}
+
+.tasks-empty-planning-column {
+  align-content: start;
+  opacity: 0.78;
+}
+
+@media (max-width: 1180px) {
+  .tasks-dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tasks-dashboard-primary,
+  .tasks-dashboard-planning,
+  .tasks-dashboard-queues {
+    display: grid;
+  }
+
+  .tasks-dashboard-primary .task-time-group,
+  .tasks-dashboard-planning .task-time-group,
+  .tasks-dashboard-queues .task-time-group {
+    min-height: 0;
+  }
+}
+
+@media (max-width: 760px) {
+  .rich-task-card {
+    grid-template-columns: 1fr;
+  }
+
+  .rich-task-card .task-card-actions {
+    max-width: none;
+  }
+}

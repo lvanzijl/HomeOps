@@ -61,6 +61,7 @@ export function TasksPage({
   );
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const reviewTasks = useMemo(
     () =>
       tasks
@@ -72,24 +73,53 @@ export function TasksPage({
     () => tasks.filter((task) => task.noDateReviewState === "Someday"),
     [tasks],
   );
-  const groups = useMemo(() => groupTasksByTime(tasks, todayIso), [tasks, todayIso]);
+  const groups = useMemo(
+    () => groupTasksByTime(tasks, todayIso),
+    [tasks, todayIso],
+  );
   const primaryTaskGroups = useMemo(
     () => groups.filter((group) => group.id === "today"),
     [groups],
   );
-  const planningTaskGroups = useMemo(
-    () => groups.filter((group) => group.id !== "today" && group.id !== "completedRecently"),
+  const tomorrowGroup = useMemo(
+    () => groups.find((group) => group.id === "tomorrow") ?? null,
     [groups],
   );
+  const thisWeekGroup = useMemo(
+    () => groups.find((group) => group.id === "thisWeek") ?? null,
+    [groups],
+  );
+  const laterQueueGroup = useMemo(() => {
+    const laterGroups = groups.filter(
+      (group) =>
+        group.id !== "today" &&
+        group.id !== "tomorrow" &&
+        group.id !== "thisWeek" &&
+        group.id !== "completedRecently",
+    );
+    const laterTasks = laterGroups.flatMap((group) => group.tasks);
+    if (laterTasks.length === 0) return null;
+    return {
+      id: "later" as const,
+      title: "Later",
+      description: "Rustig vooruit kijken.",
+      emptyMessage: "Niets voor later op dit moment.",
+      emphasis: "quiet" as const,
+      tasks: laterTasks,
+    };
+  }, [groups]);
   const completedTaskGroup = useMemo(
     () => groups.find((group) => group.id === "completedRecently") ?? null,
     [groups],
   );
   const todaySummary = useMemo(() => {
-    const todayTasks = groups.find((group) => group.id === "today")?.tasks ?? [];
+    const todayTasks =
+      groups.find((group) => group.id === "today")?.tasks ?? [];
     return {
       total: todayTasks.length,
-      overdue: todayTasks.filter((task) => task.dueDate !== null && task.dueDate < todayIso).length,
+      overdue: todayTasks.filter(
+        (task) => task.dueDate !== null && task.dueDate < todayIso,
+      ).length,
       recurring: todayTasks.filter(isRecurringTask).length,
     };
   }, [groups, todayIso]);
@@ -238,10 +268,7 @@ export function TasksPage({
 
   function onEditTaskDue(task: HouseholdTask) {
     startEditing(task);
-    const due = window.prompt(
-      "Kies een datum (YYYY-MM-DD)",
-      todayIso,
-    );
+    const due = window.prompt("Kies een datum (YYYY-MM-DD)", todayIso);
     if (due)
       void saveTask(task.id, {
         title: task.title,
@@ -298,6 +325,7 @@ export function TasksPage({
       setTasks((current) =>
         current.map((task) => (task.id === updated.id ? updated : task)),
       );
+      setSelectedTaskId(null);
     } catch {
       setError("Taak kon niet worden bijgewerkt.");
     }
@@ -305,7 +333,9 @@ export function TasksPage({
 
   async function moveTaskToTomorrow(task: HouseholdTask) {
     const tomorrow = toDateInputValue(addDays(todayDate, 1));
-    const isRecurring = (task.recurrenceFrequency ?? "None") !== "None" || Boolean(task.recurringTaskSeriesId);
+    const isRecurring =
+      (task.recurrenceFrequency ?? "None") !== "None" ||
+      Boolean(task.recurringTaskSeriesId);
     if (task.isCompleted || isRecurring || task.dueDate === tomorrow) return;
 
     try {
@@ -319,35 +349,53 @@ export function TasksPage({
       setTasks((current) =>
         current.map((item) => (item.id === updated.id ? updated : item)),
       );
+      setSelectedTaskId(null);
     } catch {
       setError("Taak kon niet naar morgen worden verplaatst.");
     }
   }
 
   return (
-    <article className="tasks-page" aria-label="Takenpagina">
+    <article
+      className="tasks-page"
+      aria-label="Takenpagina"
+      onClick={() => setSelectedTaskId(null)}
+    >
       <header className="tasks-header page-header-with-actions">
         <div>
           <p className="widget-type">Familie-acties voor vandaag</p>
           <h3>Taken voor het gezin</h3>
           <p>
-            Begin met wat nu aandacht nodig heeft; de rest blijft rustig klaarstaan.
+            Begin met wat nu aandacht nodig heeft; de rest blijft rustig
+            klaarstaan.
           </p>
         </div>
         {!isLoading && tasks.length > 0 ? (
           <div className="page-header-actions" aria-label="Primaire taakactie">
-            <button className="compact-header-action primary" type="button" onClick={openNewTaskDialog}>
+            <button
+              className="compact-header-action primary"
+              type="button"
+              onClick={openNewTaskDialog}
+            >
               Gezinstaak toevoegen
             </button>
           </div>
         ) : null}
       </header>
       {!isLoading && tasks.length > 0 ? (
-        <section className="task-today-summary" aria-label="Vandaag samenvatting">
+        <section
+          className="task-today-summary"
+          aria-label="Vandaag samenvatting"
+        >
           <strong>Vandaag in beeld</strong>
-          <span>{todaySummary.total} {todaySummary.total === 1 ? "taak" : "taken"}</span>
+          <span>
+            {todaySummary.total} {todaySummary.total === 1 ? "taak" : "taken"}
+          </span>
           <span>{todaySummary.overdue} te laat</span>
-          <span>{todaySummary.recurring} routine{todaySummary.recurring === 1 ? "" : "s"}</span>
+          <span>
+            {todaySummary.recurring} routine
+            {todaySummary.recurring === 1 ? "" : "s"}
+          </span>
         </section>
       ) : null}
       {error ? (
@@ -369,10 +417,14 @@ export function TasksPage({
         </div>
       ) : (
         <section className="tasks-dashboard-grid" aria-label="Taken dashboard">
-          <div className="tasks-dashboard-primary" aria-label="Aandacht voor nu">
+          <div
+            className="tasks-dashboard-primary"
+            aria-label="Aandacht voor nu"
+          >
             {primaryTaskGroups.length > 0 ? (
               primaryTaskGroups.map((group) => (
                 <TaskGroup
+                  density="primary"
                   group={group}
                   key={group.id}
                   members={members}
@@ -382,6 +434,8 @@ export function TasksPage({
                   onDeleteSeries={deleteSeries}
                   onEdit={startEditing}
                   onMoveToTomorrow={moveTaskToTomorrow}
+                  selectedTaskId={selectedTaskId}
+                  onSelectTask={setSelectedTaskId}
                   onUpdate={updateTask}
                 />
               ))
@@ -395,27 +449,93 @@ export function TasksPage({
                   </div>
                   <span>0 taken</span>
                 </div>
-                <p className="shopping-empty">Er vraagt nu niets direct aandacht.</p>
+                <p className="shopping-empty">
+                  Er vraagt nu niets direct aandacht.
+                </p>
               </section>
             )}
           </div>
-          <div className="tasks-dashboard-planning" aria-label="Wat daarna komt">
-            {planningTaskGroups.map((group) => (
+          <div
+            className="tasks-dashboard-planning"
+            aria-label="Wat daarna komt"
+          >
+            {tomorrowGroup ? (
               <TaskGroup
-                group={group}
-                key={group.id}
+                density="planning"
+                group={tomorrowGroup}
                 members={members}
-                tasks={group.tasks}
+                tasks={tomorrowGroup.tasks}
                 todayDate={todayDate}
                 todayIso={todayIso}
                 onDeleteSeries={deleteSeries}
                 onEdit={startEditing}
                 onMoveToTomorrow={moveTaskToTomorrow}
+                selectedTaskId={selectedTaskId}
+                onSelectTask={setSelectedTaskId}
                 onUpdate={updateTask}
               />
-            ))}
+            ) : (
+              <PlanningPlaceholder
+                title="Morgen"
+                description="Klaarzetten zonder de dag drukker te maken."
+                emptyMessage="Geen taken gepland voor morgen."
+                className="task-time-group-tomorrow"
+              />
+            )}
+            {thisWeekGroup ? (
+              <TaskGroup
+                density="planning"
+                group={thisWeekGroup}
+                members={members}
+                tasks={thisWeekGroup.tasks}
+                todayDate={todayDate}
+                todayIso={todayIso}
+                onDeleteSeries={deleteSeries}
+                onEdit={startEditing}
+                onMoveToTomorrow={moveTaskToTomorrow}
+                selectedTaskId={selectedTaskId}
+                onSelectTask={setSelectedTaskId}
+                onUpdate={updateTask}
+              />
+            ) : (
+              <PlanningPlaceholder
+                title="Deze week"
+                description="Binnenkort, maar niet meteen nu."
+                emptyMessage="Deze week staat er verder niets open."
+                className="task-time-group-thisWeek"
+              />
+            )}
+          </div>
+          <div
+            className="tasks-dashboard-queues"
+            aria-label="Later en terugkijken"
+          >
+            {laterQueueGroup ? (
+              <TaskGroup
+                density="compact"
+                group={laterQueueGroup}
+                members={members}
+                tasks={laterQueueGroup.tasks}
+                todayDate={todayDate}
+                todayIso={todayIso}
+                onDeleteSeries={deleteSeries}
+                onEdit={startEditing}
+                onMoveToTomorrow={moveTaskToTomorrow}
+                selectedTaskId={selectedTaskId}
+                onSelectTask={setSelectedTaskId}
+                onUpdate={updateTask}
+              />
+            ) : (
+              <PlanningPlaceholder
+                title="Later"
+                description="Rustig vooruit kijken."
+                emptyMessage="Niets voor later op dit moment."
+                className="task-time-group-later"
+              />
+            )}
             {completedTaskGroup ? (
               <TaskGroup
+                density="compact"
                 group={completedTaskGroup}
                 members={members}
                 tasks={completedTaskGroup.tasks}
@@ -424,9 +544,18 @@ export function TasksPage({
                 onDeleteSeries={deleteSeries}
                 onEdit={startEditing}
                 onMoveToTomorrow={moveTaskToTomorrow}
+                selectedTaskId={selectedTaskId}
+                onSelectTask={setSelectedTaskId}
                 onUpdate={updateTask}
               />
-            ) : null}
+            ) : (
+              <PlanningPlaceholder
+                title="Voltooid"
+                description="Net klaar, zodat terugzetten mogelijk blijft."
+                emptyMessage="Nog niets afgerond."
+                className="task-time-group-completedRecently"
+              />
+            )}
           </div>
         </section>
       )}
@@ -669,7 +798,8 @@ export function TasksPage({
               <p className="widget-type">Routinestarters</p>
               <h4>Opgeslagen gezinsroutines</h4>
               <p>
-                Gebruik vaste klusjes opnieuw nadat duidelijk is wat vandaag nodig is.
+                Gebruik vaste klusjes opnieuw nadat duidelijk is wat vandaag
+                nodig is.
               </p>
             </div>
             <form
@@ -698,7 +828,9 @@ export function TasksPage({
                 />
               </label>
               <button type="submit">
-                {editingTemplate ? "Routine opslaan" : "Opslaan als routine starter"}
+                {editingTemplate
+                  ? "Routine opslaan"
+                  : "Opslaan als routine starter"}
               </button>
             </form>
             {templates.length === 0 ? (
@@ -711,7 +843,8 @@ export function TasksPage({
                       <strong>{template.name}</strong>
                       <span>
                         {template.description ?? "Herbruikbare gezinsroutine"} ·{" "}
-                        {template.items.length} {template.items.length === 1 ? "taak" : "taken"}
+                        {template.items.length}{" "}
+                        {template.items.length === 1 ? "taak" : "taken"}
                       </span>
                     </div>
                     <button
@@ -825,7 +958,36 @@ export function TasksPage({
   );
 }
 
+function PlanningPlaceholder({
+  className,
+  description,
+  emptyMessage,
+  title,
+}: {
+  className: string;
+  description: string;
+  emptyMessage: string;
+  title: string;
+}) {
+  return (
+    <section
+      className={`task-group task-time-group quiet tasks-empty-planning-column ${className}`}
+    >
+      <div className="task-group-heading">
+        <div>
+          <p className="task-group-kicker">Daarna</p>
+          <h4>{title}</h4>
+          <p>{description}</p>
+        </div>
+        <span>0 taken</span>
+      </div>
+      <p className="shopping-empty">{emptyMessage}</p>
+    </section>
+  );
+}
+
 function TaskGroup({
+  density = "primary",
   group,
   members,
   tasks,
@@ -834,8 +996,11 @@ function TaskGroup({
   onDeleteSeries,
   onEdit,
   onMoveToTomorrow,
+  selectedTaskId,
+  onSelectTask,
   onUpdate,
 }: {
+  density?: "primary" | "planning" | "compact";
   group: import("./tasksModel").TaskTimeGroup;
   members: readonly FamilyMember[];
   tasks: readonly HouseholdTask[];
@@ -844,6 +1009,8 @@ function TaskGroup({
   onDeleteSeries(id: string): void;
   onEdit(task: HouseholdTask): void;
   onMoveToTomorrow(task: HouseholdTask): void;
+  selectedTaskId: string | null;
+  onSelectTask(id: string | null): void;
   onUpdate(id: string, action: "complete" | "reopen"): void;
 }) {
   if (group.id === "completedRecently") {
@@ -855,7 +1022,9 @@ function TaskGroup({
             <h4>{group.title}</h4>
             <p>{group.description}</p>
           </div>
-          <span>{tasks.length} {tasks.length === 1 ? "taak" : "taken"}</span>
+          <span>
+            {tasks.length} {tasks.length === 1 ? "taak" : "taken"}
+          </span>
         </summary>
         {tasks.length === 0 ? (
           <p className="shopping-empty">{group.emptyMessage}</p>
@@ -863,6 +1032,7 @@ function TaskGroup({
           <ul className="task-list">
             {tasks.map((task) => (
               <TaskCard
+                density={density}
                 groupId={group.id}
                 key={task.id}
                 members={members}
@@ -872,6 +1042,8 @@ function TaskGroup({
                 onDeleteSeries={onDeleteSeries}
                 onEdit={onEdit}
                 onMoveToTomorrow={onMoveToTomorrow}
+                selectedTaskId={selectedTaskId}
+                onSelectTask={onSelectTask}
                 onUpdate={onUpdate}
               />
             ))}
@@ -882,14 +1054,20 @@ function TaskGroup({
   }
 
   return (
-    <section className={`task-group task-time-group task-time-group-${group.id} ${group.emphasis === "primary" ? "today-focus" : ""} ${group.emphasis === "quiet" ? "quiet" : ""}`}>
+    <section
+      className={`task-group task-time-group task-time-group-${group.id} ${group.emphasis === "primary" ? "today-focus" : ""} ${group.emphasis === "quiet" ? "quiet" : ""}`}
+    >
       <div className="task-group-heading">
         <div>
-          <p className="task-group-kicker">{group.id === "today" ? "Nu eerst" : "Daarna"}</p>
+          <p className="task-group-kicker">
+            {group.id === "today" ? "Nu eerst" : "Daarna"}
+          </p>
           <h4>{group.title}</h4>
           <p>{group.description}</p>
         </div>
-        <span>{tasks.length} {tasks.length === 1 ? "taak" : "taken"}</span>
+        <span>
+          {tasks.length} {tasks.length === 1 ? "taak" : "taken"}
+        </span>
       </div>
       {tasks.length === 0 ? (
         <p className="shopping-empty">{group.emptyMessage}</p>
@@ -897,6 +1075,7 @@ function TaskGroup({
         <ul className="task-list">
           {tasks.map((task) => (
             <TaskCard
+              density={density}
               groupId={group.id}
               key={task.id}
               members={members}
@@ -906,6 +1085,8 @@ function TaskGroup({
               onDeleteSeries={onDeleteSeries}
               onEdit={onEdit}
               onMoveToTomorrow={onMoveToTomorrow}
+              selectedTaskId={selectedTaskId}
+              onSelectTask={onSelectTask}
               onUpdate={onUpdate}
             />
           ))}
@@ -916,6 +1097,7 @@ function TaskGroup({
 }
 
 function TaskCard({
+  density,
   groupId,
   members,
   task,
@@ -924,8 +1106,11 @@ function TaskCard({
   onDeleteSeries,
   onEdit,
   onMoveToTomorrow,
+  selectedTaskId,
+  onSelectTask,
   onUpdate,
 }: {
+  density: "primary" | "planning" | "compact";
   groupId: string;
   members: readonly FamilyMember[];
   task: HouseholdTask;
@@ -934,31 +1119,73 @@ function TaskCard({
   onDeleteSeries(id: string): void;
   onEdit(task: HouseholdTask): void;
   onMoveToTomorrow(task: HouseholdTask): void;
+  selectedTaskId: string | null;
+  onSelectTask(id: string | null): void;
   onUpdate(id: string, action: "complete" | "reopen"): void;
 }) {
   const isRecurring = isRecurringTask(task);
   const tomorrow = toDateInputValue(addDays(todayDate, 1));
-  const canMoveToTomorrow = !task.isCompleted && !isRecurring && task.dueDate !== tomorrow;
+  const canMoveToTomorrow =
+    !task.isCompleted && !isRecurring && task.dueDate !== tomorrow;
+  const isSelected = selectedTaskId === task.id;
   return (
-    <li className={`task-item operational-task-card rich-task-card ${task.isCompleted ? "is-completed" : ""} ${isRecurring ? "is-recurring" : ""}`} key={task.id}>
+    <li
+      className={`task-item operational-task-card rich-task-card ${density === "compact" ? "is-compact-card" : density === "planning" ? "is-planning-card" : "is-primary-card"} ${task.isCompleted ? "is-completed" : ""} ${isRecurring ? "is-recurring" : ""} ${isSelected ? "is-selected" : ""}`}
+      key={task.id}
+      onClick={(event) => {
+        event.stopPropagation();
+        onSelectTask(isSelected ? null : task.id);
+      }}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onSelectTask(isSelected ? null : task.id);
+        }
+      }}
+      tabIndex={0}
+      aria-selected={isSelected}
+    >
       <div className="task-card-visual" aria-hidden="true">
-        <TaskCardIcon variant={task.isCompleted ? "completed" : isRecurring ? "recurring" : groupId} />
+        <TaskCardIcon
+          variant={
+            task.isCompleted ? "completed" : isRecurring ? "recurring" : groupId
+          }
+        />
       </div>
       <div className="task-card-content">
         <div className="task-card-main">
-          <span className="task-card-status">{task.isCompleted ? "Afgerond" : groupId === "today" ? "Vandaag eerst" : "Gepland"}</span>
+          <span className="task-card-status">
+            {task.isCompleted
+              ? "Afgerond"
+              : groupId === "today"
+                ? "Vandaag eerst"
+                : "Gepland"}
+          </span>
           <strong>{task.title}</strong>
         </div>
         <span className="task-card-meta" aria-label="Taakdetails">
           <TaskMetadataChip tone="family" label={formatOwner(task, members)} />
-          <TaskMetadataChip tone={groupId === "today" ? "urgent" : "time"} label={formatDue(task, groupId, todayIso)} />
+          <TaskMetadataChip
+            tone={groupId === "today" ? "urgent" : "time"}
+            label={formatDue(task, groupId, todayIso)}
+          />
           {isRecurring ? (
-            <TaskMetadataChip tone="recurring" label={formatRecurrence(task.recurrenceFrequency ?? "None")} />
+            <TaskMetadataChip
+              tone="recurring"
+              label={formatRecurrence(task.recurrenceFrequency ?? "None")}
+            />
           ) : null}
-          <TaskMetadataChip tone={task.isCompleted ? "done" : "open"} label={task.isCompleted ? "Afgerond" : "Openstaand"} />
+          <TaskMetadataChip
+            tone={task.isCompleted ? "done" : "open"}
+            label={task.isCompleted ? "Afgerond" : "Openstaand"}
+          />
         </span>
       </div>
-      <div className="task-card-actions" aria-label={`Acties voor ${task.title}`}>
+      <div
+        className="task-card-actions"
+        aria-label={`Acties voor ${task.title}`}
+        onClick={(event) => event.stopPropagation()}
+      >
         {!task.isCompleted ? (
           <button
             className="task-action-button primary"
@@ -979,7 +1206,11 @@ function TaskCard({
           </button>
         )}
         {canMoveToTomorrow ? (
-          <button className="task-action-button tomorrow" onClick={() => onMoveToTomorrow(task)} type="button">
+          <button
+            className="task-action-button tomorrow"
+            onClick={() => onMoveToTomorrow(task)}
+            type="button"
+          >
             <TaskActionIcon name="tomorrow" />
             <span>Morgen</span>
           </button>
@@ -990,12 +1221,20 @@ function TaskCard({
             <span>Meer</span>
           </summary>
           <div>
-            <button className="task-action-button secondary" onClick={() => onEdit(task)} type="button">
+            <button
+              className="task-action-button secondary"
+              onClick={() => onEdit(task)}
+              type="button"
+            >
               <TaskActionIcon name="edit" />
               <span>Aanpassen</span>
             </button>
             {task.recurringTaskSeriesId ? (
-              <button className="task-action-button secondary" onClick={() => onDeleteSeries(task.id)} type="button">
+              <button
+                className="task-action-button secondary"
+                onClick={() => onDeleteSeries(task.id)}
+                type="button"
+              >
                 <TaskActionIcon name="more" />
                 <span>Routine verwijderen</span>
               </button>
@@ -1007,18 +1246,48 @@ function TaskCard({
   );
 }
 
-function TaskMetadataChip({ label, tone }: { label: string; tone: "family" | "time" | "urgent" | "recurring" | "done" | "open" }) {
+function TaskMetadataChip({
+  label,
+  tone,
+}: {
+  label: string;
+  tone: "family" | "time" | "urgent" | "recurring" | "done" | "open";
+}) {
   return <span className={`task-meta-chip ${tone}`}>{label}</span>;
 }
 
 function TaskCardIcon({ variant }: { variant: string }) {
-  const label = variant === "completed" ? "K" : variant === "recurring" ? "R" : variant === "today" ? "V" : "T";
+  const label =
+    variant === "completed"
+      ? "K"
+      : variant === "recurring"
+        ? "R"
+        : variant === "today"
+          ? "V"
+          : "T";
   return <span className="task-card-icon-slot">{label}</span>;
 }
 
-function TaskActionIcon({ name }: { name: "complete" | "reopen" | "tomorrow" | "edit" | "more" }) {
-  const label = name === "complete" ? "K" : name === "reopen" ? "T" : name === "tomorrow" ? "M" : name === "edit" ? "A" : "Me";
-  return <span className="task-action-icon" aria-hidden="true">{label}</span>;
+function TaskActionIcon({
+  name,
+}: {
+  name: "complete" | "reopen" | "tomorrow" | "edit" | "more";
+}) {
+  const label =
+    name === "complete"
+      ? "K"
+      : name === "reopen"
+        ? "T"
+        : name === "tomorrow"
+          ? "M"
+          : name === "edit"
+            ? "A"
+            : "Me";
+  return (
+    <span className="task-action-icon" aria-hidden="true">
+      {label}
+    </span>
+  );
 }
 
 function nextTaskQuestion(question: TaskDialogQuestion): TaskDialogQuestion {
@@ -1068,8 +1337,13 @@ function addDays(date: Date, days: number): Date {
   return next;
 }
 
-function isRecurringTask(task: Pick<HouseholdTask, "recurrenceFrequency" | "recurringTaskSeriesId">): boolean {
-  return (task.recurrenceFrequency ?? "None") !== "None" || Boolean(task.recurringTaskSeriesId);
+function isRecurringTask(
+  task: Pick<HouseholdTask, "recurrenceFrequency" | "recurringTaskSeriesId">,
+): boolean {
+  return (
+    (task.recurrenceFrequency ?? "None") !== "None" ||
+    Boolean(task.recurringTaskSeriesId)
+  );
 }
 
 export function formatOwner(
@@ -1085,10 +1359,15 @@ export function formatOwner(
   return "Iedereen";
 }
 
-function formatDue(task: Pick<HouseholdTask, "dueDate" | "isCompleted">, groupId: string, todayIso: string): string {
+function formatDue(
+  task: Pick<HouseholdTask, "dueDate" | "isCompleted">,
+  groupId: string,
+  todayIso: string,
+): string {
   if (task.isCompleted) return "Klaar";
   if (!task.dueDate) return "Geen datum";
-  if (groupId === "today") return task.dueDate < todayIso ? `Te laat · ${task.dueDate}` : "Vandaag";
+  if (groupId === "today")
+    return task.dueDate < todayIso ? `Te laat · ${task.dueDate}` : "Vandaag";
   if (groupId === "tomorrow") return "Morgen";
   return task.dueDate;
 }
