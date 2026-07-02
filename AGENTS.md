@@ -33,6 +33,29 @@
 - Bootstrap only unless a later prompt explicitly advances a roadmap slice.
 - Do not implement authentication, Google Calendar, Home Assistant, shopping lists, agenda, sensors, media, or gamification during bootstrap.
 
+## Viewport-First Workflow
+
+Before implementing any viewport/layout changes for a primary FamilyBoard page, an analysis is mandatory.
+
+Implementation may not begin until the analysis has been completed.
+
+The analysis must include:
+
+- The current page composition.
+- Why the page exceeds its reserved viewport region.
+- Which sections are primary versus secondary.
+- Which content should always remain visible.
+- Which content can be compacted, summarized, limited, paginated, or internally scrolled.
+- A proposed dashboard/grid composition with reserved layout regions.
+- Justification that the proposed composition will fit within common desktop/laptop viewports without page scrolling.
+- Risks, trade-offs, and alternative layouts considered.
+
+Only after this analysis has been completed may implementation begin.
+
+Implementation must follow the approved analysis rather than iteratively changing CSS until the page happens to fit.
+
+The objective is to intentionally design each page to fit the viewport instead of treating viewport overflow as a styling problem.
+
 ## FamilyBoard Viewport & Layout Rule
 
 FamilyBoard is a dashboard application, not a document-style web application.

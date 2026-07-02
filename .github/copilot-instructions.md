@@ -8,6 +8,29 @@
 - Maintain the modular monolith architecture using ASP.NET Core, C#, React, TypeScript, Vite, PostgreSQL, OpenAPI, and NSwag.
 - Do not implement authentication, external integrations, widgets, data sources, Kubernetes, microservices, CQRS, event sourcing, or distributed architecture unless a future slice explicitly asks for it.
 
+## Viewport-First Workflow
+
+Before implementing any viewport/layout changes for a primary FamilyBoard page, an analysis is mandatory.
+
+Implementation may not begin until the analysis has been completed.
+
+The analysis must include:
+
+- The current page composition.
+- Why the page exceeds its reserved viewport region.
+- Which sections are primary versus secondary.
+- Which content should always remain visible.
+- Which content can be compacted, summarized, limited, paginated, or internally scrolled.
+- A proposed dashboard/grid composition with reserved layout regions.
+- Justification that the proposed composition will fit within common desktop/laptop viewports without page scrolling.
+- Risks, trade-offs, and alternative layouts considered.
+
+Only after this analysis has been completed may implementation begin.
+
+Implementation must follow the approved analysis rather than iteratively changing CSS until the page happens to fit.
+
+The objective is to intentionally design each page to fit the viewport instead of treating viewport overflow as a styling problem.
+
 ## FamilyBoard Viewport & Layout Rule
 
 FamilyBoard is a dashboard application, not a document-style web application.
