@@ -337,6 +337,32 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     expect(screen.queryByText("Avery birthday")).toBeNull();
   });
 
+  it("keeps the compact agenda command controls available across modes", async () => {
+    const user = setupUser();
+    render(<AgendaWidget {...widgetProps} />);
+
+    expect(await screen.findByLabelText("Maandplanning")).not.toBeNull();
+    expect(
+      screen.getByRole("button", { name: "Gebeurtenis toevoegen" }),
+    ).not.toBeNull();
+    expect(
+      screen.getByRole("group", { name: "Zichtbaar in de agenda" }),
+    ).not.toBeNull();
+    expect(screen.getByText("Bronnen")).not.toBeNull();
+
+    await user.click(screen.getByRole("button", { name: "Week" }));
+    expect(screen.getByLabelText("Weekplanning")).not.toBeNull();
+    expect(
+      screen.getByRole("button", { name: "Gebeurtenis toevoegen" }),
+    ).not.toBeNull();
+
+    await user.click(screen.getByRole("button", { name: "Lijst" }));
+    expect(screen.getByLabelText("Lijstplanning")).not.toBeNull();
+    expect(
+      screen.getByRole("button", { name: "Gebeurtenis toevoegen" }),
+    ).not.toBeNull();
+  });
+
   it("creates, updates, and deletes calendar events through the API-backed widget UI", async () => {
     const user = setupUser();
     const calendarEventsApi = await mockedCalendarEventsApi();
