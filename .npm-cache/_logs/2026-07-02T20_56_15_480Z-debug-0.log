@@ -1,0 +1,55 @@
+0 verbose cli /usr/local/bin/node /usr/local/lib/node_modules/npm/bin/npm-cli.js
+1 info using npm@10.9.8
+2 info using node@v22.23.0
+3 silly config load:file:/usr/local/lib/node_modules/npm/npmrc
+4 silly config load:file:/home/runner/work/HomeOps/HomeOps/.npmrc
+5 silly config load:file:/home/runner/.npmrc
+6 silly config load:file:/usr/local/etc/npmrc
+7 verbose title npm exec node
+8 verbose argv "exec" "--yes" "--package" "playwright" "--" "node"
+9 verbose logfile logs-max:10 dir:/home/runner/work/HomeOps/HomeOps/.npm-cache/_logs/2026-07-02T20_56_15_480Z-
+10 verbose logfile /home/runner/work/HomeOps/HomeOps/.npm-cache/_logs/2026-07-02T20_56_15_480Z-debug-0.log
+11 silly logfile done cleaning log files
+12 silly packumentCache heap:4345298944 maxSize:1086324736 maxEntrySize:543162368
+13 http fetch GET 200 https://registry.npmjs.org/playwright 341ms (cache miss)
+14 silly packumentCache heap:4345298944 maxSize:1086324736 maxEntrySize:543162368
+15 silly idealTree buildDeps
+16 silly fetch manifest playwright@1.61.1
+17 silly packumentCache full:https://registry.npmjs.org/playwright cache-miss
+18 http fetch GET 200 https://registry.npmjs.org/playwright 354ms (cache miss)
+19 silly packumentCache full:https://registry.npmjs.org/playwright set size:undefined disposed:false
+20 silly placeDep ROOT playwright@1.61.1 OK for:  want: 1.61.1
+21 silly fetch manifest playwright-core@1.61.1
+22 silly packumentCache full:https://registry.npmjs.org/playwright-core cache-miss
+23 silly fetch manifest fsevents@2.3.2
+24 silly packumentCache full:https://registry.npmjs.org/fsevents cache-miss
+25 http fetch GET 200 https://registry.npmjs.org/fsevents 45ms (cache miss)
+26 silly packumentCache full:https://registry.npmjs.org/fsevents set size:undefined disposed:false
+27 http fetch GET 200 https://registry.npmjs.org/playwright-core 371ms (cache miss)
+28 silly packumentCache full:https://registry.npmjs.org/playwright-core set size:undefined disposed:false
+29 silly placeDep ROOT fsevents@2.3.2 OK for: playwright@1.61.1 want: 2.3.2
+30 silly placeDep ROOT playwright-core@1.61.1 OK for: playwright@1.61.1 want: 1.61.1
+31 silly reify moves {}
+32 silly audit bulk request {
+32 silly audit   playwright: [ '1.61.1' ],
+32 silly audit   fsevents: [ '2.3.2' ],
+32 silly audit   'playwright-core': [ '1.61.1' ]
+32 silly audit }
+33 verbose reify failed optional dependency /home/runner/work/HomeOps/HomeOps/.npm-cache/_npx/e41f203b7505f1fb/node_modules/fsevents
+34 silly reify mark deleted [
+34 silly reify   '/home/runner/work/HomeOps/HomeOps/.npm-cache/_npx/e41f203b7505f1fb/node_modules/fsevents'
+34 silly reify ]
+35 http cache playwright-core@https://registry.npmjs.org/playwright-core/-/playwright-core-1.61.1.tgz 0ms (cache hit)
+36 http cache playwright@https://registry.npmjs.org/playwright/-/playwright-1.61.1.tgz 0ms (cache hit)
+37 silly tarball no local data for playwright-core@https://registry.npmjs.org/playwright-core/-/playwright-core-1.61.1.tgz. Extracting by manifest.
+38 silly tarball no local data for playwright@https://registry.npmjs.org/playwright/-/playwright-1.61.1.tgz. Extracting by manifest.
+39 http fetch POST 200 https://registry.npmjs.org/-/npm/v1/security/advisories/bulk 78ms
+40 silly audit report {}
+41 http fetch GET 200 https://registry.npmjs.org/playwright/-/playwright-1.61.1.tgz 155ms (cache miss)
+42 http fetch GET 200 https://registry.npmjs.org/playwright-core/-/playwright-core-1.61.1.tgz 244ms (cache miss)
+43 verbose cwd /home/runner/work/HomeOps/HomeOps
+44 verbose os Linux 6.17.0-1018-azure
+45 verbose node v22.23.0
+46 verbose npm  v10.9.8
+47 verbose exit 1
+48 verbose code 1

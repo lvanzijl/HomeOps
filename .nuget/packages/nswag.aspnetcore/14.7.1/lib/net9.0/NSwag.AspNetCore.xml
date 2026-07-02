@@ -1,0 +1,358 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>NSwag.AspNetCore</name>
+    </assembly>
+    <members>
+        <member name="T:NSwag.AspNetCore.ApimundoUiSettings">
+            <summary>
+            The Apimundo UI settings.
+            </summary>
+        </member>
+        <member name="M:NSwag.AspNetCore.ApimundoUiSettings.#ctor">
+            <summary>Initializes a new instance of the <see cref="T:NSwag.AspNetCore.ApimundoUiSettings"/> class.</summary>
+        </member>
+        <member name="P:NSwag.AspNetCore.ApimundoUiSettings.CompareWith">
+            <summary>
+            Gets or sets the global document ID to compare with.
+            </summary>
+        </member>
+        <member name="P:NSwag.AspNetCore.ApimundoUiSettings.ApimundoUrl">
+            <summary>
+            Gets or sets the Apimundo instance URL.
+            </summary>
+        </member>
+        <member name="T:NSwag.AspNetCore.JsonExceptionFilterAttribute">
+            <summary>Handles thrown exceptions from action methods and serializes them with the correct HTTP status code.</summary>
+        </member>
+        <member name="M:NSwag.AspNetCore.JsonExceptionFilterAttribute.#ctor(System.Type[])">
+            <summary>Initializes a new instance of the <see cref="T:NSwag.AspNetCore.JsonExceptionFilterAttribute"/> class.</summary>
+            <param name="exceptionTypes">The serialized exception types.</param>
+        </member>
+        <member name="M:NSwag.AspNetCore.JsonExceptionFilterAttribute.#ctor(System.Boolean,System.Type[])">
+            <summary>Initializes a new instance of the <see cref="T:NSwag.AspNetCore.JsonExceptionFilterAttribute"/> class.</summary>
+            <param name="hideStackTrace">If set to <c>true</c> the serializer hides stack trace (i.e. sets the StackTrace to 'HIDDEN').</param>
+            <param name="exceptionTypes">The serialized exception types.</param>
+        </member>
+        <member name="M:NSwag.AspNetCore.JsonExceptionFilterAttribute.#ctor(System.Boolean,System.Collections.Generic.IDictionary{System.String,System.Reflection.Assembly},System.Type[])">
+            <summary>Initializes a new instance of the <see cref="T:NSwag.AspNetCore.JsonExceptionFilterAttribute"/> class.</summary>
+            <param name="hideStackTrace">If set to <c>true</c> the serializer hides stack trace (i.e. sets the StackTrace to 'HIDDEN').</param>
+            <param name="searchedNamespaces">The namespaces and assemblies to search for exception types.</param>
+            <param name="exceptionTypes">The serialized exception types.</param>
+        </member>
+        <member name="M:NSwag.AspNetCore.JsonExceptionFilterAttribute.OnActionExecuted(Microsoft.AspNetCore.Mvc.Filters.ActionExecutedContext)">
+            <summary>Occurs after the action method is invoked.</summary>
+            <param name="context">The action executed context.</param>
+        </member>
+        <member name="T:NSwag.AspNetCore.Middlewares.OpenApiDocumentMiddleware">
+            <summary>Generates a Swagger specification on a given path.</summary>
+        </member>
+        <member name="M:NSwag.AspNetCore.Middlewares.OpenApiDocumentMiddleware.#ctor(Microsoft.AspNetCore.Http.RequestDelegate,System.IServiceProvider,System.String,System.String,NSwag.AspNetCore.OpenApiDocumentMiddlewareSettings)">
+            <summary>Initializes a new instance of the <see cref="T:NSwag.AspNetCore.Middlewares.OpenApiDocumentMiddleware"/> class.</summary>
+            <param name="nextDelegate">The next delegate.</param>
+            <param name="serviceProvider">The service provider.</param>
+            <param name="documentName">The document name.</param>
+            <param name="path">The document path.</param>
+            <param name="settings">The settings.</param>
+        </member>
+        <member name="M:NSwag.AspNetCore.Middlewares.OpenApiDocumentMiddleware.Invoke(Microsoft.AspNetCore.Http.HttpContext)">
+            <summary>Invokes the specified context.</summary>
+            <param name="context">The context.</param>
+            <returns>The task.</returns>
+        </member>
+        <member name="M:NSwag.AspNetCore.Middlewares.OpenApiDocumentMiddleware.GetDocumentAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <summary>Generates or gets the cached Swagger specification.</summary>
+            <param name="context">The context.</param>
+            <returns>The Swagger specification.</returns>
+        </member>
+        <member name="M:NSwag.AspNetCore.Middlewares.OpenApiDocumentMiddleware.GenerateDocumentAsync(Microsoft.AspNetCore.Http.HttpContext)">
+            <summary>Generates the Swagger specification.</summary>
+            <param name="context">The context.</param>
+            <returns>The Swagger specification.</returns>
+        </member>
+        <member name="T:NSwag.AspNetCore.OAuth2ClientSettings">
+            <summary>The OAuth client settings.</summary>
+        </member>
+        <member name="P:NSwag.AspNetCore.OAuth2ClientSettings.ClientId">
+            <summary>Gets or sets the client identifier.</summary>
+        </member>
+        <member name="P:NSwag.AspNetCore.OAuth2ClientSettings.ClientSecret">
+            <summary>Gets or sets the client secret.</summary>
+        </member>
+        <member name="P:NSwag.AspNetCore.OAuth2ClientSettings.Realm">
+            <summary>Gets or sets the realm.</summary>
+        </member>
+        <member name="P:NSwag.AspNetCore.OAuth2ClientSettings.AppName">
+            <summary>Gets or sets the name of the application.</summary>
+        </member>
+        <member name="P:NSwag.AspNetCore.OAuth2ClientSettings.ScopeSeparator">
+            <summary>Gets or sets the scope separator.</summary>
+        </member>
+        <member name="P:NSwag.AspNetCore.OAuth2ClientSettings.Scopes">
+            <summary>Gets or sets initially selected scopes.</summary>
+        </member>
+        <member name="P:NSwag.AspNetCore.OAuth2ClientSettings.AdditionalQueryStringParameters">
+            <summary>Gets or sets the additional query string parameters.</summary>
+        </member>
+        <member name="P:NSwag.AspNetCore.OAuth2ClientSettings.UsePkceWithAuthorizationCodeGrant">
+            <summary>Proof Key for Code Exchange. Only applies to `accessCode` flow. Supported in SwaggerUI 3.</summary>
+        </member>
+        <member name="T:NSwag.AspNetCore.OpenApiDocumentMiddlewareSettings">
+            <summary>The Swagger middleware settings.</summary>
+        </member>
+        <member name="P:NSwag.AspNetCore.OpenApiDocumentMiddlewareSettings.DocumentName">
+            <summary>Gets the document name (internal identifier, default: v1).</summary>
+            <remarks>Ignored when <see cref="P:NSwag.AspNetCore.OpenApiDocumentMiddlewareSettings.Path"/> contains '{documentName}' placeholder.</remarks>
+        </member>
+        <member name="P:NSwag.AspNetCore.OpenApiDocumentMiddlewareSettings.Path">
+            <summary>Gets or sets the path to serve the OpenAPI/Swagger document (default: '/swagger/{documentName}/swagger.json').</summary>
+            <remarks>May contain '{documentName}' placeholder to register multiple routes.</remarks>
+        </member>
+        <member name="P:NSwag.AspNetCore.OpenApiDocumentMiddlewareSettings.ExceptionCacheTime">
+            <summary>Gets or sets for how long a <see cref="T:System.Exception"/> caught during schema generation is cached.</summary>
+        </member>
+        <member name="P:NSwag.AspNetCore.OpenApiDocumentMiddlewareSettings.PostProcess">
+            <summary>Gets or sets the Swagger post process action.
+            Should only be used to transform the document related to the request.
+            Caution: This action will not be called by the CLI or NSwagStudio
+            (use PostProcess in AddSwaggerDocument instead).</summary>
+        </member>
+        <member name="P:NSwag.AspNetCore.OpenApiDocumentMiddlewareSettings.CreateDocumentCacheKey">
+            <summary>
+            Should be used in a case when your application is exposed under different URLs, e.g. the application
+            is accessible from your internal network and behind a reverse-proxy. In this case, NSwag has to generate
+            a separate JSON document for every access point. As for the callback, the application has to tell
+            NSwag which swagger JSON document it should return by providing a unique key that matches the required
+            access point (either it's an internal network HTTP request or an HTTP request from a reverse-proxy).
+            Hint: In a case of reverse proxy, the key may include of X-Forwarded-Host/X-Forwarded-Proto header values.
+            <seealso cref="P:NSwag.AspNetCore.OpenApiDocumentMiddlewareSettings.PostProcess"/>
+            </summary>
+        </member>
+        <member name="T:NSwag.AspNetCore.OpenApiDocumentRegistration">
+            <summary>A Swagger/OpenAPI document generator registration.</summary>
+        </member>
+        <member name="M:NSwag.AspNetCore.OpenApiDocumentRegistration.#ctor(System.String,NSwag.Generation.AspNetCore.AspNetCoreOpenApiDocumentGeneratorSettings)">
+            <summary>Initializes a new instance of the <see cref="T:NSwag.AspNetCore.OpenApiDocumentRegistration"/> class.</summary>
+            <param name="documentName">The document name.</param>
+            <param name="settings">The document generator settings.</param>
+        </member>
+        <member name="P:NSwag.AspNetCore.OpenApiDocumentRegistration.DocumentName">
+            <summary>Gets the document name.</summary>
+        </member>
+        <member name="P:NSwag.AspNetCore.OpenApiDocumentRegistration.Settings">
+            <summary>Gets the document generator settings.</summary>
+        </member>
+        <member name="T:NSwag.AspNetCore.ReDocSettings">
+            <summary>The settings for UseReDoc.</summary>
+        </member>
+        <member name="P:NSwag.AspNetCore.ReDocSettings.AdditionalSettings">
+            <summary>Gets the additional ReDoc settings.</summary>
+        </member>
+        <member name="P:NSwag.AspNetCore.ReDocSettings.DocumentTitle">
+            <summary>
+            Gets or sets a title for the ReDoc page.
+            </summary>
+        </member>
+        <member name="T:NSwag.AspNetCore.SwaggerSettings">
+            <summary>The settings for UseSwagger.</summary>
+        </member>
+        <member name="M:NSwag.AspNetCore.SwaggerSettings.#ctor">
+            <summary>Initializes a new instance of the class.</summary>
+        </member>
+        <member name="P:NSwag.AspNetCore.SwaggerSettings.MiddlewareBasePath">
+            <summary>Gets or sets the OWIN base path (when mapped via app.MapOwinPath()) (must start with '/').</summary>
+        </member>
+        <member name="P:NSwag.AspNetCore.SwaggerSettings.DocumentPath">
+            <summary>Gets or sets the Swagger document route (must start with '/', default: '/swagger/{documentName}/swagger.json').</summary>
+            <remarks>May contain '{documentName}' placeholder to register multiple routes.</remarks>
+        </member>
+        <member name="T:NSwag.AspNetCore.SwaggerUiSettings">
+            <summary>The settings for UseSwaggerUi.</summary>
+        </member>
+        <member name="M:NSwag.AspNetCore.SwaggerUiSettings.#ctor">
+            <summary>Initializes a new instance of the class.</summary>
+        </member>
+        <member name="P:NSwag.AspNetCore.SwaggerUiSettings.OAuth2Client">
+            <summary>Gets or sets the Swagger UI OAuth2 client settings.</summary>
+        </member>
+        <member name="P:NSwag.AspNetCore.SwaggerUiSettings.ServerUrl">
+            <summary>Gets or sets the server URL.</summary>
+        </member>
+        <member name="P:NSwag.AspNetCore.SwaggerUiSettings.EnableTryItOut">
+            <summary>Specifies whether the "Try it out" option is enabled in Swagger UI 3.</summary>
+        </member>
+        <member name="P:NSwag.AspNetCore.SwaggerUiSettings.DocumentTitle">
+            <summary>
+            Gets or sets a title for the Swagger UI page.
+            </summary>
+        </member>
+        <member name="P:NSwag.AspNetCore.SwaggerUiSettings.CustomHeadContent">
+            <summary>
+            Gets or sets additional content to place in the head of the Swagger UI page.
+            </summary>
+        </member>
+        <member name="P:NSwag.AspNetCore.SwaggerUiSettings.ValidateSpecification">
+            <summary>Gets or sets a value indicating whether the Swagger specification should be validated.</summary>
+        </member>
+        <member name="P:NSwag.AspNetCore.SwaggerUiSettings.AdditionalSettings">
+            <summary>Gets the additional Swagger UI 3 settings.</summary>
+        </member>
+        <member name="P:NSwag.AspNetCore.SwaggerUiSettings.DocExpansion">
+            <summary>Controls how the API listing is displayed. It can be set to 'none' (default), 'list' (shows operations for each resource), or 'full' (fully expanded: shows operations and their details).</summary>
+        </member>
+        <member name="P:NSwag.AspNetCore.SwaggerUiSettings.OperationsSorter">
+            <summary>Specifies the operations sorter in Swagger UI 3.</summary>
+        </member>
+        <member name="P:NSwag.AspNetCore.SwaggerUiSettings.DefaultModelsExpandDepth">
+            <summary>The default expansion depth for models (set to -1 completely hide the models) in Swagger UI 3.</summary>
+        </member>
+        <member name="P:NSwag.AspNetCore.SwaggerUiSettings.DefaultModelExpandDepth">
+            <summary>The default expansion depth for the model on the model-example section in Swagger UI 3.</summary>
+        </member>
+        <member name="P:NSwag.AspNetCore.SwaggerUiSettings.TagsSorter">
+            <summary>Specifies the tags sorter in Swagger UI 3</summary>
+        </member>
+        <member name="P:NSwag.AspNetCore.SwaggerUiSettings.PersistAuthorization">
+            <summary>Specifies whether to persist authorization data in Swagger UI 3.</summary>
+        </member>
+        <member name="P:NSwag.AspNetCore.SwaggerUiSettings.WithCredentials">
+            <summary>Gets a value indicating whether to send credentials from the Swagger UI 3 to the backend.</summary>
+        </member>
+        <member name="P:NSwag.AspNetCore.SwaggerUiSettings.SwaggerRoutes">
+            <summary>Gets or sets the Swagger URL routes (must start with '/', hides SwaggerRoute).</summary>
+        </member>
+        <member name="P:NSwag.AspNetCore.SwaggerUiSettings.SwaggerRoutesFactory">
+            <summary>Gets or sets the Swagger URL routes factory (SwaggerRoutes is ignored when set).</summary>
+        </member>
+        <member name="T:NSwag.AspNetCore.SwaggerUiRoute">
+            <summary>Specifies a route in the Swagger dropdown.</summary>
+        </member>
+        <member name="M:NSwag.AspNetCore.SwaggerUiRoute.#ctor(System.String,System.String)">
+            <summary>Initializes a new instance of the <see cref="T:NSwag.AspNetCore.SwaggerUiRoute"/> class.</summary>
+        </member>
+        <member name="P:NSwag.AspNetCore.SwaggerUiRoute.Url">
+            <summary>Gets the route URL.</summary>
+        </member>
+        <member name="P:NSwag.AspNetCore.SwaggerUiRoute.Name">
+            <summary>Gets the route name.</summary>
+        </member>
+        <member name="T:NSwag.AspNetCore.SwaggerUiSettingsBase">
+            <summary>The base settings for all Swagger UIs.</summary>
+        </member>
+        <member name="M:NSwag.AspNetCore.SwaggerUiSettingsBase.#ctor">
+            <summary>Initializes a new instance of the class.</summary>
+        </member>
+        <member name="P:NSwag.AspNetCore.SwaggerUiSettingsBase.Path">
+            <summary>Gets or sets the internal swagger UI route (must start with '/').</summary>
+        </member>
+        <member name="P:NSwag.AspNetCore.SwaggerUiSettingsBase.CustomInlineStyles">
+            <summary>Gets or sets custom inline styling to inject into the index.html</summary>
+        </member>
+        <member name="P:NSwag.AspNetCore.SwaggerUiSettingsBase.CustomStylesheetPath">
+            <summary>Gets or sets a URI to load a custom CSS Stylesheet into the index.html</summary>
+        </member>
+        <member name="P:NSwag.AspNetCore.SwaggerUiSettingsBase.CustomJavaScriptPath">
+            <summary>Gets or sets a URI to load a custom JavaScript file into the index.html.</summary>
+        </member>
+        <member name="P:NSwag.AspNetCore.SwaggerUiSettingsBase.UseModuleTypeForCustomJavaScript">
+            <summary>Gets or sets a flag that indicates to use or not type="module" in a custom script tag (default: false).</summary>
+        </member>
+        <member name="P:NSwag.AspNetCore.SwaggerUiSettingsBase.TransformToExternalPath">
+            <summary>Gets or sets the external route base path (must start with '/', default: null = use SwaggerUiRoute).</summary>
+        </member>
+        <member name="M:NSwag.AspNetCore.SwaggerUiSettingsBase.GetCustomStyleHtml(Microsoft.AspNetCore.Http.HttpRequest)">
+            <summary>
+            Gets an HTML snippet for including custom StyleSheet in swagger UI.
+            </summary>
+        </member>
+        <member name="M:NSwag.AspNetCore.SwaggerUiSettingsBase.GetCustomScriptHtml(Microsoft.AspNetCore.Http.HttpRequest)">
+            <summary>
+            Gets an HTML snippet for including custom JavaScript in swagger UI.
+            </summary>
+        </member>
+        <member name="M:NSwag.AspNetCore.SwaggerUiSettingsBase.GenerateAdditionalSettings(System.Collections.Generic.IDictionary{System.String,System.Object})">
+            <summary>Generates the additional objects JavaScript code.</summary>
+            <param name="additionalSettings">The additional settings.</param>
+            <returns>The code.</returns>
+        </member>
+        <member name="T:Microsoft.AspNetCore.Builder.NSwagApplicationBuilderExtensions">
+            <summary>NSwag extensions for <see cref="T:Microsoft.AspNetCore.Builder.IApplicationBuilder"/>.</summary>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Builder.NSwagApplicationBuilderExtensions.UseOpenApi(Microsoft.AspNetCore.Builder.IApplicationBuilder,System.Action{NSwag.AspNetCore.OpenApiDocumentMiddlewareSettings})">
+            <summary>Adds the OpenAPI/Swagger generator that uses the ASP.NET Core API Explorer 
+            (default route defined in document: /swagger/v1/swagger.json).</summary>
+            <remarks>Registers multiple routes/documents if the settings.Path contains a '{documentName}' placeholder.</remarks>
+            <param name="app">The app.</param>
+            <param name="configure">Configure additional settings.</param>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Builder.NSwagApplicationBuilderExtensions.UseSwaggerUi(Microsoft.AspNetCore.Builder.IApplicationBuilder,System.Action{NSwag.AspNetCore.SwaggerUiSettings})">
+            <summary>Adds the Swagger UI (UI only) to the pipeline (default route: /swagger).</summary>
+            <remarks>The settings.GeneratorSettings property does not have any effect.</remarks>
+            <param name="app">The app.</param>
+            <param name="configure">Configure the Swagger settings.</param>
+            <returns>The app builder.</returns>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Builder.NSwagApplicationBuilderExtensions.UseReDoc(Microsoft.AspNetCore.Builder.IApplicationBuilder,System.Action{NSwag.AspNetCore.ReDocSettings})">
+            <summary>Adds the ReDoc UI (UI only) to the pipeline (default route: /swagger).</summary>
+            <remarks>The settings.GeneratorSettings property does not have any effect.</remarks>
+            <param name="app">The app.</param>
+            <param name="configure">Configure the Swagger settings.</param>
+            <returns>The app builder.</returns>
+        </member>
+        <member name="M:Microsoft.AspNetCore.Builder.NSwagApplicationBuilderExtensions.UseApimundo(Microsoft.AspNetCore.Builder.IApplicationBuilder,System.Action{NSwag.AspNetCore.ApimundoUiSettings})">
+            <summary>Adds a redirect to the Apimundo.com user interface to the pipeline (default route: /apimundo).</summary>
+            <remarks>The settings.GeneratorSettings property does not have any effect.</remarks>
+            <param name="app">The app.</param>
+            <param name="configure">Configure the UI settings.</param>
+            <returns>The app builder.</returns>
+        </member>
+        <member name="T:Microsoft.Extensions.DependencyInjection.NSwagServiceCollectionExtensions">
+            <summary>NSwag extensions for <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/>.</summary>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.NSwagServiceCollectionExtensions.AddOpenApiDocument(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Action{NSwag.Generation.AspNetCore.AspNetCoreOpenApiDocumentGeneratorSettings})">
+            <summary>Adds services required for OpenAPI 3.0 generation (change document settings to generate Swagger 2.0).</summary>
+            <param name="serviceCollection">The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/>.</param>
+            <param name="configure">Configure the document.</param>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.NSwagServiceCollectionExtensions.AddOpenApiDocument(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Action{NSwag.Generation.AspNetCore.AspNetCoreOpenApiDocumentGeneratorSettings,System.IServiceProvider})">
+            <summary>Adds services required for OpenAPI 3.0 generation (change document settings to generate Swagger 2.0).</summary>
+            <param name="serviceCollection">The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/>.</param>
+            <param name="configure">Configure the document.</param>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.NSwagServiceCollectionExtensions.AddSwaggerDocument(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Action{NSwag.Generation.AspNetCore.AspNetCoreOpenApiDocumentGeneratorSettings})">
+            <summary>Adds services required for Swagger 2.0 generation (change document settings to generate OpenAPI 3.0).</summary>
+            <param name="serviceCollection">The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/>.</param>
+            <param name="configure">Configure the document.</param>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.NSwagServiceCollectionExtensions.AddSwaggerDocument(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Action{NSwag.Generation.AspNetCore.AspNetCoreOpenApiDocumentGeneratorSettings,System.IServiceProvider})">
+            <summary>Adds services required for Swagger 2.0 generation (change document settings to generate OpenAPI 3.0).</summary>
+            <param name="serviceCollection">The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/>.</param>
+            <param name="configure">Configure the document.</param>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.NSwagServiceCollectionExtensions.AddSwagger(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Action{NSwag.Generation.AspNetCore.AspNetCoreOpenApiDocumentGeneratorSettings})">
+            <summary>Adds services required for Swagger 2.0 generation (change document settings to generate OpenAPI 3.0).</summary>
+            <param name="serviceCollection">The <see cref="T:Microsoft.Extensions.DependencyInjection.IServiceCollection"/>.</param>
+            <param name="configure">Configure the document.</param>
+        </member>
+        <member name="T:Microsoft.Extensions.DependencyInjection.NSwagSwaggerGeneratorSettingsExtensions">
+            <summary>
+            Extensions for the <see cref="T:NSwag.Generation.OpenApiDocumentGeneratorSettings"/>.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.NSwagSwaggerGeneratorSettingsExtensions.AddSecurity(NSwag.Generation.OpenApiDocumentGeneratorSettings,System.String,NSwag.OpenApiSecurityScheme)">
+            <summary>Appends the OAuth2 security scheme and requirement to the document's security definitions.</summary>
+            <remarks>Adds a <see cref="T:NSwag.Generation.Processors.Security.SecurityDefinitionAppender"/> document processor with the given arguments.</remarks>
+            <param name="settings">The settings.</param>
+            <param name="name">The name/key of the security scheme/definition.</param>
+            <param name="swaggerSecurityScheme">The Swagger security scheme.</param>
+        </member>
+        <member name="M:Microsoft.Extensions.DependencyInjection.NSwagSwaggerGeneratorSettingsExtensions.AddSecurity(NSwag.Generation.OpenApiDocumentGeneratorSettings,System.String,System.Collections.Generic.IEnumerable{System.String},NSwag.OpenApiSecurityScheme)">
+            <summary>Appends the OAuth2 security scheme and requirement to the document's security definitions.</summary>
+            <remarks>Adds a <see cref="T:NSwag.Generation.Processors.Security.SecurityDefinitionAppender"/> document processor with the given arguments.</remarks>
+            <param name="settings">The settings.</param>
+            <param name="name">The name/key of the security scheme/definition.</param>
+            <param name="globalScopeNames">The global scope names to add to as security requirement with the scheme name in the document's 'security' property (can be an empty list).</param>
+            <param name="swaggerSecurityScheme">The Swagger security scheme.</param>
+        </member>
+    </members>
+</doc>

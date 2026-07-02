@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, type ReactNode, useEffect, useMemo, useState } from "react";
 import {
   familyMembers as fallbackFamilyMembers,
   type FamilyMember,
@@ -25,10 +25,21 @@ import type {
   HouseholdTask,
   TaskOwnershipKind,
   TaskRecurrenceFrequency,
+  TaskTimeGroup,
   TaskTemplate,
 } from "./tasksModel";
 
 type TaskDialogQuestion = "title" | "owner" | "date" | "extras";
+type PlanningSection = "tomorrow" | "thisWeek" | "later";
+type TasksPanelState =
+  | { kind: "planning"; section: PlanningSection }
+  | { kind: "today" }
+  | { kind: "completed" }
+  | { kind: "someday" }
+  | { kind: "templates" }
+  | { kind: "weeklyReview" };
+
+const defaultVisibleTodayTasks = 6;
 
 export function TasksPage({
   members = fallbackFamilyMembers,
@@ -52,8 +63,7 @@ export function TasksPage({
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
   const [taskDialogQuestion, setTaskDialogQuestion] =
     useState<TaskDialogQuestion>("title");
-  const [isTemplatesOpen, setIsTemplatesOpen] = useState(false);
-  const [isWeeklyResetOpen, setIsWeeklyResetOpen] = useState(false);
+  const [activePanel, setActivePanel] = useState<TasksPanelState | null>(null);
   const [templateName, setTemplateName] = useState("");
   const [templateDescription, setTemplateDescription] = useState("");
   const [editingTemplate, setEditingTemplate] = useState<TaskTemplate | null>(
@@ -77,16 +87,38 @@ export function TasksPage({
     () => groupTasksByTime(tasks, todayIso),
     [tasks, todayIso],
   );
-  const primaryTaskGroups = useMemo(
-    () => groups.filter((group) => group.id === "today"),
+  const todayGroup = useMemo<TaskTimeGroup>(
+    () =>
+      groups.find((group) => group.id === "today") ??
+      createFallbackTaskGroup(
+        "today",
+        "Vandaag",
+        "Nu eerst: alles wat vandaag aandacht nodig heeft.",
+        "Vandaag is alles gedaan.",
+        "primary",
+      ),
     [groups],
   );
   const tomorrowGroup = useMemo(
-    () => groups.find((group) => group.id === "tomorrow") ?? null,
+    () =>
+      groups.find((group) => group.id === "tomorrow") ??
+      createFallbackTaskGroup(
+        "tomorrow",
+        "Morgen",
+        "Klaarzetten zonder de dag drukker te maken.",
+        "Geen taken gepland voor morgen.",
+      ),
     [groups],
   );
   const thisWeekGroup = useMemo(
-    () => groups.find((group) => group.id === "thisWeek") ?? null,
+    () =>
+      groups.find((group) => group.id === "thisWeek") ??
+      createFallbackTaskGroup(
+        "thisWeek",
+        "Deze week",
+        "Binnenkort, maar niet meteen nu.",
+        "Deze week staat er verder niets open.",
+      ),
     [groups],
   );
   const laterQueueGroup = useMemo(() => {
@@ -98,7 +130,6 @@ export function TasksPage({
         group.id !== "completedRecently",
     );
     const laterTasks = laterGroups.flatMap((group) => group.tasks);
-    if (laterTasks.length === 0) return null;
     return {
       id: "later" as const,
       title: "Later",
@@ -108,8 +139,16 @@ export function TasksPage({
       tasks: laterTasks,
     };
   }, [groups]);
-  const completedTaskGroup = useMemo(
-    () => groups.find((group) => group.id === "completedRecently") ?? null,
+  const completedTaskGroup = useMemo<TaskTimeGroup>(
+    () =>
+      groups.find((group) => group.id === "completedRecently") ??
+      createFallbackTaskGroup(
+        "completedRecently",
+        "Afgerond",
+        "Net klaar, zodat terugzetten mogelijk blijft.",
+        "Nog niets afgerond.",
+        "quiet",
+      ),
     [groups],
   );
   const todaySummary = useMemo(() => {
@@ -123,6 +162,80 @@ export function TasksPage({
       recurring: todayTasks.filter(isRecurringTask).length,
     };
   }, [groups, todayIso]);
+  const laterGroup = useMemo<TaskTimeGroup>(
+    () =>
+      laterQueueGroup ??
+      createFallbackTaskGroup(
+        "later",
+        "Later",
+        "Rustig vooruit kijken.",
+        "Niets voor later op dit moment.",
+        "quiet",
+      ),
+    [laterQueueGroup],
+  );
+  const visibleTodayTasks = useMemo(
+    () => todayGroup.tasks.slice(0, defaultVisibleTodayTasks),
+    [todayGroup.tasks],
+  );
+  const todayOverflowCount = todayGroup.tasks.length - visibleTodayTasks.length;
+  const planningTasks = useMemo(
+    () => [...tomorrowGroup.tasks, ...thisWeekGroup.tasks],
+    [thisWeekGroup.tasks, tomorrowGroup.tasks],
+  );
+  const planningSignals = useMemo(() => {
+    const signals: string[] = [];
+    const unassignedCount = planningTasks.filter(
+      (task) => task.ownershipKind === "Unassigned",
+    ).length;
+    const recurringCount = planningTasks.filter(isRecurringTask).length;
+    const nextPlanningTask = tomorrowGroup.tasks[0] ?? thisWeekGroup.tasks[0];
+
+    if (unassignedCount > 0) {
+      signals.push(
+        `${unassignedCount} zonder eigenaar${
+          unassignedCount === 1 ? "" : "s"
+        }`,
+      );
+    }
+
+    if (reviewTasks.length > 0) {
+      signals.push(
+        `${reviewTasks.length} weekcheck${
+          reviewTasks.length === 1 ? "" : "s"
+        }`,
+      );
+    }
+
+    if (recurringCount > 0) {
+      signals.push(
+        `${recurringCount} routine${
+          recurringCount === 1 ? "" : "s"
+        } in planning`,
+      );
+    }
+
+    if (nextPlanningTask) {
+      signals.push(`Eerstvolgend: ${nextPlanningTask.title}`);
+    }
+
+    return signals.slice(0, 3);
+  }, [planningTasks, reviewTasks.length, thisWeekGroup.tasks, tomorrowGroup.tasks]);
+  const planningStatus = useMemo(() => {
+    if (tomorrowGroup.tasks.length === 0 && thisWeekGroup.tasks.length === 0) {
+      return "Morgen en deze week ogen rustig.";
+    }
+
+    if (tomorrowGroup.tasks.length > 0 && thisWeekGroup.tasks.length === 0) {
+      return `${formatTaskCount(tomorrowGroup.tasks.length)} komt morgen eraan.`;
+    }
+
+    if (tomorrowGroup.tasks.length === 0 && thisWeekGroup.tasks.length > 0) {
+      return `Morgen is rustig; ${formatTaskCount(thisWeekGroup.tasks.length)} staan later deze week gepland.`;
+    }
+
+    return `${formatTaskCount(tomorrowGroup.tasks.length)} morgen, ${formatTaskCount(thisWeekGroup.tasks.length)} later deze week.`;
+  }, [thisWeekGroup.tasks.length, tomorrowGroup.tasks.length]);
 
   useEffect(() => {
     if (
@@ -134,15 +247,20 @@ export function TasksPage({
   }, [familyMemberId, members, ownership]);
 
   useEffect(() => {
-    if (!isTaskFormOpen && !editingTask) return;
+    if (!isTaskFormOpen && !editingTask && !activePanel) return;
     const close = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
-        resetTaskForm();
+        if (isTaskFormOpen || editingTask) {
+          resetTaskForm();
+          return;
+        }
+
+        setActivePanel(null);
       }
     };
     window.addEventListener("keydown", close);
     return () => window.removeEventListener("keydown", close);
-  }, [editingTask, isTaskFormOpen]);
+  }, [activePanel, editingTask, isTaskFormOpen]);
 
   function resetTaskForm() {
     setTitle("");
@@ -237,7 +355,7 @@ export function TasksPage({
     setEditingTemplate(template);
     setTemplateName(template.name);
     setTemplateDescription(template.description ?? "");
-    setIsTemplatesOpen(true);
+    setActivePanel({ kind: "templates" });
     if (first) {
       setTitle(first.title);
       setOwnership(first.ownershipKind);
@@ -361,228 +479,146 @@ export function TasksPage({
       aria-label="Takenpagina"
       onClick={() => setSelectedTaskId(null)}
     >
-      <header className="tasks-header page-header-with-actions">
-        <div>
+      <header className="tasks-command-band">
+        <div className="tasks-command-copy">
           <p className="widget-type">Familie-acties voor vandaag</p>
           <h3>Taken voor het gezin</h3>
-          <p>
-            Begin met wat nu aandacht nodig heeft; de rest blijft rustig
-            klaarstaan.
-          </p>
+          <p>Doe vandaag eerst; planning en beheer blijven compact beschikbaar.</p>
         </div>
-        {!isLoading && tasks.length > 0 ? (
-          <div className="page-header-actions" aria-label="Primaire taakactie">
-            <button
-              className="compact-header-action primary"
-              type="button"
-              onClick={openNewTaskDialog}
-            >
-              Gezinstaak toevoegen
-            </button>
-          </div>
-        ) : null}
-      </header>
-      {!isLoading && tasks.length > 0 ? (
-        <section
-          className="task-today-summary"
-          aria-label="Vandaag samenvatting"
-        >
-          <strong>Vandaag in beeld</strong>
-          <span>
-            {todaySummary.total} {todaySummary.total === 1 ? "taak" : "taken"}
+        <div className="tasks-command-status" aria-label="Vandaag samenvatting">
+          <span className="task-summary-chip">
+            Vandaag {todaySummary.total}
           </span>
-          <span>{todaySummary.overdue} te laat</span>
-          <span>
+          <span className="task-summary-chip">
+            {todaySummary.overdue} te laat
+          </span>
+          <span className="task-summary-chip">
             {todaySummary.recurring} routine
             {todaySummary.recurring === 1 ? "" : "s"}
           </span>
-        </section>
-      ) : null}
+          <span className="task-summary-chip">
+            {reviewTasks.length} weekcheck
+            {reviewTasks.length === 1 ? "" : "s"}
+          </span>
+        </div>
+        <div className="page-header-actions" aria-label="Primaire taakactie">
+          <button
+            className="compact-header-action primary"
+            type="button"
+            onClick={openNewTaskDialog}
+          >
+            Gezinstaak toevoegen
+          </button>
+        </div>
+      </header>
       {error ? (
         <p className="shopping-empty" role="alert">
           {error}
         </p>
       ) : null}
-      {isLoading ? (
-        <p className="shopping-empty">Taken laden…</p>
-      ) : tasks.length === 0 ? (
-        <div className="empty-state-card page-empty-state">
-          <strong>Voeg de eerste helpende taak toe</strong>
-          <p>
-            Taken maken hulp zichtbaar zonder van de dag administratie te maken.
-          </p>
-          <button type="button" onClick={openNewTaskDialog}>
-            Gezinstaak toevoegen
-          </button>
-        </div>
-      ) : (
-        <section className="tasks-dashboard-grid" aria-label="Taken dashboard">
-          <div
-            className="tasks-dashboard-primary"
-            aria-label="Aandacht voor nu"
-          >
-            {primaryTaskGroups.length > 0 ? (
-              primaryTaskGroups.map((group) => (
-                <TaskGroup
-                  density="primary"
-                  group={group}
-                  key={group.id}
-                  members={members}
-                  tasks={group.tasks}
-                  todayDate={todayDate}
-                  todayIso={todayIso}
-                  onDeleteSeries={deleteSeries}
-                  onEdit={startEditing}
-                  onMoveToTomorrow={moveTaskToTomorrow}
-                  selectedTaskId={selectedTaskId}
-                  onSelectTask={setSelectedTaskId}
-                  onUpdate={updateTask}
-                />
-              ))
-            ) : (
-              <section className="task-group task-time-group today-focus empty-today-panel">
-                <div className="task-group-heading">
-                  <div>
-                    <p className="task-group-kicker">Nu eerst</p>
-                    <h4>Vandaag</h4>
-                    <p>Vandaag is alles gedaan.</p>
-                  </div>
-                  <span>0 taken</span>
-                </div>
-                <p className="shopping-empty">
-                  Er vraagt nu niets direct aandacht.
+      <section className="tasks-dashboard-grid" aria-label="Taken dashboard">
+        <TaskGroup
+          countOverride={todayGroup.tasks.length}
+          density="primary"
+          group={todayGroup}
+          members={members}
+          tasks={isLoading ? [] : visibleTodayTasks}
+          todayDate={todayDate}
+          todayIso={todayIso}
+          onDeleteSeries={deleteSeries}
+          onEdit={startEditing}
+          onMoveToTomorrow={moveTaskToTomorrow}
+          selectedTaskId={selectedTaskId}
+          onSelectTask={setSelectedTaskId}
+          onUpdate={updateTask}
+          emptyState={
+            isLoading ? (
+              <p className="shopping-empty">Taken laden…</p>
+            ) : tasks.length === 0 ? (
+              <div className="task-card-empty-state">
+                <strong>Voeg de eerste helpende taak toe</strong>
+                <p>
+                  Taken maken hulp zichtbaar zonder van de dag administratie te
+                  maken.
                 </p>
-              </section>
-            )}
-          </div>
-          <div
-            className="tasks-dashboard-planning"
-            aria-label="Wat daarna komt"
-          >
-            {tomorrowGroup ? (
-              <TaskGroup
-                density="planning"
-                group={tomorrowGroup}
-                members={members}
-                tasks={tomorrowGroup.tasks}
-                todayDate={todayDate}
-                todayIso={todayIso}
-                onDeleteSeries={deleteSeries}
-                onEdit={startEditing}
-                onMoveToTomorrow={moveTaskToTomorrow}
-                selectedTaskId={selectedTaskId}
-                onSelectTask={setSelectedTaskId}
-                onUpdate={updateTask}
-              />
+                <button type="button" onClick={openNewTaskDialog}>
+                  Gezinstaak toevoegen
+                </button>
+              </div>
             ) : (
-              <PlanningPlaceholder
-                title="Morgen"
-                description="Klaarzetten zonder de dag drukker te maken."
-                emptyMessage="Geen taken gepland voor morgen."
-                className="task-time-group-tomorrow"
-              />
-            )}
-            {thisWeekGroup ? (
-              <TaskGroup
-                density="planning"
-                group={thisWeekGroup}
-                members={members}
-                tasks={thisWeekGroup.tasks}
-                todayDate={todayDate}
-                todayIso={todayIso}
-                onDeleteSeries={deleteSeries}
-                onEdit={startEditing}
-                onMoveToTomorrow={moveTaskToTomorrow}
-                selectedTaskId={selectedTaskId}
-                onSelectTask={setSelectedTaskId}
-                onUpdate={updateTask}
-              />
-            ) : (
-              <PlanningPlaceholder
-                title="Deze week"
-                description="Binnenkort, maar niet meteen nu."
-                emptyMessage="Deze week staat er verder niets open."
-                className="task-time-group-thisWeek"
-              />
-            )}
-          </div>
-          <div
-            className="tasks-dashboard-queues"
-            aria-label="Later en terugkijken"
-          >
-            {laterQueueGroup ? (
-              <TaskGroup
-                density="compact"
-                group={laterQueueGroup}
-                members={members}
-                tasks={laterQueueGroup.tasks}
-                todayDate={todayDate}
-                todayIso={todayIso}
-                onDeleteSeries={deleteSeries}
-                onEdit={startEditing}
-                onMoveToTomorrow={moveTaskToTomorrow}
-                selectedTaskId={selectedTaskId}
-                onSelectTask={setSelectedTaskId}
-                onUpdate={updateTask}
-              />
-            ) : (
-              <PlanningPlaceholder
-                title="Later"
-                description="Rustig vooruit kijken."
-                emptyMessage="Niets voor later op dit moment."
-                className="task-time-group-later"
-              />
-            )}
-            {completedTaskGroup ? (
-              <TaskGroup
-                density="compact"
-                group={completedTaskGroup}
-                members={members}
-                tasks={completedTaskGroup.tasks}
-                todayDate={todayDate}
-                todayIso={todayIso}
-                onDeleteSeries={deleteSeries}
-                onEdit={startEditing}
-                onMoveToTomorrow={moveTaskToTomorrow}
-                selectedTaskId={selectedTaskId}
-                onSelectTask={setSelectedTaskId}
-                onUpdate={updateTask}
-              />
-            ) : (
-              <PlanningPlaceholder
-                title="Voltooid"
-                description="Net klaar, zodat terugzetten mogelijk blijft."
-                emptyMessage="Nog niets afgerond."
-                className="task-time-group-completedRecently"
-              />
-            )}
-          </div>
-        </section>
-      )}
+              <p className="shopping-empty">
+                Er vraagt nu niets direct aandacht.
+              </p>
+            )
+          }
+          footerAction={
+            todayOverflowCount > 0 ? (
+              <button
+                type="button"
+                className="task-list-summary"
+                onClick={() => setActivePanel({ kind: "today" })}
+              >
+                +{todayOverflowCount} meer vandaag
+              </button>
+            ) : null
+          }
+          scrollable={todayGroup.tasks.length > defaultVisibleTodayTasks}
+        />
+        <PlanningSummaryPanel
+          isLoading={isLoading}
+          laterCount={laterGroup.tasks.length}
+          planningSignals={planningSignals}
+          planningStatus={planningStatus}
+          reviewCount={reviewTasks.length}
+          thisWeekGroup={thisWeekGroup}
+          tomorrowGroup={tomorrowGroup}
+          onOpenPlanning={(section) =>
+            setActivePanel({ kind: "planning", section })
+          }
+        />
+      </section>
 
-      <div className="task-support-actions" aria-label="Taakplanning acties">
-        <button
-          type="button"
-          className="secondary-action compact-action"
-          onClick={() => setIsTemplatesOpen((open) => !open)}
-        >
-          Routinestarters
-        </button>
-        <button
-          type="button"
-          className="secondary-action compact-action"
-          onClick={() => setIsWeeklyResetOpen((open) => !open)}
-        >
-          Week plannen
-          {reviewTasks.length > 0 ? ` (${reviewTasks.length})` : ""}
-        </button>
+      <div className="task-secondary-rail" aria-label="Taakplanning acties">
+        <TaskSecondaryActionTile
+          count={laterGroup.tasks.length}
+          description="Rustig vooruit"
+          label="Later"
+          onClick={() => setActivePanel({ kind: "planning", section: "later" })}
+        />
+        <TaskSecondaryActionTile
+          count={somedayTasks.length}
+          description="Bewaren zonder druk"
+          label="Ooit"
+          onClick={() => setActivePanel({ kind: "someday" })}
+        />
+        <TaskSecondaryActionTile
+          count={completedTaskGroup.tasks.length}
+          description="Terugzetten blijft dichtbij"
+          label="Afgerond"
+          onClick={() => setActivePanel({ kind: "completed" })}
+        />
+        <TaskSecondaryActionTile
+          count={templates.length}
+          description="Routines klaarzetten"
+          label="Routinestarters"
+          onClick={() => setActivePanel({ kind: "templates" })}
+        />
+        <TaskSecondaryActionTile
+          count={reviewTasks.length}
+          description="Kies samen wat deze week helpt"
+          label={`Week plannen${reviewTasks.length > 0 ? ` (${reviewTasks.length})` : ""}`}
+          onClick={() => setActivePanel({ kind: "weeklyReview" })}
+        />
         {onOpenWeeklyReset ? (
           <button
             type="button"
-            className="secondary-action compact-action"
+            className="task-secondary-tile task-secondary-route"
             onClick={onOpenWeeklyReset}
           >
-            Gezinsreset openen
+            <span className="task-secondary-tile-label">Gezinsreset openen</span>
+            <span className="task-secondary-tile-detail">
+              Naar de vaste weekcheck
+            </span>
           </button>
         ) : null}
       </div>
@@ -784,212 +820,505 @@ export function TasksPage({
           </section>
         </div>
       ) : null}
-
-      <section
-        className="task-secondary-stack"
-        aria-label="Gezinstaken plannen"
-      >
-        {isTemplatesOpen ? (
-          <section
-            className="task-templates-panel"
-            aria-label="Routinestarters"
-          >
-            <div>
-              <p className="widget-type">Routinestarters</p>
-              <h4>Opgeslagen gezinsroutines</h4>
-              <p>
-                Gebruik vaste klusjes opnieuw nadat duidelijk is wat vandaag
-                nodig is.
-              </p>
-            </div>
-            <form
-              className="task-create-form compact-task-form"
-              onSubmit={onSaveTemplate}
-            >
-              <label>
-                <span>Routinenaam</span>
-                <input
-                  onChange={(event) => setTemplateName(event.target.value)}
-                  placeholder="Ochtendroutine"
-                  required
-                  type="text"
-                  value={templateName}
-                />
-              </label>
-              <label>
-                <span>Beschrijving</span>
-                <input
-                  onChange={(event) =>
-                    setTemplateDescription(event.target.value)
-                  }
-                  placeholder="Optionele notities"
-                  type="text"
-                  value={templateDescription}
-                />
-              </label>
-              <button type="submit">
-                {editingTemplate
-                  ? "Routine opslaan"
-                  : "Opslaan als routine starter"}
-              </button>
-            </form>
-            {templates.length === 0 ? (
-              <p className="shopping-empty">Nog geen opgeslagen routines.</p>
-            ) : (
-              <ul className="task-list">
-                {templates.map((template) => (
-                  <li className="task-item" key={template.id}>
-                    <div>
-                      <strong>{template.name}</strong>
-                      <span>
-                        {template.description ?? "Herbruikbare gezinsroutine"} ·{" "}
-                        {template.items.length}{" "}
-                        {template.items.length === 1 ? "taak" : "taken"}
-                      </span>
-                    </div>
-                    <button
-                      onClick={() => applyTemplate(template.id)}
-                      type="button"
-                    >
-                      Toepassen
-                    </button>
-                    <button
-                      onClick={() => startEditingTemplate(template)}
-                      type="button"
-                    >
-                      Aanpassen
-                    </button>
-                    <button
-                      onClick={() => archiveTemplate(template.id)}
-                      type="button"
-                    >
-                      Archiveren
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-        ) : null}
-        {isWeeklyResetOpen ? (
-          <section className="task-templates-panel" aria-label="Week plannen">
-            <div>
-              <p className="widget-type">Weekreset</p>
-              <h4>Plan de week samen</h4>
-              <p>Bekijk losse taken en kies wat het gezin nog helpt.</p>
-            </div>
-            {reviewTasks.length === 0 ? (
-              <p className="shopping-empty">
-                Geen losse taken nodig voor de gezinscheck op dit moment.
-              </p>
-            ) : (
-              <ul className="task-list">
-                {reviewTasks.map((task) => (
-                  <li className="task-item" key={task.id}>
-                    <div>
-                      <strong>{task.title}</strong>
-                      <span>Gezinscheck · niet als urgent getoond</span>
-                    </div>
-                    <button
-                      onClick={() => reviewTask(task.id, "keep")}
-                      type="button"
-                    >
-                      Deze week houden
-                    </button>
-                    <button onClick={() => onEditTaskDue(task)} type="button">
-                      Kies een handige dag
-                    </button>
-                    <button
-                      onClick={() => reviewTask(task.id, "someday")}
-                      type="button"
-                    >
-                      Bewaren voor later
-                    </button>
-                    <button
-                      onClick={() => reviewTask(task.id, "complete")}
-                      type="button"
-                    >
-                      Klaar
-                    </button>
-                    <button
-                      onClick={() => reviewTask(task.id, "archive")}
-                      type="button"
-                    >
-                      Archiveren
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-        ) : null}
-        {somedayTasks.length > 0 ? (
-          <section className="task-group task-planning-group">
-            <h4>Ooit</h4>
-            <p className="shopping-empty">
-              Ideeën voor later, buiten de druk van vandaag.
-            </p>
-            <ul className="task-list">
-              {somedayTasks.map((task) => (
-                <li className="task-item" key={task.id}>
-                  <div>
-                    <strong>{task.title}</strong>
-                    <span>Ooit</span>
-                  </div>
-                  <button
-                    onClick={() => reviewTask(task.id, "keep")}
-                    type="button"
-                  >
-                    Terughalen voor deze week
-                  </button>
-                  <button
-                    onClick={() => reviewTask(task.id, "archive")}
-                    type="button"
-                  >
-                    Archiveren
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </section>
-        ) : null}
-      </section>
+      {activePanel ? (
+        <TaskSurfaceDialog
+          title={
+            activePanel.kind === "planning"
+              ? "Planning"
+              : activePanel.kind === "today"
+                ? "Vandaag"
+                : activePanel.kind === "completed"
+                  ? "Afgerond"
+                  : activePanel.kind === "someday"
+                    ? "Ooit"
+                    : activePanel.kind === "templates"
+                      ? "Routinestarters"
+                      : "Week plannen"
+          }
+          description={
+            activePanel.kind === "planning"
+              ? "Bekijk morgen, deze week en later zonder de pagina langer te maken."
+              : activePanel.kind === "today"
+                ? "Alles wat vandaag aandacht vraagt in één bounded lijst."
+                : activePanel.kind === "completed"
+                  ? "Net afgerond, zodat terugzetten dichtbij blijft."
+                  : activePanel.kind === "someday"
+                    ? "Bewaar rustige ideeën zonder ze standaard in beeld te houden."
+                    : activePanel.kind === "templates"
+                      ? "Gebruik vaste klusjes opnieuw nadat duidelijk is wat vandaag nodig is."
+                      : "Bekijk losse taken en kies wat het gezin nog helpt."
+          }
+          onClose={() => setActivePanel(null)}
+        >
+          {activePanel.kind === "planning" ? (
+            <PlanningDetailPanel
+              activeSection={activePanel.section}
+              laterGroup={laterGroup}
+              members={members}
+              thisWeekGroup={thisWeekGroup}
+              todayDate={todayDate}
+              todayIso={todayIso}
+              tomorrowGroup={tomorrowGroup}
+              selectedTaskId={selectedTaskId}
+              onDeleteSeries={deleteSeries}
+              onEdit={startEditing}
+              onMoveToTomorrow={moveTaskToTomorrow}
+              onOpenSection={(section) =>
+                setActivePanel({ kind: "planning", section })
+              }
+              onSelectTask={setSelectedTaskId}
+              onUpdate={updateTask}
+            />
+          ) : null}
+          {activePanel.kind === "today" ? (
+            <TaskGroup
+              density="primary"
+              group={todayGroup}
+              members={members}
+              tasks={todayGroup.tasks}
+              todayDate={todayDate}
+              todayIso={todayIso}
+              onDeleteSeries={deleteSeries}
+              onEdit={startEditing}
+              onMoveToTomorrow={moveTaskToTomorrow}
+              selectedTaskId={selectedTaskId}
+              onSelectTask={setSelectedTaskId}
+              onUpdate={updateTask}
+              scrollable
+            />
+          ) : null}
+          {activePanel.kind === "completed" ? (
+            <TaskGroup
+              density="compact"
+              group={completedTaskGroup}
+              members={members}
+              tasks={completedTaskGroup.tasks}
+              todayDate={todayDate}
+              todayIso={todayIso}
+              onDeleteSeries={deleteSeries}
+              onEdit={startEditing}
+              onMoveToTomorrow={moveTaskToTomorrow}
+              selectedTaskId={selectedTaskId}
+              onSelectTask={setSelectedTaskId}
+              onUpdate={updateTask}
+              scrollable
+            />
+          ) : null}
+          {activePanel.kind === "someday" ? (
+            <section className="task-group task-planning-group task-overlay-list-panel">
+              <div className="task-group-heading">
+                <div>
+                  <p className="task-group-kicker">Zonder haast</p>
+                  <h4>Ooit</h4>
+                  <p>Ideeën voor later, buiten de druk van vandaag.</p>
+                </div>
+                <span>
+                  {somedayTasks.length} {somedayTasks.length === 1 ? "taak" : "taken"}
+                </span>
+              </div>
+              {somedayTasks.length === 0 ? (
+                <p className="shopping-empty">Nog niets bewaard voor ooit.</p>
+              ) : (
+                <ul className="task-list task-list-scroll-region">
+                  {somedayTasks.map((task) => (
+                    <li className="task-item" key={task.id}>
+                      <div>
+                        <strong>{task.title}</strong>
+                        <span>Ooit</span>
+                      </div>
+                      <button
+                        onClick={() => reviewTask(task.id, "keep")}
+                        type="button"
+                      >
+                        Terughalen voor deze week
+                      </button>
+                      <button
+                        onClick={() => reviewTask(task.id, "archive")}
+                        type="button"
+                      >
+                        Archiveren
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          ) : null}
+          {activePanel.kind === "templates" ? (
+            <section className="task-templates-panel task-overlay-list-panel">
+              <form
+                className="task-create-form compact-task-form"
+                onSubmit={onSaveTemplate}
+              >
+                <label>
+                  <span>Routinenaam</span>
+                  <input
+                    onChange={(event) => setTemplateName(event.target.value)}
+                    placeholder="Ochtendroutine"
+                    required
+                    type="text"
+                    value={templateName}
+                  />
+                </label>
+                <label>
+                  <span>Beschrijving</span>
+                  <input
+                    onChange={(event) =>
+                      setTemplateDescription(event.target.value)
+                    }
+                    placeholder="Optionele notities"
+                    type="text"
+                    value={templateDescription}
+                  />
+                </label>
+                <button type="submit">
+                  {editingTemplate
+                    ? "Routine opslaan"
+                    : "Opslaan als routine starter"}
+                </button>
+              </form>
+              {templates.length === 0 ? (
+                <p className="shopping-empty">Nog geen opgeslagen routines.</p>
+              ) : (
+                <ul className="task-list task-list-scroll-region">
+                  {templates.map((template) => (
+                    <li className="task-item" key={template.id}>
+                      <div>
+                        <strong>{template.name}</strong>
+                        <span>
+                          {template.description ?? "Herbruikbare gezinsroutine"} ·{" "}
+                          {template.items.length}{" "}
+                          {template.items.length === 1 ? "taak" : "taken"}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => applyTemplate(template.id)}
+                        type="button"
+                      >
+                        Toepassen
+                      </button>
+                      <button
+                        onClick={() => startEditingTemplate(template)}
+                        type="button"
+                      >
+                        Aanpassen
+                      </button>
+                      <button
+                        onClick={() => archiveTemplate(template.id)}
+                        type="button"
+                      >
+                        Archiveren
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          ) : null}
+          {activePanel.kind === "weeklyReview" ? (
+            <section className="task-templates-panel task-overlay-list-panel">
+              {reviewTasks.length === 0 ? (
+                <p className="shopping-empty">
+                  Geen losse taken nodig voor de gezinscheck op dit moment.
+                </p>
+              ) : (
+                <ul className="task-list task-list-scroll-region">
+                  {reviewTasks.map((task) => (
+                    <li className="task-item" key={task.id}>
+                      <div>
+                        <strong>{task.title}</strong>
+                        <span>Gezinscheck · niet als urgent getoond</span>
+                      </div>
+                      <button
+                        onClick={() => reviewTask(task.id, "keep")}
+                        type="button"
+                      >
+                        Deze week houden
+                      </button>
+                      <button onClick={() => onEditTaskDue(task)} type="button">
+                        Kies een handige dag
+                      </button>
+                      <button
+                        onClick={() => reviewTask(task.id, "someday")}
+                        type="button"
+                      >
+                        Bewaren voor later
+                      </button>
+                      <button
+                        onClick={() => reviewTask(task.id, "complete")}
+                        type="button"
+                      >
+                        Klaar
+                      </button>
+                      <button
+                        onClick={() => reviewTask(task.id, "archive")}
+                        type="button"
+                      >
+                        Archiveren
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          ) : null}
+        </TaskSurfaceDialog>
+      ) : null}
     </article>
   );
 }
 
-function PlanningPlaceholder({
-  className,
-  description,
-  emptyMessage,
-  title,
+function PlanningSummaryPanel({
+  isLoading,
+  laterCount,
+  planningSignals,
+  planningStatus,
+  reviewCount,
+  thisWeekGroup,
+  tomorrowGroup,
+  onOpenPlanning,
 }: {
-  className: string;
-  description: string;
-  emptyMessage: string;
-  title: string;
+  isLoading: boolean;
+  laterCount: number;
+  planningSignals: readonly string[];
+  planningStatus: string;
+  reviewCount: number;
+  thisWeekGroup: TaskTimeGroup;
+  tomorrowGroup: TaskTimeGroup;
+  onOpenPlanning(section: PlanningSection): void;
 }) {
   return (
-    <section
-      className={`task-group task-time-group quiet tasks-empty-planning-column ${className}`}
-    >
+    <section className="task-group task-planning-summary" aria-label="Planning">
       <div className="task-group-heading">
         <div>
           <p className="task-group-kicker">Daarna</p>
-          <h4>{title}</h4>
-          <p>{description}</p>
+          <h4>Planning</h4>
+          <p>Houd zicht op morgen en deze week zonder meerdere lijsten te lezen.</p>
         </div>
-        <span>0 taken</span>
+        <button
+          type="button"
+          className="secondary-action compact-action"
+          onClick={() => onOpenPlanning("tomorrow")}
+        >
+          Planning openen
+        </button>
       </div>
-      <p className="shopping-empty">{emptyMessage}</p>
+      <div className="task-planning-summary-grid">
+        <button
+          type="button"
+          className="task-planning-summary-tile"
+          onClick={() => onOpenPlanning("tomorrow")}
+        >
+          <span className="task-planning-summary-label">Morgen</span>
+          <strong>{tomorrowGroup.tasks.length}</strong>
+          <span>{summarizePlanningTile(tomorrowGroup.tasks, "Niets gepland")}</span>
+        </button>
+        <button
+          type="button"
+          className="task-planning-summary-tile"
+          onClick={() => onOpenPlanning("thisWeek")}
+        >
+          <span className="task-planning-summary-label">Deze week</span>
+          <strong>{thisWeekGroup.tasks.length}</strong>
+          <span>{summarizePlanningTile(thisWeekGroup.tasks, "Rustig later deze week")}</span>
+        </button>
+      </div>
+      <p className="task-planning-status">
+        {isLoading ? "Planning laden…" : planningStatus}
+      </p>
+      <div className="task-planning-signals">
+        {planningSignals.length > 0 ? (
+          planningSignals.map((signal) => (
+            <span className="task-summary-chip" key={signal}>
+              {signal}
+            </span>
+          ))
+        ) : (
+          <span className="task-summary-chip">Geen uitzonderingen in beeld</span>
+        )}
+        <button
+          type="button"
+          className="task-summary-link"
+          onClick={() => onOpenPlanning("later")}
+        >
+          Later {laterCount}
+        </button>
+        <button
+          type="button"
+          className="task-summary-link"
+          onClick={() => onOpenPlanning("thisWeek")}
+        >
+          Weekcheck {reviewCount}
+        </button>
+      </div>
     </section>
   );
 }
 
+function PlanningDetailPanel({
+  activeSection,
+  laterGroup,
+  members,
+  thisWeekGroup,
+  todayDate,
+  todayIso,
+  tomorrowGroup,
+  selectedTaskId,
+  onDeleteSeries,
+  onEdit,
+  onMoveToTomorrow,
+  onOpenSection,
+  onSelectTask,
+  onUpdate,
+}: {
+  activeSection: PlanningSection;
+  laterGroup: TaskTimeGroup;
+  members: readonly FamilyMember[];
+  thisWeekGroup: TaskTimeGroup;
+  todayDate: Date;
+  todayIso: string;
+  tomorrowGroup: TaskTimeGroup;
+  selectedTaskId: string | null;
+  onDeleteSeries(id: string): void;
+  onEdit(task: HouseholdTask): void;
+  onMoveToTomorrow(task: HouseholdTask): void;
+  onOpenSection(section: PlanningSection): void;
+  onSelectTask(id: string | null): void;
+  onUpdate(id: string, action: "complete" | "reopen"): void;
+}) {
+  const activeGroup =
+    activeSection === "tomorrow"
+      ? tomorrowGroup
+      : activeSection === "thisWeek"
+        ? thisWeekGroup
+        : laterGroup;
+
+  return (
+    <section className="task-overlay-planning">
+      <div
+        className="task-planning-segments"
+        aria-label="Planning secties"
+        role="tablist"
+      >
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeSection === "tomorrow"}
+          className={activeSection === "tomorrow" ? "selected" : ""}
+          onClick={() => onOpenSection("tomorrow")}
+        >
+          Morgen ({tomorrowGroup.tasks.length})
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeSection === "thisWeek"}
+          className={activeSection === "thisWeek" ? "selected" : ""}
+          onClick={() => onOpenSection("thisWeek")}
+        >
+          Deze week ({thisWeekGroup.tasks.length})
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeSection === "later"}
+          className={activeSection === "later" ? "selected" : ""}
+          onClick={() => onOpenSection("later")}
+        >
+          Later ({laterGroup.tasks.length})
+        </button>
+      </div>
+      <TaskGroup
+        density={activeSection === "later" ? "compact" : "planning"}
+        group={activeGroup}
+        members={members}
+        tasks={activeGroup.tasks}
+        todayDate={todayDate}
+        todayIso={todayIso}
+        onDeleteSeries={onDeleteSeries}
+        onEdit={onEdit}
+        onMoveToTomorrow={onMoveToTomorrow}
+        selectedTaskId={selectedTaskId}
+        onSelectTask={onSelectTask}
+        onUpdate={onUpdate}
+        scrollable
+      />
+    </section>
+  );
+}
+
+function TaskSecondaryActionTile({
+  count,
+  description,
+  label,
+  onClick,
+}: {
+  count: number;
+  description: string;
+  label: string;
+  onClick(): void;
+}) {
+  return (
+    <button type="button" className="task-secondary-tile" onClick={onClick}>
+      <span className="task-secondary-tile-label">{label}</span>
+      <strong>{count}</strong>
+      <span className="task-secondary-tile-detail">{description}</span>
+    </button>
+  );
+}
+
+function TaskSurfaceDialog({
+  children,
+  description,
+  onClose,
+  title,
+}: {
+  children: ReactNode;
+  description: string;
+  onClose(): void;
+  title: string;
+}) {
+  return (
+    <div
+      className="task-surface-backdrop"
+      role="presentation"
+      onClick={onClose}
+    >
+      <section
+        className="task-surface-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        onClick={(event) => event.stopPropagation()}
+      >
+        <header className="task-surface-dialog-header">
+          <div>
+            <p className="widget-type">Gezinstaken</p>
+            <h4>{title}</h4>
+            <p>{description}</p>
+          </div>
+          <button
+            type="button"
+            className="secondary-action compact-action"
+            onClick={onClose}
+          >
+            Sluiten
+          </button>
+        </header>
+        <div className="task-surface-dialog-body">{children}</div>
+      </section>
+    </div>
+  );
+}
+
 function TaskGroup({
+  countOverride,
   density = "primary",
+  emptyState,
+  footerAction,
   group,
   members,
+  scrollable = false,
   tasks,
   todayDate,
   todayIso,
@@ -1000,9 +1329,13 @@ function TaskGroup({
   onSelectTask,
   onUpdate,
 }: {
+  countOverride?: number;
   density?: "primary" | "planning" | "compact";
+  emptyState?: ReactNode;
+  footerAction?: ReactNode;
   group: import("./tasksModel").TaskTimeGroup;
   members: readonly FamilyMember[];
+  scrollable?: boolean;
   tasks: readonly HouseholdTask[];
   todayDate: Date;
   todayIso: string;
@@ -1013,46 +1346,7 @@ function TaskGroup({
   onSelectTask(id: string | null): void;
   onUpdate(id: string, action: "complete" | "reopen"): void;
 }) {
-  if (group.id === "completedRecently") {
-    return (
-      <details className="task-group task-time-group quiet task-completed-history">
-        <summary>
-          <div>
-            <p className="task-group-kicker">Terugkijken</p>
-            <h4>{group.title}</h4>
-            <p>{group.description}</p>
-          </div>
-          <span>
-            {tasks.length} {tasks.length === 1 ? "taak" : "taken"}
-          </span>
-        </summary>
-        {tasks.length === 0 ? (
-          <p className="shopping-empty">{group.emptyMessage}</p>
-        ) : (
-          <ul className="task-list">
-            {tasks.map((task) => (
-              <TaskCard
-                density={density}
-                groupId={group.id}
-                key={task.id}
-                members={members}
-                task={task}
-                todayDate={todayDate}
-                todayIso={todayIso}
-                onDeleteSeries={onDeleteSeries}
-                onEdit={onEdit}
-                onMoveToTomorrow={onMoveToTomorrow}
-                selectedTaskId={selectedTaskId}
-                onSelectTask={onSelectTask}
-                onUpdate={onUpdate}
-              />
-            ))}
-          </ul>
-        )}
-      </details>
-    );
-  }
-
+  const taskCount = countOverride ?? tasks.length;
   return (
     <section
       className={`task-group task-time-group task-time-group-${group.id} ${group.emphasis === "primary" ? "today-focus" : ""} ${group.emphasis === "quiet" ? "quiet" : ""}`}
@@ -1066,13 +1360,13 @@ function TaskGroup({
           <p>{group.description}</p>
         </div>
         <span>
-          {tasks.length} {tasks.length === 1 ? "taak" : "taken"}
+          {taskCount} {taskCount === 1 ? "taak" : "taken"}
         </span>
       </div>
       {tasks.length === 0 ? (
-        <p className="shopping-empty">{group.emptyMessage}</p>
+        emptyState ?? <p className="shopping-empty">{group.emptyMessage}</p>
       ) : (
-        <ul className="task-list">
+        <ul className={`task-list ${scrollable ? "task-list-scroll-region" : ""}`}>
           {tasks.map((task) => (
             <TaskCard
               density={density}
@@ -1092,6 +1386,7 @@ function TaskGroup({
           ))}
         </ul>
       )}
+      {footerAction}
     </section>
   );
 }
@@ -1288,6 +1583,50 @@ function TaskActionIcon({
       {label}
     </span>
   );
+}
+
+function createFallbackTaskGroup(
+  id: TaskTimeGroup["id"],
+  title: string,
+  description: string,
+  emptyMessage: string,
+  emphasis: TaskTimeGroup["emphasis"] = "normal",
+): TaskTimeGroup {
+  return {
+    id,
+    title,
+    description,
+    emptyMessage,
+    emphasis,
+    tasks: [],
+  };
+}
+
+function summarizePlanningTile(
+  tasks: readonly HouseholdTask[],
+  emptyMessage: string,
+): string {
+  if (tasks.length === 0) return emptyMessage;
+
+  const unassignedCount = tasks.filter(
+    (task) => task.ownershipKind === "Unassigned",
+  ).length;
+  if (unassignedCount > 0) {
+    return `${unassignedCount} zonder eigenaar${
+      unassignedCount === 1 ? "" : "s"
+    }`;
+  }
+
+  const recurringCount = tasks.filter(isRecurringTask).length;
+  if (recurringCount > 0) {
+    return `${recurringCount} routine${recurringCount === 1 ? "" : "s"}`;
+  }
+
+  return tasks[0]?.title ?? emptyMessage;
+}
+
+function formatTaskCount(count: number): string {
+  return `${count} ${count === 1 ? "taak" : "taken"}`;
 }
 
 function nextTaskQuestion(question: TaskDialogQuestion): TaskDialogQuestion {

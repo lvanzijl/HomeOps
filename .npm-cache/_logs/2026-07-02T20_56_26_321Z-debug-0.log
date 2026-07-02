@@ -1,0 +1,22 @@
+0 verbose cli /usr/local/bin/node /usr/local/bin/npm
+1 info using npm@10.9.8
+2 info using node@v22.23.0
+3 silly config load:file:/usr/local/lib/node_modules/npm/npmrc
+4 silly config load:file:/home/runner/work/HomeOps/HomeOps/.npmrc
+5 silly config load:file:/home/runner/.npmrc
+6 silly config load:file:/usr/local/etc/npmrc
+7 verbose title npm exec node -e console.log(require.resolve('playwright'))
+8 verbose argv "exec" "--yes" "--package" "playwright" "--" "node" "-e" "console.log(require.resolve('playwright'))"
+9 verbose logfile logs-max:10 dir:/home/runner/work/HomeOps/HomeOps/.npm-cache/_logs/2026-07-02T20_56_26_321Z-
+10 verbose logfile /home/runner/work/HomeOps/HomeOps/.npm-cache/_logs/2026-07-02T20_56_26_321Z-debug-0.log
+11 silly logfile start cleaning logs, removing 1 files
+12 silly packumentCache heap:4345298944 maxSize:1086324736 maxEntrySize:543162368
+13 silly logfile done cleaning log files
+14 http fetch GET 200 https://registry.npmjs.org/playwright 70ms (cache revalidated)
+15 silly packumentCache heap:4345298944 maxSize:1086324736 maxEntrySize:543162368
+16 verbose cwd /home/runner/work/HomeOps/HomeOps
+17 verbose os Linux 6.17.0-1018-azure
+18 verbose node v22.23.0
+19 verbose npm  v10.9.8
+20 verbose exit 1
+21 verbose code 1

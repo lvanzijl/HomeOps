@@ -1,0 +1,99 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>NJsonSchema.Yaml</name>
+    </assembly>
+    <members>
+        <member name="T:NJsonSchema.Yaml.JsonAndYamlReferenceResolver">
+            <summary>Resolves JSON Pointer references.</summary>
+        </member>
+        <member name="M:NJsonSchema.Yaml.JsonAndYamlReferenceResolver.#ctor(NJsonSchema.JsonSchemaAppender)">
+            <summary>Initializes a new instance of the <see cref="T:NJsonSchema.Yaml.JsonAndYamlReferenceResolver"/> class.</summary>
+            <param name="schemaAppender">The schema appender.</param>
+        </member>
+        <member name="M:NJsonSchema.Yaml.JsonAndYamlReferenceResolver.CreateJsonAndYamlReferenceResolverFactory(NJsonSchema.ITypeNameGenerator)">
+            <summary>Creates the factory to be used in the FromJsonAsync method.</summary>
+            <param name="typeNameGenerator">The type name generator.</param>
+            <returns>The factory.</returns>
+        </member>
+        <member name="M:NJsonSchema.Yaml.JsonAndYamlReferenceResolver.ResolveFileReferenceAsync(System.String,System.Threading.CancellationToken)">
+            <summary>Resolves a file reference.</summary>
+            <param name="filePath">The file path.</param>
+            <param name="cancellationToken">The cancellation token</param>
+            <returns>The resolved JSON Schema.</returns>
+            <exception cref="T:System.NotSupportedException">The System.IO.File API is not available on this platform.</exception>
+        </member>
+        <member name="M:NJsonSchema.Yaml.JsonAndYamlReferenceResolver.ResolveUrlReferenceAsync(System.String,System.Threading.CancellationToken)">
+            <summary>Resolves an URL reference.</summary>
+            <param name="url">The URL.</param>
+            <param name="cancellationToken">The cancellation token</param>
+            <exception cref="T:System.NotSupportedException">The HttpClient.GetAsync API is not available on this platform.</exception>
+        </member>
+        <member name="T:NJsonSchema.Yaml.JsonSchemaYaml">
+            <summary>Extension methods to load and save <see cref="T:NJsonSchema.JsonSchema"/> from/to YAML.</summary>
+        </member>
+        <member name="M:NJsonSchema.Yaml.JsonSchemaYaml.FromYamlAsync(System.String)">
+            <summary>Deserializes a JSON string to a <see cref="T:NJsonSchema.JsonSchema" />.</summary>
+            <param name="data">The JSON string.</param>
+            <returns>The JSON Schema.</returns>
+        </member>
+        <member name="M:NJsonSchema.Yaml.JsonSchemaYaml.FromYamlAsync(System.String,System.String)">
+            <summary>Deserializes a JSON string to a <see cref="T:NJsonSchema.JsonSchema" />.</summary>
+            <param name="data">The JSON string.</param>
+            <param name="documentPath">The document path (URL or file path) for resolving relative document references.</param>
+            <returns>The JSON Schema.</returns>
+        </member>
+        <member name="M:NJsonSchema.Yaml.JsonSchemaYaml.FromYamlAsync(System.String,System.String,System.Func{NJsonSchema.JsonSchema,NJsonSchema.JsonReferenceResolver},System.Threading.CancellationToken)">
+            <summary>Deserializes a JSON string to a <see cref="T:NJsonSchema.JsonSchema" />.</summary>
+            <param name="data">The JSON string.</param>
+            <param name="documentPath">The document path (URL or file path) for resolving relative document references.</param>
+            <param name="referenceResolverFactory">The JSON reference resolver factory.</param>
+            <param name="cancellationToken">The cancellation token</param>
+            <returns>The JSON Schema.</returns>
+        </member>
+        <member name="M:NJsonSchema.Yaml.JsonSchemaYaml.ToYaml(NJsonSchema.JsonSchema)">
+            <summary>Converts the JSON Schema to YAML.</summary>
+            <returns>The YAML string.</returns>
+        </member>
+        <member name="M:NJsonSchema.Yaml.JsonSchemaYaml.FromFileAsync(System.String)">
+            <summary>Creates a JSON Schema from a JSON file.</summary>
+            <param name="filePath">The file path.</param>
+            <returns>The <see cref="T:NJsonSchema.JsonSchema" />.</returns>
+        </member>
+        <member name="M:NJsonSchema.Yaml.JsonSchemaYaml.FromFileAsync(System.String,System.Func{NJsonSchema.JsonSchema,NJsonSchema.JsonReferenceResolver},System.Threading.CancellationToken)">
+            <summary>Creates a JSON Schema from a JSON file.</summary>
+            <param name="filePath">The file path.</param>
+            <param name="referenceResolverFactory">The JSON reference resolver factory.</param>
+            <param name="cancellationToken">The cancellation token</param>
+            <returns>The <see cref="T:NJsonSchema.JsonSchema" />.</returns>
+        </member>
+        <member name="M:NJsonSchema.Yaml.JsonSchemaYaml.FromUrlAsync(System.String,System.Func{NJsonSchema.JsonSchema,NJsonSchema.JsonReferenceResolver},System.Threading.CancellationToken)">
+            <summary>Creates a JSON Schema from an URL.</summary>
+            <param name="url">The URL.</param>
+            <param name="referenceResolverFactory">The JSON reference resolver factory.</param>
+            <param name="cancellationToken">The cancellation token</param>
+            <returns>The <see cref="T:NJsonSchema.JsonSchema"/>.</returns>
+        </member>
+        <member name="T:System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute">
+            <summary>
+            Specifies the priority of a member in overload resolution. When unspecified, the default priority is 0.
+            </summary>
+        </member>
+        <member name="M:System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute.#ctor(System.Int32)">
+            <summary>
+            Initializes a new instance of the <see cref="T:System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute"/> class.
+            </summary>
+            <param name="priority">The priority of the attributed member. Higher numbers are prioritized, lower numbers are deprioritized. 0 is the default if no attribute is present.</param>
+        </member>
+        <member name="P:System.Runtime.CompilerServices.OverloadResolutionPriorityAttribute.Priority">
+            <summary>
+            The priority of the member.
+            </summary>
+        </member>
+        <member name="T:System.Runtime.CompilerServices.ParamCollectionAttribute">
+            <summary>
+            Indicates that a method will allow a variable number of arguments in its invocation.
+            </summary>
+        </member>
+    </members>
+</doc>
