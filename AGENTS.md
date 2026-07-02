@@ -226,6 +226,40 @@ When reviewing the final changeset, verify:
 
 If the requested work genuinely requires crossing feature boundaries, stop and explain why before continuing.
 
+## Validation Authority Rule
+
+Implementation is not complete until the requested behaviour has been validated.
+
+Do not assume a change works because it compiles or because the code appears correct.
+
+Always perform the validation that is appropriate for the completed task.
+
+Examples include:
+
+- existing repository build commands;
+- existing test suites;
+- UI validation;
+- viewport validation;
+- manual verification where required by repository rules.
+
+Validation must verify the requirements of the task itself, not just the absence of build errors.
+
+If validation fails:
+
+- stop completion;
+- identify the failing validation;
+- determine the root cause;
+- fix the issue if it remains within the approved feature boundary;
+- otherwise stop and report the limitation.
+
+If required validation cannot be executed:
+
+- explain exactly why;
+- state what was attempted;
+- identify which requirements remain unverified.
+
+Never report a task as complete while required validation is missing.
+
 ## FamilyBoard Viewport & Layout Rule
 
 FamilyBoard is a dashboard application, not a document-style web application.
