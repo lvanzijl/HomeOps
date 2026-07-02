@@ -301,6 +301,7 @@ export function HomeDashboard({
     0,
     agendaItems.length - visibleAgenda.length,
   );
+  const todayIso = toDateInputValue(now);
   const activeListItems = lists.flatMap((list) =>
     list.activeItems
       .map((item) => ({
@@ -320,6 +321,7 @@ export function HomeDashboard({
   const taskGroups = groupTasksByUrgency(tasks, toDateInputValue(now)).filter(
     (group) => ["overdue", "today", "upcoming"].includes(group.id),
   );
+  const todayTaskCountsByMember = countOpenTasksForToday(tasks, todayIso);
   const summaryTasks = taskGroups.flatMap((group) =>
     group.tasks.map((task) => ({ ...task, groupTitle: group.title })),
   );
@@ -355,19 +357,32 @@ export function HomeDashboard({
           </p>
         </div>
         <section className="family-strip" aria-label="Gezinsleden">
-          {members.map((member) => (
-            <button
-              className="home-family-portrait"
-              key={member.id}
-              type="button"
-              style={{ "--member-color": member.displayColor } as CSSProperties}
-              onClick={() => onSelectFamilyMember(member.id)}
-              aria-label={`${member.name} gezinslidpagina openen`}
-            >
-              <FamilyAvatar member={member} />
-              <span className="home-family-portrait-caption">{member.name}</span>
-            </button>
-          ))}
+          {members.map((member) => {
+            const openTaskCount = todayTaskCountsByMember[member.id] ?? 0;
+            return (
+              <button
+                className="home-family-portrait"
+                key={member.id}
+                type="button"
+                style={{ "--member-color": member.displayColor } as CSSProperties}
+                onClick={() => onSelectFamilyMember(member.id)}
+                aria-label={`${member.name} gezinslidpagina openen`}
+              >
+                <span className="home-family-avatar-frame">
+                  <FamilyAvatar member={member} />
+                  {openTaskCount > 0 ? (
+                    <span
+                      className="home-family-task-badge"
+                      aria-label={`${member.name} heeft ${openTaskCount} open taken vandaag`}
+                    >
+                      {openTaskCount}
+                    </span>
+                  ) : null}
+                </span>
+                <span className="home-family-portrait-caption">{member.name}</span>
+              </button>
+            );
+          })}
         </section>
       </header>
       {quickStatus ? (
@@ -377,6 +392,79 @@ export function HomeDashboard({
       ) : null}
 
       <div className="home-summary-grid">
+        <SummaryCard
+          className="lists-summary"
+          onClick={() => onNavigate("lists")}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => e.key === "Enter" && onNavigate("lists")}
+          aria-label="Boodschappenoverzicht"
+        >
+          <CardHeader
+            className="home-card-header"
+            title={primaryListName ? `${primaryListName}` : "Boodschappen"}
+            actions={
+              <HomeCardActions
+                onAdd={() => setIsShoppingCaptureOpen(true)}
+                onOpen={() => onNavigate("lists")}
+                addLabel="Boodschap toevoegen"
+                openLabel="Boodschappen openen"
+              />
+            }
+            meta={`${activeListItems.length} actief`}
+          />
+          <div className="home-summary-content home-summary-content-scroll">
+            {listsError ? <p role="alert">{listsError}</p> : null}
+            <div className="shopping-summary-groups">
+              {visibleListGroups.map((group) => (
+                <section
+                  className="shopping-summary-group"
+                  key={group.store ?? "zonder-winkel"}
+                  aria-label={group.label}
+                >
+                  {visibleListGroups.length > 1 ? <h4>{group.label}</h4> : null}
+                  <ul className="home-summary-list">
+                    {group.items.map((item) => (
+                      <li key={`${item.listId}-${item.id}`}>
+                        <button
+                          className="shopping-check-action"
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            handleShoppingToggle(item.listId, item.id, item.text);
+                          }}
+                          aria-label={`${item.text} afvinken`}
+                        >
+                          <span aria-hidden="true" />
+                        </button>
+                        <span>{item.text}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ))}
+            </div>
+            {visibleListItems.length === 0 && !listsError ? (
+              <div className="empty-state-card">
+                <strong>Voeg je eerste boodschap toe</strong>
+                <p>Boodschappen helpen onthouden wat mee moet naar winkel, tas of huis.</p>
+                <p className="home-context-note">
+                  Gebruik de actie bovenaan om er één toe te voegen.
+                </p>
+              </div>
+            ) : null}
+          </div>
+          {hiddenListCount > 0 ? (
+            <button
+              className="more-link"
+              type="button"
+              onClick={() => onNavigate("lists")}
+            >
+              +{hiddenListCount} meer
+            </button>
+          ) : null}
+        </SummaryCard>
+
         <SummaryCard
           className="agenda-summary"
           onClick={() => onNavigate("agenda")}
@@ -398,37 +486,39 @@ export function HomeDashboard({
             }
             meta={`${visibleAgenda.length} zichtbaar`}
           />
-          {agendaError ? <p role="alert">{agendaError}</p> : null}
-          <div className="agenda-group-list">
-            {agendaGroups.map((group) => (
-              <section
-                className="agenda-summary-group"
-                key={group.bucket}
-                aria-label={group.bucket}
-              >
-                <h4>{group.bucket}</h4>
-                <ul className="home-summary-list">
-                  {group.items.map((event) => (
-                    <li key={event.id}>
-                      <span>{event.title}</span>
-                      <small>{formatEventTime(event)}</small>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            ))}
-          </div>
-          {visibleAgenda.length === 0 && !agendaError ? (
-            <div className="empty-state-card">
-              <strong>Maak je eerste afspraak</strong>
-              <p>
-                Afspraken helpen het gezin belangrijke dagen en activiteiten te onthouden.
-              </p>
-              <p className="home-context-note">
-                Gebruik de actie bovenaan om er één toe te voegen.
-              </p>
+          <div className="home-summary-content home-summary-content-scroll">
+            {agendaError ? <p role="alert">{agendaError}</p> : null}
+            <div className="agenda-group-list">
+              {agendaGroups.map((group) => (
+                <section
+                  className="agenda-summary-group"
+                  key={group.bucket}
+                  aria-label={group.bucket}
+                >
+                  <h4>{group.bucket}</h4>
+                  <ul className="home-summary-list">
+                    {group.items.map((event) => (
+                      <li key={event.id}>
+                        <span>{event.title}</span>
+                        <small>{formatEventTime(event)}</small>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ))}
             </div>
-          ) : null}
+            {visibleAgenda.length === 0 && !agendaError ? (
+              <div className="empty-state-card">
+                <strong>Maak je eerste afspraak</strong>
+                <p>
+                  Afspraken helpen het gezin belangrijke dagen en activiteiten te onthouden.
+                </p>
+                <p className="home-context-note">
+                  Gebruik de actie bovenaan om er één toe te voegen.
+                </p>
+              </div>
+            ) : null}
+          </div>
           {hiddenAgendaCount > 0 ? (
             <button
               className="more-link"
@@ -461,44 +551,46 @@ export function HomeDashboard({
             }
             meta={`${summaryTasks.length} binnenkort`}
           />
-          {tasksError ? <p role="alert">{tasksError}</p> : null}
-          <div className="task-summary-groups">
-            {taskGroups.map((group) => {
-              const groupVisibleTasks = visibleTasks.filter(
-                (task) => task.groupTitle === group.title,
-              );
-              if (groupVisibleTasks.length === 0) return null;
-              return (
-                <section
-                  className="task-summary-group"
-                  key={group.id}
-                  aria-label={group.title}
-                >
-                  <h4>{group.title}</h4>
-                  <ul className="home-summary-list task-summary-list">
-                    {groupVisibleTasks.map((task) => (
-                      <li key={task.id}>
-                        <span>{task.title}</span>
-                        <small>
-                          {formatTaskOwner(task, members)} ·{" "}
-                          {formatTaskDue(task)}
-                        </small>
-                      </li>
-                    ))}
-                  </ul>
-                </section>
-              );
-            })}
-          </div>
-          {visibleTasks.length === 0 && !tasksError ? (
-            <div className="empty-state-card">
-              <strong>Maak je eerste taak</strong>
-              <p>Taken helpen gezinsverantwoordelijkheden te organiseren.</p>
-              <p className="home-context-note">
-                Gebruik de actie bovenaan om er één toe te voegen.
-              </p>
+          <div className="home-summary-content home-summary-content-scroll">
+            {tasksError ? <p role="alert">{tasksError}</p> : null}
+            <div className="task-summary-groups">
+              {taskGroups.map((group) => {
+                const groupVisibleTasks = visibleTasks.filter(
+                  (task) => task.groupTitle === group.title,
+                );
+                if (groupVisibleTasks.length === 0) return null;
+                return (
+                  <section
+                    className="task-summary-group"
+                    key={group.id}
+                    aria-label={group.title}
+                  >
+                    <h4>{group.title}</h4>
+                    <ul className="home-summary-list task-summary-list">
+                      {groupVisibleTasks.map((task) => (
+                        <li key={task.id}>
+                          <span>{task.title}</span>
+                          <small>
+                            {formatTaskOwner(task, members)} ·{" "}
+                            {formatTaskDue(task)}
+                          </small>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                );
+              })}
             </div>
-          ) : null}
+            {visibleTasks.length === 0 && !tasksError ? (
+              <div className="empty-state-card">
+                <strong>Maak je eerste taak</strong>
+                <p>Taken helpen gezinsverantwoordelijkheden te organiseren.</p>
+                <p className="home-context-note">
+                  Gebruik de actie bovenaan om er één toe te voegen.
+                </p>
+              </div>
+            ) : null}
+          </div>
           {hiddenTaskCount > 0 ? (
             <button
               className="more-link"
@@ -535,133 +627,64 @@ export function HomeDashboard({
                   : "Laden"
             }
           />
-          {motivationFamilyGoal ? (
-            <>
-              <p className="motivation-tile-title">
-                {motivationFamilyGoal.title}
-              </p>
-              <div
-                className="progress-bar"
-                aria-label={`Voortgang gezinsdoel ${motivationFamilyGoal.currentProgress} van ${motivationFamilyGoal.targetCount}`}
-              >
-                <span style={{ width: `${motivationProgress}%` }} />
-              </div>
-              {motivationFamilyGoal.celebration ? (
-                <div
-                  className={`home-celebration-surface ${motivationFamilyGoal.celebration.status === FamilyCelebrationStatus.ReadyToCelebrate ? "ready" : motivationFamilyGoal.celebration.status === FamilyCelebrationStatus.Celebrated ? "celebrated" : "planned"}`}
-                  aria-label="Viering thuis"
-                >
-                  <HomeOpsIcon
-                    name={
-                      motivationFamilyGoal.celebration.status ===
-                      FamilyCelebrationStatus.ReadyToCelebrate
-                        ? "celebrationReady"
-                        : motivationFamilyGoal.celebration.status ===
-                            FamilyCelebrationStatus.Celebrated
-                          ? "celebrationCelebrated"
-                          : "celebrationUpcoming"
-                    }
-                    variant="icon"
-                  />
-                  <div>
-                    <strong>
-                      {motivationFamilyGoal.celebration.status ===
-                      FamilyCelebrationStatus.ReadyToCelebrate
-                        ? "Gelukt — klaar om te vieren"
-                        : motivationFamilyGoal.celebration.status ===
-                            FamilyCelebrationStatus.Celebrated
-                          ? "Samen gevierd"
-                          : "Komt dichterbij"}
-                    </strong>
-                    <p>{homeCelebrationMessage(motivationFamilyGoal)}</p>
-                  </div>
-                </div>
-              ) : (
-                <p className="home-context-note">
-                  Een gezamenlijk aanmoedigingsdoel voor het gezin.
+          <div className="home-summary-content home-motivation-content">
+            {motivationFamilyGoal ? (
+              <>
+                <p className="motivation-tile-title">
+                  {motivationFamilyGoal.title}
                 </p>
-              )}
-            </>
-          ) : (
-            <div className="empty-state-card">
-              <strong>Maak je eerste gezinsdoel</strong>
-              <p>Gezinsdoelen helpen iedereen samen ergens naartoe te werken.</p>
-              <p className="home-context-note">
-                Open Motivatie via de actie bovenaan.
-              </p>
-            </div>
-          )}
-        </SummaryCard>
-
-        <SummaryCard
-          className="lists-summary"
-          onClick={() => onNavigate("lists")}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => e.key === "Enter" && onNavigate("lists")}
-          aria-label="Boodschappenoverzicht"
-        >
-          <CardHeader
-            className="home-card-header"
-            title={primaryListName ? `${primaryListName}` : "Boodschappen"}
-            actions={
-              <HomeCardActions
-                onAdd={() => setIsShoppingCaptureOpen(true)}
-                onOpen={() => onNavigate("lists")}
-                addLabel="Boodschap toevoegen"
-                openLabel="Boodschappen openen"
-              />
-            }
-            meta={`${activeListItems.length} actief`}
-          />
-          {listsError ? <p role="alert">{listsError}</p> : null}
-          <div className="shopping-summary-groups">
-            {visibleListGroups.map((group) => (
-              <section
-                className="shopping-summary-group"
-                key={group.store ?? "zonder-winkel"}
-                aria-label={group.label}
-              >
-                {visibleListGroups.length > 1 ? <h4>{group.label}</h4> : null}
-                <ul className="home-summary-list">
-                  {group.items.map((item) => (
-                    <li key={`${item.listId}-${item.id}`}>
-                      <button
-                        className="shopping-check-action"
-                        type="button"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          handleShoppingToggle(item.listId, item.id, item.text);
-                        }}
-                        aria-label={`${item.text} afvinken`}
-                      >
-                        <span aria-hidden="true" />
-                      </button>
-                      <span>{item.text}</span>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            ))}
+                <div
+                  className="progress-bar"
+                  aria-label={`Voortgang gezinsdoel ${motivationFamilyGoal.currentProgress} van ${motivationFamilyGoal.targetCount}`}
+                >
+                  <span style={{ width: `${motivationProgress}%` }} />
+                </div>
+                {motivationFamilyGoal.celebration ? (
+                  <div
+                    className={`home-celebration-surface ${motivationFamilyGoal.celebration.status === FamilyCelebrationStatus.ReadyToCelebrate ? "ready" : motivationFamilyGoal.celebration.status === FamilyCelebrationStatus.Celebrated ? "celebrated" : "planned"}`}
+                    aria-label="Viering thuis"
+                  >
+                    <HomeOpsIcon
+                      name={
+                        motivationFamilyGoal.celebration.status ===
+                        FamilyCelebrationStatus.ReadyToCelebrate
+                          ? "celebrationReady"
+                          : motivationFamilyGoal.celebration.status ===
+                              FamilyCelebrationStatus.Celebrated
+                            ? "celebrationCelebrated"
+                            : "celebrationUpcoming"
+                      }
+                      variant="icon"
+                    />
+                    <div>
+                      <strong>
+                        {motivationFamilyGoal.celebration.status ===
+                        FamilyCelebrationStatus.ReadyToCelebrate
+                          ? "Gelukt — klaar om te vieren"
+                          : motivationFamilyGoal.celebration.status ===
+                              FamilyCelebrationStatus.Celebrated
+                            ? "Samen gevierd"
+                            : "Komt dichterbij"}
+                      </strong>
+                      <p>{homeCelebrationMessage(motivationFamilyGoal)}</p>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="home-context-note">
+                    Een gezamenlijk aanmoedigingsdoel voor het gezin.
+                  </p>
+                )}
+              </>
+            ) : (
+              <div className="empty-state-card">
+                <strong>Maak je eerste gezinsdoel</strong>
+                <p>Gezinsdoelen helpen iedereen samen ergens naartoe te werken.</p>
+                <p className="home-context-note">
+                  Open Motivatie via de actie bovenaan.
+                </p>
+              </div>
+            )}
           </div>
-          {visibleListItems.length === 0 && !listsError ? (
-            <div className="empty-state-card">
-              <strong>Voeg je eerste boodschap toe</strong>
-              <p>Boodschappen helpen onthouden wat mee moet naar winkel, tas of huis.</p>
-              <p className="home-context-note">
-                Gebruik de actie bovenaan om er één toe te voegen.
-              </p>
-            </div>
-          ) : null}
-          {hiddenListCount > 0 ? (
-            <button
-              className="more-link"
-              type="button"
-              onClick={() => onNavigate("lists")}
-            >
-              +{hiddenListCount} meer
-            </button>
-          ) : null}
         </SummaryCard>
       </div>
 
@@ -1116,6 +1139,24 @@ function formatTaskOwner(
 function formatTaskDue(task: HouseholdTask) {
   if (!task.dueDate) return "Geen datum";
   return `Datum ${task.dueDate}`;
+}
+
+function countOpenTasksForToday(
+  tasks: readonly HouseholdTask[],
+  todayIso: string,
+) {
+  return tasks.reduce<Record<string, number>>((counts, task) => {
+    if (
+      task.isCompleted ||
+      task.dueDate !== todayIso ||
+      task.ownershipKind !== "FamilyMember" ||
+      !task.familyMemberId
+    ) {
+      return counts;
+    }
+    counts[task.familyMemberId] = (counts[task.familyMemberId] ?? 0) + 1;
+    return counts;
+  }, {});
 }
 
 function getShoppingSuggestionLabel(

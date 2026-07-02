@@ -612,8 +612,11 @@ button {
 
 .home-dashboard {
   display: grid;
-  gap: 0.9rem;
-  min-height: 100%;
+  gap: 0.85rem;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .home-hero {
@@ -652,9 +655,10 @@ button {
 
 .family-strip {
   align-content: stretch;
-  display: grid;
-  gap: clamp(0.75rem, 1vw, 0.95rem);
-  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(0.45rem, 0.75vw, 0.7rem);
+  justify-content: flex-start;
 }
 
 .quick-capture {
@@ -754,8 +758,15 @@ button {
   grid-template-rows: minmax(0, 1fr) auto;
   justify-items: center;
   min-height: clamp(8.5rem, 15vh, 12rem);
-  padding: 0.45rem 0.6rem;
+  min-width: clamp(5.4rem, 8vw, 6.25rem);
+  padding: 0.35rem 0.2rem;
   text-align: center;
+}
+
+.home-family-avatar-frame {
+  display: inline-grid;
+  place-items: center;
+  position: relative;
 }
 
 .home-family-portrait-caption {
@@ -771,6 +782,25 @@ button {
   width: clamp(7rem, 7.2vw, 7.625rem);
 }
 
+.home-family-task-badge {
+  align-items: center;
+  background: #ef4444;
+  border: 2px solid rgb(255 255 255 / 88%);
+  border-radius: 999px;
+  box-shadow: 0 10px 20px rgb(239 68 68 / 24%);
+  color: white;
+  display: inline-flex;
+  font-size: 0.72rem;
+  font-weight: 900;
+  height: 1.5rem;
+  justify-content: center;
+  min-width: 1.5rem;
+  padding: 0 0.3rem;
+  position: absolute;
+  right: max(-0.15rem, -4%);
+  bottom: max(0.2rem, 2%);
+}
+
 .quick-capture .quick-capture-action {
   min-height: 2.15rem;
   padding: 0.4rem 0.7rem;
@@ -784,10 +814,11 @@ button {
 .home-summary-grid {
   align-items: stretch;
   display: grid;
-  flex: 1;
   gap: clamp(0.85rem, 1.35vw, 1.2rem);
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  grid-template-rows: minmax(24rem, 1.35fr) minmax(14rem, 0.75fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: minmax(0, 1fr) clamp(12rem, 28vh, 16rem);
+  min-height: 0;
+  overflow: hidden;
 }
 
 .home-summary-card {
@@ -808,19 +839,16 @@ button {
 }
 
 
+.lists-summary,
 .agenda-summary,
-.lists-summary {
-  grid-column: span 2;
+.tasks-summary {
+  min-height: 0;
 }
 
-.tasks-summary,
 .motivation-summary {
-  grid-column: span 2;
-}
-
-.agenda-summary .agenda-group-list,
-.lists-summary .shopping-summary-groups {
-  flex: 1;
+  grid-column: 1 / -1;
+  min-height: clamp(12rem, 28vh, 16rem);
+  max-height: clamp(12rem, 28vh, 16rem);
 }
 
 .home-summary-card::before {
@@ -840,6 +868,24 @@ button {
   display: flex;
   justify-content: space-between;
   padding-top: 0.2rem;
+}
+
+.home-summary-content {
+  flex: 1;
+  min-height: 0;
+}
+
+.home-summary-content-scroll {
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding-right: 0.15rem;
+}
+
+.home-motivation-content {
+  display: grid;
+  gap: 0.75rem;
+  align-content: start;
+  overflow: hidden;
 }
 
 .home-card-header > span:not(.home-card-actions),
@@ -877,7 +923,7 @@ button {
 .agenda-group-list {
   display: grid;
   gap: 0.45rem;
-  margin: 0.55rem 0;
+  margin: 0.55rem 0 0;
 }
 
 .agenda-summary-group h4 {
@@ -915,7 +961,7 @@ button {
 .shopping-summary-groups {
   display: grid;
   gap: 0.4rem;
-  margin: 0.55rem 0;
+  margin: 0.55rem 0 0;
 }
 
 .shopping-summary-group h4 {
@@ -960,7 +1006,7 @@ button {
 .task-summary-groups {
   display: grid;
   gap: 0.4rem;
-  margin: 0.55rem 0;
+  margin: 0.55rem 0 0;
 }
 
 .task-summary-group h4 {
@@ -973,6 +1019,17 @@ button {
 
 .task-summary-list {
   margin: 0;
+}
+
+.motivation-tile-title,
+.home-celebration-surface,
+.empty-state-card {
+  margin-top: 0;
+}
+
+.motivation-summary .empty-state-card,
+.motivation-summary .home-celebration-surface {
+  min-height: 0;
 }
 
 .home-summary-list small {
@@ -1000,7 +1057,8 @@ button {
   .home-summary-grid {
     gap: 0.75rem;
     grid-template-columns: 1fr;
-    grid-template-rows: none;
+    grid-template-rows: repeat(4, minmax(0, auto));
+    overflow: auto;
   }
 
   .agenda-summary,
@@ -1008,10 +1066,11 @@ button {
   .tasks-summary,
   .motivation-summary {
     grid-column: auto;
+    max-height: none;
   }
 
   .family-strip {
-    justify-content: flex-end;
+    justify-content: flex-start;
   }
 }
 
