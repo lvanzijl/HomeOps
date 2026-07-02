@@ -4,6 +4,9 @@ Frontend test maintenance refreshed stale test expectations and fixtures to matc
 
 # Phase 2 Roadmap
 
+## Completed Slice — FamilyBoard Global Viewport Layout Engine
+FamilyBoard Global Viewport Layout Engine updates the shared client shell, workspace panel composition, and shared page body container so primary product pages live inside a stable viewport-height boundary instead of growing the document. The slice moves overflow handling into a reusable internal page-body region, applies the no-page-scroll contract to `html`, `body`, `#root`, the app shell, and the workspace shell, and preserves existing page-specific content, backend behavior, APIs, schema, and features for later follow-up layout refinement where needed.
+
 ## Completed Slice — Tasks Horizontal Planning Dashboard
 Tasks Horizontal Planning Dashboard re-evaluates the stacked secondary task layout and keeps the desktop planning horizon in one weighted row: Vandaag remains the widest active workspace, Morgen and Deze week become lighter planning columns, and Later plus Voltooid/Review become compact queues. Existing progressive disclosure, task workflows, backend behavior, APIs, schema, routing, and validation remain unchanged.
 

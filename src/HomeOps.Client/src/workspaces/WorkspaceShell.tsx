@@ -173,46 +173,48 @@ export function WorkspaceShell() {
             <p>{activeWorkspace.description}</p>
           </header>
         )}
-        {activeFamilyMember ? (
-          <FamilyMemberPage member={activeFamilyMember} onAddFamilyMember={() => setIsAddingMember(true)} onBack={() => setActiveFamilyMemberId(null)} onChange={updateFamilyMember} onRemove={deleteFamilyMember} />
-        ) : activeWorkspace.id === 'home' ? (
-          <HomeDashboard members={members} onNavigate={navigateWorkspace} onSelectFamilyMember={setActiveFamilyMemberId} />
-        ) : activeWorkspace.id === 'tasks' ? (
-          <TasksPage members={members} onOpenWeeklyReset={() => navigateWorkspace('weeklyReset')} />
-        ) : activeWorkspace.id === 'motivation' ? (
-          <MotivationPage members={members} />
-        ) : activeWorkspace.id === 'weeklyReset' ? (
-          <WeeklyResetPage />
-        ) : activeWorkspace.id === 'house' ? (
-          <DomainPlaceholderPage title="Huisstatus" purpose="Voor toekomstige huisstatus, meldingen en apparaten." />
-        ) : activeWorkspace.id === 'media' ? (
-          <DomainPlaceholderPage title="Media" purpose="Voor toekomstige mediaherinneringen en gezinscontext." />
-        ) : activeWorkspace.id === 'gamification' ? (
-          <DomainPlaceholderPage title="Beloningen" purpose="Voor toekomstige punten, beloningen en gezinsvoortgang." />
-        ) : (
-        <div className="widget-host" aria-label={`${activeWorkspace.label} widgets`}>
-          {activeWorkspace.id === 'settings' && (
-            <WidgetRenderer
-              definition={getWidgetDefinition('calendar-portability-admin')!}
-              instance={{ id: 'calendar-portability-admin-instance', widgetDefinitionId: 'calendar-portability-admin', title: 'Agenda exporteren / herstellen', settings: {} }}
-            />
+        <div className="workspace-page-body">
+          {activeFamilyMember ? (
+            <FamilyMemberPage member={activeFamilyMember} onAddFamilyMember={() => setIsAddingMember(true)} onBack={() => setActiveFamilyMemberId(null)} onChange={updateFamilyMember} onRemove={deleteFamilyMember} />
+          ) : activeWorkspace.id === 'home' ? (
+            <HomeDashboard members={members} onNavigate={navigateWorkspace} onSelectFamilyMember={setActiveFamilyMemberId} />
+          ) : activeWorkspace.id === 'tasks' ? (
+            <TasksPage members={members} onOpenWeeklyReset={() => navigateWorkspace('weeklyReset')} />
+          ) : activeWorkspace.id === 'motivation' ? (
+            <MotivationPage members={members} />
+          ) : activeWorkspace.id === 'weeklyReset' ? (
+            <WeeklyResetPage />
+          ) : activeWorkspace.id === 'house' ? (
+            <DomainPlaceholderPage title="Huisstatus" purpose="Voor toekomstige huisstatus, meldingen en apparaten." />
+          ) : activeWorkspace.id === 'media' ? (
+            <DomainPlaceholderPage title="Media" purpose="Voor toekomstige mediaherinneringen en gezinscontext." />
+          ) : activeWorkspace.id === 'gamification' ? (
+            <DomainPlaceholderPage title="Beloningen" purpose="Voor toekomstige punten, beloningen en gezinsvoortgang." />
+          ) : (
+            <div className="widget-host" aria-label={`${activeWorkspace.label} widgets`}>
+              {activeWorkspace.id === 'settings' && (
+                <WidgetRenderer
+                  definition={getWidgetDefinition('calendar-portability-admin')!}
+                  instance={{ id: 'calendar-portability-admin-instance', widgetDefinitionId: 'calendar-portability-admin', title: 'Agenda exporteren / herstellen', settings: {} }}
+                />
+              )}
+              {widgetInstances.map((instance) => {
+                const definition = getWidgetDefinition(instance.widgetDefinitionId);
+
+                if (!definition) {
+                  return (
+                    <article className="widget-card" key={instance.id}>
+                      <h3>{instance.title}</h3>
+                      <p>Deze gezinsplek is nog niet klaar.</p>
+                    </article>
+                  );
+                }
+
+                return <WidgetRenderer definition={definition} instance={instance} key={instance.id} />;
+              })}
+            </div>
           )}
-          {widgetInstances.map((instance) => {
-            const definition = getWidgetDefinition(instance.widgetDefinitionId);
-
-            if (!definition) {
-              return (
-                <article className="widget-card" key={instance.id}>
-                  <h3>{instance.title}</h3>
-                  <p>Deze gezinsplek is nog niet klaar.</p>
-                </article>
-              );
-            }
-
-            return <WidgetRenderer definition={definition} instance={instance} key={instance.id} />;
-          })}
         </div>
-        )}
       </section>
       {isAddingMember ? <AddFamilyMemberDialog onCancel={() => setIsAddingMember(false)} onCreate={addFamilyMember} /> : null}
     </section>

@@ -142,4 +142,22 @@ describe('WorkspaceShell API-backed layouts', () => {
     await user.click(screen.getByRole('button', { name: 'Taken' }));
     expect(shell.className).toContain('domain-tasks');
   });
+
+  it('wraps workspace content in a dedicated page body container', async () => {
+    const user = userEvent.setup();
+    render(<WorkspaceShell />);
+
+    await screen.findByText('Open Agenda');
+    const homePanel = document.querySelector('.workspace-panel-home');
+    const homePageBody = homePanel?.querySelector('.workspace-page-body');
+    expect(homePageBody).not.toBeNull();
+    expect(homePageBody?.querySelector('[aria-label="Home dashboard"]')).not.toBeNull();
+
+    await user.click(screen.getByRole('button', { name: 'Agenda' }));
+
+    const agendaPanel = document.querySelector('.workspace-panel-agenda');
+    const agendaPageBody = agendaPanel?.querySelector('.workspace-page-body');
+    expect(agendaPageBody).not.toBeNull();
+    expect(agendaPageBody?.querySelector('[aria-label="Agenda widgets"]')).not.toBeNull();
+  });
 });
