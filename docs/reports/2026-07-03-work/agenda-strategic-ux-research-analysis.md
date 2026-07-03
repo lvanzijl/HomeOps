@@ -6,348 +6,464 @@ Scope: Strategic product UX analysis only. No implementation changes.
 
 ## Executive Summary
 
-The Agenda page should not treat Month, Week, and List as three equally important permanent workspaces. From first principles, a family most often opens Agenda to answer an operational question: **what does our household need to know next?** That question is answered fastest by a Today / Upcoming list, not by a month grid or a week grid.
+The ideal long-term Agenda information architecture should be **one permanent default operating mode with one contextual planning mode**, not three equal permanent calendar modes and not a permanent side-by-side planning console.
 
-The current three-view model overweights planning formats inherited from productivity calendars. Families need glanceable shared coordination more than calendar administration. Month remains valuable as a secondary planning and free-time discovery mode. List is the strongest default household agenda because it reduces scanning effort, supports children and parents, and naturally emphasizes today, tomorrow, and the next few commitments. Week is the weakest candidate: it duplicates much of List's near-term planning role while adding more cognitive load and less clarity when events are unevenly distributed.
+The core first-principles answer is that a family most often opens Agenda to answer: **"What does our family need to know next?"** That question is operational, shared, time-sensitive, and often answered under distraction. It is best served by a Planning experience organized around Today, Next, Tomorrow, This week, and Soon.
 
-**Recommendation:** move toward a two-mode Agenda information architecture:
+Month remains strategically important, but it should be understood as a **contextual planning workspace**, not as an always-equal peer to the daily operating surface. Month answers a different, episodic question: **"Where can something new fit?"** That question deserves strong access and a dedicated bounded workflow, but not default dominance and not permanent simultaneous display.
 
-- **Default:** Today / Upcoming list, evolved from the current List view.
-- **Secondary:** Month planning mode with selected-day detail.
-- **Remove:** Week as a permanent primary view unless a future validated use case proves a weekly schedule grid is essential.
-- **Do not preserve:** the current equal Month / Week / List model.
+Week should disappear permanently as a first-class Agenda mode. It does not own a unique, high-frequency family workflow. It partially answers near-term load, but Planning can answer that faster. It partially answers date availability, but Month can answer that better. In a viewport-first dashboard product, a mode that is neither the fastest daily answer nor the strongest planning answer is architectural clutter.
 
-This recommendation optimizes for long-term product quality, household comprehension, and quick daily use rather than implementation effort.
+Final recommendation:
 
-## First-Principles User Intent Analysis
+- **Permanent default:** Planning / Today / Upcoming.
+- **Contextual planning mode:** Month, launched when planning, date-picking, browsing days, or finding availability.
+- **Removed permanent mode:** Week.
+- **Avoid:** permanent Planning + Month split view.
+- **Product principle:** Agenda should primarily answer **"What does our family need to know next?"** and secondarily expose planning as a contextual workflow for **"Where can this fit?"**
 
-Ignoring the current implementation, a family opens Agenda because household time is shared, interruptible, and often checked under time pressure. The most common intentions are not symmetrical.
+## First-Principles Workflow Analysis
 
-| Rank | Family intention | Estimated relative importance | Why it matters |
-| --- | --- | ---: | --- |
-| 1 | What do we need to do today? | 28% | Morning, after-school, dinner-time, and bedtime planning depend on immediate commitments. |
-| 2 | What happens next? | 22% | Families often need the next appointment, pickup, activity, birthday, or holiday without parsing a grid. |
-| 3 | Is this week busy? | 16% | Parents need a workload sense for logistics, but not necessarily a full weekly grid. |
-| 4 | Where is there room for a new appointment? | 12% | Scheduling new appointments needs broader planning, usually across days or weeks. |
-| 5 | What holidays, birthdays, or special events are coming? | 8% | Important for family anticipation, but less frequent than day-to-day coordination. |
-| 6 | What happened yesterday or recently? | 5% | Useful for memory, follow-up, and missed context, but not a primary operating mode. |
-| 7 | Who is affected by upcoming commitments? | 5% | Ownership matters for coordination; it should enrich the primary view rather than define a separate view. |
-| 8 | Is a specific date available? | 4% | Date lookup is important, but episodic rather than daily. |
+### Why does a family open Agenda?
 
-### Key inference
+Ignoring the current implementation, a family opens Agenda because time creates coordination risk. The Agenda is not primarily a calendar database viewer; it is a household coordination surface. The most common intentions rank as follows.
 
-The dominant cluster is **today + next + near-term load**. That cluster is better served by a chronological household feed than by equal switching among Month, Week, and List.
+| Rank | Intention | Primary household question | Frequency | Urgency | Best architectural treatment |
+| ---: | --- | --- | --- | --- | --- |
+| 1 | Checking today's schedule | What do we need to handle today? | Very high | High | Default Planning surface |
+| 2 | Checking what comes next | What is the next commitment or transition? | Very high | High | Default Planning surface |
+| 3 | Checking near-term upcoming events | What is coming soon that we should prepare for? | High | Medium-high | Default Planning surface |
+| 4 | Checking this week's load | Is this week heavy, calm, or risky? | Medium-high | Medium | Planning summary, not necessarily Week grid |
+| 5 | Planning a new appointment | Where should we put this? | Medium | Medium | Contextual Month planning workflow |
+| 6 | Finding free time | Which days look open enough? | Medium | Medium | Contextual Month planning workflow, possibly aided by summaries |
+| 7 | Checking birthdays and holidays | What special dates are coming? | Medium-low | Medium | Planning highlights and Month context |
+| 8 | Looking up a specific date | What is happening on that date? | Low-medium | Low-medium | Date jump / contextual Month |
+| 9 | Reviewing past events | What happened recently? | Low | Low | Secondary search/history affordance, not primary mode |
 
-## Usage Frequency Assessment
+The highest-frequency cluster is **today + next + soon**. The planning cluster is **fit + free time + date context**. A weekly grid is not a separate first-principles cluster; it is a representation that tries to mediate between the two clusters.
 
-| View / mode | Likely frequency | Typical session length | Best user type | Strategic role |
+### How many fundamentally different workflows exist?
+
+There are **two durable workflows**, but only **one should be permanent on the primary page at rest**.
+
+1. **Operational awareness workflow**
+   - Used daily and repeatedly.
+   - Shared by parents and children.
+   - Usually short-session and interruption-prone.
+   - Needs low cognitive load and strong hierarchy.
+   - Answers today, next, soon, and this week's load at a summary level.
+
+2. **Scheduling/planning workflow**
+   - Used episodically, mostly by parents or during shared planning moments.
+   - Needs spatial date context and day-density comparison.
+   - Answers where a new appointment can fit, which days are busy, and what is on a chosen date.
+   - Benefits from Month, date jump, selected-day detail, and maybe availability cues.
+
+These workflows are different enough that Month should not be deleted as a capability. They are not equal enough that Month should be permanently co-primary with the operational surface.
+
+## User Intent Analysis
+
+### Checking what comes next
+
+This is the canonical Agenda intent. It requires ordered, prioritized, plain-language information. A chronological Planning view is ideal because it can foreground the next event, reveal preparation context, and hide distant noise. Month and Week both force spatial scanning before answering the question.
+
+### Planning a new appointment
+
+This is a real but episodic workflow. It requires seeing candidate dates, day density, and selected-day detail. Month is valuable here because human planning often starts with date position: next Thursday, the first weekend, school break, or the week after a busy run. This supports Month as a contextual planning mode.
+
+### Finding free time
+
+Finding free time is not identical to planning a new appointment, but it uses the same spatial planning substrate. Families usually need to compare days, avoid obviously busy clusters, and inspect selected days. Month remains the best broad date-density map. Week can help if the search horizon is exactly seven days, but that is too narrow to justify a permanent mode.
+
+### Checking birthdays and holidays
+
+Birthdays and holidays are special-date awareness, not a full mode. They should appear as highlighted upcoming moments in Planning and as highlighted day metadata in Month. A separate Week view does not materially improve this workflow.
+
+### Checking today's schedule
+
+Today is operational, not spatial. Families need to know when to leave, what to prepare, who is affected, and what is next. Planning should handle this as the top priority. Month should not be the first thing a family parses to understand today.
+
+### Checking this week's load
+
+This is the strongest argument for Week, but the underlying need is **load awareness**, not necessarily a seven-column weekly workspace. A Planning surface can summarize the week with "busy days", "quiet days", and upcoming clusters. Month can show broader density if a parent wants spatial confirmation. Week therefore lacks a unique job.
+
+## Workflow Architecture Evaluation
+
+### Workflow grouping
+
+| Workflow | Same as operational awareness? | Same as scheduling/planning? | Requires separate permanent interface? | Recommendation |
 | --- | --- | --- | --- | --- |
-| Today / Upcoming list | Daily, multiple times per day | Very short | Parents and children | Default operating surface |
-| Month planning | Weekly or when scheduling | Medium | Mostly parents, sometimes shared household | Secondary planning surface |
-| Week grid | Occasional, if preserved | Medium | Mostly parents | Weak / redundant planning surface |
-| Historical list | Rare | Short | Parents | Filter or secondary affordance, not a primary view |
+| Checking what comes next | Yes | No | No | Core Planning content |
+| Checking today's schedule | Yes | No | No | Core Planning content |
+| Checking this week's load | Mostly | Partly | No | Planning summary with optional Month context |
+| Checking birthdays/holidays | Mostly | Partly | No | Highlight in Planning and Month |
+| Planning a new appointment | No | Yes | Not permanent; contextual | Month planning workflow |
+| Finding free time | No | Yes | Not permanent; contextual | Month planning workflow |
 
-The Agenda should bias its hierarchy toward the highest-frequency use, not toward equal access to every calendar representation.
+### Architectural conclusion
 
-## Month View Evaluation
+Agenda should not be organized around visual calendar formats. It should be organized around household jobs:
 
-### Primary purpose
+- **Operating the household day:** permanent default.
+- **Choosing or inspecting dates:** contextual planning workflow.
 
-Month is a planning and spatial awareness tool. It answers: **where does this date sit, and how full is the broader month?**
+This leads to a **Planning-first Agenda with contextual Month planning**, not equal Month / Week / List tabs.
 
-### Strengths
+## Single vs Two Mode Analysis
 
-- Excellent for appointment planning, vacation planning, birthdays, holidays, and school calendar context.
-- Supports date selection and broad free-time discovery better than a list.
-- Gives parents confidence when choosing a future date.
-- The current master-detail pattern lets a selected date reveal details without leaving the month context.
+### Two-mode investigation: Planning + Month
 
-### Weaknesses
+The proposed two-mode architecture is directionally correct if "mode" means two durable product jobs:
 
-- Poor default for daily operation because the user must locate today, then interpret compact event indicators.
-- Compresses event meaning; titles and logistics are hidden until selection.
-- Children are less likely to extract useful next-step information from a month grid.
-- Sparse months feel empty; busy months become visually dense.
+- **Planning / Today / Upcoming** for daily operation.
+- **Month** for scheduling and availability planning.
 
-### Frequency of use
+They are fundamentally different in cognitive model:
 
-Medium. Important, but episodic: planning sessions, date lookup, holidays, appointments, and family discussions.
+- Planning is **temporal narrative**: now, next, soon.
+- Month is **spatial date mapping**: this date, nearby days, busy/free patterns.
 
-### Cognitive load
+They are fundamentally different in session shape:
 
-Medium to high. Users must map a grid, scan dates, infer density from indicators, and open a day for details.
+- Planning sessions are quick and repeated.
+- Month sessions are intentional and episodic.
 
-### Family friendliness
+They are fundamentally different in audience:
 
-Moderate. Month is familiar, but not the most conversational or child-friendly representation.
+- Planning is for parents, children, and shared household display.
+- Month is mostly for adults, with occasional shared planning use.
 
-### Suitability as default landing page
+Therefore, Month should remain a durable capability. The key distinction is that it should be **contextual and task-invoked**, not necessarily visible as an equal permanent tab at all times.
 
-Weak. Month optimizes for planning, not daily household operation.
+### Single-mode investigation: Planning only, Month contextual
 
-## Week View Evaluation
+A single permanent Planning experience can still satisfy long-term product quality if Month is reclassified from a permanent mode to a contextual planning tool. Examples of contextual architecture include:
 
-### Primary purpose
+- Planning surface with a clear "Plan a date" entry.
+- Temporary calendar overlay for choosing or inspecting a date.
+- Date picker that expands into a month-density calendar when availability matters.
+- Planning workflow where Month appears only after the user expresses scheduling intent.
+- Embedded month interaction inside a create/edit flow rather than as a standing top-level mode.
 
-Week is intended to show the next seven-day schedule and relative distribution across days.
+This approach is strongest philosophically because the primary page answers one household question at rest. It also protects viewport-first design: the default surface can reserve space for the information families need most often instead of permanently reserving pixels for a lower-frequency calendar grid.
 
-### Strengths
+The risk is discoverability. If Month becomes too hidden, parents may perceive that Agenda cannot plan ahead. The solution is not permanent Month visibility; it is making the planning entry obvious, named around the household job, and reachable from the moments where it is needed.
 
-- Can show whether the current week is overloaded.
-- Can help parents reason about logistics such as school nights, sports, and appointments.
-- Provides a bounded horizon that is less broad than Month and more spatial than List.
+### Should Agenda have one permanent mode?
 
-### Weaknesses
+Yes, if "permanent mode" means the page's standing default architecture. The permanent mode should be **Planning / Today / Upcoming**.
 
-- Duplicates List for most near-term questions: today, tomorrow, next, and upcoming events.
-- Duplicates Month for planning density: which days are busy and where there is room.
-- Adds navigation and scanning cost without a distinct family-first question.
-- Uneven event distribution makes it inefficient: empty days consume equal space while busy days truncate details.
-- Children and hurried adults must scan seven columns/cards before reaching the answer.
-- The current design must limit visible events per day, which means Week can hide the very details users need.
+### Should Agenda have two permanent modes?
 
-### Frequency of use
+No, not as equal always-present top-level modes. Agenda should have **one permanent operating mode** plus a **durable contextual Month workflow**. If product language requires calling Month a mode, then it should be a secondary mode, not a co-equal permanent default option.
 
-Low to medium. Some families like a week-at-a-glance, but it is rarely the fastest answer to the most common Agenda questions.
+## Side-by-Side Analysis
 
-### Cognitive load
+### Permanent split view
 
-High relative to value. Week requires understanding the current week range, scanning across days, and comparing density while still opening or reading individual event cards.
+A permanent split between Planning and Month is tempting because it promises both now-awareness and date context. It is strategically weaker than it appears.
 
-### Family friendliness
+- **Cognitive load:** High. Users must decide whether to read the list, scan the grid, reconcile the selected day, or compare both.
+- **Information density:** High, often too high for a family display.
+- **Viewport efficiency:** Poor. Month needs meaningful cell area; Planning needs readable event rows. Splitting the viewport makes both worse on common laptops.
+- **Usefulness:** Good for adult planning sessions, weak for routine household checking.
+- **Family friendliness:** Mixed to poor. Children and hurried adults benefit from one obvious answer, not two synchronized panes.
+- **Planning efficiency:** Good only when actively scheduling; wasteful otherwise.
 
-Mixed. It is understandable to adults, but less direct for children and for quick shared household use.
+### Permanent side-by-side layout
 
-### Suitability as default landing page
+A permanent side-by-side layout should not be the default Agenda architecture. It makes a lower-frequency planning map compete with the high-frequency operational answer. It also increases the likelihood that implementation will rely on tiny month indicators, truncated event rows, internal scrolling, or visual compression that undermines comprehension.
 
-Poor. Week is neither the best operational view nor the best planning view.
+### Linked synchronized views
 
-### Does Week deserve to exist?
+Linked views can be useful during contextual planning: selecting a date in Month updates a day detail panel, or selecting an event in Planning reveals its date in Month. But synchronization should be scoped to planning sessions. Persistent linked views make everyday Agenda feel like calendar software instead of a household briefing.
 
-As a permanent primary view, no. Week does not currently own a unique, high-frequency household job. It sits between List and Month but is less decisive than either. If retained at all, it should be demoted to a future optional planning lens, not a first-class mode.
+### Dashboard plus planning panel
 
-## List View Evaluation
+A dashboard plus planning panel is the best side-by-side variant if it is **temporary**: Planning remains the default dashboard, and a planning panel opens when scheduling. This preserves the one-question default while supporting efficient date selection when needed.
 
-### Primary purpose
+### Side-by-side conclusion
 
-List answers: **what comes next for the household?** It naturally supports the highest-frequency user intentions.
+Planning and Month should **not** be permanently visible simultaneously. They may be temporarily visible together inside a focused planning workflow, but the default Agenda should not assume more information is better.
 
-### Strengths
+## Alternative Product Architectures
 
-- Fastest comprehension for today, tomorrow, next appointment, and near-term schedule.
-- Works well for parents, children, and shared displays because it reads in ordinary language order.
-- Can group by Today, Tomorrow, This week, Later, Birthdays, Holidays, or Needs attention.
-- Degrades gracefully with data volume through limits, grouping, internal scrolling, and “+N more” patterns.
-- Reduces spatial-calendar literacy requirements.
-- Best match for the existing product tone: household briefing rather than calendar software.
+### Option A — Planning + Month as two permanent modes
 
-### Weaknesses
+**Architecture:** Default Planning with a permanent Month mode switch.
 
-- Weaker for finding open space on a specific future date.
-- Can become long if not aggressively grouped and capped.
-- Needs careful hierarchy so today does not get buried under later events.
-- Needs date-jump or Month access for appointment planning.
+**Strengths:**
 
-### Frequency of use
+- Clear separation between daily operation and planning.
+- Easy for parents to find Month.
+- Removes Week while preserving a familiar calendar planning tool.
 
-High. It should be used daily and repeatedly.
+**Weaknesses:**
 
-### Cognitive load
+- Still frames Agenda as mode-switching software.
+- Risks making Month feel equally important even though it is lower-frequency.
+- May encourage preserving top-level tabs for format reasons rather than workflow reasons.
 
-Low. Chronological grouping and plain-language headings produce direct comprehension.
+**Family-first fit:** Strong for parents, acceptable for children if Planning remains default.
 
-### Family friendliness
+**Verdict:** Good transitional architecture; not the most refined long-term architecture.
 
-High. A list is easier for children and hurried adults to understand than a dense calendar grid.
+### Option B — Planning only; Month becomes contextual
 
-### Suitability as default landing page
+**Architecture:** One permanent Planning surface. Month appears through scheduling, date jump, planning overlay, or selected planning workflow.
 
-Strong. List best supports the Agenda as a household operating surface.
+**Strengths:**
 
-## Alternative Information Architectures
+- Best alignment with one primary household question.
+- Lowest default cognitive load.
+- Strong viewport efficiency.
+- Prevents calendar-format sprawl.
+- Treats Month as a tool used when the family is actually planning.
 
-### Option A — Preserve current equal views
+**Weaknesses:**
 
-- **Default:** Month, Week, or remembered previous mode.
-- **Primary views:** Month, Week, List.
-- **Removed:** none.
+- Requires excellent discoverability for planning ahead.
+- Parents who expect a calendar tab may initially look for Month.
+- Needs careful product language so "Planning" does not sound less capable than "Calendar".
 
-**Strategic assessment:** Weak. It preserves implementation history instead of product clarity. Equal tabs imply equal importance, but family use cases are not equal.
+**Family-first fit:** Strongest overall.
 
-**Five-second answer:** “There are three calendar modes.” This answers the product structure, not the household question.
+**Verdict:** Best long-term product architecture.
 
-### Option B — List default, Month secondary, Week removed
+### Option C — Planning + Month simultaneously
 
-- **Default:** List / Upcoming.
-- **Secondary:** Month planning.
-- **Removed:** Week.
+**Architecture:** Default page shows a Planning feed and Month grid at the same time.
 
-**Strategic assessment:** Strong. It maps daily use to the landing surface and keeps the best planning tool. It simplifies decision-making and reduces mode-switch burden.
+**Strengths:**
 
-**Five-second answer:** “Here is what is coming up; switch to Month when planning a date.”
+- Powerful for adult scheduling sessions.
+- Reduces mode switching.
+- Gives broad and near-term context together.
 
-### Option C — Today / Upcoming default, Month secondary, Week removed
+**Weaknesses:**
 
-- **Default:** A sharpened Today / Upcoming household briefing.
-- **Primary content:** Today, next event, tomorrow, later this week, upcoming special dates.
-- **Secondary:** Month planning.
-- **Removed:** Week.
+- High cognitive load.
+- Poor viewport efficiency.
+- Weak child friendliness.
+- Risks making both Planning and Month too compressed.
+- Violates the spirit of "one primary household question" at rest.
 
-**Strategic assessment:** Strongest. This is a product-specific version of Option B. It does not merely default to the existing List; it defines the Agenda around the highest-value household question.
+**Family-first fit:** Useful for some parent planning moments, weak for routine daily use.
 
-**Five-second answer:** “Today is handled, and this is what comes next.”
+**Verdict:** Do not use as permanent architecture. Consider only as temporary planning-workflow layout.
 
-### Option D — Agenda as household briefing + planning drawer
+### Option D — Household briefing with planning workflow
 
-- **Default:** Briefing board with “Today”, “Next up”, and “Soon”.
-- **Planning mode:** Month opens as a focused planning drawer or mode.
-- **Secondary tools:** Date search / jump, birthdays and holidays as lightweight side context.
-- **Removed:** permanent Week.
+**Architecture:** Agenda is a briefing surface centered on Today, Next, and Soon. Planning is an explicit workflow launched from the briefing, using Month/date tools as needed.
 
-**Strategic assessment:** Very strong product direction, but it is a larger conceptual shift. It makes Agenda feel less like a calendar clone and more like FamilyBoard. It risks hiding calendar affordances unless Month access is obvious.
+**Strengths:**
 
-**Five-second answer:** “Here is the family’s schedule story, with planning one step away.”
+- Derived directly from household intent.
+- Most differentiated from generic calendar apps.
+- Scales from children to parents.
+- Preserves Month value without letting it dominate the default surface.
+- Best fit for FamilyBoard's dashboard philosophy.
 
-### Option E — Month default with embedded Today rail
+**Weaknesses:**
 
-- **Default:** Month grid.
-- **Persistent rail:** Today / next-up list.
-- **Secondary:** List maybe removed or demoted.
-- **Removed:** Week.
+- Requires strong content strategy and naming.
+- If over-simplified, could under-serve power planning.
+- Must avoid burying date lookup.
 
-**Strategic assessment:** Moderate. It preserves planning power but still overweights the lower-frequency month grid. It could work for tablet-wall calendar mental models, but it is less effective for quick daily use.
+**Family-first fit:** Strongest.
 
-**Five-second answer:** “This is the month, and today is on the side.”
+**Verdict:** Ideal long-term architecture; effectively a mature version of Option B.
 
-### Option F — Week default with list assist
+### Option E — Month-first wall calendar with Today rail
 
-- **Default:** Week grid.
-- **Embedded rail:** Today / next-up.
-- **Secondary:** Month.
-- **Removed:** standalone List.
+**Architecture:** Month grid remains primary, with a Today/Next rail alongside or below.
 
-**Strategic assessment:** Weak. It elevates the least differentiated view and then needs a list to solve its comprehension problem. If Week needs a list to become useful, List should be primary.
+**Strengths:**
 
-**Five-second answer:** “This week is shown, but I still need to find what matters.”
+- Familiar to families who think in wall calendars.
+- Good for seeing school breaks, birthdays, holidays, and broad month shape.
+- Keeps planning visible.
+
+**Weaknesses:**
+
+- Worse for quick daily questions.
+- Makes children parse a grid.
+- Consumes significant viewport area.
+- Treats an episodic planning representation as the daily default.
+
+**Family-first fit:** Good for parent planning, weaker for household operation.
+
+**Verdict:** Plausible for a dedicated wall-calendar product, but not ideal for FamilyBoard Agenda.
+
+### Option F — Task-based calendar assistant
+
+**Architecture:** Agenda has no explicit Month mode; users express intents such as "add appointment", "find a quiet day", or "what is next week like?" and the interface reveals the required planning aid.
+
+**Strengths:**
+
+- Very family-friendly if executed well.
+- Avoids format-first modes entirely.
+- Could optimize every workflow around intent.
+
+**Weaknesses:**
+
+- Risk of opacity: users may not know what is possible.
+- Harder to build trust for date-sensitive planning.
+- May feel too magical or constrained for parents who want direct control.
+
+**Family-first fit:** Potentially high, but risky.
+
+**Verdict:** Interesting long-term direction, but Agenda should first stabilize around Planning plus contextual Month.
 
 ## Family-First Evaluation
 
-| Criterion | Option A: three equal views | Option B: List + Month | Option C: Today / Upcoming + Month | Option D: Briefing + planning | Option E: Month + Today rail | Option F: Week + list assist |
-| --- | --- | --- | --- | --- | --- | --- |
-| Parents | Medium | High | High | High | Medium-high | Medium |
-| Children | Low-medium | High | Highest | Highest | Medium | Low-medium |
-| Shared household planning | Medium | High | High | High | High | Medium |
-| Quick daily use | Medium | High | Highest | Highest | Medium | Medium |
-| Appointment planning | High | High | High | Medium-high | High | Medium |
-| Finding free time | High | High via Month | High via Month | Medium-high | High | Medium |
-| Understanding what comes next | Medium | High | Highest | Highest | Medium | Medium |
-| Mode simplicity | Low | High | High | Medium-high | Medium | Low-medium |
+| Option | Parents | Children | Shared household planning | Daily use | Planning appointments | Scheduling around busy days | Finding free time | Cognitive load |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| A: Planning + Month permanent | Strong | Good if Planning default | Strong | Strong | Strong | Strong | Strong | Medium |
+| B: Planning only, Month contextual | Strong | Strongest | Strong if planning entry is obvious | Strongest | Strong | Strong | Strong | Lowest |
+| C: Planning + Month simultaneous | Mixed; powerful but dense | Weak | Mixed | Medium | Strong | Strong | Strong | High |
+| D: Household briefing + planning workflow | Strongest | Strongest | Strongest | Strongest | Strong | Strong | Strong | Low |
+| E: Month-first + Today rail | Good | Medium-low | Medium | Medium | Strong | Strong | Strong | Medium-high |
+| F: Intent assistant | Medium-high if clear | High | Medium-high | High | Medium-high | Medium-high | Medium-high | Low to uncertain |
 
-Option C best balances household operation with planning. Option D may become the strongest long-term expression after validation, but Option C is clearer and less likely to obscure familiar calendar behavior.
+### Parents
 
-## Five-Second Comprehension Analysis
+Parents need both operational confidence and planning power. They benefit from Planning by default because it lowers daily load, but they must retain quick access to a trustworthy Month workflow when scheduling. Parents do not need Week as a permanent representation if weekly load is summarized well.
 
-### Option A — Current three-view model
+### Children
 
-Within five seconds, a family understands that Agenda has multiple modes. They may not immediately know what matters today. The interface asks the family to choose a representation before answering the household question.
+Children benefit from direct, concrete information: today, next, later, and special events. Month can be engaging but is less reliable for comprehension. Week is especially weak for children because it asks them to scan multiple days and infer relevance.
 
-### Option B — List default + Month secondary
+### Shared household planning
 
-Within five seconds, a family sees upcoming commitments first. Month is understood as the place to plan or inspect dates. This is a strong simplification.
+Shared planning works best when the household first sees the operational story, then intentionally opens date planning if needed. Permanent side-by-side designs make shared planning feel more complex than necessary.
 
-### Option C — Today / Upcoming default + Month secondary
+### Daily use
 
-Within five seconds, a family understands today’s commitments, the next event, and the near-term rhythm. This option best supports hurried household checks.
+Daily use strongly favors Planning. The default should not ask families to choose a view before answering the daily question.
 
-### Option D — Household briefing + planning drawer
+### Planning appointments and finding free time
 
-Within five seconds, a family understands the schedule as a story. The risk is that appointment planning may feel hidden if the Month entry point is not obvious.
+These workflows justify Month, but only as a planning tool. Month should be optimized for date availability, busy/free density, selected-day inspection, and date selection. It does not need to be visible during routine daily checks.
 
-### Option E — Month default + Today rail
+### Reducing cognitive load
 
-Within five seconds, a family sees the month and a small today summary. The page still communicates “calendar” before “what do we do next?”
+The most effective cognitive-load reduction is architectural: one standing question, one default reading path, and contextual tools only when the family enters a different job.
 
-### Option F — Week default + list assist
+## One-Primary-Question Evaluation
 
-Within five seconds, a family sees a week structure but may still need to scan. The assist rail compensates for the weakness of Week rather than proving Week should be primary.
-
-## One-Primary-Question Recommendation
-
-The Agenda page should answer one primary household question:
+FamilyBoard's design philosophy says each primary page should answer one primary household question. Agenda should answer:
 
 > **What does our family need to know next?**
 
-This is a better product question than “What does the calendar look like?” or “Which view do you want?” It aligns Agenda with FamilyBoard’s role as a shared household operating surface.
+This is broader and more useful than "What is on the calendar?" It includes today, next, preparation, special dates, and near-term awareness. It is also accessible to children and adults.
 
-Secondary questions should remain available, but subordinate:
+Planning is a second household question:
 
-- “Where can we fit something?” → Month planning.
-- “What is on a specific date?” → Month selected-day detail or date jump.
-- “Are birthdays or holidays coming?” → Upcoming list grouping and Month context.
-- “Was something yesterday?” → recent / past affordance, not a permanent primary mode.
+> **Where can this fit?**
+
+That second question is real, but it is not the default state of the Agenda page. It should receive a strong contextual workflow rather than becoming a second permanent visual center. A product can honor a secondary question without making the primary page answer two questions at once.
+
+Therefore:
+
+- Agenda's primary page question should be **"What does our family need to know next?"**
+- Month planning should be treated as the secondary contextual question **"Where can this fit?"**
+- Week does not define a separate household question; it is a representation of a time range.
 
 ## Final Recommendation
 
-### Which view should be the default?
+### Should Agenda have one permanent mode?
 
-The default should be **Today / Upcoming**, evolved from the current List view. It should lead with today, next event, tomorrow, later this week, and upcoming special dates rather than presenting a generic chronological archive.
+**Yes.** The long-term Agenda should have one permanent default operating mode: **Planning / Today / Upcoming**.
 
-### Which views should remain?
+### Should Agenda have two permanent modes?
 
-- **Today / Upcoming list:** remain and become primary.
-- **Month:** remain as the secondary planning mode.
+**Not as equal permanent modes.** It should have one permanent mode plus one durable contextual planning workflow. If implementation or navigation language calls Month a mode, it should be clearly secondary and task-invoked.
 
-### Which views should become secondary?
+### Should Month remain permanently visible?
 
-- **Month** should become secondary. It is a planning tool, not the daily household operating view.
+**No.** Month should not be permanently visible in the default Agenda state. It consumes too much attention and viewport area for a lower-frequency workflow.
 
-### Which view should be removed?
+### Should Month become contextual?
 
-- **Week** should be removed as a permanent primary view. It does not own a distinct, high-frequency family need and duplicates both List and Month.
+**Yes.** Month should become contextual: available when planning, choosing a date, finding availability, browsing a specific date, or inspecting busy/free distribution.
 
-### Should the current three-view model survive?
+### Should Planning and Month ever be visible simultaneously?
 
-No. The current three-view model should not survive as the long-term Agenda information architecture. It creates false equality between modes and makes the family choose a calendar representation before receiving the most important answer.
+**Yes, but only temporarily inside a focused planning workflow.** They should not be permanently visible simultaneously. Temporary combination can be useful when selecting a date while preserving the Planning context.
 
-### Recommended long-term IA
+### Should Week disappear permanently?
 
-1. **Agenda landing:** Today / Upcoming household briefing.
-2. **Primary CTA:** Add event.
-3. **Secondary mode:** Month planning.
-4. **Supporting affordances:** source visibility, date jump, maybe birthdays/holidays grouping.
-5. **Removed from primary IA:** Week.
+**Yes.** Week should disappear permanently as a first-class Agenda mode. Its valuable jobs should be absorbed by Planning summaries and contextual Month planning.
+
+### What is the ideal long-term information architecture?
+
+The ideal long-term Agenda architecture is:
+
+1. **Agenda home = Planning briefing**
+   - Today.
+   - Next up.
+   - Tomorrow.
+   - Soon / later this week.
+   - Special upcoming dates.
+   - Lightweight weekly-load cues.
+
+2. **Contextual planning workflow = Month/date planning**
+   - Launched from scheduling, date lookup, or planning actions.
+   - Month-density overview.
+   - Selected-day details.
+   - Date selection and busy/free comparison.
+   - Temporary relationship to Planning when helpful.
+
+3. **No permanent Week mode**
+   - Weekly load appears as a summary, not a separate workspace.
+   - If future validation reveals a unique weekly ritual, it should be designed as a workflow, not restored as a generic Week tab.
+
+4. **No permanent split view**
+   - The default page remains one-question, low-density, viewport-first.
+   - Side-by-side Planning + Month is reserved for active planning moments only.
 
 ## Risks and Trade-offs
 
-- **Risk: Some users expect a Week view.** Mitigation: provide Month planning and a strong This Week section in the default list before deciding whether Week needs to return as an optional advanced lens.
-- **Risk: List can become too long.** Mitigation: cap visible groups, use internal scrolling, “+N later” summaries, and prioritize Today / Tomorrow / This week.
-- **Risk: Month demotion may make planning feel less immediate.** Mitigation: make Month access obvious, label it as planning, and preserve selected-day detail.
-- **Risk: Removing Week may reduce perceived calendar completeness.** Mitigation: position Agenda as a household briefing and planning board, not a general-purpose calendar replacement.
-- **Trade-off: Less representational symmetry, more product opinion.** This is desirable for FamilyBoard because product clarity matters more than calendar feature parity.
+- **Discoverability risk:** If Month is contextual, parents must still immediately understand how to plan ahead. Mitigation: use job-based entry labels such as planning a date, choosing a day, or finding room.
+- **Expectation risk:** Calendar users may expect a Month tab. Mitigation: preserve a clear Month/date planning entry without making it default.
+- **Power-user risk:** Some parents may like a Week view. Mitigation: satisfy the underlying weekly-load need in Planning summaries; only revisit Week if real household validation shows an unmet unique workflow.
+- **Over-simplification risk:** Planning-only can become too shallow if it hides dates, special events, or future commitments. Mitigation: Planning must include strong upcoming and special-date treatment.
+- **Viewport risk:** Contextual Month still needs viewport-first constraints when opened. Mitigation: treat Month as a bounded planning canvas, not an unbounded document calendar.
+- **Terminology risk:** "Planning" could mean scheduling to adults but daily briefing to children. Mitigation: use household language around today, next, and plan-a-date actions.
 
 ## Validation Performed
 
-- Reviewed repository governance instructions in `AGENTS.md` and `.github/copilot-instructions.md`.
-- Inspected current Agenda implementation only to understand existing modes and terminology, not to preserve them.
-- Reviewed recent Agenda-related reports and roadmap entries for product context.
-- Confirmed this is a strategic UX analysis, not a viewport analysis and not an implementation slice.
-- No build, test, Playwright, export, or backend validation was run because the task explicitly requested analysis only and no source implementation changes.
+This was an analysis-only task. No implementation, build, test, Playwright, export, .NET, or npm validation was required or run.
+
+Performed validation:
+
+- Read repository instructions in `AGENTS.md` and `.github/copilot-instructions.md`.
+- Inspected current Agenda strategic, viewport, and workspace reports.
+- Inspected current Agenda component references at a static level to confirm the existing mode vocabulary and architecture context.
+- Ran `git status --porcelain=v1` before and after the report work to verify the changeset remained documentation-only.
+- Ran `git diff --check` to verify the markdown report introduced no whitespace errors.
+- Ran file-type and status checks to confirm no binary files were added.
 
 ## Files Inspected
 
 - `AGENTS.md`
 - `.github/copilot-instructions.md`
-- `src/HomeOps.Client/src/widgets/components/AgendaWidget.tsx`
+- `docs/reports/2026-07-03-work/agenda-strategic-ux-research-analysis.md`
+- `docs/reports/2026-07-02-work/agenda-viewport-fit-analysis.md`
+- `docs/reports/2026-06-27-agenda-ux-review/agenda-ux-review.md`
+- `docs/reports/2026-06-27-agenda-month-master-detail/agenda-month-master-detail.md`
+- `docs/reports/2026-06-27-agenda-week-workspace/agenda-week-workspace.md`
+- `docs/reports/2026-06-27-agenda-list-workspace/agenda-list-workspace.md`
 - `docs/roadmap/phase-2.md`
-- `docs/reports/2026-06-27-agenda-final-polish/agenda-final-polish.md`
-- `docs/reports/2026-06-30-agenda-compact-controls-audit/agenda-compact-controls-audit.md`
-- `docs/reports/2026-06-26-product-review-v2/2026-06-26-product-review-v2.md`
-- `docs/reports/2026-06-27-familyboard-screenshot-review/familyboard-screenshot-review.md`
+- `docs/state/current-state.md`
+- `src/HomeOps.Client/src/widgets/components/AgendaWidget.tsx`
+- `src/HomeOps.Client/src/widgets/components/AgendaWidget.test.tsx`
 
 ## Confirmation That No Implementation Changes Were Made
 
-No source code, styles, tests, backend files, API contracts, database files, or application behavior were changed. This report is the only intended repository change.
+Confirmed. This task changed only this strategic UX research report under `docs/reports/2026-07-03-work/`. No frontend source, backend source, tests, styles, API contracts, database migrations, roadmap files, or state files were modified.
 
 ## Confirmation That No Binary Files Were Added
 
-No binary files, screenshots, videos, exports, caches, build artifacts, or generated media were added by this task.
+Confirmed. No screenshots, videos, exported artifacts, generated browser artifacts, or other binary files were added by this task.
