@@ -287,10 +287,10 @@ async function returnToPlanning(user: ReturnType<typeof userEvent.setup>) {
 }
 
 async function openCreateDialog(user: ReturnType<typeof userEvent.setup>) {
-  await screen.findByRole("button", { name: "Gebeurtenis toevoegen" });
-  await user.click(
-    screen.getByRole("button", { name: "Gebeurtenis toevoegen" }),
-  );
+  const trigger =
+    screen.queryByRole("button", { name: "Afspraak plannen" }) ??
+    (await screen.findByRole("button", { name: "Gebeurtenis toevoegen" }));
+  await user.click(trigger);
   return screen.getByRole("dialog", { name: "Gebeurtenis toevoegen" });
 }
 
@@ -358,12 +358,15 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     expect(screen.getByText("Wat moet het gezin hierna weten?")).not.toBeNull();
     expect(screen.queryByRole("button", { name: "Week" })).toBeNull();
     expect(screen.queryByRole("button", { name: "Lijst" })).toBeNull();
-    expect(
-      screen.getByRole("button", { name: "Gebeurtenis toevoegen" }),
-    ).not.toBeNull();
+    expect(screen.getByLabelText("Vandaag briefing")).not.toBeNull();
+    expect(screen.getByLabelText("Vooruitkijken")).not.toBeNull();
+    expect(screen.getByLabelText("Planning tools")).not.toBeNull();
+    expect(screen.getByRole("button", { name: "Afspraak plannen" })).not.toBeNull();
     expect(screen.getByRole("button", { name: "Maand bekijken" })).not.toBeNull();
     expect(
-      screen.getByRole("group", { name: "Zichtbaar in de agenda" }),
+      within(screen.getByLabelText("Planning tools")).getByRole("group", {
+        name: "Zichtbaar in de agenda",
+      }),
     ).not.toBeNull();
     expect(screen.getByText("Bronnen")).not.toBeNull();
 
@@ -558,9 +561,7 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
       }),
     );
 
-    await user.click(
-      screen.getByRole("button", { name: "Gebeurtenis toevoegen" }),
-    );
+    await openCreateDialog(user);
     await user.type(screen.getByLabelText("Wat gebeurt er?"), "Timed Trip");
     await continueToDetails(user);
     await user.click(screen.getByRole("button", { name: "Gebeurtenis maken" }));
@@ -649,7 +650,11 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
 
     expect(await screen.findByLabelText("Planningoverzicht")).not.toBeNull();
     expect(screen.getByText("Rustige dag")).not.toBeNull();
-    expect(screen.getByText("Vandaag is nog open")).not.toBeNull();
+    expect(
+      within(screen.getByLabelText("Vandaag briefing")).getAllByText(
+        "Vandaag blijft open",
+      ).length,
+    ).toBeGreaterThan(0);
   });
 
   it("renders family-friendly event indicators with overflow and detail card labels", async () => {
@@ -693,23 +698,29 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     render(<AgendaWidget {...widgetProps} />);
 
     expect(await screen.findByLabelText("Planningoverzicht")).not.toBeNull();
-    expect(screen.getByLabelText("Vandaag")).not.toBeNull();
-    expect(screen.getByLabelText("Morgen")).not.toBeNull();
-    expect(screen.getByLabelText("Later deze week")).not.toBeNull();
-    expect(screen.getByLabelText("Binnenkort")).not.toBeNull();
-    expect(screen.getByText("Straks")).not.toBeNull();
+    expect(screen.getByLabelText("Vandaag briefing")).not.toBeNull();
+    expect(screen.getByLabelText("Deze week")).not.toBeNull();
+    expect(screen.getByLabelText("Vooruitkijken")).not.toBeNull();
+    expect(screen.getByLabelText("Planning tools")).not.toBeNull();
+    expect(screen.queryByLabelText("Morgen")).toBeNull();
     expect(screen.getByText("Deze week")).not.toBeNull();
-    expect(
-      within(screen.getByLabelText("Vandaag")).getByText("Zwemles Thomas"),
-    ).not.toBeNull();
-    expect(
-      within(screen.getByLabelText("Later deze week")).getByText(
-        "Pannenkoeken ontbijt",
-      ),
-    ).not.toBeNull();
-    expect(
-      within(screen.getByLabelText("Binnenkort")).getByText("Volgende maandag"),
-    ).not.toBeNull();
+    await waitFor(() => {
+      expect(
+        within(screen.getByLabelText("Vandaag briefing")).getByText(
+          "Zwemles Thomas",
+        ),
+      ).not.toBeNull();
+      expect(
+        within(screen.getByLabelText("Deze week")).getByText(
+          "Pannenkoeken ontbijt",
+        ),
+      ).not.toBeNull();
+      expect(
+        within(screen.getByLabelText("Vooruitkijken")).getByText(
+          "Volgende maandag",
+        ),
+      ).not.toBeNull();
+    });
 
     await openMonthView(user);
     expect(screen.getByLabelText("Maandplanning")).not.toBeNull();
@@ -729,7 +740,9 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     await waitFor(() => {
       expect(screen.getByLabelText("Planningoverzicht")).not.toBeNull();
       expect(
-        within(screen.getByLabelText("Vandaag")).getByText("Zwemles Thomas"),
+        within(screen.getByLabelText("Vandaag briefing")).getByText(
+          "Zwemles Thomas",
+        ),
       ).not.toBeNull();
     });
 
@@ -765,7 +778,9 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
 
     expect(await screen.findByLabelText("Planningoverzicht")).not.toBeNull();
     expect(
-      within(screen.getByLabelText("Vandaag")).getByText("Zwemles Thomas"),
+      within(screen.getByLabelText("Vandaag briefing")).getByText(
+        "Zwemles Thomas",
+      ),
     ).not.toBeNull();
 
     await openMonthView(user);
@@ -790,18 +805,16 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     expect(await screen.findByLabelText("Planningoverzicht")).not.toBeNull();
     expect(screen.queryByText("Verleden afspraak")).toBeNull();
 
-    const todayGroup = screen.getByLabelText("Vandaag");
+    const todayGroup = screen.getByLabelText("Vandaag briefing");
     const todayText = todayGroup.textContent ?? "";
     expect(todayText.indexOf("Tandarts controle")).toBeLessThan(
       todayText.indexOf("Voetbal training"),
     );
-    expect(within(todayGroup).getAllByTitle("Zorg").length).toBeGreaterThan(0);
-    expect(within(todayGroup).getAllByTitle("Sport").length).toBeGreaterThan(0);
     expect(
-      within(screen.getByLabelText("Morgen")).getByText("Familie brunch"),
+      within(screen.getByLabelText("Deze week")).getByText("Familie brunch"),
     ).not.toBeNull();
     expect(
-      within(screen.getByLabelText("Binnenkort")).getByText(
+      within(screen.getByLabelText("Vooruitkijken")).getByText(
         "Boodschappen voorraad",
       ),
     ).not.toBeNull();
@@ -809,6 +822,9 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     const dentistCard = within(todayGroup).getByText("Tandarts controle").closest("li");
     expect(dentistCard).not.toBeNull();
 
+    await user.click(
+      within(dentistCard!).getByRole("button", { name: /Tandarts controle/ }),
+    );
     await user.click(
       within(dentistCard!).getByRole(
         "button",
@@ -844,8 +860,12 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     render(<AgendaWidget {...widgetProps} />);
 
     expect(await screen.findByLabelText("Planningoverzicht")).not.toBeNull();
-    expect(screen.getByText("Geen volgende afspraak")).not.toBeNull();
-    expect(screen.getByText("Vandaag is nog open")).not.toBeNull();
+    expect(screen.getByText("Rustige dag")).not.toBeNull();
+    expect(
+      within(screen.getByLabelText("Vandaag briefing")).getAllByText(
+        "Vandaag blijft open",
+      ).length,
+    ).toBeGreaterThan(0);
   });
 
   it("keeps source filtering functional for persisted calendar sources", async () => {
