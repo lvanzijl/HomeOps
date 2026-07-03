@@ -95,7 +95,7 @@ Maximum total duration: **90 seconds**.
 | Intro | `visual-marketing-home` | 5s | A quiet morning begins. |
 | Home | `visual-marketing-home` | 7s | Today becomes readable. |
 | Family | `visual-marketing-family` | 10s | “This is our family.” |
-| Agenda | `visual-marketing-agenda` | 14s | Month, week, list, and one realistic plan. |
+| Agenda | `visual-marketing-agenda` | 14s | Today, this week, next week, and one realistic plan. |
 | Tasks | `visual-marketing-tasks` | 10s | Add one task and complete one helpful job. |
 | Shopping | `visual-marketing-shopping` | 7s | Baking errands connect to cookies; add bananas. |
 | Motivation | `visual-marketing-motivation` | 10s | Appreciation recognizes kindness. |
@@ -116,7 +116,7 @@ Maximum total duration: **90 seconds**.
 - **Duration:** 5 seconds
 - **Minimum duration:** 4 seconds
 - **Maximum duration:** 6 seconds
-- **Visual focus:** The redesigned full desktop Home dashboard with the larger family anchor and dominant Agenda/Boodschappen cards already prepared.
+- **Visual focus:** The redesigned viewport-first Home dashboard as today's household answer: family presence, today's rhythm, immediate tasks, shopping signal, and motivation cues all visible without page scrolling.
 - **Transition:** Fade in from warm neutral black.
 - **Camera pacing:** Start still. Hold for a full breath before any motion. Use only a very slow settle toward the center of the screen so the viewer reads the board as part of the room.
 - **Touch gestures:** None.
@@ -137,10 +137,10 @@ Maximum total duration: **90 seconds**.
 - **Duration:** 7 seconds
 - **Minimum duration:** 6 seconds
 - **Maximum duration:** 8 seconds
-- **Visual focus:** The dominant Home Agenda and Boodschappen cards, the larger family member area, and the swimming lesson that will be supported later by the swim-bag task.
+- **Visual focus:** The Home dashboard's dominant daily household regions: family members, today's Agenda signal, task/shopping/motivation summaries, and the swimming lesson that will be supported later by the swim-bag task.
 - **Transition:** Gentle dissolve from the intro hold.
-- **Camera pacing:** Pause on the full dashboard, drift from the larger family area toward today's Agenda and Boodschappen cards, then wait long enough for the swim lesson and school rhythm to register as the first continuity thread.
-- **Touch gestures:** One tap on the Today area or first practical card, only to show the board is touch-first.
+- **Camera pacing:** Pause on the full dashboard, drift from the family presence toward today's planning and practical summary regions, then wait long enough for the swim lesson and school rhythm to register as the first continuity thread.
+- **Touch gestures:** One tap on a visible Home summary region, only to show the board is touch-first.
 - **Interaction sequence:** Tap once, then stop. Do not open quick capture; the scene is about seeing, not entering.
 - **Audio events:** `ChapterStarted`, `TouchStarted`, `TouchCompleted`.
 - **Expected final state:** Home remains on the same calm dashboard state, with the swimming lesson remembered as a practical need for later.
@@ -158,9 +158,9 @@ Maximum total duration: **90 seconds**.
 - **Duration:** 10 seconds
 - **Minimum duration:** 8 seconds
 - **Maximum duration:** 11 seconds
-- **Visual focus:** Thomas's redesigned Mijn Pagina opens as a recognizable child-first page: normal header/back action, dominant avatar identity, then the existing Today/appreciation/progress content before the brief Avatar Editor save and return.
+- **Visual focus:** Thomas's redesigned Mijn Pagina opens as a personal daily overview: compact identity/avatar orientation, today's personal focus, appreciation/progress signals, and contextual avatar editing before the brief save and return.
 - **Transition:** Soft crossfade.
-- **Camera pacing:** Move slowly from the family overview to Thomas. Pause on the identity-led Mijn Pagina composition so the avatar and name read first, pause briefly in the Avatar Editor, save, then hold for a beat on the updated avatar before returning to the family overview.
+- **Camera pacing:** Move slowly from the family overview to Thomas. Pause on the personal daily overview so identity, today, and progress read together, pause briefly in the bounded Avatar Editor, save, then hold for a beat on the updated avatar before returning to the family overview.
 - **Touch gestures:** Tap Thomas, tap Avatar Editor, make one simple visual-property change, tap save, tap return.
 - **Interaction sequence:** Open Thomas; open Avatar Editor; change one simple visual property such as a color, accessory, or equally small appearance option; save; pause briefly so the updated avatar can be noticed; return to the Family overview.
 - **Audio events:** `TransitionStarted`, `TransitionCompleted`, `TouchStarted`, `TouchCompleted`, `ActionCompleted`, optional `save`.
@@ -169,7 +169,7 @@ Maximum total duration: **90 seconds**.
 
 ### 4. Agenda
 
-- **Purpose:** Show how the family understands the month, week, and day in one shared place, then adds one realistic plan.
+- **Purpose:** Show how the family understands today and the surrounding week in one shared place, then adds one realistic plan.
 - **Narrative role:** Today's planning grows from the Home scene into a wider family rhythm, and the new Filmavond event makes planning feel lived-in.
 - **Emotional tone:** Confidence without rigidity.
 - **Chapter title:** Agenda
@@ -179,11 +179,11 @@ Maximum total duration: **90 seconds**.
 - **Duration:** 14 seconds
 - **Minimum duration:** 11 seconds
 - **Maximum duration:** 15 seconds
-- **Visual focus:** Month view, week view, list view, the saved `Filmavond` event remaining visible, and the returned agenda overview.
+- **Visual focus:** The redesigned Agenda dashboard with Today, This Week, and Next Week regions, the saved `Filmavond` event remaining visible, and the returned agenda overview.
 - **Transition:** Dissolve after the Chapter Card fades; no persistent overlay remains.
-- **Camera pacing:** Show Month and pause. Move to Week and pause. Move to List and pause. During event creation, keep the camera steady and readable. After saving Filmavond, remain on the updated agenda long enough for the event to be noticed, then return to the overview and hold.
-- **Touch gestures:** Tap Month, tap Week, tap List, tap add event, enter `Filmavond`, save, and return to overview.
-- **Interaction sequence:** Show Month; pause. Show Week; pause. Show List; pause. Add one event named `Filmavond`. Save it. Stay briefly on the updated agenda so Filmavond feels part of the family week. Return to the agenda overview without demonstrating editing or advanced calendar features.
+- **Camera pacing:** Show the Agenda overview and pause on Today. Move gently through This Week and Next Week rather than touring every administrative view. During event creation, keep the camera steady and readable. After saving Filmavond, remain on the updated agenda long enough for the event to be noticed, then return to the overview and hold.
+- **Touch gestures:** Tap a visible planning region if needed, tap add event, enter `Filmavond`, save, and return to overview.
+- **Interaction sequence:** Show the Agenda overview with Today, This Week, and Next Week context; pause. Add one event named `Filmavond`. Save it. Stay briefly on the updated agenda so Filmavond feels part of the family week. Return to the agenda overview without demonstrating editing or advanced calendar features.
 - **Audio events:** `ChapterStarted`, `TouchStarted`, `TouchCompleted`, `ActionCompleted`, optional `save`.
 - **Expected final state:** Agenda overview is visible with the family rhythm preserved and Filmavond added as a believable event that remains part of the week.
 - **Director notes:** Pause between views and after the save. The point is confidence across time scales, not proving every calendar control exists.
@@ -195,14 +195,14 @@ Maximum total duration: **90 seconds**.
 - **Emotional tone:** Confidence shifting into helpful relief.
 - **Chapter title:** Tasks
 - **Optional subtitle:** Small jobs, shared rhythm
-- **Chapter Card:** `Tasks` appears with `Small jobs, shared rhythm`, holds for approximately one second, then gently fades out before the task list becomes the full focus.
+- **Chapter Card:** `Tasks` appears with `Small jobs, shared rhythm`, holds for approximately one second, then gently fades out before today's work becomes the full focus.
 - **Fixture:** `visual-marketing-tasks`
 - **Duration:** 10 seconds
 - **Minimum duration:** 8 seconds
 - **Maximum duration:** 11 seconds
-- **Visual focus:** The task list, the new `Koekjes bakken` task, and completion of `Zwemtas klaarzetten` to support the swimming lesson introduced on Home.
+- **Visual focus:** The Tasks viewport-first dashboard: the compact command/status band, today's work as the dominant region, the new `Koekjes bakken` task, and completion of `Zwemtas klaarzetten` to support the swimming lesson introduced on Home.
 - **Transition:** Crossfade from Agenda.
-- **Camera pacing:** Hold on the task list first. Keep the add-task moment steady and short. Move only enough to center `Zwemtas klaarzetten`, then pause longer after completion so the animation can finish.
+- **Camera pacing:** Hold on today's work first. Keep the add-task moment steady and short. Move only enough to center `Zwemtas klaarzetten` inside the bounded task region, then pause longer after completion so the visual state can settle.
 - **Touch gestures:** Tap add task, enter `Koekjes bakken`, save, tap one completion affordance.
 - **Interaction sequence:** Add `Koekjes bakken`; let it appear in the list; complete `Zwemtas klaarzetten`; wait for the completion animation to finish before continuing.
 - **Audio events:** `TouchStarted`, `TouchCompleted`, `ActionCompleted`, optional `save`, `task completed`.
@@ -221,11 +221,11 @@ Maximum total duration: **90 seconds**.
 - **Duration:** 7 seconds
 - **Minimum duration:** 6 seconds
 - **Maximum duration:** 8 seconds
-- **Visual focus:** Store-grouped shopping lists with `Bloem`, `Roomboter`, `Chocoladestukjes`, and `Vanillesuiker` already present for `Koekjes bakken`, plus the quick addition of `Bananen`.
+- **Visual focus:** The execution-first Shopping dashboard: compact quick-add command row, active store-grouped shopping region with `Bloem`, `Roomboter`, `Chocoladestukjes`, and `Vanillesuiker` already present for `Koekjes bakken`, plus the quick addition of `Bananen`.
 - **Transition:** Warm dissolve.
-- **Camera pacing:** Start still on the grouped list so the baking ingredients read as preparation for `Koekjes bakken`. Add `Bananen` quickly and return attention to the grouped structure. Hold briefly after `Bananen` appears so it reads as one remembered item inside the same errands, not a separate feature beat.
+- **Camera pacing:** Start still on the active shopping region so the baking ingredients read as preparation for `Koekjes bakken`. Add `Bananen` from the compact command row and return attention to the grouped structure. Hold briefly after `Bananen` appears so it reads as one remembered item inside the same errands, not a separate feature beat.
 - **Touch gestures:** Tap add item, enter `Bananen`, save. No extra scrolling unless needed for readability.
-- **Interaction sequence:** Show grouped errands with the existing baking ingredients already present; add only `Bananen`; hold on the grouped list with the new item visible or clearly implied.
+- **Interaction sequence:** Show the active shopping dashboard with the existing baking ingredients already present; add only `Bananen`; hold on the grouped list with the new item visible or clearly implied. Do not open completed, deleted, other-list, lifecycle, or management surfaces.
 - **Audio events:** `TransitionStarted`, `TransitionCompleted`, `TouchStarted`, `TouchCompleted`, `ActionCompleted`, optional `save`.
 - **Expected final state:** Shopping remains organized by real destinations, the cookie ingredients remain visible as support for `Koekjes bakken`, and `Bananen` has been added as a small piece of the same family week.
 - **Director notes:** Keep the addition extremely short. This should feel like remembering bananas while already preparing for cookies, not operating a list manager.
@@ -242,11 +242,11 @@ Maximum total duration: **90 seconds**.
 - **Duration:** 10 seconds
 - **Minimum duration:** 8 seconds
 - **Maximum duration:** 11 seconds
-- **Visual focus:** Family goal progress, the appreciation entry, and the newly visible appreciation.
+- **Visual focus:** The three-region Motivation dashboard: Shared Family Purpose as the dominant anchor, Encouragement & Appreciation for the entry, and Celebration Story as supporting payoff.
 - **Transition:** Soft crossfade.
-- **Camera pacing:** Pause on progress first. Move gently to the appreciation area. Keep the entry steady. After saving, wait long enough for the appreciation to appear and become readable.
+- **Camera pacing:** Pause on Shared Family Purpose first. Move gently to Encouragement & Appreciation. Keep the entry steady. After saving, wait long enough for the appreciation preview to appear and become readable without opening history or statistics details.
 - **Touch gestures:** Tap add appreciation, enter `Bedankt voor het helpen met opruimen.`, save.
-- **Interaction sequence:** Read family progress; add the appreciation `Bedankt voor het helpen met opruimen.`; pause on the displayed appreciation so it feels like a natural consequence of the earlier helping moments.
+- **Interaction sequence:** Read the shared family purpose; add the appreciation `Bedankt voor het helpen met opruimen.` in the appreciation region; pause on the displayed appreciation so it feels like a natural consequence of the earlier helping moments. Do not open personal-goal management, history, or statistics dialogs.
 - **Audio events:** `ChapterStarted`, `TouchStarted`, `TouchCompleted`, `ActionCompleted`, `appreciation shown`, optional `save`.
 - **Expected final state:** The new appreciation is visible and emotionally clear.
 - **Director notes:** Do not make motivation feel gamified. The emotional point is recognizing kindness that the viewer has already seen the family practice.
@@ -295,7 +295,7 @@ Maximum total duration: **90 seconds**.
 
 ## Sequence Justification
 
-Settings has been removed because it interrupted the emotional narrative and did not contribute to the central question of making everyday family life easier. The remaining sequence keeps the family story continuous: Home establishes the day and the swimming need, Family personalizes Thomas, Agenda broadens the same week with Filmavond, Tasks resolves the swim-bag pressure and adds cookies, Shopping supports Koekjes bakken with existing baking ingredients and adds bananas, Motivation recognizes the family helping, Weekly Reset reflects the week, and Outro returns to calm.
+Settings remains outside the core sequence because it would interrupt the emotional narrative even though the current Settings page now accurately answers household health with a calm maintenance dashboard. The remaining sequence keeps the family story continuous: Home establishes the day and the swimming need, Family personalizes Thomas, Agenda broadens the same week with Filmavond, Tasks resolves the swim-bag pressure and adds cookies, Shopping supports Koekjes bakken with existing baking ingredients and adds bananas, Motivation recognizes the family helping, Weekly Reset reflects the week, and Outro returns to calm.
 
 The Family scene remains before Agenda so the viewer meets the household before seeing the full planning surface. Weekly Reset remains near the end as the emotional climax, and the final Home/brand outro resolves the story without turning into a call to action.
 
@@ -311,7 +311,7 @@ The Family scene remains before Agenda so the viewer meets the household before 
 - **Appreciation follows helping:** Yes. `Bedankt voor het helpen met opruimen.` is framed as recognition of earlier helping moments.
 - **Home and Outro visually mirror one another:** Yes. Home opens the story with calm readability, and Outro returns to Home before the final FamilyBoard brand card and fade to black.
 - **Home and Weekly Reset feel connected:** Yes. Home introduces the day's practical needs, and Weekly Reset reflects the same family's completed week with the slowest movement, slowest touch, longest transition, longest holds, and most reflective tone.
-- **Settings removed:** Yes. There is no Settings scene in the storyboard sequence or timing table.
+- **Settings excluded from the story sequence:** Yes. There is no Settings scene in the storyboard sequence or timing table; if referenced in production notes, it should be treated as the current calm `Is alles in orde?` household-health dashboard rather than the obsolete calendar-administration stack.
 - **Emotional curve documented:** Yes. The curve is defined as Calm → Curiosity → Recognition → Confidence → Warmth → Reflection → Calm.
 - **Appropriate fixture use:** Yes. Every scene maps to an existing marketing fixture, and no production or framework changes are required.
 - **Pacing remains calm:** Yes. The storyboard keeps readable pauses after every continuity beat and remains at minimum 68 seconds, preferred 84 seconds, maximum 90 seconds.
