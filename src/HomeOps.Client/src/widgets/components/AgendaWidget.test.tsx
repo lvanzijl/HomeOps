@@ -650,7 +650,11 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
 
     expect(await screen.findByLabelText("Planningoverzicht")).not.toBeNull();
     expect(screen.getByText("Rustige dag")).not.toBeNull();
-    expect(screen.getByText("Vandaag blijft open")).not.toBeNull();
+    expect(
+      within(screen.getByLabelText("Vandaag briefing")).getAllByText(
+        "Vandaag blijft open",
+      ).length,
+    ).toBeGreaterThan(0);
   });
 
   it("renders family-friendly event indicators with overflow and detail card labels", async () => {
@@ -700,19 +704,23 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     expect(screen.getByLabelText("Planning tools")).not.toBeNull();
     expect(screen.queryByLabelText("Morgen")).toBeNull();
     expect(screen.getByText("Deze week")).not.toBeNull();
-    expect(
-      within(screen.getByLabelText("Vandaag briefing")).getByText(
-        "Zwemles Thomas",
-      ),
-    ).not.toBeNull();
-    expect(
-      within(screen.getByLabelText("Deze week")).getByText(
-        "Pannenkoeken ontbijt",
-      ),
-    ).not.toBeNull();
-    expect(
-      within(screen.getByLabelText("Vooruitkijken")).getByText("Volgende maandag"),
-    ).not.toBeNull();
+    await waitFor(() => {
+      expect(
+        within(screen.getByLabelText("Vandaag briefing")).getByText(
+          "Zwemles Thomas",
+        ),
+      ).not.toBeNull();
+      expect(
+        within(screen.getByLabelText("Deze week")).getByText(
+          "Pannenkoeken ontbijt",
+        ),
+      ).not.toBeNull();
+      expect(
+        within(screen.getByLabelText("Vooruitkijken")).getByText(
+          "Volgende maandag",
+        ),
+      ).not.toBeNull();
+    });
 
     await openMonthView(user);
     expect(screen.getByLabelText("Maandplanning")).not.toBeNull();
@@ -852,8 +860,12 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     render(<AgendaWidget {...widgetProps} />);
 
     expect(await screen.findByLabelText("Planningoverzicht")).not.toBeNull();
-    expect(screen.getByText("Geen volgende afspraak")).not.toBeNull();
-    expect(screen.getByText("Vandaag blijft open")).not.toBeNull();
+    expect(screen.getByText("Rustige dag")).not.toBeNull();
+    expect(
+      within(screen.getByLabelText("Vandaag briefing")).getAllByText(
+        "Vandaag blijft open",
+      ).length,
+    ).toBeGreaterThan(0);
   });
 
   it("keeps source filtering functional for persisted calendar sources", async () => {

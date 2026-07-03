@@ -1,3 +1,6 @@
+## Completed Slice — Agenda Planning Briefing Redesign
+Agenda Planning Briefing Redesign implements the approved briefing-board contract on top of the Planning-first Agenda IA. The default Agenda surface now reserves a dominant Today briefing region, a quieter day-grouped Deze week region, a compact Vooruitkijken reassurance list, and a quiet Planning tools utility region for appointment planning, date lookup, month access, and source filters. Default Planning metadata and action noise are reduced, tomorrow is absorbed into the week grouping instead of remaining a top-level section, and existing Month planning, event CRUD, source filtering, backend behavior, APIs, and schema remain unchanged.
+
 ## Completed Slice — Agenda Planning IA
 Agenda Planning IA applies the approved strategic Agenda contract by making Planning the default household briefing, removing Week from the visible primary information architecture, and keeping Month only as a contextual `Maand bekijken` workflow. The slice preserves existing event loading, source filtering, create/edit/delete behavior, selected-day behavior inside Month, backend APIs, schema, and Dutch UI language while updating frontend tests and storyboard hooks to the new Planning-first experience.
 
