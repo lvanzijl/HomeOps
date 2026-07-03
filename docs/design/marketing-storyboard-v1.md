@@ -59,7 +59,7 @@ The preview should feel like one ordinary Van Zijl family week, not a chain of i
 
 - Home introduces Thomas's swimming lesson and the practical pressure of the day. Tasks later resolves that pressure by completing `Zwemtas klaarzetten`.
 - Family personalization makes Thomas feel like the same child whose school, swimming, cookies, and helpful moments appear later.
-- Agenda expands the family's view from today to the week and adds `Filmavond`; after saving, the event should remain visible long enough to feel like part of the same week.
+- Agenda opens to Planning by default, answers what the family needs to know next, uses `Maand bekijken` only as a contextual date-lookup moment for `Filmavond`, and returns to Planning after the event is saved.
 - Shopping supports `Koekjes bakken` from Tasks: `Bloem`, `Roomboter`, `Chocoladestukjes`, and `Vanillesuiker` are already present in the fixture, while one ordinary `Bananen` addition keeps the interaction simple and believable.
 - Motivation should feel earned by the earlier helping actions, especially the completed swim-bag task and the general household reset work.
 - Weekly Reset reflects the same week: swimming preparation, Filmavond, cookies, groceries, helpful moments, and appreciation all resolve into Sunday evening calm.
@@ -95,7 +95,7 @@ Maximum total duration: **90 seconds**.
 | Intro | `visual-marketing-home` | 5s | A quiet morning begins. |
 | Home | `visual-marketing-home` | 7s | Today becomes readable. |
 | Family | `visual-marketing-family` | 10s | “This is our family.” |
-| Agenda | `visual-marketing-agenda` | 14s | Today, this week, next week, and one realistic plan. |
+| Agenda | `visual-marketing-agenda` | 14s | Planning by default, contextual Month lookup, and one realistic plan. |
 | Tasks | `visual-marketing-tasks` | 10s | Add one task and complete one helpful job. |
 | Shopping | `visual-marketing-shopping` | 7s | Baking errands connect to cookies; add bananas. |
 | Motivation | `visual-marketing-motivation` | 10s | Appreciation recognizes kindness. |
@@ -169,24 +169,24 @@ Maximum total duration: **90 seconds**.
 
 ### 4. Agenda
 
-- **Purpose:** Show how the family understands today and the surrounding week in one shared place, then adds one realistic plan.
-- **Narrative role:** Today's planning grows from the Home scene into a wider family rhythm, and the new Filmavond event makes planning feel lived-in.
+- **Purpose:** Show Agenda as the family's default Planning briefing, then add one realistic plan without turning the scene into a generic calendar tour.
+- **Narrative role:** Today's planning grows from the Home scene into the family's next shared rhythm, and the new Filmavond event makes planning feel lived-in.
 - **Emotional tone:** Confidence without rigidity.
 - **Chapter title:** Agenda
-- **Optional subtitle:** One rhythm for the whole family
-- **Chapter Card:** `Agenda` appears with `One rhythm for the whole family`, holds for approximately one second, then gently fades out before agenda views begin.
+- **Optional subtitle:** What the family needs to know next
+- **Chapter Card:** `Agenda` appears with `What the family needs to know next`, holds for approximately one second, then gently fades out before the Planning briefing owns the screen.
 - **Fixture:** `visual-marketing-agenda`
 - **Duration:** 14 seconds
 - **Minimum duration:** 11 seconds
 - **Maximum duration:** 15 seconds
-- **Visual focus:** The redesigned Agenda dashboard with Today, This Week, and Next Week regions, the saved `Filmavond` event remaining visible, and the returned agenda overview.
+- **Visual focus:** The implemented Agenda Planning surface: today/next/upcoming household information first, contextual `Maand bekijken` access for date lookup, the header `Gebeurtenis toevoegen` control, the saved `Filmavond` event, and the returned Planning overview.
 - **Transition:** Dissolve after the Chapter Card fades; no persistent overlay remains.
-- **Camera pacing:** Show the Agenda overview and pause on Today. Move gently through This Week and Next Week rather than touring every administrative view. During event creation, keep the camera steady and readable. After saving Filmavond, remain on the updated agenda long enough for the event to be noticed, then return to the overview and hold.
-- **Touch gestures:** Tap a visible planning region if needed, tap add event, enter `Filmavond`, save, and return to overview.
-- **Interaction sequence:** Show the Agenda overview with Today, This Week, and Next Week context; pause. Add one event named `Filmavond`. Save it. Stay briefly on the updated agenda so Filmavond feels part of the family week. Return to the agenda overview without demonstrating editing or advanced calendar features.
+- **Camera pacing:** Hold on Planning first so it reads as the default household briefing. Use `Maand bekijken` briefly only as a contextual planning/date-lookup moment for Filmavond. During event creation, keep the camera steady and readable. After saving Filmavond, remain on the updated agenda long enough for the event to be noticed, then return to Planning and hold.
+- **Touch gestures:** Tap `Maand bekijken`, tap `Gebeurtenis toevoegen`, enter `Filmavond`, save, and tap `Terug naar planning`.
+- **Interaction sequence:** Enter Agenda on the default Planning overview; pause on today/next/upcoming information; open Month only through `Maand bekijken` for the Filmavond planning beat; add one event named `Filmavond` from the implemented header control; save it; stay briefly on the updated agenda so Filmavond feels part of the family week; return to Planning without showing Week, List, or a mode tour.
 - **Audio events:** `ChapterStarted`, `TouchStarted`, `TouchCompleted`, `ActionCompleted`, optional `save`.
-- **Expected final state:** Agenda overview is visible with the family rhythm preserved and Filmavond added as a believable event that remains part of the week.
-- **Director notes:** Pause between views and after the save. The point is confidence across time scales, not proving every calendar control exists.
+- **Expected final state:** The Planning overview is visible again with the family rhythm preserved and Filmavond added as a believable event that remains part of the week.
+- **Director notes:** The point is Planning clarity: what matters today, what is next, and what is coming up. Month is a contextual helper, not an equal primary mode; Week is not shown.
 
 ### 5. Tasks
 
@@ -295,14 +295,14 @@ Maximum total duration: **90 seconds**.
 
 ## Sequence Justification
 
-Settings remains outside the core sequence because it would interrupt the emotional narrative even though the current Settings page now accurately answers household health with a calm maintenance dashboard. The remaining sequence keeps the family story continuous: Home establishes the day and the swimming need, Family personalizes Thomas, Agenda broadens the same week with Filmavond, Tasks resolves the swim-bag pressure and adds cookies, Shopping supports Koekjes bakken with existing baking ingredients and adds bananas, Motivation recognizes the family helping, Weekly Reset reflects the week, and Outro returns to calm.
+Settings remains outside the core sequence because it would interrupt the emotional narrative even though the current Settings page now accurately answers household health with a calm maintenance dashboard. The remaining sequence keeps the family story continuous: Home establishes the day and the swimming need, Family personalizes Thomas, Agenda opens with Planning, uses Month contextually for Filmavond, Tasks resolves the swim-bag pressure and adds cookies, Shopping supports Koekjes bakken with existing baking ingredients and adds bananas, Motivation recognizes the family helping, Weekly Reset reflects the week, and Outro returns to calm.
 
 The Family scene remains before Agenda so the viewer meets the household before seeing the full planning surface. Weekly Reset remains near the end as the emotional climax, and the final Home/brand outro resolves the story without turning into a call to action.
 
 ## Storyboard Validation
 
 - **Coherent narrative:** Yes. The story moves through one ordinary week: morning calm, Thomas's family identity, today's planning, Filmavond, swim-bag help, Koekjes bakken, groceries, appreciation, Sunday reflection, and ending together.
-- **No feature dumping:** Yes. Expanded interactions are limited to one meaningful family identity action, three readable agenda views plus one event, one task addition, one task completion, one shopping addition, and one appreciation.
+- **No feature dumping:** Yes. Expanded interactions are limited to one meaningful family identity action, Planning by default, one contextual Month lookup, and one event, one task addition, one task completion, one shopping addition, and one appreciation.
 - **No persistent feature overlays:** Yes. Every scene uses a brief Chapter Card that fades away before the UI owns the screen.
 - **Chapter Cards consistently described:** Yes. Each scene includes the Chapter Card title/subtitle experience and approximate one-second hold.
 - **Every interaction has purpose:** Yes. Touch is limited to identity, planning, helping, remembering, appreciating, and closing the same week.
