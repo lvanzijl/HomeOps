@@ -61,7 +61,7 @@ describe('ShoppingListWidget API-backed behavior', () => {
     const listsApi = await mockedListsApi();
     render(<ShoppingListWidget {...widgetProps} />);
     expect(await screen.findAllByText('Bread')).not.toBeNull();
-    expect(screen.getAllByText('Coffee')[0]).not.toBeNull();
+    expect(screen.queryByText('Coffee')).toBeNull();
     expect(screen.queryByText('Ondersteunende lijsten')).toBeNull();
     expect(listsApi.loadShoppingPageLists).toHaveBeenCalledWith(apiClient);
   });
@@ -85,8 +85,10 @@ describe('ShoppingListWidget API-backed behavior', () => {
     const bread = (await screen.findAllByText('Bread'))[0];
     await user.click(within(bread.closest('label')!).getByRole('checkbox'));
     await waitFor(() => expect(listsApi.toggleShoppingListItem).toHaveBeenCalledWith(apiClient, 'shopping-list-id', 'bread'));
-    const breadAfterToggle = (await screen.findAllByText('Bread'))[0];
-    await user.click(within(breadAfterToggle.closest('li')!).getByRole('button', { name: 'Weg' }));
+
+    await user.click(screen.getByRole('button', { name: /Afgevinkt/i }));
+    const completedBread = (await screen.findAllByText('Bread'))[0];
+    await user.click(within(completedBread.closest('li')!).getByRole('button', { name: 'Weg' }));
     expect(listsApi.removeShoppingListItem).toHaveBeenCalledWith(apiClient, 'shopping-list-id', 'bread');
     expect(screen.queryByText('Verwijderd')).toBeNull();
 
@@ -105,6 +107,7 @@ describe('ShoppingListWidget API-backed behavior', () => {
     expect(screen.getAllByText('Batteries')[0]).not.toBeNull();
     expect(document.querySelector('option[value=\"Corner Shop\"]')).not.toBeNull();
 
+    await user.click(screen.getByRole('button', { name: /Afgevinkt/i }));
     await user.click(within(screen.getAllByText('Coffee')[0].closest('li')!).getAllByText('Winkel')[0]);
     const coffeeStore = screen.getByLabelText('Winkel voor Coffee');
     await user.clear(coffeeStore);

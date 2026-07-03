@@ -7023,8 +7023,8 @@ button {
   overflow: hidden;
 }
 
-.shopping-section-primary .shopping-store-groups,
-.shopping-context-list .shopping-store-groups,
+.shopping-section-primary .shopping-section-body,
+.shopping-context-list .shopping-section-body,
 .shopping-other-list-surface {
   overflow-y: auto;
   overscroll-behavior: contain;
