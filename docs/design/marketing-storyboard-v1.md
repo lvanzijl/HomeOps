@@ -84,7 +84,7 @@ Future FamilyBoard marketing storyboards should follow this visual language:
 
 ## Timing Summary
 
-Preferred total duration: **82 seconds**.
+Preferred total duration: **84 seconds**.
 
 Minimum total duration: **68 seconds**.
 
@@ -95,7 +95,7 @@ Maximum total duration: **90 seconds**.
 | Intro | `visual-marketing-home` | 5s | A quiet morning begins. |
 | Home | `visual-marketing-home` | 7s | Today becomes readable. |
 | Family | `visual-marketing-family` | 10s | “This is our family.” |
-| Agenda | `visual-marketing-agenda` | 12s | Planning briefing by default, one realistic plan, and Month only as a visible contextual tool. |
+| Agenda | `visual-marketing-agenda` | 14s | Planning briefing by default, one realistic plan, and Month only as a visible contextual tool. |
 | Tasks | `visual-marketing-tasks` | 10s | Add one task and complete one helpful job. |
 | Shopping | `visual-marketing-shopping` | 7s | Baking errands connect to cookies; add bananas. |
 | Motivation | `visual-marketing-motivation` | 10s | Appreciation recognizes kindness. |
@@ -176,7 +176,7 @@ Maximum total duration: **90 seconds**.
 - **Optional subtitle:** What the family needs to know next
 - **Chapter Card:** `Agenda` appears with `What the family needs to know next`, holds for approximately one second, then gently fades out before the Planning briefing owns the screen.
 - **Fixture:** `visual-marketing-agenda`
-- **Duration:** 12 seconds
+- **Duration:** 14 seconds
 - **Minimum duration:** 10 seconds
 - **Maximum duration:** 14 seconds
 - **Visual focus:** The implemented Agenda Planning Briefing surface: the dominant `Vandaag briefing`, quieter day-grouped `Deze week`, compact `Vooruitkijken`, quiet `Planning tools` containing `Afspraak plannen`, `Datum kiezen`, `Maand bekijken`, and source filters, plus the saved `Filmavond` event returning into the briefing.
