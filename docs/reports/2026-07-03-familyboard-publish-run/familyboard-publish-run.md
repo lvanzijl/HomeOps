@@ -10,7 +10,7 @@ Publish mode completed successfully. The Marketing Production Engine produced th
 
 ## Published movie path
 
-`/home/runner/work/HomeOps/HomeOps/docs/demo/familyboard-preview-20260703-084647.mp4`
+`/home/runner/work/HomeOps/HomeOps/docs/demo/familyboard-preview-20260703-112302.mp4`
 
 ## Metadata path
 
@@ -22,7 +22,7 @@ Publish mode completed successfully. The Marketing Production Engine produced th
 
 ## Duration
 
-`104579 ms`
+`102399 ms`
 
 ## Resolution
 
@@ -46,7 +46,7 @@ Cleanup completed successfully. Temporary WebM, WAV, recording, and audio worksp
 
 ## Modified files
 
-- `docs/demo/familyboard-preview-20260703-084647.mp4`
+- `docs/demo/familyboard-preview-20260703-112302.mp4`
 - `docs/reports/2026-07-03-familyboard-publish-run/familyboard-publish-run.md`
 
 ## Explicit answers
