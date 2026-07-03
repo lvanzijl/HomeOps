@@ -6643,6 +6643,7 @@ button {
   background:
     linear-gradient(135deg, rgb(255 255 255 / 90%), rgb(255 247 237 / 84%)),
     radial-gradient(circle at 0 0, color-mix(in srgb, var(--domain-accent, #f97316) 16%, transparent), transparent 36%);
+  box-sizing: border-box;
   border: 1px solid color-mix(in srgb, var(--domain-border, #fed7aa) 78%, white);
   border-radius: 1.45rem;
   box-shadow: var(--elevation-warm-1);
@@ -6652,6 +6653,7 @@ button {
   overflow: hidden;
   padding: clamp(0.75rem, 1.1vw, 1rem);
   height: 100%;
+  max-height: 100%;
 }
 
 .motivation-story-grid {

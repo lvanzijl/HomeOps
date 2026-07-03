@@ -7,6 +7,9 @@ Frontend test maintenance refreshed stale test expectations and fixtures to matc
 
 # Phase 2 Roadmap
 
+## Completed Slice — Motivation Viewport-Fit Redesign
+Motivation Viewport-Fit Redesign implements the approved viewport-first family-story contract by replacing the previous four-card Motivation dashboard with exactly three permanent regions: a dominant Shared Family Purpose region, a curated Encouragement & Appreciation preview, and a compact Celebration Story region. Statistics are now supporting proof points instead of a standalone card, while appreciation history, memories, personal-goal management, and detailed progress move into bounded contextual dialogs without backend, API, schema, or binary artifact changes.
+
 ## Completed Slice — Shopping Viewport-Fit Redesign
 Shopping Viewport-Fit Redesign implements the approved execution-first Shopping contract by removing default shared-page scrolling, keeping one compact Quick Add/status command row permanently visible, bounding the active store-grouped shopping list inside the viewport, and moving completed, recovery, other-list, and management detail into compact footer actions with bounded overlay surfaces. Existing shopping creation, add, toggle, remove, undo, rename, archive, delete, and store-assignment behaviors remain available without backend, API, schema, or binary artifact changes.
 

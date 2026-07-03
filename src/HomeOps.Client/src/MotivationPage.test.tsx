@@ -190,7 +190,7 @@ describe("MotivationPage", () => {
     await user.click(screen.getByRole("button", { name: "Als gevierd markeren" }));
 
     expect(markFamilyGoalCelebrated).toHaveBeenCalledWith("family-goal");
-    expect(await screen.findByText("Samen gevierd")).not.toBeNull();
+    expect((await screen.findAllByText("Samen gevierd")).length).toBeGreaterThan(0);
     expect(screen.getAllByText("Movie night").length).toBeGreaterThanOrEqual(2);
     await user.click(screen.getByRole("button", { name: "Historie bekijken" }));
     expect(await screen.findByLabelText("Vieringsherinneringen")).not.toBeNull();
@@ -549,14 +549,5 @@ describe("MotivationPage", () => {
     ).not.toBeNull();
     await user.click(screen.getByRole("button", { name: "Waardering toevoegen" }));
     expect(screen.getByLabelText("Waardering delen")).not.toBeNull();
-    expect(
-      screen.getByRole("button", { name: "Alles bekijken" }),
-    ).not.toBeNull();
-    await user.click(screen.getByRole("button", { name: "Alles bekijken" }));
-    expect(
-      await screen.findByRole("dialog", {
-        name: "Aanmoediging en waardering geschiedenis",
-      }),
-    ).not.toBeNull();
   });
 });
