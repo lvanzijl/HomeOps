@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { FamilyMemberPage } from "./FamilyMemberPage";
@@ -91,6 +91,45 @@ describe("FamilyMemberPage", () => {
       },
       {
         id: "task-2",
+        title: "Clear the hallway shoes",
+        dueDate: new Date().toISOString().slice(0, 10),
+        ownershipKind: "FamilyMember",
+        familyMemberId: "riley",
+        isCompleted: false,
+        completedUtc: null,
+        createdUtc: "2026-06-20T08:30:00Z",
+        updatedUtc: "2026-06-20T08:30:00Z",
+        recurrenceFrequency: "None",
+        recurringTaskSeriesId: null,
+      },
+      {
+        id: "task-3",
+        title: "Put library book in backpack",
+        dueDate: new Date().toISOString().slice(0, 10),
+        ownershipKind: "FamilyMember",
+        familyMemberId: "riley",
+        isCompleted: false,
+        completedUtc: null,
+        createdUtc: "2026-06-20T08:45:00Z",
+        updatedUtc: "2026-06-20T08:45:00Z",
+        recurrenceFrequency: "None",
+        recurringTaskSeriesId: null,
+      },
+      {
+        id: "task-4",
+        title: "Water the garden herbs",
+        dueDate: new Date().toISOString().slice(0, 10),
+        ownershipKind: "FamilyMember",
+        familyMemberId: "riley",
+        isCompleted: false,
+        completedUtc: null,
+        createdUtc: "2026-06-20T09:00:00Z",
+        updatedUtc: "2026-06-20T09:00:00Z",
+        recurrenceFrequency: "None",
+        recurringTaskSeriesId: null,
+      },
+      {
+        id: "task-5",
         title: "Shared kitchen reset",
         dueDate: new Date().toISOString().slice(0, 10),
         ownershipKind: "SharedHousehold",
@@ -119,7 +158,7 @@ describe("FamilyMemberPage", () => {
     ]);
   });
 
-  it("renders parent settings without legacy avatar configuration fields", () => {
+  it("renders an adult dashboard without default administration in the page flow", async () => {
     render(
       <FamilyMemberPage
         member={familyMembers[0]}
@@ -130,20 +169,14 @@ describe("FamilyMemberPage", () => {
     );
 
     expect(screen.getByLabelText("Alex gezinslidpagina")).not.toBeNull();
-    expect(screen.getByText("Persoonlijke gegevens")).not.toBeNull();
-    expect(screen.getAllByText("Verjaardag").length).toBeGreaterThan(0);
-    expect(screen.getByRole("heading", { name: "Uiterlijk" })).not.toBeNull();
-    expect(screen.getByText(/administratieve kleurinstelling/)).not.toBeNull();
-    expect(screen.queryByText("Current avatar configuration")).toBeNull();
-    expect(screen.queryByText("Age group")).toBeNull();
-    expect(screen.queryByText("Presentation")).toBeNull();
-    expect(screen.queryByText("Skin tone")).toBeNull();
-    expect(screen.queryByText("Current avatar configuration")).toBeNull();
-    expect(screen.queryByText("Glasses")).toBeNull();
-    expect(screen.queryByText("Shirt color")).toBeNull();
+    expect(screen.getByText("Mijn overzicht")).not.toBeNull();
+    expect(screen.getByRole("button", { name: "Instellingen" })).not.toBeNull();
+    expect(screen.queryByText("Persoonlijke gegevens")).toBeNull();
+    expect(screen.queryByRole("heading", { name: "Uiterlijk" })).toBeNull();
+    expect(await screen.findByText("Nieuwste waardering")).not.toBeNull();
   });
 
-  it("renders Avatar V2 in the Family Member hero when configured", () => {
+  it("renders Avatar V2 in the compact identity strip when configured", () => {
     render(
       <FamilyMemberPage
         member={{ ...familyMembers[0], avatarV2Config: avatarV2DefaultConfiguration }}
@@ -160,7 +193,7 @@ describe("FamilyMemberPage", () => {
     ).toBe(true);
   });
 
-  it("renders child progress with family and individual goals", async () => {
+  it("renders the child dashboard with bounded today, progress, and appreciation summaries", async () => {
     render(
       <FamilyMemberPage
         member={{ ...familyMembers[2], avatarV2Config: avatarV2DefaultConfiguration }}
@@ -171,57 +204,21 @@ describe("FamilyMemberPage", () => {
     );
 
     expect(screen.getByLabelText("Riley kindmodus")).not.toBeNull();
-    expect(screen.getByLabelText("Kindoverzicht")).not.toBeNull();
-    expect(screen.getAllByRole("img", { name: "Riley household avatar" }).some((avatar) => avatar.className.includes("family-avatar-v2"))).toBe(true);
-    expect(screen.getByLabelText("Huidig doel en voortgang")).not.toBeNull();
-    expect(screen.getByLabelText("Family goal")).not.toBeNull();
-    expect(
-      await screen.findByLabelText("Samenvatting gezinsviering"),
-    ).not.toBeNull();
-    expect(screen.getByText("Herinneringen bekijken")).not.toBeNull();
+    expect(screen.getByText("Mijn pagina")).not.toBeNull();
+    expect(screen.getByText("Hoe gaat het vandaag?")).not.toBeNull();
     expect(await screen.findByText("Vandaag")).not.toBeNull();
     expect(screen.getByText("Wat kan ik vandaag doen?")).not.toBeNull();
     expect(screen.getByText("Pack school bag")).not.toBeNull();
-    expect(document.querySelectorAll(".homeops-icon-asset svg").length).toBeGreaterThan(0);
+    expect(screen.getByText("Clear the hallway shoes")).not.toBeNull();
+    expect(screen.getByText("Put library book in backpack")).not.toBeNull();
+    expect(screen.getByText("+1 meer klaar")).not.toBeNull();
     expect(screen.getByText("Mijn voortgang")).not.toBeNull();
-    expect(
-      screen.getByLabelText("Huidig doel en voortgang").querySelector("img"),
-    ).toBeNull();
-    expect(
-      screen.getByLabelText("Vandaag").querySelector("img")?.getAttribute("src"),
-    ).toContain("data-asset-name='child-today'");
-    expect(
-      screen
-        .getByLabelText("Deze week")
-        .querySelector("img")
-        ?.getAttribute("src"),
-    ).toContain("data-asset-name='child-this-week'");
-    expect(screen.getAllByText("Gezinsdoel").length).toBeGreaterThan(0);
-    expect(screen.getByText(/Hier werken we samen naartoe/)).not.toBeNull();
-    expect(
-      screen
-        .getByLabelText("Family goal")
-        .querySelector("img")
-        ?.getAttribute("src"),
-    ).toContain("data-asset-name='child-family-participation'");
-    expect(screen.getByText("Mijn pagina")).not.toBeNull();
-    expect(
-      (await screen.findAllByText("Fill the family helper path")).length,
-    ).toBeGreaterThan(0);
-    expect(screen.getAllByText("Read before bed").length).toBeGreaterThan(0);
-    expect(screen.getByLabelText("Gezinsviering")).not.toBeNull();
-    expect(screen.getAllByText(/Jij hebt geholpen|Jij hielp mee/).length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Board game night").length).toBeGreaterThan(0);
-    expect(
-      screen.getAllByText(/Nog maar 7 helpful steps tot Board game night|Only 7 more helpful steps tot Board game night/)
-        .length,
-    ).toBeGreaterThan(0);
-    expect(screen.getAllByText(/2 stars te gaan/).length).toBeGreaterThan(0);
+    expect(screen.getByText("Read before bed")).not.toBeNull();
+    expect(await screen.findByText("Nieuwste waardering")).not.toBeNull();
     expect(await screen.findByText("Helped set the table")).not.toBeNull();
-    expect(screen.getAllByText("Riley").length).toBeGreaterThan(0);
-    expect(screen.getByText("Initiative")).not.toBeNull();
-    expect(screen.getAllByText(/Jij hebt geholpen|Jij hielp mee/).length).toBeGreaterThan(0);
-    expect(screen.queryByText(/Gems|Shop|Leaderboard|balance/i)).toBeNull();
+    expect(screen.getByRole("button", { name: "Voortgang en doelen" })).not.toBeNull();
+    expect(screen.getByRole("button", { name: "Herinneringen" })).not.toBeNull();
+    expect(document.querySelectorAll(".homeops-icon-asset svg").length).toBeGreaterThan(0);
   });
 
   it("uses simpler visual language for younger children", async () => {
@@ -234,13 +231,12 @@ describe("FamilyMemberPage", () => {
       />,
     );
 
-    expect(await screen.findByText("Sterren om te verzamelen")).not.toBeNull();
-    expect((await screen.findAllByText(/Brush teeth/)).length).toBeGreaterThan(
-      0,
-    );
+    expect(await screen.findByText("Mijn sterren")).not.toBeNull();
+    expect(await screen.findByText("Nieuwste waardering")).not.toBeNull();
   });
 
-  it("uses richer progress language for school-age children", async () => {
+  it("opens goals in a bounded dialog instead of permanent page sections", async () => {
+    const user = userEvent.setup();
     render(
       <FamilyMemberPage
         member={familyMembers[2]}
@@ -250,15 +246,21 @@ describe("FamilyMemberPage", () => {
       />,
     );
 
-    expect(await screen.findByText("Mijn voortgang")).not.toBeNull();
-    expect(await screen.findByLabelText("Voortgang")).not.toBeNull();
-    expect(screen.getByLabelText("Deze week")).not.toBeNull();
-    expect(
-      await screen.findByLabelText("3 of 5 stars"),
-    ).not.toBeNull();
+    expect(screen.queryByRole("dialog", { name: "Voortgang en doelen voor Riley" })).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: "Voortgang en doelen" }));
+
+    const dialog = screen.getByRole("dialog", {
+      name: "Voortgang en doelen voor Riley",
+    });
+    expect(within(dialog).getByText("Mijn voortgang")).not.toBeNull();
+    expect(within(dialog).getByText("Read before bed")).not.toBeNull();
+    expect(within(dialog).getByText("Gezinsdoel")).not.toBeNull();
+    expect(within(dialog).getByText("Board game night")).not.toBeNull();
   });
 
-  it("renders the Gezinsdoel journey section with celebration context", async () => {
+  it("opens history in a bounded dialog with memories and appreciation", async () => {
+    const user = userEvent.setup();
     render(
       <FamilyMemberPage
         member={familyMembers[2]}
@@ -268,16 +270,42 @@ describe("FamilyMemberPage", () => {
       />,
     );
 
-    expect(
-      await screen.findByLabelText("Meedoen met gezinsdoel"),
-    ).not.toBeNull();
-    expect(screen.getAllByText("Gezinsdoel").length).toBeGreaterThan(0);
-    expect(screen.getByLabelText("Gezinsviering")).not.toBeNull();
-    expect(screen.getAllByText(/Jij hebt geholpen|Jij hielp mee/).length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Board game night").length).toBeGreaterThan(0);
+    await user.click(screen.getByRole("button", { name: "Herinneringen" }));
+
+    const dialog = screen.getByRole("dialog", {
+      name: "Herinneringen voor Riley",
+    });
+    expect(within(dialog).getByText("Vieringen om te onthouden")).not.toBeNull();
+    expect(within(dialog).getByText("Family Picnic")).not.toBeNull();
+    expect(within(dialog).getByText("Waarderingen")).not.toBeNull();
+    expect(within(dialog).getByText("Helped set the table")).not.toBeNull();
   });
 
-  it("surfaces Gezinslid toevoegen only in Oudermodus household section", async () => {
+  it("opens child settings contextually and keeps them out of the landing view", async () => {
+    const user = userEvent.setup();
+    render(
+      <FamilyMemberPage
+        member={familyMembers[2]}
+        onBack={vi.fn()}
+        onChange={vi.fn()}
+        onRemove={vi.fn()}
+      />,
+    );
+
+    expect(screen.queryByText("Persoonlijke gegevens")).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: "Ouderinstellingen" }));
+
+    const dialog = screen.getByRole("dialog", {
+      name: "Instellingen voor Riley",
+    });
+    expect(within(dialog).getByLabelText("Riley instellingen voor volwassenen")).not.toBeNull();
+    expect(within(dialog).getByText("Persoonlijke gegevens")).not.toBeNull();
+    expect(within(dialog).getByRole("heading", { name: "Uiterlijk" })).not.toBeNull();
+    expect(within(dialog).queryByText("Current avatar configuration")).toBeNull();
+  });
+
+  it("surfaces Gezinslid toevoegen inside the settings dialog household section", async () => {
     const user = userEvent.setup();
     const onAddFamilyMember = vi.fn();
     render(
@@ -290,86 +318,15 @@ describe("FamilyMemberPage", () => {
       />,
     );
 
-    const adminDisclosure = screen
-      .getByText("Ouderinstellingen")
-      .closest("details");
-    expect(adminDisclosure?.hasAttribute("open")).toBe(false);
-
-    await user.click(screen.getByText("Ouderinstellingen"));
-    await user.click(screen.getByRole("button", { name: "Gezinslid toevoegen" }));
+    await user.click(screen.getByRole("button", { name: "Ouderinstellingen" }));
+    const dialog = screen.getByRole("dialog", {
+      name: "Instellingen voor Riley",
+    });
+    await user.click(
+      within(dialog).getByRole("button", { name: "Gezinslid toevoegen" }),
+    );
 
     expect(onAddFamilyMember).toHaveBeenCalledOnce();
-  });
-
-  it("opens Ouderinstellingen grown-up settings without making them the landing content", async () => {
-    const user = userEvent.setup();
-    render(
-      <FamilyMemberPage
-        member={familyMembers[2]}
-        onBack={vi.fn()}
-        onChange={vi.fn()}
-        onRemove={vi.fn()}
-      />,
-    );
-
-    expect(screen.getByLabelText("Riley kindmodus")).not.toBeNull();
-    expect(screen.getByText("Vandaag")).not.toBeNull();
-    const adminDisclosure = screen
-      .getByText("Ouderinstellingen")
-      .closest("details");
-    expect(adminDisclosure?.hasAttribute("open")).toBe(false);
-
-    await user.click(screen.getByText("Ouderinstellingen"));
-
-    expect(adminDisclosure?.hasAttribute("open")).toBe(true);
-    expect(screen.getByLabelText("Riley instellingen voor volwassenen")).not.toBeNull();
-    expect(screen.getByText("Persoonlijke gegevens")).not.toBeNull();
-    expect(screen.getByRole("heading", { name: "Uiterlijk" })).not.toBeNull();
-    expect(screen.queryByText("Current avatar configuration")).toBeNull();
-    expect(screen.queryByText("Skin tone")).toBeNull();
-    expect(screen.getAllByRole("button", { name: "Avatar bewerken" }).length).toBeGreaterThan(0);
-  });
-
-  it("keeps child-first ordering before Oudermodus controls", async () => {
-    render(
-      <FamilyMemberPage
-        member={familyMembers[2]}
-        onBack={vi.fn()}
-        onChange={vi.fn()}
-        onRemove={vi.fn()}
-      />,
-    );
-
-    expect(
-      (await screen.findAllByText("Fill the family helper path")).length,
-    ).toBeGreaterThan(0);
-    const pageText = document.body.textContent ?? "";
-    expect(pageText.indexOf("Pagina van Riley")).toBeLessThan(
-      pageText.indexOf("Vandaag"),
-    );
-    expect(pageText.indexOf("Vandaag")).toBeLessThan(
-      pageText.indexOf("Mijn voortgang bekijken"),
-    );
-    const familyGoalAfterDisclosure = pageText.indexOf(
-      "Only 7 more helpful steps",
-      pageText.indexOf("Meedoen met gezinsdoel"),
-    );
-    expect(pageText.indexOf("Mijn voortgang bekijken")).toBeLessThan(
-      familyGoalAfterDisclosure,
-    );
-    expect(pageText.indexOf("Nieuwste waardering")).toBeLessThan(
-      pageText.indexOf("Mijn voortgang bekijken"),
-    );
-    expect(pageText.indexOf("Nieuwste waardering")).toBeLessThan(
-      pageText.indexOf("Ouderinstellingen"),
-    );
-    expect(pageText.indexOf("Mijn voortgang bekijken")).toBeLessThan(
-      pageText.indexOf("Ouderinstellingen"),
-    );
-    expect(pageText.indexOf("Fill the family helper path")).toBeLessThan(
-      pageText.indexOf("Ouderinstellingen"),
-    );
-    expect(pageText).not.toContain("Edit member");
   });
 
   it("edits member details and requires child date of birth", async () => {
@@ -384,16 +341,24 @@ describe("FamilyMemberPage", () => {
       />,
     );
 
-    await user.clear(screen.getByLabelText("Name"));
-    await user.type(screen.getByLabelText("Name"), "Alex Parent");
-    await user.selectOptions(screen.getByLabelText("Volwassene / kind"), "child");
-    await user.click(screen.getByRole("button", { name: "Gegevens opslaan" }));
+    await user.click(screen.getByRole("button", { name: "Instellingen" }));
+    const dialog = screen.getByRole("dialog", {
+      name: "Instellingen voor Alex",
+    });
+
+    await user.clear(within(dialog).getByLabelText("Name"));
+    await user.type(within(dialog).getByLabelText("Name"), "Alex Parent");
+    await user.selectOptions(
+      within(dialog).getByLabelText("Volwassene / kind"),
+      "child",
+    );
+    await user.click(within(dialog).getByRole("button", { name: "Gegevens opslaan" }));
     expect(
-      screen.getByText("Geboortedatum is verplicht voor kinderen."),
+      within(dialog).getByText("Geboortedatum is verplicht voor kinderen."),
     ).not.toBeNull();
 
-    await user.type(screen.getByLabelText("Verjaardag"), "2015-05-06");
-    await user.click(screen.getByRole("button", { name: "Gegevens opslaan" }));
+    await user.type(within(dialog).getByLabelText("Verjaardag"), "2015-05-06");
+    await user.click(within(dialog).getByRole("button", { name: "Gegevens opslaan" }));
     expect(onChange).toHaveBeenCalledWith(
       expect.objectContaining({
         name: "Alex Parent",
@@ -416,13 +381,19 @@ describe("FamilyMemberPage", () => {
       />,
     );
 
-    await user.click(screen.getByRole("button", { name: "Gezinslid verwijderen" }));
+    await user.click(screen.getByRole("button", { name: "Instellingen" }));
+    const dialog = screen.getByRole("dialog", {
+      name: "Instellingen voor Alex",
+    });
+    await user.click(
+      within(dialog).getByRole("button", { name: "Gezinslid verwijderen" }),
+    );
     expect(onRemove).toHaveBeenCalledWith(
       expect.objectContaining({ id: "alex" }),
     );
   });
 
-  it("owns avatar editing with live editor controls", async () => {
+  it("owns avatar editing with the existing avatar editor workflow", async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();
     render(
