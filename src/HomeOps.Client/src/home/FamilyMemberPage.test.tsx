@@ -253,7 +253,9 @@ describe("FamilyMemberPage", () => {
     const dialog = screen.getByRole("dialog", {
       name: "Voortgang en doelen voor Riley",
     });
-    expect(within(dialog).getByText("Mijn voortgang")).not.toBeNull();
+    expect(
+      within(dialog).getByRole("heading", { name: "Voortgang en doelen voor Riley" }),
+    ).not.toBeNull();
     expect(within(dialog).getByText("Read before bed")).not.toBeNull();
     expect(within(dialog).getByText("Gezinsdoel")).not.toBeNull();
     expect(within(dialog).getByText("Board game night")).not.toBeNull();
