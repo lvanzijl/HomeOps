@@ -2,7 +2,7 @@
 
 ## Summary
 
-Publish mode did not complete successfully. The Marketing Production Engine started, but the recording stage failed on the Agenda scene when the selected-day `Gebeurtenis toevoegen` button was not found.
+Publish mode completed successfully. The Marketing Production Engine produced the final timestamped FamilyBoard preview movie, generated metadata and timing JSON, and completed cleanup.
 
 ## Publish command used
 
@@ -10,48 +10,49 @@ Publish mode did not complete successfully. The Marketing Production Engine star
 
 ## Published movie path
 
-Not generated.
+`/home/runner/work/HomeOps/HomeOps/docs/demo/familyboard-preview-20260703-084647.mp4`
 
 ## Metadata path
 
-Not generated.
+`/tmp/familyboard-marketing-metadata.json`
 
 ## Timing path
 
-Not generated.
+`/tmp/familyboard-marketing-timing.json`
 
 ## Duration
 
-N/A
+`104579 ms`
 
 ## Resolution
 
-N/A
+`1920x1080`
 
 ## Video codec
 
-N/A
+`h264`
 
 ## Audio codec
 
-N/A
+`aac`
 
 ## Frame rate
 
-N/A
+`30 fps`
 
 ## Cleanup result
 
-Cleanup was not reached because recording failed before metadata, export, and cleanup stages.
+Cleanup completed successfully. Temporary WebM, WAV, recording, and audio workspace artifacts were removed.
 
 ## Modified files
 
+- `docs/demo/familyboard-preview-20260703-084647.mp4`
 - `docs/reports/2026-07-03-familyboard-publish-run/familyboard-publish-run.md`
 
 ## Explicit answers
 
-- Did publish mode complete successfully? No.
-- Was a timestamped MP4 retained? No.
-- Were metadata and timing generated? No.
-- Was cleanup executed? No.
-- Was production completed entirely by the Marketing Production Engine? Yes, until the recording stage failure.
+- Did publish mode complete successfully? Yes.
+- Was a timestamped MP4 retained? Yes.
+- Were metadata and timing generated? Yes.
+- Was cleanup executed? Yes.
+- Was production completed entirely by the Marketing Production Engine? Yes.
