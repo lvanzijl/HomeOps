@@ -2,19 +2,36 @@
 
 ## Root cause
 
-The latest publish report failed in the Agenda scene during the executable storyboard action `add-filmavond`. The recording flow switched to Month view, scoped itself to the selected-day panel (`aria-label="Gekozen dag"`), and then looked for a selected-day button named `Gebeurtenis toevoegen`.
+The latest publish run failed in the Tasks scene during the executable storyboard action `complete-zwemtas`. The recording still expected the completed `Zwemtas klaarzetten` task to remain visible as a full `.task-item` card with `Afgerond` in the default Tasks dashboard after tapping `Klaar`.
 
-The current implemented Agenda UI no longer exposes that control in the selected-day panel. The selected-day panel's compact action is named `Toevoegen`, while the full `Gebeurtenis toevoegen` action lives in the Agenda header command region. The application UI had changed during the viewport-first redesign, but the production recording flow still used the older selected-day selector.
+Inspection of the implemented Tasks UI showed that active tasks are rendered as `.task-item` cards in the Today focus group, and completed tasks are also rendered as `.task-item` cards with `Afgerond` status text. However, completed tasks are not kept visible in the default Today list after completion. The viewport-first Tasks layout removes the completed task from the visible Today group and keeps completed task cards in the contextual `Afgerond` surface opened from the secondary task-planning rail.
+
+The implemented post-completion outcome is therefore:
+
+- `Zwemtas klaarzetten` is visible as a Today `.task-item` before completion.
+- The `Klaar` action completes the task.
+- The task disappears from the visible Today task group.
+- The completed task is available through the `Afgerond` contextual surface.
+- Inside that surface, the task is rendered as a `.task-item` with `Afgerond` status.
 
 ## Storyboard step updated
 
-Updated the Agenda scene's `add-filmavond` recording action to use the implemented header `Gebeurtenis toevoegen` control instead of the outdated selected-day `Gebeurtenis toevoegen` selector.
+Updated the Tasks scene's `complete-zwemtas` recording action to validate the implemented completion flow instead of the obsolete default-dashboard completed-card expectation.
 
-The executable Agenda storyboard metadata was also clarified so the Agenda scene describes the implemented header add-event action rather than implying that the selected-day panel owns the full add-event control.
+The repaired action now:
+
+1. Scopes the pre-completion card lookup to the implemented Today focus group.
+2. Verifies `Zwemtas klaarzetten` is visible before completion.
+3. Opens the task actions and taps the real `Klaar` control.
+4. Verifies `Zwemtas klaarzetten` disappears from the visible Today group.
+5. Opens the implemented `Afgerond` contextual surface from the secondary rail.
+6. Verifies the completed `Zwemtas klaarzetten` `.task-item` is present there with `Afgerond`.
 
 ## Why the previous recording no longer matched implementation
 
-The previous production recording assumed the selected-day panel owned the full add-event action. In the implemented viewport-first Agenda layout, event creation is initiated from the stable header command area, and the selected-day panel only exposes a compact `Toevoegen` affordance. The interaction order remains Month → Week → List → Month → Add Filmavond → Save → Return overview, but the add-event selector and visual source of the control changed.
+The previous recording assumed completed tasks remained visible by default in a completed-history block on the main Tasks dashboard. That matched an older Tasks structure, but the current viewport-first Tasks page keeps the global page composition stable by moving completed items behind the compact `Afgerond` contextual surface.
+
+The old selector did not fail because completion stopped working. It failed because it searched the default dashboard for a completed card that the implemented UI intentionally moves out of the visible Today region.
 
 ## Files modified
 
@@ -28,36 +45,38 @@ Ran publish mode with:
 
 `MARKETING_PRODUCTION_MODE=publish npm --prefix src/HomeOps.Client run marketing:record`
 
-Two publish attempts were made:
+Two publish attempts were made during this repair:
 
-1. The first attempt could not launch Chromium because the container was missing Playwright system libraries (`libatk-1.0.so.0`). I installed the missing Chromium runtime dependencies in the container and reran publish mode.
-2. The second attempt passed the repaired Agenda scene. The recording completed 4 scenes, including Agenda, then stopped at the next storyboard mismatch in the Tasks scene as required.
+1. The first attempt could not launch Chromium because the container was missing Playwright runtime libraries (`libatk-1.0.so.0`). I installed the missing Chromium runtime dependencies in the container and reran publish mode.
+2. The second attempt completed successfully in publish mode.
 
 ## Publish result
 
-Publish did not complete successfully because a separate Tasks storyboard mismatch was found after the Agenda repair.
+Publish completed successfully. The Production Engine reported:
 
-The next mismatch is:
+- Recording completed: yes; 9 of 9 scenes completed.
+- MP4 generated: yes, at `/workspace/HomeOps/docs/demo/familyboard-preview-20260703-083019.mp4` during validation.
+- Metadata generated: yes, at `/tmp/familyboard-marketing-metadata.json`.
+- Timing generated: yes, at `/tmp/familyboard-marketing-timing.json`.
+- Cleanup completed: yes; raw WebM, recording directory, temporary audio assets, mixed WAV, and audio workspace were removed.
 
-- Failing scene: `tasks`
-- Failing action: `open-add-task-dialog`
-- Missing expected element: `aria-label="Aandacht voor nu"`
-- Error: `Tasks wide Today focus column expected exactly 1 match, found 0.`
-
-Per the task instruction, no further unrelated scene repair was performed after this next mismatch was identified.
+No next storyboard mismatch was encountered.
 
 ## Generated output paths
 
-- Raw recording artifact from the failed publish attempt: `/tmp/familyboard-marketing-preview-v1.webm`
-- MP4: not generated
-- Metadata JSON: not generated
-- Timing JSON: not generated
-- Cleanup: not executed because the recording stage failed before audio, export, metadata, and cleanup
+- Published MP4 generated by publish mode: `/workspace/HomeOps/docs/demo/familyboard-preview-20260703-083019.mp4`
+- Metadata JSON: `/tmp/familyboard-marketing-metadata.json`
+- Timing JSON: `/tmp/familyboard-marketing-timing.json`
+- Removed temporary raw recording: `/tmp/familyboard-marketing-preview-v1.webm`
+- Removed temporary recording directory: `/tmp/homeops-marketing-recording`
+- Removed temporary audio workspace: `/tmp/familyboard-marketing-audio`
+
+The generated repository MP4 was removed from the working tree before commit so this source repair does not commit binary media.
 
 ## Application functionality
 
-No application functionality was changed. This repair is limited to the Marketing Production Engine's executable storyboard/recording flow and repository reporting.
+No application functionality was changed. This repair is limited to the Marketing Production Engine's executable storyboard recording flow and repository reporting.
 
 ## Binary artifact policy
 
-No binary files were committed. The failed publish attempt left a raw WebM artifact under `/tmp`, outside the repository. No generated MP4, raw WebM, audio, browser profile, or temporary production artifact is part of the repository changeset.
+No binary files were committed. The successful publish run generated a timestamped repository MP4 for validation, but it was removed from the working tree before committing this source-only repair. No generated MP4, raw WebM, audio, browser profile, or temporary production artifact is part of the repository changeset.
