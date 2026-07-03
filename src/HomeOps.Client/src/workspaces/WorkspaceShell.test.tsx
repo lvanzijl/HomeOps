@@ -115,7 +115,8 @@ describe('WorkspaceShell API-backed layouts', () => {
     expect(within(administration).getByRole('button', { name: 'Instellingen voor gezinsinstellingen' })).not.toBeNull();
 
     await user.click(within(administration).getByRole('button', { name: 'Instellingen voor gezinsinstellingen' }));
-    expect(await screen.findByText('Agenda exporteren / herstellen')).not.toBeNull();
+    expect(await screen.findByRole('heading', { name: 'Alles is in orde.' })).not.toBeNull();
+    expect(screen.getByRole('button', { name: 'Back-up maken' })).not.toBeNull();
   });
 
   it('keeps Weekly Reset reachable contextually from Tasks', async () => {
