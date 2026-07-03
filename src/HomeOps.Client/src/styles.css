@@ -362,9 +362,18 @@ button {
 }
 
 .workspace-panel-settings {
-  justify-self: center;
-  max-width: var(--readable-panel-width);
+  justify-self: stretch;
+  max-width: none;
   width: 100%;
+}
+
+.workspace-panel-settings .workspace-page-body,
+.workspace-panel-settings .workspace-page-body > * {
+  min-height: 0;
+}
+
+.workspace-panel-settings .workspace-page-body {
+  overflow: hidden;
 }
 
 .widget-card {
@@ -690,6 +699,467 @@ button {
 .calendar-portability-status.success {
   background: #ecfdf5;
   color: #065f46;
+}
+
+/* Settings viewport-fit dashboard */
+.settings-dashboard {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.settings-dashboard-header,
+.settings-card,
+.settings-action-rail,
+.settings-surface-card {
+  background: rgb(255 255 255 / 88%);
+  border: 1px solid color-mix(in srgb, var(--domain-border, #cbd5e1) 78%, white);
+  border-radius: 1.25rem;
+  box-shadow: 0 18px 48px color-mix(in srgb, var(--domain-accent, #94a3b8) 10%, transparent);
+}
+
+.settings-dashboard-header,
+.settings-card-header,
+.settings-action-rail {
+  align-items: start;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+}
+
+.settings-dashboard-header {
+  padding: 0.75rem 0.9rem;
+}
+
+.settings-dashboard-header h2,
+.settings-dashboard-header p,
+.settings-card h3,
+.settings-card h4,
+.settings-card p,
+.settings-surface-card h4,
+.settings-surface-card p {
+  margin: 0;
+}
+
+.settings-dashboard-header-copy {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.settings-dashboard-question {
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.settings-dashboard-header h2 {
+  font-size: clamp(1.5rem, 2vw, 1.95rem);
+  letter-spacing: -0.035em;
+}
+
+.settings-dashboard-header > * {
+  min-width: 0;
+}
+
+.settings-dashboard-header-copy > p:last-child {
+  color: var(--color-text-muted);
+  line-height: 1.35;
+  max-width: 44rem;
+}
+
+.settings-dashboard-header-state {
+  align-items: center;
+  background: color-mix(in srgb, var(--domain-tint, #f8fafc) 88%, white);
+  border: 1px solid color-mix(in srgb, var(--domain-border, #cbd5e1) 72%, white);
+  border-radius: 999px;
+  color: var(--domain-accent-strong, #475569);
+  display: inline-flex;
+  gap: 0.55rem;
+  padding: 0.5rem 0.8rem;
+  white-space: nowrap;
+}
+
+.settings-dashboard-header.attention,
+.settings-tone-pill.attention,
+.settings-status-card.error,
+.settings-restore-warning {
+  border-color: #fbbf24;
+}
+
+.settings-dashboard-header.attention,
+.settings-restore-warning {
+  background: linear-gradient(160deg, rgb(255 251 235 / 96%), rgb(255 255 255 / 92%));
+}
+
+.settings-dashboard-main {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: minmax(0, 1.35fr) minmax(20rem, 1fr);
+  min-height: 0;
+}
+
+.settings-health-card,
+.settings-dashboard-secondary,
+.settings-status-slot,
+.settings-proof-stack,
+.settings-surface-body,
+.settings-extra-widget-list {
+  min-height: 0;
+}
+
+.settings-dashboard-secondary {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-rows: minmax(0, 1fr) minmax(0, 0.92fr);
+}
+
+.settings-card {
+  display: grid;
+  gap: 0.75rem;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0.85rem;
+}
+
+.settings-card-header h3 {
+  color: var(--domain-accent-strong, #475569);
+  font-size: 1.05rem;
+  letter-spacing: -0.02em;
+}
+
+.settings-tone-pill {
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 0.18rem 0.55rem;
+}
+
+.settings-tone-pill.ready {
+  background: #ecfdf5;
+  color: #166534;
+}
+
+.settings-tone-pill.attention {
+  background: #fffbeb;
+  color: #92400e;
+}
+
+.settings-summary-list {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0;
+}
+
+.settings-summary-item {
+  background: color-mix(in srgb, var(--domain-tint, #f8fafc) 62%, white);
+  border: 1px solid color-mix(in srgb, var(--domain-border, #cbd5e1) 74%, white);
+  border-radius: 1rem;
+  display: grid;
+  gap: 0.22rem;
+  padding: 0.65rem 0.75rem;
+}
+
+.settings-summary-item dt,
+.settings-summary-item dd {
+  margin: 0;
+}
+
+.settings-summary-item dt {
+  align-items: center;
+  color: var(--domain-accent-strong, #475569);
+  display: inline-flex;
+  gap: 0.45rem;
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.settings-summary-item dd,
+.settings-proof-stack p,
+.settings-status-slot p,
+.settings-action-rail-summary p:last-child,
+.settings-surface-card p,
+.settings-surface-header p:last-child {
+  color: var(--color-text-muted);
+  line-height: 1.35;
+}
+
+.settings-proof-stack {
+  display: grid;
+  gap: 0.65rem;
+  overflow: auto;
+  padding-right: 0.15rem;
+}
+
+.settings-proof-stack section {
+  background: color-mix(in srgb, var(--domain-tint-2, #f1f5f9) 72%, white);
+  border: 1px solid color-mix(in srgb, var(--domain-border, #cbd5e1) 68%, white);
+  border-radius: 1rem;
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.7rem 0.75rem;
+}
+
+.settings-proof-stack h4,
+.settings-surface-card h4,
+.settings-restore-warning h4 {
+  color: var(--domain-accent-strong, #475569);
+  font-size: 0.9rem;
+}
+
+.settings-status-card.success {
+  background: linear-gradient(160deg, rgb(236 253 245 / 94%), rgb(255 255 255 / 92%));
+  border-color: #86efac;
+}
+
+.settings-status-slot {
+  display: grid;
+  gap: 0.55rem;
+  overflow: hidden;
+}
+
+.settings-status-hint {
+  font-size: 0.86rem;
+}
+
+.settings-validation-list {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+  max-height: 8rem;
+  overflow: auto;
+  padding-left: 1.15rem;
+}
+
+.settings-action-rail {
+  background: linear-gradient(135deg, rgb(255 255 255 / 86%), color-mix(in srgb, var(--domain-tint, #f8fafc) 74%, white));
+  padding: 0.65rem 0.85rem;
+}
+
+.settings-action-rail-summary {
+  display: grid;
+  gap: 0.18rem;
+  min-width: 0;
+}
+
+.settings-action-rail-summary p {
+  margin: 0;
+}
+
+.settings-action-rail-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.settings-action-rail-buttons button,
+.settings-surface-actions button,
+.settings-surface-header button {
+  background: rgb(255 255 255 / 92%);
+  border: 1px solid color-mix(in srgb, var(--domain-border, #cbd5e1) 78%, white);
+  border-radius: 999px;
+  color: var(--domain-accent-strong, #475569);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+  min-height: 2.4rem;
+  padding: 0.45rem 0.8rem;
+}
+
+.settings-action-rail-buttons button[disabled],
+.settings-surface-actions button[disabled] {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.settings-surface-backdrop {
+  align-items: center;
+  backdrop-filter: blur(8px);
+  background: rgb(15 23 42 / 32%);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 0.65rem;
+  position: absolute;
+  z-index: 20;
+}
+
+.settings-surface-dialog {
+  background: linear-gradient(160deg, rgb(255 255 255 / 98%), rgb(248 250 252 / 94%));
+  border: 1px solid color-mix(in srgb, var(--domain-border, #cbd5e1) 74%, white);
+  border-radius: 1.35rem;
+  box-shadow: var(--elevation-dialog);
+  display: grid;
+  gap: 0.8rem;
+  grid-template-rows: auto minmax(0, 1fr);
+  max-height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0.9rem;
+  width: min(52rem, calc(100% - 0.4rem));
+}
+
+.settings-surface-header h3,
+.settings-surface-header p {
+  margin: 0;
+}
+
+.settings-surface-header h3 {
+  color: var(--domain-accent-strong, #475569);
+  font-size: 1.2rem;
+  letter-spacing: -0.03em;
+}
+
+.settings-surface-header button {
+  align-items: center;
+  display: inline-flex;
+  justify-content: center;
+  padding-inline: 0.6rem;
+}
+
+.settings-surface-body {
+  display: grid;
+  gap: 0.75rem;
+  overflow: auto;
+  padding-right: 0.15rem;
+}
+
+.settings-surface-grid,
+.settings-restore-flow,
+.settings-extra-widget-list {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.settings-surface-grid {
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+}
+
+.settings-surface-card,
+.settings-file-field,
+.settings-surface-status,
+.settings-restore-warning {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.75rem 0.8rem;
+}
+
+.settings-file-field,
+.settings-surface-status {
+  background: color-mix(in srgb, var(--domain-tint, #f8fafc) 66%, white);
+  border: 1px solid color-mix(in srgb, var(--domain-border, #cbd5e1) 72%, white);
+  border-radius: 1rem;
+}
+
+.settings-file-field span {
+  color: var(--domain-accent-strong, #475569);
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+.settings-file-field input {
+  font: inherit;
+}
+
+.settings-restore-confirmation {
+  align-items: start;
+  background: color-mix(in srgb, var(--domain-tint-2, #f1f5f9) 72%, white);
+  border: 1px solid color-mix(in srgb, var(--domain-border, #cbd5e1) 72%, white);
+  border-radius: 1rem;
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: auto 1fr;
+  padding: 0.75rem 0.8rem;
+}
+
+.settings-restore-confirmation span {
+  color: var(--domain-accent-strong, #475569);
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.settings-surface-status {
+  min-height: 0;
+}
+
+.settings-surface-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.settings-extra-widget-list {
+  min-height: 0;
+}
+
+.settings-extra-widget-list > * {
+  min-height: 0;
+}
+
+@media (max-width: 1100px) {
+  .settings-dashboard-main {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .settings-dashboard-header,
+  .settings-action-rail {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .settings-action-rail-buttons {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 720px) {
+  .settings-dashboard {
+    gap: 0.55rem;
+  }
+
+  .settings-dashboard-header,
+  .settings-card,
+  .settings-action-rail,
+  .settings-surface-dialog {
+    border-radius: 1.05rem;
+  }
+
+  .settings-dashboard-header,
+  .settings-card,
+  .settings-action-rail,
+  .settings-surface-dialog {
+    padding: 0.7rem;
+  }
+
+  .settings-surface-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-height: 780px) {
+  .settings-dashboard {
+    gap: 0.55rem;
+  }
+
+  .settings-dashboard-header {
+    padding: 0.65rem 0.8rem;
+  }
+
+  .settings-card {
+    gap: 0.65rem;
+    padding: 0.75rem;
+  }
+
+  .settings-action-rail {
+    padding: 0.55rem 0.75rem;
+  }
 }
 
 .home-dashboard {

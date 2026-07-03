@@ -7,6 +7,7 @@ import { HomeDashboard } from '../home/HomeDashboard';
 import { MotivationPage } from '../MotivationPage';
 import { familyMembers, type FamilyMember } from '../home/familyMembers';
 import { createFamilyMember, loadFamilyMembers, removeFamilyMember, saveFamilyMember } from '../home/familyMembersApi';
+import { SettingsDashboard } from '../settings/SettingsDashboard';
 import { TasksPage } from '../tasks/TasksPage';
 import { WeeklyResetPage } from '../weeklyReset/WeeklyResetPage';
 import { FirstRunWizard } from '../FirstRunWizard';
@@ -164,7 +165,7 @@ export function WorkspaceShell() {
       </nav>
 
       <section className={`workspace-panel workspace-panel-${activeWorkspace.id}`} aria-labelledby="active-workspace-title">
-        {activeWorkspace.id === 'home' && !activeFamilyMember ? <h2 className="visually-hidden" id="active-workspace-title">Thuis</h2> : activeFamilyMember ? <h2 className="visually-hidden" id="active-workspace-title">{activeFamilyMember.name}</h2> : (
+        {activeWorkspace.id === 'home' && !activeFamilyMember ? <h2 className="visually-hidden" id="active-workspace-title">Thuis</h2> : activeFamilyMember ? <h2 className="visually-hidden" id="active-workspace-title">{activeFamilyMember.name}</h2> : activeWorkspace.id === 'settings' ? <h2 className="visually-hidden" id="active-workspace-title">Instellingen</h2> : (
           <header className="workspace-page-header">
             <p className="workspace-position">
               {activeWorkspaceIsPrimary ? 'Dagelijkse gezinsplek' : activeWorkspaceIsAdministration ? 'Gezinsinstellingen' : 'Familiecheck'}
@@ -190,14 +191,10 @@ export function WorkspaceShell() {
             <DomainPlaceholderPage title="Media" purpose="Voor toekomstige mediaherinneringen en gezinscontext." />
           ) : activeWorkspace.id === 'gamification' ? (
             <DomainPlaceholderPage title="Beloningen" purpose="Voor toekomstige punten, beloningen en gezinsvoortgang." />
+          ) : activeWorkspace.id === 'settings' ? (
+            <SettingsDashboard widgetInstances={widgetInstances} />
           ) : (
             <div className="widget-host" aria-label={`${activeWorkspace.label} widgets`}>
-              {activeWorkspace.id === 'settings' && (
-                <WidgetRenderer
-                  definition={getWidgetDefinition('calendar-portability-admin')!}
-                  instance={{ id: 'calendar-portability-admin-instance', widgetDefinitionId: 'calendar-portability-admin', title: 'Agenda exporteren / herstellen', settings: {} }}
-                />
-              )}
               {widgetInstances.map((instance) => {
                 const definition = getWidgetDefinition(instance.widgetDefinitionId);
 
