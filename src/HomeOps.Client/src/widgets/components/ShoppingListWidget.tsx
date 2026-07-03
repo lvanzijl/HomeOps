@@ -1,10 +1,11 @@
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { type ReactNode, FormEvent, useEffect, useId, useMemo, useState } from 'react';
 import { addShoppingListItem, archiveShoppingList, createListsApiClient, createShoppingList, deleteShoppingList, loadShoppingPageLists, removeShoppingListItem, renameShoppingList, toggleShoppingListItem, undoShoppingListItem, updateShoppingListItemStore } from '../../shopping/listsApi';
 import type { ShoppingListItem, ShoppingListState } from '../../shopping/shoppingListModel';
 import { groupShoppingItemsByPreferredStore } from '../../shopping/shoppingGrouping';
 import { getActiveShoppingListItems, getCompletedShoppingListItems, getDeletedShoppingListItems, upsertShoppingListItem } from '../../shopping/shoppingListState';
-import { FamilyBoardIcon } from '../../design';
 import type { WidgetRenderProps } from '../WidgetRenderer';
+
+type ShoppingPanelKind = 'completed' | 'deleted' | 'otherLists' | 'manage';
 
 function getDisplayListName(name: string) {
   return name === 'Shopping' ? 'Boodschappen' : name;
@@ -17,6 +18,8 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isCreatingList, setIsCreatingList] = useState(false);
+  const [activePanel, setActivePanel] = useState<ShoppingPanelKind | null>(null);
+  const [selectedOtherListId, setSelectedOtherListId] = useState<string | null>(null);
 
   useEffect(() => {
     let ignoreResult = false;
@@ -48,6 +51,39 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
       ignoreResult = true;
     };
   }, [apiClient]);
+
+  useEffect(() => {
+    if (!activePanel) {
+      return undefined;
+    }
+
+    const closePanel = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setActivePanel(null);
+      }
+    };
+
+    window.addEventListener('keydown', closePanel);
+    return () => window.removeEventListener('keydown', closePanel);
+  }, [activePanel]);
+
+  useEffect(() => {
+    if (otherLists.length === 0) {
+      if (activePanel === 'otherLists') {
+        setActivePanel(null);
+      }
+
+      if (selectedOtherListId !== null) {
+        setSelectedOtherListId(null);
+      }
+
+      return;
+    }
+
+    if (!selectedOtherListId || !otherLists.some((list) => list.listId === selectedOtherListId)) {
+      setSelectedOtherListId(otherLists[0].listId);
+    }
+  }, [activePanel, otherLists, selectedOtherListId]);
 
   async function createFirstList() {
     try {
@@ -83,6 +119,7 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
   function clearList(listId: string | null) {
     if (listId === shoppingList.listId) {
       setShoppingList({ listId: null, name: 'Shopping', items: [] });
+      setActivePanel(null);
       return;
     }
 
@@ -92,33 +129,57 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
   const shoppingActiveItems = getActiveShoppingListItems(shoppingList.items);
   const shoppingCompletedItems = getCompletedShoppingListItems(shoppingList.items);
   const shoppingDeletedItems = getDeletedShoppingListItems(shoppingList.items);
+  const recentlyAddedItems = shoppingActiveItems.slice(-3).reverse();
+  const hasShoppingActivity = shoppingActiveItems.length > 0 || shoppingCompletedItems.length > 0 || shoppingDeletedItems.length > 0;
+  const selectedOtherList = otherLists.find((list) => list.listId === selectedOtherListId) ?? otherLists[0] ?? null;
 
-  const recentlyAddedItems = shoppingActiveItems.slice(-4).reverse();
+  const statusMessage = isLoading
+    ? 'Boodschappen laden…'
+    : error
+      ? error
+      : recentlyAddedItems[0]
+        ? `Laatst toegevoegd: ${recentlyAddedItems[0].label}`
+        : shoppingActiveItems.length > 0
+          ? `${shoppingActiveItems.length} open ${shoppingActiveItems.length === 1 ? 'boodschap' : 'boodschappen'}`
+          : shoppingList.listId
+            ? 'Lijst klaar voor nieuwe boodschappen.'
+            : 'Maak een boodschappenlijst om te starten.';
 
   return (
     <article className="widget-card shopping-widget shopping-workspace" aria-label={instance.title}>
-      <header className="shopping-workspace-hero">
-        <div className="shopping-hero-copy">
-          <p className="widget-type">Boodschappen</p>
-          <h3>Boodschappen</h3>
-          <p>Schrijf het meteen op, winkel per winkel en vink af terwijl je onderweg bent.</p>
-        </div>
-        <div className="shopping-hero-illustration" aria-hidden="true">
-          <span className="shopping-illustration-sun" />
-          <span className="shopping-illustration-family shopping-illustration-grownup" />
-          <span className="shopping-illustration-family shopping-illustration-child" />
-          <span className="shopping-illustration-bag"><FamilyBoardIcon name="shopping.bag" size={32} /></span>
-        </div>
-      </header>
-      <section className="shopping-quick-add-panel" aria-labelledby="shopping-quick-add-title">
-        <div>
+      <section className="shopping-command-row" aria-label="Snel toevoegen">
+        <div className="shopping-command-copy">
           <p className="widget-type">Snel toevoegen</p>
-          <h4 id="shopping-quick-add-title">Wat moeten we kopen?</h4>
-          <p>Typ iets zodra je eraan denkt. De bestaande boodschappenlijst wordt direct gebruikt.</p>
+          <p className="shopping-command-hint">Altijd zichtbaar tijdens het boodschappenrondje.</p>
         </div>
-        {isLoading ? <p className="shopping-empty">Boodschappen laden…</p> : null}
-        {error ? <p className="shopping-empty" role="alert">{error}</p> : null}
-        {!isLoading && !error ? (
+        <ListSurface
+          apiClient={apiClient}
+          list={shoppingList}
+          listFallbackName="Boodschappen"
+          onClearList={clearList}
+          onError={setError}
+          onReplaceList={replaceList}
+          onUpdateItems={updateListItems}
+          primary
+          primaryMode="quickAdd"
+        />
+        <p className={`shopping-command-status${error ? ' shopping-command-status-error' : ''}`} role={error ? 'alert' : 'status'}>
+          {statusMessage}
+        </p>
+      </section>
+
+      <section className="shopping-active-region" aria-label="Actieve boodschappenlijst">
+        {isLoading ? (
+          <div className="shopping-region-state">
+            <strong>Boodschappen laden…</strong>
+            <p>De actieve lijst wordt in dit vaste vak geladen.</p>
+          </div>
+        ) : error ? (
+          <div className="shopping-region-state shopping-region-state-error" role="alert">
+            <strong>Laden lukt nu niet.</strong>
+            <p>{error}</p>
+          </div>
+        ) : hasShoppingActivity ? (
           <ListSurface
             apiClient={apiClient}
             list={shoppingList}
@@ -128,87 +189,179 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
             onReplaceList={replaceList}
             onUpdateItems={updateListItems}
             primary
-            primaryMode="quickAdd"
+            primaryMode="active"
           />
-        ) : null}
+        ) : (
+          <div className="shopping-region-state shopping-region-state-empty">
+            <strong>Begin met je eerste boodschap</strong>
+            <p>Deze ruimte blijft gereserveerd voor de actieve lijst per winkel.</p>
+            {shoppingList.listId ? (
+              <a href="#shopping-new-item">Voeg meteen iets toe.</a>
+            ) : (
+              <button disabled={isCreatingList} onClick={createFirstList} type="button">
+                Maak boodschappenlijst
+              </button>
+            )}
+          </div>
+        )}
       </section>
 
-      {!isLoading && !error ? (
-        <ListSurface
-          apiClient={apiClient}
-          list={shoppingList}
-          listFallbackName="Boodschappen"
-          onClearList={clearList}
-          onError={setError}
-          onReplaceList={replaceList}
-          onUpdateItems={updateListItems}
-          primary
-          primaryMode="active"
-        />
-      ) : null}
-      {!isLoading && !error && shoppingActiveItems.length === 0 && shoppingCompletedItems.length === 0 && shoppingDeletedItems.length === 0 ? (
-        <div className="empty-state-card page-empty-state shopping-start-card">
-          <strong>Begin met je eerste boodschap</strong>
-          <p>Deze werkruimte is bedoeld voor één snelle familielijst: bedenken, toevoegen, kopen en afvinken.</p>
-          {shoppingList.listId ? <a href="#shopping-new-item">Voeg meteen iets toe.</a> : <button disabled={isCreatingList} onClick={createFirstList} type="button">Maak boodschappenlijst</button>}
-        </div>
-      ) : null}
-      {!isLoading && !error ? (
-        <section className="shopping-recent-panel" aria-labelledby="shopping-recent-title">
-          <div>
-            <p className="widget-type">Laatst toegevoegd</p>
-            <h4 id="shopping-recent-title">Staat het er al op?</h4>
-          </div>
-          {recentlyAddedItems.length === 0 ? <p className="shopping-empty">Nog geen open boodschappen.</p> : (
-            <ul className="shopping-recent-list">
-              {recentlyAddedItems.map((item) => <li key={item.id}>{item.label}</li>)}
-            </ul>
-          )}
-        </section>
-      ) : null}
-      <section className="other-lists-section" aria-labelledby="other-lists-title">
-        <header>
-          <div>
-            <p className="widget-type">Andere lijsten</p>
-            <h3 id="other-lists-title">Ondersteunende lijsten</h3>
-          </div>
-          <p className="shopping-empty">Inpakken, projecten en tijdelijke gezinslijsten blijven bereikbaar, maar de boodschappenlijst blijft leidend.</p>
-        </header>
-        {otherLists.length === 0 ? <p className="shopping-empty">Geen andere lijsten.</p> : null}
-        <div className="other-lists-grid">
-          {otherLists.map((list) => {
-            const activeCount = getActiveShoppingListItems(list.items).length;
-            return (
-              <details className="other-list-card" key={list.listId ?? list.name}>
-                <summary><span>{list.name ?? 'Naamloze lijst'}</span><small>{activeCount} open</small></summary>
-                <ListSurface
-                  apiClient={apiClient}
-                  list={list}
-                  listFallbackName="Naamloze lijst"
-                  onClearList={clearList}
-                  onError={setError}
-                  onReplaceList={replaceList}
-                  onUpdateItems={updateListItems}
-                />
-              </details>
-            );
-          })}
-        </div>
-      </section>
-      {!isLoading && !error ? (
-        <ListSurface
-          apiClient={apiClient}
-          list={shoppingList}
-          listFallbackName="Boodschappen"
-          onClearList={clearList}
-          onError={setError}
-          onReplaceList={replaceList}
-          onUpdateItems={updateListItems}
-          primary
-          primaryMode="lifecycle"
-        />
+      <footer className="shopping-footer-strip" aria-label="Boodschappenstatus">
+        <span className="shopping-footer-pill" title={statusMessage}>{statusMessage}</span>
+        <button className="shopping-footer-action" onClick={() => setActivePanel('completed')} type="button">
+          Afgevinkt <span>{shoppingCompletedItems.length}</span>
+        </button>
+        <button className="shopping-footer-action" onClick={() => setActivePanel('deleted')} type="button">
+          Herstellen <span>{shoppingDeletedItems.length}</span>
+        </button>
+        <button className="shopping-footer-action" disabled={otherLists.length === 0} onClick={() => setActivePanel('otherLists')} type="button">
+          Andere lijsten <span>{otherLists.length}</span>
+        </button>
+        <button className="shopping-footer-action" disabled={!shoppingList.listId} onClick={() => setActivePanel('manage')} type="button">
+          Beheer
+        </button>
+      </footer>
+
+      {activePanel ? (
+        <ShoppingSurfaceDialog
+          description={getPanelDescription(activePanel)}
+          onClose={() => setActivePanel(null)}
+          title={getPanelTitle(activePanel)}
+        >
+          {activePanel === 'completed' ? (
+            <ListSurface
+              apiClient={apiClient}
+              list={shoppingList}
+              listFallbackName="Boodschappen"
+              onClearList={clearList}
+              onError={setError}
+              onReplaceList={replaceList}
+              onUpdateItems={updateListItems}
+              primary
+              primaryMode="completed"
+            />
+          ) : null}
+          {activePanel === 'deleted' ? (
+            <ListSurface
+              apiClient={apiClient}
+              list={shoppingList}
+              listFallbackName="Boodschappen"
+              onClearList={clearList}
+              onError={setError}
+              onReplaceList={replaceList}
+              onUpdateItems={updateListItems}
+              primary
+              primaryMode="deleted"
+            />
+          ) : null}
+          {activePanel === 'manage' ? (
+            <ListSurface
+              apiClient={apiClient}
+              list={shoppingList}
+              listFallbackName="Boodschappen"
+              onClearList={clearList}
+              onError={setError}
+              onReplaceList={replaceList}
+              onUpdateItems={updateListItems}
+              primary
+              primaryMode="manage"
+            />
+          ) : null}
+          {activePanel === 'otherLists' ? (
+            <div className="shopping-other-lists-panel">
+              {otherLists.length === 0 ? (
+                <p className="shopping-empty">Geen andere lijsten beschikbaar.</p>
+              ) : (
+                <>
+                  <div className="shopping-other-list-tabs" role="tablist" aria-label="Andere lijsten">
+                    {otherLists.map((list) => (
+                      <button
+                        aria-selected={selectedOtherList?.listId === list.listId}
+                        className={selectedOtherList?.listId === list.listId ? 'selected' : undefined}
+                        key={list.listId ?? list.name}
+                        onClick={() => setSelectedOtherListId(list.listId)}
+                        role="tab"
+                        type="button"
+                      >
+                        <span>{list.name ?? 'Naamloze lijst'}</span>
+                        <small>{getActiveShoppingListItems(list.items).length} open</small>
+                      </button>
+                    ))}
+                  </div>
+                  {selectedOtherList ? (
+                    <div className="shopping-other-list-surface">
+                      <ListSurface
+                        apiClient={apiClient}
+                        list={selectedOtherList}
+                        listFallbackName="Naamloze lijst"
+                        onClearList={clearList}
+                        onError={setError}
+                        onReplaceList={replaceList}
+                        onUpdateItems={updateListItems}
+                      />
+                    </div>
+                  ) : null}
+                </>
+              )}
+            </div>
+          ) : null}
+        </ShoppingSurfaceDialog>
       ) : null}
     </article>
+  );
+}
+
+function getPanelTitle(panel: ShoppingPanelKind) {
+  switch (panel) {
+    case 'completed':
+      return 'Afgevinkte boodschappen';
+    case 'deleted':
+      return 'Herstellen en terugzetten';
+    case 'otherLists':
+      return 'Andere lijsten';
+    case 'manage':
+      return 'Boodschappenlijst beheren';
+  }
+}
+
+function getPanelDescription(panel: ShoppingPanelKind) {
+  switch (panel) {
+    case 'completed':
+      return 'Bekijk wat al is afgehandeld zonder de actieve lijst te verplaatsen.';
+    case 'deleted':
+      return 'Open recente verwijderingen in een begrensd herstelvak.';
+    case 'otherLists':
+      return 'Schakel naar ondersteunende lijsten zonder de standaardweergave uit te breiden.';
+    case 'manage':
+      return 'Hernoem, archiveer of verwijder de huidige boodschappenlijst op aanvraag.';
+  }
+}
+
+interface ShoppingSurfaceDialogProps {
+  children: ReactNode;
+  description: string;
+  onClose(): void;
+  title: string;
+}
+
+function ShoppingSurfaceDialog({ children, description, onClose, title }: ShoppingSurfaceDialogProps) {
+  const titleId = useId();
+
+  return (
+    <div className="shopping-surface-backdrop" onClick={onClose} role="presentation">
+      <section aria-labelledby={titleId} aria-modal="true" className="shopping-surface-dialog" onClick={(event) => event.stopPropagation()} role="dialog">
+        <header className="shopping-surface-dialog-header">
+          <div>
+            <h4 id={titleId}>{title}</h4>
+            <p>{description}</p>
+          </div>
+          <button aria-label="Sluit boodschappenpaneel" className="shopping-surface-close" onClick={onClose} type="button">
+            Sluiten
+          </button>
+        </header>
+        <div className="shopping-surface-dialog-body">{children}</div>
+      </section>
+    </div>
   );
 }
 
@@ -221,7 +374,7 @@ interface ListSurfaceProps {
   onReplaceList(list: ShoppingListState): void;
   onUpdateItems(listId: string | null, updater: (items: readonly ShoppingListItem[]) => readonly ShoppingListItem[]): void;
   primary?: boolean;
-  primaryMode?: 'all' | 'quickAdd' | 'active' | 'lifecycle';
+  primaryMode?: 'all' | 'quickAdd' | 'active' | 'completed' | 'deleted' | 'manage';
 }
 
 function ListSurface({ apiClient, list, listFallbackName, onClearList, onError, onReplaceList, onUpdateItems, primary = false, primaryMode = 'all' }: ListSurfaceProps) {
@@ -240,7 +393,9 @@ function ListSurface({ apiClient, list, listFallbackName, onClearList, onError, 
 
     try {
       const createdItem = await addShoppingListItem(apiClient, list.listId, newItemLabel);
-      if (createdItem) onUpdateItems(list.listId, (current) => upsertShoppingListItem(current, createdItem));
+      if (createdItem) {
+        onUpdateItems(list.listId, (current) => upsertShoppingListItem(current, createdItem));
+      }
       setNewItemLabel('');
     } catch {
       onError('Boodschap kon niet worden toegevoegd.');
@@ -329,8 +484,8 @@ function ListSurface({ apiClient, list, listFallbackName, onClearList, onError, 
         <span className="visually-hidden">Nieuw item voor {listLabel}</span>
         <input
           disabled={!list.listId}
-          onChange={(event) => setNewItemLabel(event.target.value)}
           id={inputId}
+          onChange={(event) => setNewItemLabel(event.target.value)}
           placeholder="Voeg toe, bijvoorbeeld melk"
           type="text"
           value={newItemLabel}
@@ -347,34 +502,46 @@ function ListSurface({ apiClient, list, listFallbackName, onClearList, onError, 
   if (primary && primaryMode === 'active') {
     return (
       <div className="shopping-primary-list shopping-active-store-workspace" aria-label={`${listLabel} per winkel`}>
-        <ShoppingListSection className="shopping-section-primary" emptyLabel="Geen open boodschappen." items={activeItems} onRemove={removeItem} onStoreChange={updateItemStore} onToggle={toggleItem} title="Per winkel" />
+        <ShoppingListSection className="shopping-section-primary" emptyLabel="Geen open boodschappen." items={activeItems} onRemove={removeItem} onStoreChange={updateItemStore} onToggle={toggleItem} title="Actieve lijst per winkel" />
       </div>
     );
   }
 
-  if (primary && primaryMode === 'lifecycle') {
+  if (primary && primaryMode === 'completed') {
     return (
-      <div className="shopping-primary-list shopping-lifecycle-workspace" aria-label={`${listLabel} beheer`}>
-        <details className="shopping-lifecycle-details">
-          <summary>Afgevinkt <span>{completedItems.length}</span></summary>
-          <ShoppingListSection emptyLabel="Nog niets afgevinkt." items={completedItems} onRemove={removeItem} onStoreChange={updateItemStore} onToggle={toggleItem} onUndo={undoItem} title="Afgevinkt" />
-        </details>
-        <details className="shopping-list-management">
-          <summary>Lijst beheren</summary>
-          <form className="shopping-add-form shopping-list-name-form" onSubmit={renameList}>
-            <label>
-              <span>Lijstnaam</span>
-              <input disabled={!list.listId} onChange={(event) => setListName(event.target.value)} type="text" value={listName} />
-            </label>
-            <button disabled={!list.listId} type="submit">Hernoemen</button>
-            <button disabled={!list.listId} onClick={archiveList} type="button">Archiveren</button>
-            <button disabled={!list.listId} onClick={deleteList} type="button" className="danger-button">Verwijderen</button>
-          </form>
-        </details>
-        <details className="shopping-lifecycle-details">
-          <summary>Recent verwijderd <span>{deletedItems.length}</span></summary>
-          <ShoppingListSection emptyLabel="Niets recent verwijderd." items={deletedItems} onRemove={removeItem} onStoreChange={updateItemStore} onToggle={toggleItem} onUndo={undoItem} title="Recent verwijderd" />
-        </details>
+      <div className="shopping-primary-list shopping-context-list" aria-label={`${listLabel} afgevinkt`}>
+        <ShoppingListSection emptyLabel="Nog niets afgevinkt." items={completedItems} onRemove={removeItem} onStoreChange={updateItemStore} onToggle={toggleItem} onUndo={undoItem} title="Afgevinkt" />
+      </div>
+    );
+  }
+
+  if (primary && primaryMode === 'deleted') {
+    return (
+      <div className="shopping-primary-list shopping-context-list" aria-label={`${listLabel} herstel`}>
+        <ShoppingListSection emptyLabel="Niets recent verwijderd." items={deletedItems} onRemove={removeItem} onStoreChange={updateItemStore} onToggle={toggleItem} onUndo={undoItem} title="Recent verwijderd" />
+      </div>
+    );
+  }
+
+  if (primary && primaryMode === 'manage') {
+    return (
+      <div className="shopping-primary-list shopping-context-list shopping-management-panel" aria-label={`${listLabel} beheer`}>
+        <section className="shopping-section shopping-management-section">
+          <h4>Lijst beheren</h4>
+          <div className="shopping-section-body">
+            <form className="shopping-add-form shopping-list-name-form" onSubmit={renameList}>
+              <label>
+                <span>Lijstnaam</span>
+                <input disabled={!list.listId} onChange={(event) => setListName(event.target.value)} type="text" value={listName} />
+              </label>
+              <div className="shopping-management-actions">
+                <button disabled={!list.listId} type="submit">Hernoemen</button>
+                <button disabled={!list.listId} onClick={archiveList} type="button">Archiveren</button>
+                <button className="danger-button" disabled={!list.listId} onClick={deleteList} type="button">Verwijderen</button>
+              </div>
+            </form>
+          </div>
+        </section>
       </div>
     );
   }
@@ -384,18 +551,22 @@ function ListSurface({ apiClient, list, listFallbackName, onClearList, onError, 
       {quickAddForm}
       <ShoppingListSection className={primary ? 'shopping-section-primary' : undefined} emptyLabel="Geen open boodschappen." items={activeItems} onRemove={removeItem} onStoreChange={primary ? updateItemStore : undefined} onToggle={toggleItem} title="Per winkel" />
       <ShoppingListSection emptyLabel="Nog niets afgevinkt." items={completedItems} onRemove={removeItem} onStoreChange={primary ? updateItemStore : undefined} onToggle={toggleItem} onUndo={undoItem} title="Afgevinkt" />
-      <details className="shopping-list-management">
-        <summary>Lijst beheren</summary>
-        <form className="shopping-add-form shopping-list-name-form" onSubmit={renameList}>
-          <label>
-            <span>Lijstnaam</span>
-            <input disabled={!list.listId} onChange={(event) => setListName(event.target.value)} type="text" value={listName} />
-          </label>
-          <button disabled={!list.listId} type="submit">Hernoemen</button>
-          <button disabled={!list.listId} onClick={archiveList} type="button">Archiveren</button>
-          <button disabled={!list.listId} onClick={deleteList} type="button" className="danger-button">Verwijderen</button>
-        </form>
-      </details>
+      <section className="shopping-section shopping-management-section">
+        <h4>Lijst beheren</h4>
+        <div className="shopping-section-body">
+          <form className="shopping-add-form shopping-list-name-form" onSubmit={renameList}>
+            <label>
+              <span>Lijstnaam</span>
+              <input disabled={!list.listId} onChange={(event) => setListName(event.target.value)} type="text" value={listName} />
+            </label>
+            <div className="shopping-management-actions">
+              <button disabled={!list.listId} type="submit">Hernoemen</button>
+              <button disabled={!list.listId} onClick={archiveList} type="button">Archiveren</button>
+              <button className="danger-button" disabled={!list.listId} onClick={deleteList} type="button">Verwijderen</button>
+            </div>
+          </form>
+        </div>
+      </section>
       <ShoppingListSection emptyLabel="Niets recent verwijderd." items={deletedItems} onRemove={removeItem} onStoreChange={primary ? updateItemStore : undefined} onToggle={toggleItem} onUndo={undoItem} title="Recent verwijderd" />
     </div>
   );
@@ -416,27 +587,34 @@ function ShoppingListSection({ className, emptyLabel, items, onRemove, onStoreCh
   return (
     <section className={`shopping-section${className ? ` ${className}` : ''}`}>
       <h4>{title}</h4>
-      {items.length === 0 ? (
-        <p className="shopping-empty">{emptyLabel}</p>
-      ) : (
-        <div className="shopping-store-groups">
-          {groupShoppingItemsByPreferredStore(items, { activeOnly: false }).map((group) => (
-            <div className="shopping-store-group" key={group.store ?? 'zonder-winkel'}>
-              {onStoreChange ? (
-                <header className="shopping-store-card-header">
-                  <h5>{group.label}</h5>
-                  <span>{group.items.length} open</span>
-                </header>
-              ) : null}
-              <ul className="shopping-list">
-                {group.items.map((item) => (
-                  <ShoppingListRow item={item} key={item.id} onRemove={onRemove} onStoreChange={onStoreChange} onToggle={onToggle} onUndo={onUndo} />
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-      )}
+      <div className="shopping-section-body">
+        {items.length === 0 ? (
+          <p className="shopping-empty">{emptyLabel}</p>
+        ) : (
+          <div className="shopping-store-groups">
+            {groupShoppingItemsByPreferredStore(items, { activeOnly: false }).map((group) => (
+              <div className="shopping-store-group" key={group.store ?? 'zonder-winkel'}>
+                {onStoreChange ? (
+                  <header className="shopping-store-card-header">
+                    <h5>{group.label}</h5>
+                    <span>{group.items.length} open</span>
+                  </header>
+                ) : (
+                  <header className="shopping-store-card-header shopping-store-card-header-quiet">
+                    <h5>{group.label}</h5>
+                    <span>{group.items.length}</span>
+                  </header>
+                )}
+                <ul className="shopping-list">
+                  {group.items.map((item) => (
+                    <ShoppingListRow item={item} key={item.id} onRemove={onRemove} onStoreChange={onStoreChange} onToggle={onToggle} onUndo={onUndo} />
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </section>
   );
 }
@@ -454,16 +632,16 @@ function ShoppingListRow({ item, onRemove, onStoreChange, onToggle, onUndo }: Sh
     <li className={`shopping-item${item.deleted ? ' shopping-item-deleted' : ''}`}>
       <label>
         <input checked={item.completed} onChange={() => onToggle(item.id)} type="checkbox" />
-        <span>{item.label}</span>
+        <span title={item.label}>{item.label}</span>
         {item.deleted ? <small>Verwijderd</small> : null}
         {onStoreChange && item.preferredStore ? <small>({item.preferredStore})</small> : null}
       </label>
       {onStoreChange ? (
         <details className="shopping-item-options">
-          <summary>Meer</summary>
+          <summary>Winkel</summary>
           <label className="shopping-store-field">
             <span className="visually-hidden">Winkel</span>
-            <input aria-label={`Winkel voor ${item.label}`} list={`store-suggestions-${item.id}`} onBlur={(event) => onStoreChange(item.id, event.target.value || null)} placeholder="Winkel" type="text" defaultValue={item.preferredStore ?? ''} />
+            <input aria-label={`Winkel voor ${item.label}`} defaultValue={item.preferredStore ?? ''} list={`store-suggestions-${item.id}`} onBlur={(event) => onStoreChange(item.id, event.target.value || null)} placeholder="Winkel" type="text" />
             <datalist id={`store-suggestions-${item.id}`}>
               {(item.storeSuggestions ?? []).map((suggestion) => (
                 <option key={suggestion.store} value={suggestion.store}>{suggestion.store} ({suggestion.purchaseCount})</option>
@@ -473,7 +651,7 @@ function ShoppingListRow({ item, onRemove, onStoreChange, onToggle, onUndo }: Sh
         </details>
       ) : null}
       {onUndo ? <button onClick={() => onUndo(item.id)} type="button">Terugzetten</button> : null}
-      {!item.deleted ? <button onClick={() => onRemove(item.id)} type="button" className="secondary-action">Weg</button> : null}
+      {!item.deleted ? <button className="secondary-action" onClick={() => onRemove(item.id)} type="button">Weg</button> : null}
     </li>
   );
 }
