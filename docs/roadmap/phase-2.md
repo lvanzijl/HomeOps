@@ -7,6 +7,9 @@ Frontend test maintenance refreshed stale test expectations and fixtures to matc
 
 # Phase 2 Roadmap
 
+## Completed Slice — Shopping Viewport-Fit Redesign
+Shopping Viewport-Fit Redesign implements the approved execution-first Shopping contract by removing default shared-page scrolling, keeping one compact Quick Add/status command row permanently visible, bounding the active store-grouped shopping list inside the viewport, and moving completed, recovery, other-list, and management detail into compact footer actions with bounded overlay surfaces. Existing shopping creation, add, toggle, remove, undo, rename, archive, delete, and store-assignment behaviors remain available without backend, API, schema, or binary artifact changes.
+
 ## Completed Slice — Home Dashboard Viewport Composition
 Home Dashboard Viewport Composition finishes the Home-specific follow-up after the shared viewport shell by locking Home into a fixed two-row dashboard: Boodschappen, Agenda, and Taken occupy bounded top cards, Motivatie stays visible across the full second row, and overflow is handled inside each card instead of changing page height. The slice preserves existing Home widgets, data, product behavior, Dutch labels, backend behavior, APIs, schema, and styling language while tightening family avatar spacing and surfacing small unread-style today-task badges from existing frontend task data.
 
