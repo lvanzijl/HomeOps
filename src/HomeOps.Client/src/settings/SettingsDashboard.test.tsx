@@ -13,9 +13,11 @@ const exportDocument = CalendarExportDocument.fromJS({
   metadata: {},
 });
 
-const exportCalendar = vi.fn();
-const restoreCalendar = vi.fn();
-const downloadCalendarExport = vi.fn();
+const { exportCalendar, restoreCalendar, downloadCalendarExport } = vi.hoisted(() => ({
+  exportCalendar: vi.fn(),
+  restoreCalendar: vi.fn(),
+  downloadCalendarExport: vi.fn(),
+}));
 
 vi.mock('../calendarPortability', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../calendarPortability')>();
