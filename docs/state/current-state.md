@@ -1,3 +1,4 @@
+- 2026-07-03: Implemented the first Agenda information-architecture slice by making Planning the default Agenda briefing, removing Week from the visible primary IA, moving Month behind a contextual `Maand bekijken` action, preserving existing event CRUD/source filtering/backend APIs, updating Agenda tests and storyboard selectors, and leaving no binary or cache artifacts in the changeset.
 - 2026-07-03: Repaired the next FamilyBoard marketing publish Tasks completion mismatch by updating the executable storyboard to validate the implemented post-completion flow: Zwemtas klaarzetten disappears from the visible Vandaag list, then appears as an Afgerond task in the contextual completed surface; publish mode completed all 9 scenes, generated metadata/timing, cleaned temporary artifacts, and no binary media was committed.
 - 2026-07-03: Repaired the next FamilyBoard marketing publish Tasks recording mismatch by updating the executable storyboard to validate the implemented Vandaag focus section, compact Planning summary, and secondary task-planning action rail instead of obsolete `Aandacht voor nu`/planning-column selectors; publish now proceeds to the next Tasks mismatch at `complete-zwemtas` without application functionality or binary artifact changes.
 - 2026-07-03: Repaired the FamilyBoard marketing publish Agenda recording flow by updating the executable storyboard to use the implemented Agenda header add-event action instead of the obsolete selected-day `Gebeurtenis toevoegen` selector, preserving application functionality and binary-free source control boundaries.
@@ -337,7 +338,7 @@ Proceed with the next Phase 2 household-core slice only after preserving Home as
 - The backend stores household-owned event sources and EventSeries records, then normalizes generated EventOccurrence projections into the existing normalized event model used by the Agenda.
 - Deterministic seed data includes Dentist Appointment, Parent Evening, Vacation, and Put Bins Outside.
 - Minimal event APIs provide event source retrieval plus EventSeries get, create, update, and delete.
-- The Agenda Widget loads persisted HomeOps Calendar events through the generated NSwag client and preserves birthday source compatibility, source filtering, week view, and months view.
+- The Agenda Widget loads persisted HomeOps Calendar events through the generated NSwag client and preserves birthday source compatibility, source filtering, the Planning briefing, and contextual Month planning.
 - A minimal embedded Agenda form validates event create, update, and delete; no dedicated event management page, recurring events, Google Calendar integration, OAuth, authentication, or notifications have been introduced.
 
 ## Phase 2 Calendar Recurrence Runtime

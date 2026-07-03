@@ -25,7 +25,7 @@ import type { WidgetRenderProps } from "../WidgetRenderer";
 import { useVisualReviewNow } from "../../visualReviewTime";
 
 type EventDialogQuestion = "title" | "date" | "dayKind" | "details";
-type AgendaWorkspaceMode = "month" | "week" | "list";
+type AgendaWorkspaceMode = "planning" | "month";
 
 type EventFormState = {
   title: string;
@@ -51,8 +51,7 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
   const previousTodayRef = useRef(today);
   const [selectedDate, setSelectedDate] = useState(today);
   const [activeWorkspaceMode, setActiveWorkspaceMode] =
-    useState<AgendaWorkspaceMode>("month");
-  const [weekAnchorDate, setWeekAnchorDate] = useState(today);
+    useState<AgendaWorkspaceMode>("planning");
   const [calendarEvents, setCalendarEvents] = useState<NormalizedEvent[]>([]);
   const [calendarSources, setCalendarSources] = useState<EventSource[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -70,9 +69,6 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
     if (previousToday === today) return;
 
     setSelectedDate((current) => (current === previousToday ? today : current));
-    setWeekAnchorDate((current) =>
-      current === previousToday ? today : current,
-    );
     previousTodayRef.current = today;
   }, [today]);
 
@@ -122,8 +118,7 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
   );
   const { settings, setSourceEnabled } = useAgendaLayerSettings(eventSources);
 
-  const layerView = activeWorkspaceMode === "week" ? "week" : "months";
-  const selectedSources = settings[layerView].enabledSourceIds;
+  const selectedSources = settings.months.enabledSourceIds;
 
   const agendaEvents = useMemo(() => {
     const filteredEvents = filterEventsBySource(events, selectedSources);
@@ -215,39 +210,36 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
           <div className="agenda-command-title">
             <p className="widget-type">Familieplanning</p>
             <h3>{instance.title}</h3>
+            <p>
+              {activeWorkspaceMode === "planning"
+                ? "Vandaag, straks en wat er binnenkort aankomt."
+                : "Kies een dag om ruimte te vinden of een afspraak in te plannen."}
+            </p>
           </div>
-          <button
-            className="agenda-command-action"
-            type="button"
-            onClick={() => openNewEventForm(selectedDate || today)}
-          >
-            Gebeurtenis toevoegen
-          </button>
+          <div className="agenda-command-actions">
+            <button
+              className="agenda-command-secondary"
+              type="button"
+              onClick={() =>
+                setActiveWorkspaceMode((current) =>
+                  current === "planning" ? "month" : "planning",
+                )
+              }
+            >
+              {activeWorkspaceMode === "planning"
+                ? "Maand bekijken"
+                : "Terug naar planning"}
+            </button>
+            <button
+              className="agenda-command-action"
+              type="button"
+              onClick={() => openNewEventForm(selectedDate || today)}
+            >
+              Gebeurtenis toevoegen
+            </button>
+          </div>
         </div>
         <div className="agenda-command-meta">
-          <div className="agenda-workspace-toggle" aria-label="Agenda weergave">
-            <button
-              aria-pressed={activeWorkspaceMode === "month"}
-              onClick={() => setActiveWorkspaceMode("month")}
-              type="button"
-            >
-              Maand
-            </button>
-            <button
-              aria-pressed={activeWorkspaceMode === "week"}
-              onClick={() => setActiveWorkspaceMode("week")}
-              type="button"
-            >
-              Week
-            </button>
-            <button
-              aria-pressed={activeWorkspaceMode === "list"}
-              onClick={() => setActiveWorkspaceMode("list")}
-              type="button"
-            >
-              Lijst
-            </button>
-          </div>
           <div className="agenda-command-rail">
             {isLoading ? (
               <p className="agenda-status" role="status">
@@ -266,7 +258,7 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
                   <input
                     checked={selectedSources[source.id] ?? false}
                     onChange={(event) =>
-                      setSourceEnabled(layerView, source.id, event.target.checked)
+                      setSourceEnabled("months", source.id, event.target.checked)
                     }
                     type="checkbox"
                   />
@@ -343,18 +335,8 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
             selectedDate={selectedDate}
             today={today}
           />
-        ) : activeWorkspaceMode === "week" ? (
-          <WeekWorkspace
-            anchorDate={weekAnchorDate}
-            deletingEventId={deletingEventId}
-            events={agendaEvents}
-            onDelete={removeEvent}
-            onEdit={startEditing}
-            onNavigate={setWeekAnchorDate}
-            today={today}
-          />
         ) : (
-          <ListWorkspace
+          <PlanningWorkspace
             deletingEventId={deletingEventId}
             events={agendaEvents}
             onDelete={removeEvent}
@@ -582,7 +564,7 @@ function EventConversationForm({
   );
 }
 
-function ListWorkspace({
+function PlanningWorkspace({
   deletingEventId,
   events,
   onDelete,
@@ -595,39 +577,44 @@ function ListWorkspace({
   onEdit: (event: NormalizedEvent) => void;
   today: string;
 }) {
-  const timelineGroups = useMemo(
-    () => buildTimelineGroups(events, today),
+  const planningSummary = useMemo(
+    () => buildPlanningSummary(events, today),
     [events, today],
   );
+  const planningGroups = useMemo(
+    () => buildPlanningGroups(events, today),
+    [events, today],
+  );
+
   return (
-    <section className="agenda-list-workspace" aria-label="Lijstplanning">
-      <header className="agenda-list-header">
+    <section className="agenda-planning-workspace" aria-label="Planningoverzicht">
+      <header className="agenda-planning-header">
         <div>
-          <h4>Wat komt eraan?</h4>
+          <p className="eyebrow">Planning</p>
+          <h4>Wat moet het gezin hierna weten?</h4>
+          <p>Vandaag, morgen en de eerstvolgende afspraken zonder kalender-ruis.</p>
         </div>
       </header>
-
-      {timelineGroups.length > 0 ? (
-        <div className="agenda-timeline-groups">
-          {timelineGroups.map((group) => (
-            <AgendaTimelineGroup
-              deletingEventId={deletingEventId}
-              group={group}
-              key={group.key}
-              onDelete={onDelete}
-              onEdit={onEdit}
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="agenda-list-empty-state">
-          <strong>Even niets dat om aandacht vraagt</strong>
-          <p>
-            Er staan geen komende gebeurtenissen in de agenda. Mooi moment om
-            samen adem te halen.
-          </p>
-        </div>
-      )}
+      <div className="agenda-planning-summary-grid">
+        {planningSummary.map((card) => (
+          <article className="agenda-planning-summary-card" key={card.title}>
+            <p className="eyebrow">{card.title}</p>
+            <strong>{card.value}</strong>
+            <p>{card.detail}</p>
+          </article>
+        ))}
+      </div>
+      <div className="agenda-planning-groups">
+        {planningGroups.map((group) => (
+          <AgendaTimelineGroup
+            deletingEventId={deletingEventId}
+            group={group}
+            key={group.key}
+            onDelete={onDelete}
+            onEdit={onEdit}
+          />
+        ))}
+      </div>
     </section>
   );
 }
@@ -672,12 +659,19 @@ function AgendaTimelineGroup({
           ) : null}
         </div>
       </header>
-      <AgendaEventList
-        deletingEventId={deletingEventId}
-        events={group.events}
-        onDelete={onDelete}
-        onEdit={onEdit}
-      />
+      {group.events.length > 0 ? (
+        <AgendaEventList
+          deletingEventId={deletingEventId}
+          events={group.events}
+          onDelete={onDelete}
+          onEdit={onEdit}
+        />
+      ) : (
+        <div className="agenda-planning-group-empty">
+          <strong>{group.emptyTitle}</strong>
+          <p>{group.emptyBody}</p>
+        </div>
+      )}
     </section>
   );
 }
@@ -1393,14 +1387,20 @@ type WeekDay = { date: string };
 type TimelineGroupKey =
   | "today"
   | "tomorrow"
-  | "thisWeek"
-  | "nextWeek"
-  | "later";
+  | "laterThisWeek"
+  | "upcoming";
 type TimelineGroup = {
   key: TimelineGroupKey;
   label: string;
   description: string;
+  emptyTitle: string;
+  emptyBody: string;
   events: ReturnType<typeof hydrateAgendaEvents>;
+};
+type PlanningSummaryCard = {
+  title: string;
+  value: string;
+  detail: string;
 };
 
 const dutchWeekdayFormatter = new Intl.DateTimeFormat("nl-NL", {
@@ -1445,7 +1445,7 @@ function buildMonthDays(anchorDate: string): MonthDay[] {
   return days;
 }
 
-function buildTimelineGroups(
+function buildPlanningGroups(
   events: ReturnType<typeof hydrateAgendaEvents>,
   today: string,
 ): TimelineGroup[] {
@@ -1459,58 +1459,130 @@ function buildTimelineGroups(
   >();
 
   upcomingEvents.forEach((event) => {
-    const key = getTimelineGroupKey(getDateKey(event.startsAt), today);
+    const key = getPlanningGroupKey(getDateKey(event.startsAt), today);
     buckets.set(key, [...(buckets.get(key) ?? []), event]);
   });
 
-  return timelineGroupDefinitions.flatMap((definition) => {
-    const groupEvents = buckets.get(definition.key) ?? [];
-    return groupEvents.length > 0
-      ? [{ ...definition, events: groupEvents }]
-      : [];
-  });
+  return planningGroupDefinitions.map((definition) => ({
+    ...definition,
+    events: buckets.get(definition.key) ?? [],
+  }));
 }
 
-const timelineGroupDefinitions: Array<Omit<TimelineGroup, "events">> = [
+function buildPlanningSummary(
+  events: ReturnType<typeof hydrateAgendaEvents>,
+  today: string,
+): PlanningSummaryCard[] {
+  const upcomingEvents = events
+    .filter((event) => getDateKey(event.startsAt) >= today)
+    .slice()
+    .sort(compareAgendaEvents);
+  const todayEvents = upcomingEvents.filter(
+    (event) => getDateKey(event.startsAt) === today,
+  );
+  const tomorrow = addDaysIso(today, 1);
+  const tomorrowEvents = upcomingEvents.filter(
+    (event) => getDateKey(event.startsAt) === tomorrow,
+  );
+  const thisWeekEnd = addDaysIso(startOfWeek(today), 6);
+  const thisWeekEvents = upcomingEvents.filter((event) => {
+    const date = getDateKey(event.startsAt);
+    return date >= today && date <= thisWeekEnd;
+  });
+  const specialEvents = upcomingEvents.filter(isSpecialPlanningEvent);
+  const nextEvent = upcomingEvents[0];
+  const busiestDay = getBusiestPlanningDay(thisWeekEvents);
+
+  return [
+    {
+      title: "Vandaag",
+      value:
+        todayEvents.length > 0
+          ? `${todayEvents.length} ${todayEvents.length === 1 ? "afspraak" : "afspraken"}`
+          : "Rustige dag",
+      detail:
+        todayEvents[0]
+          ? `${formatEventTime(todayEvents[0])} · ${todayEvents[0].title}`
+          : "Nog niets dat vandaag schuurt.",
+    },
+    {
+      title: "Straks",
+      value: nextEvent ? nextEvent.title : "Geen volgende afspraak",
+      detail: nextEvent
+        ? `${formatDutchDay(getDateKey(nextEvent.startsAt))} · ${formatEventTime(nextEvent)}`
+        : "De planning is voorlopig leeg.",
+    },
+    {
+      title: "Morgen",
+      value:
+        tomorrowEvents.length > 0
+          ? `${tomorrowEvents.length} ${tomorrowEvents.length === 1 ? "afspraak" : "afspraken"}`
+          : "Nog open",
+      detail:
+        tomorrowEvents[0]
+          ? `${formatEventTime(tomorrowEvents[0])} · ${tomorrowEvents[0].title}`
+          : "Handig moment om ruimte te houden.",
+    },
+    {
+      title: "Deze week",
+      value:
+        thisWeekEvents.length > 0
+          ? `${thisWeekEvents.length} ${thisWeekEvents.length === 1 ? "afspraak" : "afspraken"}`
+          : "Lucht in de week",
+      detail: busiestDay
+        ? `Drukst op ${formatDutchWeekday(busiestDay.date)} (${busiestDay.count})`
+        : "Nog geen drukke dagen zichtbaar.",
+    },
+    {
+      title: "Bijzonder",
+      value: specialEvents[0] ? specialEvents[0].title : "Nog niets bijzonders",
+      detail: specialEvents[0]
+        ? `${formatDutchDay(getDateKey(specialEvents[0].startsAt))}${specialEvents.length > 1 ? ` · +${specialEvents.length - 1} meer` : ""}`
+        : "Verjaardagen en vrije dagen vallen hier op zodra ze er zijn.",
+    },
+  ];
+}
+
+const planningGroupDefinitions: Array<Omit<TimelineGroup, "events">> = [
   {
     key: "today",
     label: "Vandaag",
     description: "Wat vraagt vandaag om aandacht?",
+    emptyTitle: "Vandaag is nog open",
+    emptyBody: "Er staat nog niets op de gezinsagenda voor vandaag.",
   },
   {
     key: "tomorrow",
     label: "Morgen",
     description: "Handig om alvast klaar te leggen.",
+    emptyTitle: "Morgen is nog rustig",
+    emptyBody: "Er staat nog niets klaar voor morgen.",
   },
   {
-    key: "thisWeek",
-    label: "Deze week",
-    description: "De rest van deze week in volgorde.",
+    key: "laterThisWeek",
+    label: "Later deze week",
+    description: "Wat nog deze week op ons afkomt.",
+    emptyTitle: "De rest van de week is licht",
+    emptyBody: "Geen extra afspraken meer in deze week.",
   },
   {
-    key: "nextWeek",
-    label: "Volgende week",
-    description: "Wat daarna al in beeld komt.",
-  },
-  {
-    key: "later",
-    label: "Later",
+    key: "upcoming",
+    label: "Binnenkort",
     description: "Verder vooruit, zodat niets uit beeld raakt.",
+    emptyTitle: "Nog niets extra's gepland",
+    emptyBody: "De komende dagen buiten deze week zijn nog leeg.",
   },
 ];
 
-function getTimelineGroupKey(date: string, today: string): TimelineGroupKey {
+function getPlanningGroupKey(date: string, today: string): TimelineGroupKey {
   const tomorrow = addDaysIso(today, 1);
   if (date === today) return "today";
   if (date === tomorrow) return "tomorrow";
 
   const thisWeekEnd = addDaysIso(startOfWeek(today), 6);
-  if (date <= thisWeekEnd) return "thisWeek";
+  if (date <= thisWeekEnd) return "laterThisWeek";
 
-  const nextWeekEnd = addDaysIso(thisWeekEnd, 7);
-  if (date <= nextWeekEnd) return "nextWeek";
-
-  return "later";
+  return "upcoming";
 }
 
 function compareAgendaEvents(
@@ -1564,6 +1636,37 @@ function formatDutchMonth(date: string) {
 function formatDutchDay(date: string) {
   return dutchDayFormatter.format(new Date(`${date}T12:00:00`));
 }
+
+function getBusiestPlanningDay(
+  events: ReturnType<typeof hydrateAgendaEvents>,
+): { date: string; count: number } | null {
+  if (events.length === 0) return null;
+
+  const counts = new Map<string, number>();
+  events.forEach((event) => {
+    const date = getDateKey(event.startsAt);
+    counts.set(date, (counts.get(date) ?? 0) + 1);
+  });
+
+  return [...counts.entries()]
+    .map(([date, count]) => ({ date, count }))
+    .sort((left, right) => right.count - left.count || left.date.localeCompare(right.date))[0];
+}
+
+function isSpecialPlanningEvent(
+  event: ReturnType<typeof hydrateAgendaEvents>[number],
+) {
+  const title = event.title.toLowerCase();
+  return (
+    event.source.type === "birthdays" ||
+    event.source.type === "schoolHolidays" ||
+    title.includes("verjaardag") ||
+    title.includes("birthday") ||
+    title.includes("vakantie") ||
+    title.includes("feestdag")
+  );
+}
+
 function formatFamilyFilterLabel(sourceName: string) {
   const normalized = sourceName.toLowerCase();
 

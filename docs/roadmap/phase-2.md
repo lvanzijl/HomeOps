@@ -1,3 +1,6 @@
+## Completed Slice — Agenda Planning IA
+Agenda Planning IA applies the approved strategic Agenda contract by making Planning the default household briefing, removing Week from the visible primary information architecture, and keeping Month only as a contextual `Maand bekijken` workflow. The slice preserves existing event loading, source filtering, create/edit/delete behavior, selected-day behavior inside Month, backend APIs, schema, and Dutch UI language while updating frontend tests and storyboard hooks to the new Planning-first experience.
+
 ## Completed Slice — Settings Viewport-Fit Redesign
 Settings Viewport-Fit Redesign implements the approved status-first Settings contract by replacing the generic widget stack and shared-scroll dependence with a bounded maintenance dashboard: a compact `Is alles in orde?` header, a fixed household-health/maintenance summary region, and a compact contextual action rail. Backup remains immediately available, restore now runs inside a bounded dialog with preserved warning, confirmation, and validation behavior, and additional Settings widgets stay contextual instead of extending the page height.
 
