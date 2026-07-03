@@ -190,4 +190,70 @@ describe("HelpfulMomentsSection", () => {
     ).toBeNull();
     expect(vi.mocked(createHelpfulMoment)).not.toHaveBeenCalled();
   });
+
+  it("keeps compact appreciation as a preview and opens history contextually when requested", async () => {
+    const user = userEvent.setup();
+    vi.mocked(loadHelpfulMoments).mockResolvedValueOnce([
+      {
+        id: "moment-1",
+        householdId: "household",
+        familyMemberId: "riley",
+        familyMemberName: "Riley",
+        familyMemberDisplayColor: "#bbf7d0",
+        familyMemberInitials: "R",
+        title: "Helped Jordan clean up",
+        description: "Kindly joined without being asked.",
+        recognitionTag: "Kindness",
+        createdUtc: "2026-06-20T12:00:00Z",
+      },
+      {
+        id: "moment-2",
+        householdId: "household",
+        familyMemberId: "jordan",
+        familyMemberName: "Jordan",
+        familyMemberDisplayColor: "#fde68a",
+        familyMemberInitials: "J",
+        title: "Shared crayons",
+        description: "That kept playtime calm.",
+        recognitionTag: "Initiative",
+        createdUtc: "2026-06-20T12:10:00Z",
+      },
+      {
+        id: "moment-3",
+        householdId: "household",
+        familyMemberId: "riley",
+        familyMemberName: "Riley",
+        familyMemberDisplayColor: "#bbf7d0",
+        familyMemberInitials: "R",
+        title: "Tidy shoes",
+        description: "A little reset that helped everyone.",
+        recognitionTag: "Routine",
+        createdUtc: "2026-06-20T12:20:00Z",
+      },
+    ]);
+
+    render(
+      <HelpfulMomentsSection
+        members={familyMembers}
+        title="Recente waardering"
+        compact
+        contextualHistory
+      />,
+    );
+
+    const section = await screen.findByLabelText("Recente waardering");
+    expect(within(section).getByText("Helped Jordan clean up")).not.toBeNull();
+    expect(within(section).getByText("Shared crayons")).not.toBeNull();
+    expect(within(section).queryByText("Tidy shoes")).toBeNull();
+    expect(within(section).getByRole("button", { name: "+1 meer" })).not.toBeNull();
+
+    await user.click(within(section).getByRole("button", { name: "+1 meer" }));
+    const dialog = await screen.findByRole("dialog", {
+      name: "Recente waardering geschiedenis",
+    });
+    expect(within(dialog).getByText("Tidy shoes")).not.toBeNull();
+    expect(
+      within(dialog).getByText("A little reset that helped everyone."),
+    ).not.toBeNull();
+  });
 });

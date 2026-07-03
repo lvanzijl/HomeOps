@@ -1,4 +1,10 @@
-import { useEffect, useState, type CSSProperties, type FormEvent } from "react";
+import {
+  useEffect,
+  useState,
+  type CSSProperties,
+  type FormEvent,
+  type ReactNode,
+} from "react";
 import { FamilyAvatar } from "./home/FamilyAvatar";
 import { HelpfulMomentsSection } from "./HelpfulMoments";
 import { HomeOpsIcon, type HomeOpsIconName } from "./icons/homeOpsIcons";
@@ -40,6 +46,7 @@ export function MotivationPage({ members }: MotivationPageProps) {
   const [formError, setFormError] = useState<string | null>(null);
   const [showMemoriesDetail, setShowMemoriesDetail] = useState(false);
   const [showPersonalGoalsDetail, setShowPersonalGoalsDetail] = useState(false);
+  const [showStatsDetail, setShowStatsDetail] = useState(false);
 
   useEffect(() => {
     let ignore = false;
@@ -64,6 +71,8 @@ export function MotivationPage({ members }: MotivationPageProps) {
     ? clampProgress(familyGoal.currentProgress, familyGoal.targetCount)
     : 0;
   const individualGoals = goalsForMembers(snapshot, members);
+  const memories = snapshot.celebrationMemories ?? [];
+  const stats = buildFamilyStats(familyGoal, members, individualGoals, memories);
 
   function handleFormSaved(goal: MotivationFamilyGoal) {
     setSnapshot((current) => {
@@ -116,10 +125,10 @@ export function MotivationPage({ members }: MotivationPageProps) {
       className="motivation-page motivation-dashboard-page"
       aria-label="Motivatiedashboard"
     >
-      <div className="motivation-dashboard familyboard-dashboard-grid">
+      <div className="motivation-dashboard motivation-story-grid">
         <article
           className="family-goal-card motivation-dashboard-card motivation-dashboard-primary"
-          aria-label="Actief familiedoel"
+          aria-label="Gedeeld familiedoel"
         >
           {!familyGoal ? (
             <div className="empty-state-card page-empty-state">
@@ -144,40 +153,76 @@ export function MotivationPage({ members }: MotivationPageProps) {
                     variant="spot"
                   />
                   <div>
-                    <p className="eyebrow">Familiedoel</p>
+                    <p className="eyebrow">Gedeeld familiekompas</p>
                     <h3>{familyGoal.title}</h3>
                     <p className="motivation-copy">
                       {familyGoalAnticipationMessage(familyGoal)}
                     </p>
                   </div>
                 </div>
-                <div
-                  className="family-progress"
-                  aria-label={`${familyGoal.currentProgress} van ${familyGoal.targetCount} ${familyGoal.unitLabel}`}
-                >
-                  <div className="family-progress-number">
-                    <strong>{familyGoal.currentProgress}</strong>
-                    <span>
-                      / {familyGoal.targetCount} {familyGoal.unitLabel}
-                    </span>
+                <div className="family-purpose-progress">
+                  <div
+                    className="family-progress"
+                    aria-label={`${familyGoal.currentProgress} van ${familyGoal.targetCount} ${familyGoal.unitLabel}`}
+                  >
+                    <div className="family-progress-number">
+                      <strong>{familyGoal.currentProgress}</strong>
+                      <span>
+                        / {familyGoal.targetCount} {familyGoal.unitLabel}
+                      </span>
+                    </div>
+                    <div className="progress-bar">
+                      <span style={{ width: `${percent}%` }} />
+                    </div>
                   </div>
-                  <div className="progress-bar">
-                    <span style={{ width: `${percent}%` }} />
+                  <div className="family-purpose-proof-grid" aria-label="Voortgangsbewijs">
+                    <article className="family-purpose-proof-tile">
+                      <span>Resterend</span>
+                      <strong>
+                        {Math.max(0, familyGoal.targetCount - familyGoal.currentProgress)}
+                      </strong>
+                      <small>{familyGoal.unitLabel} tot samen vieren</small>
+                    </article>
+                    <article className="family-purpose-proof-tile">
+                      <span>Gezin helpt mee</span>
+                      <strong>{members.length}</strong>
+                      <small>
+                        {individualGoals.length} persoonlijke doelen ondersteunen mee
+                      </small>
+                    </article>
                   </div>
                 </div>
                 <FamilyCelebrationDisplay
                   familyGoal={familyGoal}
                   onCelebrated={handleFormSaved}
                 />
+                <div className="family-purpose-storyline">
+                  <p className="eyebrow">Waarom dit ertoe doet</p>
+                  <p className="motivation-copy">
+                    {percent >= 100
+                      ? "Jullie hebben samen genoeg gedaan om dit gezinsmoment echt te laten landen."
+                      : "Elke kleine stap laat zien waar jullie als gezin samen naartoe groeien."}
+                  </p>
+                </div>
               </div>
-              <button
-                type="button"
-                className="secondary-action familyboard-card-action family-goal-primary-action"
-                onClick={() => setFormMode("edit")}
-              >
-                <HomeOpsIcon name="childMyProgress" />
-                Familiedoel aanpassen
-              </button>
+              <div className="family-goal-primary-actions">
+                <button
+                  type="button"
+                  className="secondary-action familyboard-card-action family-goal-primary-action"
+                  onClick={() => setFormMode("edit")}
+                >
+                  <HomeOpsIcon name="childMyProgress" />
+                  Familiedoel aanpassen
+                </button>
+                <button
+                  type="button"
+                  className="secondary-action compact-action familyboard-card-action"
+                  onClick={() => setShowStatsDetail(true)}
+                >
+                  <HomeOpsIcon name="childMyProgress" />
+                  Meer voortgang
+                </button>
+              </div>
             </>
           )}
         </article>
@@ -186,36 +231,18 @@ export function MotivationPage({ members }: MotivationPageProps) {
           members={members}
           showCreate
           compact
-          title="Recente waardering"
+          contextualHistory
+          previewCount={2}
+          title="Aanmoediging en waardering"
         />
 
-        <UpcomingCelebrationsCard
+        <CelebrationStoryCard
           familyGoal={familyGoal}
-          memories={snapshot.celebrationMemories ?? []}
-          expanded={showMemoriesDetail}
-          onToggleMemories={() => setShowMemoriesDetail((current) => !current)}
-        />
-
-        <FamilyStatsCard
-          familyGoal={familyGoal}
-          members={members}
+          memories={memories}
           individualGoals={individualGoals}
-          showPersonalGoalsDetail={showPersonalGoalsDetail}
-          onTogglePersonalGoals={() =>
-            setShowPersonalGoalsDetail((current) => !current)
-          }
-          onAddPersonalGoal={() =>
-            setIndividualFormGoal({
-              id: "",
-              familyMemberId: members[0]?.id ?? "",
-              familyMemberName: members[0]?.name ?? "",
-              title: "",
-              targetCount: 4,
-              currentProgress: 0,
-              unitLabel: "keer",
-              visualKind: "stars",
-            })
-          }
+          onOpenMemories={() => setShowMemoriesDetail(true)}
+          onOpenPersonalGoals={() => setShowPersonalGoalsDetail(true)}
+          onOpenStats={() => setShowStatsDetail(true)}
         />
       </div>
 
@@ -265,103 +292,49 @@ export function MotivationPage({ members }: MotivationPageProps) {
       ) : null}
 
       {showMemoriesDetail ? (
-        <CelebrationMemorySection
-          memories={snapshot.celebrationMemories ?? []}
-          expanded
-          onToggle={() => setShowMemoriesDetail(false)}
-        />
+        <MotivationDetailDialog
+          label="Vieringsherinneringen"
+          title="Vieringen die we onthouden"
+          description={`${memories.length} herinneringen om later samen terug te lezen.`}
+          onClose={() => setShowMemoriesDetail(false)}
+        >
+          <CelebrationMemorySection memories={memories} />
+        </MotivationDetailDialog>
       ) : null}
 
-      {showPersonalGoalsDetail || individualFormGoal ? (
-        <section
-          className="individual-goals compact-overview-section"
-          aria-label="Persoonlijke aanmoedigingsdoelen"
-        >
-          <div className="section-heading-row">
-            <div>
-              <p className="eyebrow">Persoonlijke doelen</p>
-              <h3>Persoonlijke doelen deze week</h3>
-              <p className="motivation-copy">
-                {individualGoals.length} actief ·{" "}
-                {personalGoalSummary(individualGoals)}
-              </p>
-            </div>
-          </div>
-          {individualFormGoal ? (
-            <div
-              className="avatar-editor-backdrop"
-              role="presentation"
-              onClick={() => {
-                setIndividualFormGoal(undefined);
-                setFormError(null);
-              }}
+      {showPersonalGoalsDetail ? (
+        <MotivationDetailDialog
+          label="Persoonlijke aanmoedigingsdoelen"
+          title="Persoonlijke doelen deze week"
+          description={`${individualGoals.length} actief · ${personalGoalSummary(individualGoals)}`}
+          onClose={() => setShowPersonalGoalsDetail(false)}
+          actions={
+            <button
+              type="button"
+              className="secondary-action compact-action"
+              onClick={() =>
+                setIndividualFormGoal({
+                  id: "",
+                  familyMemberId: members[0]?.id ?? "",
+                  familyMemberName: members[0]?.name ?? "",
+                  title: "",
+                  targetCount: 4,
+                  currentProgress: 0,
+                  unitLabel: "keer",
+                  visualKind: "stars",
+                })
+              }
             >
-              <section
-                className="motivation-dialog"
-                role="dialog"
-                aria-modal="true"
-                aria-label={
-                  individualFormGoal.id
-                    ? "Persoonlijk doel aanpassen"
-                    : "Persoonlijk doel maken"
-                }
-                onClick={(event) => event.stopPropagation()}
-              >
-                <IndividualGoalForm
-                  goal={individualFormGoal.id ? individualFormGoal : undefined}
-                  members={members}
-                  error={formError}
-                  onAnnuleren={() => {
-                    setIndividualFormGoal(undefined);
-                    setFormError(null);
-                  }}
-                  onArchive={
-                    individualFormGoal.id
-                      ? async () => {
-                          try {
-                            await archiveIndividualGoal(individualFormGoal.id);
-                            setSnapshot((current) => ({
-                              ...current,
-                              individualGoals: current.individualGoals.filter(
-                                (goal) => goal.id !== individualFormGoal.id,
-                              ),
-                            }));
-                            setIndividualFormGoal(undefined);
-                          } catch {
-                            setFormError(
-                              "We konden dit doel niet stoppen. Probeer het opnieuw.",
-                            );
-                          }
-                        }
-                      : undefined
-                  }
-                  onSubmit={async (values) => {
-                    try {
-                      const saved = individualFormGoal.id
-                        ? await updateIndividualGoal(
-                            individualFormGoal.id,
-                            values,
-                          )
-                        : await createIndividualGoal(values);
-                      handleIndividualGoalSaved(saved);
-                    } catch {
-                      setFormError(
-                        "We konden dit persoonlijke doel niet bewaren. Probeer het opnieuw.",
-                      );
-                    }
-                  }}
-                />
-              </section>
-            </div>
-          ) : null}
+              <HomeOpsIcon name="add" />
+              Persoonlijk doel toevoegen
+            </button>
+          }
+        >
           <div className="individual-goal-grid">
             {individualGoals.length === 0 ? (
               <p className="motivation-copy">Nog geen persoonlijke doelen.</p>
             ) : null}
-            {(showPersonalGoalsDetail
-              ? individualGoals
-              : individualGoals.slice(0, 2)
-            ).map((goal) => {
+            {individualGoals.map((goal) => {
               const member = members.find(
                 (item) => item.id === goal.familyMemberId,
               );
@@ -384,15 +357,13 @@ export function MotivationPage({ members }: MotivationPageProps) {
                       <strong>{member.name}</strong>
                       <span>{goal.title}</span>
                     </div>
-                    {showPersonalGoalsDetail ? (
-                      <button
-                        type="button"
-                        className="secondary-action compact-action"
-                        onClick={() => setIndividualFormGoal(goal)}
-                      >
-                        Aanpassen
-                      </button>
-                    ) : null}
+                    <button
+                      type="button"
+                      className="secondary-action compact-action"
+                      onClick={() => setIndividualFormGoal(goal)}
+                    >
+                      Aanpassen
+                    </button>
                   </div>
                   <div
                     className="star-row"
@@ -419,158 +390,194 @@ export function MotivationPage({ members }: MotivationPageProps) {
               );
             })}
           </div>
-        </section>
+        </MotivationDetailDialog>
+      ) : null}
+
+      {showStatsDetail ? (
+        <MotivationDetailDialog
+          label="Voortgangsdetails"
+          title="Rustige voortgang"
+          description="Ondersteunend bewijs bij jullie gedeelde verhaal."
+          onClose={() => setShowStatsDetail(false)}
+        >
+          <div className="family-stat-grid motivation-detail-stat-grid">
+            {stats.map((stat) => (
+              <div className="family-stat-tile" key={stat.label}>
+                <strong>{stat.value}</strong>
+                <span>{stat.label}</span>
+              </div>
+            ))}
+          </div>
+        </MotivationDetailDialog>
+      ) : null}
+
+      {individualFormGoal ? (
+        <div
+          className="avatar-editor-backdrop"
+          role="presentation"
+          onClick={() => {
+            setIndividualFormGoal(undefined);
+            setFormError(null);
+          }}
+        >
+          <section
+            className="motivation-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-label={
+              individualFormGoal.id
+                ? "Persoonlijk doel aanpassen"
+                : "Persoonlijk doel maken"
+            }
+            onClick={(event) => event.stopPropagation()}
+          >
+            <IndividualGoalForm
+              goal={individualFormGoal.id ? individualFormGoal : undefined}
+              members={members}
+              error={formError}
+              onAnnuleren={() => {
+                setIndividualFormGoal(undefined);
+                setFormError(null);
+              }}
+              onArchive={
+                individualFormGoal.id
+                  ? async () => {
+                      try {
+                        await archiveIndividualGoal(individualFormGoal.id);
+                        setSnapshot((current) => ({
+                          ...current,
+                          individualGoals: current.individualGoals.filter(
+                            (goal) => goal.id !== individualFormGoal.id,
+                          ),
+                        }));
+                        setIndividualFormGoal(undefined);
+                      } catch {
+                        setFormError(
+                          "We konden dit doel niet stoppen. Probeer het opnieuw.",
+                        );
+                      }
+                    }
+                  : undefined
+              }
+              onSubmit={async (values) => {
+                try {
+                  const saved = individualFormGoal.id
+                    ? await updateIndividualGoal(individualFormGoal.id, values)
+                    : await createIndividualGoal(values);
+                  handleIndividualGoalSaved(saved);
+                } catch {
+                  setFormError(
+                    "We konden dit persoonlijke doel niet bewaren. Probeer het opnieuw.",
+                  );
+                }
+              }}
+            />
+          </section>
+        </div>
       ) : null}
     </section>
   );
 }
 
-function UpcomingCelebrationsCard({
+function CelebrationStoryCard({
   familyGoal,
   memories,
-  expanded,
-  onToggleMemories,
+  individualGoals,
+  onOpenMemories,
+  onOpenPersonalGoals,
+  onOpenStats,
 }: {
   familyGoal?: MotivationFamilyGoal;
   memories: readonly MotivationCelebrationMemory[];
-  expanded: boolean;
-  onToggleMemories: () => void;
+  individualGoals: readonly MotivationIndividualGoal[];
+  onOpenMemories: () => void;
+  onOpenPersonalGoals: () => void;
+  onOpenStats: () => void;
 }) {
   const celebration = familyGoal?.celebration;
-  const items = [
-    celebration
-      ? {
-          title: celebration.title,
-          label:
-            celebration.status === FamilyCelebrationStatus.ReadyToCelebrate
-              ? "Klaar om te vieren"
-              : celebration.status === FamilyCelebrationStatus.Celebrated
-                ? "Net gevierd"
-                : "Komt eraan",
-          icon:
-            celebration.status === FamilyCelebrationStatus.ReadyToCelebrate
-              ? "celebrationReady"
-              : celebration.status === FamilyCelebrationStatus.Celebrated
-                ? "celebrationCelebrated"
-                : "celebrationUpcoming",
-        }
-      : undefined,
-    ...memories.slice(0, 1).map((memory) => ({
-      title: memory.title,
-      label: "Mooie herinnering",
-      icon: "celebrationMemory",
-    })),
-  ].filter(Boolean) as {
-    title: string;
-    label: string;
-    icon: HomeOpsIconName;
-  }[];
+  const latestMemory = memories[0];
+  const celebrationLabel =
+    celebration?.status === FamilyCelebrationStatus.ReadyToCelebrate
+      ? "Klaar om te vieren"
+      : celebration?.status === FamilyCelebrationStatus.Celebrated
+        ? "Samen gevierd"
+        : celebration
+          ? "Volgende gezinsmoment"
+          : "Kies samen een viering";
+  const celebrationMessage =
+    celebration && familyGoal
+      ? familyGoalAnticipationMessage(familyGoal)
+      : "Geef jullie doel straks een warm moment om samen naar uit te kijken.";
+  const celebrationIcon: HomeOpsIconName =
+    celebration?.status === FamilyCelebrationStatus.ReadyToCelebrate
+      ? "celebrationReady"
+      : celebration?.status === FamilyCelebrationStatus.Celebrated
+        ? "celebrationCelebrated"
+        : "celebrationUpcoming";
 
   return (
     <section
-      className="motivation-dashboard-card celebration-mini-card"
-      aria-label="Aankomende vieringen"
+      className="motivation-dashboard-card celebration-story-card"
+      aria-label="Vieringsverhaal"
     >
       <div className="dashboard-card-heading">
         <div>
-          <p className="eyebrow">Vieringen</p>
-          <h3>Aankomende momenten</h3>
+          <p className="eyebrow">Vieringsverhaal</p>
+          <h3>Wat we straks samen vieren</h3>
         </div>
-        <HomeOpsIcon name="celebrationUpcoming" variant="spot" />
+        <HomeOpsIcon name={celebrationIcon} variant="spot" />
       </div>
-      <div className="celebration-mini-list">
-        {items.length === 0 ? (
-          <p className="motivation-copy">
-            Kies een viering bij het familiedoel.
-          </p>
-        ) : null}
-        {items.map((item) => (
-          <article
-            className="celebration-mini-item"
-            key={`${item.label}-${item.title}`}
-          >
-            <HomeOpsIcon name={item.icon} />
+      <div className="celebration-story-layout">
+        <article className="celebration-story-focus">
+          <p className="eyebrow">{celebrationLabel}</p>
+          <h4>{celebration?.title ?? "Nog geen volgende viering"}</h4>
+          <p>{celebrationMessage}</p>
+        </article>
+        <div className="celebration-story-support">
+          <article className="celebration-mini-item">
+            <HomeOpsIcon name="celebrationMemory" />
             <div className="celebration-mini-copy">
-              <strong>{item.title}</strong>
-              <span>{item.label}</span>
+              <strong>{latestMemory?.title ?? "Nog geen herinnering bewaard"}</strong>
+              <span>
+                {latestMemory
+                  ? `${memories.length} herinneringen voor jullie verhaal`
+                  : "Jullie eerste viering kan hier straks blijven hangen."}
+              </span>
             </div>
           </article>
-        ))}
+          <article className="celebration-mini-item">
+            <HomeOpsIcon name="childMyProgress" />
+            <div className="celebration-mini-copy">
+              <strong>{individualGoals.length} persoonlijke doelen actief</strong>
+              <span>{personalGoalSummary(individualGoals)}</span>
+            </div>
+          </article>
+        </div>
       </div>
-      {memories.length > 0 ? (
+      <div className="family-story-actions familyboard-card-actions">
         <button
           type="button"
           className="secondary-action compact-action familyboard-card-action"
-          onClick={onToggleMemories}
+          onClick={onOpenMemories}
         >
           <HomeOpsIcon name="celebrationMemory" />
-          {expanded ? "Historie sluiten" : "Historie bekijken"}
+          Historie bekijken
         </button>
-      ) : null}
-    </section>
-  );
-}
-
-function FamilyStatsCard({
-  familyGoal,
-  members,
-  individualGoals,
-  showPersonalGoalsDetail,
-  onTogglePersonalGoals,
-  onAddPersonalGoal,
-}: {
-  familyGoal?: MotivationFamilyGoal;
-  members: readonly FamilyMember[];
-  individualGoals: readonly MotivationIndividualGoal[];
-  showPersonalGoalsDetail: boolean;
-  onTogglePersonalGoals: () => void;
-  onAddPersonalGoal: () => void;
-}) {
-  const progress = familyGoal
-    ? clampProgress(familyGoal.currentProgress, familyGoal.targetCount)
-    : 0;
-  const stats = [
-    { label: "Helpacties", value: familyGoal?.currentProgress ?? 0 },
-    { label: "Gezin", value: members.length },
-    { label: "Persoonlijke doelen", value: individualGoals.length },
-    { label: "Samen op weg", value: `${progress}%` },
-  ];
-  return (
-    <section
-      className="motivation-dashboard-card family-stats-card"
-      aria-label="Gezinsstatistieken"
-    >
-      <div className="dashboard-card-heading">
-        <div>
-          <p className="eyebrow">Rustige voortgang</p>
-          <h3>Wat groeit er mee?</h3>
-        </div>
-        <HomeOpsIcon name="childMyProgress" variant="spot" />
-      </div>
-      <div className="family-stat-grid">
-        {stats.map((stat) => (
-          <div className="family-stat-tile" key={stat.label}>
-            <strong>{stat.value}</strong>
-            <span>{stat.label}</span>
-          </div>
-        ))}
-      </div>
-      <div className="family-stat-actions familyboard-card-actions">
         <button
           type="button"
           className="secondary-action compact-action familyboard-card-action"
-          onClick={onTogglePersonalGoals}
+          onClick={onOpenPersonalGoals}
         >
           <HomeOpsIcon name="childMyProgress" />
-          {showPersonalGoalsDetail ? "Doelen sluiten" : "Doelen beheren"}
+          Doelen beheren
         </button>
         <button
           type="button"
           className="secondary-action compact-action familyboard-card-action"
-          onClick={onAddPersonalGoal}
+          onClick={onOpenStats}
         >
-          <HomeOpsIcon name="add" />
-          Persoonlijk doel toevoegen
+          <HomeOpsIcon name="childMyProgress" />
+          Details
         </button>
       </div>
     </section>
@@ -588,6 +595,24 @@ function personalGoalSummary(goals: readonly MotivationIndividualGoal[]) {
   );
   if (complete === goals.length) return "alle doelen gehaald.";
   return `${totalRemaining} stappen over voor het gezin.`;
+}
+
+function buildFamilyStats(
+  familyGoal: MotivationFamilyGoal | undefined,
+  members: readonly FamilyMember[],
+  individualGoals: readonly MotivationIndividualGoal[],
+  memories: readonly MotivationCelebrationMemory[],
+) {
+  const progress = familyGoal
+    ? clampProgress(familyGoal.currentProgress, familyGoal.targetCount)
+    : 0;
+  return [
+    { label: "Helpacties", value: familyGoal?.currentProgress ?? 0 },
+    { label: "Gezin", value: members.length },
+    { label: "Persoonlijke doelen", value: individualGoals.length },
+    { label: "Herinneringen", value: memories.length },
+    { label: "Samen op weg", value: `${progress}%` },
+  ];
 }
 
 function familyGoalAnticipationMessage(familyGoal: MotivationFamilyGoal) {
@@ -1108,39 +1133,74 @@ function memoryFromFamilyGoal(
   };
 }
 
+function MotivationDetailDialog({
+  label,
+  title,
+  description,
+  onClose,
+  children,
+  actions,
+}: {
+  label: string;
+  title: string;
+  description: string;
+  onClose: () => void;
+  children: ReactNode;
+  actions?: ReactNode;
+}) {
+  return (
+    <div
+      className="avatar-editor-backdrop"
+      role="presentation"
+      onClick={onClose}
+    >
+      <section
+        className="motivation-dialog motivation-detail-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-label={label}
+        onClick={(event) => event.stopPropagation()}
+      >
+        <header>
+          <div>
+            <p className="eyebrow">Motivatie</p>
+            <h3>{title}</h3>
+            <p>{description}</p>
+          </div>
+          <div className="motivation-detail-header-actions">
+            {actions}
+            <button
+              type="button"
+              className="icon-button"
+              onClick={onClose}
+              aria-label={`${label} sluiten`}
+            >
+              <HomeOpsIcon name="close" />
+            </button>
+          </div>
+        </header>
+        <div className="motivation-detail-content">{children}</div>
+      </section>
+    </div>
+  );
+}
+
 function CelebrationMemorySection({
   memories,
-  expanded,
-  onToggle,
 }: {
   memories: readonly MotivationCelebrationMemory[];
-  expanded: boolean;
-  onToggle: () => void;
 }) {
-  if (memories.length === 0) return null;
+  if (memories.length === 0) {
+    return (
+      <p className="motivation-copy">
+        Nog geen herinneringen — de eerstvolgende viering kan hier straks landen.
+      </p>
+    );
+  }
   return (
-    <section
-      className="celebration-memory-section"
-      aria-label="Vieringsherinneringen"
-    >
-      <div className="section-heading-row">
-        <div>
-          <p className="eyebrow">Familieherinneringen</p>
-          <h3>Vieringen die we onthouden</h3>
-        </div>
-        <div className="overview-actions">
-          <span>{memories.length} herinnerd</span>
-          <button
-            type="button"
-            className="secondary-action compact-action"
-            onClick={onToggle}
-          >
-            {expanded ? "Recente herinnering tonen" : "Geschiedenis bekijken"}
-          </button>
-        </div>
-      </div>
+    <section className="celebration-memory-section">
       <div className="celebration-memory-grid">
-        {(expanded ? memories : memories.slice(0, 1)).map((memory) => (
+        {memories.map((memory) => (
           <article
             className="celebration-memory-card"
             key={`${memory.familyGoalId}-${memory.celebratedUtc}`}

@@ -16,12 +16,16 @@ export function HelpfulMomentsSection({
   showCreate = false,
   title = "Wat wij waarderen",
   compact = false,
+  previewCount = 2,
+  contextualHistory = false,
 }: {
   members: readonly FamilyMember[];
   familyMemberId?: string;
   showCreate?: boolean;
   title?: string;
   compact?: boolean;
+  previewCount?: number;
+  contextualHistory?: boolean;
 }) {
   const [moments, setMoments] = useState<HelpfulMoment[]>([]);
   const [status, setStatus] = useState<"loading" | "ready" | "error">(
@@ -29,6 +33,7 @@ export function HelpfulMomentsSection({
   );
   const [expanded, setExpanded] = useState(!compact);
   const [creating, setCreating] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   useEffect(() => {
     let ignore = false;
     setStatus("loading");
@@ -46,7 +51,55 @@ export function HelpfulMomentsSection({
       ignore = true;
     };
   }, [familyMemberId]);
-  const visibleMoments = compact && !expanded ? moments.slice(0, 2) : moments;
+  const previewMoments = moments.slice(0, previewCount);
+  const hiddenMoments = Math.max(0, moments.length - previewMoments.length);
+  const visibleMoments =
+    compact && (contextualHistory || !expanded) ? previewMoments : moments;
+
+  function renderMomentCard(
+    moment: HelpfulMoment,
+    options?: { showDescription?: boolean },
+  ) {
+    const iconName = getHelpfulMomentIconName(moment.recognitionTag);
+    return (
+      <article
+        className="helpful-moment-card"
+        key={moment.id}
+        style={
+          {
+            "--member-color": moment.familyMemberDisplayColor,
+          } as CSSProperties
+        }
+      >
+        <div className="moment-avatar" aria-hidden="true">
+          <FamilyAvatar
+            member={{
+              id: moment.familyMemberId,
+              name: moment.familyMemberName,
+              initials: moment.familyMemberInitials,
+              displayColor: moment.familyMemberDisplayColor,
+              memberKind: "child",
+            }}
+          />
+        </div>
+        <div>
+          <div className="moment-card-heading">
+            <strong>{moment.familyMemberName}</strong>
+            <span>
+              <HomeOpsIcon name={iconName} />
+              {moment.recognitionTag}
+            </span>
+          </div>
+          <h4>{moment.title}</h4>
+          {moment.description && options?.showDescription ? (
+            <p>{moment.description}</p>
+          ) : null}
+          <p className="moment-bridge">Dank je wel.</p>
+        </div>
+      </article>
+    );
+  }
+
   return (
     <section
       className={`helpful-moments-section ${compact ? "compact-overview-section" : ""}`}
@@ -73,13 +126,25 @@ export function HelpfulMomentsSection({
                 {creating ? "Waardering sluiten" : "Waardering toevoegen"}
               </button>
             ) : null}
-            <button
-              type="button"
-              className="secondary-action compact-action"
-              onClick={() => setExpanded((current) => !current)}
-            >
-              {expanded ? "Voorbeeld tonen" : "Alles bekijken"}
-            </button>
+            {contextualHistory ? (
+              moments.length > 0 ? (
+                <button
+                  type="button"
+                  className="secondary-action compact-action"
+                  onClick={() => setShowHistory(true)}
+                >
+                  {hiddenMoments > 0 ? `+${hiddenMoments} meer` : "Alles bekijken"}
+                </button>
+              ) : null
+            ) : (
+              <button
+                type="button"
+                className="secondary-action compact-action"
+                onClick={() => setExpanded((current) => !current)}
+              >
+                {expanded ? "Voorbeeld tonen" : "Alles bekijken"}
+              </button>
+            )}
           </div>
         ) : null}
       </div>
@@ -127,61 +192,69 @@ export function HelpfulMomentsSection({
               onAnnuleren={() => setCreating(false)}
               onCreated={(moment) => {
                 setMoments((current) => [moment, ...current].slice(0, 8));
-                setExpanded(true);
+                if (!contextualHistory) setExpanded(true);
                 setCreating(false);
               }}
             />
           </section>
         </div>
       ) : null}
+      {showHistory && contextualHistory ? (
+      <div
+        className="avatar-editor-backdrop"
+        role="presentation"
+        onClick={() => setShowHistory(false)}
+      >
+        <section
+          className="motivation-dialog helpful-moment-history-dialog"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`${title} geschiedenis`}
+          onClick={(event) => event.stopPropagation()}
+          style={
+            {
+              "--domain-tint": "#fff7ed",
+              "--domain-accent": "#f59e0b",
+              "--domain-border": "rgba(251, 191, 36, 0.32)",
+            } as CSSProperties
+          }
+        >
+          <header>
+            <div>
+              <p className="eyebrow">Waardering</p>
+              <h3>{title}</h3>
+              <p>{moments.length} waarderingen om rustig terug te lezen.</p>
+            </div>
+            <button
+              type="button"
+              className="icon-button"
+              onClick={() => setShowHistory(false)}
+              aria-label="Waarderingsgeschiedenis sluiten"
+            >
+              <HomeOpsIcon name="close" />
+            </button>
+          </header>
+          <div className="helpful-moment-feed helpful-moment-history-feed">
+            {moments.map((moment) =>
+              renderMomentCard(moment, { showDescription: true }),
+            )}
+          </div>
+        </section>
+      </div>
+      ) : null}
       {status === "loading" ? <p>Waarderingen ophalen…</p> : null}
       {status === "error" ? (
-        <p>Waarderingen zijn nu niet beschikbaar.</p>
+      <p>Waarderingen zijn nu niet beschikbaar.</p>
       ) : null}
       {status === "ready" && moments.length === 0 ? (
         <p>Nog geen waarderingen. Een volwassene kan er één toevoegen.</p>
       ) : null}
       <div className="helpful-moment-feed">
-        {visibleMoments.map((moment) => {
-          const iconName = getHelpfulMomentIconName(moment.recognitionTag);
-          return (
-            <article
-              className="helpful-moment-card"
-              key={moment.id}
-              style={
-                {
-                  "--member-color": moment.familyMemberDisplayColor,
-                } as CSSProperties
-              }
-            >
-              <div className="moment-avatar" aria-hidden="true">
-                <FamilyAvatar
-                  member={{
-                    id: moment.familyMemberId,
-                    name: moment.familyMemberName,
-                    initials: moment.familyMemberInitials,
-                    displayColor: moment.familyMemberDisplayColor,
-                    memberKind: "child",
-                  }}
-                />
-              </div>
-              <div>
-                <div className="moment-card-heading">
-                  <strong>{moment.familyMemberName}</strong>
-                  <span>
-                    <HomeOpsIcon name={iconName} />
-                    {moment.recognitionTag}
-                  </span>
-                </div>
-                <h4>{moment.title}</h4>
-                {moment.description && (!compact || expanded) ? (
-                  <p>{moment.description}</p>
-                ) : null}
-                <p className="moment-bridge">Dank je wel.</p>
-              </div>
-            </article>
-          );
-        })}
+        {visibleMoments.map((moment) =>
+          renderMomentCard(moment, {
+            showDescription: !compact || expanded,
+          }),
+        )}
       </div>
     </section>
   );

@@ -85,10 +85,10 @@ describe("MotivationPage", () => {
 
     expect(await screen.findByLabelText("Motivatiedashboard")).not.toBeNull();
     expect(
-      await screen.findByLabelText("Recente waardering"),
+      await screen.findByLabelText("Aanmoediging en waardering"),
     ).not.toBeNull();
-    expect(screen.getByText("Recente waardering")).not.toBeNull();
-    const familyGoal = screen.getByLabelText("Actief familiedoel");
+    expect(screen.getByText("Aanmoediging en waardering")).not.toBeNull();
+    const familyGoal = screen.getByLabelText("Gedeeld familiedoel");
     expect(
       await within(familyGoal).findByText("Fill the family helper path"),
     ).not.toBeNull();
@@ -143,6 +143,11 @@ describe("MotivationPage", () => {
         .querySelector(".motivation-ownership-asset img")
         ?.getAttribute("src"),
     ).toContain("data-asset-name='child-my-progress'");
+    expect(
+      within(individualGoals).getByRole("button", {
+        name: "Persoonlijk doel toevoegen",
+      }),
+    ).not.toBeNull();
     expect(within(individualGoals).getByText("Sam")).not.toBeNull();
     expect(
       within(individualGoals).getByText("Help with dinner"),
@@ -185,7 +190,7 @@ describe("MotivationPage", () => {
     await user.click(screen.getByRole("button", { name: "Als gevierd markeren" }));
 
     expect(markFamilyGoalCelebrated).toHaveBeenCalledWith("family-goal");
-    expect(await screen.findByText("Samen gevierd")).not.toBeNull();
+    expect((await screen.findAllByText("Samen gevierd")).length).toBeGreaterThan(0);
     expect(screen.getAllByText("Movie night").length).toBeGreaterThanOrEqual(2);
     await user.click(screen.getByRole("button", { name: "Historie bekijken" }));
     expect(await screen.findByLabelText("Vieringsherinneringen")).not.toBeNull();
@@ -538,17 +543,11 @@ describe("MotivationPage", () => {
       screen.getByRole("button", { name: "Historie bekijken" }),
     );
     expect(await screen.findByLabelText("Vieringsherinneringen")).not.toBeNull();
-    expect(
-      screen.getByRole("button", { name: "Recente herinnering tonen" }),
-    ).not.toBeNull();
 
     expect(
-      await screen.findByLabelText("Recente waardering"),
+      await screen.findByLabelText("Aanmoediging en waardering"),
     ).not.toBeNull();
     await user.click(screen.getByRole("button", { name: "Waardering toevoegen" }));
     expect(screen.getByLabelText("Waardering delen")).not.toBeNull();
-    expect(
-      screen.getByRole("button", { name: "Alles bekijken" }),
-    ).not.toBeNull();
   });
 });
