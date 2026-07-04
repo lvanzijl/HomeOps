@@ -775,11 +775,13 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     render(<AgendaWidget {...widgetProps} />);
 
     expect(await screen.findByLabelText("Planningoverzicht")).not.toBeNull();
-    expect(
-      within(screen.getByLabelText("Vandaag briefing")).getByText(
-        "Zwemles Thomas",
-      ),
-    ).not.toBeNull();
+    await waitFor(() => {
+      expect(
+        within(screen.getByLabelText("Vandaag briefing")).getByText(
+          "Zwemles Thomas",
+        ),
+      ).not.toBeNull();
+    });
 
     await openMonthView(user);
     await waitFor(() => {
