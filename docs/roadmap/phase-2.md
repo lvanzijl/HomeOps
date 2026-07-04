@@ -22,6 +22,27 @@ Frontend test maintenance refreshed stale test expectations and fixtures to matc
 
 # Phase 2 Roadmap
 
+## Completed Slice — Weather API Client Contract
+Weather API Client Contract regenerates the existing NSwag OpenAPI and TypeScript client workflow after backend weather API exposure. The generated contract now includes `/api/weather/home`, `/api/weather/detail`, and `/api/weather/agenda`, with Home and Detail exposing departure advice projections and Agenda remaining objective/advice-free. No Weather UI, Home Assistant integration, Open-Meteo frontend contract leakage, dependency changes, project-file changes, or binary artifacts were introduced.
+
+## Completed Slice — Weather API Exposure
+Backend phase 6 of the FamilyBoard weather integration exposes the existing weather projection layer through stable backend endpoints for Home, Weather Detail, and Agenda. The API flow uses a small application service to orchestrate the configured weather source, snapshot cache, Departure Advice Engine, and projection builder while endpoints remain orchestration-only and Open-Meteo/cache implementation details stay outside controllers. The slice intentionally adds no frontend work, Home Assistant integration, provider fallback, new weather logic, new cache logic, new advice rules, database storage, dependency changes, project-file changes, or generated files.
+
+## Completed Slice — Weather Backend Projections
+Backend phase 5 of the FamilyBoard weather integration adds stable backend projection models for Home, Weather Detail, and Agenda. The projection builder maps the existing FamilyBoard Weather Snapshot and Departure Advice into response-shaped backend models, keeping Home and Detail advice-aware while keeping Agenda objective weather-only. The slice intentionally contains no new weather business logic, no API endpoints, no frontend work, no Home Assistant integration, no provider fallback, no weather history, no cache changes, no database changes, no dependency changes, and no generated files.
+
+## Completed Slice — Departure Advice Engine
+Backend phase 4 of the FamilyBoard weather integration adds the provider-neutral Departure Advice Engine. The engine translates the shared FamilyBoard Weather Snapshot into family-facing departure advice categories with confidence, using feels-like temperature, rain timing, wind, UV when available, temperature trend, freshness, provider status, and partial-data safeguards. The slice also makes a small responsibility refactor so `FamilyBoardWeatherSnapshot` remains weather facts only while `DepartureAdvice` is produced by product logic after cache. It intentionally does not add API endpoints, DTOs, Home/Agenda/detail projections, Home Assistant integration, provider fallback, weather history, database changes, frontend changes, or generated files.
+
+## Completed Slice — Weather Cache and Freshness Layer
+Backend phase 3 of the FamilyBoard weather integration adds the backend-internal weather snapshot cache and freshness lifecycle. The cache keeps one snapshot per household, returns fresh snapshots without provider calls, performs a blocking refresh only when no usable snapshot exists, returns stale snapshots immediately while a background refresh runs, and preserves stale data when provider refresh fails. The slice intentionally does not add API endpoints, DTOs, frontend cache logic, database storage, distributed cache, scheduler framework, Home/Agenda/detail projections, Home Assistant integration, provider fallback, weather history, or departure-advice calculation.
+
+## Completed Slice — Open-Meteo Weather Provider
+Backend phase 2 of the FamilyBoard weather integration adds the focused Open-Meteo provider responsible only for request construction, response parsing, mapping current/hourly/daily forecast data into the existing provider-neutral FamilyBoard Weather Snapshot, translating Open-Meteo weather codes to internal condition categories, and surfacing provider failures as unavailable provider status. The slice intentionally does not add caching, background refresh, API endpoints, DTOs, Home/Agenda/detail projections, Home Assistant integration, fallback logic, database changes, dependency changes, or departure-advice calculation.
+
+## Completed Slice — Weather Domain Foundation
+Backend phase 1 of the FamilyBoard weather integration adds only the internal provider-neutral Weather domain foundation. The slice defines the normalized FamilyBoard weather snapshot, current weather, departure advice, hourly slots, daily summaries, freshness metadata, provider status, and a small condition category vocabulary for future Home, Agenda, and detail projections. It intentionally does not add providers, Open-Meteo mapping, Home Assistant integration, endpoints, dependency injection wiring, database schema changes, frontend changes, or generated API artifacts.
+
 ## Completed Slice — Motivation Viewport-Fit Redesign
 Motivation Viewport-Fit Redesign implements the approved viewport-first family-story contract by replacing the previous four-card Motivation dashboard with exactly three permanent regions: a dominant Shared Family Purpose region, a curated Encouragement & Appreciation preview, and a compact Celebration Story region. Statistics are now supporting proof points instead of a standalone card, while appreciation history, memories, personal-goal management, and detailed progress move into bounded contextual dialogs without backend, API, schema, or binary artifact changes.
 

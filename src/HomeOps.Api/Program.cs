@@ -9,6 +9,9 @@ using HomeOps.Api.WidgetLayouts;
 using HomeOps.Api.Tasks;
 using HomeOps.Api.WeeklyReset;
 using HomeOps.Api.VisualReviewFixtures;
+using HomeOps.Api.Weather;
+using HomeOps.Api.Weather.OpenMeteo;
+using HomeOps.Api.Weather.Projections;
 using Microsoft.EntityFrameworkCore;
 using NSwag.AspNetCore;
 
@@ -20,6 +23,16 @@ CalendarPortabilityService.ConfigurePreRestoreSnapshotDirectory(
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApiDocument();
 builder.Services.AddSingleton<VisualReviewMarketingTimeProvider>();
+
+builder.Services.AddHttpClient<OpenMeteoWeatherProvider>();
+builder.Services.AddSingleton<IWeatherSnapshotSource, OpenMeteoWeatherSnapshotSource>();
+builder.Services.AddSingleton(new WeatherLocationOptions(
+    builder.Configuration.GetValue<decimal?>("Weather:Latitude") ?? 52.3676m,
+    builder.Configuration.GetValue<decimal?>("Weather:Longitude") ?? 4.9041m));
+builder.Services.AddSingleton<WeatherSnapshotCache>();
+builder.Services.AddSingleton<DepartureAdviceEngine>();
+builder.Services.AddSingleton<WeatherProjectionBuilder>();
+builder.Services.AddSingleton<WeatherApplicationService>();
 if (builder.Environment.IsEnvironment("VisualReview"))
 {
     builder.Services.AddCors(options =>
@@ -84,6 +97,7 @@ app.MapTaskTemplateEndpoints();
 app.MapMotivationEndpoints();
 app.MapHelpfulMomentEndpoints();
 app.MapWeeklyResetEndpoints();
+app.MapWeatherEndpoints();
 if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Testing") || app.Environment.IsEnvironment("VisualReview"))
 {
     app.MapVisualReviewFixtureEndpoints();
