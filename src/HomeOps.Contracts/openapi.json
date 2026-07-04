@@ -2059,6 +2059,66 @@
         }
       }
     },
+    "/api/weather/home": {
+      "get": {
+        "tags": [
+          "Weather"
+        ],
+        "operationId": "GetHomeWeather",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HomeWeatherProjection"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/weather/detail": {
+      "get": {
+        "tags": [
+          "Weather"
+        ],
+        "operationId": "GetWeatherDetail",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WeatherDetailProjection"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/weather/agenda": {
+      "get": {
+        "tags": [
+          "Weather"
+        ],
+        "operationId": "GetAgendaWeather",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgendaWeatherProjection"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/visual-review-fixtures/scenarios": {
       "get": {
         "tags": [
@@ -3814,6 +3874,437 @@
             "items": {
               "$ref": "#/components/schemas/MotivationFamilyCelebrationMemoryDto"
             }
+          }
+        }
+      },
+      "HomeWeatherProjection": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "iconKey": {
+            "type": "string"
+          },
+          "condition": {
+            "$ref": "#/components/schemas/WeatherConditionCategory"
+          },
+          "temperatureCelsius": {
+            "type": "number",
+            "format": "decimal"
+          },
+          "departureAdvice": {
+            "$ref": "#/components/schemas/DepartureAdviceProjection"
+          },
+          "confidence": {
+            "$ref": "#/components/schemas/DepartureAdviceConfidence"
+          },
+          "freshness": {
+            "$ref": "#/components/schemas/WeatherFreshnessProjection"
+          },
+          "status": {
+            "$ref": "#/components/schemas/WeatherProviderStatus"
+          },
+          "statusMessage": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "WeatherConditionCategory": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "Unknown",
+          "Clear",
+          "MostlyClear",
+          "PartlyCloudy",
+          "Cloudy",
+          "Rain",
+          "HeavyRain",
+          "Thunderstorm",
+          "Snow",
+          "Fog",
+          "Wind"
+        ],
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ]
+      },
+      "DepartureAdviceProjection": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "summary": {
+            "type": "string"
+          },
+          "severity": {
+            "$ref": "#/components/schemas/WeatherSeverity"
+          },
+          "confidence": {
+            "$ref": "#/components/schemas/DepartureAdviceConfidence"
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DepartureAdviceCategory"
+            }
+          },
+          "bringRainProtection": {
+            "type": "boolean"
+          },
+          "dressWarmly": {
+            "type": "boolean"
+          },
+          "expectSlipperyConditions": {
+            "type": "boolean"
+          },
+          "allowExtraTravelTime": {
+            "type": "boolean"
+          }
+        }
+      },
+      "WeatherSeverity": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "None",
+          "Low",
+          "Moderate",
+          "High"
+        ],
+        "enum": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "DepartureAdviceConfidence": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "Low",
+          "Moderate",
+          "High"
+        ],
+        "enum": [
+          0,
+          1,
+          2
+        ]
+      },
+      "DepartureAdviceCategory": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "Neutral",
+          "NoJacketNeeded",
+          "LightJacket",
+          "WarmJacket",
+          "RainProtection",
+          "SunProtection",
+          "FillDrinkBottle",
+          "Windy",
+          "Slippery",
+          "ExtraTravelTime"
+        ],
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ]
+      },
+      "WeatherFreshnessProjection": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "observedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "refreshedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "expiresAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "isFresh": {
+            "type": "boolean"
+          }
+        }
+      },
+      "WeatherProviderStatus": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "Unknown",
+          "Available",
+          "Stale",
+          "Unavailable"
+        ],
+        "enum": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "WeatherDetailProjection": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "departureAdvice": {
+            "$ref": "#/components/schemas/DepartureAdviceProjection"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "current": {
+            "$ref": "#/components/schemas/CurrentWeatherProjection"
+          },
+          "hourly": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HourlyWeatherProjection"
+            }
+          },
+          "daily": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DailyWeatherProjection"
+            }
+          },
+          "details": {
+            "$ref": "#/components/schemas/WeatherDetailsProjection"
+          },
+          "freshness": {
+            "$ref": "#/components/schemas/WeatherFreshnessProjection"
+          },
+          "status": {
+            "$ref": "#/components/schemas/WeatherProviderStatus"
+          },
+          "statusMessage": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "CurrentWeatherProjection": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "temperatureCelsius": {
+            "type": "number",
+            "format": "decimal"
+          },
+          "feelsLikeTemperatureCelsius": {
+            "type": "number",
+            "format": "decimal"
+          },
+          "condition": {
+            "$ref": "#/components/schemas/WeatherConditionCategory"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "relativeHumidityPercent": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "windSpeedKph": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "precipitationChancePercent": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "uvIndex": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          }
+        }
+      },
+      "HourlyWeatherProjection": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "startsAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endsAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "temperatureCelsius": {
+            "type": "number",
+            "format": "decimal"
+          },
+          "condition": {
+            "$ref": "#/components/schemas/WeatherConditionCategory"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "precipitationChancePercent": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "windSpeedKph": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "uvIndex": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          }
+        }
+      },
+      "DailyWeatherProjection": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "lowTemperatureCelsius": {
+            "type": "number",
+            "format": "decimal"
+          },
+          "highTemperatureCelsius": {
+            "type": "number",
+            "format": "decimal"
+          },
+          "condition": {
+            "$ref": "#/components/schemas/WeatherConditionCategory"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "precipitationChancePercent": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "windSpeedKph": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "maxUvIndex": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          }
+        }
+      },
+      "WeatherDetailsProjection": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "relativeHumidityPercent": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "windSpeedKph": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "precipitationChancePercent": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "uvIndex": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "observedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "refreshedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "AgendaWeatherProjection": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "slots": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AgendaWeatherSlotProjection"
+            }
+          },
+          "freshness": {
+            "$ref": "#/components/schemas/WeatherFreshnessProjection"
+          },
+          "status": {
+            "$ref": "#/components/schemas/WeatherProviderStatus"
+          },
+          "statusMessage": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "AgendaWeatherSlotProjection": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "startsAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endsAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "temperatureCelsius": {
+            "type": "number",
+            "format": "decimal"
+          },
+          "condition": {
+            "$ref": "#/components/schemas/WeatherConditionCategory"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "freshness": {
+            "$ref": "#/components/schemas/WeatherFreshnessProjection"
           }
         }
       },

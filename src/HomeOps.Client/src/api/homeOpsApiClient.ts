@@ -2493,6 +2493,108 @@ export class HomeOpsApiClient {
         return Promise.resolve<void>(null as any);
     }
 
+    getHomeWeather(): Promise<HomeWeatherProjection> {
+        let url_ = this.baseUrl + "/api/weather/home";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetHomeWeather(_response);
+        });
+    }
+
+    protected processGetHomeWeather(response: Response): Promise<HomeWeatherProjection> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = HomeWeatherProjection.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<HomeWeatherProjection>(null as any);
+    }
+
+    getWeatherDetail(): Promise<WeatherDetailProjection> {
+        let url_ = this.baseUrl + "/api/weather/detail";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetWeatherDetail(_response);
+        });
+    }
+
+    protected processGetWeatherDetail(response: Response): Promise<WeatherDetailProjection> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = WeatherDetailProjection.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<WeatherDetailProjection>(null as any);
+    }
+
+    getAgendaWeather(): Promise<AgendaWeatherProjection> {
+        let url_ = this.baseUrl + "/api/weather/agenda";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetAgendaWeather(_response);
+        });
+    }
+
+    protected processGetAgendaWeather(response: Response): Promise<AgendaWeatherProjection> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = AgendaWeatherProjection.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<AgendaWeatherProjection>(null as any);
+    }
+
     getVisualReviewFixtureScenarios(): Promise<VisualReviewScenarioDto[]> {
         let url_ = this.baseUrl + "/api/visual-review-fixtures/scenarios";
         url_ = url_.replace(/[?&]$/, "");
@@ -6027,6 +6129,681 @@ export interface IWeeklyContributionRecapDto {
     individualGoals?: MotivationIndividualGoalDto[];
     helpfulMoments?: HelpfulMomentDto[];
     celebrationMemories?: MotivationFamilyCelebrationMemoryDto[];
+}
+
+export class HomeWeatherProjection implements IHomeWeatherProjection {
+    iconKey?: string;
+    condition?: WeatherConditionCategory;
+    temperatureCelsius?: number;
+    departureAdvice?: DepartureAdviceProjection;
+    confidence?: DepartureAdviceConfidence;
+    freshness?: WeatherFreshnessProjection;
+    status?: WeatherProviderStatus;
+    statusMessage?: string | undefined;
+
+    constructor(data?: IHomeWeatherProjection) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.iconKey = _data["iconKey"];
+            this.condition = _data["condition"];
+            this.temperatureCelsius = _data["temperatureCelsius"];
+            this.departureAdvice = _data["departureAdvice"] ? DepartureAdviceProjection.fromJS(_data["departureAdvice"]) : undefined as any;
+            this.confidence = _data["confidence"];
+            this.freshness = _data["freshness"] ? WeatherFreshnessProjection.fromJS(_data["freshness"]) : undefined as any;
+            this.status = _data["status"];
+            this.statusMessage = _data["statusMessage"];
+        }
+    }
+
+    static fromJS(data: any): HomeWeatherProjection {
+        data = typeof data === 'object' ? data : {};
+        let result = new HomeWeatherProjection();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["iconKey"] = this.iconKey;
+        data["condition"] = this.condition;
+        data["temperatureCelsius"] = this.temperatureCelsius;
+        data["departureAdvice"] = this.departureAdvice ? this.departureAdvice.toJSON() : undefined as any;
+        data["confidence"] = this.confidence;
+        data["freshness"] = this.freshness ? this.freshness.toJSON() : undefined as any;
+        data["status"] = this.status;
+        data["statusMessage"] = this.statusMessage;
+        return data;
+    }
+}
+
+export interface IHomeWeatherProjection {
+    iconKey?: string;
+    condition?: WeatherConditionCategory;
+    temperatureCelsius?: number;
+    departureAdvice?: DepartureAdviceProjection;
+    confidence?: DepartureAdviceConfidence;
+    freshness?: WeatherFreshnessProjection;
+    status?: WeatherProviderStatus;
+    statusMessage?: string | undefined;
+}
+
+export enum WeatherConditionCategory {
+    Unknown = 0,
+    Clear = 1,
+    MostlyClear = 2,
+    PartlyCloudy = 3,
+    Cloudy = 4,
+    Rain = 5,
+    HeavyRain = 6,
+    Thunderstorm = 7,
+    Snow = 8,
+    Fog = 9,
+    Wind = 10,
+}
+
+export class DepartureAdviceProjection implements IDepartureAdviceProjection {
+    summary?: string;
+    severity?: WeatherSeverity;
+    confidence?: DepartureAdviceConfidence;
+    categories?: DepartureAdviceCategory[];
+    bringRainProtection?: boolean;
+    dressWarmly?: boolean;
+    expectSlipperyConditions?: boolean;
+    allowExtraTravelTime?: boolean;
+
+    constructor(data?: IDepartureAdviceProjection) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.summary = _data["summary"];
+            this.severity = _data["severity"];
+            this.confidence = _data["confidence"];
+            if (Array.isArray(_data["categories"])) {
+                this.categories = [] as any;
+                for (let item of _data["categories"])
+                    this.categories!.push(item);
+            }
+            this.bringRainProtection = _data["bringRainProtection"];
+            this.dressWarmly = _data["dressWarmly"];
+            this.expectSlipperyConditions = _data["expectSlipperyConditions"];
+            this.allowExtraTravelTime = _data["allowExtraTravelTime"];
+        }
+    }
+
+    static fromJS(data: any): DepartureAdviceProjection {
+        data = typeof data === 'object' ? data : {};
+        let result = new DepartureAdviceProjection();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["summary"] = this.summary;
+        data["severity"] = this.severity;
+        data["confidence"] = this.confidence;
+        if (Array.isArray(this.categories)) {
+            data["categories"] = [];
+            for (let item of this.categories)
+                data["categories"].push(item);
+        }
+        data["bringRainProtection"] = this.bringRainProtection;
+        data["dressWarmly"] = this.dressWarmly;
+        data["expectSlipperyConditions"] = this.expectSlipperyConditions;
+        data["allowExtraTravelTime"] = this.allowExtraTravelTime;
+        return data;
+    }
+}
+
+export interface IDepartureAdviceProjection {
+    summary?: string;
+    severity?: WeatherSeverity;
+    confidence?: DepartureAdviceConfidence;
+    categories?: DepartureAdviceCategory[];
+    bringRainProtection?: boolean;
+    dressWarmly?: boolean;
+    expectSlipperyConditions?: boolean;
+    allowExtraTravelTime?: boolean;
+}
+
+export enum WeatherSeverity {
+    None = 0,
+    Low = 1,
+    Moderate = 2,
+    High = 3,
+}
+
+export enum DepartureAdviceConfidence {
+    Low = 0,
+    Moderate = 1,
+    High = 2,
+}
+
+export enum DepartureAdviceCategory {
+    Neutral = 0,
+    NoJacketNeeded = 1,
+    LightJacket = 2,
+    WarmJacket = 3,
+    RainProtection = 4,
+    SunProtection = 5,
+    FillDrinkBottle = 6,
+    Windy = 7,
+    Slippery = 8,
+    ExtraTravelTime = 9,
+}
+
+export class WeatherFreshnessProjection implements IWeatherFreshnessProjection {
+    observedAtUtc?: Date;
+    refreshedAtUtc?: Date;
+    expiresAtUtc?: Date;
+    isFresh?: boolean;
+
+    constructor(data?: IWeatherFreshnessProjection) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.observedAtUtc = _data["observedAtUtc"] ? new Date(_data["observedAtUtc"].toString()) : undefined as any;
+            this.refreshedAtUtc = _data["refreshedAtUtc"] ? new Date(_data["refreshedAtUtc"].toString()) : undefined as any;
+            this.expiresAtUtc = _data["expiresAtUtc"] ? new Date(_data["expiresAtUtc"].toString()) : undefined as any;
+            this.isFresh = _data["isFresh"];
+        }
+    }
+
+    static fromJS(data: any): WeatherFreshnessProjection {
+        data = typeof data === 'object' ? data : {};
+        let result = new WeatherFreshnessProjection();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["observedAtUtc"] = this.observedAtUtc ? this.observedAtUtc.toISOString() : undefined as any;
+        data["refreshedAtUtc"] = this.refreshedAtUtc ? this.refreshedAtUtc.toISOString() : undefined as any;
+        data["expiresAtUtc"] = this.expiresAtUtc ? this.expiresAtUtc.toISOString() : undefined as any;
+        data["isFresh"] = this.isFresh;
+        return data;
+    }
+}
+
+export interface IWeatherFreshnessProjection {
+    observedAtUtc?: Date;
+    refreshedAtUtc?: Date;
+    expiresAtUtc?: Date;
+    isFresh?: boolean;
+}
+
+export enum WeatherProviderStatus {
+    Unknown = 0,
+    Available = 1,
+    Stale = 2,
+    Unavailable = 3,
+}
+
+export class WeatherDetailProjection implements IWeatherDetailProjection {
+    departureAdvice?: DepartureAdviceProjection;
+    summary?: string;
+    current?: CurrentWeatherProjection;
+    hourly?: HourlyWeatherProjection[];
+    daily?: DailyWeatherProjection[];
+    details?: WeatherDetailsProjection;
+    freshness?: WeatherFreshnessProjection;
+    status?: WeatherProviderStatus;
+    statusMessage?: string | undefined;
+
+    constructor(data?: IWeatherDetailProjection) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.departureAdvice = _data["departureAdvice"] ? DepartureAdviceProjection.fromJS(_data["departureAdvice"]) : undefined as any;
+            this.summary = _data["summary"];
+            this.current = _data["current"] ? CurrentWeatherProjection.fromJS(_data["current"]) : undefined as any;
+            if (Array.isArray(_data["hourly"])) {
+                this.hourly = [] as any;
+                for (let item of _data["hourly"])
+                    this.hourly!.push(HourlyWeatherProjection.fromJS(item));
+            }
+            if (Array.isArray(_data["daily"])) {
+                this.daily = [] as any;
+                for (let item of _data["daily"])
+                    this.daily!.push(DailyWeatherProjection.fromJS(item));
+            }
+            this.details = _data["details"] ? WeatherDetailsProjection.fromJS(_data["details"]) : undefined as any;
+            this.freshness = _data["freshness"] ? WeatherFreshnessProjection.fromJS(_data["freshness"]) : undefined as any;
+            this.status = _data["status"];
+            this.statusMessage = _data["statusMessage"];
+        }
+    }
+
+    static fromJS(data: any): WeatherDetailProjection {
+        data = typeof data === 'object' ? data : {};
+        let result = new WeatherDetailProjection();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["departureAdvice"] = this.departureAdvice ? this.departureAdvice.toJSON() : undefined as any;
+        data["summary"] = this.summary;
+        data["current"] = this.current ? this.current.toJSON() : undefined as any;
+        if (Array.isArray(this.hourly)) {
+            data["hourly"] = [];
+            for (let item of this.hourly)
+                data["hourly"].push(item ? item.toJSON() : undefined as any);
+        }
+        if (Array.isArray(this.daily)) {
+            data["daily"] = [];
+            for (let item of this.daily)
+                data["daily"].push(item ? item.toJSON() : undefined as any);
+        }
+        data["details"] = this.details ? this.details.toJSON() : undefined as any;
+        data["freshness"] = this.freshness ? this.freshness.toJSON() : undefined as any;
+        data["status"] = this.status;
+        data["statusMessage"] = this.statusMessage;
+        return data;
+    }
+}
+
+export interface IWeatherDetailProjection {
+    departureAdvice?: DepartureAdviceProjection;
+    summary?: string;
+    current?: CurrentWeatherProjection;
+    hourly?: HourlyWeatherProjection[];
+    daily?: DailyWeatherProjection[];
+    details?: WeatherDetailsProjection;
+    freshness?: WeatherFreshnessProjection;
+    status?: WeatherProviderStatus;
+    statusMessage?: string | undefined;
+}
+
+export class CurrentWeatherProjection implements ICurrentWeatherProjection {
+    temperatureCelsius?: number;
+    feelsLikeTemperatureCelsius?: number;
+    condition?: WeatherConditionCategory;
+    summary?: string;
+    relativeHumidityPercent?: number | undefined;
+    windSpeedKph?: number | undefined;
+    precipitationChancePercent?: number | undefined;
+    uvIndex?: number | undefined;
+
+    constructor(data?: ICurrentWeatherProjection) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.temperatureCelsius = _data["temperatureCelsius"];
+            this.feelsLikeTemperatureCelsius = _data["feelsLikeTemperatureCelsius"];
+            this.condition = _data["condition"];
+            this.summary = _data["summary"];
+            this.relativeHumidityPercent = _data["relativeHumidityPercent"];
+            this.windSpeedKph = _data["windSpeedKph"];
+            this.precipitationChancePercent = _data["precipitationChancePercent"];
+            this.uvIndex = _data["uvIndex"];
+        }
+    }
+
+    static fromJS(data: any): CurrentWeatherProjection {
+        data = typeof data === 'object' ? data : {};
+        let result = new CurrentWeatherProjection();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["temperatureCelsius"] = this.temperatureCelsius;
+        data["feelsLikeTemperatureCelsius"] = this.feelsLikeTemperatureCelsius;
+        data["condition"] = this.condition;
+        data["summary"] = this.summary;
+        data["relativeHumidityPercent"] = this.relativeHumidityPercent;
+        data["windSpeedKph"] = this.windSpeedKph;
+        data["precipitationChancePercent"] = this.precipitationChancePercent;
+        data["uvIndex"] = this.uvIndex;
+        return data;
+    }
+}
+
+export interface ICurrentWeatherProjection {
+    temperatureCelsius?: number;
+    feelsLikeTemperatureCelsius?: number;
+    condition?: WeatherConditionCategory;
+    summary?: string;
+    relativeHumidityPercent?: number | undefined;
+    windSpeedKph?: number | undefined;
+    precipitationChancePercent?: number | undefined;
+    uvIndex?: number | undefined;
+}
+
+export class HourlyWeatherProjection implements IHourlyWeatherProjection {
+    startsAtUtc?: Date;
+    endsAtUtc?: Date;
+    temperatureCelsius?: number;
+    condition?: WeatherConditionCategory;
+    summary?: string;
+    precipitationChancePercent?: number | undefined;
+    windSpeedKph?: number | undefined;
+    uvIndex?: number | undefined;
+
+    constructor(data?: IHourlyWeatherProjection) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.startsAtUtc = _data["startsAtUtc"] ? new Date(_data["startsAtUtc"].toString()) : undefined as any;
+            this.endsAtUtc = _data["endsAtUtc"] ? new Date(_data["endsAtUtc"].toString()) : undefined as any;
+            this.temperatureCelsius = _data["temperatureCelsius"];
+            this.condition = _data["condition"];
+            this.summary = _data["summary"];
+            this.precipitationChancePercent = _data["precipitationChancePercent"];
+            this.windSpeedKph = _data["windSpeedKph"];
+            this.uvIndex = _data["uvIndex"];
+        }
+    }
+
+    static fromJS(data: any): HourlyWeatherProjection {
+        data = typeof data === 'object' ? data : {};
+        let result = new HourlyWeatherProjection();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["startsAtUtc"] = this.startsAtUtc ? this.startsAtUtc.toISOString() : undefined as any;
+        data["endsAtUtc"] = this.endsAtUtc ? this.endsAtUtc.toISOString() : undefined as any;
+        data["temperatureCelsius"] = this.temperatureCelsius;
+        data["condition"] = this.condition;
+        data["summary"] = this.summary;
+        data["precipitationChancePercent"] = this.precipitationChancePercent;
+        data["windSpeedKph"] = this.windSpeedKph;
+        data["uvIndex"] = this.uvIndex;
+        return data;
+    }
+}
+
+export interface IHourlyWeatherProjection {
+    startsAtUtc?: Date;
+    endsAtUtc?: Date;
+    temperatureCelsius?: number;
+    condition?: WeatherConditionCategory;
+    summary?: string;
+    precipitationChancePercent?: number | undefined;
+    windSpeedKph?: number | undefined;
+    uvIndex?: number | undefined;
+}
+
+export class DailyWeatherProjection implements IDailyWeatherProjection {
+    date?: Date;
+    lowTemperatureCelsius?: number;
+    highTemperatureCelsius?: number;
+    condition?: WeatherConditionCategory;
+    summary?: string;
+    precipitationChancePercent?: number | undefined;
+    windSpeedKph?: number | undefined;
+    maxUvIndex?: number | undefined;
+
+    constructor(data?: IDailyWeatherProjection) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.date = _data["date"] ? new Date(_data["date"].toString()) : undefined as any;
+            this.lowTemperatureCelsius = _data["lowTemperatureCelsius"];
+            this.highTemperatureCelsius = _data["highTemperatureCelsius"];
+            this.condition = _data["condition"];
+            this.summary = _data["summary"];
+            this.precipitationChancePercent = _data["precipitationChancePercent"];
+            this.windSpeedKph = _data["windSpeedKph"];
+            this.maxUvIndex = _data["maxUvIndex"];
+        }
+    }
+
+    static fromJS(data: any): DailyWeatherProjection {
+        data = typeof data === 'object' ? data : {};
+        let result = new DailyWeatherProjection();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["date"] = this.date ? formatDate(this.date) : undefined as any;
+        data["lowTemperatureCelsius"] = this.lowTemperatureCelsius;
+        data["highTemperatureCelsius"] = this.highTemperatureCelsius;
+        data["condition"] = this.condition;
+        data["summary"] = this.summary;
+        data["precipitationChancePercent"] = this.precipitationChancePercent;
+        data["windSpeedKph"] = this.windSpeedKph;
+        data["maxUvIndex"] = this.maxUvIndex;
+        return data;
+    }
+}
+
+export interface IDailyWeatherProjection {
+    date?: Date;
+    lowTemperatureCelsius?: number;
+    highTemperatureCelsius?: number;
+    condition?: WeatherConditionCategory;
+    summary?: string;
+    precipitationChancePercent?: number | undefined;
+    windSpeedKph?: number | undefined;
+    maxUvIndex?: number | undefined;
+}
+
+export class WeatherDetailsProjection implements IWeatherDetailsProjection {
+    relativeHumidityPercent?: number | undefined;
+    windSpeedKph?: number | undefined;
+    precipitationChancePercent?: number | undefined;
+    uvIndex?: number | undefined;
+    observedAtUtc?: Date;
+    refreshedAtUtc?: Date;
+
+    constructor(data?: IWeatherDetailsProjection) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.relativeHumidityPercent = _data["relativeHumidityPercent"];
+            this.windSpeedKph = _data["windSpeedKph"];
+            this.precipitationChancePercent = _data["precipitationChancePercent"];
+            this.uvIndex = _data["uvIndex"];
+            this.observedAtUtc = _data["observedAtUtc"] ? new Date(_data["observedAtUtc"].toString()) : undefined as any;
+            this.refreshedAtUtc = _data["refreshedAtUtc"] ? new Date(_data["refreshedAtUtc"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): WeatherDetailsProjection {
+        data = typeof data === 'object' ? data : {};
+        let result = new WeatherDetailsProjection();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["relativeHumidityPercent"] = this.relativeHumidityPercent;
+        data["windSpeedKph"] = this.windSpeedKph;
+        data["precipitationChancePercent"] = this.precipitationChancePercent;
+        data["uvIndex"] = this.uvIndex;
+        data["observedAtUtc"] = this.observedAtUtc ? this.observedAtUtc.toISOString() : undefined as any;
+        data["refreshedAtUtc"] = this.refreshedAtUtc ? this.refreshedAtUtc.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface IWeatherDetailsProjection {
+    relativeHumidityPercent?: number | undefined;
+    windSpeedKph?: number | undefined;
+    precipitationChancePercent?: number | undefined;
+    uvIndex?: number | undefined;
+    observedAtUtc?: Date;
+    refreshedAtUtc?: Date;
+}
+
+export class AgendaWeatherProjection implements IAgendaWeatherProjection {
+    slots?: AgendaWeatherSlotProjection[];
+    freshness?: WeatherFreshnessProjection;
+    status?: WeatherProviderStatus;
+    statusMessage?: string | undefined;
+
+    constructor(data?: IAgendaWeatherProjection) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            if (Array.isArray(_data["slots"])) {
+                this.slots = [] as any;
+                for (let item of _data["slots"])
+                    this.slots!.push(AgendaWeatherSlotProjection.fromJS(item));
+            }
+            this.freshness = _data["freshness"] ? WeatherFreshnessProjection.fromJS(_data["freshness"]) : undefined as any;
+            this.status = _data["status"];
+            this.statusMessage = _data["statusMessage"];
+        }
+    }
+
+    static fromJS(data: any): AgendaWeatherProjection {
+        data = typeof data === 'object' ? data : {};
+        let result = new AgendaWeatherProjection();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        if (Array.isArray(this.slots)) {
+            data["slots"] = [];
+            for (let item of this.slots)
+                data["slots"].push(item ? item.toJSON() : undefined as any);
+        }
+        data["freshness"] = this.freshness ? this.freshness.toJSON() : undefined as any;
+        data["status"] = this.status;
+        data["statusMessage"] = this.statusMessage;
+        return data;
+    }
+}
+
+export interface IAgendaWeatherProjection {
+    slots?: AgendaWeatherSlotProjection[];
+    freshness?: WeatherFreshnessProjection;
+    status?: WeatherProviderStatus;
+    statusMessage?: string | undefined;
+}
+
+export class AgendaWeatherSlotProjection implements IAgendaWeatherSlotProjection {
+    startsAtUtc?: Date;
+    endsAtUtc?: Date;
+    temperatureCelsius?: number;
+    condition?: WeatherConditionCategory;
+    summary?: string;
+    freshness?: WeatherFreshnessProjection;
+
+    constructor(data?: IAgendaWeatherSlotProjection) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.startsAtUtc = _data["startsAtUtc"] ? new Date(_data["startsAtUtc"].toString()) : undefined as any;
+            this.endsAtUtc = _data["endsAtUtc"] ? new Date(_data["endsAtUtc"].toString()) : undefined as any;
+            this.temperatureCelsius = _data["temperatureCelsius"];
+            this.condition = _data["condition"];
+            this.summary = _data["summary"];
+            this.freshness = _data["freshness"] ? WeatherFreshnessProjection.fromJS(_data["freshness"]) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): AgendaWeatherSlotProjection {
+        data = typeof data === 'object' ? data : {};
+        let result = new AgendaWeatherSlotProjection();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["startsAtUtc"] = this.startsAtUtc ? this.startsAtUtc.toISOString() : undefined as any;
+        data["endsAtUtc"] = this.endsAtUtc ? this.endsAtUtc.toISOString() : undefined as any;
+        data["temperatureCelsius"] = this.temperatureCelsius;
+        data["condition"] = this.condition;
+        data["summary"] = this.summary;
+        data["freshness"] = this.freshness ? this.freshness.toJSON() : undefined as any;
+        return data;
+    }
+}
+
+export interface IAgendaWeatherSlotProjection {
+    startsAtUtc?: Date;
+    endsAtUtc?: Date;
+    temperatureCelsius?: number;
+    condition?: WeatherConditionCategory;
+    summary?: string;
+    freshness?: WeatherFreshnessProjection;
 }
 
 export class VisualReviewScenarioDto implements IVisualReviewScenarioDto {
