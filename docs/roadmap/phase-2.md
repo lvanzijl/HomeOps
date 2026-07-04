@@ -34,6 +34,9 @@ Frontend test maintenance refreshed stale test expectations and fixtures to matc
 
 # Phase 2 Roadmap
 
+## Completed Slice — Home Layout Spacing Refinement
+Home Layout Spacing Refinement applies a small frontend-only polish pass to the existing FamilyBoard Home dashboard without redesigning its composition. The slice tightens only the shopping rows inside each existing store group, preserves the spacing between different stores, removes the redundant visible Motivation card heading, and localizes Home Motivation's visible copy to natural Dutch while keeping backend data, functionality, APIs, and non-required binary artifacts unchanged.
+
 ## Completed Slice — Agenda Weather Without Chips
 Agenda Weather Without Chips completes the final frontend-only Agenda weather pass by removing Agenda-specific pill treatments, rendering the Today header, timed appointments, Vooruitkijken items, `Deze week` day headers, and the selected planning day as larger standalone weather icon + temperature pairs, and keeping every weather indicator calmly right aligned without changing Agenda information architecture. The slice preserves the existing weather functionality, adds no advice text or extra weather details, changes no backend or generated API files, and commits only the required validation screenshot as a binary artifact.
 

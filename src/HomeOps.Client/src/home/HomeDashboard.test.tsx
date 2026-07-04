@@ -379,7 +379,7 @@ describe("HomeDashboard", () => {
       within(grid as HTMLElement)
         .getAllByRole("heading", { level: 3 })
         .map((heading) => heading.textContent),
-    ).toEqual(["Boodschappen", "Agenda", "Taken", "Motivatie"]);
+    ).toEqual(["Boodschappen", "Agenda", "Taken"]);
 
     expect(
       screen.getByLabelText("Alex heeft 1 open taken vandaag"),
@@ -541,14 +541,15 @@ describe("HomeDashboard", () => {
 
     const tile = screen.getByLabelText("Motivatie-overzicht");
     expect(
-      await within(tile).findByText("Fill the family helper path"),
+      await within(tile).findByText("Samen het familiespoor vullen"),
     ).not.toBeNull();
     expect(within(tile).queryByText("13/20 helpful actions")).toBeNull();
+    expect(within(tile).queryByRole("heading", { name: "Motivatie" })).toBeNull();
     expect(within(tile).getByLabelText("Viering thuis")).not.toBeNull();
-    expect(within(tile).getByText("Komt dichterbij")).not.toBeNull();
+    expect(within(tile).getByText("Bijna zover")).not.toBeNull();
     expect(
       within(tile).getByText(
-        "Nog 7 helpful actions tot Board game night together.",
+        "Nog 7 helpmomenten tot samen spelletjesavond.",
       ),
     ).not.toBeNull();
     expect(within(tile).queryByText(/shop/i)).toBeNull();

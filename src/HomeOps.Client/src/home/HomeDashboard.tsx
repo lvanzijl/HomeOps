@@ -721,7 +721,6 @@ export function HomeDashboard({
         >
           <CardHeader
             className="home-card-header"
-            title="Motivatie"
             actions={
               <HomeCardActions
                 onOpen={() => onNavigate("motivation")}
@@ -740,7 +739,7 @@ export function HomeDashboard({
             {motivationFamilyGoal ? (
               <>
                 <p className="motivation-tile-title">
-                  {motivationFamilyGoal.title}
+                  {homeMotivationGoalTitle(motivationFamilyGoal)}
                 </p>
                 <div
                   className="progress-bar"
@@ -773,7 +772,7 @@ export function HomeDashboard({
                           : motivationFamilyGoal.celebration.status ===
                               FamilyCelebrationStatus.Celebrated
                             ? "Samen gevierd"
-                            : "Komt dichterbij"}
+                           : "Bijna zover"}
                       </strong>
                       <p>{homeCelebrationMessage(motivationFamilyGoal)}</p>
                     </div>
@@ -1110,18 +1109,62 @@ function HomeCardActions({
 
 function homeCelebrationMessage(goal: MotivationFamilyGoal) {
   const celebration = goal.celebration;
-  if (!celebration) return goal.title;
+  if (!celebration) return homeMotivationGoalTitle(goal);
   const remaining = Math.max(0, goal.targetCount - goal.currentProgress);
+  const localizedUnit = localizeHomeMotivationUnit(goal.unitLabel, remaining);
+  const localizedCelebrationTitle = localizeHomeMotivationCelebrationTitle(
+    celebration.title,
+  );
   if (
     celebration.status === FamilyCelebrationStatus.ReadyToCelebrate ||
     remaining === 0
   )
-    return `${celebration.title} is nu klaar.`;
+    return `${localizedCelebrationTitle} staat nu klaar.`;
   if (celebration.status === FamilyCelebrationStatus.Celebrated)
-    return celebration.title;
+    return localizedCelebrationTitle;
   return remaining === 1
-    ? `Nog 1 ${goal.unitLabel} tot ${celebration.title}.`
-    : `Nog ${remaining} ${goal.unitLabel} tot ${celebration.title}.`;
+    ? `Nog 1 ${localizedUnit} tot ${localizedCelebrationTitle}.`
+    : `Nog ${remaining} ${localizedUnit} tot ${localizedCelebrationTitle}.`;
+}
+
+function homeMotivationGoalTitle(goal: MotivationFamilyGoal) {
+  const title = goal.title.trim();
+  const helpfulMomentsBeforeCelebrationMatch = title.match(
+    /^(\d+)\s+helpful moments before\s+(.+)$/i,
+  );
+  if (helpfulMomentsBeforeCelebrationMatch) {
+    const [, targetCount, celebrationTitle] = helpfulMomentsBeforeCelebrationMatch;
+    return `${targetCount} helpmomenten voor ${localizeHomeMotivationCelebrationTitle(celebrationTitle)}`;
+  }
+  if (/^Fill the family helper path$/i.test(title)) {
+    return "Samen het familiespoor vullen";
+  }
+  return title;
+}
+
+function localizeHomeMotivationCelebrationTitle(title: string) {
+  const normalizedTitle = title.trim();
+  if (/^Sunday pancake breakfast$/i.test(normalizedTitle)) {
+    return "zondags pannenkoekenontbijt";
+  }
+  if (/^Board game night together$/i.test(normalizedTitle)) {
+    return "samen spelletjesavond";
+  }
+  if (/^Movie night$/i.test(normalizedTitle)) {
+    return "filmavond";
+  }
+  return normalizedTitle;
+}
+
+function localizeHomeMotivationUnit(unitLabel: string, count: number) {
+  const normalizedUnitLabel = unitLabel.trim();
+  if (/^helpful moments?$/i.test(normalizedUnitLabel)) {
+    return count === 1 ? "helpmoment" : "helpmomenten";
+  }
+  if (/^helpful actions?$/i.test(normalizedUnitLabel)) {
+    return count === 1 ? "helpmoment" : "helpmomenten";
+  }
+  return normalizedUnitLabel;
 }
 
 function buildAgendaSummary(

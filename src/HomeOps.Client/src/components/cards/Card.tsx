@@ -34,7 +34,7 @@ export function Card({
 
 export type CardHeaderProps = {
   eyebrow?: ReactNode;
-  title: ReactNode;
+  title?: ReactNode;
   meta?: ReactNode;
   actions?: ReactNode;
   className?: string;
@@ -56,7 +56,7 @@ export function CardHeader({
     <div className={className}>
       <div>
         {eyebrow ? <p className="eyebrow">{eyebrow}</p> : null}
-        <TitleTag id={titleId}>{title}</TitleTag>
+        {title ? <TitleTag id={titleId}>{title}</TitleTag> : null}
         {meta ? <small>{meta}</small> : null}
       </div>
       {actions ? <span>{actions}</span> : null}
