@@ -28,6 +28,9 @@ Frontend test maintenance refreshed stale test expectations and fixtures to matc
 
 # Phase 2 Roadmap
 
+## Completed Slice — Agenda Weather Coverage
+Agenda Weather Coverage completes the remaining frontend-only Agenda weather coverage on top of the existing generated `getAgendaWeather()` client. The slice keeps Today timed appointments and Vooruitkijken on fixed-width right-aligned icon+temperature weather clusters, moves Deze week weather to each day header instead of individual events, adds selected Planning day weather when available, slightly rebalances the Today header weather presence, and intentionally avoids backend work, API-contract regeneration, Weather Detail Dialog changes, Home Weather Pill redesign, Home Assistant integration, advice copy, reusable component refactors, and binary artifacts.
+
 ## Completed Slice — Weather Frontend Polish
 Weather Frontend Polish completes the FamilyBoard weather frontend by co-locating the shared presentation/localization/client helpers under a small `src/weather` module, preserving explicit Home/Weather Detail/Agenda API ownership per surface, centralizing shared accessible-label formatting, and tightening weather accessibility with dialog focus ownership and semantic Agenda weather clusters. The slice intentionally adds no new weather functionality, no backend work, no API-contract regeneration, no provider terminology, no business-logic expansion, no Home Assistant integration, and no binary artifacts.
 

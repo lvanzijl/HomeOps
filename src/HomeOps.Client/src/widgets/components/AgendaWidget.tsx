@@ -687,6 +687,7 @@ function PlanningWorkspace({
         <PlanningWeekCard
           agendaWeatherSlots={agendaWeatherSlots}
           deletingEventId={deletingEventId}
+          nowIso={nowIso}
           onDelete={onDelete}
           onEdit={onEdit}
           selectedEventId={selectedPlanningEventId}
@@ -699,6 +700,12 @@ function PlanningWorkspace({
           onOpenMonth={onOpenMonth}
           onToggleSource={onToggleSource}
           selectedDate={selectedDate}
+          selectedDayWeather={resolveAgendaDayWeather(
+            selectedDate,
+            nowIso,
+            agendaWeatherSlots,
+            formatDutchDay(selectedDate),
+          )}
           selectedSources={selectedSources}
           today={today}
         />
@@ -802,6 +809,7 @@ function TodayBriefingCard({
 function PlanningWeekCard({
   agendaWeatherSlots,
   deletingEventId,
+  nowIso,
   onDelete,
   onEdit,
   selectedEventId,
@@ -810,6 +818,7 @@ function PlanningWeekCard({
 }: {
   agendaWeatherSlots: AgendaWeatherSlotProjection[];
   deletingEventId: string | null;
+  nowIso: string;
   onDelete: (eventId: string) => void;
   onEdit: (event: NormalizedEvent) => void;
   selectedEventId: string | null;
@@ -831,42 +840,57 @@ function PlanningWeekCard({
       </header>
       {week.dayGroups.length > 0 ? (
         <div className="agenda-week-briefing-days">
-          {week.dayGroups.map((dayGroup) => (
-            <section className="agenda-week-briefing-day" key={dayGroup.date}>
-              <div className="agenda-week-briefing-day-header">
-                <div>
-                  <strong>{formatDutchWeekday(dayGroup.date)}</strong>
-                  <p>{formatDutchShortDate(dayGroup.date)}</p>
+          {week.dayGroups.map((dayGroup) => {
+            const dayWeather = resolveAgendaDayWeather(
+              dayGroup.date,
+              nowIso,
+              agendaWeatherSlots,
+              formatDutchDay(dayGroup.date),
+            );
+
+            return (
+              <section className="agenda-week-briefing-day" key={dayGroup.date}>
+                <div className="agenda-week-briefing-day-header">
+                  <div>
+                    <strong>{formatDutchWeekday(dayGroup.date)}</strong>
+                    <p>{formatDutchShortDate(dayGroup.date)}</p>
+                  </div>
+                  <div className="agenda-week-briefing-day-meta">
+                    {dayWeather ? (
+                      <AgendaWeatherCluster variant="inline" weather={dayWeather} />
+                    ) : null}
+                    <span>
+                      {dayGroup.events.length}{" "}
+                      {dayGroup.events.length === 1 ? "afspraak" : "afspraken"}
+                    </span>
+                  </div>
                 </div>
-                <span>
-                  {dayGroup.events.length}{" "}
-                  {dayGroup.events.length === 1 ? "afspraak" : "afspraken"}
-                </span>
-              </div>
-              <ul className="agenda-planning-event-list compact">
-                {dayGroup.visibleEvents.map((event) => (
-                  <PlanningEventRow
-                    agendaWeatherSlots={agendaWeatherSlots}
-                    deletingEventId={deletingEventId}
-                    detail={formatEventTime(event)}
-                    event={event}
-                    extra={getPlanningPreparationCue(event)}
-                    key={event.id}
-                    mode="compact"
-                    onDelete={onDelete}
-                    onEdit={onEdit}
-                    selected={selectedEventId === event.id}
-                    setSelectedEventId={setSelectedEventId}
-                  />
-                ))}
-              </ul>
-              {dayGroup.hiddenCount > 0 ? (
-                <p className="agenda-planning-overflow-note">
-                  +{dayGroup.hiddenCount} meer op {formatDutchWeekday(dayGroup.date)}
-                </p>
-              ) : null}
-            </section>
-          ))}
+                <ul className="agenda-planning-event-list compact">
+                  {dayGroup.visibleEvents.map((event) => (
+                    <PlanningEventRow
+                      agendaWeatherSlots={agendaWeatherSlots}
+                      deletingEventId={deletingEventId}
+                      detail={formatEventTime(event)}
+                      event={event}
+                      extra={getPlanningPreparationCue(event)}
+                      key={event.id}
+                      mode="compact"
+                      onDelete={onDelete}
+                      onEdit={onEdit}
+                      selected={selectedEventId === event.id}
+                      setSelectedEventId={setSelectedEventId}
+                      showWeather={false}
+                    />
+                  ))}
+                </ul>
+                {dayGroup.hiddenCount > 0 ? (
+                  <p className="agenda-planning-overflow-note">
+                    +{dayGroup.hiddenCount} meer op {formatDutchWeekday(dayGroup.date)}
+                  </p>
+                ) : null}
+              </section>
+            );
+          })}
         </div>
       ) : (
         <div className="agenda-planning-group-empty">
@@ -941,6 +965,7 @@ function PlanningToolsCard({
   onOpenMonth,
   onToggleSource,
   selectedDate,
+  selectedDayWeather,
   selectedSources,
   today,
 }: {
@@ -949,6 +974,7 @@ function PlanningToolsCard({
   onOpenMonth: () => void;
   onToggleSource: (sourceId: string, enabled: boolean) => void;
   selectedDate: string;
+  selectedDayWeather: AgendaWeatherDisplay | null;
   selectedSources: Record<string, boolean>;
   today: string;
 }) {
@@ -984,7 +1010,12 @@ function PlanningToolsCard({
       </div>
       <div className="agenda-planning-tool-meta">
         <p className="agenda-planning-tool-label">Geselecteerde dag</p>
-        <strong>{formatDutchDay(selectedDate)}</strong>
+        <div className="agenda-planning-tool-date">
+          <strong>{formatDutchDay(selectedDate)}</strong>
+          {selectedDayWeather ? (
+            <AgendaWeatherCluster variant="inline" weather={selectedDayWeather} />
+          ) : null}
+        </div>
       </div>
       <AgendaSourceSelector
         eventSources={eventSources}
@@ -1005,7 +1036,7 @@ function AgendaWeatherCluster({
   variant,
   weather,
 }: {
-  variant: "day" | "item";
+  variant: "day" | "inline" | "item";
   weather: AgendaWeatherDisplay;
 }) {
   return (
@@ -1035,6 +1066,7 @@ function PlanningEventRow({
   onEdit,
   selected,
   setSelectedEventId,
+  showWeather = true,
   statusBadge,
 }: {
   agendaWeatherSlots: AgendaWeatherSlotProjection[];
@@ -1048,11 +1080,14 @@ function PlanningEventRow({
   onEdit: (event: NormalizedEvent) => void;
   selected: boolean;
   setSelectedEventId: (eventId: string | null) => void;
+  showWeather?: boolean;
   statusBadge?: string;
 }) {
   const visual = getAgendaEventVisual(event);
   const showIcon = isSpecialPlanningEvent(event);
-  const weather = resolveAgendaEventWeather(event, agendaWeatherSlots);
+  const weather = showWeather
+    ? resolveAgendaEventWeather(event, agendaWeatherSlots)
+    : null;
 
   return (
     <li
@@ -2158,6 +2193,7 @@ function resolveAgendaDayWeather(
   date: string,
   nowIso: string,
   slots: AgendaWeatherSlotProjection[],
+  contextLabel = "Vandaag",
 ): AgendaWeatherDisplay | null {
   const dailySlots = slots
     .filter((slot) => hasAgendaWeatherData(slot) && getWeatherSlotDate(slot) === date)
@@ -2177,7 +2213,10 @@ function resolveAgendaDayWeather(
     return startsAt !== undefined && startsAt >= now;
   });
 
-  return buildAgendaWeatherDisplay(activeSlot ?? nextSlot ?? dailySlots[0], "Vandaag");
+  return buildAgendaWeatherDisplay(
+    activeSlot ?? nextSlot ?? dailySlots[0],
+    contextLabel,
+  );
 }
 
 function resolveAgendaEventWeather(

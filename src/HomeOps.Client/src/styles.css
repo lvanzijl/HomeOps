@@ -6901,6 +6901,21 @@ button {
   justify-items: end;
 }
 
+.agenda-today-header-meta .agenda-weather-cluster.day {
+  min-height: 2rem;
+  min-width: 5.1rem;
+  padding: 0.28rem 0.68rem;
+}
+
+.agenda-today-header-meta .agenda-weather-icon svg {
+  height: 1rem;
+  width: 1rem;
+}
+
+.agenda-today-header-meta .agenda-weather-temperature {
+  font-size: 0.8rem;
+}
+
 .agenda-planning-tone {
   align-items: center;
   border-radius: 999px;
@@ -7087,6 +7102,12 @@ button {
   padding: 0.2rem 0.55rem;
 }
 
+.agenda-weather-cluster.inline {
+  color: #47627b;
+  gap: 0.28rem;
+  justify-self: end;
+}
+
 .agenda-weather-cluster.item {
   align-self: start;
   background: rgb(255 255 255 / 68%);
@@ -7158,6 +7179,15 @@ button {
 
 .agenda-week-briefing-day-header {
   align-items: start;
+}
+
+.agenda-week-briefing-day-meta,
+.agenda-planning-tool-date {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
 }
 
 .agenda-week-briefing-day-header strong {

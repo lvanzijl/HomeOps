@@ -700,7 +700,7 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     ).toContain("agenda-event");
   });
 
-  it("shows subtle agenda weather for today and timed planning appointments", async () => {
+  it("shows agenda weather across today, week, outlook, and the selected planning day", async () => {
     const calendarEventsApi = await mockedCalendarEventsApi();
     mockVisualReviewMarketingTime(canonicalMarketingAnchorUtc);
     vi.mocked(calendarEventsApi.loadCalendarAgendaData).mockResolvedValueOnce({
@@ -724,12 +724,30 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
             condition: WeatherConditionCategory.Cloudy,
             summary: "Bewolkt",
           }),
+          new AgendaWeatherSlotProjection({
+            startsAtUtc: new Date("2026-06-21T08:00:00.000Z"),
+            endsAtUtc: new Date("2026-06-21T09:00:00.000Z"),
+            temperatureCelsius: 18,
+            condition: WeatherConditionCategory.Cloudy,
+            summary: "Bewolkt",
+          }),
+          new AgendaWeatherSlotProjection({
+            startsAtUtc: new Date("2026-06-22T09:00:00.000Z"),
+            endsAtUtc: new Date("2026-06-22T10:00:00.000Z"),
+            temperatureCelsius: 17,
+            condition: WeatherConditionCategory.Rain,
+            summary: "Regen",
+          }),
         ],
       }),
     );
     render(<AgendaWidget {...widgetProps} />);
 
     const todayBriefing = await screen.findByLabelText("Vandaag briefing");
+    const planningTools = screen.getByLabelText("Plannen");
+    const weekBriefing = screen.getByLabelText("Deze week");
+    const outlookBriefing = screen.getByLabelText("Vooruitkijken");
+
     expect(within(todayBriefing).getByTitle("Vandaag, 21°, Helder")).not.toBeNull();
     expect(
       within(todayBriefing).getByRole("img", { name: "Vandaag, 21°, Helder" }),
@@ -741,6 +759,20 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     const timedEvent = within(todayBriefing).getByText("Zwemles Thomas").closest("li");
     expect(timedEvent).not.toBeNull();
     expect(within(timedEvent!).getByText("19°")).not.toBeNull();
+    expect(within(planningTools).getByText("21°")).not.toBeNull();
+
+    const weekEvent = within(weekBriefing).getByText("Pannenkoeken ontbijt").closest("li");
+    const weekDaySection = within(weekBriefing)
+      .getByText("Pannenkoeken ontbijt")
+      .closest("section");
+    expect(weekDaySection).not.toBeNull();
+    expect(weekEvent).not.toBeNull();
+    expect(within(weekDaySection!).getByText("18°")).not.toBeNull();
+    expect(within(weekEvent!).queryByText("18°")).toBeNull();
+
+    const outlookEvent = within(outlookBriefing).getByText("Volgende maandag").closest("li");
+    expect(outlookEvent).not.toBeNull();
+    expect(within(outlookEvent!).getByText("17°")).not.toBeNull();
     expect(screen.queryByText("Regenjas mee")).toBeNull();
     expect(screen.queryByText("Geen jas nodig")).toBeNull();
   });
