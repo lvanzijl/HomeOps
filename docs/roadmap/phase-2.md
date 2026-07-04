@@ -1,3 +1,6 @@
+## Completed Slice — Home Header Weather Refinement
+Home Header Weather Refinement applies a small frontend-only polish pass to the FamilyBoard Home dashboard by keeping the existing composition intact while recomposing the header into one Date/Time → Weather → Avatars row, removing the Home weather pill chrome in favor of a calmer icon+temperature unit with brief advice text, tightening avatar spacing without shrinking avatar size, and replacing Home shopping checkbox chips with simple checkboxes. The slice preserves the existing dashboard grid, cards, weather behavior, Weather Detail Dialog, backend, APIs, generated contracts, and page information architecture, and commits only the required validation screenshot as a binary artifact.
+
 ## Completed Slice — Home Layout Recovery
 Home Layout Recovery corrects the regressed Home composition by regrouping date, time, and weather into one compact header band, moving family portraits into a bounded horizontal identity row, reducing portrait dominance without returning to chip avatars, and restoring stronger vertical priority to Agenda, Taken, and Boodschappen while keeping Motivation visible and the page within the no-scroll Home viewport contract. The slice intentionally avoids Production Engine, Recording Framework, Marketing Director, Audio Framework, storyboard, backend, API, and binary-artifact changes.
 
