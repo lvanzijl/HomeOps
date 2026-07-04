@@ -731,6 +731,9 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
 
     const todayBriefing = await screen.findByLabelText("Vandaag briefing");
     expect(within(todayBriefing).getByTitle("Vandaag, 21°, Helder")).not.toBeNull();
+    await waitFor(() => {
+      expect(within(todayBriefing).getByText("Zwemles Thomas")).not.toBeNull();
+    });
 
     const timedEvent = within(todayBriefing).getByText("Zwemles Thomas").closest("li");
     expect(timedEvent).not.toBeNull();
@@ -770,7 +773,12 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     );
     render(<AgendaWidget {...widgetProps} />);
 
-    await selectDentistDay(user);
+    await openMonthView(user);
+    await user.click(
+      await screen.findByRole("button", {
+        name: /18 juni 2026, 2 gebeurtenissen/,
+      }),
+    );
 
     const timedEvent = screen.getByText("Dentist Appointment").closest("li");
     const allDayEventCard = screen.getByText("Gezinsdag").closest("li");

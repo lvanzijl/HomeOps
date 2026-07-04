@@ -22,6 +22,9 @@ Frontend test maintenance refreshed stale test expectations and fixtures to matc
 
 # Phase 2 Roadmap
 
+## Completed Slice — Agenda Weather Frontend
+Agenda Weather Frontend implements frontend phase 3 of the FamilyBoard weather integration by loading only the generated `getAgendaWeather()` client, adding subtle `Vandaag` header weather context plus fixed-width timed-appointment weather clusters inside Agenda, and hiding weather entirely for all-day, timeless, or unmatched items without placeholders, provider copy, or advice. The slice intentionally adds no backend work, no API-contract regeneration, no Home Weather Pill redesign, no Weather Detail Dialog feature expansion, no Home Assistant integration, no mock layer, no marketing/demo-only scenario, and no binary artifacts.
+
 ## Completed Slice — Weather Detail Dialog Frontend
 Weather Detail Dialog Frontend implements frontend phase 2 of the FamilyBoard weather integration by opening a compact Home-owned weather dialog from the existing Weather Pill, loading only the generated `getWeatherDetail()` client, reusing the existing departure-advice presentation mapping, and presenting a calm advice-first explanation with compact summary, hourly, daily, and optional detail sections. The slice intentionally adds no backend work, no API-contract regeneration, no Agenda weather UI, no Home Assistant integration, no mock layer, no marketing/demo-only scenario, and no binary artifacts.
 
