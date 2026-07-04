@@ -48,7 +48,8 @@ import {
 } from "../motivationData";
 import type { FamilyMember } from "./familyMembers";
 import { useVisualReviewNow } from "../visualReviewTime";
-import { buildHomeWeatherDisplay, WeatherGlyph } from "../weather/weatherPresentation";
+import { buildHomeWeatherDisplay } from "../weather/weatherPresentation";
+import { WeatherTemperatureBadge } from "../weather/WeatherTemperatureBadge";
 import { loadHomeWeather } from "./homeWeatherApi";
 import { loadWeatherDetail } from "./weatherDetailApi";
 import { WeatherDetailDialog } from "./WeatherDetailDialog";
@@ -453,47 +454,44 @@ export function HomeDashboard({
             aria-haspopup="dialog"
             ref={weatherPillRef}
           >
-            <span className="home-weather-icon-shell" aria-hidden="true">
-              <WeatherGlyph iconKey={homeWeatherDisplay.iconKey} />
-            </span>
-            <span className="home-weather-copy">
-              <span className="home-weather-temperature">
-                {homeWeatherDisplay.temperatureLabel}
-              </span>
-              <span className="home-weather-advice" title={homeWeatherDisplay.advice}>
-                {homeWeatherDisplay.advice}
-              </span>
+            <WeatherTemperatureBadge
+              className="home-weather-badge"
+              display={homeWeatherDisplay}
+              variant="prominent"
+            />
+            <span className="home-weather-advice" title={homeWeatherDisplay.advice}>
+              {homeWeatherDisplay.advice}
             </span>
           </button>
+          <section className="family-strip home-family-strip" aria-label="Gezinsleden">
+            {members.map((member) => {
+              const openTaskCount = todayTaskCountsByMember[member.id] ?? 0;
+              return (
+                <button
+                  className="home-family-portrait"
+                  key={member.id}
+                  type="button"
+                  style={{ "--member-color": member.displayColor } as CSSProperties}
+                  onClick={() => onSelectFamilyMember(member.id)}
+                  aria-label={`${member.name} gezinslidpagina openen`}
+                >
+                  <span className="home-family-avatar-frame">
+                    <FamilyAvatar member={member} />
+                    {openTaskCount > 0 ? (
+                      <span
+                        className="home-family-task-badge"
+                        aria-label={`${member.name} heeft ${openTaskCount} open taken vandaag`}
+                      >
+                        {openTaskCount}
+                      </span>
+                    ) : null}
+                  </span>
+                  <span className="home-family-portrait-caption">{member.name}</span>
+                </button>
+              );
+            })}
+          </section>
         </div>
-        <section className="family-strip home-family-strip" aria-label="Gezinsleden">
-          {members.map((member) => {
-            const openTaskCount = todayTaskCountsByMember[member.id] ?? 0;
-            return (
-              <button
-                className="home-family-portrait"
-                key={member.id}
-                type="button"
-                style={{ "--member-color": member.displayColor } as CSSProperties}
-                onClick={() => onSelectFamilyMember(member.id)}
-                aria-label={`${member.name} gezinslidpagina openen`}
-              >
-                <span className="home-family-avatar-frame">
-                  <FamilyAvatar member={member} />
-                  {openTaskCount > 0 ? (
-                    <span
-                      className="home-family-task-badge"
-                      aria-label={`${member.name} heeft ${openTaskCount} open taken vandaag`}
-                    >
-                      {openTaskCount}
-                    </span>
-                  ) : null}
-                </span>
-                <span className="home-family-portrait-caption">{member.name}</span>
-              </button>
-            );
-          })}
-        </section>
       </header>
       {quickStatus ? (
         <p className="home-quick-status" role="status">
@@ -536,17 +534,18 @@ export function HomeDashboard({
                   <ul className="home-summary-list">
                     {group.items.map((item) => (
                       <li key={`${item.listId}-${item.id}`}>
-                        <button
+                        <input
                           className="shopping-check-action"
-                          type="button"
+                          type="checkbox"
+                          checked={false}
                           onClick={(event) => {
                             event.stopPropagation();
+                          }}
+                          onChange={() => {
                             handleShoppingToggle(item.listId, item.id, item.text);
                           }}
                           aria-label={`${item.text} afvinken`}
-                        >
-                          <span aria-hidden="true" />
-                        </button>
+                        />
                         <span>{item.text}</span>
                       </li>
                     ))}

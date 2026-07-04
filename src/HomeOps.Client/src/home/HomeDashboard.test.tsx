@@ -31,6 +31,7 @@ vi.mock("../shopping/listsApi", () => ({
   createListsApiClient: vi.fn(() => ({})),
   loadShoppingList: vi.fn(),
   addShoppingListItem: vi.fn(),
+  toggleShoppingListItem: vi.fn(),
 }));
 vi.mock("../shopping/listsSummaryApi", () => ({ loadShoppingListSummary: vi.fn() }));
 vi.mock("../tasks/tasksApi", () => ({ loadTasks: vi.fn(), createTask: vi.fn() }));
@@ -127,6 +128,11 @@ describe("HomeDashboard", () => {
       id: "new-milk",
       label: "Milk",
       completed: false,
+    });
+    vi.mocked(lists.toggleShoppingListItem).mockResolvedValue({
+      id: "bread",
+      label: "Bread",
+      completed: true,
     });
 
     const tasks = await tasksApi();
@@ -386,6 +392,32 @@ describe("HomeDashboard", () => {
     ).toBeNull();
   });
 
+  it("keeps the Home header in Date/Time, Weather, Avatars order on one row", async () => {
+    render(
+      <HomeDashboard
+        members={familyMembers}
+        onNavigate={vi.fn()}
+        onSelectFamilyMember={vi.fn()}
+      />,
+    );
+
+    await screen.findByRole("button", { name: "Weeradvies, 21°, Geen jas nodig" });
+
+    const headerRow = screen
+      .getByLabelText("Thuisdashboard")
+      .querySelector(".home-hero-header");
+    expect(headerRow).not.toBeNull();
+    expect(
+      Array.from((headerRow as HTMLElement).children).map((child) =>
+        child.getAttribute("aria-label") ?? child.className,
+      ),
+    ).toEqual([
+      "Datum en tijd thuis",
+      "Weeradvies, 21°, Geen jas nodig",
+      "Gezinsleden",
+    ]);
+  });
+
 
   it("hides the Home Shopping group heading when only one visible group is shown", async () => {
     vi.mocked((await listsSummaryApi()).loadShoppingListSummary).mockResolvedValue({
@@ -428,6 +460,34 @@ describe("HomeDashboard", () => {
     expect(within(listsTile).getByRole("heading", { name: "Drugstore" })).not.toBeNull();
     expect(within(listsTile).getByRole("heading", { name: "Zonder winkel" })).not.toBeNull();
     expect(within(listsTile).getByText("+1 meer")).not.toBeNull();
+  });
+
+  it("toggles Home shopping items through a simple checkbox control", async () => {
+    const user = userEvent.setup();
+    render(
+      <HomeDashboard
+        members={familyMembers}
+        onNavigate={vi.fn()}
+        onSelectFamilyMember={vi.fn()}
+      />,
+    );
+
+    const listsTile = screen.getByLabelText("Boodschappenoverzicht");
+    const breadCheckbox = await within(listsTile).findByRole("checkbox", {
+      name: "Bread afvinken",
+    });
+
+    await user.click(breadCheckbox);
+
+    const lists = await listsApi();
+    await waitFor(() =>
+      expect(lists.toggleShoppingListItem).toHaveBeenCalledWith(
+        expect.anything(),
+        "shopping",
+        "bread",
+      ),
+    );
+    expect(await screen.findByText("Bread afgevinkt in Boodschappen.")).not.toBeNull();
   });
 
   it("keeps Home card actions compact and avoids duplicate Taken navigation labels", async () => {
