@@ -1,4 +1,4 @@
-import { DepartureAdviceCategory } from "./api/homeOpsApiClient";
+import { DepartureAdviceCategory } from "../api/homeOpsApiClient";
 
 const departureAdviceHeaderCopy: Partial<Record<DepartureAdviceCategory, string>> = {
   [DepartureAdviceCategory.NoJacketNeeded]: "Geen jas nodig",

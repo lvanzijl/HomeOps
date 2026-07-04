@@ -1,4 +1,4 @@
-import { useId } from "react";
+import { useEffect, useId, useRef } from "react";
 import type { WeatherDetailProjection } from "../api/homeOpsApiClient";
 import {
   formatTemperatureLabel,
@@ -7,7 +7,7 @@ import {
   resolveDepartureAdviceHeadline,
   toWeatherIconKey,
   WeatherGlyph,
-} from "./weatherPresentation";
+} from "../weather/weatherPresentation";
 
 interface WeatherDetailDialogProps {
   detail: WeatherDetailProjection | null;
@@ -32,6 +32,7 @@ export function WeatherDetailDialog({
 }: WeatherDetailDialogProps) {
   const titleId = useId();
   const descriptionId = useId();
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const advice = detail?.departureAdvice;
   const adviceHeadline = resolveDepartureAdviceHeadline(advice);
   const confidenceLabel = getDepartureAdviceConfidenceText(advice?.confidence);
@@ -52,6 +53,10 @@ export function WeatherDetailDialog({
     dailyItems.length > 0 ||
     detailItems.length > 0;
   const currentIconKey = toWeatherIconKey(detail?.current?.condition);
+
+  useEffect(() => {
+    closeButtonRef.current?.focus();
+  }, []);
 
   return (
     <div
@@ -79,6 +84,7 @@ export function WeatherDetailDialog({
             aria-label="Weerdetails sluiten"
             className="icon-button"
             onClick={onClose}
+            ref={closeButtonRef}
             type="button"
           >
             <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -89,7 +95,7 @@ export function WeatherDetailDialog({
         </header>
 
         {status === "loading" ? (
-          <div className="weather-detail-state">
+          <div aria-live="polite" className="weather-detail-state" role="status">
             <strong>Weer wordt bijgewerkt.</strong>
             <p>Een compacte uitleg staat zo voor je klaar.</p>
           </div>

@@ -22,6 +22,9 @@ Frontend test maintenance refreshed stale test expectations and fixtures to matc
 
 # Phase 2 Roadmap
 
+## Completed Slice — Weather Frontend Polish
+Weather Frontend Polish completes the FamilyBoard weather frontend by co-locating the shared presentation/localization/client helpers under a small `src/weather` module, preserving explicit Home/Weather Detail/Agenda API ownership per surface, centralizing shared accessible-label formatting, and tightening weather accessibility with dialog focus ownership and semantic Agenda weather clusters. The slice intentionally adds no new weather functionality, no backend work, no API-contract regeneration, no provider terminology, no business-logic expansion, no Home Assistant integration, and no binary artifacts.
+
 ## Completed Slice — Agenda Weather Frontend
 Agenda Weather Frontend implements frontend phase 3 of the FamilyBoard weather integration by loading only the generated `getAgendaWeather()` client, adding subtle `Vandaag` header weather context plus fixed-width timed-appointment weather clusters inside Agenda, and hiding weather entirely for all-day, timeless, or unmatched items without placeholders, provider copy, or advice. The slice intentionally adds no backend work, no API-contract regeneration, no Home Weather Pill redesign, no Weather Detail Dialog feature expansion, no Home Assistant integration, no mock layer, no marketing/demo-only scenario, and no binary artifacts.
 

@@ -48,10 +48,10 @@ import {
 } from "../motivationData";
 import type { FamilyMember } from "./familyMembers";
 import { useVisualReviewNow } from "../visualReviewTime";
+import { buildHomeWeatherDisplay, WeatherGlyph } from "../weather/weatherPresentation";
 import { loadHomeWeather } from "./homeWeatherApi";
 import { loadWeatherDetail } from "./weatherDetailApi";
 import { WeatherDetailDialog } from "./WeatherDetailDialog";
-import { buildHomeWeatherDisplay, WeatherGlyph } from "./weatherPresentation";
 
 interface HomeDashboardProps {
   members: readonly FamilyMember[];

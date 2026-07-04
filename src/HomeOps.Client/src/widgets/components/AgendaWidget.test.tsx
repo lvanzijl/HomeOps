@@ -731,6 +731,9 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
 
     const todayBriefing = await screen.findByLabelText("Vandaag briefing");
     expect(within(todayBriefing).getByTitle("Vandaag, 21°, Helder")).not.toBeNull();
+    expect(
+      within(todayBriefing).getByRole("img", { name: "Vandaag, 21°, Helder" }),
+    ).not.toBeNull();
     await waitFor(() => {
       expect(within(todayBriefing).getByText("Zwemles Thomas")).not.toBeNull();
     });
