@@ -6901,18 +6901,18 @@ button {
   justify-items: end;
 }
 
-.agenda-today-header-meta .agenda-weather-cluster.day {
+.agenda-today-header-meta .weather-temperature-badge--prominent {
   min-height: 2rem;
   min-width: 5.1rem;
   padding: 0.28rem 0.68rem;
 }
 
-.agenda-today-header-meta .agenda-weather-icon svg {
+.agenda-today-header-meta .weather-temperature-badge__icon svg {
   height: 1rem;
   width: 1rem;
 }
 
-.agenda-today-header-meta .agenda-weather-temperature {
+.agenda-today-header-meta .weather-temperature-badge__temperature {
   font-size: 0.8rem;
 }
 
@@ -7084,7 +7084,7 @@ button {
   line-height: 1.35;
 }
 
-.agenda-weather-cluster {
+.weather-temperature-badge {
   align-items: center;
   border-radius: 999px;
   display: inline-grid;
@@ -7094,7 +7094,7 @@ button {
   white-space: nowrap;
 }
 
-.agenda-weather-cluster.day {
+.weather-temperature-badge--prominent {
   background: rgb(255 255 255 / 72%);
   border: 1px solid rgb(191 219 254 / 76%);
   color: #33506b;
@@ -7102,13 +7102,13 @@ button {
   padding: 0.2rem 0.55rem;
 }
 
-.agenda-weather-cluster.inline {
+.weather-temperature-badge--medium {
   color: #47627b;
   gap: 0.28rem;
   justify-self: end;
 }
 
-.agenda-weather-cluster.item {
+.weather-temperature-badge--compact {
   align-self: start;
   background: rgb(255 255 255 / 68%);
   border: 1px solid rgb(219 234 254 / 80%);
@@ -7119,12 +7119,12 @@ button {
   padding: 0.2rem 0.5rem;
 }
 
-.agenda-weather-icon {
+.weather-temperature-badge__icon {
   color: #2563eb;
   display: inline-flex;
 }
 
-.agenda-weather-icon svg {
+.weather-temperature-badge__icon svg {
   height: 0.95rem;
   stroke: currentColor;
   stroke-linecap: round;
@@ -7133,7 +7133,7 @@ button {
   width: 0.95rem;
 }
 
-.agenda-weather-temperature {
+.weather-temperature-badge__temperature {
   color: #0f172a;
   font-size: 0.75rem;
   font-weight: 850;
@@ -7289,7 +7289,7 @@ button {
     padding: 0.55rem;
   }
 
-  .agenda-weather-cluster.item {
+  .weather-temperature-badge--compact.agenda-weather-cluster {
     display: none;
   }
 }

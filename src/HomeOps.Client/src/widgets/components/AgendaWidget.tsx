@@ -23,10 +23,13 @@ import type {
   NormalizedEvent,
 } from "../../events/eventSourceModel";
 import {
+  WeatherTemperatureBadge,
+  type WeatherTemperatureDisplay,
+} from "../../weather/WeatherTemperatureBadge";
+import {
   formatWeatherAccessibleLabel,
   formatTemperatureLabel,
   toWeatherIconKey,
-  WeatherGlyph,
 } from "../../weather/weatherPresentation";
 import { FamilyBoardIcon, type FamilyBoardIconName } from "../../design";
 import type { WidgetRenderProps } from "../WidgetRenderer";
@@ -726,7 +729,7 @@ function TodayBriefingCard({
 }: {
   agendaWeatherSlots: AgendaWeatherSlotProjection[];
   briefing: PlanningBriefing["today"];
-  dayWeather: AgendaWeatherDisplay | null;
+  dayWeather: WeatherTemperatureDisplay | null;
   deletingEventId: string | null;
   onDelete: (eventId: string) => void;
   onEdit: (event: NormalizedEvent) => void;
@@ -742,7 +745,13 @@ function TodayBriefingCard({
           <p>{briefing.summary}</p>
         </div>
         <div className="agenda-today-header-meta">
-          {dayWeather ? <AgendaWeatherCluster variant="day" weather={dayWeather} /> : null}
+          {dayWeather ? (
+            <WeatherTemperatureBadge
+              className="agenda-weather-cluster"
+              display={dayWeather}
+              variant="prominent"
+            />
+          ) : null}
           <span className={["agenda-planning-tone", briefing.tone].join(" ")}>
             {briefing.toneLabel}
           </span>
@@ -857,7 +866,11 @@ function PlanningWeekCard({
                   </div>
                   <div className="agenda-week-briefing-day-meta">
                     {dayWeather ? (
-                      <AgendaWeatherCluster variant="inline" weather={dayWeather} />
+                      <WeatherTemperatureBadge
+                        className="agenda-weather-cluster"
+                        display={dayWeather}
+                        variant="medium"
+                      />
                     ) : null}
                     <span>
                       {dayGroup.events.length}{" "}
@@ -974,7 +987,7 @@ function PlanningToolsCard({
   onOpenMonth: () => void;
   onToggleSource: (sourceId: string, enabled: boolean) => void;
   selectedDate: string;
-  selectedDayWeather: AgendaWeatherDisplay | null;
+  selectedDayWeather: WeatherTemperatureDisplay | null;
   selectedSources: Record<string, boolean>;
   today: string;
 }) {
@@ -1013,7 +1026,11 @@ function PlanningToolsCard({
         <div className="agenda-planning-tool-date">
           <strong>{formatDutchDay(selectedDate)}</strong>
           {selectedDayWeather ? (
-            <AgendaWeatherCluster variant="inline" weather={selectedDayWeather} />
+            <WeatherTemperatureBadge
+              className="agenda-weather-cluster"
+              display={selectedDayWeather}
+              variant="medium"
+            />
           ) : null}
         </div>
       </div>
@@ -1023,34 +1040,6 @@ function PlanningToolsCard({
         selectedSources={selectedSources}
       />
     </aside>
-  );
-}
-
-type AgendaWeatherDisplay = {
-  accessibleLabel: string;
-  iconKey: string;
-  temperatureLabel: string;
-};
-
-function AgendaWeatherCluster({
-  variant,
-  weather,
-}: {
-  variant: "day" | "inline" | "item";
-  weather: AgendaWeatherDisplay;
-}) {
-  return (
-    <span
-      aria-label={weather.accessibleLabel}
-      className={["agenda-weather-cluster", variant].join(" ")}
-      role="img"
-      title={weather.accessibleLabel}
-    >
-      <span className="agenda-weather-icon" aria-hidden="true">
-        <WeatherGlyph iconKey={weather.iconKey} />
-      </span>
-      <span className="agenda-weather-temperature">{weather.temperatureLabel}</span>
-    </span>
   );
 }
 
@@ -1118,7 +1107,13 @@ function PlanningEventRow({
           <span className="agenda-planning-event-detail">{detail}</span>
           {extra ? <span className="agenda-planning-event-extra">{extra}</span> : null}
         </span>
-        {weather ? <AgendaWeatherCluster variant="item" weather={weather} /> : null}
+        {weather ? (
+          <WeatherTemperatureBadge
+            className="agenda-weather-cluster"
+            display={weather}
+            variant="compact"
+          />
+        ) : null}
       </button>
       {selected && event.editable ? (
         <span className="agenda-planning-event-actions">
@@ -1521,7 +1516,13 @@ function AgendaEventList({
                 {formatEventTime(event)} · {visual.label}
               </small>
             </span>
-            {weather ? <AgendaWeatherCluster variant="item" weather={weather} /> : null}
+            {weather ? (
+              <WeatherTemperatureBadge
+                className="agenda-weather-cluster"
+                display={weather}
+                variant="compact"
+              />
+            ) : null}
             {event.editable ? (
               <span className="agenda-event-card-actions">
                 <button type="button" onClick={() => onEdit(event)}>
@@ -2194,7 +2195,7 @@ function resolveAgendaDayWeather(
   nowIso: string,
   slots: AgendaWeatherSlotProjection[],
   contextLabel = "Vandaag",
-): AgendaWeatherDisplay | null {
+): WeatherTemperatureDisplay | null {
   const dailySlots = slots
     .filter((slot) => hasAgendaWeatherData(slot) && getWeatherSlotDate(slot) === date)
     .sort(compareAgendaWeatherSlots);
@@ -2222,7 +2223,7 @@ function resolveAgendaDayWeather(
 function resolveAgendaEventWeather(
   event: ReturnType<typeof hydrateAgendaEvents>[number],
   slots: AgendaWeatherSlotProjection[],
-): AgendaWeatherDisplay | null {
+): WeatherTemperatureDisplay | null {
   if (event.allDay) {
     return null;
   }
@@ -2253,7 +2254,7 @@ function resolveAgendaEventWeather(
 function buildAgendaWeatherDisplay(
   slot: AgendaWeatherSlotProjection,
   contextLabel: string,
-): AgendaWeatherDisplay | null {
+): WeatherTemperatureDisplay | null {
   if (!hasAgendaWeatherData(slot)) {
     return null;
   }
