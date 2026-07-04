@@ -28,6 +28,9 @@ Frontend test maintenance refreshed stale test expectations and fixtures to matc
 
 # Phase 2 Roadmap
 
+## Completed Slice — Agenda Weather Component Consolidation
+Agenda Weather Component Consolidation completes the planned frontend-only cleanup pass for Agenda weather rendering by extracting a shared `WeatherTemperatureBadge`, centralizing Agenda's icon+temperature weather markup across the Today header, timed appointments, Vooruitkijken items, Deze week day headers, and the selected planning day, and continuing to reuse the shared weather presentation helpers for icon mapping, temperature formatting, and accessible labels. The slice intentionally adds no new weather locations, no advice text, no backend work, no API-contract regeneration, no Weather Detail Dialog redesign, no Home Weather Pill redesign, and no binary artifacts.
+
 ## Completed Slice — Agenda Weather Coverage
 Agenda Weather Coverage completes the remaining frontend-only Agenda weather coverage on top of the existing generated `getAgendaWeather()` client. The slice keeps Today timed appointments and Vooruitkijken on fixed-width right-aligned icon+temperature weather clusters, moves Deze week weather to each day header instead of individual events, adds selected Planning day weather when available, slightly rebalances the Today header weather presence, and intentionally avoids backend work, API-contract regeneration, Weather Detail Dialog changes, Home Weather Pill redesign, Home Assistant integration, advice copy, reusable component refactors, and binary artifacts.
 
