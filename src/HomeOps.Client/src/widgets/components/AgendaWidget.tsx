@@ -747,7 +747,7 @@ function TodayBriefingCard({
         <div className="agenda-today-header-meta">
           {dayWeather ? (
             <WeatherTemperatureBadge
-              className="agenda-weather-cluster"
+              className="agenda-weather-cluster agenda-weather-cluster--today-header"
               display={dayWeather}
               variant="prominent"
             />
@@ -867,7 +867,7 @@ function PlanningWeekCard({
                   <div className="agenda-week-briefing-day-meta">
                     {dayWeather ? (
                       <WeatherTemperatureBadge
-                        className="agenda-weather-cluster"
+                        className="agenda-weather-cluster agenda-weather-cluster--day-header"
                         display={dayWeather}
                         variant="medium"
                       />
@@ -1027,7 +1027,7 @@ function PlanningToolsCard({
           <strong>{formatDutchDay(selectedDate)}</strong>
           {selectedDayWeather ? (
             <WeatherTemperatureBadge
-              className="agenda-weather-cluster"
+              className="agenda-weather-cluster agenda-weather-cluster--selected-day"
               display={selectedDayWeather}
               variant="medium"
             />
@@ -1109,7 +1109,7 @@ function PlanningEventRow({
         </span>
         {weather ? (
           <WeatherTemperatureBadge
-            className="agenda-weather-cluster"
+            className="agenda-weather-cluster agenda-weather-cluster--row"
             display={weather}
             variant="compact"
           />
@@ -1518,7 +1518,7 @@ function AgendaEventList({
             </span>
             {weather ? (
               <WeatherTemperatureBadge
-                className="agenda-weather-cluster"
+                className="agenda-weather-cluster agenda-weather-cluster--row"
                 display={weather}
                 variant="compact"
               />
