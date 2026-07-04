@@ -11,6 +11,7 @@ Implemented frontend phase 1 of the FamilyBoard weather integration by adding a 
 - The pill uses a small inline SVG weather glyph set instead of binary image assets.
 - No weather detail dialog was built.
 - No Agenda weather UI was built.
+- No binary artifacts were added.
 
 ## Data Integration
 
@@ -30,7 +31,9 @@ Implemented frontend phase 1 of the FamilyBoard weather integration by adding a 
 - Pre-change validation: `npm run build`
 - Post-change validation: `npm test -- src/home/HomeDashboard.test.tsx`
 - Post-change validation: `npm run build`
-- Full post-change validation: pending final run
+- Full post-change validation: `npm test`
+- Full post-change validation: `npm run build`
+- No separate `npm run typecheck` script exists; the build validation covers TypeScript via `tsc -b`.
 
 ## Modified Files
 
@@ -41,4 +44,3 @@ Implemented frontend phase 1 of the FamilyBoard weather integration by adding a 
 - `docs/state/current-state.md`
 - `docs/roadmap/phase-2.md`
 - `docs/reports/2026-07-04-home-weather-pill-frontend/home-weather-pill-frontend.md`
-
