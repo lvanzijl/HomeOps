@@ -1,9 +1,8 @@
 import { HomeOpsApiClient, type HomeWeatherProjection } from "../api/homeOpsApiClient";
-
-const apiBaseUrl = import.meta.env.VITE_HOMEOPS_API_BASE_URL ?? "";
+import { createWeatherApiClient } from "../weather/weatherApiClient";
 
 export function createHomeWeatherApiClient(): Pick<HomeOpsApiClient, "getHomeWeather"> {
-  return new HomeOpsApiClient(apiBaseUrl);
+  return createWeatherApiClient();
 }
 
 export async function loadHomeWeather(

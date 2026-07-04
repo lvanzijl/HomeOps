@@ -23,10 +23,11 @@ import type {
   NormalizedEvent,
 } from "../../events/eventSourceModel";
 import {
+  formatWeatherAccessibleLabel,
   formatTemperatureLabel,
   toWeatherIconKey,
   WeatherGlyph,
-} from "../../home/weatherPresentation";
+} from "../../weather/weatherPresentation";
 import { FamilyBoardIcon, type FamilyBoardIconName } from "../../design";
 import type { WidgetRenderProps } from "../WidgetRenderer";
 import { useVisualReviewNow } from "../../visualReviewTime";
@@ -1011,6 +1012,7 @@ function AgendaWeatherCluster({
     <span
       aria-label={weather.accessibleLabel}
       className={["agenda-weather-cluster", variant].join(" ")}
+      role="img"
       title={weather.accessibleLabel}
     >
       <span className="agenda-weather-icon" aria-hidden="true">
@@ -2218,7 +2220,11 @@ function buildAgendaWeatherDisplay(
   }
 
   return {
-    accessibleLabel: `${contextLabel}, ${formatTemperatureLabel(slot.temperatureCelsius)}, ${slot.summary?.trim() || "weercontext"}`,
+    accessibleLabel: formatWeatherAccessibleLabel(
+      contextLabel,
+      slot.temperatureCelsius,
+      slot.summary,
+    ),
     iconKey: toWeatherIconKey(slot.condition),
     temperatureLabel: formatTemperatureLabel(slot.temperatureCelsius),
   };

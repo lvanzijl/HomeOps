@@ -669,6 +669,9 @@ describe("HomeDashboard", () => {
     await user.click(weatherPill);
 
     const dialog = await screen.findByRole("dialog", { name: "Weer voor vandaag" });
+    expect(document.activeElement).toBe(
+      within(dialog).getByRole("button", { name: "Weerdetails sluiten" }),
+    );
     expect(within(dialog).getByText("Geen jas nodig")).not.toBeNull();
     expect(within(dialog).getByText("Zeker")).not.toBeNull();
     expect(within(dialog).getByText("Droog en helder van start.")).not.toBeNull();
@@ -706,6 +709,30 @@ describe("HomeDashboard", () => {
 
     expect(screen.queryByRole("dialog", { name: "Weer voor vandaag" })).toBeNull();
     expect(document.activeElement).toBe(weatherPill);
+  });
+
+  it("returns focus to the weather pill after closing the dialog with the close button", async () => {
+    const user = userEvent.setup();
+    render(
+      <HomeDashboard
+        members={familyMembers}
+        onNavigate={vi.fn()}
+        onSelectFamilyMember={vi.fn()}
+      />,
+    );
+
+    const weatherPill = await screen.findByRole("button", {
+      name: "Weeradvies, 21°, Geen jas nodig",
+    });
+    await user.click(weatherPill);
+
+    const dialog = await screen.findByRole("dialog", { name: "Weer voor vandaag" });
+    await user.click(within(dialog).getByRole("button", { name: "Weerdetails sluiten" }));
+
+    await waitFor(() => {
+      expect(screen.queryByRole("dialog", { name: "Weer voor vandaag" })).toBeNull();
+      expect(document.activeElement).toBe(weatherPill);
+    });
   });
 
   it("shows a calm error state when the weather detail request fails", async () => {

@@ -4,7 +4,7 @@ import {
   type HomeWeatherProjection,
   WeatherConditionCategory,
 } from "../api/homeOpsApiClient";
-import { getDepartureAdviceHeaderText } from "../weatherAdviceLocalization";
+import { getDepartureAdviceHeaderText } from "./weatherAdviceLocalization";
 
 export type HomeWeatherDisplay = {
   accessibleLabel: string;
@@ -75,6 +75,17 @@ export function formatTemperatureLabel(
   return typeof temperatureCelsius === "number"
     ? `${Math.round(temperatureCelsius)}°`
     : "—";
+}
+
+export function formatWeatherAccessibleLabel(
+  contextLabel: string,
+  temperatureCelsius: number | undefined,
+  summary: string | undefined,
+  fallbackSummary = "weercontext",
+): string {
+  return `${contextLabel}, ${formatTemperatureLabel(temperatureCelsius)}, ${
+    formatWeatherSentence(summary) ?? fallbackSummary
+  }`;
 }
 
 export function formatWeatherSentence(
