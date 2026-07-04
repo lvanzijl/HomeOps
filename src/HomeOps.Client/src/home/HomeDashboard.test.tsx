@@ -543,12 +543,12 @@ describe("HomeDashboard", () => {
     expect(
       await within(tile).findByText("Fill the family helper path"),
     ).not.toBeNull();
-    expect(within(tile).getByText("13/20 helpful actions")).not.toBeNull();
+    expect(within(tile).queryByText("13/20 helpful actions")).toBeNull();
     expect(within(tile).getByLabelText("Viering thuis")).not.toBeNull();
     expect(within(tile).getByText("Komt dichterbij")).not.toBeNull();
     expect(
       within(tile).getByText(
-        "Nog maar 7 helpful actions tot Board game night together.",
+        "Nog 7 helpful actions tot Board game night together.",
       ),
     ).not.toBeNull();
     expect(within(tile).queryByText(/shop/i)).toBeNull();

@@ -1236,16 +1236,18 @@ button {
 }
 
 .home-weather-pill {
-  align-items: center;
+  align-content: center;
+  align-items: start;
   background: transparent;
   border: 0;
   box-shadow: none;
   color: #33506b;
   cursor: pointer;
-  display: inline-flex;
+  display: inline-grid;
   flex: 0 0 auto;
-  gap: 0.5rem;
-  max-width: 13rem;
+  gap: 0.12rem;
+  justify-items: start;
+  max-width: 10.5rem;
   min-height: 0;
   min-width: 0;
   padding: 0.1rem 0.15rem;
@@ -1273,6 +1275,7 @@ button {
   gap: 0.45rem;
   justify-content: start;
   justify-items: start;
+  line-height: 1;
 }
 
 .home-weather-badge .weather-temperature-badge__icon svg {
@@ -1286,13 +1289,13 @@ button {
 }
 
 .home-weather-advice {
-  align-self: center;
+  align-self: start;
   color: #475569;
   display: inline-block;
-  font-size: 0.82rem;
-  font-weight: 700;
-  line-height: 1.2;
-  max-width: 5.9rem;
+  font-size: 0.76rem;
+  font-weight: 600;
+  line-height: 1.15;
+  max-width: 10.5rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -6071,10 +6074,6 @@ button {
 }
 
 @media (min-width: 1180px) {
-  .home-summary-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
   .familyboard-dashboard-grid {
     grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
   }

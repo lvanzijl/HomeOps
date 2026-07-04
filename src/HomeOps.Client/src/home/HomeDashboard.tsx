@@ -729,11 +729,11 @@ export function HomeDashboard({
               />
             }
             meta={
-              motivationFamilyGoal
-                ? `${motivationFamilyGoal.currentProgress}/${motivationFamilyGoal.targetCount} ${motivationFamilyGoal.unitLabel}`
-                : motivationStatus === "error"
-                  ? "Niet beschikbaar"
-                  : "Laden"
+              motivationStatus === "error"
+                ? "Niet beschikbaar"
+                : motivationStatus === "loading"
+                  ? "Laden"
+                  : undefined
             }
           />
           <div className="home-summary-content home-motivation-content">
@@ -1120,8 +1120,8 @@ function homeCelebrationMessage(goal: MotivationFamilyGoal) {
   if (celebration.status === FamilyCelebrationStatus.Celebrated)
     return celebration.title;
   return remaining === 1
-    ? `Nog maar 1 ${goal.unitLabel} tot ${celebration.title}.`
-    : `Nog maar ${remaining} ${goal.unitLabel} tot ${celebration.title}.`;
+    ? `Nog 1 ${goal.unitLabel} tot ${celebration.title}.`
+    : `Nog ${remaining} ${goal.unitLabel} tot ${celebration.title}.`;
 }
 
 function buildAgendaSummary(
