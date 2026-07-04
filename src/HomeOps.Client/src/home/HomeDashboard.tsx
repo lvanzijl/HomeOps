@@ -426,45 +426,47 @@ export function HomeDashboard({
   return (
     <section className="home-dashboard" aria-label="Thuisdashboard">
       <header className="home-hero">
-        <div className="home-date-card" aria-label="Datum en tijd thuis">
-          <p className="eyebrow">Vandaag</p>
-          <h2>
-            {now.toLocaleDateString("nl-NL", {
-              weekday: "long",
-              month: "long",
-              day: "numeric",
-            })}
-          </h2>
-          <p className="home-time" aria-label="Huidige tijd">
-            {now.toLocaleTimeString("nl-NL", {
-              hour: "numeric",
-              minute: "2-digit",
-            })}
-          </p>
+        <div className="home-hero-header">
+          <div className="home-date-card" aria-label="Datum en tijd thuis">
+            <p className="eyebrow">Vandaag</p>
+            <h2>
+              {now.toLocaleDateString("nl-NL", {
+                weekday: "long",
+                month: "long",
+                day: "numeric",
+              })}
+            </h2>
+            <p className="home-time" aria-label="Huidige tijd">
+              {now.toLocaleTimeString("nl-NL", {
+                hour: "numeric",
+                minute: "2-digit",
+              })}
+            </p>
+          </div>
+          <button
+            type="button"
+            className="home-weather-pill"
+            data-status={weatherStatus}
+            onClick={handleWeatherPillClick}
+            aria-label={homeWeatherDisplay.accessibleLabel}
+            aria-expanded={isWeatherDetailOpen}
+            aria-haspopup="dialog"
+            ref={weatherPillRef}
+          >
+            <span className="home-weather-icon-shell" aria-hidden="true">
+              <WeatherGlyph iconKey={homeWeatherDisplay.iconKey} />
+            </span>
+            <span className="home-weather-copy">
+              <span className="home-weather-temperature">
+                {homeWeatherDisplay.temperatureLabel}
+              </span>
+              <span className="home-weather-advice" title={homeWeatherDisplay.advice}>
+                {homeWeatherDisplay.advice}
+              </span>
+            </span>
+          </button>
         </div>
-        <button
-          type="button"
-          className="home-weather-pill"
-          data-status={weatherStatus}
-          onClick={handleWeatherPillClick}
-          aria-label={homeWeatherDisplay.accessibleLabel}
-          aria-expanded={isWeatherDetailOpen}
-          aria-haspopup="dialog"
-          ref={weatherPillRef}
-        >
-          <span className="home-weather-icon-shell" aria-hidden="true">
-            <WeatherGlyph iconKey={homeWeatherDisplay.iconKey} />
-          </span>
-          <span className="home-weather-copy">
-            <span className="home-weather-temperature">
-              {homeWeatherDisplay.temperatureLabel}
-            </span>
-            <span className="home-weather-advice" title={homeWeatherDisplay.advice}>
-              {homeWeatherDisplay.advice}
-            </span>
-          </span>
-        </button>
-        <section className="family-strip" aria-label="Gezinsleden">
+        <section className="family-strip home-family-strip" aria-label="Gezinsleden">
           {members.map((member) => {
             const openTaskCount = todayTaskCountsByMember[member.id] ?? 0;
             return (
