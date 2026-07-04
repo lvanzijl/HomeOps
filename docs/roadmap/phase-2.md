@@ -28,6 +28,9 @@ Frontend test maintenance refreshed stale test expectations and fixtures to matc
 
 # Phase 2 Roadmap
 
+## Completed Slice — Agenda Weather Visual Polish
+Agenda Weather Visual Polish completes the final frontend-only Agenda weather pass by slightly enlarging Agenda-specific weather iconography, tightening stable right-edge item alignment across Nu bezig / Verder vandaag / Vooruitkijken / selected-day month rows, and styling `Deze week` day headers plus the selected planning day with calmer, more consistent FamilyBoard weather badges. The slice preserves the existing Agenda information architecture, adds no new weather functionality or advice text, changes no backend or generated API files, and commits only the required validation screenshot as a binary artifact.
+
 ## Completed Slice — Agenda Weather Component Consolidation
 Agenda Weather Component Consolidation completes the planned frontend-only cleanup pass for Agenda weather rendering by extracting a shared `WeatherTemperatureBadge`, centralizing Agenda's icon+temperature weather markup across the Today header, timed appointments, Vooruitkijken items, Deze week day headers, and the selected planning day, and continuing to reuse the shared weather presentation helpers for icon mapping, temperature formatting, and accessible labels. The slice intentionally adds no new weather locations, no advice text, no backend work, no API-contract regeneration, no Weather Detail Dialog redesign, no Home Weather Pill redesign, and no binary artifacts.
 
