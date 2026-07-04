@@ -8,6 +8,11 @@ import {
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  AgendaWeatherProjection,
+  AgendaWeatherSlotProjection,
+  WeatherConditionCategory,
+} from "../../api/homeOpsApiClient";
 import type {
   EventSource,
   NormalizedEvent,
@@ -26,9 +31,16 @@ vi.mock("../../agenda/calendarEventsApi", () => ({
   updateCalendarAgendaEvent: vi.fn(),
   deleteCalendarAgendaEvent: vi.fn(),
 }));
+vi.mock("../../agenda/agendaWeatherApi", () => ({
+  loadAgendaWeather: vi.fn(),
+}));
 
 async function mockedCalendarEventsApi() {
   return await import("../../agenda/calendarEventsApi");
+}
+
+async function mockedAgendaWeatherApi() {
+  return await import("../../agenda/agendaWeatherApi");
 }
 
 const calendarSource: EventSource = {
@@ -338,6 +350,9 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     });
     vi.mocked(calendarEventsApi.deleteCalendarAgendaEvent).mockResolvedValue(
       undefined,
+    );
+    vi.mocked((await mockedAgendaWeatherApi()).loadAgendaWeather).mockResolvedValue(
+      new AgendaWeatherProjection({ slots: [] }),
     );
   });
 
@@ -685,6 +700,95 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     ).toContain("agenda-event");
   });
 
+  it("shows subtle agenda weather for today and timed planning appointments", async () => {
+    const calendarEventsApi = await mockedCalendarEventsApi();
+    mockVisualReviewMarketingTime(canonicalMarketingAnchorUtc);
+    vi.mocked(calendarEventsApi.loadCalendarAgendaData).mockResolvedValueOnce({
+      sources: [calendarSource],
+      events: marketingAgendaEvents,
+    });
+    vi.mocked((await mockedAgendaWeatherApi()).loadAgendaWeather).mockResolvedValueOnce(
+      new AgendaWeatherProjection({
+        slots: [
+          new AgendaWeatherSlotProjection({
+            startsAtUtc: new Date("2026-06-16T07:00:00.000Z"),
+            endsAtUtc: new Date("2026-06-16T08:00:00.000Z"),
+            temperatureCelsius: 21,
+            condition: WeatherConditionCategory.Clear,
+            summary: "Helder",
+          }),
+          new AgendaWeatherSlotProjection({
+            startsAtUtc: new Date("2026-06-16T15:00:00.000Z"),
+            endsAtUtc: new Date("2026-06-16T16:00:00.000Z"),
+            temperatureCelsius: 19,
+            condition: WeatherConditionCategory.Cloudy,
+            summary: "Bewolkt",
+          }),
+        ],
+      }),
+    );
+    render(<AgendaWidget {...widgetProps} />);
+
+    const todayBriefing = await screen.findByLabelText("Vandaag briefing");
+    expect(within(todayBriefing).getByTitle("Vandaag, 21°, Helder")).not.toBeNull();
+    await waitFor(() => {
+      expect(within(todayBriefing).getByText("Zwemles Thomas")).not.toBeNull();
+    });
+
+    const timedEvent = within(todayBriefing).getByText("Zwemles Thomas").closest("li");
+    expect(timedEvent).not.toBeNull();
+    expect(within(timedEvent!).getByText("19°")).not.toBeNull();
+    expect(screen.queryByText("Regenjas mee")).toBeNull();
+    expect(screen.queryByText("Geen jas nodig")).toBeNull();
+  });
+
+  it("keeps agenda weather off all-day items while showing timed month events with matching slots", async () => {
+    const user = setupUser();
+    const calendarEventsApi = await mockedCalendarEventsApi();
+    const allDayEvent: NormalizedEvent = {
+      id: "all-day",
+      sourceId: calendarSource.id,
+      title: "Gezinsdag",
+      startsAt: "2026-06-18T00:00:00.000Z",
+      endsAt: "2026-06-18T23:59:00.000Z",
+      allDay: true,
+      editable: true,
+    };
+    vi.mocked(calendarEventsApi.loadCalendarAgendaData).mockResolvedValueOnce({
+      sources: [calendarSource],
+      events: [dentistEvent, allDayEvent],
+    });
+    vi.mocked((await mockedAgendaWeatherApi()).loadAgendaWeather).mockResolvedValueOnce(
+      new AgendaWeatherProjection({
+        slots: [
+          new AgendaWeatherSlotProjection({
+            startsAtUtc: new Date("2026-06-18T09:00:00.000Z"),
+            endsAtUtc: new Date("2026-06-18T10:00:00.000Z"),
+            temperatureCelsius: 18,
+            condition: WeatherConditionCategory.Rain,
+            summary: "Regen",
+          }),
+        ],
+      }),
+    );
+    render(<AgendaWidget {...widgetProps} />);
+
+    await openMonthView(user);
+    await user.click(
+      await screen.findByRole("button", {
+        name: /18 juni 2026, 2 gebeurtenissen/,
+      }),
+    );
+
+    const timedEvent = screen.getByText("Dentist Appointment").closest("li");
+    const allDayEventCard = screen.getByText("Gezinsdag").closest("li");
+
+    expect(timedEvent).not.toBeNull();
+    expect(allDayEventCard).not.toBeNull();
+    expect(within(timedEvent!).getByText("18°")).not.toBeNull();
+    expect(within(allDayEventCard!).queryByText("18°")).toBeNull();
+  });
+
   it("shows planning summaries and grouped upcoming events by default", async () => {
     const user = setupUser();
     const calendarEventsApi = await mockedCalendarEventsApi();
@@ -775,11 +879,13 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     render(<AgendaWidget {...widgetProps} />);
 
     expect(await screen.findByLabelText("Planningoverzicht")).not.toBeNull();
-    expect(
-      within(screen.getByLabelText("Vandaag briefing")).getByText(
-        "Zwemles Thomas",
-      ),
-    ).not.toBeNull();
+    await waitFor(() => {
+      expect(
+        within(screen.getByLabelText("Vandaag briefing")).getByText(
+          "Zwemles Thomas",
+        ),
+      ).not.toBeNull();
+    });
 
     await openMonthView(user);
     await waitFor(() => {
