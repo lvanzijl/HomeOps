@@ -1,3 +1,6 @@
+## Completed Slice — Weather Marketing Video Integration
+Weather Marketing Video Integration brings the completed FamilyBoard weather feature into the existing marketing production flow by using controlled VisualReview backend weather data, keeping the frontend on the generated weather API/client path, showing the Home weather pill and a brief detail dialog beat in the Home scene, and validating subtle Agenda weather context without changing the 9-scene narrative, adding frontend mocks, redesigning weather UI, or committing binary media artifacts.
+
 ## Completed Slice — Agenda Copy Cleanup
 Agenda Copy Cleanup removes the remaining Agenda preview/designer copy, keeps a single visible Agenda page title, renames the remaining Agenda-facing labels to the approved Dutch product wording, and preserves existing layout, event CRUD, source filtering, backend APIs, schema, and binary-artifact boundaries.
 

@@ -101,7 +101,7 @@ export async function runStoryboardStage(config) {
 
     const validationErrors = [];
     if (recordingPlan.sceneCount !== 9) validationErrors.push(`Expected 9 scenes, found ${recordingPlan.sceneCount}.`);
-    if (recordingPlan.preferredDurationMs !== 84000) validationErrors.push(`Expected preferred duration 84000ms, found ${recordingPlan.preferredDurationMs}ms.`);
+    if (recordingPlan.preferredDurationMs !== 85000) validationErrors.push(`Expected preferred duration 85000ms, found ${recordingPlan.preferredDurationMs}ms.`);
     if (recordingPlan.maximumDurationMs !== 90000) validationErrors.push(`Expected maximum duration 90000ms, found ${recordingPlan.maximumDurationMs}ms.`);
     if (!status.chapterCardMetadataExists) validationErrors.push('Chapter card metadata is missing from one or more scenes.');
     if (!status.emotionalCurveMetadataExists) validationErrors.push('Emotional curve metadata is missing.');

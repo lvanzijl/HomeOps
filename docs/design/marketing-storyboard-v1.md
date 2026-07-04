@@ -57,9 +57,9 @@ This curve should guide future Marketing Director pacing, transitions, branded C
 
 The preview should feel like one ordinary Van Zijl family week, not a chain of independent feature moments. Keep these story links visible throughout the recording:
 
-- Home introduces Thomas's swimming lesson and the practical pressure of the day. Tasks later resolves that pressure by completing `Zwemtas klaarzetten`.
+- Home introduces Thomas's swimming lesson, quiet weather context for the school run, and the practical pressure of the day. Tasks later resolves that pressure by completing `Zwemtas klaarzetten`.
 - Family personalization makes Thomas feel like the same child whose school, swimming, cookies, and helpful moments appear later.
-- Agenda opens to Planning by default, answers what the family needs to know next, gives Today the dominant briefing role, keeps This Week quieter, shows Vooruitkijken for reassurance, and leaves Month visible only as a contextual planning tool instead of spending scene time inside it.
+- Agenda opens to Planning by default, answers what the family needs to know next, gives Today the dominant briefing role with subtle implemented weather context where it naturally appears, keeps This Week quieter, shows Vooruitkijken for reassurance, and leaves Month visible only as a contextual planning tool instead of spending scene time inside it.
 - Shopping supports `Koekjes bakken` from Tasks: `Bloem`, `Roomboter`, `Chocoladestukjes`, and `Vanillesuiker` are already present in the fixture, while one ordinary `Bananen` addition keeps the interaction simple and believable.
 - Motivation should feel earned by the earlier helping actions, especially the completed swim-bag task and the general household reset work.
 - Weekly Reset reflects the same week: swimming preparation, Filmavond, cookies, groceries, helpful moments, and appreciation all resolve into Sunday evening calm.
@@ -84,7 +84,7 @@ Future FamilyBoard marketing storyboards should follow this visual language:
 
 ## Timing Summary
 
-Preferred total duration: **84 seconds**.
+Preferred total duration: **85 seconds**.
 
 Minimum total duration: **68 seconds**.
 
@@ -93,7 +93,7 @@ Maximum total duration: **90 seconds**.
 | Scene | Fixture | Preferred duration | Narrative beat |
 | --- | --- | ---: | --- |
 | Intro | `visual-marketing-home` | 5s | A quiet morning begins. |
-| Home | `visual-marketing-home` | 7s | Today becomes readable. |
+| Home | `visual-marketing-home` | 8s | Today becomes readable, with weather context as a supporting cue. |
 | Family | `visual-marketing-family` | 10s | “This is our family.” |
 | Agenda | `visual-marketing-agenda` | 14s | Planning briefing by default, one realistic plan, and Month only as a visible contextual tool. |
 | Tasks | `visual-marketing-tasks` | 10s | Add one task and complete one helpful job. |
@@ -134,17 +134,17 @@ Maximum total duration: **90 seconds**.
 - **Optional subtitle:** Everything that matters is already here
 - **Chapter Card:** `Today` appears with `Everything that matters is already here`, holds for approximately one second, then gently fades out before the dashboard continues without an overlay.
 - **Fixture:** `visual-marketing-home`
-- **Duration:** 7 seconds
+- **Duration:** 8 seconds
 - **Minimum duration:** 6 seconds
-- **Maximum duration:** 8 seconds
-- **Visual focus:** The Home dashboard's dominant daily household regions: family members, today's Agenda signal, task/shopping/motivation summaries, and the swimming lesson that will be supported later by the swim-bag task.
+- **Maximum duration:** 9 seconds
+- **Visual focus:** The Home dashboard's dominant daily household regions: the header weather pill as quiet morning context, family members, today's Agenda signal, task/shopping/motivation summaries, and the swimming lesson that will be supported later by the swim-bag task.
 - **Transition:** Gentle dissolve from the intro hold.
-- **Camera pacing:** Pause on the full dashboard, drift from the family presence toward today's planning and practical summary regions, then wait long enough for the swim lesson and school rhythm to register as the first continuity thread.
-- **Touch gestures:** One tap on a visible Home summary region, only to show the board is touch-first.
-- **Interaction sequence:** Tap once, then stop. Do not open quick capture; the scene is about seeing, not entering.
+- **Camera pacing:** Pause on the full dashboard with the weather pill visible, briefly open the weather detail dialog from the pill, close it, then drift from the family presence toward today's planning and practical summary regions long enough for the swim lesson and school rhythm to register as the first continuity thread.
+- **Touch gestures:** Tap the Home weather pill once, then close the weather detail dialog.
+- **Interaction sequence:** Show the weather pill in the Home header; briefly open the detail dialog; close it; return to the Home dashboard. Do not open quick capture; the scene is still about seeing, not entering.
 - **Audio events:** `ChapterStarted`, `TouchStarted`, `TouchCompleted`.
-- **Expected final state:** Home remains on the same calm dashboard state, with the swimming lesson remembered as a practical need for later.
-- **Director notes:** Avoid feature dumping. The tap should feel like Dad checking the board while coffee is brewing.
+- **Expected final state:** Home remains on the same calm dashboard state after the weather detail dialog closes, with the swimming lesson remembered as a practical need for later.
+- **Director notes:** Avoid feature dumping. Weather is a supporting morning cue, not the subject; the tap should feel like Dad checking whether the school run needs a jacket while coffee is brewing.
 
 ### 3. Family
 
