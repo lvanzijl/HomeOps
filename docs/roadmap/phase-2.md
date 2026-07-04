@@ -22,6 +22,9 @@ Frontend test maintenance refreshed stale test expectations and fixtures to matc
 
 # Phase 2 Roadmap
 
+## Completed Slice — Home Weather Pill Frontend
+Home Weather Pill Frontend implements frontend phase 1 of the FamilyBoard weather integration by replacing the reserved Home-header weather placeholder with a compact, clickable mini-card that uses the generated `getHomeWeather()` client, shows temperature plus one Dutch departure-advice sentence, and falls back to a stable `Geen weeradvies` state without technical error copy. The slice intentionally adds no backend work, no API-contract regeneration, no Weather Detail dialog, no Agenda weather UI, no Home Assistant integration, no mock layer, no marketing/demo-only scenario, and no binary artifacts.
+
 ## Completed Slice — Weather API Client Contract
 Weather API Client Contract regenerates the existing NSwag OpenAPI and TypeScript client workflow after backend weather API exposure. The generated contract now includes `/api/weather/home`, `/api/weather/detail`, and `/api/weather/agenda`, with Home and Detail exposing departure advice projections and Agenda remaining objective/advice-free. No Weather UI, Home Assistant integration, Open-Meteo frontend contract leakage, dependency changes, project-file changes, or binary artifacts were introduced.
 

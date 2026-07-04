@@ -12,6 +12,8 @@ import { avatarV2DefaultConfiguration } from "../avatarV2/avatarConfig";
 import { familyMembers } from "./familyMembers";
 import {
   DepartureAdviceCategory,
+  DepartureAdviceProjection,
+  HomeWeatherProjection,
   WeatherConditionCategory,
 } from "../api/homeOpsApiClient";
 
@@ -215,15 +217,17 @@ describe("HomeDashboard", () => {
       },
       individualGoals: [],
     });
-    vi.mocked((await weatherApi()).loadHomeWeather).mockResolvedValue({
-      iconKey: "weather-clear",
-      condition: WeatherConditionCategory.Clear,
-      temperatureCelsius: 21.2,
-      departureAdvice: {
-        summary: "geen jas nodig",
-        categories: [DepartureAdviceCategory.NoJacketNeeded],
-      },
-    });
+    vi.mocked((await weatherApi()).loadHomeWeather).mockResolvedValue(
+      new HomeWeatherProjection({
+        iconKey: "weather-clear",
+        condition: WeatherConditionCategory.Clear,
+        temperatureCelsius: 21.2,
+        departureAdvice: new DepartureAdviceProjection({
+          summary: "geen jas nodig",
+          categories: [DepartureAdviceCategory.NoJacketNeeded],
+        }),
+      }),
+    );
   });
 
   it("renders the Thuisdashboard, family members, agenda summary, lists summary, and overflow", async () => {
@@ -237,7 +241,9 @@ describe("HomeDashboard", () => {
 
     expect(screen.getByLabelText("Thuisdashboard")).not.toBeNull();
     expect(screen.getByLabelText("Gezinsleden")).not.toBeNull();
-    expect(screen.getByRole("button", { name: "Weeradvies, 21°, Geen jas nodig" })).not.toBeNull();
+    expect(
+      await screen.findByRole("button", { name: "Weeradvies, 21°, Geen jas nodig" }),
+    ).not.toBeNull();
     expect(screen.getByText("21°")).not.toBeNull();
     expect(screen.getByText("Geen jas nodig")).not.toBeNull();
     expect(screen.getByText("Alex")).not.toBeNull();
