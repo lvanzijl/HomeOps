@@ -795,3 +795,7 @@ Showcase Sample C and Showcase Sample D exposed that the wide head variant's ear
 - Replaced the Home family strip's `family-chip` member buttons with a dedicated `home-family-portrait` presentation and `home-family-portrait-caption` names while preserving button behavior, accessibility labels, and measured touch target size.
 - Reused `FamilyAvatar` and increased the Home visible portrait to 144.0px high, about 83.7% of the Family page reference SVG height, without changing Avatar V2 rendering or the Family Member page.
 - Added the measured report at `docs/reports/2026-07-01-home-portrait-identity-layout/home-portrait-identity-layout.md`; no screenshots, movies, MP4, WebM, or WAV artifacts were produced.
+
+## Weather Advice Localization Refactor — 2026-07-04
+- Centralized the frontend-only Dutch `DepartureAdviceCategory` header labels in `src/HomeOps.Client/src/weatherAdviceLocalization.ts` and updated the Home Weather Pill to consume that shared helper while preserving existing fallback behavior, API contracts, backend behavior, dependencies, generated files, and UI scope.
+- Added the implementation report at `docs/reports/2026-07-04-weather-advice-localization-refactor/weather-advice-localization-refactor.md`; no binary artifacts were introduced.

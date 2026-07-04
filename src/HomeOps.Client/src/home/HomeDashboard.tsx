@@ -36,7 +36,6 @@ import { HomeOpsIcon } from "../icons/homeOpsIcons";
 import { CardHeader, SummaryCard } from "../components/cards/Card";
 import { FamilyAvatar } from "./FamilyAvatar";
 import {
-  DepartureAdviceCategory,
   FamilyCelebrationStatus,
   type HomeWeatherProjection,
   WeatherConditionCategory,
@@ -49,6 +48,7 @@ import {
 import type { FamilyMember } from "./familyMembers";
 import { useVisualReviewNow } from "../visualReviewTime";
 import { loadHomeWeather } from "./homeWeatherApi";
+import { getDepartureAdviceHeaderText } from "../weatherAdviceLocalization";
 
 interface HomeDashboardProps {
   members: readonly FamilyMember[];
@@ -1030,7 +1030,7 @@ function buildHomeWeatherDisplay(
 function resolveHomeWeatherAdvice(weather: HomeWeatherProjection | null): string {
   const categories = weather?.departureAdvice?.categories ?? [];
   const categoryAdvice = categories
-    .map((category) => departureAdviceCopy[category])
+    .map((category) => getDepartureAdviceHeaderText(category))
     .find((copy): copy is string => Boolean(copy));
 
   if (categoryAdvice) {
@@ -1049,17 +1049,6 @@ function resolveHomeWeatherAdvice(weather: HomeWeatherProjection | null): string
   return truncateWeatherAdvice(capitalizeAdvice(summary));
 }
 
-const departureAdviceCopy: Partial<Record<DepartureAdviceCategory, string>> = {
-  [DepartureAdviceCategory.NoJacketNeeded]: "Geen jas nodig",
-  [DepartureAdviceCategory.LightJacket]: "Dunne jas aanbevolen",
-  [DepartureAdviceCategory.WarmJacket]: "Warme jas aan",
-  [DepartureAdviceCategory.RainProtection]: "Regenjas mee",
-  [DepartureAdviceCategory.SunProtection]: "Zonnebrand mee",
-  [DepartureAdviceCategory.FillDrinkBottle]: "Drinkfles vullen",
-  [DepartureAdviceCategory.Windy]: "Veel wind",
-  [DepartureAdviceCategory.Slippery]: "Voorzichtig op pad",
-  [DepartureAdviceCategory.ExtraTravelTime]: "Vertrek iets eerder",
-};
 
 function capitalizeAdvice(copy: string): string {
   if (!copy) {
