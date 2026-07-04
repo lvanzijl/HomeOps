@@ -1,3 +1,6 @@
+## Completed Slice — Home Layout Recovery
+Home Layout Recovery corrects the regressed Home composition by regrouping date, time, and weather into one compact header band, moving family portraits into a bounded horizontal identity row, reducing portrait dominance without returning to chip avatars, and restoring stronger vertical priority to Agenda, Taken, and Boodschappen while keeping Motivation visible and the page within the no-scroll Home viewport contract. The slice intentionally avoids Production Engine, Recording Framework, Marketing Director, Audio Framework, storyboard, backend, API, and binary-artifact changes.
+
 ## Completed Slice — Weather Marketing Video Integration
 Weather Marketing Video Integration brings the completed FamilyBoard weather feature into the existing marketing production flow by using controlled VisualReview backend weather data, keeping the frontend on the generated weather API/client path, showing the Home weather pill and a brief detail dialog beat in the Home scene, and validating subtle Agenda weather context without changing the 9-scene narrative, adding frontend mocks, redesigning weather UI, or committing binary media artifacts.
 
