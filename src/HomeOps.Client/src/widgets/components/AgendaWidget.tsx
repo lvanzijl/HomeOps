@@ -4,6 +4,7 @@ import {
   formatEventTime,
   hydrateAgendaEvents,
 } from "../../agenda/agendaUtils";
+import { loadAgendaWeather } from "../../agenda/agendaWeatherApi";
 import {
   createCalendarAgendaEvent,
   deleteCalendarAgendaEvent,
@@ -12,6 +13,7 @@ import {
   type EventSeriesInput,
 } from "../../agenda/calendarEventsApi";
 import { useAgendaLayerSettings } from "../../agenda/layerSettings";
+import type { AgendaWeatherSlotProjection } from "../../api/homeOpsApiClient";
 import {
   demoReadOnlyEvents,
   demoReadOnlyEventSources,
@@ -20,6 +22,11 @@ import type {
   EventSource,
   NormalizedEvent,
 } from "../../events/eventSourceModel";
+import {
+  formatTemperatureLabel,
+  toWeatherIconKey,
+  WeatherGlyph,
+} from "../../home/weatherPresentation";
 import { FamilyBoardIcon, type FamilyBoardIconName } from "../../design";
 import type { WidgetRenderProps } from "../WidgetRenderer";
 import { useVisualReviewNow } from "../../visualReviewTime";
@@ -54,6 +61,9 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
     useState<AgendaWorkspaceMode>("planning");
   const [calendarEvents, setCalendarEvents] = useState<NormalizedEvent[]>([]);
   const [calendarSources, setCalendarSources] = useState<EventSource[]>([]);
+  const [agendaWeatherSlots, setAgendaWeatherSlots] = useState<
+    AgendaWeatherSlotProjection[]
+  >([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [form, setForm] = useState<EventFormState>(() => createEmptyForm(today));
@@ -92,6 +102,24 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
       })
       .finally(() => {
         if (isMounted) setIsLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    loadAgendaWeather()
+      .then((data) => {
+        if (!isMounted) return;
+        setAgendaWeatherSlots(data?.slots ?? []);
+      })
+      .catch(() => {
+        if (!isMounted) return;
+        setAgendaWeatherSlots([]);
       });
 
     return () => {
@@ -304,6 +332,7 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
       <div className="agenda-mode-canvas">
         {activeWorkspaceMode === "month" ? (
           <MonthWorkspace
+            agendaWeatherSlots={agendaWeatherSlots}
             deletingEventId={deletingEventId}
             events={agendaEvents}
             isEmpty={agendaEvents.length === 0 && !isLoading && !errorMessage}
@@ -316,6 +345,7 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
           />
         ) : (
           <PlanningWorkspace
+            agendaWeatherSlots={agendaWeatherSlots}
             deletingEventId={deletingEventId}
             events={agendaEvents}
             eventSources={eventSources}
@@ -582,6 +612,7 @@ function AgendaSourceSelector({
 }
 
 function PlanningWorkspace({
+  agendaWeatherSlots,
   deletingEventId,
   eventSources,
   events,
@@ -595,6 +626,7 @@ function PlanningWorkspace({
   selectedSources,
   today,
 }: {
+  agendaWeatherSlots: AgendaWeatherSlotProjection[];
   deletingEventId: string | null;
   eventSources: EventSource[];
   events: ReturnType<typeof hydrateAgendaEvents>;
@@ -611,6 +643,10 @@ function PlanningWorkspace({
   const briefing = useMemo(
     () => buildPlanningBriefing(events, today, nowIso),
     [events, nowIso, today],
+  );
+  const todayWeather = useMemo(
+    () => resolveAgendaDayWeather(today, nowIso, agendaWeatherSlots),
+    [agendaWeatherSlots, nowIso, today],
   );
   const [selectedPlanningEventId, setSelectedPlanningEventId] = useState<
     string | null
@@ -629,7 +665,9 @@ function PlanningWorkspace({
     <section className="agenda-planning-workspace" aria-label="Planningoverzicht">
       <div className="agenda-planning-board">
         <TodayBriefingCard
+          agendaWeatherSlots={agendaWeatherSlots}
           briefing={briefing.today}
+          dayWeather={todayWeather}
           deletingEventId={deletingEventId}
           onDelete={onDelete}
           onEdit={onEdit}
@@ -637,6 +675,7 @@ function PlanningWorkspace({
           setSelectedEventId={setSelectedPlanningEventId}
         />
         <PlanningOutlookCard
+          agendaWeatherSlots={agendaWeatherSlots}
           deletingEventId={deletingEventId}
           onDelete={onDelete}
           onEdit={onEdit}
@@ -645,6 +684,7 @@ function PlanningWorkspace({
           setSelectedEventId={setSelectedPlanningEventId}
         />
         <PlanningWeekCard
+          agendaWeatherSlots={agendaWeatherSlots}
           deletingEventId={deletingEventId}
           onDelete={onDelete}
           onEdit={onEdit}
@@ -667,14 +707,18 @@ function PlanningWorkspace({
 }
 
 function TodayBriefingCard({
+  agendaWeatherSlots,
   briefing,
+  dayWeather,
   deletingEventId,
   onDelete,
   onEdit,
   selectedEventId,
   setSelectedEventId,
 }: {
+  agendaWeatherSlots: AgendaWeatherSlotProjection[];
   briefing: PlanningBriefing["today"];
+  dayWeather: AgendaWeatherDisplay | null;
   deletingEventId: string | null;
   onDelete: (eventId: string) => void;
   onEdit: (event: NormalizedEvent) => void;
@@ -689,15 +733,19 @@ function TodayBriefingCard({
           <h5>{briefing.title}</h5>
           <p>{briefing.summary}</p>
         </div>
-        <span className={["agenda-planning-tone", briefing.tone].join(" ")}>
-          {briefing.toneLabel}
-        </span>
+        <div className="agenda-today-header-meta">
+          {dayWeather ? <AgendaWeatherCluster variant="day" weather={dayWeather} /> : null}
+          <span className={["agenda-planning-tone", briefing.tone].join(" ")}>
+            {briefing.toneLabel}
+          </span>
+        </div>
       </header>
 
       {briefing.leadEvent ? (
         <div className="agenda-today-lead">
           <p className="agenda-planning-section-label">{briefing.leadLabel}</p>
           <PlanningEventRow
+            agendaWeatherSlots={agendaWeatherSlots}
             deletingEventId={deletingEventId}
             detail={formatEventTime(briefing.leadEvent)}
             event={briefing.leadEvent}
@@ -730,6 +778,7 @@ function TodayBriefingCard({
           <ul className="agenda-planning-event-list">
             {briefing.supportEvents.map((event) => (
               <PlanningEventRow
+                agendaWeatherSlots={agendaWeatherSlots}
                 deletingEventId={deletingEventId}
                 detail={formatEventTime(event)}
                 event={event}
@@ -750,6 +799,7 @@ function TodayBriefingCard({
 }
 
 function PlanningWeekCard({
+  agendaWeatherSlots,
   deletingEventId,
   onDelete,
   onEdit,
@@ -757,6 +807,7 @@ function PlanningWeekCard({
   setSelectedEventId,
   week,
 }: {
+  agendaWeatherSlots: AgendaWeatherSlotProjection[];
   deletingEventId: string | null;
   onDelete: (eventId: string) => void;
   onEdit: (event: NormalizedEvent) => void;
@@ -794,6 +845,7 @@ function PlanningWeekCard({
               <ul className="agenda-planning-event-list compact">
                 {dayGroup.visibleEvents.map((event) => (
                   <PlanningEventRow
+                    agendaWeatherSlots={agendaWeatherSlots}
                     deletingEventId={deletingEventId}
                     detail={formatEventTime(event)}
                     event={event}
@@ -825,6 +877,7 @@ function PlanningWeekCard({
 }
 
 function PlanningOutlookCard({
+  agendaWeatherSlots,
   deletingEventId,
   onDelete,
   onEdit,
@@ -832,6 +885,7 @@ function PlanningOutlookCard({
   selectedEventId,
   setSelectedEventId,
 }: {
+  agendaWeatherSlots: AgendaWeatherSlotProjection[];
   deletingEventId: string | null;
   onDelete: (eventId: string) => void;
   onEdit: (event: NormalizedEvent) => void;
@@ -851,6 +905,7 @@ function PlanningOutlookCard({
           <ul className="agenda-planning-event-list compact">
             {outlook.visibleEvents.map((event) => (
               <PlanningEventRow
+                agendaWeatherSlots={agendaWeatherSlots}
                 dayLabel={`${formatDutchWeekday(getDateKey(event.startsAt))} ${formatDutchShortDate(getDateKey(event.startsAt))}`}
                 deletingEventId={deletingEventId}
                 detail={formatEventTime(event)}
@@ -939,7 +994,35 @@ function PlanningToolsCard({
   );
 }
 
+type AgendaWeatherDisplay = {
+  accessibleLabel: string;
+  iconKey: string;
+  temperatureLabel: string;
+};
+
+function AgendaWeatherCluster({
+  variant,
+  weather,
+}: {
+  variant: "day" | "item";
+  weather: AgendaWeatherDisplay;
+}) {
+  return (
+    <span
+      aria-label={weather.accessibleLabel}
+      className={["agenda-weather-cluster", variant].join(" ")}
+      title={weather.accessibleLabel}
+    >
+      <span className="agenda-weather-icon" aria-hidden="true">
+        <WeatherGlyph iconKey={weather.iconKey} />
+      </span>
+      <span className="agenda-weather-temperature">{weather.temperatureLabel}</span>
+    </span>
+  );
+}
+
 function PlanningEventRow({
+  agendaWeatherSlots,
   dayLabel,
   deletingEventId,
   detail,
@@ -952,6 +1035,7 @@ function PlanningEventRow({
   setSelectedEventId,
   statusBadge,
 }: {
+  agendaWeatherSlots: AgendaWeatherSlotProjection[];
   dayLabel?: string;
   deletingEventId: string | null;
   detail: string;
@@ -966,6 +1050,7 @@ function PlanningEventRow({
 }) {
   const visual = getAgendaEventVisual(event);
   const showIcon = isSpecialPlanningEvent(event);
+  const weather = resolveAgendaEventWeather(event, agendaWeatherSlots);
 
   return (
     <li
@@ -996,6 +1081,7 @@ function PlanningEventRow({
           <span className="agenda-planning-event-detail">{detail}</span>
           {extra ? <span className="agenda-planning-event-extra">{extra}</span> : null}
         </span>
+        {weather ? <AgendaWeatherCluster variant="item" weather={weather} /> : null}
       </button>
       {selected && event.editable ? (
         <span className="agenda-planning-event-actions">
@@ -1173,6 +1259,7 @@ function WeekDayCard({
 }
 
 function MonthWorkspace({
+  agendaWeatherSlots,
   deletingEventId,
   events,
   isEmpty,
@@ -1183,6 +1270,7 @@ function MonthWorkspace({
   selectedDate,
   today,
 }: {
+  agendaWeatherSlots: AgendaWeatherSlotProjection[];
   deletingEventId: string | null;
   events: ReturnType<typeof hydrateAgendaEvents>;
   isEmpty: boolean;
@@ -1209,6 +1297,7 @@ function MonthWorkspace({
         today={today}
       />
       <SelectedDayPanel
+        agendaWeatherSlots={agendaWeatherSlots}
         deletingEventId={deletingEventId}
         events={selectedDayEvents}
         isAgendaEmpty={isEmpty}
@@ -1310,6 +1399,7 @@ function MonthGrid({
 }
 
 function SelectedDayPanel({
+  agendaWeatherSlots,
   deletingEventId,
   events,
   isAgendaEmpty,
@@ -1318,6 +1408,7 @@ function SelectedDayPanel({
   onEdit,
   selectedDate,
 }: {
+  agendaWeatherSlots: AgendaWeatherSlotProjection[];
   deletingEventId: string | null;
   events: ReturnType<typeof hydrateAgendaEvents>;
   isAgendaEmpty: boolean;
@@ -1344,6 +1435,7 @@ function SelectedDayPanel({
       </header>
       {events.length > 0 ? (
         <AgendaEventList
+          agendaWeatherSlots={agendaWeatherSlots}
           deletingEventId={deletingEventId}
           events={events}
           onDelete={onDelete}
@@ -1359,11 +1451,13 @@ function SelectedDayPanel({
 }
 
 function AgendaEventList({
+  agendaWeatherSlots = [],
   deletingEventId,
   events,
   onDelete,
   onEdit,
 }: {
+  agendaWeatherSlots?: AgendaWeatherSlotProjection[];
   deletingEventId: string | null;
   events: ReturnType<typeof hydrateAgendaEvents>;
   onDelete: (eventId: string) => void;
@@ -1373,6 +1467,7 @@ function AgendaEventList({
     <ul className="agenda-event-list">
       {events.map((event) => {
         const visual = getAgendaEventVisual(event);
+        const weather = resolveAgendaEventWeather(event, agendaWeatherSlots);
         return (
           <li
             className="agenda-event"
@@ -1389,6 +1484,7 @@ function AgendaEventList({
                 {formatEventTime(event)} · {visual.label}
               </small>
             </span>
+            {weather ? <AgendaWeatherCluster variant="item" weather={weather} /> : null}
             {event.editable ? (
               <span className="agenda-event-card-actions">
                 <button type="button" onClick={() => onEdit(event)}>
@@ -2054,6 +2150,101 @@ function toIsoDate(date: Date) {
 }
 function getDateKey(dateTime: string): string {
   return dateTime.slice(0, 10);
+}
+
+function resolveAgendaDayWeather(
+  date: string,
+  nowIso: string,
+  slots: AgendaWeatherSlotProjection[],
+): AgendaWeatherDisplay | null {
+  const dailySlots = slots
+    .filter((slot) => hasAgendaWeatherData(slot) && getWeatherSlotDate(slot) === date)
+    .sort(compareAgendaWeatherSlots);
+  if (dailySlots.length === 0) {
+    return null;
+  }
+
+  const now = new Date(nowIso).getTime();
+  const activeSlot = dailySlots.find((slot) => {
+    const startsAt = slot.startsAtUtc?.getTime();
+    const endsAt = slot.endsAtUtc?.getTime();
+    return startsAt !== undefined && endsAt !== undefined && startsAt <= now && now < endsAt;
+  });
+  const nextSlot = dailySlots.find((slot) => {
+    const startsAt = slot.startsAtUtc?.getTime();
+    return startsAt !== undefined && startsAt >= now;
+  });
+
+  return buildAgendaWeatherDisplay(activeSlot ?? nextSlot ?? dailySlots[0], "Vandaag");
+}
+
+function resolveAgendaEventWeather(
+  event: ReturnType<typeof hydrateAgendaEvents>[number],
+  slots: AgendaWeatherSlotProjection[],
+): AgendaWeatherDisplay | null {
+  if (event.allDay) {
+    return null;
+  }
+
+  const eventStart = new Date(event.startsAt);
+  if (Number.isNaN(eventStart.getTime())) {
+    return null;
+  }
+
+  const slot = slots.find((candidate) => {
+    if (!hasAgendaWeatherData(candidate)) {
+      return false;
+    }
+
+    const startsAt = candidate.startsAtUtc?.getTime();
+    const endsAt = candidate.endsAtUtc?.getTime();
+    if (startsAt === undefined || endsAt === undefined) {
+      return false;
+    }
+
+    const timestamp = eventStart.getTime();
+    return startsAt <= timestamp && timestamp < endsAt;
+  });
+
+  return slot ? buildAgendaWeatherDisplay(slot, event.title) : null;
+}
+
+function buildAgendaWeatherDisplay(
+  slot: AgendaWeatherSlotProjection,
+  contextLabel: string,
+): AgendaWeatherDisplay | null {
+  if (!hasAgendaWeatherData(slot)) {
+    return null;
+  }
+
+  return {
+    accessibleLabel: `${contextLabel}, ${formatTemperatureLabel(slot.temperatureCelsius)}, ${slot.summary?.trim() || "weercontext"}`,
+    iconKey: toWeatherIconKey(slot.condition),
+    temperatureLabel: formatTemperatureLabel(slot.temperatureCelsius),
+  };
+}
+
+function hasAgendaWeatherData(slot: AgendaWeatherSlotProjection) {
+  return (
+    slot.startsAtUtc instanceof Date &&
+    slot.endsAtUtc instanceof Date &&
+    typeof slot.temperatureCelsius === "number" &&
+    slot.condition !== undefined
+  );
+}
+
+function compareAgendaWeatherSlots(
+  left: AgendaWeatherSlotProjection,
+  right: AgendaWeatherSlotProjection,
+) {
+  return (
+    (left.startsAtUtc?.getTime() ?? Number.MAX_SAFE_INTEGER) -
+    (right.startsAtUtc?.getTime() ?? Number.MAX_SAFE_INTEGER)
+  );
+}
+
+function getWeatherSlotDate(slot: AgendaWeatherSlotProjection) {
+  return slot.startsAtUtc?.toISOString().slice(0, 10) ?? "";
 }
 
 function toUserFacingError(error: unknown, fallback: string): string {

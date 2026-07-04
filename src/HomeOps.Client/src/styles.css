@@ -6443,7 +6443,7 @@ button {
   box-shadow: 0 8px 18px rgb(120 90 60 / 7%);
   display: grid;
   gap: 0.7rem;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr) auto;
   padding: 0.78rem;
 }
 
@@ -6494,7 +6494,7 @@ button {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
-  grid-column: 2;
+  grid-column: 2 / -1;
   margin-top: 0.25rem;
 }
 
@@ -6873,6 +6873,13 @@ button {
   margin-top: 0.18rem;
 }
 
+.agenda-today-header-meta {
+  align-items: end;
+  display: grid;
+  gap: 0.45rem;
+  justify-items: end;
+}
+
 .agenda-planning-tone {
   align-items: center;
   border-radius: 999px;
@@ -6982,13 +6989,18 @@ button {
 }
 
 .agenda-planning-event-hitbox {
+  align-items: start;
   background: transparent;
   border: 0;
   cursor: pointer;
+  display: grid;
+  gap: 0.7rem;
+  grid-template-columns: minmax(0, 1fr) auto;
   margin: 0;
   min-width: 0;
   padding: 0;
   text-align: left;
+  width: 100%;
 }
 
 .agenda-planning-event-main {
@@ -7034,6 +7046,56 @@ button {
 
 .agenda-planning-event-extra {
   line-height: 1.35;
+}
+
+.agenda-weather-cluster {
+  align-items: center;
+  border-radius: 999px;
+  display: inline-grid;
+  gap: 0.35rem;
+  grid-auto-flow: column;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.agenda-weather-cluster.day {
+  background: rgb(255 255 255 / 72%);
+  border: 1px solid rgb(191 219 254 / 76%);
+  color: #33506b;
+  min-height: 1.85rem;
+  padding: 0.2rem 0.55rem;
+}
+
+.agenda-weather-cluster.item {
+  align-self: start;
+  background: rgb(255 255 255 / 68%);
+  border: 1px solid rgb(219 234 254 / 80%);
+  color: #47627b;
+  inline-size: 4.6rem;
+  justify-self: end;
+  min-height: 1.9rem;
+  padding: 0.2rem 0.5rem;
+}
+
+.agenda-weather-icon {
+  color: #2563eb;
+  display: inline-flex;
+}
+
+.agenda-weather-icon svg {
+  height: 0.95rem;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+  width: 0.95rem;
+}
+
+.agenda-weather-temperature {
+  color: #0f172a;
+  font-size: 0.75rem;
+  font-weight: 850;
+  letter-spacing: -0.01em;
 }
 
 .agenda-planning-event-actions {
@@ -7174,6 +7236,10 @@ button {
 
   .agenda-planning-tools .source-selector {
     padding: 0.55rem;
+  }
+
+  .agenda-weather-cluster.item {
+    display: none;
   }
 }
 
