@@ -1,3 +1,6 @@
+## Completed Slice — Agenda Copy Cleanup
+Agenda Copy Cleanup removes the remaining Agenda preview/designer copy, keeps a single visible Agenda page title, renames the remaining Agenda-facing labels to the approved Dutch product wording, and preserves existing layout, event CRUD, source filtering, backend APIs, schema, and binary-artifact boundaries.
+
 ## Completed Slice — Agenda Planning Briefing Redesign
 Agenda Planning Briefing Redesign implements the approved briefing-board contract on top of the Planning-first Agenda IA. The default Agenda surface now reserves a dominant Today briefing region, a quieter day-grouped Deze week region, a compact Vooruitkijken reassurance list, and a quiet Planning tools utility region for appointment planning, date lookup, month access, and source filters. Default Planning metadata and action noise are reduced, tomorrow is absorbed into the week grouping instead of remaining a top-level section, and existing Month planning, event CRUD, source filtering, backend behavior, APIs, and schema remain unchanged.
 

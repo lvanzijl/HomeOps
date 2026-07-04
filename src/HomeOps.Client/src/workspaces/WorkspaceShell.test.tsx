@@ -161,4 +161,16 @@ describe('WorkspaceShell API-backed layouts', () => {
     expect(agendaPageBody).not.toBeNull();
     expect(agendaPageBody?.querySelector('[aria-label="Agenda widgets"]')).not.toBeNull();
   });
+
+  it('shows only the Agenda page title in the Agenda workspace header', async () => {
+    const user = userEvent.setup();
+    render(<WorkspaceShell />);
+
+    await screen.findByText('Open Agenda');
+    await user.click(screen.getByRole('button', { name: 'Agenda' }));
+
+    expect(screen.getByRole('heading', { name: 'Agenda', level: 2 })).not.toBeNull();
+    expect(screen.queryByText('Dagelijkse gezinsplek')).toBeNull();
+    expect(screen.queryByText('Gedeelde gezinsplanning en afspraken.')).toBeNull();
+  });
 });

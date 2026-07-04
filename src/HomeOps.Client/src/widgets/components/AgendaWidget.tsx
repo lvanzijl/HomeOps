@@ -87,7 +87,7 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
         setErrorMessage(
           error instanceof Error
             ? error.message
-            : "HomeOps Agenda-gebeurtenissen konden niet worden geladen.",
+            : "De agenda kon niet worden geladen.",
         );
       })
       .finally(() => {
@@ -127,6 +127,8 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
   const nowIso = visualReviewNow
     ? visualReviewNow.toISOString()
     : new Date().toISOString();
+  const hasAgendaHeaderStatus = isLoading || errorMessage !== null;
+  const showAgendaHeader = activeWorkspaceMode === "month" || hasAgendaHeaderStatus;
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -208,60 +210,53 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
 
   return (
     <article className="widget-card agenda-widget" aria-label={instance.title}>
-      <div className="agenda-header">
-        <div className="agenda-command-main">
-          <div className="agenda-command-title">
-            <p className="widget-type">Familieplanning</p>
-            <h3>{instance.title}</h3>
-            <p>
-              {activeWorkspaceMode === "planning"
-                ? "Vandaag, straks en wat er binnenkort aankomt."
-                : "Kies een dag om ruimte te vinden of een afspraak in te plannen."}
-            </p>
-          </div>
+      {showAgendaHeader ? (
+        <div className="agenda-header">
           {activeWorkspaceMode === "month" ? (
-            <div className="agenda-command-actions">
-              <button
-                className="agenda-command-secondary"
-                type="button"
-                onClick={() => setActiveWorkspaceMode("planning")}
-              >
-                Terug naar planning
-              </button>
-              <button
-                className="agenda-command-action"
-                type="button"
-                onClick={() => openNewEventForm(selectedDate || today)}
-              >
-                Gebeurtenis toevoegen
-              </button>
+            <div className="agenda-command-main">
+              <div className="agenda-command-actions">
+                <button
+                  className="agenda-command-secondary"
+                  type="button"
+                  onClick={() => setActiveWorkspaceMode("planning")}
+                >
+                  Terug naar planning
+                </button>
+                <button
+                  className="agenda-command-action"
+                  type="button"
+                  onClick={() => openNewEventForm(selectedDate || today)}
+                >
+                  Afspraak toevoegen
+                </button>
+              </div>
             </div>
           ) : null}
-        </div>
-        <div className="agenda-command-meta">
-          <div className="agenda-command-rail">
-            {isLoading ? (
-              <p className="agenda-status" role="status">
-                Agenda laden…
-              </p>
-            ) : null}
-            {errorMessage ? (
-              <p className="agenda-status agenda-status-error" role="alert">
-                {errorMessage}
-              </p>
-            ) : null}
-            {activeWorkspaceMode === "month" ? (
-              <AgendaSourceSelector
-                eventSources={eventSources}
-                selectedSources={selectedSources}
-                onToggleSource={(sourceId, enabled) =>
-                  setSourceEnabled("months", sourceId, enabled)
-                }
-              />
-            ) : null}
+          <div className="agenda-command-meta">
+            <div className="agenda-command-rail">
+              {isLoading ? (
+                <p className="agenda-status" role="status">
+                  Agenda laden…
+                </p>
+              ) : null}
+              {errorMessage ? (
+                <p className="agenda-status agenda-status-error" role="alert">
+                  {errorMessage}
+                </p>
+              ) : null}
+              {activeWorkspaceMode === "month" ? (
+                <AgendaSourceSelector
+                  eventSources={eventSources}
+                  selectedSources={selectedSources}
+                  onToggleSource={(sourceId, enabled) =>
+                    setSourceEnabled("months", sourceId, enabled)
+                  }
+                />
+              ) : null}
+            </div>
           </div>
         </div>
-      </div>
+      ) : null}
 
       {isEventFormOpen || editingEventId !== null ? (
         <div
@@ -274,18 +269,14 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
             role="dialog"
             aria-modal="true"
             aria-label={
-              editingEventId ? "Gebeurtenis bewerken" : "Gebeurtenis toevoegen"
+              editingEventId ? "Afspraak bewerken" : "Afspraak toevoegen"
             }
             onClick={(event) => event.stopPropagation()}
           >
             <header>
               <div>
                 <p className="eyebrow">Agenda</p>
-                <h3>
-                  {editingEventId
-                    ? "Gebeurtenis bewerken"
-                    : "Gebeurtenis toevoegen"}
-                </h3>
+                <h3>{editingEventId ? "Afspraak bewerken" : "Afspraak toevoegen"}</h3>
               </div>
               <button
                 type="button"
@@ -366,7 +357,7 @@ function EventConversationForm({
   today: string;
 }) {
   const titleIsValid = form.title.trim().length > 0;
-  const submitLabel = isEditing ? "Gebeurtenis opslaan" : "Gebeurtenis maken";
+  const submitLabel = isEditing ? "Afspraak opslaan" : "Afspraak maken";
 
   return (
     <form
@@ -393,9 +384,7 @@ function EventConversationForm({
 
         {question === "date" ? (
           <div className="task-date-question">
-            <p className="task-question-label">
-              Wanneer moet het gezin dit onthouden?
-            </p>
+            <p className="task-question-label">Wanneer is het?</p>
             <div
               className="task-choice-group horizontal"
               aria-label="Snelle datumkeuzes"
@@ -525,7 +514,7 @@ function EventConversationForm({
                 onChange={(event) =>
                   onChange({ ...form, description: event.target.value })
                 }
-                placeholder="Optionele notitie voor het gezin"
+                placeholder="Notitie"
               />
             </label>
             <p className="task-dialog-summary">{eventSummary(form)}</p>
@@ -572,7 +561,7 @@ function AgendaSourceSelector({
 }) {
   return (
     <div className="source-selector" role="group" aria-label="Zichtbaar in de agenda">
-      <span className="source-selector-label">Bronnen</span>
+      <span className="source-selector-label">Agenda's</span>
       {eventSources.map((source) => (
         <label key={source.id}>
           <input
@@ -638,13 +627,6 @@ function PlanningWorkspace({
 
   return (
     <section className="agenda-planning-workspace" aria-label="Planningoverzicht">
-      <header className="agenda-planning-header">
-        <div>
-          <p className="eyebrow">Planning</p>
-          <h4>Wat moet het gezin hierna weten?</h4>
-          <p>Vandaag eerst, daarna de vorm van de week en pas dan rustig vooruitkijken.</p>
-        </div>
-      </header>
       <div className="agenda-planning-board">
         <TodayBriefingCard
           briefing={briefing.today}
@@ -789,7 +771,7 @@ function PlanningWeekCard({
           <p className="eyebrow">Deze week</p>
           <h5>
             {week.dayGroups.length > 0
-              ? `${week.totalEvents} ${week.totalEvents === 1 ? "afspraak" : "afspraken"} in beeld`
+              ? `${week.totalEvents} ${week.totalEvents === 1 ? "afspraak" : "afspraken"}`
               : "De rest van de week is rustig"}
           </h5>
           <p>{week.summary}</p>
@@ -835,7 +817,6 @@ function PlanningWeekCard({
         </div>
       ) : (
         <div className="agenda-planning-group-empty">
-          <strong>Geen extra drukte zichtbaar</strong>
           <p>Na vandaag blijft de komende week voorlopig ruim.</p>
         </div>
       )}
@@ -863,14 +844,6 @@ function PlanningOutlookCard({
       <header className="agenda-planning-card-header">
         <div>
           <p className="eyebrow">Vooruitkijken</p>
-          <h5>
-            {outlook.events.length > 0 ? "Verder vooruit blijft in beeld" : "Nog niets verder vooruit"}
-          </h5>
-          <p>
-            {outlook.events.length > 0
-              ? "Compacte geruststelling voor wat later komt."
-              : "Zodra er iets na deze week staat, verschijnt het hier rustig in beeld."}
-          </p>
         </div>
       </header>
       {outlook.events.length > 0 ? (
@@ -899,7 +872,6 @@ function PlanningOutlookCard({
         </>
       ) : (
         <div className="agenda-planning-group-empty">
-          <strong>De horizon is rustig</strong>
           <p>Gebruik de maandweergave zodra je verder vooruit wilt plannen.</p>
         </div>
       )}
@@ -925,12 +897,10 @@ function PlanningToolsCard({
   today: string;
 }) {
   return (
-    <aside className="agenda-planning-card agenda-planning-tools" aria-label="Planning tools">
+    <aside className="agenda-planning-card agenda-planning-tools" aria-label="Plannen">
       <header className="agenda-planning-card-header">
         <div>
-          <p className="eyebrow">Planning tools</p>
-          <h5>Rustige hulpruimte</h5>
-          <p>Pas gebruiken wanneer iemand wil plannen of iets wil opzoeken.</p>
+          <h5>Plannen</h5>
         </div>
       </header>
       <div className="agenda-planning-tool-actions">
@@ -1365,7 +1335,7 @@ function SelectedDayPanel({
           <p>
             {events.length === 0
               ? "Nog geen afspraken."
-              : `${events.length} op de planning.`}
+              : `${events.length} ${events.length === 1 ? "afspraak" : "afspraken"}.`}
           </p>
         </div>
         <button className="compact-action" type="button" onClick={onAddEvent}>
@@ -1381,12 +1351,7 @@ function SelectedDayPanel({
         />
       ) : (
         <div className="agenda-day-empty-state">
-          <strong>
-            {isAgendaEmpty
-              ? "Begin met de eerste gebeurtenis"
-              : "Deze dag is nog leeg"}
-          </strong>
-          <p>Ruimte in de agenda.</p>
+          <strong>{isAgendaEmpty ? "Nog geen afspraken" : "Geen afspraken"}</strong>
         </div>
       )}
     </aside>
@@ -1959,7 +1924,7 @@ function buildTodayBriefing(
           ? `Er staan vandaag nog ${todayEvents.length - 1} andere ${todayEvents.length - 1 === 1 ? "afspraak" : "afspraken"} klaar.`
           : "De belangrijkste afspraak loopt nu.",
       supportEvents,
-      title: "Nu telt vooral dit",
+      title: "Nu",
       tone: "busy",
       toneLabel: "Aandacht nu",
     };

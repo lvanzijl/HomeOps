@@ -289,9 +289,9 @@ async function returnToPlanning(user: ReturnType<typeof userEvent.setup>) {
 async function openCreateDialog(user: ReturnType<typeof userEvent.setup>) {
   const trigger =
     screen.queryByRole("button", { name: "Afspraak plannen" }) ??
-    (await screen.findByRole("button", { name: "Gebeurtenis toevoegen" }));
+    (await screen.findByRole("button", { name: "Afspraak toevoegen" }));
   await user.click(trigger);
-  return screen.getByRole("dialog", { name: "Gebeurtenis toevoegen" });
+  return screen.getByRole("dialog", { name: "Afspraak toevoegen" });
 }
 
 async function continueThroughDate(user: ReturnType<typeof userEvent.setup>) {
@@ -355,20 +355,22 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     render(<AgendaWidget {...widgetProps} />);
 
     expect(await screen.findByLabelText("Planningoverzicht")).not.toBeNull();
-    expect(screen.getByText("Wat moet het gezin hierna weten?")).not.toBeNull();
+    expect(screen.queryByRole("heading", { name: "Agenda", level: 3 })).toBeNull();
+    expect(screen.queryByText("Familieplanning")).toBeNull();
+    expect(screen.queryByText("Wat moet het gezin hierna weten?")).toBeNull();
     expect(screen.queryByRole("button", { name: "Week" })).toBeNull();
     expect(screen.queryByRole("button", { name: "Lijst" })).toBeNull();
     expect(screen.getByLabelText("Vandaag briefing")).not.toBeNull();
     expect(screen.getByLabelText("Vooruitkijken")).not.toBeNull();
-    expect(screen.getByLabelText("Planning tools")).not.toBeNull();
+    expect(screen.getByLabelText("Plannen")).not.toBeNull();
     expect(screen.getByRole("button", { name: "Afspraak plannen" })).not.toBeNull();
     expect(screen.getByRole("button", { name: "Maand bekijken" })).not.toBeNull();
     expect(
-      within(screen.getByLabelText("Planning tools")).getByRole("group", {
+      within(screen.getByLabelText("Plannen")).getByRole("group", {
         name: "Zichtbaar in de agenda",
       }),
     ).not.toBeNull();
-    expect(screen.getByText("Bronnen")).not.toBeNull();
+    expect(screen.getByText("Agenda's")).not.toBeNull();
 
     await openMonthView(user);
     expect(screen.getByRole("button", { name: "Terug naar planning" })).not.toBeNull();
@@ -383,14 +385,14 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
 
     await openCreateDialog(user);
     expect(
-      screen.getByRole("dialog", { name: "Gebeurtenis toevoegen" }),
+      screen.getByRole("dialog", { name: "Afspraak toevoegen" }),
     ).not.toBeNull();
     await user.type(
       screen.getByLabelText("Wat gebeurt er?"),
       "New Calendar Event",
     );
     await continueToDetails(user);
-    await user.click(screen.getByRole("button", { name: "Gebeurtenis maken" }));
+    await user.click(screen.getByRole("button", { name: "Afspraak maken" }));
 
     expect(calendarEventsApi.createCalendarAgendaEvent).toHaveBeenCalledWith(
       expect.objectContaining({ title: "New Calendar Event" }),
@@ -414,9 +416,7 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
       "Updated Dentist",
     );
     await continueToDetails(user);
-    await user.click(
-      screen.getByRole("button", { name: "Gebeurtenis opslaan" }),
-    );
+    await user.click(screen.getByRole("button", { name: "Afspraak opslaan" }));
 
     expect(calendarEventsApi.updateCalendarAgendaEvent).toHaveBeenCalledWith(
       "dentist",
@@ -525,7 +525,7 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
       target: { value: "08:00" },
     });
     await user.click(screen.getByRole("button", { name: "Verder" }));
-    await user.click(screen.getByRole("button", { name: "Gebeurtenis maken" }));
+    await user.click(screen.getByRole("button", { name: "Afspraak maken" }));
 
     expect((await screen.findByRole("alert")).textContent).toContain(
       "De eindtijd moet gelijk aan of na de begintijd zijn.",
@@ -550,7 +550,7 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
       target: { value: "2026-07-02" },
     });
     await user.click(screen.getByRole("button", { name: "Verder" }));
-    await user.click(screen.getByRole("button", { name: "Gebeurtenis maken" }));
+    await user.click(screen.getByRole("button", { name: "Afspraak maken" }));
 
     expect(calendarEventsApi.createCalendarAgendaEvent).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -564,7 +564,7 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     await openCreateDialog(user);
     await user.type(screen.getByLabelText("Wat gebeurt er?"), "Timed Trip");
     await continueToDetails(user);
-    await user.click(screen.getByRole("button", { name: "Gebeurtenis maken" }));
+    await user.click(screen.getByRole("button", { name: "Afspraak maken" }));
 
     expect(
       calendarEventsApi.createCalendarAgendaEvent,
@@ -588,7 +588,7 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     await user.keyboard("{Escape}");
 
     expect(
-      screen.queryByRole("dialog", { name: "Gebeurtenis toevoegen" }),
+      screen.queryByRole("dialog", { name: "Afspraak toevoegen" }),
     ).toBeNull();
     expect(calendarEventsApi.createCalendarAgendaEvent).not.toHaveBeenCalled();
   });
@@ -620,9 +620,7 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
       ),
     );
     await continueToDetails(user);
-    await user.click(
-      screen.getByRole("button", { name: "Gebeurtenis opslaan" }),
-    );
+    await user.click(screen.getByRole("button", { name: "Afspraak opslaan" }));
 
     expect((await screen.findByRole("alert")).textContent).toContain(
       "De eindtijd moet gelijk aan of na de begintijd zijn.",
@@ -701,7 +699,7 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     expect(screen.getByLabelText("Vandaag briefing")).not.toBeNull();
     expect(screen.getByLabelText("Deze week")).not.toBeNull();
     expect(screen.getByLabelText("Vooruitkijken")).not.toBeNull();
-    expect(screen.getByLabelText("Planning tools")).not.toBeNull();
+    expect(screen.getByLabelText("Plannen")).not.toBeNull();
     expect(screen.queryByLabelText("Morgen")).toBeNull();
     expect(screen.getByText("Deze week")).not.toBeNull();
     await waitFor(() => {
@@ -832,7 +830,7 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
       ),
     );
     expect(
-      screen.getByRole("dialog", { name: "Gebeurtenis bewerken" }),
+      screen.getByRole("dialog", { name: "Afspraak bewerken" }),
     ).not.toBeNull();
     await user.keyboard("{Escape}");
 
