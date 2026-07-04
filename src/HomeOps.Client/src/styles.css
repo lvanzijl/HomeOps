@@ -1216,6 +1216,82 @@ button {
   letter-spacing: -0.01em;
 }
 
+.home-weather-pill {
+  align-items: center;
+  align-self: stretch;
+  background: rgb(255 255 255 / 76%);
+  border: 1px solid rgb(191 219 254 / 82%);
+  border-radius: 1.15rem;
+  box-shadow: 0 10px 24px rgb(148 163 184 / 14%);
+  color: #33506b;
+  cursor: pointer;
+  display: grid;
+  gap: 0.7rem;
+  grid-template-columns: auto minmax(0, 1fr);
+  max-width: 15rem;
+  min-height: 4.85rem;
+  min-width: 0;
+  padding: 0.7rem 0.85rem;
+  text-align: left;
+  width: 100%;
+}
+
+.home-weather-pill:hover,
+.home-weather-pill:focus-visible {
+  background: rgb(255 255 255 / 88%);
+  border-color: rgb(147 197 253 / 88%);
+  color: #1e3a5f;
+}
+
+.home-weather-pill[data-status="loading"] {
+  opacity: 0.92;
+}
+
+.home-weather-icon-shell {
+  align-items: center;
+  background: linear-gradient(180deg, #fef3c7, #e0f2fe);
+  border-radius: 1rem;
+  color: #2563eb;
+  display: inline-flex;
+  height: 2.9rem;
+  justify-content: center;
+  width: 2.9rem;
+}
+
+.home-weather-icon-shell svg {
+  height: 1.7rem;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+  width: 1.7rem;
+}
+
+.home-weather-copy {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.home-weather-temperature {
+  color: #0f172a;
+  font-size: 1.3rem;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.home-weather-advice {
+  color: #475569;
+  display: block;
+  font-size: 0.83rem;
+  font-weight: 700;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .family-strip {
   align-content: stretch;
   display: flex;
@@ -1601,7 +1677,7 @@ button {
 
 @media (max-width: 900px) {
   .home-hero {
-    grid-template-columns: minmax(12rem, 1fr) auto;
+    grid-template-columns: minmax(12rem, 1fr) minmax(11rem, 14rem);
   }
 
   .quick-capture {
@@ -1633,6 +1709,7 @@ button {
   }
 
   .family-strip {
+    grid-column: 1 / -1;
     justify-content: flex-start;
   }
 }

@@ -10,6 +10,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { HomeDashboard } from "./HomeDashboard";
 import { avatarV2DefaultConfiguration } from "../avatarV2/avatarConfig";
 import { familyMembers } from "./familyMembers";
+import {
+  DepartureAdviceCategory,
+  DepartureAdviceProjection,
+  HomeWeatherProjection,
+  WeatherConditionCategory,
+} from "../api/homeOpsApiClient";
 
 vi.mock("../agenda/calendarEventsApi", () => ({
   loadCalendarAgendaData: vi.fn(),
@@ -30,6 +36,9 @@ vi.mock("../demo/demoAgendaData", () => ({
   demoReadOnlyEvents: [],
   demoReadOnlyEventSources: [],
 }));
+vi.mock("./homeWeatherApi", () => ({
+  loadHomeWeather: vi.fn(),
+}));
 
 async function agendaApi() {
   return await import("../agenda/calendarEventsApi");
@@ -45,6 +54,9 @@ async function tasksApi() {
 }
 async function motivationApi() {
   return await import("../motivationData");
+}
+async function weatherApi() {
+  return await import("./homeWeatherApi");
 }
 
 afterEach(() => {
@@ -205,6 +217,17 @@ describe("HomeDashboard", () => {
       },
       individualGoals: [],
     });
+    vi.mocked((await weatherApi()).loadHomeWeather).mockResolvedValue(
+      new HomeWeatherProjection({
+        iconKey: "weather-clear",
+        condition: WeatherConditionCategory.Clear,
+        temperatureCelsius: 21.2,
+        departureAdvice: new DepartureAdviceProjection({
+          summary: "geen jas nodig",
+          categories: [DepartureAdviceCategory.NoJacketNeeded],
+        }),
+      }),
+    );
   });
 
   it("renders the Thuisdashboard, family members, agenda summary, lists summary, and overflow", async () => {
@@ -218,6 +241,11 @@ describe("HomeDashboard", () => {
 
     expect(screen.getByLabelText("Thuisdashboard")).not.toBeNull();
     expect(screen.getByLabelText("Gezinsleden")).not.toBeNull();
+    expect(
+      await screen.findByRole("button", { name: "Weeradvies, 21°, Geen jas nodig" }),
+    ).not.toBeNull();
+    expect(screen.getByText("21°")).not.toBeNull();
+    expect(screen.getByText("Geen jas nodig")).not.toBeNull();
     expect(screen.getByText("Alex")).not.toBeNull();
     expect(await screen.findByText("Event 1")).not.toBeNull();
     expect(screen.getAllByText("Morgen").length).toBeGreaterThan(0);
@@ -529,6 +557,26 @@ describe("HomeDashboard", () => {
     await user.keyboard("{Escape}");
 
     expect(screen.queryByRole("dialog", { name: "Taak toevoegen vanaf Thuis" })).toBeNull();
+  });
+
+  it("keeps a stable weather fallback when the Home weather request fails", async () => {
+    vi.mocked((await weatherApi()).loadHomeWeather).mockRejectedValue(
+      new Error("weather unavailable"),
+    );
+
+    render(
+      <HomeDashboard
+        members={familyMembers}
+        onNavigate={vi.fn()}
+        onSelectFamilyMember={vi.fn()}
+      />,
+    );
+
+    expect(
+      await screen.findByRole("button", { name: "Weeradvies, Geen weeradvies" }),
+    ).not.toBeNull();
+    expect(screen.getByText("Geen weeradvies")).not.toBeNull();
+    expect(screen.queryByText("weather unavailable")).toBeNull();
   });
 
 });
