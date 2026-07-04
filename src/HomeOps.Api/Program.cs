@@ -25,7 +25,14 @@ builder.Services.AddOpenApiDocument();
 builder.Services.AddSingleton<VisualReviewMarketingTimeProvider>();
 
 builder.Services.AddHttpClient<OpenMeteoWeatherProvider>();
-builder.Services.AddSingleton<IWeatherSnapshotSource, OpenMeteoWeatherSnapshotSource>();
+if (builder.Environment.IsEnvironment("VisualReview"))
+{
+    builder.Services.AddSingleton<IWeatherSnapshotSource, VisualReviewMarketingWeatherSnapshotSource>();
+}
+else
+{
+    builder.Services.AddSingleton<IWeatherSnapshotSource, OpenMeteoWeatherSnapshotSource>();
+}
 builder.Services.AddSingleton(new WeatherLocationOptions(
     builder.Configuration.GetValue<decimal?>("Weather:Latitude") ?? 52.3676m,
     builder.Configuration.GetValue<decimal?>("Weather:Longitude") ?? 4.9041m));
