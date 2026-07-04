@@ -242,7 +242,7 @@ async function ensureAgendaPage(page) {
 }
 
 function agendaDialog(page) {
-  return page.getByRole('dialog', { name: 'Gebeurtenis toevoegen', exact: true });
+  return page.getByRole('dialog', { name: 'Afspraak toevoegen', exact: true });
 }
 
 function savedFilmavondEvent(page) {
@@ -268,14 +268,14 @@ async function continueAgendaDialog(dialog, description, options = {}) {
 }
 
 async function waitForFilmavondDetailsOrSaved(page, dialog) {
-  const detailsSaveButton = dialog.getByRole('button', { name: 'Gebeurtenis maken', exact: true });
+  const detailsSaveButton = dialog.getByRole('button', { name: 'Afspraak maken', exact: true });
   const outcome = await Promise.race([
     detailsSaveButton.waitFor({ state: 'visible', timeout: 10000 }).then(() => 'details').catch(() => undefined),
     savedFilmavondEvent(page).waitFor({ state: 'visible', timeout: 10000 }).then(() => 'saved').catch(() => undefined),
     dialog.waitFor({ state: 'hidden', timeout: 10000 }).then(() => 'closed').catch(() => undefined),
   ]);
   if (outcome === 'details') {
-    await expectEnabled(detailsSaveButton, 'Agenda create-event Save button after details step');
+    await expectEnabled(detailsSaveButton, 'Agenda add-event Save button after details step');
     return outcome;
   }
   if (outcome === 'saved') return outcome;
@@ -322,7 +322,7 @@ const agendaRecordingActions = Object.freeze({
     });
     await measureAgendaStep(eventBus, scene, 'add-filmavond', 'question-1-title-completed', async () => {
       await continueAgendaDialog(dialog, 'Agenda event title Continue button', action);
-      await expectSingle(dialog.getByText('Wanneer moet het gezin dit onthouden?', { exact: true }), 'Agenda event date question');
+      await expectSingle(dialog.getByText('Wanneer is het?', { exact: true }), 'Agenda event date question');
     });
     await measureAgendaStep(eventBus, scene, 'add-filmavond', 'question-2-date-completed', async () => {
       await continueAgendaDialog(dialog, 'Agenda event date Continue button', action);
@@ -343,11 +343,11 @@ const agendaRecordingActions = Object.freeze({
 
     const dialog = agendaDialog(page);
     await expectSingle(dialog, 'Agenda add-event dialog before save');
-    const saveButton = dialog.getByRole('button', { name: 'Gebeurtenis maken', exact: true });
-    await expectEnabled(saveButton, 'Agenda create-event Save button');
+    const saveButton = dialog.getByRole('button', { name: 'Afspraak maken', exact: true });
+    await expectEnabled(saveButton, 'Agenda add-event Save button');
 
     const box = await saveButton.boundingBox();
-    if (!box) throw new Error('Agenda create-event Save button is visible but has no bounding box.');
+    if (!box) throw new Error('Agenda add-event Save button is visible but has no bounding box.');
     await touch.moveTo({ x: box.x + box.width / 2, y: box.y + box.height / 2 }, action);
     eventBus?.publish(recordingEventTypes.DialogSaveOrCancelClicked, { sceneId: scene?.id, actionId: 'save-filmavond', dialogId: 'agenda-add-event' });
     const [saveResponse] = await Promise.all([
