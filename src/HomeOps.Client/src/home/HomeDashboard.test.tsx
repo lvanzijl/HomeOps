@@ -11,9 +11,15 @@ import { HomeDashboard } from "./HomeDashboard";
 import { avatarV2DefaultConfiguration } from "../avatarV2/avatarConfig";
 import { familyMembers } from "./familyMembers";
 import {
+  CurrentWeatherProjection,
+  DailyWeatherProjection,
   DepartureAdviceCategory,
+  DepartureAdviceConfidence,
   DepartureAdviceProjection,
   HomeWeatherProjection,
+  HourlyWeatherProjection,
+  WeatherDetailProjection,
+  WeatherDetailsProjection,
   WeatherConditionCategory,
 } from "../api/homeOpsApiClient";
 
@@ -39,6 +45,9 @@ vi.mock("../demo/demoAgendaData", () => ({
 vi.mock("./homeWeatherApi", () => ({
   loadHomeWeather: vi.fn(),
 }));
+vi.mock("./weatherDetailApi", () => ({
+  loadWeatherDetail: vi.fn(),
+}));
 
 async function agendaApi() {
   return await import("../agenda/calendarEventsApi");
@@ -57,6 +66,9 @@ async function motivationApi() {
 }
 async function weatherApi() {
   return await import("./homeWeatherApi");
+}
+async function weatherDetailApi() {
+  return await import("./weatherDetailApi");
 }
 
 afterEach(() => {
@@ -225,6 +237,68 @@ describe("HomeDashboard", () => {
         departureAdvice: new DepartureAdviceProjection({
           summary: "geen jas nodig",
           categories: [DepartureAdviceCategory.NoJacketNeeded],
+        }),
+      }),
+    );
+    vi.mocked((await weatherDetailApi()).loadWeatherDetail).mockResolvedValue(
+      new WeatherDetailProjection({
+        departureAdvice: new DepartureAdviceProjection({
+          summary: "Geen jas nodig",
+          confidence: DepartureAdviceConfidence.High,
+          categories: [DepartureAdviceCategory.NoJacketNeeded],
+        }),
+        summary: "Droog en helder van start.",
+        current: new CurrentWeatherProjection({
+          temperatureCelsius: 21.2,
+          feelsLikeTemperatureCelsius: 22.1,
+          condition: WeatherConditionCategory.Clear,
+          summary: "Zacht begin van de dag.",
+          relativeHumidityPercent: 58,
+          windSpeedKph: 14,
+          precipitationChancePercent: 5,
+          uvIndex: 4,
+        }),
+        hourly: [
+          new HourlyWeatherProjection({
+            startsAtUtc: new Date("2026-06-19T08:00:00.000Z"),
+            temperatureCelsius: 21,
+            condition: WeatherConditionCategory.Clear,
+            summary: "Helder",
+          }),
+          new HourlyWeatherProjection({
+            startsAtUtc: new Date("2026-06-19T10:00:00.000Z"),
+            temperatureCelsius: 23,
+            condition: WeatherConditionCategory.PartlyCloudy,
+            summary: "Lichte wolken",
+          }),
+          new HourlyWeatherProjection({
+            startsAtUtc: new Date("2026-06-19T12:00:00.000Z"),
+            temperatureCelsius: 24,
+            condition: WeatherConditionCategory.PartlyCloudy,
+            summary: "Later wat warmer",
+          }),
+        ],
+        daily: [
+          new DailyWeatherProjection({
+            date: new Date("2026-06-19T00:00:00.000Z"),
+            lowTemperatureCelsius: 14,
+            highTemperatureCelsius: 25,
+            condition: WeatherConditionCategory.Clear,
+            summary: "Zonnige dag",
+          }),
+          new DailyWeatherProjection({
+            date: new Date("2026-06-20T00:00:00.000Z"),
+            lowTemperatureCelsius: 15,
+            highTemperatureCelsius: 23,
+            condition: WeatherConditionCategory.Cloudy,
+            summary: "Meer bewolking",
+          }),
+        ],
+        details: new WeatherDetailsProjection({
+          relativeHumidityPercent: 58,
+          windSpeedKph: 14,
+          precipitationChancePercent: 5,
+          uvIndex: 4,
         }),
       }),
     );
@@ -577,6 +651,90 @@ describe("HomeDashboard", () => {
     ).not.toBeNull();
     expect(screen.getByText("Geen weeradvies")).not.toBeNull();
     expect(screen.queryByText("weather unavailable")).toBeNull();
+  });
+
+  it("opens the weather detail dialog from the existing Home weather pill", async () => {
+    const user = userEvent.setup();
+    render(
+      <HomeDashboard
+        members={familyMembers}
+        onNavigate={vi.fn()}
+        onSelectFamilyMember={vi.fn()}
+      />,
+    );
+
+    const weatherPill = await screen.findByRole("button", {
+      name: "Weeradvies, 21°, Geen jas nodig",
+    });
+    await user.click(weatherPill);
+
+    const dialog = await screen.findByRole("dialog", { name: "Weer voor vandaag" });
+    expect(within(dialog).getByText("Geen jas nodig")).not.toBeNull();
+    expect(within(dialog).getByText("Zeker")).not.toBeNull();
+    expect(within(dialog).getByText("Droog en helder van start.")).not.toBeNull();
+    expect(within(dialog).getByRole("heading", { name: "Samenvatting vandaag" })).not.toBeNull();
+    expect(within(dialog).getByText("Zacht begin van de dag.")).not.toBeNull();
+    expect(within(dialog).getByRole("heading", { name: "Uurverwachting" })).not.toBeNull();
+    expect(within(dialog).getByText("8:00")).not.toBeNull();
+    expect(within(dialog).getByRole("heading", { name: "Komende dagen" })).not.toBeNull();
+    expect(within(dialog).getByText("Vrijdag")).not.toBeNull();
+    expect(within(dialog).getByRole("heading", { name: "Details" })).not.toBeNull();
+    expect(within(dialog).getByText("Gevoel")).not.toBeNull();
+    expect(within(dialog).getByText("22°")).not.toBeNull();
+    expect(vi.mocked((await weatherDetailApi()).loadWeatherDetail)).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps the weather detail dialog closable with Escape and returns focus to the pill", async () => {
+    const user = userEvent.setup();
+    render(
+      <HomeDashboard
+        members={familyMembers}
+        onNavigate={vi.fn()}
+        onSelectFamilyMember={vi.fn()}
+      />,
+    );
+
+    const weatherPill = await screen.findByRole("button", {
+      name: "Weeradvies, 21°, Geen jas nodig",
+    });
+    await user.click(weatherPill);
+    expect(
+      await screen.findByRole("dialog", { name: "Weer voor vandaag" }),
+    ).not.toBeNull();
+
+    await user.keyboard("{Escape}");
+
+    expect(screen.queryByRole("dialog", { name: "Weer voor vandaag" })).toBeNull();
+    expect(document.activeElement).toBe(weatherPill);
+  });
+
+  it("shows a calm error state when the weather detail request fails", async () => {
+    vi.mocked((await weatherDetailApi()).loadWeatherDetail).mockRejectedValue(
+      new Error("detail exploded"),
+    );
+    const user = userEvent.setup();
+    render(
+      <HomeDashboard
+        members={familyMembers}
+        onNavigate={vi.fn()}
+        onSelectFamilyMember={vi.fn()}
+      />,
+    );
+
+    await user.click(
+      await screen.findByRole("button", {
+        name: "Weeradvies, 21°, Geen jas nodig",
+      }),
+    );
+
+    const dialog = await screen.findByRole("dialog", { name: "Weer voor vandaag" });
+    expect(
+      within(dialog).getByText("We kunnen het weer nu even niet ophalen."),
+    ).not.toBeNull();
+    expect(
+      within(dialog).getByText("Thuis blijft gewoon bruikbaar. Probeer het later nog eens."),
+    ).not.toBeNull();
+    expect(within(dialog).queryByText("detail exploded")).toBeNull();
   });
 
 });
