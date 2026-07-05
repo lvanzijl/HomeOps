@@ -1199,10 +1199,10 @@ button {
 }
 
 .home-hero-header {
-  align-items: end;
-  display: grid;
-  gap: clamp(0.65rem, 1.2vw, 1rem);
-  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  display: flex;
+  gap: clamp(0.55rem, 1vw, 0.85rem);
+  min-width: 0;
 }
 
 .home-date-card .eyebrow,
@@ -1213,6 +1213,7 @@ button {
 
 .home-date-card {
   display: grid;
+  flex: 1 1 auto;
   gap: 0.15rem;
   min-width: 0;
 }
@@ -1235,76 +1236,66 @@ button {
 }
 
 .home-weather-pill {
-  align-items: center;
-  align-self: end;
-  background: rgb(255 255 255 / 76%);
-  border: 1px solid rgb(191 219 254 / 82%);
-  border-radius: 1.15rem;
-  box-shadow: 0 10px 24px rgb(148 163 184 / 14%);
+  align-content: center;
+  align-items: start;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
   color: #33506b;
   cursor: pointer;
-  display: grid;
-  gap: 0.55rem;
-  grid-template-columns: auto minmax(0, 1fr);
-  max-width: 14.25rem;
-  min-height: 4.1rem;
+  display: inline-grid;
+  flex: 0 0 auto;
+  gap: 0.12rem;
+  justify-items: start;
+  max-width: 10.5rem;
+  min-height: 0;
   min-width: 0;
-  padding: 0.6rem 0.75rem;
+  padding: 0.1rem 0.15rem;
   text-align: left;
-  width: 100%;
+  width: auto;
 }
 
 .home-weather-pill:hover,
 .home-weather-pill:focus-visible {
-  background: rgb(255 255 255 / 88%);
-  border-color: rgb(147 197 253 / 88%);
   color: #1e3a5f;
+}
+
+.home-weather-pill:focus-visible {
+  outline: 2px solid rgb(147 197 253 / 68%);
+  outline-offset: 0.2rem;
 }
 
 .home-weather-pill[data-status="loading"] {
   opacity: 0.92;
 }
 
-.home-weather-icon-shell {
-  align-items: center;
-  background: linear-gradient(180deg, #fef3c7, #e0f2fe);
-  border-radius: 1rem;
-  color: #2563eb;
-  display: inline-flex;
-  height: 2.55rem;
-  justify-content: center;
-  width: 2.55rem;
-}
-
-.home-weather-icon-shell svg {
-  height: 1.45rem;
-  stroke: currentColor;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 1.8;
-  width: 1.45rem;
-}
-
-.home-weather-copy {
-  display: grid;
-  gap: 0.15rem;
-  min-width: 0;
-}
-
-.home-weather-temperature {
-  color: #0f172a;
-  font-size: 1.15rem;
-  font-weight: 900;
-  letter-spacing: -0.03em;
+.home-weather-badge {
+  color: #33506b;
+  flex: 0 0 auto;
+  gap: 0.45rem;
+  justify-content: start;
+  justify-items: start;
   line-height: 1;
 }
 
-.home-weather-advice {
-  color: #475569;
-  display: block;
-  font-size: 0.79rem;
+.home-weather-badge .weather-temperature-badge__icon svg {
+  height: 1.9rem;
+  width: 1.9rem;
+}
+
+.home-weather-badge .weather-temperature-badge__temperature {
+  font-size: 1.32rem;
   font-weight: 700;
-  line-height: 1.2;
+}
+
+.home-weather-advice {
+  align-self: start;
+  color: #475569;
+  display: inline-block;
+  font-size: 0.76rem;
+  font-weight: 600;
+  line-height: 1.15;
+  max-width: 10.5rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1579,7 +1570,13 @@ button {
 }
 
 .home-family-strip {
-  align-items: start;
+  align-items: flex-start;
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  gap: clamp(0.2rem, 0.45vw, 0.4rem);
+  justify-content: flex-end;
+  margin-left: auto;
 }
 
 .quick-capture {
@@ -1667,7 +1664,7 @@ button {
 
 .home-family-portrait {
   align-content: start;
-  align-items: start;
+  align-items: center;
   background: transparent;
   border: 0;
   border-radius: 1.35rem;
@@ -1675,12 +1672,12 @@ button {
   cursor: pointer;
   display: grid;
   font: inherit;
-  gap: 0.3rem;
+  gap: 0.18rem;
   grid-template-rows: minmax(0, 1fr) auto;
   justify-items: center;
-  min-height: clamp(6.6rem, 10vh, 8.2rem);
+  min-height: clamp(6.2rem, 9.2vh, 7.7rem);
   min-width: 0;
-  padding: 0.15rem 0.1rem;
+  padding: 0.1rem 0.05rem;
   text-align: center;
 }
 
@@ -1899,29 +1896,27 @@ button {
 
 .shopping-summary-group .home-summary-list li {
   align-items: center;
-  gap: 0.75rem;
+  background: transparent;
+  border-bottom: 1px solid rgb(245 158 11 / 18%);
+  border-radius: 0;
+  gap: 0.55rem;
   grid-template-columns: auto 1fr;
-  min-height: 3.2rem;
+  min-height: 2.15rem;
+  padding: 0.22rem 0;
 }
 
 .shopping-check-action {
-  align-items: center;
-  background: rgb(255 255 255 / 82%);
-  border: 2px solid rgb(245 158 11 / 58%);
-  border-radius: 0.85rem;
+  accent-color: #b45309;
   cursor: pointer;
-  display: inline-flex;
-  height: 2.75rem;
-  justify-content: center;
+  height: 1.2rem;
+  margin: 0;
   padding: 0;
-  width: 2.75rem;
+  width: 1.2rem;
 }
 
-.shopping-check-action span {
-  border: 2px solid rgb(180 83 9 / 72%);
-  border-radius: 0.45rem;
-  height: 1.35rem;
-  width: 1.35rem;
+.shopping-summary-group .home-summary-list li:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
 }
 
 .task-summary-groups {
@@ -1959,7 +1954,7 @@ button {
 
 @media (max-width: 900px) {
   .home-hero-header {
-    grid-template-columns: minmax(0, 1fr) minmax(11rem, 13rem);
+    gap: 0.5rem;
   }
 
   .quick-capture {
@@ -2005,7 +2000,7 @@ button {
   }
 
   .home-hero-header {
-    grid-template-columns: 1fr;
+    gap: 0.4rem;
   }
 
   .family-strip {
@@ -6079,10 +6074,6 @@ button {
 }
 
 @media (min-width: 1180px) {
-  .home-summary-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
   .familyboard-dashboard-grid {
     grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
   }
@@ -6457,7 +6448,7 @@ button {
 }
 
 .agenda-event {
-  align-items: start;
+  align-items: center;
   background: linear-gradient(135deg, var(--event-type-bg, white), white 82%);
   border: 1px solid var(--event-type-border, var(--border-default));
   border-radius: 1rem;
@@ -7010,7 +7001,7 @@ button {
 }
 
 .agenda-planning-event-hitbox {
-  align-items: start;
+  align-items: center;
   background: transparent;
   border: 0;
   cursor: pointer;
@@ -7069,54 +7060,106 @@ button {
   line-height: 1.35;
 }
 
-.agenda-weather-cluster {
+.weather-temperature-badge {
   align-items: center;
-  border-radius: 999px;
   display: inline-grid;
-  gap: 0.35rem;
+  gap: 0.4rem;
   grid-auto-flow: column;
-  justify-content: center;
+  grid-auto-columns: max-content;
+  justify-content: end;
+  justify-items: end;
+  line-height: 1;
   white-space: nowrap;
 }
 
-.agenda-weather-cluster.day {
-  background: rgb(255 255 255 / 72%);
-  border: 1px solid rgb(191 219 254 / 76%);
+.weather-temperature-badge--prominent {
   color: #33506b;
-  min-height: 1.85rem;
-  padding: 0.2rem 0.55rem;
-}
-
-.agenda-weather-cluster.item {
-  align-self: start;
-  background: rgb(255 255 255 / 68%);
-  border: 1px solid rgb(219 234 254 / 80%);
-  color: #47627b;
-  inline-size: 4.6rem;
   justify-self: end;
-  min-height: 1.9rem;
-  padding: 0.2rem 0.5rem;
 }
 
-.agenda-weather-icon {
+.weather-temperature-badge--medium {
+  color: #47627b;
+  justify-self: end;
+}
+
+.weather-temperature-badge--compact {
+  align-self: center;
+  color: #47627b;
+  inline-size: 4.75rem;
+  justify-self: end;
+  text-align: right;
+}
+
+.weather-temperature-badge__icon {
   color: #2563eb;
   display: inline-flex;
 }
 
-.agenda-weather-icon svg {
-  height: 0.95rem;
+.weather-temperature-badge__icon svg {
+  height: 1rem;
   stroke: currentColor;
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 1.8;
-  width: 0.95rem;
+  width: 1rem;
 }
 
-.agenda-weather-temperature {
+.weather-temperature-badge__temperature {
   color: #0f172a;
-  font-size: 0.75rem;
-  font-weight: 850;
+  font-size: 0.8rem;
+  font-weight: 700;
   letter-spacing: -0.01em;
+}
+
+.agenda-weather-cluster {
+  flex: 0 0 auto;
+}
+
+.agenda-weather-cluster--today-header.weather-temperature-badge--prominent {
+  gap: 0.45rem;
+}
+
+.agenda-weather-cluster--today-header .weather-temperature-badge__icon svg {
+  height: 1.9rem;
+  width: 1.9rem;
+}
+
+.agenda-weather-cluster--today-header .weather-temperature-badge__temperature {
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.agenda-weather-cluster--day-header.weather-temperature-badge--medium,
+.agenda-weather-cluster--selected-day.weather-temperature-badge--medium {
+  gap: 0.42rem;
+}
+
+.agenda-weather-cluster--day-header .weather-temperature-badge__icon svg,
+.agenda-weather-cluster--selected-day .weather-temperature-badge__icon svg {
+  height: 1.55rem;
+  width: 1.55rem;
+}
+
+.agenda-weather-cluster--day-header .weather-temperature-badge__temperature,
+.agenda-weather-cluster--selected-day .weather-temperature-badge__temperature {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.agenda-weather-cluster--row.weather-temperature-badge--compact {
+  align-self: center;
+  inline-size: 4.8rem;
+  justify-self: end;
+}
+
+.agenda-weather-cluster--row .weather-temperature-badge__icon svg {
+  height: 1.45rem;
+  width: 1.45rem;
+}
+
+.agenda-weather-cluster--row .weather-temperature-badge__temperature {
+  font-size: 1rem;
+  font-weight: 700;
 }
 
 .agenda-planning-event-actions {
@@ -7158,6 +7201,15 @@ button {
 
 .agenda-week-briefing-day-header {
   align-items: start;
+}
+
+.agenda-week-briefing-day-meta,
+.agenda-planning-tool-date {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  justify-content: flex-end;
 }
 
 .agenda-week-briefing-day-header strong {
@@ -7259,7 +7311,7 @@ button {
     padding: 0.55rem;
   }
 
-  .agenda-weather-cluster.item {
+  .weather-temperature-badge--compact.agenda-weather-cluster {
     display: none;
   }
 }

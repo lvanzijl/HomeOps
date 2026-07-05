@@ -700,7 +700,7 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     ).toContain("agenda-event");
   });
 
-  it("shows subtle agenda weather for today and timed planning appointments", async () => {
+  it("shows agenda weather across today, week, outlook, and the selected planning day", async () => {
     const calendarEventsApi = await mockedCalendarEventsApi();
     mockVisualReviewMarketingTime(canonicalMarketingAnchorUtc);
     vi.mocked(calendarEventsApi.loadCalendarAgendaData).mockResolvedValueOnce({
@@ -724,16 +724,36 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
             condition: WeatherConditionCategory.Cloudy,
             summary: "Bewolkt",
           }),
+          new AgendaWeatherSlotProjection({
+            startsAtUtc: new Date("2026-06-21T08:00:00.000Z"),
+            endsAtUtc: new Date("2026-06-21T09:00:00.000Z"),
+            temperatureCelsius: 18,
+            condition: WeatherConditionCategory.Cloudy,
+            summary: "Bewolkt",
+          }),
+          new AgendaWeatherSlotProjection({
+            startsAtUtc: new Date("2026-06-22T09:00:00.000Z"),
+            endsAtUtc: new Date("2026-06-22T10:00:00.000Z"),
+            temperatureCelsius: 17,
+            condition: WeatherConditionCategory.Rain,
+            summary: "Regen",
+          }),
         ],
       }),
     );
     render(<AgendaWidget {...widgetProps} />);
 
     const todayBriefing = await screen.findByLabelText("Vandaag briefing");
+    const planningTools = screen.getByLabelText("Plannen");
+    const weekBriefing = screen.getByLabelText("Deze week");
+    const outlookBriefing = screen.getByLabelText("Vooruitkijken");
+
     expect(within(todayBriefing).getByTitle("Vandaag, 21°, Helder")).not.toBeNull();
     expect(
-      within(todayBriefing).getByRole("img", { name: "Vandaag, 21°, Helder" }),
-    ).not.toBeNull();
+      within(todayBriefing)
+        .getByRole("img", { name: "Vandaag, 21°, Helder" })
+        .className,
+    ).toContain("agenda-weather-cluster--today-header");
     await waitFor(() => {
       expect(within(todayBriefing).getByText("Zwemles Thomas")).not.toBeNull();
     });
@@ -741,6 +761,38 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     const timedEvent = within(todayBriefing).getByText("Zwemles Thomas").closest("li");
     expect(timedEvent).not.toBeNull();
     expect(within(timedEvent!).getByText("19°")).not.toBeNull();
+    expect(
+      within(timedEvent!).getByRole("img", { name: "Zwemles Thomas, 19°, Bewolkt" })
+        .className,
+    ).toContain("agenda-weather-cluster--row");
+    expect(within(planningTools).getByText("21°")).not.toBeNull();
+    expect(
+      within(planningTools)
+        .getByRole("img", { name: "dinsdag 16 juni 2026, 21°, Helder" })
+        .className,
+    ).toContain("agenda-weather-cluster--selected-day");
+
+    const weekEvent = within(weekBriefing).getByText("Pannenkoeken ontbijt").closest("li");
+    const weekDaySection = within(weekBriefing)
+      .getByText("Pannenkoeken ontbijt")
+      .closest("section");
+    expect(weekDaySection).not.toBeNull();
+    expect(weekEvent).not.toBeNull();
+    expect(within(weekDaySection!).getByText("18°")).not.toBeNull();
+    expect(
+      within(weekDaySection!)
+        .getByRole("img", { name: "zondag 21 juni 2026, 18°, Bewolkt" })
+        .className,
+    ).toContain("agenda-weather-cluster--day-header");
+    expect(within(weekEvent!).queryByText("18°")).toBeNull();
+
+    const outlookEvent = within(outlookBriefing).getByText("Volgende maandag").closest("li");
+    expect(outlookEvent).not.toBeNull();
+    expect(within(outlookEvent!).getByText("17°")).not.toBeNull();
+    expect(
+      within(outlookEvent!).getByRole("img", { name: "Volgende maandag, 17°, Regen" })
+        .className,
+    ).toContain("agenda-weather-cluster--row");
     expect(screen.queryByText("Regenjas mee")).toBeNull();
     expect(screen.queryByText("Geen jas nodig")).toBeNull();
   });
@@ -789,6 +841,10 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     expect(timedEvent).not.toBeNull();
     expect(allDayEventCard).not.toBeNull();
     expect(within(timedEvent!).getByText("18°")).not.toBeNull();
+    expect(
+      within(timedEvent!).getByRole("img", { name: "Dentist Appointment, 18°, Regen" })
+        .className,
+    ).toContain("agenda-weather-cluster--row");
     expect(within(allDayEventCard!).queryByText("18°")).toBeNull();
   });
 

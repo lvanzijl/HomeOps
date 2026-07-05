@@ -48,7 +48,8 @@ import {
 } from "../motivationData";
 import type { FamilyMember } from "./familyMembers";
 import { useVisualReviewNow } from "../visualReviewTime";
-import { buildHomeWeatherDisplay, WeatherGlyph } from "../weather/weatherPresentation";
+import { buildHomeWeatherDisplay } from "../weather/weatherPresentation";
+import { WeatherTemperatureBadge } from "../weather/WeatherTemperatureBadge";
 import { loadHomeWeather } from "./homeWeatherApi";
 import { loadWeatherDetail } from "./weatherDetailApi";
 import { WeatherDetailDialog } from "./WeatherDetailDialog";
@@ -453,47 +454,44 @@ export function HomeDashboard({
             aria-haspopup="dialog"
             ref={weatherPillRef}
           >
-            <span className="home-weather-icon-shell" aria-hidden="true">
-              <WeatherGlyph iconKey={homeWeatherDisplay.iconKey} />
-            </span>
-            <span className="home-weather-copy">
-              <span className="home-weather-temperature">
-                {homeWeatherDisplay.temperatureLabel}
-              </span>
-              <span className="home-weather-advice" title={homeWeatherDisplay.advice}>
-                {homeWeatherDisplay.advice}
-              </span>
+            <WeatherTemperatureBadge
+              className="home-weather-badge"
+              display={homeWeatherDisplay}
+              variant="prominent"
+            />
+            <span className="home-weather-advice" title={homeWeatherDisplay.advice}>
+              {homeWeatherDisplay.advice}
             </span>
           </button>
+          <section className="family-strip home-family-strip" aria-label="Gezinsleden">
+            {members.map((member) => {
+              const openTaskCount = todayTaskCountsByMember[member.id] ?? 0;
+              return (
+                <button
+                  className="home-family-portrait"
+                  key={member.id}
+                  type="button"
+                  style={{ "--member-color": member.displayColor } as CSSProperties}
+                  onClick={() => onSelectFamilyMember(member.id)}
+                  aria-label={`${member.name} gezinslidpagina openen`}
+                >
+                  <span className="home-family-avatar-frame">
+                    <FamilyAvatar member={member} />
+                    {openTaskCount > 0 ? (
+                      <span
+                        className="home-family-task-badge"
+                        aria-label={`${member.name} heeft ${openTaskCount} open taken vandaag`}
+                      >
+                        {openTaskCount}
+                      </span>
+                    ) : null}
+                  </span>
+                  <span className="home-family-portrait-caption">{member.name}</span>
+                </button>
+              );
+            })}
+          </section>
         </div>
-        <section className="family-strip home-family-strip" aria-label="Gezinsleden">
-          {members.map((member) => {
-            const openTaskCount = todayTaskCountsByMember[member.id] ?? 0;
-            return (
-              <button
-                className="home-family-portrait"
-                key={member.id}
-                type="button"
-                style={{ "--member-color": member.displayColor } as CSSProperties}
-                onClick={() => onSelectFamilyMember(member.id)}
-                aria-label={`${member.name} gezinslidpagina openen`}
-              >
-                <span className="home-family-avatar-frame">
-                  <FamilyAvatar member={member} />
-                  {openTaskCount > 0 ? (
-                    <span
-                      className="home-family-task-badge"
-                      aria-label={`${member.name} heeft ${openTaskCount} open taken vandaag`}
-                    >
-                      {openTaskCount}
-                    </span>
-                  ) : null}
-                </span>
-                <span className="home-family-portrait-caption">{member.name}</span>
-              </button>
-            );
-          })}
-        </section>
       </header>
       {quickStatus ? (
         <p className="home-quick-status" role="status">
@@ -536,17 +534,18 @@ export function HomeDashboard({
                   <ul className="home-summary-list">
                     {group.items.map((item) => (
                       <li key={`${item.listId}-${item.id}`}>
-                        <button
+                        <input
                           className="shopping-check-action"
-                          type="button"
+                          type="checkbox"
+                          checked={false}
                           onClick={(event) => {
                             event.stopPropagation();
+                          }}
+                          onChange={() => {
                             handleShoppingToggle(item.listId, item.id, item.text);
                           }}
                           aria-label={`${item.text} afvinken`}
-                        >
-                          <span aria-hidden="true" />
-                        </button>
+                        />
                         <span>{item.text}</span>
                       </li>
                     ))}
@@ -722,7 +721,6 @@ export function HomeDashboard({
         >
           <CardHeader
             className="home-card-header"
-            title="Motivatie"
             actions={
               <HomeCardActions
                 onOpen={() => onNavigate("motivation")}
@@ -730,18 +728,18 @@ export function HomeDashboard({
               />
             }
             meta={
-              motivationFamilyGoal
-                ? `${motivationFamilyGoal.currentProgress}/${motivationFamilyGoal.targetCount} ${motivationFamilyGoal.unitLabel}`
-                : motivationStatus === "error"
-                  ? "Niet beschikbaar"
-                  : "Laden"
+              motivationStatus === "error"
+                ? "Niet beschikbaar"
+                : motivationStatus === "loading"
+                  ? "Laden"
+                  : undefined
             }
           />
           <div className="home-summary-content home-motivation-content">
             {motivationFamilyGoal ? (
               <>
                 <p className="motivation-tile-title">
-                  {motivationFamilyGoal.title}
+                  {homeMotivationGoalTitle(motivationFamilyGoal)}
                 </p>
                 <div
                   className="progress-bar"
@@ -774,7 +772,7 @@ export function HomeDashboard({
                           : motivationFamilyGoal.celebration.status ===
                               FamilyCelebrationStatus.Celebrated
                             ? "Samen gevierd"
-                            : "Komt dichterbij"}
+                           : "Bijna zover"}
                       </strong>
                       <p>{homeCelebrationMessage(motivationFamilyGoal)}</p>
                     </div>
@@ -1111,18 +1109,62 @@ function HomeCardActions({
 
 function homeCelebrationMessage(goal: MotivationFamilyGoal) {
   const celebration = goal.celebration;
-  if (!celebration) return goal.title;
+  if (!celebration) return homeMotivationGoalTitle(goal);
   const remaining = Math.max(0, goal.targetCount - goal.currentProgress);
+  const localizedUnit = localizeHomeMotivationUnit(goal.unitLabel, remaining);
+  const localizedCelebrationTitle = localizeHomeMotivationCelebrationTitle(
+    celebration.title,
+  );
   if (
     celebration.status === FamilyCelebrationStatus.ReadyToCelebrate ||
     remaining === 0
   )
-    return `${celebration.title} is nu klaar.`;
+    return `${localizedCelebrationTitle} staat nu klaar.`;
   if (celebration.status === FamilyCelebrationStatus.Celebrated)
-    return celebration.title;
+    return localizedCelebrationTitle;
   return remaining === 1
-    ? `Nog maar 1 ${goal.unitLabel} tot ${celebration.title}.`
-    : `Nog maar ${remaining} ${goal.unitLabel} tot ${celebration.title}.`;
+    ? `Nog 1 ${localizedUnit} tot ${localizedCelebrationTitle}.`
+    : `Nog ${remaining} ${localizedUnit} tot ${localizedCelebrationTitle}.`;
+}
+
+function homeMotivationGoalTitle(goal: MotivationFamilyGoal) {
+  const title = goal.title.trim();
+  const helpfulMomentsBeforeCelebrationMatch = title.match(
+    /^(\d+)\s+helpful moments before\s+(.+)$/i,
+  );
+  if (helpfulMomentsBeforeCelebrationMatch) {
+    const [, targetCount, celebrationTitle] = helpfulMomentsBeforeCelebrationMatch;
+    return `${targetCount} helpmomenten voor ${localizeHomeMotivationCelebrationTitle(celebrationTitle)}`;
+  }
+  if (/^Fill the family helper path$/i.test(title)) {
+    return "Samen het familiespoor vullen";
+  }
+  return title;
+}
+
+function localizeHomeMotivationCelebrationTitle(title: string) {
+  const normalizedTitle = title.trim();
+  if (/^Sunday pancake breakfast$/i.test(normalizedTitle)) {
+    return "zondags pannenkoekenontbijt";
+  }
+  if (/^Board game night together$/i.test(normalizedTitle)) {
+    return "samen spelletjesavond";
+  }
+  if (/^Movie night$/i.test(normalizedTitle)) {
+    return "filmavond";
+  }
+  return normalizedTitle;
+}
+
+function localizeHomeMotivationUnit(unitLabel: string, count: number) {
+  const normalizedUnitLabel = unitLabel.trim();
+  if (/^helpful moments?$/i.test(normalizedUnitLabel)) {
+    return count === 1 ? "helpmoment" : "helpmomenten";
+  }
+  if (/^helpful actions?$/i.test(normalizedUnitLabel)) {
+    return count === 1 ? "helpmoment" : "helpmomenten";
+  }
+  return normalizedUnitLabel;
 }
 
 function buildAgendaSummary(
