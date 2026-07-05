@@ -1,23 +1,23 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
-  EventSource as ApiEventSource,
-  EventSourceCapability,
-  EventSourceColor,
+  EventSourceDto,
+  EventSourceHealthStatus,
+  EventSourcePollInterval,
   EventSourceType,
-  EventSourceVisibility,
   EventSeriesDto,
   NormalizedEvent as ApiNormalizedEvent,
 } from '../api/homeOpsApiClient';
 import { createCalendarAgendaEvent, deleteCalendarAgendaEvent, loadCalendarAgendaData, toAgendaEventFromEventSeries, updateCalendarAgendaEvent } from './calendarEventsApi';
 
-const apiSource = new ApiEventSource({
+const apiSource = new EventSourceDto({
   id: 'manual-source',
   name: 'HomeOps Calendar',
-  type: EventSourceType.Manual,
+  icon: '📅',
+  sourceType: EventSourceType.Manual,
   enabled: true,
-  capability: EventSourceCapability.Writable,
-  visibility: new EventSourceVisibility({ visibleByDefault: true, groupName: 'Household' }),
-  color: new EventSourceColor({ hex: '#4f46e5' }),
+  writable: true,
+  healthStatus: EventSourceHealthStatus.Healthy,
+  pollInterval: EventSourcePollInterval.Every8Hours,
 });
 
 const apiEvent = new ApiNormalizedEvent({
@@ -42,7 +42,7 @@ const eventSeriesDto = new EventSeriesDto({
 describe('EventSeries API mapping', () => {
   it('loads event sources and normalized events from the generated API client', async () => {
     const client = {
-      getEventSources: vi.fn().mockResolvedValue([apiSource]),
+      listEventSources: vi.fn().mockResolvedValue([apiSource]),
       getEvents: vi.fn().mockResolvedValue([apiEvent]),
     } as never;
 

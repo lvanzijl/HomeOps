@@ -14,10 +14,6 @@ import {
 } from "../../agenda/calendarEventsApi";
 import { useAgendaLayerSettings } from "../../agenda/layerSettings";
 import type { AgendaWeatherSlotProjection } from "../../api/homeOpsApiClient";
-import {
-  demoReadOnlyEvents,
-  demoReadOnlyEventSources,
-} from "../../demo/demoAgendaData";
 import type {
   EventSource,
   NormalizedEvent,
@@ -140,14 +136,8 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
     return () => window.removeEventListener("keydown", close);
   }, [editingEventId, isEventFormOpen]);
 
-  const eventSources = useMemo(
-    () => [...calendarSources, ...demoReadOnlyEventSources],
-    [calendarSources],
-  );
-  const events = useMemo(
-    () => [...calendarEvents, ...demoReadOnlyEvents],
-    [calendarEvents],
-  );
+  const eventSources = useMemo(() => [...calendarSources], [calendarSources]);
+  const events = useMemo(() => [...calendarEvents], [calendarEvents]);
   const { settings, setSourceEnabled } = useAgendaLayerSettings(eventSources);
 
   const selectedSources = settings.months.enabledSourceIds;
@@ -594,12 +584,13 @@ function AgendaSourceSelector({
   onToggleSource: (sourceId: string, enabled: boolean) => void;
 }) {
   return (
-    <div className="source-selector" role="group" aria-label="Zichtbaar in de agenda">
-      <span className="source-selector-label">Agenda's</span>
+    <div className="source-selector" role="group" aria-label="Bronnen in de agenda">
+      <span className="source-selector-label">Bronnen</span>
       {eventSources.map((source) => (
-        <label key={source.id}>
+        <label key={source.id} className={source.canDisplayEvents === false ? "source-selector-unavailable" : undefined}>
           <input
             checked={selectedSources[source.id] ?? false}
+            disabled={source.canDisplayEvents === false}
             onChange={(event) => onToggleSource(source.id, event.target.checked)}
             type="checkbox"
           />
@@ -608,7 +599,12 @@ function AgendaSourceSelector({
             style={{ backgroundColor: source.color.hex }}
             aria-hidden="true"
           />
-          {formatFamilyFilterLabel(source.name)}
+          <span className="source-selector-copy">
+            <span>{source.icon ? `${source.icon} ` : ""}{formatFamilyFilterLabel(source.name)}</span>
+            {source.canDisplayEvents === false ? (
+              <small>{formatAgendaSourceState(source)}</small>
+            ) : null}
+          </span>
         </label>
       ))}
     </div>
@@ -2179,6 +2175,19 @@ function formatFamilyFilterLabel(sourceName: string) {
   }
 
   return sourceName;
+}
+
+function formatAgendaSourceState(source: EventSource) {
+  switch (source.sourceState) {
+    case "disabled":
+      return "uit";
+    case "failed":
+      return "mislukt";
+    case "neverSynced":
+      return "nog niet ververst";
+    default:
+      return "beschikbaar";
+  }
 }
 
 function getIsoWeekNumber(date: string) {

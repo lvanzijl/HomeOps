@@ -142,7 +142,7 @@ export function useAgendaLayerSettings(sources: readonly EventSource[]) {
 }
 
 function createDefaultSourceSelection(sources: readonly EventSource[]): Record<string, boolean> {
-  return Object.fromEntries(sources.map((source) => [source.id, source.enabled]));
+  return Object.fromEntries(sources.map((source) => [source.id, source.canDisplayEvents ?? source.enabled]));
 }
 
 function normalizeAgendaLayerSettings(
@@ -177,7 +177,7 @@ function normalizeViewSettings(
         ? Object.entries(enabledSourceIds).filter((entry): entry is [string, boolean] => typeof entry[1] === 'boolean')
         : sources.map((source) => {
             const storedValue = enabledSourceIds[source.id];
-            return [source.id, typeof storedValue === 'boolean' ? storedValue : source.enabled];
+            return [source.id, typeof storedValue === 'boolean' ? storedValue : (source.canDisplayEvents ?? source.enabled)];
           }),
     ),
   };

@@ -19,6 +19,24 @@ const { exportCalendar, restoreCalendar, downloadCalendarExport } = vi.hoisted((
   downloadCalendarExport: vi.fn(),
 }));
 
+const {
+  loadCalendarSources,
+  refreshAllCalendarSources,
+  refreshCalendarSource,
+  createCalendarSource,
+  updateCalendarSource,
+  setCalendarSourceEnabled,
+  deleteCalendarSource,
+} = vi.hoisted(() => ({
+  loadCalendarSources: vi.fn(),
+  refreshAllCalendarSources: vi.fn(),
+  refreshCalendarSource: vi.fn(),
+  createCalendarSource: vi.fn(),
+  updateCalendarSource: vi.fn(),
+  setCalendarSourceEnabled: vi.fn(),
+  deleteCalendarSource: vi.fn(),
+}));
+
 vi.mock('../calendarPortability', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../calendarPortability')>();
   return {
@@ -31,6 +49,20 @@ vi.mock('../calendarPortability', async (importOriginal) => {
   };
 });
 
+vi.mock('../calendarSources/calendarSourcesApi', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../calendarSources/calendarSourcesApi')>();
+  return {
+    ...actual,
+    loadCalendarSources,
+    refreshAllCalendarSources,
+    refreshCalendarSource,
+    createCalendarSource,
+    updateCalendarSource,
+    setCalendarSourceEnabled,
+    deleteCalendarSource,
+  };
+});
+
 afterEach(() => cleanup());
 
 describe('SettingsDashboard', () => {
@@ -38,6 +70,27 @@ describe('SettingsDashboard', () => {
     vi.clearAllMocks();
     exportCalendar.mockResolvedValue(exportDocument);
     restoreCalendar.mockResolvedValue(undefined);
+    loadCalendarSources.mockResolvedValue([
+      {
+        id: 'manual-source',
+        name: 'HomeOps Calendar',
+        icon: '📅',
+        type: 'manual',
+        enabled: true,
+        writable: true,
+        isSystem: true,
+        state: 'healthy',
+        canDisplayEvents: true,
+        pollInterval: 'every8Hours',
+        providerConfiguration: null,
+      },
+    ]);
+    refreshAllCalendarSources.mockResolvedValue([]);
+    refreshCalendarSource.mockResolvedValue(undefined);
+    createCalendarSource.mockResolvedValue(undefined);
+    updateCalendarSource.mockResolvedValue(undefined);
+    setCalendarSourceEnabled.mockResolvedValue(undefined);
+    deleteCalendarSource.mockResolvedValue(undefined);
   });
 
   it('shows a status-first dashboard while keeping restore contextual', async () => {
@@ -81,5 +134,45 @@ describe('SettingsDashboard', () => {
     await user.click(restoreButton);
 
     expect(restoreCalendar).toHaveBeenCalledWith(expect.objectContaining({ format: 'homeops.calendar.export' }));
+  });
+
+  it('renders configured calendar sources with household-friendly status', async () => {
+    loadCalendarSources.mockResolvedValueOnce([
+      {
+        id: 'manual-source',
+        name: 'HomeOps Calendar',
+        icon: '📅',
+        type: 'manual',
+        enabled: true,
+        writable: true,
+        isSystem: true,
+        state: 'healthy',
+        canDisplayEvents: true,
+        pollInterval: 'every8Hours',
+        providerConfiguration: null,
+      },
+      {
+        id: 'school-feed',
+        name: 'School Feed',
+        icon: '🏫',
+        type: 'iCalFeed',
+        enabled: true,
+        writable: false,
+        isSystem: false,
+        state: 'failed',
+        canDisplayEvents: false,
+        pollInterval: 'hourly',
+        lastError: { message: 'De schoolfeed is nu niet bereikbaar.' },
+        providerConfiguration: { kind: 'iCalFeed', feedUrl: 'https://example.test/school.ics' },
+      },
+    ]);
+
+    render(<SettingsDashboard widgetInstances={[]} />);
+
+    expect(await screen.findByText('School Feed')).not.toBeNull();
+    expect(screen.getByText('Bronnen beheren')).not.toBeNull();
+    expect(screen.getByText('Mislukt')).not.toBeNull();
+    expect(screen.getAllByText('De schoolfeed is nu niet bereikbaar.').length).toBeGreaterThan(0);
+    expect(screen.getByRole('button', { name: 'Alles verversen' })).not.toBeNull();
   });
 });
