@@ -2,6 +2,7 @@ import { FamilyBoardIcon } from '../design';
 import { HomeOpsIcon } from '../icons/homeOpsIcons';
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { avatarV2DefaultConfiguration } from '../avatarV2/avatarConfig';
+import { hasCalendarSourceAttention, loadCalendarSources } from '../calendarSources/calendarSourcesApi';
 import { FamilyMemberPage } from '../home/FamilyMemberPage';
 import { HomeDashboard } from '../home/HomeDashboard';
 import { MotivationPage } from '../MotivationPage';
@@ -38,6 +39,7 @@ export function WorkspaceShell() {
   const [widgetInstancesByWorkspace, setWidgetInstancesByWorkspace] = useState<Partial<Record<WorkspaceId, readonly WidgetInstance[]>>>({});
   const [requiresOnboarding, setRequiresOnboarding] = useState(false);
   const [checkedOnboarding, setCheckedOnboarding] = useState(false);
+  const [settingsNeedsAttention, setSettingsNeedsAttention] = useState(false);
 
   const activeWorkspace = useMemo(
     () => workspaceDefinitions.find((workspace) => workspace.id === activeWorkspaceId) ?? getInitialWorkspace(),
@@ -67,6 +69,25 @@ export function WorkspaceShell() {
     let ignore = false;
     loadFamilyMembers().then((loaded) => { if (!ignore) setMembers([...loaded]); }).catch(() => { if (!ignore) setMembers([]); });
     return () => { ignore = true; };
+  }, []);
+
+  useEffect(() => {
+    let ignore = false;
+    loadCalendarSources()
+      .then((sources) => {
+        if (!ignore) {
+          setSettingsNeedsAttention(hasCalendarSourceAttention(sources));
+        }
+      })
+      .catch(() => {
+        if (!ignore) {
+          setSettingsNeedsAttention(false);
+        }
+      });
+
+    return () => {
+      ignore = true;
+    };
   }, []);
 
   const activeFamilyMember = members.find((member) => member.id === activeFamilyMemberId) ?? null;
@@ -159,6 +180,11 @@ export function WorkspaceShell() {
             >
               <FamilyBoardIcon name="navigation.settings" size="small" />
               <span>{workspace.label}</span>
+              {workspace.id === 'settings' && settingsNeedsAttention ? (
+                <span aria-label="Kalenderbronnen vragen aandacht" className="workspace-admin-badge">
+                  !
+                </span>
+              ) : null}
             </button>
           ))}
         </div>
@@ -198,7 +224,10 @@ export function WorkspaceShell() {
           ) : activeWorkspace.id === 'gamification' ? (
             <DomainPlaceholderPage title="Beloningen" purpose="Voor toekomstige punten, beloningen en gezinsvoortgang." />
           ) : activeWorkspace.id === 'settings' ? (
-            <SettingsDashboard widgetInstances={widgetInstances} />
+            <SettingsDashboard
+              onCalendarSourcesChanged={(sources) => setSettingsNeedsAttention(hasCalendarSourceAttention(sources))}
+              widgetInstances={widgetInstances}
+            />
           ) : (
             <div className="widget-host" aria-label={`${activeWorkspace.label} widgets`}>
               {widgetInstances.map((instance) => {

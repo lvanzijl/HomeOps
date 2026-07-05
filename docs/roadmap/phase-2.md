@@ -34,6 +34,9 @@ Frontend test maintenance refreshed stale test expectations and fixtures to matc
 
 # Phase 2 Roadmap
 
+## Completed Slice — Calendar Sources Frontend Integration
+Calendar Sources Frontend Integration completes the Calendar Sources feature end to end by regenerating the finalized TypeScript client, replacing temporary frontend source logic with backend-backed Settings and Agenda Bronnen integration, adding household-friendly source CRUD, refresh, loading, empty, and attention states, and validating the slice with focused/frontend/full browser review screenshots. A minimal integration fix also preserves newly created source NeverSynced/poll-interval values despite EF default-value configuration, and VisualReview fixtures now keep the protected manual source flagged as system-owned.
+
 ## Completed Slice — Calendar Background Synchronization
 Calendar Background Synchronization completes the backend Calendar Sources workflow by adding an ASP.NET Core hosted scheduler that finds due enabled non-manual iCal Feed/File sources, respects fixed poll intervals and NextSyncAfterUtc, invokes the existing refresh dispatcher, and prevents concurrent synchronization of the same source in-process. The scheduler logs lifecycle, skip, completion, and failure events and intentionally adds no synchronization-engine changes, refresh API changes, importer changes, retry queue, exponential retry, calendar query changes, backup/restore changes, frontend changes, screenshots, or binary artifacts.
 

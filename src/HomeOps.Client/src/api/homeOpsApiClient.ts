@@ -47,47 +47,6 @@ export class HomeOpsApiClient {
         return Promise.resolve<void>(null as any);
     }
 
-    getEventSources(): Promise<EventSource[]> {
-        let url_ = this.baseUrl + "/api/event-sources";
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "GET",
-            headers: {
-                "Accept": "application/json"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processGetEventSources(_response);
-        });
-    }
-
-    protected processGetEventSources(response: Response): Promise<EventSource[]> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            if (Array.isArray(resultData200)) {
-                result200 = [] as any;
-                for (let item of resultData200)
-                    result200!.push(EventSource.fromJS(item));
-            }
-            else {
-                result200 = null as any;
-            }
-            return result200;
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<EventSource[]>(null as any);
-    }
-
     getMotivationSnapshot(): Promise<MotivationSnapshotDto> {
         let url_ = this.baseUrl + "/api/motivation";
         url_ = url_.replace(/[?&]$/, "");
@@ -1085,6 +1044,311 @@ export class HomeOpsApiClient {
             });
         }
         return Promise.resolve<WorkspaceLayoutDto>(null as any);
+    }
+
+    listEventSources(): Promise<EventSourceDto[]> {
+        let url_ = this.baseUrl + "/api/event-sources";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processListEventSources(_response);
+        });
+    }
+
+    protected processListEventSources(response: Response): Promise<EventSourceDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(EventSourceDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<EventSourceDto[]>(null as any);
+    }
+
+    createEventSource(request: CreateEventSourceRequest): Promise<EventSourceDto> {
+        let url_ = this.baseUrl + "/api/event-sources";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCreateEventSource(_response);
+        });
+    }
+
+    protected processCreateEventSource(response: Response): Promise<EventSourceDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 201) {
+            return response.text().then((_responseText) => {
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result201 = EventSourceDto.fromJS(resultData201);
+            return result201;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = HttpValidationProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<EventSourceDto>(null as any);
+    }
+
+    getEventSource(sourceId: string): Promise<EventSourceDto> {
+        let url_ = this.baseUrl + "/api/event-sources/{sourceId}";
+        if (sourceId === undefined || sourceId === null)
+            throw new globalThis.Error("The parameter 'sourceId' must be defined.");
+        url_ = url_.replace("{sourceId}", encodeURIComponent("" + sourceId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetEventSource(_response);
+        });
+    }
+
+    protected processGetEventSource(response: Response): Promise<EventSourceDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = EventSourceDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<EventSourceDto>(null as any);
+    }
+
+    updateEventSource(sourceId: string, request: UpdateEventSourceRequest): Promise<EventSourceDto> {
+        let url_ = this.baseUrl + "/api/event-sources/{sourceId}";
+        if (sourceId === undefined || sourceId === null)
+            throw new globalThis.Error("The parameter 'sourceId' must be defined.");
+        url_ = url_.replace("{sourceId}", encodeURIComponent("" + sourceId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateEventSource(_response);
+        });
+    }
+
+    protected processUpdateEventSource(response: Response): Promise<EventSourceDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = EventSourceDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = HttpValidationProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<EventSourceDto>(null as any);
+    }
+
+    deleteEventSource(sourceId: string): Promise<void> {
+        let url_ = this.baseUrl + "/api/event-sources/{sourceId}";
+        if (sourceId === undefined || sourceId === null)
+            throw new globalThis.Error("The parameter 'sourceId' must be defined.");
+        url_ = url_.replace("{sourceId}", encodeURIComponent("" + sourceId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDeleteEventSource(_response);
+        });
+    }
+
+    protected processDeleteEventSource(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = HttpValidationProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    refreshEventSource(sourceId: string): Promise<SyncSourceResultDto> {
+        let url_ = this.baseUrl + "/api/event-sources/{sourceId}/refresh";
+        if (sourceId === undefined || sourceId === null)
+            throw new globalThis.Error("The parameter 'sourceId' must be defined.");
+        url_ = url_.replace("{sourceId}", encodeURIComponent("" + sourceId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRefreshEventSource(_response);
+        });
+    }
+
+    protected processRefreshEventSource(response: Response): Promise<SyncSourceResultDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = SyncSourceResultDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = SyncSourceResultDto.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<SyncSourceResultDto>(null as any);
+    }
+
+    refreshAllEventSources(): Promise<RefreshAllResultDto> {
+        let url_ = this.baseUrl + "/api/event-sources/refresh-all";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRefreshAllEventSources(_response);
+        });
+    }
+
+    protected processRefreshAllEventSources(response: Response): Promise<RefreshAllResultDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = RefreshAllResultDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<RefreshAllResultDto>(null as any);
     }
 
     exportCalendar(): Promise<CalendarExportDocument> {
@@ -2712,172 +2976,6 @@ export class HomeOpsApiClient {
     }
 }
 
-export class EventSource implements IEventSource {
-    id?: string;
-    name?: string;
-    type?: EventSourceType;
-    enabled?: boolean;
-    capability?: EventSourceCapability;
-    visibility?: EventSourceVisibility;
-    color?: EventSourceColor;
-    providerSourceId?: string | undefined;
-    isReadOnly?: boolean;
-    isWritable?: boolean;
-
-    constructor(data?: IEventSource) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (this as any)[property] = (data as any)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.id = _data["id"];
-            this.name = _data["name"];
-            this.type = _data["type"];
-            this.enabled = _data["enabled"];
-            this.capability = _data["capability"];
-            this.visibility = _data["visibility"] ? EventSourceVisibility.fromJS(_data["visibility"]) : undefined as any;
-            this.color = _data["color"] ? EventSourceColor.fromJS(_data["color"]) : undefined as any;
-            this.providerSourceId = _data["providerSourceId"];
-            this.isReadOnly = _data["isReadOnly"];
-            this.isWritable = _data["isWritable"];
-        }
-    }
-
-    static fromJS(data: any): EventSource {
-        data = typeof data === 'object' ? data : {};
-        let result = new EventSource();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["id"] = this.id;
-        data["name"] = this.name;
-        data["type"] = this.type;
-        data["enabled"] = this.enabled;
-        data["capability"] = this.capability;
-        data["visibility"] = this.visibility ? this.visibility.toJSON() : undefined as any;
-        data["color"] = this.color ? this.color.toJSON() : undefined as any;
-        data["providerSourceId"] = this.providerSourceId;
-        data["isReadOnly"] = this.isReadOnly;
-        data["isWritable"] = this.isWritable;
-        return data;
-    }
-}
-
-export interface IEventSource {
-    id?: string;
-    name?: string;
-    type?: EventSourceType;
-    enabled?: boolean;
-    capability?: EventSourceCapability;
-    visibility?: EventSourceVisibility;
-    color?: EventSourceColor;
-    providerSourceId?: string | undefined;
-    isReadOnly?: boolean;
-    isWritable?: boolean;
-}
-
-export enum EventSourceType {
-    Manual = 0,
-    ICalFeed = 1,
-    ICalFile = 2,
-    GoogleCalendar = 3,
-    CalDav = 4,
-    Exchange = 5,
-    SchoolHolidays = 6,
-    TvSeries = 7,
-    Provider = 99,
-    Birthdays = 100,
-}
-
-export enum EventSourceCapability {
-    ReadOnly = 0,
-    Writable = 1,
-}
-
-export class EventSourceVisibility implements IEventSourceVisibility {
-    visibleByDefault?: boolean;
-    groupName?: string | undefined;
-
-    constructor(data?: IEventSourceVisibility) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (this as any)[property] = (data as any)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.visibleByDefault = _data["visibleByDefault"];
-            this.groupName = _data["groupName"];
-        }
-    }
-
-    static fromJS(data: any): EventSourceVisibility {
-        data = typeof data === 'object' ? data : {};
-        let result = new EventSourceVisibility();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["visibleByDefault"] = this.visibleByDefault;
-        data["groupName"] = this.groupName;
-        return data;
-    }
-}
-
-export interface IEventSourceVisibility {
-    visibleByDefault?: boolean;
-    groupName?: string | undefined;
-}
-
-export class EventSourceColor implements IEventSourceColor {
-    hex?: string | undefined;
-
-    constructor(data?: IEventSourceColor) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (this as any)[property] = (data as any)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.hex = _data["hex"];
-        }
-    }
-
-    static fromJS(data: any): EventSourceColor {
-        data = typeof data === 'object' ? data : {};
-        let result = new EventSourceColor();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["hex"] = this.hex;
-        return data;
-    }
-}
-
-export interface IEventSourceColor {
-    hex?: string | undefined;
-}
-
 export class MotivationSnapshotDto implements IMotivationSnapshotDto {
     familyGoal?: MotivationFamilyGoalDto | undefined;
     individualGoals?: MotivationIndividualGoalDto[];
@@ -4169,6 +4267,672 @@ export interface ISaveWidgetPlacementRequest {
     configurationJson?: string | undefined;
 }
 
+export class EventSourceDto implements IEventSourceDto {
+    id?: string;
+    name?: string;
+    icon?: string;
+    sourceType?: EventSourceType;
+    enabled?: boolean;
+    writable?: boolean;
+    isSystem?: boolean;
+    healthStatus?: EventSourceHealthStatus;
+    pollInterval?: EventSourcePollInterval;
+    lastSyncAttemptUtc?: Date | undefined;
+    lastSuccessfulSyncUtc?: Date | undefined;
+    lastFailedSyncUtc?: Date | undefined;
+    nextSyncAfterUtc?: Date | undefined;
+    lastError?: EventSourceLastError | undefined;
+    providerSourceId?: string | undefined;
+    providerConfiguration?: EventSourceProviderConfigurationDto | undefined;
+
+    constructor(data?: IEventSourceDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.name = _data["name"];
+            this.icon = _data["icon"];
+            this.sourceType = _data["sourceType"];
+            this.enabled = _data["enabled"];
+            this.writable = _data["writable"];
+            this.isSystem = _data["isSystem"];
+            this.healthStatus = _data["healthStatus"];
+            this.pollInterval = _data["pollInterval"];
+            this.lastSyncAttemptUtc = _data["lastSyncAttemptUtc"] ? new Date(_data["lastSyncAttemptUtc"].toString()) : undefined as any;
+            this.lastSuccessfulSyncUtc = _data["lastSuccessfulSyncUtc"] ? new Date(_data["lastSuccessfulSyncUtc"].toString()) : undefined as any;
+            this.lastFailedSyncUtc = _data["lastFailedSyncUtc"] ? new Date(_data["lastFailedSyncUtc"].toString()) : undefined as any;
+            this.nextSyncAfterUtc = _data["nextSyncAfterUtc"] ? new Date(_data["nextSyncAfterUtc"].toString()) : undefined as any;
+            this.lastError = _data["lastError"] ? EventSourceLastError.fromJS(_data["lastError"]) : undefined as any;
+            this.providerSourceId = _data["providerSourceId"];
+            this.providerConfiguration = _data["providerConfiguration"] ? EventSourceProviderConfigurationDto.fromJS(_data["providerConfiguration"]) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): EventSourceDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new EventSourceDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["name"] = this.name;
+        data["icon"] = this.icon;
+        data["sourceType"] = this.sourceType;
+        data["enabled"] = this.enabled;
+        data["writable"] = this.writable;
+        data["isSystem"] = this.isSystem;
+        data["healthStatus"] = this.healthStatus;
+        data["pollInterval"] = this.pollInterval;
+        data["lastSyncAttemptUtc"] = this.lastSyncAttemptUtc ? this.lastSyncAttemptUtc.toISOString() : undefined as any;
+        data["lastSuccessfulSyncUtc"] = this.lastSuccessfulSyncUtc ? this.lastSuccessfulSyncUtc.toISOString() : undefined as any;
+        data["lastFailedSyncUtc"] = this.lastFailedSyncUtc ? this.lastFailedSyncUtc.toISOString() : undefined as any;
+        data["nextSyncAfterUtc"] = this.nextSyncAfterUtc ? this.nextSyncAfterUtc.toISOString() : undefined as any;
+        data["lastError"] = this.lastError ? this.lastError.toJSON() : undefined as any;
+        data["providerSourceId"] = this.providerSourceId;
+        data["providerConfiguration"] = this.providerConfiguration ? this.providerConfiguration.toJSON() : undefined as any;
+        return data;
+    }
+}
+
+export interface IEventSourceDto {
+    id?: string;
+    name?: string;
+    icon?: string;
+    sourceType?: EventSourceType;
+    enabled?: boolean;
+    writable?: boolean;
+    isSystem?: boolean;
+    healthStatus?: EventSourceHealthStatus;
+    pollInterval?: EventSourcePollInterval;
+    lastSyncAttemptUtc?: Date | undefined;
+    lastSuccessfulSyncUtc?: Date | undefined;
+    lastFailedSyncUtc?: Date | undefined;
+    nextSyncAfterUtc?: Date | undefined;
+    lastError?: EventSourceLastError | undefined;
+    providerSourceId?: string | undefined;
+    providerConfiguration?: EventSourceProviderConfigurationDto | undefined;
+}
+
+export enum EventSourceType {
+    Manual = 0,
+    ICalFeed = 1,
+    ICalFile = 2,
+    GoogleCalendar = 3,
+    CalDav = 4,
+    Exchange = 5,
+    SchoolHolidays = 6,
+    TvSeries = 7,
+    Provider = 99,
+    Birthdays = 100,
+}
+
+export enum EventSourceHealthStatus {
+    NeverSynced = 0,
+    Healthy = 1,
+    Failed = 2,
+}
+
+export enum EventSourcePollInterval {
+    EveryHour = 0,
+    Every8Hours = 1,
+    EveryDay = 2,
+}
+
+export class EventSourceLastError implements IEventSourceLastError {
+    code?: string | undefined;
+    message?: string | undefined;
+
+    constructor(data?: IEventSourceLastError) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.code = _data["code"];
+            this.message = _data["message"];
+        }
+    }
+
+    static fromJS(data: any): EventSourceLastError {
+        data = typeof data === 'object' ? data : {};
+        let result = new EventSourceLastError();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["code"] = this.code;
+        data["message"] = this.message;
+        return data;
+    }
+}
+
+export interface IEventSourceLastError {
+    code?: string | undefined;
+    message?: string | undefined;
+}
+
+export class EventSourceProviderConfigurationDto implements IEventSourceProviderConfigurationDto {
+    kind?: EventSourceProviderConfigurationKind;
+    iCalFeed?: ICalFeedSourceConfigurationDto | undefined;
+    iCalFile?: ICalFileSourceConfigurationDto | undefined;
+
+    constructor(data?: IEventSourceProviderConfigurationDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.kind = _data["kind"];
+            this.iCalFeed = _data["iCalFeed"] ? ICalFeedSourceConfigurationDto.fromJS(_data["iCalFeed"]) : undefined as any;
+            this.iCalFile = _data["iCalFile"] ? ICalFileSourceConfigurationDto.fromJS(_data["iCalFile"]) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): EventSourceProviderConfigurationDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new EventSourceProviderConfigurationDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["kind"] = this.kind;
+        data["iCalFeed"] = this.iCalFeed ? this.iCalFeed.toJSON() : undefined as any;
+        data["iCalFile"] = this.iCalFile ? this.iCalFile.toJSON() : undefined as any;
+        return data;
+    }
+}
+
+export interface IEventSourceProviderConfigurationDto {
+    kind?: EventSourceProviderConfigurationKind;
+    iCalFeed?: ICalFeedSourceConfigurationDto | undefined;
+    iCalFile?: ICalFileSourceConfigurationDto | undefined;
+}
+
+export enum EventSourceProviderConfigurationKind {
+    ICalFeed = 0,
+    ICalFile = 1,
+}
+
+export class ICalFeedSourceConfigurationDto implements IICalFeedSourceConfigurationDto {
+    feedUrl?: string;
+    eTag?: string | undefined;
+    lastModified?: string | undefined;
+    lastContentHash?: string | undefined;
+
+    constructor(data?: IICalFeedSourceConfigurationDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.feedUrl = _data["feedUrl"];
+            this.eTag = _data["eTag"];
+            this.lastModified = _data["lastModified"];
+            this.lastContentHash = _data["lastContentHash"];
+        }
+    }
+
+    static fromJS(data: any): ICalFeedSourceConfigurationDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new ICalFeedSourceConfigurationDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["feedUrl"] = this.feedUrl;
+        data["eTag"] = this.eTag;
+        data["lastModified"] = this.lastModified;
+        data["lastContentHash"] = this.lastContentHash;
+        return data;
+    }
+}
+
+export interface IICalFeedSourceConfigurationDto {
+    feedUrl?: string;
+    eTag?: string | undefined;
+    lastModified?: string | undefined;
+    lastContentHash?: string | undefined;
+}
+
+export class ICalFileSourceConfigurationDto implements IICalFileSourceConfigurationDto {
+    fileReference?: string;
+    originalFilename?: string;
+    contentHash?: string;
+    uploadedUtc?: Date;
+
+    constructor(data?: IICalFileSourceConfigurationDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.fileReference = _data["fileReference"];
+            this.originalFilename = _data["originalFilename"];
+            this.contentHash = _data["contentHash"];
+            this.uploadedUtc = _data["uploadedUtc"] ? new Date(_data["uploadedUtc"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): ICalFileSourceConfigurationDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new ICalFileSourceConfigurationDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["fileReference"] = this.fileReference;
+        data["originalFilename"] = this.originalFilename;
+        data["contentHash"] = this.contentHash;
+        data["uploadedUtc"] = this.uploadedUtc ? this.uploadedUtc.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface IICalFileSourceConfigurationDto {
+    fileReference?: string;
+    originalFilename?: string;
+    contentHash?: string;
+    uploadedUtc?: Date;
+}
+
+export class CreateEventSourceRequest implements ICreateEventSourceRequest {
+    name?: string;
+    icon?: string;
+    sourceType?: EventSourceType;
+    enabled?: boolean;
+    pollInterval?: EventSourcePollInterval;
+    providerConfiguration?: EventSourceProviderConfigurationRequest | undefined;
+
+    constructor(data?: ICreateEventSourceRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.name = _data["name"];
+            this.icon = _data["icon"];
+            this.sourceType = _data["sourceType"];
+            this.enabled = _data["enabled"];
+            this.pollInterval = _data["pollInterval"];
+            this.providerConfiguration = _data["providerConfiguration"] ? EventSourceProviderConfigurationRequest.fromJS(_data["providerConfiguration"]) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): CreateEventSourceRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreateEventSourceRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["name"] = this.name;
+        data["icon"] = this.icon;
+        data["sourceType"] = this.sourceType;
+        data["enabled"] = this.enabled;
+        data["pollInterval"] = this.pollInterval;
+        data["providerConfiguration"] = this.providerConfiguration ? this.providerConfiguration.toJSON() : undefined as any;
+        return data;
+    }
+}
+
+export interface ICreateEventSourceRequest {
+    name?: string;
+    icon?: string;
+    sourceType?: EventSourceType;
+    enabled?: boolean;
+    pollInterval?: EventSourcePollInterval;
+    providerConfiguration?: EventSourceProviderConfigurationRequest | undefined;
+}
+
+export class EventSourceProviderConfigurationRequest implements IEventSourceProviderConfigurationRequest {
+    kind?: EventSourceProviderConfigurationKind;
+    iCalFeed?: ICalFeedSourceConfigurationRequest | undefined;
+    iCalFile?: ICalFileSourceConfigurationRequest | undefined;
+
+    constructor(data?: IEventSourceProviderConfigurationRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.kind = _data["kind"];
+            this.iCalFeed = _data["iCalFeed"] ? ICalFeedSourceConfigurationRequest.fromJS(_data["iCalFeed"]) : undefined as any;
+            this.iCalFile = _data["iCalFile"] ? ICalFileSourceConfigurationRequest.fromJS(_data["iCalFile"]) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): EventSourceProviderConfigurationRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new EventSourceProviderConfigurationRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["kind"] = this.kind;
+        data["iCalFeed"] = this.iCalFeed ? this.iCalFeed.toJSON() : undefined as any;
+        data["iCalFile"] = this.iCalFile ? this.iCalFile.toJSON() : undefined as any;
+        return data;
+    }
+}
+
+export interface IEventSourceProviderConfigurationRequest {
+    kind?: EventSourceProviderConfigurationKind;
+    iCalFeed?: ICalFeedSourceConfigurationRequest | undefined;
+    iCalFile?: ICalFileSourceConfigurationRequest | undefined;
+}
+
+export class ICalFeedSourceConfigurationRequest implements IICalFeedSourceConfigurationRequest {
+    feedUrl?: string;
+
+    constructor(data?: IICalFeedSourceConfigurationRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.feedUrl = _data["feedUrl"];
+        }
+    }
+
+    static fromJS(data: any): ICalFeedSourceConfigurationRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new ICalFeedSourceConfigurationRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["feedUrl"] = this.feedUrl;
+        return data;
+    }
+}
+
+export interface IICalFeedSourceConfigurationRequest {
+    feedUrl?: string;
+}
+
+export class ICalFileSourceConfigurationRequest implements IICalFileSourceConfigurationRequest {
+    fileReference?: string;
+    originalFilename?: string;
+    contentHash?: string;
+
+    constructor(data?: IICalFileSourceConfigurationRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.fileReference = _data["fileReference"];
+            this.originalFilename = _data["originalFilename"];
+            this.contentHash = _data["contentHash"];
+        }
+    }
+
+    static fromJS(data: any): ICalFileSourceConfigurationRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new ICalFileSourceConfigurationRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["fileReference"] = this.fileReference;
+        data["originalFilename"] = this.originalFilename;
+        data["contentHash"] = this.contentHash;
+        return data;
+    }
+}
+
+export interface IICalFileSourceConfigurationRequest {
+    fileReference?: string;
+    originalFilename?: string;
+    contentHash?: string;
+}
+
+export class UpdateEventSourceRequest implements IUpdateEventSourceRequest {
+    name?: string;
+    icon?: string;
+    enabled?: boolean;
+    pollInterval?: EventSourcePollInterval;
+    providerConfiguration?: EventSourceProviderConfigurationRequest | undefined;
+
+    constructor(data?: IUpdateEventSourceRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.name = _data["name"];
+            this.icon = _data["icon"];
+            this.enabled = _data["enabled"];
+            this.pollInterval = _data["pollInterval"];
+            this.providerConfiguration = _data["providerConfiguration"] ? EventSourceProviderConfigurationRequest.fromJS(_data["providerConfiguration"]) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): UpdateEventSourceRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpdateEventSourceRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["name"] = this.name;
+        data["icon"] = this.icon;
+        data["enabled"] = this.enabled;
+        data["pollInterval"] = this.pollInterval;
+        data["providerConfiguration"] = this.providerConfiguration ? this.providerConfiguration.toJSON() : undefined as any;
+        return data;
+    }
+}
+
+export interface IUpdateEventSourceRequest {
+    name?: string;
+    icon?: string;
+    enabled?: boolean;
+    pollInterval?: EventSourcePollInterval;
+    providerConfiguration?: EventSourceProviderConfigurationRequest | undefined;
+}
+
+export class SyncSourceResultDto implements ISyncSourceResultDto {
+    sourceId?: string;
+    succeeded?: boolean;
+    healthStatus?: EventSourceHealthStatus;
+    attemptedAtUtc?: Date;
+    successfulAtUtc?: Date | undefined;
+    failedAtUtc?: Date | undefined;
+    createdCount?: number;
+    updatedCount?: number;
+    deletedCount?: number;
+    unchangedCount?: number;
+    warningCount?: number;
+    duration?: string;
+    error?: EventSourceLastError | undefined;
+
+    constructor(data?: ISyncSourceResultDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.sourceId = _data["sourceId"];
+            this.succeeded = _data["succeeded"];
+            this.healthStatus = _data["healthStatus"];
+            this.attemptedAtUtc = _data["attemptedAtUtc"] ? new Date(_data["attemptedAtUtc"].toString()) : undefined as any;
+            this.successfulAtUtc = _data["successfulAtUtc"] ? new Date(_data["successfulAtUtc"].toString()) : undefined as any;
+            this.failedAtUtc = _data["failedAtUtc"] ? new Date(_data["failedAtUtc"].toString()) : undefined as any;
+            this.createdCount = _data["createdCount"];
+            this.updatedCount = _data["updatedCount"];
+            this.deletedCount = _data["deletedCount"];
+            this.unchangedCount = _data["unchangedCount"];
+            this.warningCount = _data["warningCount"];
+            this.duration = _data["duration"];
+            this.error = _data["error"] ? EventSourceLastError.fromJS(_data["error"]) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): SyncSourceResultDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new SyncSourceResultDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["sourceId"] = this.sourceId;
+        data["succeeded"] = this.succeeded;
+        data["healthStatus"] = this.healthStatus;
+        data["attemptedAtUtc"] = this.attemptedAtUtc ? this.attemptedAtUtc.toISOString() : undefined as any;
+        data["successfulAtUtc"] = this.successfulAtUtc ? this.successfulAtUtc.toISOString() : undefined as any;
+        data["failedAtUtc"] = this.failedAtUtc ? this.failedAtUtc.toISOString() : undefined as any;
+        data["createdCount"] = this.createdCount;
+        data["updatedCount"] = this.updatedCount;
+        data["deletedCount"] = this.deletedCount;
+        data["unchangedCount"] = this.unchangedCount;
+        data["warningCount"] = this.warningCount;
+        data["duration"] = this.duration;
+        data["error"] = this.error ? this.error.toJSON() : undefined as any;
+        return data;
+    }
+}
+
+export interface ISyncSourceResultDto {
+    sourceId?: string;
+    succeeded?: boolean;
+    healthStatus?: EventSourceHealthStatus;
+    attemptedAtUtc?: Date;
+    successfulAtUtc?: Date | undefined;
+    failedAtUtc?: Date | undefined;
+    createdCount?: number;
+    updatedCount?: number;
+    deletedCount?: number;
+    unchangedCount?: number;
+    warningCount?: number;
+    duration?: string;
+    error?: EventSourceLastError | undefined;
+}
+
+export class RefreshAllResultDto implements IRefreshAllResultDto {
+    results?: SyncSourceResultDto[];
+
+    constructor(data?: IRefreshAllResultDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            if (Array.isArray(_data["results"])) {
+                this.results = [] as any;
+                for (let item of _data["results"])
+                    this.results!.push(SyncSourceResultDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): RefreshAllResultDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new RefreshAllResultDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        if (Array.isArray(this.results)) {
+            data["results"] = [];
+            for (let item of this.results)
+                data["results"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IRefreshAllResultDto {
+    results?: SyncSourceResultDto[];
+}
+
 export class CalendarExportDocument implements ICalendarExportDocument {
     format?: string;
     schemaVersion?: number;
@@ -4376,6 +5140,12 @@ export class CalendarExportEventSource implements ICalendarExportEventSource {
     isWritable?: boolean;
     createdUtc?: Date;
     updatedUtc?: Date;
+    icon?: string | undefined;
+    isEnabled?: boolean | undefined;
+    isSystem?: boolean | undefined;
+    healthStatus?: string | undefined;
+    pollInterval?: string | undefined;
+    providerConfiguration?: CalendarExportProviderConfiguration | undefined;
 
     constructor(data?: ICalendarExportEventSource) {
         if (data) {
@@ -4394,6 +5164,12 @@ export class CalendarExportEventSource implements ICalendarExportEventSource {
             this.isWritable = _data["isWritable"];
             this.createdUtc = _data["createdUtc"] ? new Date(_data["createdUtc"].toString()) : undefined as any;
             this.updatedUtc = _data["updatedUtc"] ? new Date(_data["updatedUtc"].toString()) : undefined as any;
+            this.icon = _data["icon"];
+            this.isEnabled = _data["isEnabled"];
+            this.isSystem = _data["isSystem"];
+            this.healthStatus = _data["healthStatus"];
+            this.pollInterval = _data["pollInterval"];
+            this.providerConfiguration = _data["providerConfiguration"] ? CalendarExportProviderConfiguration.fromJS(_data["providerConfiguration"]) : undefined as any;
         }
     }
 
@@ -4412,6 +5188,12 @@ export class CalendarExportEventSource implements ICalendarExportEventSource {
         data["isWritable"] = this.isWritable;
         data["createdUtc"] = this.createdUtc ? this.createdUtc.toISOString() : undefined as any;
         data["updatedUtc"] = this.updatedUtc ? this.updatedUtc.toISOString() : undefined as any;
+        data["icon"] = this.icon;
+        data["isEnabled"] = this.isEnabled;
+        data["isSystem"] = this.isSystem;
+        data["healthStatus"] = this.healthStatus;
+        data["pollInterval"] = this.pollInterval;
+        data["providerConfiguration"] = this.providerConfiguration ? this.providerConfiguration.toJSON() : undefined as any;
         return data;
     }
 }
@@ -4423,6 +5205,140 @@ export interface ICalendarExportEventSource {
     isWritable?: boolean;
     createdUtc?: Date;
     updatedUtc?: Date;
+    icon?: string | undefined;
+    isEnabled?: boolean | undefined;
+    isSystem?: boolean | undefined;
+    healthStatus?: string | undefined;
+    pollInterval?: string | undefined;
+    providerConfiguration?: CalendarExportProviderConfiguration | undefined;
+}
+
+export class CalendarExportProviderConfiguration implements ICalendarExportProviderConfiguration {
+    providerType?: string;
+    iCalFeed?: CalendarExportICalFeedConfiguration | undefined;
+    iCalFile?: CalendarExportICalFileConfiguration | undefined;
+
+    constructor(data?: ICalendarExportProviderConfiguration) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.providerType = _data["providerType"];
+            this.iCalFeed = _data["iCalFeed"] ? CalendarExportICalFeedConfiguration.fromJS(_data["iCalFeed"]) : undefined as any;
+            this.iCalFile = _data["iCalFile"] ? CalendarExportICalFileConfiguration.fromJS(_data["iCalFile"]) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): CalendarExportProviderConfiguration {
+        data = typeof data === 'object' ? data : {};
+        let result = new CalendarExportProviderConfiguration();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["providerType"] = this.providerType;
+        data["iCalFeed"] = this.iCalFeed ? this.iCalFeed.toJSON() : undefined as any;
+        data["iCalFile"] = this.iCalFile ? this.iCalFile.toJSON() : undefined as any;
+        return data;
+    }
+}
+
+export interface ICalendarExportProviderConfiguration {
+    providerType?: string;
+    iCalFeed?: CalendarExportICalFeedConfiguration | undefined;
+    iCalFile?: CalendarExportICalFileConfiguration | undefined;
+}
+
+export class CalendarExportICalFeedConfiguration implements ICalendarExportICalFeedConfiguration {
+    feedUrl?: string;
+
+    constructor(data?: ICalendarExportICalFeedConfiguration) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.feedUrl = _data["feedUrl"];
+        }
+    }
+
+    static fromJS(data: any): CalendarExportICalFeedConfiguration {
+        data = typeof data === 'object' ? data : {};
+        let result = new CalendarExportICalFeedConfiguration();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["feedUrl"] = this.feedUrl;
+        return data;
+    }
+}
+
+export interface ICalendarExportICalFeedConfiguration {
+    feedUrl?: string;
+}
+
+export class CalendarExportICalFileConfiguration implements ICalendarExportICalFileConfiguration {
+    fileReference?: string;
+    originalFilename?: string;
+    contentHash?: string;
+    uploadedUtc?: Date;
+
+    constructor(data?: ICalendarExportICalFileConfiguration) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.fileReference = _data["fileReference"];
+            this.originalFilename = _data["originalFilename"];
+            this.contentHash = _data["contentHash"];
+            this.uploadedUtc = _data["uploadedUtc"] ? new Date(_data["uploadedUtc"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): CalendarExportICalFileConfiguration {
+        data = typeof data === 'object' ? data : {};
+        let result = new CalendarExportICalFileConfiguration();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["fileReference"] = this.fileReference;
+        data["originalFilename"] = this.originalFilename;
+        data["contentHash"] = this.contentHash;
+        data["uploadedUtc"] = this.uploadedUtc ? this.uploadedUtc.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface ICalendarExportICalFileConfiguration {
+    fileReference?: string;
+    originalFilename?: string;
+    contentHash?: string;
+    uploadedUtc?: Date;
 }
 
 export class CalendarExportEventSeries implements ICalendarExportEventSeries {

@@ -14,12 +14,15 @@ export interface EventSourceColor {
 export interface EventSource {
   id: string;
   name: string;
+  icon?: string;
   type: EventSourceType;
   enabled: boolean;
   capability: EventSourceCapability;
   visibility: EventSourceVisibility;
   color: EventSourceColor;
   providerSourceId?: string;
+  sourceState?: 'healthy' | 'failed' | 'neverSynced' | 'disabled';
+  canDisplayEvents?: boolean;
 }
 
 export interface NormalizedEvent {

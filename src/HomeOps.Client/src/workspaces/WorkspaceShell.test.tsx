@@ -29,8 +29,22 @@ vi.mock('../widgets/WidgetRenderer', () => ({
   WidgetRenderer: ({ instance }: { instance: { title: string } }) => <article>{instance.title}</article>,
 }));
 
+vi.mock('../calendarSources/calendarSourcesApi', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../calendarSources/calendarSourcesApi')>();
+  return {
+    ...actual,
+    loadCalendarSources: vi.fn(async () => []),
+    hasCalendarSourceAttention: (sources: Array<{ enabled?: boolean; state?: string }>) =>
+      sources.some((source) => source.enabled && source.state === 'failed'),
+  };
+});
+
 async function mockedWorkspaceLayout() {
   return await import('./workspaceLayout');
+}
+
+async function mockedCalendarSourcesApi() {
+  return await import('../calendarSources/calendarSourcesApi');
 }
 
 afterEach(() => cleanup());
@@ -39,6 +53,7 @@ describe('WorkspaceShell API-backed layouts', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     const workspaceLayout = await mockedWorkspaceLayout();
+    const calendarSourcesApi = await mockedCalendarSourcesApi();
     vi.mocked(workspaceLayout.loadWorkspaceLayout).mockImplementation(async (workspaceId) => ({
       source: 'api',
       widgetInstances: workspaceId === 'home'
@@ -48,6 +63,7 @@ describe('WorkspaceShell API-backed layouts', () => {
           ]
         : [{ id: `${workspaceId}-placeholder`, widgetDefinitionId: `${workspaceId}-placeholder`, title: `${workspaceId} placeholder`, settings: {} }],
     }));
+    vi.mocked(calendarSourcesApi.loadCalendarSources).mockResolvedValue([]);
   });
 
   it('loads and renders widgets from the persisted active workspace layout', async () => {
@@ -117,6 +133,30 @@ describe('WorkspaceShell API-backed layouts', () => {
     await user.click(within(administration).getByRole('button', { name: 'Instellingen voor gezinsinstellingen' }));
     expect(await screen.findByRole('heading', { name: 'Alles is in orde.' })).not.toBeNull();
     expect(screen.getByRole('button', { name: 'Back-up maken' })).not.toBeNull();
+  });
+
+  it('shows a warning badge on Settings when configured sources are unhealthy', async () => {
+    const calendarSourcesApi = await mockedCalendarSourcesApi();
+    vi.mocked(calendarSourcesApi.loadCalendarSources).mockResolvedValue([
+      {
+        id: 'feed-source',
+        name: 'School Feed',
+        icon: '🏫',
+        type: 'iCalFeed',
+        enabled: true,
+        writable: false,
+        isSystem: false,
+        state: 'failed',
+        canDisplayEvents: false,
+        pollInterval: 'every8Hours',
+        providerConfiguration: { kind: 'iCalFeed', feedUrl: 'https://example.test/feed.ics' },
+      },
+    ]);
+
+    render(<WorkspaceShell />);
+
+    await screen.findByText('Open Agenda');
+    expect(screen.getByLabelText('Kalenderbronnen vragen aandacht')).not.toBeNull();
   });
 
   it('keeps Weekly Reset reachable contextually from Tasks', async () => {

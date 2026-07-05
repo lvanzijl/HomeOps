@@ -382,10 +382,10 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     expect(screen.getByRole("button", { name: "Maand bekijken" })).not.toBeNull();
     expect(
       within(screen.getByLabelText("Plannen")).getByRole("group", {
-        name: "Zichtbaar in de agenda",
+        name: "Bronnen in de agenda",
       }),
     ).not.toBeNull();
-    expect(screen.getByText("Agenda's")).not.toBeNull();
+    expect(screen.getByText("Bronnen")).not.toBeNull();
 
     await openMonthView(user);
     expect(screen.getByRole("button", { name: "Terug naar planning" })).not.toBeNull();

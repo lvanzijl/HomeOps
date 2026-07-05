@@ -250,6 +250,21 @@ button {
   gap: 0.25rem;
 }
 
+.workspace-admin-badge {
+  align-items: center;
+  background: #f59e0b;
+  border-radius: 999px;
+  color: white;
+  display: inline-flex;
+  font-size: 0.7rem;
+  font-weight: 900;
+  height: 1rem;
+  justify-content: center;
+  line-height: 1;
+  min-width: 1rem;
+  padding: 0 0.2rem;
+}
+
 .workspace-nav-button[aria-current="page"] {
   border-color: var(--color-brand-accent);
   color: var(--color-brand-accent-strong);
@@ -541,6 +556,20 @@ button {
   gap: 0.4rem;
   padding: 0.28rem 0.55rem;
   white-space: nowrap;
+}
+
+.source-selector-unavailable {
+  opacity: 0.72;
+}
+
+.source-selector-copy {
+  display: grid;
+  gap: 0.1rem;
+}
+
+.source-selector-copy small {
+  color: var(--color-text-muted);
+  font-size: 0.68rem;
 }
 
 .source-color {
@@ -836,6 +865,10 @@ button {
   padding: 0.85rem;
 }
 
+.settings-sources-card {
+  grid-template-rows: auto auto auto minmax(0, 1fr);
+}
+
 .settings-card-header h3 {
   color: var(--domain-accent-strong, #475569);
   font-size: 1.05rem;
@@ -986,6 +1019,176 @@ button {
 .settings-surface-actions button[disabled] {
   cursor: default;
   opacity: 0.5;
+}
+
+.settings-source-toolbar,
+.settings-source-actions,
+.settings-source-footer {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.settings-source-toolbar {
+  justify-content: space-between;
+}
+
+.settings-source-toolbar button,
+.settings-source-actions button {
+  background: rgb(255 255 255 / 92%);
+  border: 1px solid color-mix(in srgb, var(--domain-border, #cbd5e1) 78%, white);
+  border-radius: 999px;
+  color: var(--domain-accent-strong, #475569);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+  min-height: 2.2rem;
+  padding: 0.4rem 0.75rem;
+}
+
+.settings-source-list,
+.settings-refresh-results {
+  display: grid;
+  gap: 0.65rem;
+  min-height: 0;
+  overflow: auto;
+  padding-right: 0.15rem;
+}
+
+.settings-source-card {
+  background: color-mix(in srgb, var(--domain-tint, #f8fafc) 64%, white);
+  border: 1px solid color-mix(in srgb, var(--domain-border, #cbd5e1) 72%, white);
+  border-radius: 1rem;
+  display: grid;
+  gap: 0.65rem;
+  padding: 0.75rem;
+}
+
+.settings-source-card-header,
+.settings-source-title {
+  align-items: start;
+  display: flex;
+  gap: 0.65rem;
+  justify-content: space-between;
+}
+
+.settings-source-title {
+  justify-content: flex-start;
+  min-width: 0;
+}
+
+.settings-source-title h4,
+.settings-source-title p,
+.settings-source-error p,
+.settings-source-provider,
+.settings-source-protection,
+.settings-source-empty p {
+  margin: 0;
+}
+
+.settings-source-title h4 {
+  color: var(--domain-accent-strong, #475569);
+  font-size: 1rem;
+}
+
+.settings-source-title p,
+.settings-source-provider,
+.settings-source-protection,
+.settings-source-empty p,
+.settings-source-loading,
+.settings-refresh-results span {
+  color: var(--color-text-muted);
+  line-height: 1.35;
+}
+
+.settings-source-icon {
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.settings-source-meta {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.settings-source-meta-item {
+  background: rgb(255 255 255 / 72%);
+  border: 1px solid color-mix(in srgb, var(--domain-border, #cbd5e1) 64%, white);
+  border-radius: 0.85rem;
+  display: grid;
+  gap: 0.18rem;
+  padding: 0.55rem 0.65rem;
+}
+
+.settings-source-meta-item span {
+  color: var(--color-text-muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.settings-source-meta-item strong {
+  color: var(--color-text-strong);
+  font-size: 0.85rem;
+}
+
+.settings-source-error,
+.settings-source-empty {
+  background: rgb(255 251 235 / 96%);
+  border: 1px solid #fbbf24;
+  border-radius: 0.95rem;
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.7rem 0.75rem;
+}
+
+.settings-source-switch {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.5rem;
+  font-weight: 700;
+}
+
+.settings-source-form {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.settings-source-form-span-2 {
+  grid-column: 1 / -1;
+}
+
+.settings-file-field input,
+.settings-file-field select {
+  border: 1px solid color-mix(in srgb, var(--domain-border, #cbd5e1) 72%, white);
+  border-radius: 0.75rem;
+  font: inherit;
+  padding: 0.6rem 0.7rem;
+}
+
+.settings-file-field-checkbox {
+  align-items: center;
+  grid-template-columns: auto 1fr;
+}
+
+.settings-file-field-checkbox input {
+  padding: 0;
+}
+
+.settings-refresh-results {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.settings-refresh-results li {
+  background: rgb(255 255 255 / 72%);
+  border: 1px solid color-mix(in srgb, var(--domain-border, #cbd5e1) 64%, white);
+  border-radius: 0.85rem;
+  display: grid;
+  gap: 0.18rem;
+  padding: 0.55rem 0.65rem;
 }
 
 .settings-surface-backdrop {

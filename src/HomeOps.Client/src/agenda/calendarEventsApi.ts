@@ -1,14 +1,14 @@
 import {
   CreateEventSeriesRequest,
-  EventSourceCapability as ApiEventSourceCapability,
+  EventSourceDto,
+  EventSourceHealthStatus,
   EventSourceType as ApiEventSourceType,
   HomeOpsApiClient,
   EventSeriesDto,
   NormalizedEvent as ApiNormalizedEvent,
   UpdateEventSeriesRequest,
-  type EventSource as ApiEventSource,
 } from '../api/homeOpsApiClient';
-import type { EventSource, EventSourceCapability, EventSourceType, NormalizedEvent } from '../events/eventSourceModel';
+import type { EventSource, EventSourceType, NormalizedEvent } from '../events/eventSourceModel';
 
 export interface CalendarAgendaData {
   sources: EventSource[];
@@ -30,7 +30,7 @@ export function createAgendaApiClient(): HomeOpsApiClient {
 }
 
 export async function loadCalendarAgendaData(client = createAgendaApiClient()): Promise<CalendarAgendaData> {
-  const [sources, events] = await Promise.all([client.getEventSources(), client.getEvents()]);
+  const [sources, events] = await Promise.all([client.listEventSources(), client.getEvents()]);
 
   return {
     sources: sources.map(toAgendaEventSource),
@@ -52,19 +52,30 @@ export async function deleteCalendarAgendaEvent(eventId: string, client = create
   await client.deleteEvent(eventId);
 }
 
-export function toAgendaEventSource(source: ApiEventSource): EventSource {
+export function toAgendaEventSource(source: EventSourceDto): EventSource {
+  const enabled = source.enabled ?? true;
+  const sourceState = !enabled
+    ? 'disabled'
+    : source.healthStatus === EventSourceHealthStatus.Healthy
+      ? 'healthy'
+      : source.healthStatus === EventSourceHealthStatus.Failed
+        ? 'failed'
+        : 'neverSynced';
+
   return {
     id: requireString(source.id, 'event source id'),
     name: source.name ?? 'HomeOps Calendar',
-    type: mapEventSourceType(source.type),
-    enabled: source.enabled ?? true,
-    capability: mapEventSourceCapability(source.capability),
+    icon: source.icon ?? '📅',
+    type: mapEventSourceType(source.sourceType),
+    enabled,
+    capability: source.writable ? 'writable' : 'readOnly',
     visibility: {
-      visibleByDefault: source.visibility?.visibleByDefault ?? true,
-      groupName: source.visibility?.groupName,
+      visibleByDefault: true,
     },
-    color: { hex: source.color?.hex ?? '#4f46e5' },
+    color: { hex: '#4f46e5' },
     providerSourceId: source.providerSourceId,
+    sourceState,
+    canDisplayEvents: sourceState === 'healthy',
   };
 }
 
@@ -130,10 +141,6 @@ function mapEventSourceType(type?: ApiEventSourceType): EventSourceType {
     default:
       return 'provider';
   }
-}
-
-function mapEventSourceCapability(capability?: ApiEventSourceCapability): EventSourceCapability {
-  return capability === ApiEventSourceCapability.Writable ? 'writable' : 'readOnly';
 }
 
 function requireString(value: string | undefined, name: string): string {

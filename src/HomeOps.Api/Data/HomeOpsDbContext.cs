@@ -125,8 +125,8 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             entity.Property(source => source.IsEnabled).HasDefaultValue(true).IsRequired();
             entity.Property(source => source.IsWritable).IsRequired();
             entity.Property(source => source.IsSystem).HasDefaultValue(false).IsRequired();
-            entity.Property(source => source.HealthStatus).HasConversion<string>().HasMaxLength(32).HasDefaultValue(EventSourceHealthStatus.Healthy).IsRequired();
-            entity.Property(source => source.PollInterval).HasConversion<string>().HasMaxLength(32).HasDefaultValue(EventSourcePollInterval.Every8Hours).IsRequired();
+            entity.Property(source => source.HealthStatus).HasConversion<string>().HasMaxLength(32).HasDefaultValue(EventSourceHealthStatus.Healthy).HasSentinel((EventSourceHealthStatus)(-1)).IsRequired();
+            entity.Property(source => source.PollInterval).HasConversion<string>().HasMaxLength(32).HasDefaultValue(EventSourcePollInterval.Every8Hours).HasSentinel((EventSourcePollInterval)(-1)).IsRequired();
             entity.Property(source => source.LastSyncAttemptUtc);
             entity.Property(source => source.LastSuccessfulSyncUtc);
             entity.Property(source => source.LastFailedSyncUtc);
