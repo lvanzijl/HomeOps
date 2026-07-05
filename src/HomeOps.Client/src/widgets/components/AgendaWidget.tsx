@@ -681,6 +681,7 @@ function PlanningWorkspace({
         <PlanningOutlookCard
           agendaWeatherSlots={agendaWeatherSlots}
           deletingEventId={deletingEventId}
+          nowIso={nowIso}
           onDelete={onDelete}
           onEdit={onEdit}
           outlook={briefing.outlook}
@@ -917,6 +918,7 @@ function PlanningWeekCard({
 function PlanningOutlookCard({
   agendaWeatherSlots,
   deletingEventId,
+  nowIso,
   onDelete,
   onEdit,
   outlook,
@@ -925,6 +927,7 @@ function PlanningOutlookCard({
 }: {
   agendaWeatherSlots: AgendaWeatherSlotProjection[];
   deletingEventId: string | null;
+  nowIso: string;
   onDelete: (eventId: string) => void;
   onEdit: (event: NormalizedEvent) => void;
   outlook: PlanningBriefing["outlook"];
@@ -954,6 +957,11 @@ function PlanningOutlookCard({
                 onEdit={onEdit}
                 selected={selectedEventId === event.id}
                 setSelectedEventId={setSelectedEventId}
+                weatherOverride={resolveAgendaOutlookAllDayWeather(
+                  event,
+                  nowIso,
+                  agendaWeatherSlots,
+                )}
               />
             ))}
           </ul>
@@ -1057,6 +1065,7 @@ function PlanningEventRow({
   setSelectedEventId,
   showWeather = true,
   statusBadge,
+  weatherOverride,
 }: {
   agendaWeatherSlots: AgendaWeatherSlotProjection[];
   dayLabel?: string;
@@ -1071,12 +1080,13 @@ function PlanningEventRow({
   setSelectedEventId: (eventId: string | null) => void;
   showWeather?: boolean;
   statusBadge?: string;
+  weatherOverride?: WeatherTemperatureDisplay | null;
 }) {
   const visual = getAgendaEventVisual(event);
   const showIcon = isSpecialPlanningEvent(event);
-  const weather = showWeather
-    ? resolveAgendaEventWeather(event, agendaWeatherSlots)
-    : null;
+  const weather =
+    weatherOverride ??
+    (showWeather ? resolveAgendaEventWeather(event, agendaWeatherSlots) : null);
 
   return (
     <li
@@ -2251,6 +2261,21 @@ function resolveAgendaEventWeather(
   return slot ? buildAgendaWeatherDisplay(slot, event.title) : null;
 }
 
+function resolveAgendaOutlookAllDayWeather(
+  event: ReturnType<typeof hydrateAgendaEvents>[number],
+  nowIso: string,
+  slots: AgendaWeatherSlotProjection[],
+): WeatherTemperatureDisplay | null {
+  if (!event.allDay) {
+    return null;
+  }
+
+  const localDate = getLocalDateKey(event.startsAt);
+  return localDate
+    ? resolveAgendaDayWeather(localDate, nowIso, slots, event.title)
+    : null;
+}
+
 function buildAgendaWeatherDisplay(
   slot: AgendaWeatherSlotProjection,
   contextLabel: string,
@@ -2290,7 +2315,16 @@ function compareAgendaWeatherSlots(
 }
 
 function getWeatherSlotDate(slot: AgendaWeatherSlotProjection) {
-  return slot.startsAtUtc?.toISOString().slice(0, 10) ?? "";
+  return getLocalDateKey(slot.startsAtUtc);
+}
+
+function getLocalDateKey(value: Date | string | null | undefined) {
+  if (value === null || value === undefined) {
+    return "";
+  }
+
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? "" : toIsoDate(date);
 }
 
 function toUserFacingError(error: unknown, fallback: string): string {
