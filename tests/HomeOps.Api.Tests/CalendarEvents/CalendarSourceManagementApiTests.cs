@@ -99,6 +99,8 @@ public sealed class CalendarSourceManagementApiTests
         var created = await response.Content.ReadFromJsonAsync<EventSourceDto>();
         Assert.NotNull(created);
         Assert.Equal(EventSourceType.ICalFile, created.SourceType);
+        Assert.Equal(ContractHealthStatus.NeverSynced, created.HealthStatus);
+        Assert.Equal(ContractPollInterval.EveryDay, created.PollInterval);
         Assert.Equal(EventSourceProviderConfigurationKind.ICalFile, created.ProviderConfiguration?.Kind);
         Assert.Equal("calendar-files/upload.ics", created.ProviderConfiguration?.ICalFile?.FileReference);
         Assert.Equal("upload.ics", created.ProviderConfiguration?.ICalFile?.OriginalFilename);

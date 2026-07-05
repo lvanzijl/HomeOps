@@ -233,7 +233,7 @@ public sealed class CalendarSourceSynchronizationEngineTests
         Assert.Null(persistedSource.LastErrorMessage);
         Assert.Null(persistedSource.LastErrorDetail);
         Assert.Equal("provider-source", persistedSource.ProviderSourceId);
-        Assert.Equal(SyncNow.AddHours(8), persistedSource.NextSyncAfterUtc);
+        Assert.Equal(SyncNow.AddHours(1), persistedSource.NextSyncAfterUtc);
     }
 
     [Fact]

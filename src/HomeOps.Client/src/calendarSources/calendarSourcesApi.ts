@@ -307,7 +307,7 @@ export function getCalendarSourceStatusMessage(source: CalendarSource): string {
     return "Deze bron is opgeslagen, maar moet nog voor het eerst worden ververst.";
   }
 
-  return source.lastError?.message ?? "De laatste verversing is niet gelukt.";
+  return getCalendarSourceLastErrorMessage(source.lastError) ?? "De laatste verversing is niet gelukt.";
 }
 
 export function formatCalendarSourceDateTime(value?: string): string {
@@ -330,7 +330,7 @@ export function formatCalendarSourceDateTime(value?: string): string {
 
 export function formatCalendarSourceSyncSummary(result: CalendarSourceRefreshResult): string {
   if (!result.succeeded) {
-    return result.error?.message ?? "De verversing is niet gelukt.";
+    return getCalendarSourceLastErrorMessage(result.error) ?? "De verversing is niet gelukt.";
   }
 
   const changes = [
@@ -376,7 +376,7 @@ export function toCalendarSource(dto: EventSourceDto): CalendarSource {
     lastSuccessfulSyncUtc: dto.lastSuccessfulSyncUtc?.toISOString(),
     lastFailedSyncUtc: dto.lastFailedSyncUtc?.toISOString(),
     nextSyncAfterUtc: dto.nextSyncAfterUtc?.toISOString(),
-    lastError: dto.lastError ? { code: dto.lastError.code, message: dto.lastError.message } : undefined,
+    lastError: dto.lastError ? toCalendarSourceLastError(dto.lastError.code, dto.lastError.message) : undefined,
     providerSourceId: dto.providerSourceId ?? undefined,
     providerConfiguration: toCalendarSourceProviderConfiguration(dto),
   };
@@ -397,12 +397,64 @@ export function toCalendarSourceRefreshResult(dto: SyncSourceResultDto): Calenda
     unchangedCount: dto.unchangedCount ?? 0,
     warningCount: dto.warningCount ?? 0,
     duration: dto.duration ?? undefined,
-    error: dto.error ? { code: dto.error.code, message: dto.error.message } : undefined,
+    error: dto.error ? toCalendarSourceLastError(dto.error.code, dto.error.message) : undefined,
   };
 }
 
 function toCalendarSourceRefreshResults(dto: RefreshAllResultDto): CalendarSourceRefreshResult[] {
   return (dto.results ?? []).map(toCalendarSourceRefreshResult);
+}
+
+function toCalendarSourceLastError(code?: string, message?: string): CalendarSourceLastError {
+  return {
+    code,
+    message: getFriendlyCalendarSourceIssueMessage(code, message),
+  };
+}
+
+function getCalendarSourceLastErrorMessage(error?: CalendarSourceLastError): string | undefined {
+  if (!error) {
+    return undefined;
+  }
+
+  return getFriendlyCalendarSourceIssueMessage(error.code, error.message);
+}
+
+function getFriendlyCalendarSourceIssueMessage(code?: string, message?: string): string {
+  switch (code) {
+    case "NotFound":
+    case "HttpFailure":
+      return "HomeOps kon deze bron niet ophalen. Controleer het adres en probeer het opnieuw.";
+    case "Timeout":
+      return "Het ophalen van deze bron duurde te lang. Probeer het zo opnieuw.";
+    case "NetworkFailure":
+      return "Deze bron is nu niet bereikbaar. Probeer het later opnieuw.";
+    case "InvalidUrl":
+    case "UnsupportedScheme":
+      return "Het iCal-adres is niet geldig. Controleer de broninstellingen.";
+    case "InvalidConfiguration":
+    case "MissingConfiguration":
+    case "MissingFileReference":
+    case "MissingFilename":
+    case "InvalidContentHash":
+    case "InvalidReference":
+      return "De broninstellingen zijn niet volledig. Werk de bron bij en probeer opnieuw.";
+    case "MissingFile":
+      return "Het gekoppelde iCal-bestand is niet gevonden. Controleer de bestandsverwijzing.";
+    case "AccessDenied":
+      return "HomeOps mag het gekoppelde iCal-bestand nu niet lezen.";
+    case "StorageFailure":
+      return "HomeOps kon het gekoppelde iCal-bestand nu niet openen.";
+    case "InvalidContent":
+    case "ParseFailure":
+      return "HomeOps kon deze iCal-inhoud niet lezen. Controleer de bron en probeer opnieuw.";
+    case "UnsupportedProvider":
+      return "Deze bron kan nog niet worden ververst in HomeOps.";
+    case "Unknown":
+      return "HomeOps kon deze bron nu niet verwerken.";
+    default:
+      return message?.trim() || "HomeOps kon deze bron nu niet verwerken.";
+  }
 }
 
 function toCalendarSourceProviderConfiguration(dto: EventSourceDto): CalendarSourceProviderConfiguration | null {
