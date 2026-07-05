@@ -16,26 +16,6 @@
         }
       }
     },
-    "/api/event-sources": {
-      "get": {
-        "operationId": "GetEventSources",
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/EventSource"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/motivation": {
       "get": {
         "operationId": "GetMotivationSnapshot",
@@ -935,6 +915,195 @@
           },
           "400": {
             "description": ""
+          }
+        }
+      }
+    },
+    "/api/event-sources": {
+      "get": {
+        "tags": [
+          "Event Sources"
+        ],
+        "operationId": "ListEventSources",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EventSourceDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Event Sources"
+        ],
+        "operationId": "CreateEventSource",
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateEventSourceRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventSourceDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/event-sources/{sourceId}": {
+      "get": {
+        "tags": [
+          "Event Sources"
+        ],
+        "operationId": "GetEventSource",
+        "parameters": [
+          {
+            "name": "sourceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventSourceDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Event Sources"
+        ],
+        "operationId": "UpdateEventSource",
+        "parameters": [
+          {
+            "name": "sourceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateEventSourceRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventSourceDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Event Sources"
+        ],
+        "operationId": "DeleteEventSource",
+        "parameters": [
+          {
+            "name": "sourceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "404": {
+            "description": ""
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
           }
         }
       }
@@ -2199,98 +2368,6 @@
   },
   "components": {
     "schemas": {
-      "EventSource": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "id": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "type": {
-            "$ref": "#/components/schemas/EventSourceType"
-          },
-          "enabled": {
-            "type": "boolean"
-          },
-          "capability": {
-            "$ref": "#/components/schemas/EventSourceCapability"
-          },
-          "visibility": {
-            "$ref": "#/components/schemas/EventSourceVisibility"
-          },
-          "color": {
-            "$ref": "#/components/schemas/EventSourceColor"
-          },
-          "externalSourceId": {
-            "type": "string",
-            "nullable": true
-          },
-          "isReadOnly": {
-            "type": "boolean"
-          },
-          "isWritable": {
-            "type": "boolean"
-          }
-        }
-      },
-      "EventSourceType": {
-        "type": "integer",
-        "description": "",
-        "x-enumNames": [
-          "Manual",
-          "GoogleCalendar",
-          "Birthdays",
-          "TvSeries",
-          "SchoolHolidays",
-          "External"
-        ],
-        "enum": [
-          0,
-          1,
-          2,
-          3,
-          4,
-          99
-        ]
-      },
-      "EventSourceCapability": {
-        "type": "integer",
-        "description": "",
-        "x-enumNames": [
-          "ReadOnly",
-          "Writable"
-        ],
-        "enum": [
-          0,
-          1
-        ]
-      },
-      "EventSourceVisibility": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "visibleByDefault": {
-            "type": "boolean"
-          },
-          "groupName": {
-            "type": "string",
-            "nullable": true
-          }
-        }
-      },
-      "EventSourceColor": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "hex": {
-            "type": "string",
-            "nullable": true
-          }
-        }
-      },
       "MotivationSnapshotDto": {
         "type": "object",
         "additionalProperties": false,
@@ -2844,6 +2921,331 @@
           }
         }
       },
+      "EventSourceDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string"
+          },
+          "sourceType": {
+            "$ref": "#/components/schemas/EventSourceType"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "writable": {
+            "type": "boolean"
+          },
+          "isSystem": {
+            "type": "boolean"
+          },
+          "healthStatus": {
+            "$ref": "#/components/schemas/EventSourceHealthStatus"
+          },
+          "pollInterval": {
+            "$ref": "#/components/schemas/EventSourcePollInterval"
+          },
+          "lastSyncAttemptUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "lastSuccessfulSyncUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "lastFailedSyncUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "nextSyncAfterUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "lastError": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/EventSourceLastError"
+              }
+            ]
+          },
+          "providerSourceId": {
+            "type": "string",
+            "nullable": true
+          },
+          "providerConfiguration": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/EventSourceProviderConfigurationDto"
+              }
+            ]
+          }
+        }
+      },
+      "EventSourceType": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "Manual",
+          "ICalFeed",
+          "ICalFile",
+          "GoogleCalendar",
+          "CalDav",
+          "Exchange",
+          "SchoolHolidays",
+          "TvSeries",
+          "Provider",
+          "Birthdays"
+        ],
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          99,
+          100
+        ]
+      },
+      "EventSourceHealthStatus": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "NeverSynced",
+          "Healthy",
+          "Failed"
+        ],
+        "enum": [
+          0,
+          1,
+          2
+        ]
+      },
+      "EventSourcePollInterval": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "EveryHour",
+          "Every8Hours",
+          "EveryDay"
+        ],
+        "enum": [
+          0,
+          1,
+          2
+        ]
+      },
+      "EventSourceLastError": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string",
+            "nullable": true
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "EventSourceProviderConfigurationDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/EventSourceProviderConfigurationKind"
+          },
+          "iCalFeed": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ICalFeedSourceConfigurationDto"
+              }
+            ]
+          },
+          "iCalFile": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ICalFileSourceConfigurationDto"
+              }
+            ]
+          }
+        }
+      },
+      "EventSourceProviderConfigurationKind": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "ICalFeed",
+          "ICalFile"
+        ],
+        "enum": [
+          0,
+          1
+        ]
+      },
+      "ICalFeedSourceConfigurationDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "feedUrl": {
+            "type": "string"
+          },
+          "eTag": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastModified": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastContentHash": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "ICalFileSourceConfigurationDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "fileReference": {
+            "type": "string"
+          },
+          "originalFilename": {
+            "type": "string"
+          },
+          "contentHash": {
+            "type": "string"
+          },
+          "uploadedUtc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CreateEventSourceRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string"
+          },
+          "sourceType": {
+            "$ref": "#/components/schemas/EventSourceType"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "pollInterval": {
+            "$ref": "#/components/schemas/EventSourcePollInterval"
+          },
+          "providerConfiguration": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/EventSourceProviderConfigurationRequest"
+              }
+            ]
+          }
+        }
+      },
+      "EventSourceProviderConfigurationRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/EventSourceProviderConfigurationKind"
+          },
+          "iCalFeed": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ICalFeedSourceConfigurationRequest"
+              }
+            ]
+          },
+          "iCalFile": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ICalFileSourceConfigurationRequest"
+              }
+            ]
+          }
+        }
+      },
+      "ICalFeedSourceConfigurationRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "feedUrl": {
+            "type": "string"
+          }
+        }
+      },
+      "ICalFileSourceConfigurationRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "fileReference": {
+            "type": "string"
+          },
+          "originalFilename": {
+            "type": "string"
+          },
+          "contentHash": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdateEventSourceRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "pollInterval": {
+            "$ref": "#/components/schemas/EventSourcePollInterval"
+          },
+          "providerConfiguration": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/EventSourceProviderConfigurationRequest"
+              }
+            ]
+          }
+        }
+      },
       "CalendarExportDocument": {
         "type": "object",
         "additionalProperties": false,
@@ -3109,7 +3511,7 @@
           "editable": {
             "type": "boolean"
           },
-          "externalEventId": {
+          "providerEventId": {
             "type": "string",
             "nullable": true
           },

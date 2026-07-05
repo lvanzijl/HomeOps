@@ -33,10 +33,10 @@ public sealed class EventFrameworkModelTests
             EndsAt: null,
             AllDay: false,
             Editable: true,
-            ExternalEventId: "external-event-1");
+            ProviderEventId: "external-event-1");
 
         Assert.Equal("manual-events", normalizedEvent.SourceId);
         Assert.True(normalizedEvent.Editable);
-        Assert.Equal("external-event-1", normalizedEvent.ExternalEventId);
+        Assert.Equal("external-event-1", normalizedEvent.ProviderEventId);
     }
 }

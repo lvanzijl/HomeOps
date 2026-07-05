@@ -107,7 +107,7 @@ public static class VisualReviewFixtureService
 
     private static void AddFamily(HomeOpsDbContext db) => db.FamilyMembers.AddRange(Member("alex", "Alex", FamilyMemberKind.Adult, "#f8c8dc", "A"), Member("sam", "Sam", FamilyMemberKind.Adult, "#c7d2fe", "S"), Member("riley", "Riley", FamilyMemberKind.Child, "#bbf7d0", "R"), Member("jordan", "Jordan", FamilyMemberKind.Child, "#fde68a", "J"));
     private static FamilyMember Member(string id, string name, FamilyMemberKind kind, string color, string initials) => new() { Id = id, HouseholdId = SeedHousehold.Id, Name = name, DisplayColor = color, Initials = initials, MemberKind = kind, DateOfBirth = kind == FamilyMemberKind.Child ? new DateOnly(id == "riley" ? 2017 : 2012, 4, 12) : null, CreatedUtc = AnchorUtc, UpdatedUtc = AnchorUtc };
-    private static void AddCalendarSource(HomeOpsDbContext db) => db.EventSources.Add(new() { Id = CalendarSourceId, HouseholdId = SeedHousehold.Id, Name = "Visual Review Calendar", SourceType = "manual", IsWritable = true, CreatedUtc = AnchorUtc, UpdatedUtc = AnchorUtc });
+    private static void AddCalendarSource(HomeOpsDbContext db) => db.EventSources.Add(new() { Id = CalendarSourceId, HouseholdId = SeedHousehold.Id, Name = "Visual Review Calendar", SourceType = EventSourceTypes.Manual, IsWritable = true, CreatedUtc = AnchorUtc, UpdatedUtc = AnchorUtc });
     private static Guid Id(int i) => Guid.Parse($"77000000-0000-0000-0000-{i:000000000000}");
 
     private static void AddFull(HomeOpsDbContext db) { AddTasks(db, 10); AddShopping(db, true); AddGoals(db, FamilyCelebrationStatus.Celebrated); AddMoments(db, 5); AddEvents(db); }

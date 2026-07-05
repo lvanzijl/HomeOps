@@ -34,6 +34,18 @@ Frontend test maintenance refreshed stale test expectations and fixtures to matc
 
 # Phase 2 Roadmap
 
+## Completed Slice — Provider-Independent Synchronization Engine
+Provider-Independent Synchronization Engine adds the source-scoped Calendar Sources sync core. The engine consumes provider-neutral normalized snapshots, matches imported EventSeries only by `(EventSourceId, ProviderEventId)`, creates new imported events, updates changed imported events, leaves unchanged content alone apart from last-seen sync metadata, deletes removed imported events only after successful authoritative snapshots, treats provider failures and parser errors as non-deleting failures, treats not-modified snapshots as no-op successful sync attempts, and updates EventSource health/synchronization metadata. It intentionally adds no provider fetching/parsing, refresh APIs, scheduler, calendar filtering, backup/restore changes, frontend changes, screenshots, or binary artifacts.
+
+## Completed Slice — iCal File Importer
+iCal File Importer adds the backend-only provider importer for configured iCal File sources. The importer loads the persisted file configuration, validates file reference, filename, and content hash fields, reads stored ICS content through a provider-agnostic content store abstraction, invokes the shared iCalendar parser, and returns provider-independent normalized snapshots or structured failure results with file metadata. It intentionally adds no synchronization, persistence writes, EventSeries creation, source status updates, upload APIs, refresh APIs, background workers, calendar filtering, frontend changes, screenshots, or binary artifacts.
+
+## Completed Slice — iCal Feed Importer
+iCal Feed Importer adds the backend-only provider importer for configured iCal Feed sources. The importer loads the persisted feed configuration, validates HTTP/HTTPS feed URLs, sends conditional HttpClient requests with ETag and Last-Modified metadata, follows redirects, invokes the shared iCalendar parser, and returns provider-independent normalized snapshots or structured failure results. It intentionally adds no synchronization, persistence writes, EventSeries creation, source status updates, APIs, background workers, calendar filtering, frontend changes, screenshots, or binary artifacts.
+
+## Completed Slice — Shared iCalendar Parser and Normalizer
+Shared iCalendar Parser and Normalizer adds the backend-only parser foundation for future iCal Feed and iCal File importers. The slice uses Ical.Net to parse raw RFC 5545 content into provider-independent normalized event inputs with provider event identity, revision, content fingerprint, metadata, timed/all-day dates, simple HomeOps recurrence mapping, and structured diagnostics for malformed calendars, missing UIDs, invalid ranges, unsupported recurrence, unsupported time zones, and unsupported properties. It intentionally adds no synchronization, persistence writes, APIs, DTO contract changes, background workers, feed/file importing, frontend changes, screenshots, or binary artifacts.
+
 ## Completed Slice — Agenda Weather Local Day Matching
 Agenda Weather Local Day Matching refines the existing frontend-only Agenda weather behavior by aligning day-level weather matching with the browser-local calendar date convention already used across Agenda, preserving timed appointment weather interval matching, and adding objective day weather only to all-day Vooruitkijken items. The slice changes no backend files, regenerates no API contract, keeps Agenda advice-free, and adds only the required validation screenshot as a binary artifact.
 
@@ -195,6 +207,9 @@ Tasks and Weekly Reset Family-First UX Pass warms the Tasks surface and contextu
 | 2.10 | Calendar Portability UX and Pre-Restore Export | Completed |
 | 2.11 | Calendar Validation, Snapshot Storage, Restore Safety UX, and Documentation Hardening | Completed |
 | 2.12 | Calendar Recurrence, EventException, and Occurrence Generation Runtime | Completed |
+| 2.13a | Calendar Sources Persistence Foundation | Completed |
+| 2.13b | Calendar Sources Domain Model and Contracts | Completed |
+| 2.13c | Calendar Source Management API | Completed |
 | 2.13 | Real Google Calendar Read-Only Integration | Recommended next |
 | 2.14 | Sensor Dashboard Foundation | Planned |
 | 2.15 | Media/TV Source Foundation | Planned |

@@ -2720,7 +2720,7 @@ export class EventSource implements IEventSource {
     capability?: EventSourceCapability;
     visibility?: EventSourceVisibility;
     color?: EventSourceColor;
-    externalSourceId?: string | undefined;
+    providerSourceId?: string | undefined;
     isReadOnly?: boolean;
     isWritable?: boolean;
 
@@ -2742,7 +2742,7 @@ export class EventSource implements IEventSource {
             this.capability = _data["capability"];
             this.visibility = _data["visibility"] ? EventSourceVisibility.fromJS(_data["visibility"]) : undefined as any;
             this.color = _data["color"] ? EventSourceColor.fromJS(_data["color"]) : undefined as any;
-            this.externalSourceId = _data["externalSourceId"];
+            this.providerSourceId = _data["providerSourceId"];
             this.isReadOnly = _data["isReadOnly"];
             this.isWritable = _data["isWritable"];
         }
@@ -2764,7 +2764,7 @@ export class EventSource implements IEventSource {
         data["capability"] = this.capability;
         data["visibility"] = this.visibility ? this.visibility.toJSON() : undefined as any;
         data["color"] = this.color ? this.color.toJSON() : undefined as any;
-        data["externalSourceId"] = this.externalSourceId;
+        data["providerSourceId"] = this.providerSourceId;
         data["isReadOnly"] = this.isReadOnly;
         data["isWritable"] = this.isWritable;
         return data;
@@ -2779,18 +2779,22 @@ export interface IEventSource {
     capability?: EventSourceCapability;
     visibility?: EventSourceVisibility;
     color?: EventSourceColor;
-    externalSourceId?: string | undefined;
+    providerSourceId?: string | undefined;
     isReadOnly?: boolean;
     isWritable?: boolean;
 }
 
 export enum EventSourceType {
     Manual = 0,
-    GoogleCalendar = 1,
-    Birthdays = 2,
-    TvSeries = 3,
-    SchoolHolidays = 4,
-    External = 99,
+    ICalFeed = 1,
+    ICalFile = 2,
+    GoogleCalendar = 3,
+    CalDav = 4,
+    Exchange = 5,
+    SchoolHolidays = 6,
+    TvSeries = 7,
+    Provider = 99,
+    Birthdays = 100,
 }
 
 export enum EventSourceCapability {
@@ -4665,7 +4669,7 @@ export class NormalizedEvent implements INormalizedEvent {
     endsAt?: Date | undefined;
     allDay?: boolean;
     editable?: boolean;
-    externalEventId?: string | undefined;
+    providerEventId?: string | undefined;
     description?: string | undefined;
     location?: string | undefined;
 
@@ -4687,7 +4691,7 @@ export class NormalizedEvent implements INormalizedEvent {
             this.endsAt = _data["endsAt"] ? new Date(_data["endsAt"].toString()) : undefined as any;
             this.allDay = _data["allDay"];
             this.editable = _data["editable"];
-            this.externalEventId = _data["externalEventId"];
+            this.providerEventId = _data["providerEventId"];
             this.description = _data["description"];
             this.location = _data["location"];
         }
@@ -4709,7 +4713,7 @@ export class NormalizedEvent implements INormalizedEvent {
         data["endsAt"] = this.endsAt ? this.endsAt.toISOString() : undefined as any;
         data["allDay"] = this.allDay;
         data["editable"] = this.editable;
-        data["externalEventId"] = this.externalEventId;
+        data["providerEventId"] = this.providerEventId;
         data["description"] = this.description;
         data["location"] = this.location;
         return data;
@@ -4724,7 +4728,7 @@ export interface INormalizedEvent {
     endsAt?: Date | undefined;
     allDay?: boolean;
     editable?: boolean;
-    externalEventId?: string | undefined;
+    providerEventId?: string | undefined;
     description?: string | undefined;
     location?: string | undefined;
 }

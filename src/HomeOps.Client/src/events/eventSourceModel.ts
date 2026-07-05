@@ -1,4 +1,4 @@
-export type EventSourceType = 'manual' | 'googleCalendar' | 'birthdays' | 'tvSeries' | 'schoolHolidays' | 'external';
+export type EventSourceType = 'manual' | 'iCalFeed' | 'iCalFile' | 'googleCalendar' | 'calDav' | 'exchange' | 'birthdays' | 'tvSeries' | 'schoolHolidays' | 'provider';
 
 export type EventSourceCapability = 'readOnly' | 'writable';
 
@@ -19,7 +19,7 @@ export interface EventSource {
   capability: EventSourceCapability;
   visibility: EventSourceVisibility;
   color: EventSourceColor;
-  externalSourceId?: string;
+  providerSourceId?: string;
 }
 
 export interface NormalizedEvent {
@@ -30,7 +30,7 @@ export interface NormalizedEvent {
   endsAt?: string;
   allDay: boolean;
   editable: boolean;
-  externalEventId?: string;
+  providerEventId?: string;
   description?: string;
   location?: string;
 }

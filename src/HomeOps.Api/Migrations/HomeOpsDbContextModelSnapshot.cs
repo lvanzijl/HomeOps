@@ -115,6 +115,10 @@ namespace HomeOps.Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("ContentFingerprint")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
                     b.Property<DateTimeOffset>("CreatedUtc")
                         .HasColumnType("timestamp with time zone");
 
@@ -131,8 +135,33 @@ namespace HomeOps.Api.Migrations
                     b.Property<Guid>("EventSourceId")
                         .HasColumnType("uuid");
 
+                    b.Property<DateTimeOffset?>("ImportedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<bool>("IsAllDay")
                         .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset?>("LastImportedUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("LastSeenSyncAttemptUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Location")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("ProviderEventId")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<string>("ProviderInstanceId")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<string>("ProviderRevision")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
 
                     b.Property<string>("RecurrenceType")
                         .IsRequired()
@@ -154,6 +183,12 @@ namespace HomeOps.Api.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("EventSourceId", "LastSeenSyncAttemptUtc");
+
+                    b.HasIndex("EventSourceId", "ProviderEventId")
+                        .IsUnique()
+                        .HasFilter("\"ProviderEventId\" IS NOT NULL");
 
                     b.HasIndex("EventSourceId", "StartDate");
 
@@ -228,16 +263,75 @@ namespace HomeOps.Api.Migrations
                     b.Property<DateTimeOffset>("CreatedUtc")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("HealthStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasDefaultValue("Healthy");
+
                     b.Property<Guid>("HouseholdId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("Icon")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)")
+                        .HasDefaultValue("📅");
+
+                    b.Property<bool>("IsEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("IsSystem")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
                     b.Property<bool>("IsWritable")
                         .HasColumnType("boolean");
+
+                    b.Property<string>("LastErrorCode")
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<string>("LastErrorDetail")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("LastErrorMessage")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTimeOffset?>("LastFailedSyncUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("LastSuccessfulSyncUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("LastSyncAttemptUtc")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(160)
                         .HasColumnType("character varying(160)");
+
+                    b.Property<DateTimeOffset?>("NextSyncAfterUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("PollInterval")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)")
+                        .HasDefaultValue("Every8Hours");
+
+                    b.Property<string>("ProviderSourceId")
+                        .HasMaxLength(240)
+                        .HasColumnType("character varying(240)");
 
                     b.Property<string>("SourceType")
                         .IsRequired()
@@ -249,8 +343,15 @@ namespace HomeOps.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("HouseholdId", "SourceType")
-                        .IsUnique();
+                    b.HasIndex("NextSyncAfterUtc");
+
+                    b.HasIndex("HouseholdId", "IsSystem")
+                        .IsUnique()
+                        .HasFilter("\"IsSystem\" = true");
+
+                    b.HasIndex("HouseholdId", "SourceType");
+
+                    b.HasIndex("HouseholdId", "IsEnabled", "HealthStatus");
 
                     b.ToTable("EventSources", (string)null);
 
@@ -259,12 +360,35 @@ namespace HomeOps.Api.Migrations
                         {
                             Id = new Guid("12121212-1212-1212-1212-121212121212"),
                             CreatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            HealthStatus = "Healthy",
                             HouseholdId = new Guid("11111111-1111-1111-1111-111111111111"),
+                            Icon = "📅",
+                            IsEnabled = true,
+                            IsSystem = true,
                             IsWritable = true,
                             Name = "HomeOps Calendar",
-                            SourceType = "manual",
+                            PollInterval = "Every8Hours",
+                            SourceType = "Manual",
                             UpdatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
                         });
+                });
+
+            modelBuilder.Entity("HomeOps.Api.CalendarEvents.EventSourceConfiguration", b =>
+                {
+                    b.Property<Guid>("EventSourceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("UpdatedUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("EventSourceId");
+
+                    b.ToTable("EventSourceConfigurations", (string)null);
+
+                    b.UseTptMappingStrategy();
                 });
 
             modelBuilder.Entity("HomeOps.Api.FamilyMembers.FamilyMember", b =>
@@ -272,7 +396,6 @@ namespace HomeOps.Api.Migrations
                     b.Property<string>("Id")
                         .HasMaxLength(120)
                         .HasColumnType("character varying(120)");
-
 
                     b.Property<DateTimeOffset>("CreatedUtc")
                         .HasColumnType("timestamp with time zone");
@@ -287,9 +410,6 @@ namespace HomeOps.Api.Migrations
                         .IsRequired()
                         .HasMaxLength(32)
                         .HasColumnType("character varying(32)");
-
-
-
 
                     b.Property<Guid>("HouseholdId")
                         .HasColumnType("uuid");
@@ -311,9 +431,6 @@ namespace HomeOps.Api.Migrations
                         .IsRequired()
                         .HasMaxLength(120)
                         .HasColumnType("character varying(120)");
-
-
-
 
                     b.Property<DateTimeOffset>("UpdatedUtc")
                         .HasColumnType("timestamp with time zone");
@@ -1351,6 +1468,55 @@ namespace HomeOps.Api.Migrations
                         });
                 });
 
+            modelBuilder.Entity("HomeOps.Api.CalendarEvents.ICalFeedSourceConfiguration", b =>
+                {
+                    b.HasBaseType("HomeOps.Api.CalendarEvents.EventSourceConfiguration");
+
+                    b.Property<string>("ETag")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<string>("FeedUrl")
+                        .IsRequired()
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)");
+
+                    b.Property<string>("LastContentHash")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<string>("LastModified")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.ToTable("ICalFeedSourceConfigurations", (string)null);
+                });
+
+            modelBuilder.Entity("HomeOps.Api.CalendarEvents.ICalFileSourceConfiguration", b =>
+                {
+                    b.HasBaseType("HomeOps.Api.CalendarEvents.EventSourceConfiguration");
+
+                    b.Property<string>("ContentHash")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<string>("FileReference")
+                        .IsRequired()
+                        .HasMaxLength(1024)
+                        .HasColumnType("character varying(1024)");
+
+                    b.Property<string>("OriginalFilename")
+                        .IsRequired()
+                        .HasMaxLength(260)
+                        .HasColumnType("character varying(260)");
+
+                    b.Property<DateTimeOffset>("UploadedUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.ToTable("ICalFileSourceConfigurations", (string)null);
+                });
+
             modelBuilder.Entity("HomeOps.Api.CalendarEvents.EventException", b =>
                 {
                     b.HasOne("HomeOps.Api.CalendarEvents.EventSeries", "EventSeries")
@@ -1382,6 +1548,17 @@ namespace HomeOps.Api.Migrations
                         .IsRequired();
 
                     b.Navigation("Household");
+                });
+
+            modelBuilder.Entity("HomeOps.Api.CalendarEvents.EventSourceConfiguration", b =>
+                {
+                    b.HasOne("HomeOps.Api.CalendarEvents.EventSource", "EventSource")
+                        .WithOne("Configuration")
+                        .HasForeignKey("HomeOps.Api.CalendarEvents.EventSourceConfiguration", "EventSourceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("EventSource");
                 });
 
             modelBuilder.Entity("HomeOps.Api.FamilyMembers.FamilyMember", b =>
@@ -1611,6 +1788,24 @@ namespace HomeOps.Api.Migrations
                     b.Navigation("Household");
                 });
 
+            modelBuilder.Entity("HomeOps.Api.CalendarEvents.ICalFeedSourceConfiguration", b =>
+                {
+                    b.HasOne("HomeOps.Api.CalendarEvents.EventSourceConfiguration", null)
+                        .WithOne()
+                        .HasForeignKey("HomeOps.Api.CalendarEvents.ICalFeedSourceConfiguration", "EventSourceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("HomeOps.Api.CalendarEvents.ICalFileSourceConfiguration", b =>
+                {
+                    b.HasOne("HomeOps.Api.CalendarEvents.EventSourceConfiguration", null)
+                        .WithOne()
+                        .HasForeignKey("HomeOps.Api.CalendarEvents.ICalFileSourceConfiguration", "EventSourceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("HomeOps.Api.CalendarEvents.EventSeries", b =>
                 {
                     b.Navigation("Exceptions");
@@ -1618,6 +1813,8 @@ namespace HomeOps.Api.Migrations
 
             modelBuilder.Entity("HomeOps.Api.CalendarEvents.EventSource", b =>
                 {
+                    b.Navigation("Configuration");
+
                     b.Navigation("EventSeries");
                 });
 

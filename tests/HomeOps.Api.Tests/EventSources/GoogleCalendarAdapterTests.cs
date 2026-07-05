@@ -18,7 +18,7 @@ public sealed class GoogleCalendarAdapterTests
         Assert.True(source.Enabled);
         Assert.True(source.IsReadOnly);
         Assert.False(source.IsWritable);
-        Assert.Equal("family@example.com", source.ExternalSourceId);
+        Assert.Equal("family@example.com", source.ProviderSourceId);
         Assert.Equal("#4285f4", source.Color.Hex);
         Assert.Equal("Google Calendar", source.Visibility.GroupName);
     }
@@ -40,7 +40,7 @@ public sealed class GoogleCalendarAdapterTests
     {
         var adapter = CreateAdapter();
 
-        var normalizedEvent = adapter.GetEvents().Single(e => e.ExternalEventId == "google-all-day-1");
+        var normalizedEvent = adapter.GetEvents().Single(e => e.ProviderEventId == "google-all-day-1");
 
         Assert.Equal("google-family", normalizedEvent.SourceId);
         Assert.Equal("google-family:google-all-day-1", normalizedEvent.Id);
@@ -56,7 +56,7 @@ public sealed class GoogleCalendarAdapterTests
     {
         var adapter = CreateAdapter();
 
-        var normalizedEvent = adapter.GetEvents().Single(e => e.ExternalEventId == "google-timed-1");
+        var normalizedEvent = adapter.GetEvents().Single(e => e.ProviderEventId == "google-timed-1");
 
         Assert.Equal("google-family", normalizedEvent.SourceId);
         Assert.Equal("google-family:google-timed-1", normalizedEvent.Id);

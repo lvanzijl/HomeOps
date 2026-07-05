@@ -17,12 +17,13 @@ public sealed class EventSeriesApiTests
         await using var factory = new HomeOpsWebApplicationFactory();
         var client = factory.CreateClient();
 
-        var sources = await client.GetFromJsonAsync<HomeOps.Contracts.Events.EventSource[]>("/api/event-sources");
+        var sources = await client.GetFromJsonAsync<EventSourceDto[]>("/api/event-sources");
 
         Assert.NotNull(sources);
         var manualSource = Assert.Single(sources);
-        Assert.Equal(SeedCalendarEvents.EventSourceId.ToString(), manualSource.Id);
-        Assert.Equal(EventSourceCapability.Writable, manualSource.Capability);
+        Assert.Equal(SeedCalendarEvents.EventSourceId, manualSource.Id);
+        Assert.True(manualSource.Writable);
+        Assert.True(manualSource.IsSystem);
     }
 
     [Fact]

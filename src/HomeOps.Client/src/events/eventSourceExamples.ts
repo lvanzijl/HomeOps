@@ -18,7 +18,7 @@ export const exampleEventSources: readonly EventSource[] = [
     capability: 'readOnly',
     visibility: { visibleByDefault: true, groupName: 'Reference' },
     color: { hex: '#0891b2' },
-    externalSourceId: 'future-school-holiday-provider',
+    providerSourceId: 'future-school-holiday-provider',
   },
 ] as const;
 
