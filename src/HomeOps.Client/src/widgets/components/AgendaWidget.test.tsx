@@ -793,59 +793,179 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
       within(outlookEvent!).getByRole("img", { name: "Volgende maandag, 17°, Regen" })
         .className,
     ).toContain("agenda-weather-cluster--row");
+    expect(screen.queryByText("DepartureAdvice")).toBeNull();
     expect(screen.queryByText("Regenjas mee")).toBeNull();
     expect(screen.queryByText("Geen jas nodig")).toBeNull();
+    expect(screen.queryByText("Open-Meteo")).toBeNull();
   });
 
-  it("keeps agenda weather off all-day items while showing timed month events with matching slots", async () => {
+  it("matches day weather by local agenda date while keeping timed rows on slot intervals", async () => {
+    const nodeProcess = globalThis as typeof globalThis & {
+      process?: { env: Record<string, string | undefined> };
+    };
+    const originalTimeZone = nodeProcess.process?.env.TZ;
+    if (nodeProcess.process) {
+      nodeProcess.process.env.TZ = "Europe/Amsterdam";
+    }
+    try {
+      vi.setSystemTime(new Date("2026-06-17T00:00:00.000Z"));
+      const calendarEventsApi = await mockedCalendarEventsApi();
+      vi.mocked(calendarEventsApi.loadCalendarAgendaData).mockResolvedValueOnce({
+        sources: [calendarSource],
+        events: [
+          {
+            id: "local-day-timed",
+            sourceId: calendarSource.id,
+            title: "Ochtend overleg",
+            startsAt: "2026-06-17T10:00:00.000Z",
+            endsAt: "2026-06-17T11:00:00.000Z",
+            allDay: false,
+            editable: true,
+          },
+        ],
+      });
+      vi.mocked((await mockedAgendaWeatherApi()).loadAgendaWeather).mockResolvedValueOnce(
+        new AgendaWeatherProjection({
+          slots: [
+            new AgendaWeatherSlotProjection({
+              startsAtUtc: new Date("2026-06-16T23:30:00.000Z"),
+              endsAtUtc: new Date("2026-06-17T00:30:00.000Z"),
+              temperatureCelsius: 20,
+              condition: WeatherConditionCategory.Clear,
+              summary: "Helder",
+            }),
+          ],
+        }),
+      );
+
+      render(<AgendaWidget {...widgetProps} />);
+
+      const todayBriefing = await screen.findByLabelText("Vandaag briefing");
+      expect(within(todayBriefing).getByTitle("Vandaag, 20°, Helder")).not.toBeNull();
+      await waitFor(() => {
+        expect(within(todayBriefing).getByText("Ochtend overleg")).not.toBeNull();
+      });
+
+      const timedEvent = within(todayBriefing).getByText("Ochtend overleg").closest("li");
+      expect(timedEvent).not.toBeNull();
+      expect(within(timedEvent!).queryByText("20°")).toBeNull();
+      expect(
+        within(timedEvent!).queryByRole("img", { name: /Ochtend overleg, 20°, Helder/ }),
+      ).toBeNull();
+    } finally {
+      if (nodeProcess.process) {
+        if (originalTimeZone === undefined) {
+          delete nodeProcess.process.env.TZ;
+        } else {
+          nodeProcess.process.env.TZ = originalTimeZone;
+        }
+      }
+    }
+  });
+
+  it("shows day weather only for all-day items in Vooruitkijken", async () => {
     const user = setupUser();
     const calendarEventsApi = await mockedCalendarEventsApi();
-    const allDayEvent: NormalizedEvent = {
-      id: "all-day",
+    const todayAllDayEvent: NormalizedEvent = {
+      id: "all-day-today",
       sourceId: calendarSource.id,
-      title: "Gezinsdag",
-      startsAt: "2026-06-18T00:00:00.000Z",
-      endsAt: "2026-06-18T23:59:00.000Z",
+      title: "Gezinsuitje",
+      startsAt: "2026-06-28T00:00:00.000Z",
+      endsAt: "2026-06-28T23:59:00.000Z",
+      allDay: true,
+      editable: true,
+    };
+    const weekAllDayEvent: NormalizedEvent = {
+      id: "all-day-week",
+      sourceId: calendarSource.id,
+      title: "Kampdag",
+      startsAt: "2026-06-29T00:00:00.000Z",
+      endsAt: "2026-06-29T23:59:00.000Z",
+      allDay: true,
+      editable: true,
+    };
+    const outlookAllDayEvent: NormalizedEvent = {
+      id: "all-day-outlook",
+      sourceId: calendarSource.id,
+      title: "Vakantie start",
+      startsAt: "2026-07-13T00:00:00.000Z",
+      endsAt: "2026-07-13T23:59:00.000Z",
       allDay: true,
       editable: true,
     };
     vi.mocked(calendarEventsApi.loadCalendarAgendaData).mockResolvedValueOnce({
       sources: [calendarSource],
-      events: [dentistEvent, allDayEvent],
+      events: [todayAllDayEvent, weekAllDayEvent, outlookAllDayEvent],
     });
     vi.mocked((await mockedAgendaWeatherApi()).loadAgendaWeather).mockResolvedValueOnce(
       new AgendaWeatherProjection({
         slots: [
           new AgendaWeatherSlotProjection({
-            startsAtUtc: new Date("2026-06-18T09:00:00.000Z"),
-            endsAtUtc: new Date("2026-06-18T10:00:00.000Z"),
-            temperatureCelsius: 18,
-            condition: WeatherConditionCategory.Rain,
-            summary: "Regen",
+            startsAtUtc: new Date("2026-06-28T09:00:00.000Z"),
+            endsAtUtc: new Date("2026-06-28T10:00:00.000Z"),
+            temperatureCelsius: 24,
+            condition: WeatherConditionCategory.Clear,
+            summary: "Helder",
+          }),
+          new AgendaWeatherSlotProjection({
+            startsAtUtc: new Date("2026-06-29T09:00:00.000Z"),
+            endsAtUtc: new Date("2026-06-29T10:00:00.000Z"),
+            temperatureCelsius: 22,
+            condition: WeatherConditionCategory.Cloudy,
+            summary: "Bewolkt",
+          }),
+          new AgendaWeatherSlotProjection({
+            startsAtUtc: new Date("2026-07-13T09:00:00.000Z"),
+            endsAtUtc: new Date("2026-07-13T10:00:00.000Z"),
+            temperatureCelsius: 26,
+            condition: WeatherConditionCategory.Clear,
+            summary: "Zonnig",
           }),
         ],
       }),
     );
     render(<AgendaWidget {...widgetProps} />);
 
+    const todayBriefing = await screen.findByLabelText("Vandaag briefing");
+    const weekBriefing = screen.getByLabelText("Deze week");
+    const outlookBriefing = screen.getByLabelText("Vooruitkijken");
+    await waitFor(() => {
+      expect(within(todayBriefing).getByText("Gezinsuitje")).not.toBeNull();
+      expect(within(weekBriefing).getByText("Kampdag")).not.toBeNull();
+      expect(within(outlookBriefing).getByText("Vakantie start")).not.toBeNull();
+    });
+
+    const todayAllDayCard = within(todayBriefing).getByText("Gezinsuitje").closest("li");
+    const weekAllDayCard = within(weekBriefing).getByText("Kampdag").closest("li");
+    const outlookAllDayCard = within(outlookBriefing)
+      .getByText("Vakantie start")
+      .closest("li");
+
+    expect(todayAllDayCard).not.toBeNull();
+    expect(weekAllDayCard).not.toBeNull();
+    expect(outlookAllDayCard).not.toBeNull();
+    expect(within(todayAllDayCard!).queryByText("24°")).toBeNull();
+    expect(within(weekAllDayCard!).queryByText("22°")).toBeNull();
+    expect(within(outlookAllDayCard!).getByText("26°")).not.toBeNull();
+    expect(
+      within(outlookAllDayCard!).getByRole("img", {
+        name: "Vakantie start, 26°, Zonnig",
+      })
+        .className,
+    ).toContain("agenda-weather-cluster--row");
+
     await openMonthView(user);
     await user.click(
       await screen.findByRole("button", {
-        name: /18 juni 2026, 2 gebeurtenissen/,
+        name: /28 juni 2026, 1 gebeurtenis/,
       }),
     );
 
-    const timedEvent = screen.getByText("Dentist Appointment").closest("li");
-    const allDayEventCard = screen.getByText("Gezinsdag").closest("li");
-
-    expect(timedEvent).not.toBeNull();
-    expect(allDayEventCard).not.toBeNull();
-    expect(within(timedEvent!).getByText("18°")).not.toBeNull();
-    expect(
-      within(timedEvent!).getByRole("img", { name: "Dentist Appointment, 18°, Regen" })
-        .className,
-    ).toContain("agenda-weather-cluster--row");
-    expect(within(allDayEventCard!).queryByText("18°")).toBeNull();
+    const selectedDayAllDayCard = within(screen.getByLabelText("Gekozen dag"))
+      .getByText("Gezinsuitje")
+      .closest("li");
+    expect(selectedDayAllDayCard).not.toBeNull();
+    expect(within(selectedDayAllDayCard!).queryByText("24°")).toBeNull();
   });
 
   it("shows planning summaries and grouped upcoming events by default", async () => {
