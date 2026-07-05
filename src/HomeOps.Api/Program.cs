@@ -96,6 +96,7 @@ app.MapGet("/health", () => Results.Ok(new { status = "Healthy" }))
 app.MapAgendaLayerSettingsEndpoints();
 app.MapListEndpoints();
 app.MapWorkspaceLayoutEndpoints();
+app.MapEventSourceManagementEndpoints();
 app.MapEventSeriesEndpoints();
 app.MapFamilyMemberEndpoints();
 app.MapOnboardingEndpoints();

@@ -6,9 +6,13 @@ namespace HomeOps.Contracts.Events;
 public enum EventSourceType
 {
     Manual = 0,
-    GoogleCalendar = 1,
-    Birthdays = 2,
-    TvSeries = 3,
-    SchoolHolidays = 4,
-    External = 99
+    ICalFeed = 1,
+    ICalFile = 2,
+    GoogleCalendar = 3,
+    CalDav = 4,
+    Exchange = 5,
+    SchoolHolidays = 6,
+    TvSeries = 7,
+    Provider = 99,
+    Birthdays = 100
 }

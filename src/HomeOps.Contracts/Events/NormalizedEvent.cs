@@ -10,7 +10,7 @@ namespace HomeOps.Contracts.Events;
 /// <param name="EndsAt">Optional event end timestamp.</param>
 /// <param name="AllDay">Whether the event is all-day.</param>
 /// <param name="Editable">Whether HomeOps may edit the event in its source.</param>
-/// <param name="ExternalEventId">Optional identifier assigned by an external system.</param>
+/// <param name="ProviderEventId">Optional identifier assigned by an provider.</param>
 /// <param name="Description">Optional normalized description.</param>
 /// <param name="Location">Optional normalized location.</param>
 public sealed record NormalizedEvent(
@@ -21,6 +21,6 @@ public sealed record NormalizedEvent(
     DateTimeOffset? EndsAt,
     bool AllDay,
     bool Editable,
-    string? ExternalEventId = null,
+    string? ProviderEventId = null,
     string? Description = null,
     string? Location = null);

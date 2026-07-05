@@ -20,6 +20,8 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
     public DbSet<CalendarEvents.EventSource> EventSources => Set<CalendarEvents.EventSource>();
     public DbSet<EventSeries> EventSeries => Set<EventSeries>();
     public DbSet<EventException> EventExceptions => Set<EventException>();
+    public DbSet<ICalFeedSourceConfiguration> ICalFeedSourceConfigurations => Set<ICalFeedSourceConfiguration>();
+    public DbSet<ICalFileSourceConfiguration> ICalFileSourceConfigurations => Set<ICalFileSourceConfiguration>();
     public DbSet<WorkspaceLayout> WorkspaceLayouts => Set<WorkspaceLayout>();
     public DbSet<WidgetPlacement> WidgetPlacements => Set<WidgetPlacement>();
     public DbSet<HouseholdTask> HouseholdTasks => Set<HouseholdTask>();
@@ -119,14 +121,30 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             entity.HasKey(source => source.Id);
             entity.Property(source => source.Name).HasMaxLength(160).IsRequired();
             entity.Property(source => source.SourceType).HasMaxLength(80).IsRequired();
+            entity.Property(source => source.Icon).HasMaxLength(16).HasDefaultValue("📅").IsRequired();
+            entity.Property(source => source.IsEnabled).HasDefaultValue(true).IsRequired();
             entity.Property(source => source.IsWritable).IsRequired();
+            entity.Property(source => source.IsSystem).HasDefaultValue(false).IsRequired();
+            entity.Property(source => source.HealthStatus).HasConversion<string>().HasMaxLength(32).HasDefaultValue(EventSourceHealthStatus.Healthy).IsRequired();
+            entity.Property(source => source.PollInterval).HasConversion<string>().HasMaxLength(32).HasDefaultValue(EventSourcePollInterval.Every8Hours).IsRequired();
+            entity.Property(source => source.LastSyncAttemptUtc);
+            entity.Property(source => source.LastSuccessfulSyncUtc);
+            entity.Property(source => source.LastFailedSyncUtc);
+            entity.Property(source => source.NextSyncAfterUtc);
+            entity.Property(source => source.LastErrorCode).HasMaxLength(80);
+            entity.Property(source => source.LastErrorMessage).HasMaxLength(500);
+            entity.Property(source => source.LastErrorDetail).HasMaxLength(2000);
+            entity.Property(source => source.ProviderSourceId).HasMaxLength(240);
             entity.Property(source => source.CreatedUtc).IsRequired();
             entity.Property(source => source.UpdatedUtc).IsRequired();
             entity.HasOne(source => source.Household)
                 .WithMany()
                 .HasForeignKey(source => source.HouseholdId)
                 .OnDelete(DeleteBehavior.Restrict);
-            entity.HasIndex(source => new { source.HouseholdId, source.SourceType }).IsUnique();
+            entity.HasIndex(source => new { source.HouseholdId, source.IsEnabled, source.HealthStatus });
+            entity.HasIndex(source => new { source.HouseholdId, source.SourceType });
+            entity.HasIndex(source => new { source.HouseholdId, source.IsSystem }).IsUnique().HasFilter("\"IsSystem\" = true");
+            entity.HasIndex(source => source.NextSyncAfterUtc);
         });
 
         modelBuilder.Entity<EventSeries>(entity =>
@@ -135,6 +153,14 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             entity.HasKey(eventSeries => eventSeries.Id);
             entity.Property(eventSeries => eventSeries.Title).HasMaxLength(240).IsRequired();
             entity.Property(eventSeries => eventSeries.Description).HasMaxLength(1000);
+            entity.Property(eventSeries => eventSeries.Location).HasMaxLength(500);
+            entity.Property(eventSeries => eventSeries.ProviderEventId).HasMaxLength(512);
+            entity.Property(eventSeries => eventSeries.ProviderInstanceId).HasMaxLength(512);
+            entity.Property(eventSeries => eventSeries.ProviderRevision).HasMaxLength(512);
+            entity.Property(eventSeries => eventSeries.ContentFingerprint).HasMaxLength(128);
+            entity.Property(eventSeries => eventSeries.ImportedAtUtc);
+            entity.Property(eventSeries => eventSeries.LastImportedUtc);
+            entity.Property(eventSeries => eventSeries.LastSeenSyncAttemptUtc);
             entity.Property(eventSeries => eventSeries.StartDate).HasColumnType("date").IsRequired();
             entity.Property(eventSeries => eventSeries.StartTime).HasColumnType("time without time zone");
             entity.Property(eventSeries => eventSeries.EndDate).HasColumnType("date").IsRequired();
@@ -148,6 +174,41 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
                 .HasForeignKey(eventSeries => eventSeries.EventSourceId)
                 .OnDelete(DeleteBehavior.Cascade);
             entity.HasIndex(eventSeries => new { eventSeries.EventSourceId, eventSeries.StartDate });
+            entity.HasIndex(eventSeries => new { eventSeries.EventSourceId, eventSeries.ProviderEventId })
+                .IsUnique()
+                .HasFilter("\"ProviderEventId\" IS NOT NULL");
+            entity.HasIndex(eventSeries => new { eventSeries.EventSourceId, eventSeries.LastSeenSyncAttemptUtc });
+        });
+
+        modelBuilder.Entity<EventSourceConfiguration>(entity =>
+        {
+            entity.UseTptMappingStrategy();
+            entity.ToTable("EventSourceConfigurations");
+            entity.HasKey(configuration => configuration.EventSourceId);
+            entity.Property(configuration => configuration.CreatedUtc).IsRequired();
+            entity.Property(configuration => configuration.UpdatedUtc).IsRequired();
+            entity.HasOne(configuration => configuration.EventSource)
+                .WithOne(source => source.Configuration)
+                .HasForeignKey<EventSourceConfiguration>(configuration => configuration.EventSourceId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<ICalFeedSourceConfiguration>(entity =>
+        {
+            entity.ToTable("ICalFeedSourceConfigurations");
+            entity.Property(configuration => configuration.FeedUrl).HasMaxLength(2048).IsRequired();
+            entity.Property(configuration => configuration.ETag).HasMaxLength(512);
+            entity.Property(configuration => configuration.LastModified).HasMaxLength(256);
+            entity.Property(configuration => configuration.LastContentHash).HasMaxLength(128);
+        });
+
+        modelBuilder.Entity<ICalFileSourceConfiguration>(entity =>
+        {
+            entity.ToTable("ICalFileSourceConfigurations");
+            entity.Property(configuration => configuration.FileReference).HasMaxLength(1024).IsRequired();
+            entity.Property(configuration => configuration.OriginalFilename).HasMaxLength(260).IsRequired();
+            entity.Property(configuration => configuration.ContentHash).HasMaxLength(128).IsRequired();
+            entity.Property(configuration => configuration.UploadedUtc).IsRequired();
         });
 
         modelBuilder.Entity<EventException>(entity =>
@@ -492,8 +553,9 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             Id = SeedCalendarEvents.EventSourceId,
             HouseholdId = SeedHousehold.Id,
             Name = "HomeOps Calendar",
-            SourceType = "manual",
+            SourceType = EventSourceTypes.Manual,
             IsWritable = true,
+            IsSystem = true,
             CreatedUtc = SeedCalendarEvents.SeededUtc,
             UpdatedUtc = SeedCalendarEvents.SeededUtc,
         });

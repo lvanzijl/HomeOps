@@ -9,17 +9,6 @@ public static class EventSeriesEndpoints
 {
     public static IEndpointRouteBuilder MapEventSeriesEndpoints(this IEndpointRouteBuilder app)
     {
-        app.MapGet("/api/event-sources", async (HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
-        {
-            var sources = await dbContext.EventSources
-                .AsNoTracking()
-                .Where(source => source.HouseholdId == SeedHousehold.Id)
-                .OrderBy(source => source.Name)
-                .ToListAsync(cancellationToken);
-
-            return Results.Ok(sources.Select(EventSeriesNormalizer.ToContract).ToList());
-        }).WithName("GetEventSources").Produces<IReadOnlyCollection<HomeOps.Contracts.Events.EventSource>>();
-
         var calendar = app.MapGroup("/api/calendar").WithTags("Calendar");
 
         calendar.MapGet("/export", async (HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
@@ -79,7 +68,7 @@ public static class EventSeriesEndpoints
             }
 
             var writableSourceId = await dbContext.EventSources
-                .Where(source => source.HouseholdId == SeedHousehold.Id && source.IsWritable && source.SourceType == "manual")
+                .Where(source => source.HouseholdId == SeedHousehold.Id && source.IsWritable && (source.SourceType == EventSourceTypes.Manual || source.SourceType == "manual"))
                 .OrderBy(source => source.CreatedUtc)
                 .Select(source => (Guid?)source.Id)
                 .FirstOrDefaultAsync(cancellationToken);

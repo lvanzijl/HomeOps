@@ -26,7 +26,7 @@ public sealed class GoogleCalendarAdapter : IEventSourceAdapter
             Capability: EventSourceCapability.ReadOnly,
             Visibility: new EventSourceVisibility(VisibleByDefault: true, GroupName: "Google Calendar"),
             Color: new EventSourceColor(configuration.ColorHex),
-            ExternalSourceId: metadata.CalendarId);
+            ProviderSourceId: metadata.CalendarId);
     }
 
     public GoogleCalendarSourceMetadata GetMetadata() => provider.GetMetadata();
@@ -45,7 +45,7 @@ public sealed class GoogleCalendarAdapter : IEventSourceAdapter
             EndsAt: MapEnd(payload.End),
             AllDay: allDay,
             Editable: false,
-            ExternalEventId: payload.Id,
+            ProviderEventId: payload.Id,
             Description: payload.Description,
             Location: payload.Location);
     }

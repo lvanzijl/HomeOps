@@ -64,7 +64,7 @@ export function toAgendaEventSource(source: ApiEventSource): EventSource {
       groupName: source.visibility?.groupName,
     },
     color: { hex: source.color?.hex ?? '#4f46e5' },
-    externalSourceId: source.externalSourceId,
+    providerSourceId: source.providerSourceId,
   };
 }
 
@@ -77,7 +77,7 @@ export function toAgendaEvent(event: ApiNormalizedEvent): NormalizedEvent {
     endsAt: optionalDate(event.endsAt),
     allDay: event.allDay ?? false,
     editable: event.editable ?? false,
-    externalEventId: event.externalEventId,
+    providerEventId: event.providerEventId,
     description: event.description,
     location: event.location,
   };
@@ -110,16 +110,25 @@ function mapEventSourceType(type?: ApiEventSourceType): EventSourceType {
   switch (type) {
     case ApiEventSourceType.Manual:
       return 'manual';
+    case ApiEventSourceType.ICalFeed:
+      return 'iCalFeed';
+    case ApiEventSourceType.ICalFile:
+      return 'iCalFile';
     case ApiEventSourceType.GoogleCalendar:
       return 'googleCalendar';
+    case ApiEventSourceType.CalDav:
+      return 'calDav';
+    case ApiEventSourceType.Exchange:
+      return 'exchange';
     case ApiEventSourceType.Birthdays:
       return 'birthdays';
     case ApiEventSourceType.TvSeries:
       return 'tvSeries';
     case ApiEventSourceType.SchoolHolidays:
       return 'schoolHolidays';
+    case ApiEventSourceType.Provider:
     default:
-      return 'external';
+      return 'provider';
   }
 }
 

@@ -10,7 +10,7 @@ namespace HomeOps.Contracts.Events;
 /// <param name="Capability">Whether the source is read-only or writable.</param>
 /// <param name="Visibility">Presentation visibility metadata for future clients.</param>
 /// <param name="Color">Presentation color metadata for future clients.</param>
-/// <param name="ExternalSourceId">Optional identifier assigned by an external system.</param>
+/// <param name="ProviderSourceId">Optional identifier assigned by an provider.</param>
 public sealed record EventSource(
     string Id,
     string Name,
@@ -19,7 +19,7 @@ public sealed record EventSource(
     EventSourceCapability Capability,
     EventSourceVisibility Visibility,
     EventSourceColor Color,
-    string? ExternalSourceId = null)
+    string? ProviderSourceId = null)
 {
     public bool IsReadOnly => Capability == EventSourceCapability.ReadOnly;
 

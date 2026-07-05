@@ -25,7 +25,7 @@ public sealed class BirthdaySourceAdapter : IEventSourceAdapter
         Capability: EventSourceCapability.Writable,
         Visibility: new EventSourceVisibility(VisibleByDefault: true, GroupName: "Birthdays"),
         Color: new EventSourceColor(configuration.ColorHex),
-        ExternalSourceId: null);
+        ProviderSourceId: null);
 
     public BirthdaySourceMetadata GetMetadata()
     {
@@ -70,7 +70,7 @@ public sealed class BirthdaySourceAdapter : IEventSourceAdapter
                 EndsAt: new DateTimeOffset(occurrenceDate.AddDays(1).ToDateTime(TimeOnly.MinValue), TimeSpan.Zero),
                 AllDay: true,
                 Editable: false,
-                ExternalEventId: person.Id,
+                ProviderEventId: person.Id,
                 Description: person.BirthYear is null ? null : $"Born in {person.BirthYear}",
                 Location: null);
         }

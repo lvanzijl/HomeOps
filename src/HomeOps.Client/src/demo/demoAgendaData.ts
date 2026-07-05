@@ -11,7 +11,7 @@ export const demoReadOnlyEventSources: readonly EventSource[] = [
     capability: 'readOnly',
     visibility: { visibleByDefault: true, groupName: 'Reference' },
     color: { hex: '#0891b2' },
-    externalSourceId: 'demo-school-holidays',
+    providerSourceId: 'demo-school-holidays',
   },
   {
     id: 'tv-series',
@@ -21,7 +21,7 @@ export const demoReadOnlyEventSources: readonly EventSource[] = [
     capability: 'readOnly',
     visibility: { visibleByDefault: true, groupName: 'Media' },
     color: { hex: '#db2777' },
-    externalSourceId: 'demo-tv-series',
+    providerSourceId: 'demo-tv-series',
   },
   {
     id: 'birthdays',
@@ -42,7 +42,7 @@ export const demoReadOnlyEvents: readonly NormalizedEvent[] = [
     startsAt: '2026-06-18T00:00:00Z',
     allDay: true,
     editable: false,
-    externalEventId: 'school-2026-06-18',
+    providerEventId: 'school-2026-06-18',
   },
   {
     id: 'tomorrow-tv-premiere',
@@ -52,7 +52,7 @@ export const demoReadOnlyEvents: readonly NormalizedEvent[] = [
     endsAt: '2026-06-19T21:00:00Z',
     allDay: false,
     editable: false,
-    externalEventId: 'tv-episode-1001',
+    providerEventId: 'tv-episode-1001',
   },
   {
     id: 'next-month-camp',
@@ -61,7 +61,7 @@ export const demoReadOnlyEvents: readonly NormalizedEvent[] = [
     startsAt: '2026-07-10T00:00:00Z',
     allDay: true,
     editable: false,
-    externalEventId: 'school-2026-07-10',
+    providerEventId: 'school-2026-07-10',
   },
   {
     id: 'future-tv-marathon',
@@ -71,7 +71,7 @@ export const demoReadOnlyEvents: readonly NormalizedEvent[] = [
     endsAt: '2026-09-05T22:00:00Z',
     allDay: false,
     editable: false,
-    externalEventId: 'tv-episode-2099',
+    providerEventId: 'tv-episode-2099',
   },
   {
     id: 'birthday-avery-20260620',
@@ -81,7 +81,7 @@ export const demoReadOnlyEvents: readonly NormalizedEvent[] = [
     endsAt: '2026-06-21T00:00:00Z',
     allDay: true,
     editable: false,
-    externalEventId: 'avery',
+    providerEventId: 'avery',
   },
   {
     id: 'birthday-morgan-20260625',
@@ -91,7 +91,7 @@ export const demoReadOnlyEvents: readonly NormalizedEvent[] = [
     endsAt: '2026-06-26T00:00:00Z',
     allDay: true,
     editable: false,
-    externalEventId: 'morgan',
+    providerEventId: 'morgan',
   },
   {
     id: 'birthday-riley-20261103',
@@ -101,7 +101,7 @@ export const demoReadOnlyEvents: readonly NormalizedEvent[] = [
     endsAt: '2026-11-04T00:00:00Z',
     allDay: true,
     editable: false,
-    externalEventId: 'riley',
+    providerEventId: 'riley',
   },
   {
     id: 'birthday-casey-20270115',
@@ -111,6 +111,6 @@ export const demoReadOnlyEvents: readonly NormalizedEvent[] = [
     endsAt: '2027-01-16T00:00:00Z',
     allDay: true,
     editable: false,
-    externalEventId: 'casey',
+    providerEventId: 'casey',
   },
 ] as const;

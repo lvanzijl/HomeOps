@@ -103,8 +103,12 @@ public static class CalendarPortabilityService
             Id = source.Id,
             HouseholdId = SeedHousehold.Id,
             Name = source.Name.Trim(),
-            SourceType = source.SourceType.Trim(),
+            SourceType = NormalizeSourceType(source.SourceType),
+            Icon = "📅",
+            IsEnabled = true,
             IsWritable = source.IsWritable,
+            HealthStatus = EventSourceHealthStatus.Healthy,
+            PollInterval = EventSourcePollInterval.Every8Hours,
             CreatedUtc = source.CreatedUtc,
             UpdatedUtc = source.UpdatedUtc,
         }));
@@ -204,6 +208,8 @@ public static class CalendarPortabilityService
     }
 
     private static RecurrenceType ParseRecurrenceType(CalendarExportRecurrence? recurrence) => Enum.TryParse<RecurrenceType>(recurrence?.RuleType, true, out var value) ? value : RecurrenceType.None;
+
+    private static string NormalizeSourceType(string sourceType) => string.Equals(sourceType.Trim(), "manual", StringComparison.OrdinalIgnoreCase) ? EventSourceTypes.Manual : sourceType.Trim();
 
     private static bool IsSupportedRecurrence(CalendarExportRecurrence? recurrence) => recurrence is not null && Enum.TryParse<RecurrenceType>(recurrence.RuleType, true, out _);
 

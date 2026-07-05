@@ -44,7 +44,7 @@ internal static class MarketingHouseholdFixtureBuilder
 
     private static FamilyMember Member(string id, string name, FamilyMemberKind kind, string color, string initials, DateOnly? dob, AvatarV2Config avatar, DateTimeOffset anchorUtc) => new() { Id = id, HouseholdId = SeedHousehold.Id, Name = name, DisplayColor = color, Initials = initials, MemberKind = kind, DateOfBirth = dob, AvatarV2Config = avatar, CreatedUtc = anchorUtc, UpdatedUtc = anchorUtc };
 
-    private static void AddCalendarSource(HomeOpsDbContext db, DateTimeOffset anchorUtc) => db.EventSources.Add(new() { Id = CalendarSourceId, HouseholdId = SeedHousehold.Id, Name = "Van Zijl Family Calendar", SourceType = "manual", IsWritable = true, CreatedUtc = anchorUtc, UpdatedUtc = anchorUtc });
+    private static void AddCalendarSource(HomeOpsDbContext db, DateTimeOffset anchorUtc) => db.EventSources.Add(new() { Id = CalendarSourceId, HouseholdId = SeedHousehold.Id, Name = "Van Zijl Family Calendar", SourceType = EventSourceTypes.Manual, IsWritable = true, CreatedUtc = anchorUtc, UpdatedUtc = anchorUtc });
 
     private static void AddAgenda(HomeOpsDbContext db, MarketingScene scene, DateTimeOffset anchorUtc)
     {

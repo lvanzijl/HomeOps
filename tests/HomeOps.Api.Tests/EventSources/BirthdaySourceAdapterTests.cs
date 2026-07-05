@@ -31,9 +31,9 @@ public sealed class BirthdaySourceAdapterTests
 
         var events = adapter.GetEvents();
 
-        Assert.Contains(events, birthday => birthday.ExternalEventId == "avery" && birthday.StartsAt == DateTimeOffset.Parse("2026-06-20T00:00:00Z"));
-        Assert.Contains(events, birthday => birthday.ExternalEventId == "riley" && birthday.StartsAt == DateTimeOffset.Parse("2026-11-03T00:00:00Z"));
-        Assert.Contains(events, birthday => birthday.ExternalEventId == "casey" && birthday.StartsAt == DateTimeOffset.Parse("2027-01-15T00:00:00Z"));
+        Assert.Contains(events, birthday => birthday.ProviderEventId == "avery" && birthday.StartsAt == DateTimeOffset.Parse("2026-06-20T00:00:00Z"));
+        Assert.Contains(events, birthday => birthday.ProviderEventId == "riley" && birthday.StartsAt == DateTimeOffset.Parse("2026-11-03T00:00:00Z"));
+        Assert.Contains(events, birthday => birthday.ProviderEventId == "casey" && birthday.StartsAt == DateTimeOffset.Parse("2027-01-15T00:00:00Z"));
         Assert.All(events, birthday =>
         {
             Assert.Equal("birthdays", birthday.SourceId);
@@ -51,8 +51,8 @@ public sealed class BirthdaySourceAdapterTests
 
         var events = adapter.GetEvents();
 
-        Assert.Contains(events, birthday => birthday.ExternalEventId == "avery" && birthday.StartsAt.Year == 2026);
-        Assert.Contains(events, birthday => birthday.ExternalEventId == "avery" && birthday.StartsAt.Year == 2027);
+        Assert.Contains(events, birthday => birthday.ProviderEventId == "avery" && birthday.StartsAt.Year == 2026);
+        Assert.Contains(events, birthday => birthday.ProviderEventId == "avery" && birthday.StartsAt.Year == 2027);
         Assert.True(events.Count(birthday => birthday.StartsAt.Year == 2026 && birthday.StartsAt.Month == 6) >= 2);
     }
 
@@ -69,7 +69,7 @@ public sealed class BirthdaySourceAdapterTests
                 ColorHex: "#f97316"),
             new FakeBirthdaySourceProvider());
 
-        var leapBirthday = adapter.GetEvents().Single(birthday => birthday.ExternalEventId == "leap");
+        var leapBirthday = adapter.GetEvents().Single(birthday => birthday.ProviderEventId == "leap");
 
         Assert.Equal(DateTimeOffset.Parse("2027-02-28T00:00:00Z"), leapBirthday.StartsAt);
     }
