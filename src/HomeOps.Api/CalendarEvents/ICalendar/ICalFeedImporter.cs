@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HomeOps.Api.CalendarEvents.ICalendar;
 
-public sealed class ICalFeedImporter(HomeOpsDbContext dbContext, HttpClient httpClient)
+public sealed class ICalFeedImporter(HomeOpsDbContext dbContext, HttpClient httpClient) : IICalFeedImporter
 {
     private const int MaxRedirects = 5;
 

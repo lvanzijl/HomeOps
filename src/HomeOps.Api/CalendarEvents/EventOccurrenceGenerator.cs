@@ -56,7 +56,7 @@ public static class EventOccurrenceGenerator
         var endTime = series.IsAllDay ? new TimeOnly(0, 0) : exception?.EndTime ?? series.EndTime ?? startTime;
         var id = exception?.Id ?? (series.RecurrenceType == RecurrenceType.None ? series.Id : DeterministicOccurrenceId(series.Id, occurrenceDate));
 
-        return new EventOccurrence(id, series.Id, series.EventSourceId, title, description, ToLocalOffset(startDate, startTime, timeZoneId), ToLocalOffset(endDate, endTime, timeZoneId), series.IsAllDay, true);
+        return new EventOccurrence(id, series.Id, series.EventSourceId, title, description, ToLocalOffset(startDate, startTime, timeZoneId), ToLocalOffset(endDate, endTime, timeZoneId), series.IsAllDay, series.EventSource?.IsWritable ?? true, series.ProviderEventId, series.Location);
     }
 
     private static DateTimeOffset ToLocalOffset(DateOnly date, TimeOnly time, string timeZoneId)

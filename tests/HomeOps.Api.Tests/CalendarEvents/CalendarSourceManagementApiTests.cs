@@ -250,7 +250,7 @@ public sealed class CalendarSourceManagementApiTests
 
 
     [Fact]
-    public void OpenApiIncludesSourceManagementCrudOperationsWithoutRefreshEndpoints()
+    public void OpenApiIncludesSourceManagementCrudAndRefreshOperations()
     {
         var openApi = File.ReadAllText(FindRepositoryFile("src/HomeOps.Contracts/openapi.json"));
 
@@ -259,8 +259,8 @@ public sealed class CalendarSourceManagementApiTests
         Assert.Contains("\"operationId\": \"CreateEventSource\"", openApi);
         Assert.Contains("\"operationId\": \"UpdateEventSource\"", openApi);
         Assert.Contains("\"operationId\": \"DeleteEventSource\"", openApi);
-        Assert.DoesNotContain("RefreshEventSource", openApi);
-        Assert.DoesNotContain("RefreshAllEventSources", openApi);
+        Assert.Contains("\"operationId\": \"RefreshEventSource\"", openApi);
+        Assert.Contains("\"operationId\": \"RefreshAllEventSources\"", openApi);
     }
 
     private static async Task<EventSourceDto> CreateICalFeedAsync(HttpClient client)

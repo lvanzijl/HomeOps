@@ -3,6 +3,7 @@ using HomeOps.Api.CalendarEvents.ICalendar;
 using HomeOps.Api.Data;
 using HomeOps.Api.Households;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace HomeOps.Api.Tests.CalendarEvents;
 
@@ -121,6 +122,41 @@ public sealed class ICalFileImporterTests
         Assert.Equal(expectedFailure, result.Failure?.Category);
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == expectedFailure.ToString());
         Assert.Equal("calendar-files/file.ics", result.FileMetadata?.FileReference);
+    }
+
+    [Fact]
+    public async Task FileSystemContentStoreRejectsReferencesEscapingStorageRoot()
+    {
+        var tempRoot = Path.Combine(Path.GetTempPath(), "homeops-calendar-file-store", Guid.NewGuid().ToString("N"));
+        var storageRoot = Path.Combine(tempRoot, "calendar-files");
+        var siblingRoot = Path.Combine(tempRoot, "calendar-files-sibling");
+
+        try
+        {
+            Directory.CreateDirectory(storageRoot);
+            Directory.CreateDirectory(siblingRoot);
+            await File.WriteAllTextAsync(Path.Combine(siblingRoot, "escaped.ics"), ValidCalendar("escaped"));
+
+            var configuration = new ConfigurationBuilder()
+                .AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    ["CalendarSources:FileStoragePath"] = storageRoot,
+                })
+                .Build();
+            var store = new FileSystemICalFileContentStore(configuration);
+
+            var result = await store.LoadAsync("../calendar-files-sibling/escaped.ics");
+
+            Assert.False(result.Succeeded);
+            Assert.Equal(ICalFileContentLoadFailureCategory.InvalidReference, result.Failure?.Category);
+        }
+        finally
+        {
+            if (Directory.Exists(tempRoot))
+            {
+                Directory.Delete(tempRoot, recursive: true);
+            }
+        }
     }
 
     [Fact]

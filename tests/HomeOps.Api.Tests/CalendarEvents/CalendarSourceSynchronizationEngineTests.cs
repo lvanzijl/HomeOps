@@ -278,6 +278,33 @@ public sealed class CalendarSourceSynchronizationEngineTests
         Assert.NotEqual(SyncNow, persistedSource.LastSuccessfulSyncUtc);
     }
 
+    [Fact]
+    public async Task PersistenceFailureRollsBackEventSeriesChangesAndSourceMetadata()
+    {
+        await using var database = await SqliteSyncTestDatabase.CreateAsync();
+        var source = await database.AddSourceAsync(EventSourceTypes.ICalFeed);
+        source.HealthStatus = EventSourceHealthStatus.NeverSynced;
+        await database.Context.SaveChangesAsync();
+        await database.Context.Database.ExecuteSqlRawAsync("""
+            CREATE TRIGGER FailEventSeriesInsertForAtomicity
+            BEFORE INSERT ON "EventSeries"
+            BEGIN
+                SELECT RAISE(ROLLBACK, 'simulated atomicity failure');
+            END;
+            """);
+        var engine = CreateEngine(database.Context);
+
+        var result = await engine.SynchronizeAsync(source, CalendarProviderSnapshot.Successful([ProviderEvent("provider-atomic")]));
+
+        Assert.False(result.Succeeded);
+        await using var verificationContext = database.CreateContext();
+        Assert.False(await verificationContext.EventSeries.AnyAsync(series => series.EventSourceId == source.Id));
+        var persistedSource = await verificationContext.EventSources.SingleAsync(candidate => candidate.Id == source.Id);
+        Assert.Equal(EventSourceHealthStatus.NeverSynced, persistedSource.HealthStatus);
+        Assert.Null(persistedSource.LastSyncAttemptUtc);
+        Assert.Null(persistedSource.LastSuccessfulSyncUtc);
+    }
+
     private static CalendarSourceSynchronizationEngine CreateEngine(HomeOpsDbContext context) =>
         new(context, new FixedTimeProvider(SyncNow));
 

@@ -31,7 +31,26 @@ public sealed record CalendarExportEventSource(
     string SourceType,
     bool IsWritable,
     DateTimeOffset CreatedUtc,
-    DateTimeOffset UpdatedUtc);
+    DateTimeOffset UpdatedUtc,
+    string? Icon = null,
+    bool? IsEnabled = null,
+    bool? IsSystem = null,
+    string? HealthStatus = null,
+    string? PollInterval = null,
+    CalendarExportProviderConfiguration? ProviderConfiguration = null);
+
+public sealed record CalendarExportProviderConfiguration(
+    string ProviderType,
+    CalendarExportICalFeedConfiguration? ICalFeed = null,
+    CalendarExportICalFileConfiguration? ICalFile = null);
+
+public sealed record CalendarExportICalFeedConfiguration(string FeedUrl);
+
+public sealed record CalendarExportICalFileConfiguration(
+    string FileReference,
+    string OriginalFilename,
+    string ContentHash,
+    DateTimeOffset UploadedUtc);
 
 public sealed record CalendarExportEventSeries(
     Guid Id,

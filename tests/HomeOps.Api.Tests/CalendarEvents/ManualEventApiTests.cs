@@ -5,6 +5,7 @@ using HomeOps.Api.Households;
 using HomeOps.Api.CalendarEvents;
 using HomeOps.Api.Tests.Lists;
 using HomeOps.Contracts.Events;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HomeOps.Api.Tests.CalendarEvents;
@@ -208,4 +209,122 @@ public sealed class EventSeriesApiTests
         Assert.NotNull(events);
         Assert.DoesNotContain(events, candidate => candidate.Title == "Other Household Event");
     }
+    [Fact]
+    public async Task GetEventsRespectsSourceLifecycleAndEditability()
+    {
+        await using var factory = new HomeOpsWebApplicationFactory();
+        var client = factory.CreateClient();
+        var now = DateTimeOffset.UtcNow;
+
+        using (var scope = factory.Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<HomeOpsDbContext>();
+            dbContext.EventSeries.RemoveRange(dbContext.EventSeries);
+            dbContext.EventSources.RemoveRange(dbContext.EventSources.Where(source => source.HouseholdId == SeedHousehold.Id));
+
+            var manualSource = CreateSource("Manual visible", EventSourceTypes.Manual, enabled: true, writable: true, HomeOps.Api.CalendarEvents.EventSourceHealthStatus.Healthy, now);
+            var healthySource = CreateSource("Healthy imported", EventSourceTypes.ICalFeed, enabled: true, writable: false, HomeOps.Api.CalendarEvents.EventSourceHealthStatus.Healthy, now);
+            var failedSource = CreateSource("Failed imported", EventSourceTypes.ICalFeed, enabled: true, writable: false, HomeOps.Api.CalendarEvents.EventSourceHealthStatus.Failed, now);
+            var disabledSource = CreateSource("Disabled imported", EventSourceTypes.ICalFeed, enabled: false, writable: false, HomeOps.Api.CalendarEvents.EventSourceHealthStatus.Healthy, now);
+            var neverSyncedSource = CreateSource("Never synced imported", EventSourceTypes.ICalFeed, enabled: true, writable: false, HomeOps.Api.CalendarEvents.EventSourceHealthStatus.NeverSynced, now);
+
+            dbContext.EventSources.AddRange(manualSource, healthySource, failedSource, disabledSource, neverSyncedSource);
+            dbContext.EventSeries.AddRange(
+                CreateSeries(manualSource.Id, "Manual visible", now),
+                CreateSeries(healthySource.Id, "Healthy visible", now, "healthy-provider"),
+                CreateSeries(failedSource.Id, "Failed hidden", now, "failed-provider"),
+                CreateSeries(disabledSource.Id, "Disabled hidden", now, "disabled-provider"),
+                CreateSeries(neverSyncedSource.Id, "Never synced hidden", now, "never-provider"));
+            await dbContext.SaveChangesAsync();
+        }
+
+        var events = await client.GetFromJsonAsync<NormalizedEvent[]>("/api/events");
+
+        Assert.NotNull(events);
+        Assert.Contains(events, candidate => candidate.Title == "Manual visible" && candidate.Editable);
+        Assert.Contains(events, candidate => candidate.Title == "Healthy visible" && !candidate.Editable && candidate.ProviderEventId == "healthy-provider");
+        Assert.DoesNotContain(events, candidate => candidate.Title == "Failed hidden");
+        Assert.DoesNotContain(events, candidate => candidate.Title == "Disabled hidden");
+        Assert.DoesNotContain(events, candidate => candidate.Title == "Never synced hidden");
+
+        using var verificationScope = factory.Services.CreateScope();
+        var verificationContext = verificationScope.ServiceProvider.GetRequiredService<HomeOpsDbContext>();
+        Assert.True(await verificationContext.EventSeries.AnyAsync(series => series.Title == "Failed hidden"));
+        Assert.True(await verificationContext.EventSeries.AnyAsync(series => series.Title == "Disabled hidden"));
+        Assert.True(await verificationContext.EventSeries.AnyAsync(series => series.Title == "Never synced hidden"));
+    }
+
+    [Fact]
+    public async Task GetEventsReturnsMultipleHealthySourcesAndHidesMultipleHiddenSources()
+    {
+        await using var factory = new HomeOpsWebApplicationFactory();
+        var client = factory.CreateClient();
+        var now = DateTimeOffset.UtcNow;
+
+        using (var scope = factory.Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<HomeOpsDbContext>();
+            dbContext.EventSeries.RemoveRange(dbContext.EventSeries);
+            dbContext.EventSources.RemoveRange(dbContext.EventSources.Where(source => source.HouseholdId == SeedHousehold.Id));
+
+            var healthyFeed = CreateSource("Healthy feed", EventSourceTypes.ICalFeed, enabled: true, writable: false, HomeOps.Api.CalendarEvents.EventSourceHealthStatus.Healthy, now);
+            var healthyFile = CreateSource("Healthy file", EventSourceTypes.ICalFile, enabled: true, writable: false, HomeOps.Api.CalendarEvents.EventSourceHealthStatus.Healthy, now);
+            var failedFeed = CreateSource("Failed feed", EventSourceTypes.ICalFeed, enabled: true, writable: false, HomeOps.Api.CalendarEvents.EventSourceHealthStatus.Failed, now);
+            var disabledFile = CreateSource("Disabled file", EventSourceTypes.ICalFile, enabled: false, writable: false, HomeOps.Api.CalendarEvents.EventSourceHealthStatus.Healthy, now);
+
+            dbContext.EventSources.AddRange(healthyFeed, healthyFile, failedFeed, disabledFile);
+            dbContext.EventSeries.AddRange(
+                CreateSeries(healthyFeed.Id, "Healthy feed event", now, "healthy-feed"),
+                CreateSeries(healthyFile.Id, "Healthy file event", now, "healthy-file"),
+                CreateSeries(failedFeed.Id, "Failed feed event", now, "failed-feed"),
+                CreateSeries(disabledFile.Id, "Disabled file event", now, "disabled-file"));
+            await dbContext.SaveChangesAsync();
+        }
+
+        var events = await client.GetFromJsonAsync<NormalizedEvent[]>("/api/events");
+
+        Assert.NotNull(events);
+        Assert.Contains(events, candidate => candidate.Title == "Healthy feed event");
+        Assert.Contains(events, candidate => candidate.Title == "Healthy file event");
+        Assert.DoesNotContain(events, candidate => candidate.Title == "Failed feed event");
+        Assert.DoesNotContain(events, candidate => candidate.Title == "Disabled file event");
+    }
+
+    private static HomeOps.Api.CalendarEvents.EventSource CreateSource(string name, string sourceType, bool enabled, bool writable, HomeOps.Api.CalendarEvents.EventSourceHealthStatus healthStatus, DateTimeOffset now) => new()
+    {
+        Id = Guid.NewGuid(),
+        HouseholdId = SeedHousehold.Id,
+        Name = name,
+        SourceType = sourceType,
+        Icon = "📅",
+        IsEnabled = enabled,
+        IsWritable = writable,
+        HealthStatus = healthStatus,
+        PollInterval = HomeOps.Api.CalendarEvents.EventSourcePollInterval.Every8Hours,
+        CreatedUtc = now,
+        UpdatedUtc = now,
+    };
+
+    private static EventSeries CreateSeries(Guid sourceId, string title, DateTimeOffset now, string? providerEventId = null) => new()
+    {
+        Id = Guid.NewGuid(),
+        EventSourceId = sourceId,
+        Title = title,
+        Description = title,
+        IsAllDay = false,
+        StartDate = new DateOnly(2026, 7, 6),
+        StartTime = new TimeOnly(9, 0),
+        EndDate = new DateOnly(2026, 7, 6),
+        EndTime = new TimeOnly(10, 0),
+        RecurrenceType = RecurrenceType.None,
+        ProviderEventId = providerEventId,
+        ProviderRevision = providerEventId is null ? null : $"revision-{providerEventId}",
+        ContentFingerprint = providerEventId is null ? null : $"fingerprint-{providerEventId}",
+        ImportedAtUtc = providerEventId is null ? null : now,
+        LastImportedUtc = providerEventId is null ? null : now,
+        LastSeenSyncAttemptUtc = providerEventId is null ? null : now,
+        CreatedUtc = now,
+        UpdatedUtc = now,
+    };
+
 }

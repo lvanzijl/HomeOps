@@ -1,5 +1,6 @@
 using HomeOps.Api.Data;
 using HomeOps.Api.Households;
+using HomeOps.Api.CalendarEvents.Synchronization;
 using HomeOps.Contracts.Events;
 using Microsoft.EntityFrameworkCore;
 using ContractHealthStatus = HomeOps.Contracts.Events.EventSourceHealthStatus;
@@ -83,6 +84,39 @@ public static class EventSourceManagementEndpoints
             return Results.Ok(ToDto(source));
         }).WithName("UpdateEventSource").Produces<EventSourceDto>().Produces(StatusCodes.Status404NotFound).ProducesValidationProblem();
 
+
+        sources.MapPost("/{sourceId:guid}/refresh", async (Guid sourceId, HomeOpsDbContext dbContext, ICalendarSourceRefreshDispatcher dispatcher, CancellationToken cancellationToken) =>
+        {
+            var source = await dbContext.EventSources
+                .AsNoTracking()
+                .FirstOrDefaultAsync(candidate => candidate.HouseholdId == SeedHousehold.Id && candidate.Id == sourceId, cancellationToken);
+            if (source is null) return Results.NotFound();
+
+            var result = await dispatcher.RefreshAsync(source, cancellationToken);
+            var dto = ToSyncResultDto(source.Id, result.SynchronizationResult);
+            return result.Supported ? Results.Ok(dto) : Results.BadRequest(dto);
+        }).WithName("RefreshEventSource").Produces<SyncSourceResultDto>().Produces<SyncSourceResultDto>(StatusCodes.Status400BadRequest).Produces(StatusCodes.Status404NotFound);
+
+        sources.MapPost("/refresh-all", async (HomeOpsDbContext dbContext, ICalendarSourceRefreshDispatcher dispatcher, CancellationToken cancellationToken) =>
+        {
+            var refreshableSources = await dbContext.EventSources
+                .AsNoTracking()
+                .Where(source => source.HouseholdId == SeedHousehold.Id)
+                .Where(source => source.IsEnabled)
+                .Where(source => source.SourceType == EventSourceTypes.ICalFeed || source.SourceType == EventSourceTypes.ICalFile)
+                .OrderBy(source => source.Name)
+                .ToListAsync(cancellationToken);
+
+            var results = new List<SyncSourceResultDto>();
+            foreach (var source in refreshableSources)
+            {
+                var result = await dispatcher.RefreshAsync(source, cancellationToken);
+                results.Add(ToSyncResultDto(source.Id, result.SynchronizationResult));
+            }
+
+            return Results.Ok(new RefreshAllResultDto(results));
+        }).WithName("RefreshAllEventSources").Produces<RefreshAllResultDto>();
+
         sources.MapDelete("/{sourceId:guid}", async (Guid sourceId, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
         {
             var source = await dbContext.EventSources
@@ -110,6 +144,28 @@ public static class EventSourceManagementEndpoints
     private static IQueryable<EventSource> QuerySources(HomeOpsDbContext dbContext) => dbContext.EventSources
         .Include(source => source.Configuration)
         .Where(source => source.HouseholdId == SeedHousehold.Id);
+
+
+    private static SyncSourceResultDto ToSyncResultDto(Guid sourceId, CalendarSourceSynchronizationResult result) => new(
+        sourceId,
+        result.Succeeded,
+        ToContractHealthStatus(result.SourceHealthStatus),
+        result.LastSyncAttemptUtc,
+        result.LastSuccessfulSyncUtc,
+        result.LastFailedSyncUtc,
+        result.CreatedCount,
+        result.UpdatedCount,
+        result.DeletedCount,
+        result.UnchangedCount,
+        result.WarningCount,
+        result.Duration,
+        ToLastError(result));
+
+    private static EventSourceLastError? ToLastError(CalendarSourceSynchronizationResult result)
+    {
+        var error = result.Diagnostics.FirstOrDefault(diagnostic => diagnostic.Severity == ICalendar.ICalendarParseDiagnosticSeverity.Error);
+        return error is null ? null : new EventSourceLastError(error.Code, error.Message);
+    }
 
     private static EventSourceDto ToDto(EventSource source) => new(
         source.Id,
