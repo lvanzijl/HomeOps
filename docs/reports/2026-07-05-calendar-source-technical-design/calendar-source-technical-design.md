@@ -1,6 +1,6 @@
 # Executive Summary
 
-Calendar Sources will extend the existing persisted calendar model so configured sources are first-class domain objects, synchronized provider data is stored as `EventSeries`, and calendar reads remain provider-independent. `EventSource` remains the aggregate root for source lifecycle, source visibility, source health, synchronization status, and ownership of event series. Manual events and imported events both remain `EventSeries`; manual series are writable through the manual source, while imported series are read-only because their owning source is read-only.
+Calendar Sources will extend the existing persisted calendar model so configured sources are first-class domain objects, synchronized provider data is stored as `EventSeries`, and calendar reads remain provider-independent. `EventSource` remains the aggregate root for source lifecycle, source visibility, enabled state, provider health, synchronization metadata, and ownership of event series. Manual events and imported events both remain `EventSeries`; manual series are writable through the manual source, while imported series are read-only because their owning source is read-only.
 
 The final design is EventSource-centered synchronization: every synchronization run targets exactly one source, provider-specific code fetches and normalizes provider data, and a provider-independent synchronization engine applies create, update, and delete changes to imported `EventSeries` rows owned by that source. This consolidates the architecture, integration, domain, and synchronization reports into a single implementation blueprint.
 
@@ -10,7 +10,7 @@ The MVP source types are:
 - iCal Feed.
 - iCal File.
 
-The model must also support later providers without redesign, including Google Calendar, CalDAV, Exchange, School Holidays, and TV Series. Provider-specific configuration remains separate from generic `EventSource` metadata so each future provider can add retrieval, authentication, cursor, and parsing configuration without polluting the shared source model.
+The model must also support later providers without redesign, including Google Calendar, CalDAV, Exchange, School Holidays, and TV Series. Provider configuration uses a shared `EventSourceConfiguration` abstraction with provider-specific configuration records so each future provider can add retrieval, authentication, cursor, and parsing configuration without polluting the shared source model.
 
 Key fixed decisions:
 
@@ -22,7 +22,11 @@ Key fixed decisions:
 - Synchronization is source-scoped.
 - Synchronization is provider-independent after provider normalization.
 - Failed synchronization never deletes events.
-- Disabled and failed sources remain stored but hidden from calendar output.
+- `IsEnabled` is separate from `HealthStatus`; health values are `NeverSynced`, `Healthy`, and `Failed`.
+- Polling is exposed as fixed `PollInterval` choices: `Hourly`, `Every8Hours`, and `Daily`.
+- Sources are always visible in Settings, including disabled, failed, and never-synced sources.
+- Calendar output hides disabled sources, failed sources, and never-synced external sources until the first successful sync; Settings always shows all configured sources.
+- The system manual source cannot be deleted by any entry point.
 - Backup includes source configuration and excludes imported events.
 
 This specification is the authoritative implementation reference for the Calendar Sources feature. Future implementation slices should not reopen these architectural decisions unless a documented product requirement contradicts them.
@@ -57,19 +61,20 @@ This document intentionally does not define:
 
 The final architecture has four layers of responsibility:
 
-1. **Configured source aggregate:** `EventSource` stores source identity, household ownership, display metadata, enabled state, read/write capability, lifecycle status, and source-level synchronization metadata.
-2. **Provider configuration:** Provider-specific configuration is stored outside generic source fields and linked one-to-one to the owning `EventSource`. iCal feed configuration, iCal file configuration, and future provider configuration each have provider-specific storage shapes.
+1. **Configured source aggregate:** `EventSource` stores source identity, household ownership, display metadata, enabled state, read/write capability, health status, and source-level synchronization metadata.
+2. **Provider configuration:** Provider configuration is modeled through a shared `EventSourceConfiguration` abstraction linked one-to-one to the owning `EventSource`, with provider-specific derived/configuration records for iCal feed, iCal file, and future providers.
 3. **Provider importers:** Provider-specific importers fetch or read provider data, validate provider inputs, parse provider-native formats, and normalize provider records into provider-independent synchronization inputs.
 4. **Provider-independent synchronization engine:** The synchronization engine receives normalized provider data and applies source-scoped create, update, and delete changes to imported `EventSeries` records.
 
-The chosen design follows the architecture and sync reports: provider-specific services may understand iCal, Google, CalDAV, Exchange, or other formats, but they must not own HomeOps event lifecycle rules after normalization. The provider-independent engine owns matching, diffing, imported-event writes, removed-event deletion, and source status updates.
+The chosen design follows the architecture and sync reports: provider-specific services may understand iCal, Google, CalDAV, Exchange, or other formats, but they must not own HomeOps event lifecycle rules after normalization. The provider-independent engine owns matching, diffing, imported-event writes, removed-event deletion, and source health updates.
 
 Rejected alternatives:
 
-- **Runtime adapter-only reads:** Rejected because the fixed product requirement says synchronization creates, updates, and removes stored imported events. Runtime-only adapters cannot satisfy durable sync metadata, failure status, source lifecycle, or backup semantics.
+- **Runtime adapter-only reads:** Rejected because the fixed product requirement says synchronization creates, updates, and removes stored imported events. Runtime-only adapters cannot satisfy durable sync metadata, failure health, source lifecycle, or backup semantics.
 - **Provider-specific diff/apply services:** Rejected because each provider would duplicate deletion, failure, read-only, and matching rules, increasing the risk of inconsistent behavior.
 - **Separate imported-event storage parallel to `EventSeries`:** Rejected because previous reports concluded imported events should remain `EventSeries`, and the existing model already uses `EventSourceId` as the ownership boundary.
 - **Flattened provider settings on `EventSource`:** Rejected because provider-specific URLs, file references, credentials, cursors, cache validators, and import options differ by provider and would make the generic source model unstable.
+- **Unrelated provider-specific tables without a shared configuration abstraction:** Rejected because it would force source management, backup/restore, validation, and DTO handling to special-case every provider instead of depending on a consistent source-configuration contract.
 
 # Domain Model
 
@@ -84,17 +89,17 @@ Required fields:
 - `Name`: user-visible source name.
 - `Icon`: emoji icon for MVP source presentation.
 - `SourceType`: source/provider family discriminator.
-- `IsEnabled`: whether the source participates in calendar output and automatic background sync eligibility.
+- `IsEnabled`: user-controlled on/off state that controls calendar output and automatic background sync eligibility.
 - `IsWritable`: whether events owned by the source can be edited through manual event APIs.
-- `Status`: source health/lifecycle status.
+- `HealthStatus`: synchronization/provider health state, separate from enabled state.
 - `LastSyncAttemptUtc`: last synchronization attempt timestamp.
 - `LastSuccessfulSyncUtc`: last successful synchronization timestamp.
 - `LastFailedSyncUtc`: last failed synchronization timestamp.
 - `LastErrorCode`: durable machine-readable failure category.
 - `LastErrorMessage`: sanitized user-facing failure summary.
 - `LastErrorDetail`: optional diagnostic detail suitable for admin/debug UI, not raw secrets.
-- `PollIntervalMinutes`: requested background synchronization interval.
-- `NextSyncAfterUtc`: scheduler hint derived from status, poll interval, and last attempt/success.
+- `PollInterval`: fixed background synchronization cadence choice.
+- `NextSyncAfterUtc`: scheduler hint derived from health status, poll interval choice, and last attempt/success.
 - `ExternalSourceId`: optional provider source/calendar identity when the provider exposes one.
 - `CreatedUtc`.
 - `UpdatedUtc`.
@@ -103,13 +108,16 @@ Required fields:
 Recommended enum values:
 
 - `SourceType`: `Manual`, `ICalFeed`, `ICalFile`, `GoogleCalendar`, `CalDav`, `Exchange`, `SchoolHolidays`, `TvSeries`, `External`.
-- `EventSourceStatus`: `NeverSynced`, `Healthy`, `Failed`, `Disabled`.
+- `EventSourceHealthStatus`: `NeverSynced`, `Healthy`, `Failed`.
+- `EventSourcePollInterval`: `Hourly`, `Every8Hours`, `Daily`.
 
-Status and enabled state are related but not identical:
+Health status and enabled state are related but not identical:
 
-- `IsEnabled = false` means the user disabled the source. Calendar output hides it. Automatic background sync skips it. Configuration remains stored.
-- `Status = Failed` means the last sync failed or the source is unhealthy. Calendar output hides it. Configuration and imported events remain stored. Future manual or scheduled retry may move it back to `Healthy`.
-- `Status = Disabled` may be used as a denormalized/display status for disabled sources, but source eligibility must still be based on `IsEnabled` so enabling/disabling is not confused with provider health.
+- `IsEnabled = false` means the user disabled the source. Settings still shows it. Calendar output hides it. Automatic background sync skips it. Configuration remains stored.
+- `HealthStatus = NeverSynced` means an external source has no successful synchronization yet. Settings shows it, but calendar output hides any imported rows for that source until the first successful sync. Manual source behavior remains unchanged.
+- `HealthStatus = Healthy` means the source is eligible for calendar output when `IsEnabled = true`.
+- `HealthStatus = Failed` means the last sync failed or the source is unhealthy. Settings still shows it. Calendar output hides it. Configuration and imported events remain stored. Future manual or scheduled retry may move it back to `Healthy`.
+- Disabled state is represented only by `IsEnabled = false`; do not add a health value for disabled sources.
 
 ## EventSeries
 
@@ -126,7 +134,7 @@ Additional imported-event fields are required:
 - `ExternalEventId`: required for imported events, null for manual events.
 - `ExternalInstanceId`: optional provider identity for detached recurrence instances when needed.
 - `ExternalRevision`: optional provider revision, sequence, ETag, updated timestamp, or equivalent.
-- `ContentFingerprint`: provider-independent hash of normalized event content used to avoid unnecessary updates.
+- `ContentFingerprint`: provider-independent hash of normalized event content used only as a change-detection optimization after matching by `(EventSourceId, ExternalEventId)`; it is never event identity.
 - `ImportedAtUtc`: first import timestamp, null for manual events.
 - `LastImportedUtc`: last time normalized provider content was applied, null for manual events.
 - `LastSeenSyncAttemptUtc`: timestamp or run marker for the last successful provider snapshot that included this event.
@@ -139,9 +147,16 @@ Recommended constraints:
 
 ## Provider configuration
 
-Provider configuration is linked to `EventSource` and remains separate from generic source metadata.
+Provider configuration is linked to `EventSource` through a shared `EventSourceConfiguration` abstraction and remains separate from generic source metadata.
 
-MVP configuration records:
+Chosen model:
+
+- Use a shared `EventSourceConfiguration` abstraction for source management, validation, backup/restore, API DTO discrimination, and importer lookup.
+- Store provider-specific details in derived/configuration records keyed by `EventSourceId`.
+- Manual sources do not require a configuration record.
+- This gives HomeOps a consistent configuration contract while preserving provider-specific shapes.
+
+MVP derived/configuration records:
 
 - `ICalFeedSourceConfiguration`:
   - `EventSourceId`.
@@ -156,7 +171,7 @@ MVP configuration records:
   - Content hash.
   - Uploaded timestamp.
   - Created/updated timestamps.
-- Manual sources do not require a provider configuration row.
+- Manual sources do not require a provider configuration record.
 
 Future provider configuration examples:
 
@@ -178,11 +193,11 @@ Responsibilities:
 - Define user-facing source name and emoji icon.
 - Define enabled/disabled state.
 - Define write capability for owned events.
-- Define source health/status.
+- Define source health state.
 - Store source-level sync timestamps and failure details.
-- Store poll interval and scheduling hints.
+- Store fixed poll interval choice and scheduling hints.
 - Own all manual or imported `EventSeries` records for that source.
-- Gate calendar output visibility.
+- Gate calendar output visibility separately from Settings visibility.
 - Gate manual event mutation via `IsWritable`.
 
 Non-responsibilities:
@@ -217,8 +232,8 @@ Responsibilities for all series:
 
 Additional responsibilities for imported series:
 
-- Store source-scoped provider event identity.
-- Store event-level import metadata needed for matching and change detection.
+- Store source-scoped provider event identity through `(EventSourceId, ExternalEventId)`.
+- Store event-level import metadata needed for change detection after identity matching.
 - Store last-seen metadata needed for safe deletion after successful provider snapshots.
 - Remain read-only through source capability.
 
@@ -245,10 +260,10 @@ Provider configuration must be separate from generic `EventSource` metadata.
 
 Rules:
 
-- Each non-manual source has exactly one provider configuration row of the shape required by its `SourceType`.
+- Each non-manual source has exactly one provider configuration record of the shape required by its `SourceType`, exposed through the shared `EventSourceConfiguration` abstraction.
 - Provider configuration is loaded only by source management and provider importer code.
 - Generic calendar reads do not need provider configuration.
-- Backup exports provider configuration as source configuration.
+- Backup exports provider configuration through the shared source-configuration contract.
 - Restore recreates source configuration but does not restore imported events.
 - Sensitive data must be stored as references to secure storage where applicable; source DTOs must not expose secrets.
 
@@ -256,7 +271,7 @@ MVP provider configuration:
 
 ## iCal Feed
 
-Use a provider configuration row linked to the source.
+Use a provider configuration record linked to the source.
 
 Required data:
 
@@ -273,7 +288,7 @@ The importer fetches the URL, parses iCalendar content, and normalizes events.
 
 ## iCal File
 
-Use a provider configuration row linked to the source.
+Use a provider configuration record linked to the source.
 
 Required data:
 
@@ -290,6 +305,7 @@ Why chosen:
 
 Rejected alternatives:
 
+- Separate provider-specific tables only, with no shared `EventSourceConfiguration` abstraction, was rejected because generic source management, backup/restore, and importer dispatch need a stable configuration contract as providers grow. Provider-specific persistence shapes remain allowed behind the abstraction.
 - Storing feed URLs or file references directly on `EventSource` was rejected because future providers would continually add unrelated nullable fields.
 - Treating iCal files as manual imports was rejected because imported events are read-only and source-scoped synchronization/removal behavior still applies.
 
@@ -309,9 +325,9 @@ Primary service responsibilities:
    - Create missing imported series.
    - Update matching series if content or import metadata changed.
    - Delete existing imported series whose external identities are absent from the successful snapshot.
-   - Update source status to `Healthy` and sync timestamps.
+   - Update source `HealthStatus` to `Healthy` and sync timestamps.
 6. On failed provider import:
-   - Update source status to `Failed` and failure metadata.
+   - Update source `HealthStatus` to `Failed` and failure metadata.
    - Never delete imported events.
 7. On disabled source:
    - Do not run automatic sync.
@@ -358,31 +374,31 @@ A synchronization run has these phases:
 3. **Attempt recorded:** Set `LastSyncAttemptUtc` and clear transient in-memory run state. Do not clear prior failure details until success unless UI requires a separate `InProgress` indicator.
 4. **Provider import:** The importer fetches/reads provider data and normalizes it.
 5. **Snapshot validation:** The engine verifies every normalized event has a source-scoped external identity and valid normalized date/time data.
-6. **Diff computation:** Existing imported series are matched to incoming normalized events by external identity.
+6. **Diff computation:** Existing imported series are matched to incoming normalized events only by `(EventSourceId, ExternalEventId)`.
 7. **Apply changes:** Create, update, and delete imported series in one transaction where practical.
-8. **Outcome recorded:** Set status and metadata.
-   - Success: `Status = Healthy`, set `LastSuccessfulSyncUtc`, clear failure fields.
-   - Failure: `Status = Failed`, set `LastFailedSyncUtc`, set failure fields, delete nothing.
-   - Skipped disabled: preserve previous health metadata or expose disabled status separately.
-9. **Calendar visibility:** Calendar queries include only enabled and healthy/never-synced eligible sources according to rules in this document.
+8. **Outcome recorded:** Set health status and metadata.
+   - Success: `HealthStatus = Healthy`, set `LastSuccessfulSyncUtc`, clear failure fields.
+   - Failure: `HealthStatus = Failed`, set `LastFailedSyncUtc`, set failure fields, delete nothing.
+   - Skipped because `IsEnabled = false`: preserve previous health metadata and report the skip from operation context, not by changing `HealthStatus`.
+9. **Calendar visibility:** Calendar queries include enabled manual sources and enabled healthy imported sources according to the rules in this document; Settings visibility is unaffected by health or enabled state.
 
 Creation rules:
 
 - Newly created non-manual sources should be stored before initial sync.
-- If initial sync fails, the source remains stored with failed status and is hidden from calendar output.
+- If initial sync fails, the source remains stored with failed health and is hidden from calendar output while remaining visible in Settings.
 - If initial sync succeeds, imported events are stored and source becomes visible if enabled.
 
 Update rules:
 
 - Updating source display fields does not require deleting events.
 - Updating provider configuration should request a sync.
-- If the new configuration fails, keep the source stored and hide it as failed.
+- If the new configuration fails, keep the source stored, mark health failed, hide it from calendar output, and keep it visible in Settings.
 - If the new configuration succeeds, apply the successful snapshot to the source-owned imported series.
 
 Deletion rules:
 
 - Deleting a source deletes its owned imported series through the source aggregate relationship.
-- Deleting a manual source should be disallowed or protected if it is the system manual source.
+- Deleting the system manual source is forbidden as a domain invariant; no API, restore process, background process, or internal application service may delete it.
 - Disabling a source does not delete configuration or events.
 
 # Synchronization Metadata
@@ -392,8 +408,8 @@ Source-level metadata belongs on `EventSource` when it describes the configured 
 Required source-level sync metadata:
 
 - `IsEnabled`.
-- `Status`.
-- `PollIntervalMinutes`.
+- `HealthStatus`.
+- `PollInterval`.
 - `LastSyncAttemptUtc`.
 - `LastSuccessfulSyncUtc`.
 - `LastFailedSyncUtc`.
@@ -410,7 +426,7 @@ Required event-level sync metadata:
 - `ExternalEventId`.
 - `ExternalInstanceId` where needed.
 - `ExternalRevision` where available.
-- `ContentFingerprint`.
+- `ContentFingerprint` as a post-match change-detection aid only, never as identity.
 - `ImportedAtUtc`.
 - `LastImportedUtc`.
 - `LastSeenSyncAttemptUtc`.
@@ -475,11 +491,11 @@ Calendar reads must remain provider-independent and should query persisted `Even
 
 Inclusion rules:
 
-- Include manual source events when the manual source is enabled and not failed.
-- Include imported source events only when `IsEnabled = true` and `Status = Healthy`.
-- A source with `Status = NeverSynced` should not contribute imported events because none should exist yet; if rows exist unexpectedly, queries should not display them until the source is healthy.
-- Exclude disabled sources.
-- Exclude failed sources.
+- Include manual source events when the manual source is enabled and not failed; manual source behavior otherwise remains unchanged.
+- Include imported source events only when `IsEnabled = true` and `HealthStatus = Healthy`.
+- A source with `HealthStatus = NeverSynced` should not contribute imported events because none should exist yet; if rows exist unexpectedly, queries should not display them until the source is healthy.
+- Exclude disabled sources from calendar output while keeping them visible in Settings.
+- Exclude failed sources from calendar output while keeping them visible in Settings.
 - Exclude deleted sources and their cascaded series.
 
 Editability rules:
@@ -497,7 +513,7 @@ Query projection rules:
 Why chosen:
 
 - This preserves the existing persisted calendar read path and avoids runtime provider calls during calendar display.
-- Filtering by source status implements fixed product decisions without changing event ownership.
+- Filtering by enabled state and health status implements fixed product decisions without changing event ownership.
 
 # Backup & Restore
 
@@ -512,7 +528,7 @@ Backup must include:
   - icon,
   - source type,
   - enabled flag,
-  - poll interval,
+  - poll interval choice,
   - source-level external identity if safe and useful,
   - created/updated metadata where backup format already preserves lifecycle metadata.
 - Provider configuration for each source:
@@ -534,9 +550,9 @@ Restore rules:
 - Restore source configuration first.
 - Restore manual events for manual sources.
 - Do not restore imported events.
-- Restored enabled non-manual sources should be marked `NeverSynced` or `Failed` with a clear “sync required” status until synchronization succeeds.
+- Restored enabled non-manual sources should be marked `NeverSynced` with a clear “sync required” health state until synchronization succeeds.
 - Restore may enqueue or request sync after configuration is restored, but imported events only appear after successful provider sync.
-- Restored disabled non-manual sources remain disabled and hidden.
+- Restored disabled non-manual sources remain disabled and hidden from calendar output, but visible in Settings.
 
 Why chosen:
 
@@ -554,14 +570,14 @@ Background synchronization runs inside the existing backend application as part 
 
 Rules:
 
-- The scheduler finds enabled non-manual sources whose `NextSyncAfterUtc` is due.
+- The scheduler finds enabled non-manual sources whose `NextSyncAfterUtc` is due and whose fixed `PollInterval` choice has elapsed.
 - Disabled sources are skipped.
 - Manual sources are skipped.
 - Each sync run is source-scoped.
 - Concurrent sync for the same source must be prevented by a database lock, row version, advisory lock, or equivalent implementation mechanism.
 - Different sources may synchronize independently if implementation later supports concurrency.
-- Poll interval comes from `EventSource.PollIntervalMinutes`.
-- Failed enabled sources may retry according to poll interval or a conservative retry policy.
+- Poll interval choice comes from `EventSource.PollInterval`; scheduling code may derive minutes internally from `Hourly`, `Every8Hours`, or `Daily`, but minutes are not the domain/API/settings model.
+- Failed enabled sources may retry according to the fixed poll interval choice or a conservative retry policy.
 - Refresh All requests enqueue or directly execute sync for all enabled non-manual sources.
 - Refresh All should return per-source results, not fail the entire operation because one source failed.
 
@@ -593,11 +609,11 @@ Recommended endpoints:
   - Creates a source and provider configuration.
   - For non-manual sources, may trigger initial sync.
 - `PUT /api/event-sources/{sourceId}`
-  - Updates display metadata, enabled state, poll interval, and provider configuration.
+  - Updates display metadata, enabled state, poll interval choice, and provider configuration.
   - Provider configuration changes should request sync.
 - `DELETE /api/event-sources/{sourceId}`
   - Deletes a non-system source and owned imported events.
-  - Must protect required system manual source.
+  - Must enforce the domain invariant that the required system manual source cannot be deleted by any entry point.
 
 ## Synchronization
 
@@ -615,10 +631,10 @@ Recommended endpoints:
 
 API behavior rules:
 
-- Settings endpoints must show disabled and failed sources so users can fix them.
-- Calendar event output must hide disabled and failed sources.
+- Settings endpoints must show disabled, failed, and never-synced sources so users can fix or complete setup.
+- Calendar event output must hide disabled sources, failed sources, and never-synced external sources.
 - Imported event mutation through manual event endpoints must return not found or forbidden according to existing endpoint conventions because imported source `IsWritable = false`.
-- Validation errors should be explicit for missing configuration, unsupported source type, invalid feed URL, invalid file content, and invalid poll interval.
+- Validation errors should be explicit for missing configuration, unsupported source type, invalid feed URL, invalid file content, and invalid poll interval choice.
 
 # DTO Design
 
@@ -636,8 +652,8 @@ Fields:
 - `sourceType`.
 - `enabled`.
 - `writable`.
-- `status`.
-- `pollIntervalMinutes`.
+- `healthStatus`.
+- `pollInterval`.
 - `lastSyncAttemptUtc`.
 - `lastSuccessfulSyncUtc`.
 - `lastFailedSyncUtc`.
@@ -656,7 +672,7 @@ Fields:
 - `icon`.
 - `sourceType`.
 - `enabled`.
-- `pollIntervalMinutes`.
+- `pollInterval`.
 - `providerConfiguration` discriminated by source type.
 
 ## UpdateEventSourceRequest
@@ -666,7 +682,7 @@ Fields:
 - `name`.
 - `icon`.
 - `enabled`.
-- `pollIntervalMinutes`.
+- `pollInterval`.
 - Optional `providerConfiguration` discriminated by source type.
 
 ## Provider configuration DTOs
@@ -682,7 +698,7 @@ Fields:
 
 - `SyncSourceResultDto`:
   - `sourceId`.
-  - `status`.
+  - `healthStatus`.
   - `attemptedAtUtc`.
   - `successfulAtUtc`.
   - `createdCount`.
@@ -716,8 +732,8 @@ Add columns:
 
 - `Icon` required with emoji default for existing/manual source.
 - `IsEnabled` required, default true.
-- `Status` required, string or enum conversion.
-- `PollIntervalMinutes` required with default.
+- `HealthStatus` required, string or enum conversion.
+- `PollInterval` required with default.
 - `LastSyncAttemptUtc` nullable.
 - `LastSuccessfulSyncUtc` nullable.
 - `LastFailedSyncUtc` nullable.
@@ -730,7 +746,7 @@ Add columns:
 Change indexes:
 
 - Replace the current unique `(HouseholdId, SourceType)` index because multiple iCal feeds, files, or future provider calendars must be allowed.
-- Add an index on `(HouseholdId, IsEnabled, Status)` for calendar query filtering.
+- Add an index on `(HouseholdId, IsEnabled, HealthStatus)` for calendar query filtering.
 - Add an index on `(HouseholdId, SourceType)` as non-unique if useful.
 - Add an index on `NextSyncAfterUtc` for background scheduling.
 
@@ -754,7 +770,7 @@ Add indexes:
 
 ## Provider configuration tables
 
-Add tables:
+Add provider-specific tables behind the shared `EventSourceConfiguration` abstraction:
 
 - `ICalFeedSourceConfigurations`:
   - `EventSourceId` primary key/foreign key.
@@ -775,13 +791,13 @@ Add tables:
 
 Relationship rules:
 
-- Provider configuration rows cascade delete with their owning source.
+- Provider configuration records cascade delete with their owning source.
 - Imported series cascade delete with their owning source.
-- Manual source deletion should be protected at application level.
+- The system manual source deletion must be protected as a domain invariant and cannot be deleted by any entry point; persistence and API layers should enforce the invariant rather than relying on an API-only check.
 
 Migration data rules:
 
-- Existing manual source becomes `SourceType = Manual`, `IsWritable = true`, `IsEnabled = true`, `Status = Healthy`, default icon, default poll interval.
+- Existing manual source becomes `SourceType = Manual`, `IsWritable = true`, `IsEnabled = true`, `HealthStatus = Healthy`, default icon, default poll interval choice if required by the schema, and protected by the non-deletable system manual source invariant.
 - Existing manual event series keep imported metadata null.
 
 Why chosen:
@@ -798,13 +814,13 @@ Testing must validate product behavior, not only compilation.
 Synchronization engine:
 
 - Creates imported series for new normalized provider events.
-- Updates existing imported series when content fingerprint changes.
-- Does not update matching series when normalized content is unchanged.
+- Updates existing imported series when the `(EventSourceId, ExternalEventId)` match is found and content fingerprint or other normalized metadata changes.
+- Does not update matching series when identity matches and normalized content is unchanged.
 - Deletes imported series missing from a successful provider snapshot.
 - Does not delete anything when provider import fails.
 - Does not touch manual series.
 - Does not touch imported series owned by other sources.
-- Requires external event identity for imported events.
+- Requires `(EventSourceId, ExternalEventId)` identity for imported events.
 - Records success metadata.
 - Records failure metadata.
 
@@ -819,7 +835,7 @@ Domain/validation:
 
 - Manual sources are writable.
 - Imported sources are read-only.
-- Invalid poll intervals are rejected.
+- Poll interval choices are limited to `Hourly`, `Every8Hours`, and `Daily`.
 - Unsupported source types are rejected.
 - Provider configuration is required for non-manual sources.
 
@@ -836,9 +852,10 @@ Persistence:
 
 API:
 
-- Settings/source list includes disabled and failed sources.
+- Settings/source list includes disabled, failed, and never-synced sources.
 - Calendar event reads exclude disabled sources.
 - Calendar event reads exclude failed sources.
+- Calendar event reads exclude never-synced external source events until first successful sync.
 - Imported event update/delete through manual endpoints is blocked.
 - Refresh source returns per-source sync result.
 - Refresh all returns mixed success/failure results without failing the whole operation.
@@ -929,15 +946,15 @@ Implementation must proceed in dependency order and remain one implementation sl
    - Migrate existing manual source and series.
 
 2. **Domain and DTO foundation**
-   - Add source type/status enums or validated constants.
+   - Add source type, health-status, and poll-interval enums or validated constants.
    - Add source DTOs and discriminated provider configuration DTOs.
    - Update event DTO projection for external metadata and location if required.
 
 3. **Source management API**
    - Implement list/detail/create/update/delete source endpoints.
    - Validate provider configuration.
-   - Protect system manual source.
-   - Ensure Settings can show disabled and failed sources.
+   - Enforce the system manual source deletion domain invariant.
+   - Ensure Settings can show disabled, failed, and never-synced sources.
 
 4. **iCalendar provider normalization**
    - Implement shared iCalendar parser/normalizer used by iCal Feed and iCal File.
@@ -961,9 +978,9 @@ Implementation must proceed in dependency order and remain one implementation sl
    - Ensure failed sync deletes nothing.
 
 8. **Calendar query filtering**
-   - Filter event reads by source enabled/status.
+   - Filter event reads by source enabled state and health status.
    - Ensure imported events are read-only.
-   - Add calendar read tests for disabled and failed sources.
+   - Add calendar read tests for disabled, failed, and never-synced external sources.
 
 9. **Refresh APIs**
    - Implement refresh source.
@@ -978,13 +995,13 @@ Implementation must proceed in dependency order and remain one implementation sl
 
 11. **Background synchronization**
     - Implement hosted scheduler.
-    - Use source poll interval and due metadata.
+    - Use source `PollInterval` choice and due metadata.
     - Prevent concurrent sync for the same source.
     - Add scheduler tests with controlled clock.
 
 12. **Settings UI integration**
     - Add Calendar Sources settings UI using source management and refresh APIs.
-    - Show name, icon, source type, enabled state, poll interval, status, last sync, and error information.
+    - Show name, icon, source type, enabled state, poll interval choice, health status, last sync, and error information.
     - Add Refresh All action.
     - Follow viewport-first workflow before any primary page layout changes.
 
@@ -993,11 +1010,9 @@ Implementation must proceed in dependency order and remain one implementation sl
 The following are implementation details, not architecture blockers:
 
 1. Exact iCal file storage strategy: database text/blob, filesystem reference, or existing file storage abstraction if one exists.
-2. Exact minimum and maximum allowed poll intervals.
-3. Exact display behavior for `NeverSynced` enabled sources in Settings. Calendar output should remain hidden until events are successfully synchronized.
-4. Whether manual refresh of disabled sources should be allowed. Automatic background sync must skip disabled sources; a manual refresh could either be blocked until enabled or allowed as a diagnostic action. The source remains hidden while disabled either way.
-5. Exact secret-handling strategy for future authenticated providers. DTOs and backups must not expose raw secrets.
-6. Exact recurrence coverage for imported iCalendar events in the MVP. Unsupported recurrence shapes should fail the source or skip affected events according to a future product decision; the synchronization architecture remains unchanged.
+2. Whether manual refresh of disabled sources should be allowed. Automatic background sync must skip disabled sources; a manual refresh could either be blocked until enabled or allowed as a diagnostic action. The source remains hidden while disabled either way.
+3. Exact secret-handling strategy for future authenticated providers. DTOs and backups must not expose raw secrets.
+4. Exact recurrence coverage for imported iCalendar events in the MVP. Unsupported recurrence shapes should fail the source or skip affected events according to a future product decision; the synchronization architecture remains unchanged.
 
 # References
 
