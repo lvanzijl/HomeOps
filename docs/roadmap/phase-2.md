@@ -34,6 +34,9 @@ Frontend test maintenance refreshed stale test expectations and fixtures to matc
 
 # Phase 2 Roadmap
 
+## Completed Slice — Agenda Weather Local Day Matching
+Agenda Weather Local Day Matching refines the existing frontend-only Agenda weather behavior by aligning day-level weather matching with the browser-local calendar date convention already used across Agenda, preserving timed appointment weather interval matching, and adding objective day weather only to all-day Vooruitkijken items. The slice changes no backend files, regenerates no API contract, keeps Agenda advice-free, and adds only the required validation screenshot as a binary artifact.
+
 ## Completed Slice — Home Layout Spacing Refinement
 Home Layout Spacing Refinement applies a small frontend-only polish pass to the existing FamilyBoard Home dashboard without redesigning its composition. The slice tightens only the shopping rows inside each existing store group, preserves the spacing between different stores, removes the redundant visible Motivation card heading, and localizes Home Motivation's visible copy to natural Dutch while keeping backend data, functionality, APIs, and non-required binary artifacts unchanged.
 
