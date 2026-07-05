@@ -1108,6 +1108,71 @@
         }
       }
     },
+    "/api/event-sources/{sourceId}/refresh": {
+      "post": {
+        "tags": [
+          "Event Sources"
+        ],
+        "operationId": "RefreshEventSource",
+        "parameters": [
+          {
+            "name": "sourceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncSourceResultDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SyncSourceResultDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/event-sources/refresh-all": {
+      "post": {
+        "tags": [
+          "Event Sources"
+        ],
+        "operationId": "RefreshAllEventSources",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefreshAllResultDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/calendar/export": {
       "get": {
         "tags": [
@@ -3246,6 +3311,80 @@
           }
         }
       },
+      "SyncSourceResultDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "sourceId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "succeeded": {
+            "type": "boolean"
+          },
+          "healthStatus": {
+            "$ref": "#/components/schemas/EventSourceHealthStatus"
+          },
+          "attemptedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "successfulAtUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "failedAtUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "createdCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "updatedCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "deletedCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "unchangedCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "warningCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "duration": {
+            "type": "string",
+            "format": "duration"
+          },
+          "error": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/EventSourceLastError"
+              }
+            ]
+          }
+        }
+      },
+      "RefreshAllResultDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SyncSourceResultDto"
+            }
+          }
+        }
+      },
       "CalendarExportDocument": {
         "type": "object",
         "additionalProperties": false,
@@ -3347,6 +3486,87 @@
             "format": "date-time"
           },
           "updatedUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "icon": {
+            "type": "string",
+            "nullable": true
+          },
+          "isEnabled": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "isSystem": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "healthStatus": {
+            "type": "string",
+            "nullable": true
+          },
+          "pollInterval": {
+            "type": "string",
+            "nullable": true
+          },
+          "providerConfiguration": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/CalendarExportProviderConfiguration"
+              }
+            ]
+          }
+        }
+      },
+      "CalendarExportProviderConfiguration": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "providerType": {
+            "type": "string"
+          },
+          "iCalFeed": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/CalendarExportICalFeedConfiguration"
+              }
+            ]
+          },
+          "iCalFile": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/CalendarExportICalFileConfiguration"
+              }
+            ]
+          }
+        }
+      },
+      "CalendarExportICalFeedConfiguration": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "feedUrl": {
+            "type": "string"
+          }
+        }
+      },
+      "CalendarExportICalFileConfiguration": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "fileReference": {
+            "type": "string"
+          },
+          "originalFilename": {
+            "type": "string"
+          },
+          "contentHash": {
+            "type": "string"
+          },
+          "uploadedUtc": {
             "type": "string",
             "format": "date-time"
           }

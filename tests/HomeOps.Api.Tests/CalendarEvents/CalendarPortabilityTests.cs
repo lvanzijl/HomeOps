@@ -101,7 +101,6 @@ public sealed class CalendarPortabilityTests
     }
 
 
-
     [Fact]
     public async Task RestoreCreatesPreRestoreSnapshotBeforeReplacingCalendarData()
     {
@@ -152,7 +151,6 @@ public sealed class CalendarPortabilityTests
             CalendarPortabilityService.PreRestoreSnapshotDirectory = previousDirectory;
         }
     }
-
 
     [Fact]
     public void SnapshotDirectoryConfigurationUsesSafeDefaultWhenUnset()
@@ -239,6 +237,255 @@ public sealed class CalendarPortabilityTests
         var events = await client.GetFromJsonAsync<NormalizedEvent[]>("/api/events");
         Assert.NotNull(events);
         Assert.Contains(events!, candidate => candidate.Title == "Parent Evening");
+    }
+
+    [Fact]
+    public async Task ExportIncludesManualEventsAndProviderConfigurationButExcludesImportedEvents()
+    {
+        await using var dbContext = CreateDbContext("source-config-export");
+        var now = DateTimeOffset.UtcNow;
+        var feedSource = AddFeedSource(dbContext, "Family Feed", enabled: true, now);
+        var fileSource = AddFileSource(dbContext, "School File", enabled: false, now);
+        dbContext.EventSeries.Add(new EventSeries
+        {
+            Id = Guid.Parse("10000000-0000-0000-0000-000000000001"),
+            EventSourceId = feedSource.Id,
+            ProviderEventId = "provider-event",
+            Title = "Imported hidden from backup",
+            StartDate = new DateOnly(2026, 7, 6),
+            StartTime = new TimeOnly(9, 0),
+            EndDate = new DateOnly(2026, 7, 6),
+            EndTime = new TimeOnly(10, 0),
+            CreatedUtc = now,
+            UpdatedUtc = now,
+        });
+        await dbContext.SaveChangesAsync();
+
+        var export = await CalendarPortabilityService.ExportAsync(dbContext);
+
+        Assert.Contains(export.Calendar.EventSeries, candidate => candidate.Title == "Dentist Appointment");
+        Assert.DoesNotContain(export.Calendar.EventSeries, candidate => candidate.Title == "Imported hidden from backup");
+        var feedExport = Assert.Single(export.Calendar.EventSources, source => source.Id == feedSource.Id);
+        Assert.Equal(EventSourceTypes.ICalFeed, feedExport.ProviderConfiguration?.ProviderType);
+        Assert.Equal("https://example.test/family.ics", feedExport.ProviderConfiguration?.ICalFeed?.FeedUrl);
+        Assert.Null(feedExport.ProviderConfiguration?.ICalFile);
+        Assert.DoesNotContain("secret", System.Text.Json.JsonSerializer.Serialize(export), StringComparison.OrdinalIgnoreCase);
+        var fileExport = Assert.Single(export.Calendar.EventSources, source => source.Id == fileSource.Id);
+        Assert.False(fileExport.IsEnabled);
+        Assert.Equal("school.ics", fileExport.ProviderConfiguration?.ICalFile?.OriginalFilename);
+    }
+
+    [Fact]
+    public async Task RestorePreservesSourceConfigurationAndManualEventsButNotImportedEvents()
+    {
+        await using var sourceDbContext = CreateDbContext("source-config-restore-source");
+        var now = DateTimeOffset.UtcNow;
+        var feedSource = AddFeedSource(sourceDbContext, "Family Feed", enabled: true, now);
+        var fileSource = AddFileSource(sourceDbContext, "Disabled File", enabled: false, now);
+        sourceDbContext.EventSeries.Add(new EventSeries
+        {
+            Id = Guid.Parse("20000000-0000-0000-0000-000000000001"),
+            EventSourceId = feedSource.Id,
+            ProviderEventId = "provider-event",
+            Title = "Imported not restored",
+            StartDate = new DateOnly(2026, 7, 6),
+            StartTime = new TimeOnly(9, 0),
+            EndDate = new DateOnly(2026, 7, 6),
+            EndTime = new TimeOnly(10, 0),
+            CreatedUtc = now,
+            UpdatedUtc = now,
+        });
+        await sourceDbContext.SaveChangesAsync();
+        var export = await CalendarPortabilityService.ExportAsync(sourceDbContext);
+
+        await using var targetDbContext = CreateDbContext("source-config-restore-target");
+        var result = await CalendarPortabilityService.RestoreAsync(targetDbContext, export);
+
+        Assert.True(result.Succeeded);
+        Assert.Contains(await targetDbContext.EventSeries.ToListAsync(), candidate => candidate.Title == "Dentist Appointment" && candidate.ProviderEventId is null);
+        Assert.DoesNotContain(await targetDbContext.EventSeries.ToListAsync(), candidate => candidate.Title == "Imported not restored" || candidate.ProviderEventId is not null);
+        var restoredFeed = await targetDbContext.EventSources.Include(source => source.Configuration).SingleAsync(source => source.Id == feedSource.Id);
+        Assert.True(restoredFeed.IsEnabled);
+        Assert.Equal(HomeOps.Api.CalendarEvents.EventSourceHealthStatus.NeverSynced, restoredFeed.HealthStatus);
+        Assert.Null(restoredFeed.LastSyncAttemptUtc);
+        Assert.IsType<ICalFeedSourceConfiguration>(restoredFeed.Configuration);
+        var restoredFile = await targetDbContext.EventSources.Include(source => source.Configuration).SingleAsync(source => source.Id == fileSource.Id);
+        Assert.False(restoredFile.IsEnabled);
+        Assert.Equal(HomeOps.Api.CalendarEvents.EventSourceHealthStatus.NeverSynced, restoredFile.HealthStatus);
+        Assert.IsType<ICalFileSourceConfiguration>(restoredFile.Configuration);
+        var manualSource = await targetDbContext.EventSources.SingleAsync(source => source.Id == SeedCalendarEvents.EventSourceId);
+        Assert.True(manualSource.IsSystemManualSource);
+        Assert.Equal(HomeOps.Api.CalendarEvents.EventSourceHealthStatus.Healthy, manualSource.HealthStatus);
+    }
+
+    [Fact]
+    public async Task RestoreUpdatesExistingExternalSourceWithSameIdentifier()
+    {
+        await using var sourceDbContext = CreateDbContext("restore-existing-external-source");
+        var now = DateTimeOffset.UtcNow;
+        var feedSource = AddFeedSource(sourceDbContext, "Restored Feed", enabled: true, now);
+        await sourceDbContext.SaveChangesAsync();
+        var export = await CalendarPortabilityService.ExportAsync(sourceDbContext);
+
+        await using var targetDbContext = CreateDbContext("restore-existing-external-target");
+        targetDbContext.EventSources.Add(new HomeOps.Api.CalendarEvents.EventSource
+        {
+            Id = feedSource.Id,
+            HouseholdId = SeedHousehold.Id,
+            Name = "Existing Feed",
+            SourceType = EventSourceTypes.ICalFeed,
+            Icon = "🌐",
+            IsEnabled = true,
+            IsWritable = false,
+            HealthStatus = HomeOps.Api.CalendarEvents.EventSourceHealthStatus.Healthy,
+            PollInterval = HomeOps.Api.CalendarEvents.EventSourcePollInterval.EveryDay,
+            CreatedUtc = now.AddDays(-2),
+            UpdatedUtc = now.AddDays(-2),
+        });
+        targetDbContext.ICalFeedSourceConfigurations.Add(new ICalFeedSourceConfiguration { EventSourceId = feedSource.Id, FeedUrl = "https://old.example.test/calendar.ics", CreatedUtc = now.AddDays(-2), UpdatedUtc = now.AddDays(-2) });
+        await targetDbContext.SaveChangesAsync();
+
+        var result = await CalendarPortabilityService.RestoreAsync(targetDbContext, export);
+
+        Assert.True(result.Succeeded);
+        var restored = await targetDbContext.EventSources.Include(source => source.Configuration).SingleAsync(source => source.Id == feedSource.Id);
+        Assert.Equal("Restored Feed", restored.Name);
+        Assert.Equal(HomeOps.Api.CalendarEvents.EventSourceHealthStatus.NeverSynced, restored.HealthStatus);
+        var configuration = Assert.IsType<ICalFeedSourceConfiguration>(restored.Configuration);
+        Assert.Equal("https://example.test/family.ics", configuration.FeedUrl);
+    }
+
+    [Fact]
+    public async Task RestoreRejectsInvalidProviderConfigurationAndProtectedManualSourceChanges()
+    {
+        await using var dbContext = CreateDbContext("invalid-source-config");
+        var export = await CalendarPortabilityService.ExportAsync(dbContext);
+        var invalidConfiguration = export with
+        {
+            Calendar = export.Calendar with
+            {
+                EventSources =
+                [
+                    export.Calendar.EventSources.Single(source => source.Id == SeedCalendarEvents.EventSourceId),
+                    new CalendarExportEventSource(Guid.Parse("30000000-0000-0000-0000-000000000001"), "Bad Feed", EventSourceTypes.ICalFeed, false, SeedCalendarEvents.SeededUtc, SeedCalendarEvents.SeededUtc, ProviderConfiguration: new CalendarExportProviderConfiguration(EventSourceTypes.ICalFeed))
+                ]
+            }
+        };
+        var changedManualSource = export with
+        {
+            Calendar = export.Calendar with
+            {
+                EventSources =
+                [
+                    export.Calendar.EventSources.Single(source => source.Id == SeedCalendarEvents.EventSourceId) with { Id = Guid.Parse("30000000-0000-0000-0000-000000000002"), IsSystem = true }
+                ],
+                EventSeries = []
+            }
+        };
+
+        var invalidConfigResult = await CalendarPortabilityService.RestoreAsync(dbContext, invalidConfiguration);
+        var manualResult = await CalendarPortabilityService.RestoreAsync(dbContext, changedManualSource);
+
+        Assert.False(invalidConfigResult.Succeeded);
+        Assert.Contains("Calendar.EventSources.ProviderConfiguration", invalidConfigResult.ValidationErrors.Keys);
+        Assert.False(manualResult.Succeeded);
+        Assert.Contains("Calendar.EventSources.SystemManual", manualResult.ValidationErrors.Keys);
+    }
+
+    [Fact]
+    public async Task RestoreRejectsDuplicateSourceIdsDuplicateManualEventIdsUnsupportedVersionAndMalformedBackup()
+    {
+        await using var dbContext = CreateDbContext("invalid-backups");
+        var export = await CalendarPortabilityService.ExportAsync(dbContext);
+        var source = export.Calendar.EventSources.Single(source => source.Id == SeedCalendarEvents.EventSourceId);
+        var series = export.Calendar.EventSeries.First();
+        var duplicateSources = export with { Calendar = export.Calendar with { EventSources = [source, source with { Name = "Duplicate" }] } };
+        var duplicateEvents = export with { Calendar = export.Calendar with { EventSeries = [series, series with { Title = "Duplicate" }] } };
+        var unsupportedVersion = export with { Calendar = export.Calendar with { Version = 999 } };
+
+        var duplicateSourceResult = await CalendarPortabilityService.RestoreAsync(dbContext, duplicateSources);
+        var duplicateEventResult = await CalendarPortabilityService.RestoreAsync(dbContext, duplicateEvents);
+        var unsupportedVersionResult = await CalendarPortabilityService.RestoreAsync(dbContext, unsupportedVersion);
+        var malformedResult = await CalendarPortabilityService.RestoreAsync(dbContext, null);
+
+        Assert.False(duplicateSourceResult.Succeeded);
+        Assert.Contains("Calendar.EventSources", duplicateSourceResult.ValidationErrors.Keys);
+        Assert.False(duplicateEventResult.Succeeded);
+        Assert.Contains("Calendar.EventSeries", duplicateEventResult.ValidationErrors.Keys);
+        Assert.False(unsupportedVersionResult.Succeeded);
+        Assert.Contains("Calendar.Version", unsupportedVersionResult.ValidationErrors.Keys);
+        Assert.False(malformedResult.Succeeded);
+        Assert.Contains("document", malformedResult.ValidationErrors.Keys);
+    }
+
+    [Fact]
+    public async Task RestoreMaintainsExistingManualBackupCompatibility()
+    {
+        await using var dbContext = CreateDbContext("manual-compatibility");
+        var export = await CalendarPortabilityService.ExportAsync(dbContext);
+        var legacyShape = export with
+        {
+            Calendar = export.Calendar with
+            {
+                EventSources = export.Calendar.EventSources.Select(source => new CalendarExportEventSource(source.Id, source.Name, "manual", source.IsWritable, source.CreatedUtc, source.UpdatedUtc)).ToList()
+            }
+        };
+
+        var result = await CalendarPortabilityService.RestoreAsync(dbContext, legacyShape);
+
+        Assert.True(result.Succeeded);
+        Assert.Contains(await dbContext.EventSeries.ToListAsync(), candidate => candidate.Title == "Dentist Appointment");
+        var manualSource = await dbContext.EventSources.SingleAsync(source => source.Id == SeedCalendarEvents.EventSourceId);
+        Assert.True(manualSource.IsSystemManualSource);
+        Assert.True(manualSource.IsEnabled);
+    }
+
+    private static HomeOps.Api.CalendarEvents.EventSource AddFeedSource(HomeOpsDbContext dbContext, string name, bool enabled, DateTimeOffset now)
+    {
+        var source = new HomeOps.Api.CalendarEvents.EventSource
+        {
+            Id = Guid.NewGuid(),
+            HouseholdId = SeedHousehold.Id,
+            Name = name,
+            SourceType = EventSourceTypes.ICalFeed,
+            Icon = "🌐",
+            IsEnabled = enabled,
+            IsWritable = false,
+            HealthStatus = HomeOps.Api.CalendarEvents.EventSourceHealthStatus.Healthy,
+            PollInterval = HomeOps.Api.CalendarEvents.EventSourcePollInterval.EveryHour,
+            LastSyncAttemptUtc = now,
+            LastSuccessfulSyncUtc = now,
+            ProviderSourceId = "provider-secret-should-not-export",
+            CreatedUtc = now,
+            UpdatedUtc = now,
+        };
+        dbContext.EventSources.Add(source);
+        dbContext.ICalFeedSourceConfigurations.Add(new ICalFeedSourceConfiguration { EventSourceId = source.Id, FeedUrl = "https://example.test/family.ics", ETag = "secret-etag", LastModified = "secret-last-modified", LastContentHash = "secret-hash", CreatedUtc = now, UpdatedUtc = now });
+        return source;
+    }
+
+    private static HomeOps.Api.CalendarEvents.EventSource AddFileSource(HomeOpsDbContext dbContext, string name, bool enabled, DateTimeOffset now)
+    {
+        var source = new HomeOps.Api.CalendarEvents.EventSource
+        {
+            Id = Guid.NewGuid(),
+            HouseholdId = SeedHousehold.Id,
+            Name = name,
+            SourceType = EventSourceTypes.ICalFile,
+            Icon = "📄",
+            IsEnabled = enabled,
+            IsWritable = false,
+            HealthStatus = HomeOps.Api.CalendarEvents.EventSourceHealthStatus.Failed,
+            PollInterval = HomeOps.Api.CalendarEvents.EventSourcePollInterval.EveryDay,
+            LastFailedSyncUtc = now,
+            LastErrorCode = "secret-error-code",
+            LastErrorMessage = "secret-error-message",
+            CreatedUtc = now,
+            UpdatedUtc = now,
+        };
+        dbContext.EventSources.Add(source);
+        dbContext.ICalFileSourceConfigurations.Add(new ICalFileSourceConfiguration { EventSourceId = source.Id, FileReference = "store://calendar/school", OriginalFilename = "school.ics", ContentHash = "file-hash", UploadedUtc = now, CreatedUtc = now, UpdatedUtc = now });
+        return source;
     }
 
     private static IDisposable UseSnapshotDirectory()

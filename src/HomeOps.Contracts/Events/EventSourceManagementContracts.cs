@@ -35,12 +35,17 @@ public sealed record UpdateEventSourceRequest(
 
 public sealed record SyncSourceResultDto(
     Guid SourceId,
+    bool Succeeded,
     EventSourceHealthStatus HealthStatus,
     DateTimeOffset AttemptedAtUtc,
     DateTimeOffset? SuccessfulAtUtc,
+    DateTimeOffset? FailedAtUtc,
     int CreatedCount,
     int UpdatedCount,
     int DeletedCount,
+    int UnchangedCount,
+    int WarningCount,
+    TimeSpan Duration,
     EventSourceLastError? Error);
 
 public sealed record RefreshAllResultDto(IReadOnlyCollection<SyncSourceResultDto> Results);

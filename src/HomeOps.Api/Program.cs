@@ -3,6 +3,8 @@ using HomeOps.Api.Data;
 using HomeOps.Api.Lists;
 using HomeOps.Api.Households;
 using HomeOps.Api.CalendarEvents;
+using HomeOps.Api.CalendarEvents.ICalendar;
+using HomeOps.Api.CalendarEvents.Synchronization;
 using HomeOps.Api.FamilyMembers;
 using HomeOps.Api.Motivation;
 using HomeOps.Api.WidgetLayouts;
@@ -40,6 +42,16 @@ builder.Services.AddSingleton<WeatherSnapshotCache>();
 builder.Services.AddSingleton<DepartureAdviceEngine>();
 builder.Services.AddSingleton<WeatherProjectionBuilder>();
 builder.Services.AddSingleton<WeatherApplicationService>();
+builder.Services.AddHttpClient<IICalFeedImporter, ICalFeedImporter>();
+builder.Services.AddScoped<ICalFileContentStore, FileSystemICalFileContentStore>();
+builder.Services.AddScoped<IICalFileImporter, ICalFileImporter>();
+builder.Services.AddScoped<CalendarSourceSynchronizationEngine>();
+builder.Services.AddScoped<ICalendarSourceRefreshDispatcher, CalendarSourceRefreshDispatcher>();
+builder.Services.AddSingleton<CalendarBackgroundSynchronizationRunner>();
+if (!builder.Environment.IsEnvironment("Testing") && !builder.Environment.IsEnvironment("VisualReview"))
+{
+    builder.Services.AddHostedService<CalendarBackgroundSynchronizationHostedService>();
+}
 if (builder.Environment.IsEnvironment("VisualReview"))
 {
     builder.Services.AddCors(options =>

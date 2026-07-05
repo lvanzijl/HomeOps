@@ -32,8 +32,11 @@ public static class EventSeriesEndpoints
             var endsOn = startsOn.AddMonths(30);
             var eventSeries = await dbContext.EventSeries
                 .AsNoTracking()
+                .Include(eventSeries => eventSeries.EventSource)
                 .Include(eventSeries => eventSeries.Exceptions)
                 .Where(eventSeries => eventSeries.EventSource!.HouseholdId == SeedHousehold.Id)
+                .Where(eventSeries => eventSeries.EventSource!.IsEnabled)
+                .Where(eventSeries => eventSeries.EventSource!.IsWritable || eventSeries.EventSource.HealthStatus == EventSourceHealthStatus.Healthy)
                 .OrderBy(eventSeries => eventSeries.StartDate)
                 .ThenBy(eventSeries => eventSeries.StartTime)
                 .ThenBy(eventSeries => eventSeries.Title)

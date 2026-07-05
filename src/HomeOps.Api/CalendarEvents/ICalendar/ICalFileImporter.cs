@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HomeOps.Api.CalendarEvents.ICalendar;
 
-public sealed class ICalFileImporter(HomeOpsDbContext dbContext, ICalFileContentStore contentStore)
+public sealed class ICalFileImporter(HomeOpsDbContext dbContext, ICalFileContentStore contentStore) : IICalFileImporter
 {
     public async Task<ICalFileImportResult> ImportAsync(EventSource source, CancellationToken cancellationToken = default)
     {

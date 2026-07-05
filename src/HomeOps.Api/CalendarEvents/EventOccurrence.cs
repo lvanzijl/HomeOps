@@ -11,7 +11,9 @@ public sealed record EventOccurrence(
     DateTimeOffset StartsAt,
     DateTimeOffset? EndsAt,
     bool AllDay,
-    bool Editable)
+    bool Editable,
+    string? ProviderEventId = null,
+    string? Location = null)
 {
     public NormalizedEvent ToNormalizedEvent() => new(
         Id.ToString(),
@@ -21,5 +23,7 @@ public sealed record EventOccurrence(
         EndsAt,
         AllDay,
         Editable,
-        Description: Description);
+        ProviderEventId: ProviderEventId,
+        Description: Description,
+        Location: Location);
 }
