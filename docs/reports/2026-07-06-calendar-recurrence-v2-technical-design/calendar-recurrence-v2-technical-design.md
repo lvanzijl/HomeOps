@@ -4,7 +4,7 @@ Calendar Recurrence V2 replaces the current enum-only recurrence capability with
 
 The design intentionally keeps occurrence generation in the HomeOps domain rather than delegating recurrence expansion to iCalendar text, provider-specific engines, or persisted generated occurrences. Generation is windowed, deterministic, household-local, and provider-independent. It creates candidate occurrences first, applies `COUNT` and `UNTIL` semantics to candidates before exception processing, then overlays skipped or modified exceptions. Generated occurrences remain transient read models.
 
-Manual and imported recurrence use the same domain model. iCalendar is an interchange format, not the source of truth. Supported RRULEs map into `EventRecurrenceRule`; `EXDATE` maps to skipped `EventException` rows; detached `RECURRENCE-ID` instances map to modified `EventException` rows. Unsupported recurrence is preserved as provider metadata and diagnostics, never approximated as a different HomeOps recurrence.
+Manual and imported recurrence use the same domain model. iCalendar is an interchange format, not the source of truth. Supported RRULEs map into `EventRecurrenceRule`; `EXDATE` maps to skipped `EventException` rows; detached `RECURRENCE-ID` instances map to modified `EventException` rows. Unsupported recurrence is preserved as provider metadata and diagnostics, never approximated as a different HomeOps recurrence. As a core architectural rule, unsupported recurrence preserves provider metadata and synchronization fidelity, but HomeOps does not create an `EventRecurrenceRule`, generate occurrences, approximate the pattern, or silently downgrade it to another supported recurrence shape.
 
 This document consolidates and freezes the accepted decisions from the Recurrence V2 analysis reports. Future implementation work must use this specification as the canonical blueprint and must not reopen the architectural decisions documented here.
 
@@ -131,7 +131,7 @@ Responsibilities:
   - source id;
   - provider master event id/UID;
   - provider revision/etag/sequence where available;
-  - provider master content fingerprint;
+  - provider master content comparison metadata when needed by synchronization;
   - last-seen synchronization metadata;
   - unsupported recurrence classification/status when needed.
 - Enforce aggregate-level consistency:
@@ -191,8 +191,7 @@ Canonical fields:
 - Optional provider recurrence metadata for imported supported recurrence:
   - raw RRULE;
   - canonicalized RRULE if implementation creates one;
-  - unsupported reason/status where persisted as recurrence-shape metadata;
-  - recurrence metadata fingerprint if implementation needs an efficient comparison value.
+  - unsupported reason/status where persisted as recurrence-shape metadata.
 
 Value-object semantics:
 
@@ -246,7 +245,7 @@ Canonical fields:
   - normalized provider recurrence id;
   - detached provider event id if available;
   - detached revision/etag/sequence;
-  - detached content fingerprint;
+  - detached content comparison metadata when needed by synchronization;
   - raw detached recurrence metadata needed for sync fidelity;
   - source ownership marker if needed to distinguish provider-created and manual exceptions.
 
@@ -345,6 +344,20 @@ The occurrence engine is provider-independent and generates transient read model
 - A candidate is valid only if it is on a selected weekday and belongs to an included interval week.
 - Selected weekdays before the series start within the first recurrence week must not create occurrences before the series start.
 
+Worked example:
+
+- Series start: Wednesday, 2026-07-01.
+- Repeat: every 2 weeks (`Frequency = Weekly`, `Interval = 2`).
+- Selected weekdays: Monday and Wednesday.
+- The week containing Wednesday, 2026-07-01 is recurrence week zero and is included.
+- Monday, 2026-06-29 is in the same included week but is before the series start, so it is not generated.
+- Wednesday, 2026-07-01 is generated.
+- Week one, starting Monday, 2026-07-06, is skipped because the interval is every 2 weeks. Monday, 2026-07-06 and Wednesday, 2026-07-08 are not generated.
+- Week two, starting Monday, 2026-07-13, is included. Monday, 2026-07-13 and Wednesday, 2026-07-15 are generated.
+- Week three, starting Monday, 2026-07-20, is skipped. Monday, 2026-07-20 and Wednesday, 2026-07-22 are not generated.
+- Week four, starting Monday, 2026-07-27, is included. Monday, 2026-07-27 and Wednesday, 2026-07-29 are generated.
+- The resulting first generated dates are 2026-07-01, 2026-07-13, 2026-07-15, 2026-07-27, and 2026-07-29, subject to `COUNT`, `UNTIL`, exceptions, and the requested read window.
+
 ### Monthly
 
 - Generate on a single positive day-of-month.
@@ -423,16 +436,18 @@ Edit scope:
 - `Alleen deze afspraak`
   - creates or updates a modified `EventException` for one occurrence.
 - `Deze en volgende afspraken`
-  - splits recurrence at the selected occurrence boundary.
-  - The previous series ends before the selected original occurrence.
-  - A new series begins at the selected occurrence with the edited template/rule.
+  - is always implemented as a series split, not as a collection of future one-off exceptions.
+  - The current `EventSeries` is ended before the selected original occurrence.
+  - A new `EventSeries` is created starting at the selected occurrence with the edited template.
+  - A new owned `EventRecurrenceRule` is created for the new series when recurrence continues.
+  - Implementations must not create hundreds of future `EventException` rows to emulate this scope.
 - `Hele reeks`
   - updates the series template and/or recurrence rule.
 
 Delete scope:
 
 - Delete/skip one occurrence.
-- Delete this and future occurrences by ending or splitting the series.
+- Delete this and future occurrences by ending or splitting the series, not by materializing future skips as many `EventException` rows.
 - Delete the whole series.
 
 Why this was chosen:
@@ -560,12 +575,15 @@ Unsupported RRULE cases include:
 - `BYSECOND`, `BYMINUTE`, or `BYHOUR` recurrence expansion.
 - Any recurrence whose timezone semantics cannot be safely represented as household-local recurrence.
 
-Unsupported recurrence policy:
+Unsupported recurrence policy is a frozen architectural rule:
 
 - Preserve raw provider recurrence metadata.
+- Preserve synchronization fidelity so future imports, restores, diagnostics, and provider comparisons can still reason about the original provider data.
 - Record a warning/diagnostic classification.
 - Do not create an `EventRecurrenceRule` for unsupported recurrence.
+- Do not generate HomeOps occurrences for unsupported recurrence.
 - Do not approximate unsupported recurrence as non-recurring or as a simpler supported rule.
+- Do not silently downgrade unsupported recurrence to another HomeOps recurrence shape.
 
 ## EXDATE to EventException
 
@@ -594,7 +612,7 @@ Rejected alternatives:
 
 # Synchronization Mapping
 
-Synchronization is provider-neutral. Providers normalize into the same series/rule/exception model.
+Synchronization is provider-neutral. Providers normalize into the same series/rule/exception model. If synchronization later computes hashes or fingerprints for efficient change detection, those values are implementation details of the synchronization adapter or persistence layer; they are not business/domain concepts and must not become part of the canonical recurrence model.
 
 ## Compare levels
 
@@ -604,7 +622,7 @@ Synchronization compares three levels separately:
    - provider source id;
    - provider master event id;
    - provider revision/etag/sequence;
-   - content fingerprint of master fields;
+   - provider revision, etag, sequence, or equivalent comparison metadata for master fields;
    - start/end/all-day fields;
    - source ownership and last-seen metadata.
 
@@ -612,15 +630,14 @@ Synchronization compares three levels separately:
    - supported normalized recurrence fields;
    - raw RRULE or canonical recurrence string;
    - unsupported recurrence classification;
-   - recurrence metadata fingerprint if used;
-   - EXDATE collection identity/fingerprint when represented on the master provider object.
+   - EXDATE collection identity when represented on the master provider object.
 
 3. **Exceptions**
    - `OccurrenceKey`;
    - raw or normalized provider recurrence id;
    - detached provider event id;
    - detached revision/etag/sequence;
-   - detached content fingerprint;
+   - detached content comparison metadata when needed by synchronization;
    - exception type;
    - replacement fields.
 
@@ -990,7 +1007,7 @@ Calendar Recurrence V2 does not support:
 - separate manual/imported recurrence domain models;
 - recurrence models tied to widgets or UI presentation units.
 
-Unsupported provider recurrence must be preserved as metadata and diagnostics, not discarded or converted into misleading recurrence.
+Unsupported provider recurrence must be preserved as metadata and diagnostics, not discarded, generated, approximated, or converted into misleading recurrence. Unsupported recurrence preserves provider metadata and synchronization fidelity only; it does not produce HomeOps occurrences until a future architecture explicitly supports that recurrence shape.
 
 # Implementation Roadmap
 
@@ -1047,18 +1064,14 @@ Implementation should proceed in small, reviewable slices without reopening arch
 
 # Open Questions
 
-The architecture is frozen. The following are implementation-detail questions that must be answered during the relevant slice without changing the architectural decisions:
+The architecture is frozen. Remaining open questions are limited to product decisions that affect user-facing behavior and must be resolved during the relevant implementation slice without changing the architectural decisions:
 
-- Exact physical encoding of `WeeklyDays` in persistence.
 - Exact upper bound for manual recurrence `Interval` and `Count` validation.
-- Exact string format for serialized `OccurrenceKey` in APIs and export documents.
 - Exact endpoint shape for occurrence commands versus nested series routes.
-- Exact split mechanics for `Deze en volgende afspraken`, including whether historical modified exceptions are copied, ended, or left on the prior series.
-- Exact internal representation of provider recurrence metadata and fingerprints.
 - Exact iCalendar `UNTIL` export formatting that best preserves the HomeOps inclusive household-local date semantics.
 - Exact frontend wording for validation errors beyond the frozen labels and scope names.
 
-These questions are not permission to reopen the frozen model of `EventSeries`, `EventRecurrenceRule`, `EventException`, `OccurrenceKey`, provider-independent generation, or the shared manual/imported recurrence model.
+These questions are not permission to reopen the frozen model of `EventSeries`, `EventRecurrenceRule`, `EventException`, `OccurrenceKey`, provider-independent generation, unsupported recurrence preservation, the frozen `Deze en volgende afspraken` split rule, or the shared manual/imported recurrence model.
 
 # References
 
