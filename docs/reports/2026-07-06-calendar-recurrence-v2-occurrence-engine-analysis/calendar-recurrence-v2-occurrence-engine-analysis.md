@@ -10,7 +10,7 @@ The recommended engine is:
 4. Apply exceptions after candidate generation by matching each exception to the candidate's original `OccurrenceKey`.
 5. Emit final occurrences for visible unmodified candidates, modified candidates, and moved detached instances whose replacement occurrence intersects the requested window.
 
-Frozen recommendation: `COUNT` counts generated candidate occurrences before exceptions are applied. `UNTIL` is an inclusive household-local original-start date boundary. Weekly multi-day rules are ordered by calendar date, then local start time. Monthly and yearly invalid dates are skipped rather than clamped. February 29 yearly recurrence occurs only in leap years. All recurrence expansion uses local wall-clock semantics in the household timezone, with raw provider recurrence metadata preserved for matching and traceability but not used as a provider-specific execution engine.
+Frozen recommendation: `COUNT` counts generated candidate occurrences before exceptions are applied. `UNTIL` is an inclusive household-local original-start date boundary. Weekly multi-day rules are ordered by calendar date, then local start time. Monthly and yearly invalid dates are skipped rather than clamped. February 29 yearly recurrence occurs only in leap years. All recurrence expansion uses local wall-clock semantics in the household timezone, with `RawProviderRecurrenceRule` preserved for synchronization traceability but no separate `ProviderRecurrenceFingerprint`, and without provider-specific generation branches.
 
 # Occurrence Generation Pipeline
 
@@ -53,7 +53,7 @@ The engine should derive a context before iteration:
 - household timezone id;
 - inclusive requested date window;
 - recurrence frequency, interval, end mode, count, until date, and frequency-specific fields;
-- exceptions indexed by original `OccurrenceKey`.
+- exceptions indexed by original `OccurrenceKey`, defined as `OriginalLocalStart` plus `IsAllDay` with optional `ProviderRecurrenceId` metadata for imported detached matching.
 
 The context step validates rule consistency for generation. Invalid persisted rules should fail deterministically and visibly rather than silently producing partial calendars. Later API or migration slices may decide how invalid data is prevented; this report only defines occurrence generation.
 
@@ -62,7 +62,7 @@ The context step validates rule consistency for generation. Invalid persisted ru
 A candidate occurrence is the original generated occurrence before exceptions. It contains:
 
 - original `OccurrenceKey`;
-- original local start date/time or all-day date;
+- original local start value represented by `OccurrenceKey.OriginalLocalStart`;
 - original local end date/time derived from the series duration;
 - ordinal candidate number within the recurrence stream;
 - recurrence period metadata needed only inside the engine.
@@ -341,14 +341,15 @@ It must not depend on current time, provider type, database ordering of exceptio
 
 ## Interaction with OccurrenceKey
 
-`OccurrenceKey` should contain the original household-local start identity:
+`OccurrenceKey` should contain one original household-local temporal value plus the discriminator and optional provider matching metadata:
 
-- original start date;
-- original start time for timed occurrences;
-- all-day/date-only discriminator;
-- optional raw provider recurrence id metadata for imported detached matching.
+- `OriginalLocalStart`: the original scheduled household-local start;
+- `IsAllDay`: the all-day versus timed discriminator;
+- optional `ProviderRecurrenceId` metadata for imported detached matching.
 
-The provider recurrence id is matching metadata, not the sole HomeOps identity. HomeOps should still be able to generate and match manual occurrences without provider data.
+For all-day occurrences, `OriginalLocalStart` is local midnight on the all-day date. For timed occurrences, `OriginalLocalStart` is the actual household-local start date/time. This keeps occurrence identity deterministic while avoiding separate date/time invariants, comparison rules, and hashing paths.
+
+The provider recurrence id is matching metadata, not the sole HomeOps identity. HomeOps should still be able to generate and match manual occurrences without provider data. `OriginalLocalStart` and `IsAllDay` are sufficient for manual recurrence and remain aligned with provider `RECURRENCE-ID` semantics after import normalization.
 
 # Time Handling
 
@@ -358,9 +359,9 @@ All-day recurrence should be date-based.
 
 Rules:
 
-- Candidate keys use the original all-day date and all-day discriminator.
+- Candidate keys use local midnight in `OriginalLocalStart` for the original all-day date plus the all-day discriminator.
 - Final all-day occurrences cover local dates, not UTC-midnight assumptions.
-- Time fields should not affect all-day occurrence identity.
+- Non-midnight time fields should not affect all-day occurrence identity because all-day keys are normalized to local midnight.
 - Duration is measured in local calendar days.
 
 ## Timed events
@@ -393,7 +394,7 @@ Rules:
 
 - Recurrence expansion uses household-local dates and times.
 - `UntilDate` is household-local.
-- Occurrence keys are household-local.
+- Occurrence keys are household-local and use a single `OriginalLocalStart` value for both all-day and timed occurrences.
 - Final projected instants are converted with the household timezone.
 
 If the household timezone changes, generated instants may change because the same local calendar schedule is being viewed under a different household timezone. This is acceptable for Recurrence V2 and should be documented in later implementation/API work.
@@ -465,9 +466,12 @@ The recommended engine supports manual recurrence, iCal, Google Calendar, CalDAV
 provider/manual input
   → EventSeries template
   → owned EventRecurrenceRule value
+  → optional RawProviderRecurrenceRule metadata
   → EventException detached/skipped/modified records
   → provider-neutral occurrence engine
 ```
+
+`RawProviderRecurrenceRule` is sufficient provider recurrence metadata for Recurrence V2. A separate `ProviderRecurrenceFingerprint` is not recommended because it would duplicate the raw provider recurrence definition and the normalized HomeOps recurrence rule, and it could become stale if synchronization compares the raw recurrence text and normalized model directly.
 
 ## Manual recurrence
 
@@ -576,6 +580,42 @@ Costs:
 
 Per-series timezone is deferred because it crosses into persistence, API, parser, and synchronization design.
 
+## Raw provider recurrence rule versus provider recurrence fingerprint
+
+Keeping `RawProviderRecurrenceRule` without `ProviderRecurrenceFingerprint` is recommended.
+
+Benefits:
+
+- preserves the provider recurrence definition needed for synchronization traceability;
+- avoids duplicating information already present in the raw provider recurrence text;
+- avoids duplicating executable semantics already present in the normalized HomeOps recurrence rule;
+- prevents stale fingerprint metadata when raw provider data or normalized rule fields change;
+- keeps manual and imported recurrence on the same occurrence-generation model.
+
+Costs:
+
+- synchronization code must compare raw provider recurrence text and the normalized recurrence model directly when detecting changes.
+
+A separate recurrence fingerprint is rejected for Recurrence V2 because it is derived metadata, not an independent occurrence-generation input.
+
+## Single-value OccurrenceKey temporal identity
+
+`OccurrenceKey` should use `OriginalLocalStart` rather than separate `OriginalStartDate` and `OriginalStartTime` fields.
+
+Benefits:
+
+- one temporal value for comparison and hashing;
+- deterministic occurrence identity for all-day and timed events;
+- no date/time split invariants to maintain;
+- natural alignment with provider `RECURRENCE-ID` semantics after provider data is normalized to household-local time;
+- the same key shape works for manual and imported recurrence.
+
+Costs:
+
+- all-day identity must consistently normalize `OriginalLocalStart` to local midnight, and validation should reject non-midnight all-day keys.
+
+Separate date/time fields are rejected because they add invariants without improving occurrence identity.
+
 ## Deterministic generated id versus exception id as occurrence id
 
 Deterministic generated ids based on series id plus `OccurrenceKey` are recommended.
@@ -597,9 +637,11 @@ Using exception id as the occurrence id is rejected for V2 because it changes th
 - Occurrence generation consumes `EventSeries` + owned `EventRecurrenceRule` + `EventException` records.
 - Generated occurrences are transient read models, not persisted occurrence rows.
 - The engine is provider-neutral.
+- Imported recurrence may preserve `RawProviderRecurrenceRule`, but does not use `ProviderRecurrenceFingerprint`.
 - Candidate generation occurs before exception processing.
 - Exceptions match by original `OccurrenceKey`.
 - `OccurrenceKey` identifies original scheduled start, not replacement start.
+- `OccurrenceKey` uses `OriginalLocalStart`, `IsAllDay`, and optional `ProviderRecurrenceId`; all-day keys use local midnight.
 - `COUNT` counts valid generated candidates before exceptions.
 - `UNTIL` is an inclusive household-local original-start date boundary.
 - Interval applies to recurrence periods.
@@ -618,7 +660,7 @@ Using exception id as the occurrence id is rejected for V2 because it changes th
 - DST risk: invalid and ambiguous local times need a centralized resolver and dedicated tests.
 - Optimization risk: window jumping can accidentally miss moved exceptions or count-bounded edge cases if not tested thoroughly.
 - Unsupported-rule risk: users may import calendars using common but unsupported patterns such as nth weekday or last weekday monthly recurrence.
-- Identity migration risk: moving from date-only exceptions to `OccurrenceKey` needs careful compatibility handling in a later migration slice.
+- Identity migration risk: moving from date-only exceptions to single-value `OccurrenceKey.OriginalLocalStart` needs careful compatibility handling in a later migration slice.
 - UI expectation risk: users may expect January 31 monthly recurrence to mean "last day of each month," which Recurrence V2 intentionally does not infer.
 
 # Files Referenced
