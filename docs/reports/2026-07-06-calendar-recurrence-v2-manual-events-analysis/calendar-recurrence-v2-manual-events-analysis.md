@@ -9,7 +9,7 @@ Recommended product model:
 - Supported repeat options are: **Niet herhalen**, **Dagelijks**, **Wekelijks**, **Maandelijks**, **Jaarlijks**.
 - Interval is shown only when recurrence is enabled and should read naturally, such as **Elke 2 weken**.
 - End options are: **Nooit**, **Op datum**, **Na aantal keer**.
-- Editing an occurrence should always ask which scope the user means: **Alleen deze keer**, **Deze en volgende keren**, or **Hele reeks**.
+- Editing an occurrence should open the normal edit dialog first and ask scope only after the user presses **Opslaan**, using the actual changed fields to show only valid scope options: **Alleen deze afspraak**, **Deze en volgende afspraken**, or **Hele reeks**.
 - Skipping one occurrence should be a dedicated family-friendly action named **Deze keer overslaan**, implemented conceptually as a skipped `EventException`, not hidden behind destructive delete wording.
 - Moving or changing one occurrence should create or update a modified `EventException` keyed by the original `OccurrenceKey`.
 - Deleting should use non-technical wording and separate occurrence, future, and whole-series outcomes.
@@ -206,45 +206,79 @@ Assessment: not recommended.
 
 Benefits:
 
-- User can focus on the actual change first.
-- Scope question appears only when needed.
-- Common in calendar applications.
+- User can focus on what they want to change before deciding how broadly it applies.
+- The event dialog stays identical for recurring and non-recurring events until the user saves.
+- The scope question appears only after there is a concrete change to apply.
+- The dialog can inspect the changed fields and hide invalid scope options automatically.
+- Common family edits, such as changing only the title, time, location, or description, can keep all three scope choices available.
+- Recurrence-rule changes can remove **Alleen deze afspraak** because changing the repetition pattern cannot be represented as a one-off occurrence exception.
 
 Costs:
 
-- User may not know whether fields are series-level or occurrence-level while editing.
-- If the UI shows recurrence fields in the same form, the final scope question can feel late.
+- The user does not choose scope before editing, so the form must avoid implying that every visible field can always be saved as a one-off change.
+- The save interaction has one extra confirmation step for recurring events.
+- The implementation must classify changed fields before presenting the scope dialog.
 
-Assessment: acceptable, but needs careful form labeling.
+Assessment: recommended for HomeOps. It matches how families naturally think: first decide “what changed,” then decide “is this only this time, from now on, or the whole routine?” It also reduces early interruption and lets the product prevent invalid scope choices with less explanation.
 
 ### Alternative C: Ask scope before opening edit form
 
 Benefits:
 
 - The form can be tailored to the chosen scope.
-- Reduces accidental series edits.
-- Clear mental model before the user changes fields.
+- The user knows the scope before changing fields.
+- It can reduce accidental series edits when the user already understands the impact of their intended change.
 
 Costs:
 
-- Adds one step before editing.
-- Slightly slower for simple edits.
+- Adds a decision before the user has clarified what they want to change.
+- Forces a scope choice even when the user is only exploring details or making a minor edit.
+- Can increase cognitive load because family users must reason about recurrence semantics before seeing the editable fields.
+- If the user later changes a field that is not valid for the chosen scope, the flow still needs a second warning or a redesigned form state.
 
-Assessment: recommended for HomeOps because low mistake risk matters more than speed.
+Assessment: not recommended as the default HomeOps edit interaction. It is safer in a narrow technical sense, but it interrupts the family-first flow too early and can ask the hardest question at the moment when the user has the least information.
 
 ## Recommended edit model
 
-When opening an occurrence that belongs to a recurring series, show a small scope chooser first:
+When opening an occurrence that belongs to a recurring series, open the normal event edit dialog first. The user edits the event as usual and presses **Opslaan**. HomeOps then shows a small scope chooser based on the fields that actually changed:
 
-- **Alleen deze keer** — “Wijzig alleen deze afspraak.”
-- **Deze en volgende keren** — “Wijzig deze afspraak en alle latere afspraken.”
+- **Alleen deze afspraak** — “Wijzig alleen deze afspraak.”
+- **Deze en volgende afspraken** — “Wijzig deze afspraak en alle latere afspraken.”
 - **Hele reeks** — “Wijzig alle afspraken in deze reeks.”
 
-Recommended default highlight: **Alleen deze keer** when the user opened a specific occurrence from the agenda, because the user likely acted on what they saw. For edits started from a series settings/details area, default to **Hele reeks**.
+Recommended default highlight: **Alleen deze afspraak** when the user opened a specific occurrence from the agenda and the changed fields can be represented as an occurrence exception, because the user likely acted on what they saw. For edits started from a series settings/details area, default to **Hele reeks**.
+
+The scope chooser should not show invalid choices. If the changed fields include recurrence settings, **Alleen deze afspraak** should disappear because a recurrence-rule change is not a single-occurrence edit. If the changed fields are occurrence-replaceable fields such as title, date, time, location, or description, all three choices may remain available.
+
+## Decision factors
+
+### Usability
+
+The save-time scope dialog is more usable for everyday family edits because it follows the natural sequence: open event, make the change, save, then choose whether the change is for one appointment, future appointments, or the whole routine. The pre-edit scope chooser is most useful for expert users who already know the recurrence impact before they start editing, but that is not the primary HomeOps audience.
+
+### Cognitive load
+
+The save-time model lowers initial cognitive load by postponing recurrence semantics until they are necessary. It also allows the UI to remove impossible choices, so the user does not need to understand why a recurrence-pattern edit cannot apply to only one appointment. The pre-edit model asks the hardest question first and can require the user to predict which fields they will change.
+
+### Discoverability
+
+The pre-edit model makes recurrence scope highly visible before editing. The save-time model is slightly less upfront, so the edit form should make recurrence status visible with a compact label such as **Herhalende afspraak**. The final scope dialog remains discoverable because it appears before any recurring edit is applied.
+
+### Accidental edits
+
+Both models must prevent accidental broad edits. The save-time model should do this by showing a concise change summary and requiring an explicit scope before applying changes to future appointments or the whole series. It has an additional safety advantage: it can tailor scope options to the actual field changes rather than relying on the user's early guess.
+
+### Family friendliness
+
+The save-time model is more family-friendly because it avoids interrupting users before they know what they are trying to fix. It keeps the edit form familiar for recurring and non-recurring events and uses plain choices at the moment they matter.
+
+### Implementation implications
+
+At a high level, the save-time model requires change classification before the scope dialog is shown. The UI needs to know whether the changed fields are occurrence-replaceable, series-template fields, or recurrence-rule fields. This is more involved than a pre-edit chooser, but it keeps the interaction cleaner and does not require redesigning the recurrence model or occurrence engine.
 
 ## Scope behavior
 
-### Alleen deze keer
+### Alleen deze afspraak
 
 Use when one date/time/content instance is different.
 
@@ -262,7 +296,7 @@ Fields allowed:
 - Location.
 - Description/details.
 
-### Deze en volgende keren
+### Deze en volgende afspraken
 
 Use when a routine changes from a point forward.
 
@@ -276,7 +310,7 @@ This report does not design persistence, but the interaction model should be exp
 
 Recommended wording:
 
-- **Deze en volgende keren aanpassen**.
+- **Deze en volgende afspraken aanpassen**.
 - Confirmation summary: **Eerdere afspraken blijven hetzelfde.**
 
 ### Hele reeks
@@ -336,7 +370,7 @@ Domain mapping:
 
 Moving one occurrence is an occurrence modification, not a recurrence-rule change.
 
-If the user chooses **Alleen deze keer** and changes date or time, HomeOps should create or update a modified `EventException` keyed by the original occurrence `OccurrenceKey`.
+If the user chooses **Alleen deze afspraak** and changes date or time, HomeOps should create or update a modified `EventException` keyed by the original occurrence `OccurrenceKey`.
 
 The original generated occurrence should not remain visible in the old slot. The modified occurrence appears at the replacement date/time. Window filtering should use the replacement interval, consistent with the frozen occurrence-engine analysis.
 
@@ -356,13 +390,13 @@ The original generated occurrence should not remain visible in the old slot. The
 
 ### Changing title
 
-- For **Alleen deze keer**, this becomes a modified `EventException` with replacement title.
+- For **Alleen deze afspraak**, this becomes a modified `EventException` with replacement title.
 - For **Hele reeks**, this updates `EventSeries.Title`.
-- For **Deze en volgende keren**, this belongs to the future series template after a split.
+- For **Deze en volgende afspraken**, this belongs to the future series template after a split.
 
 ### Changing location
 
-- For **Alleen deze keer**, this should become a modified `EventException` with replacement location.
+- For **Alleen deze afspraak**, this should become a modified `EventException` with replacement location.
 - The frozen domain baseline notes current exceptions do not yet include location, but the settled V2 interaction model should treat one-off location changes as occurrence exceptions.
 - If the first implementation slice cannot support replacement location, it should not pretend to support one-off location edits; it should either disable that field for occurrence-only edits or expand the exception replacement fields intentionally.
 
@@ -676,7 +710,7 @@ Avoid:
 - Show only fields relevant to the selected frequency.
 - Use sentence-like controls.
 - Prefer previews over abstract rules where possible, such as **Eerstvolgende: ma 6 juli, ma 13 juli, ma 20 juli** in a future implementation.
-- Ask edit/delete scope before destructive or broad changes.
+- Ask edit/delete scope before applying destructive or broad changes; for edits, this means after **Opslaan** but before the change is committed.
 - Make one-off actions reversible when possible.
 
 ## Mistake prevention
@@ -768,9 +802,9 @@ Assessment: not recommended.
 
 ## Edit scope before versus after form
 
-Recommendation: ask scope before opening the edit form for recurring occurrences.
+Recommendation: open the edit form first, then ask scope after the user presses **Opslaan**.
 
-Reason: it prevents accidental broad edits and allows the form to be tailored to occurrence-only, future, or whole-series changes.
+Reason: it lets family users decide what changed before deciding how broadly to apply it. The save-time scope dialog can use the changed fields to hide invalid options, such as removing **Alleen deze afspraak** when recurrence settings changed, while preserving the same familiar edit form for recurring and non-recurring events.
 
 ## Skip as action versus delete as action
 
@@ -800,7 +834,7 @@ Reason: this follows the frozen occurrence-engine decision and avoids hidden sub
 6. Weekly recurrence defaults to the event start weekday and may support multiple selected weekdays.
 7. Monthly recurrence is day-of-month only.
 8. Yearly recurrence is month/day only.
-9. Editing a recurring occurrence asks scope before editing: **Alleen deze keer**, **Deze en volgende keren**, **Hele reeks**.
+9. Editing a recurring occurrence opens the normal edit form first, then asks scope on **Opslaan** using only valid options: **Alleen deze afspraak**, **Deze en volgende afspraken**, **Hele reeks**.
 10. One-off edits create/update modified `EventException` records keyed by original `OccurrenceKey`.
 11. One-off skips use skipped `EventException` records.
 12. Moving one occurrence does not change the recurrence rule; it is a modified exception.
@@ -811,7 +845,7 @@ Reason: this follows the frozen occurrence-engine decision and avoids hidden sub
 
 # Risks
 
-- **Scope-dialog fatigue:** Asking scope before every recurring edit adds a step. Mitigation: use a small, clear chooser and remember contextual defaults only where safe.
+- **Save-time scope surprise:** Asking scope after **Opslaan** may surprise users who expected the save to finish immediately. Mitigation: use clear dialog wording, show a concise change summary, and present only valid scope choices.
 - **Future-edit complexity:** “This and future” likely requires series split/end semantics later. Mitigation: keep it as a product/API operation, not a pile of exceptions.
 - **Exception-field mismatch:** The current baseline exception model does not include all replacement fields such as location/all-day override. Mitigation: implementation slices must either expand exception replacement fields intentionally or disable unsupported occurrence-only fields.
 - **Monthly 29/30/31 confusion:** Skipping invalid months may surprise users. Mitigation: show a plain note only for affected days.
