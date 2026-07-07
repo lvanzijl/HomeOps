@@ -1396,6 +1396,307 @@
         }
       }
     },
+    "/api/events/{eventId}/occurrences/skip": {
+      "post": {
+        "tags": [
+          "Events"
+        ],
+        "operationId": "SkipEventOccurrence",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OccurrenceTargetRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/events/{eventId}/occurrences/restore": {
+      "post": {
+        "tags": [
+          "Events"
+        ],
+        "operationId": "RestoreEventOccurrence",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OccurrenceTargetRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/events/{eventId}/occurrences/modify": {
+      "put": {
+        "tags": [
+          "Events"
+        ],
+        "operationId": "ModifyEventOccurrence",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModifyOccurrenceRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/events/{eventId}/occurrences": {
+      "delete": {
+        "tags": [
+          "Events"
+        ],
+        "operationId": "DeleteEventOccurrence",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "occurrenceKey",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/events/{eventId}/occurrences/split": {
+      "put": {
+        "tags": [
+          "Events"
+        ],
+        "operationId": "SplitEventSeriesFromOccurrence",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SplitEventSeriesRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventSeriesDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/events/{eventId}/occurrences/future": {
+      "delete": {
+        "tags": [
+          "Events"
+        ],
+        "operationId": "DeleteEventOccurrencesFromOccurrence",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "occurrenceKey",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
     "/api/family-members": {
       "get": {
         "tags": [
@@ -3627,6 +3928,31 @@
           "updatedUtc": {
             "type": "string",
             "format": "date-time"
+          },
+          "location": {
+            "type": "string",
+            "nullable": true
+          },
+          "providerEventId": {
+            "type": "string",
+            "nullable": true
+          },
+          "providerInstanceId": {
+            "type": "string",
+            "nullable": true
+          },
+          "providerRevision": {
+            "type": "string",
+            "nullable": true
+          },
+          "contentFingerprint": {
+            "type": "string",
+            "nullable": true
+          },
+          "importedAtUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
           }
         }
       },
@@ -3639,6 +3965,60 @@
           },
           "value": {
             "type": "string"
+          },
+          "frequency": {
+            "type": "string",
+            "nullable": true
+          },
+          "interval": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "endMode": {
+            "type": "string",
+            "nullable": true
+          },
+          "untilDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "weeklyDays": {
+            "type": "string",
+            "nullable": true
+          },
+          "monthlyDayOfMonth": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "yearlyMonth": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "yearlyDayOfMonth": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "rawProviderRecurrenceRule": {
+            "type": "string",
+            "nullable": true
+          },
+          "unsupportedRecurrenceStatus": {
+            "type": "string",
+            "nullable": true
+          },
+          "unsupportedRecurrenceReason": {
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -3700,6 +4080,42 @@
             "type": "string",
             "format": "time",
             "nullable": true
+          },
+          "occurrenceKey": {
+            "type": "string",
+            "nullable": true
+          },
+          "location": {
+            "type": "string",
+            "nullable": true
+          },
+          "isAllDay": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "rawProviderRecurrenceId": {
+            "type": "string",
+            "nullable": true
+          },
+          "normalizedProviderRecurrenceId": {
+            "type": "string",
+            "nullable": true
+          },
+          "detachedProviderEventId": {
+            "type": "string",
+            "nullable": true
+          },
+          "detachedProviderRevision": {
+            "type": "string",
+            "nullable": true
+          },
+          "detachedContentFingerprint": {
+            "type": "string",
+            "nullable": true
+          },
+          "rawDetachedRecurrenceMetadata": {
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -3740,6 +4156,46 @@
             "nullable": true
           },
           "location": {
+            "type": "string",
+            "nullable": true
+          },
+          "occurrenceKey": {
+            "type": "string",
+            "nullable": true
+          },
+          "isRecurring": {
+            "type": "boolean"
+          },
+          "isException": {
+            "type": "boolean"
+          },
+          "recurrence": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/RecurrenceSummaryDto"
+              }
+            ]
+          }
+        }
+      },
+      "RecurrenceSummaryDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "isRecurring": {
+            "type": "boolean"
+          },
+          "frequency": {
+            "type": "string",
+            "nullable": true
+          },
+          "interval": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "endMode": {
             "type": "string",
             "nullable": true
           }
@@ -3783,6 +4239,111 @@
           "updatedUtc": {
             "type": "string",
             "format": "date-time"
+          },
+          "recurrenceRule": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/RecurrenceRuleDto"
+              }
+            ]
+          },
+          "exceptions": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/EventExceptionDto"
+            }
+          }
+        }
+      },
+      "RecurrenceRuleDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "frequency": {
+            "type": "string"
+          },
+          "interval": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "endMode": {
+            "type": "string"
+          },
+          "untilDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "count": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "weeklyDays": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "type": "string"
+            }
+          },
+          "monthlyDayOfMonth": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "yearlyMonth": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "yearlyDayOfMonth": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        }
+      },
+      "EventExceptionDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "eventSeriesId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "occurrenceKey": {
+            "type": "string"
+          },
+          "exceptionType": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "location": {
+            "type": "string",
+            "nullable": true
+          },
+          "isAllDay": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "startsAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "endsAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
           }
         }
       },
@@ -3808,6 +4369,14 @@
           },
           "isAllDay": {
             "type": "boolean"
+          },
+          "recurrenceRule": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/RecurrenceRuleDto"
+              }
+            ]
           }
         }
       },
@@ -3833,6 +4402,101 @@
           },
           "isAllDay": {
             "type": "boolean"
+          },
+          "recurrenceRule": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/RecurrenceRuleDto"
+              }
+            ]
+          }
+        }
+      },
+      "OccurrenceTargetRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "occurrenceKey": {
+            "type": "string"
+          }
+        }
+      },
+      "ModifyOccurrenceRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "occurrenceKey": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "location": {
+            "type": "string",
+            "nullable": true
+          },
+          "isAllDay": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "startUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "endUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "SplitEventSeriesRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "occurrenceKey": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "location": {
+            "type": "string",
+            "nullable": true
+          },
+          "isAllDay": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "startUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "endUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "recurrenceRule": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/RecurrenceRuleDto"
+              }
+            ]
           }
         }
       },

@@ -3,6 +3,7 @@ using System;
 using HomeOps.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace HomeOps.Api.Migrations
 {
     [DbContext(typeof(HomeOpsDbContext))]
-    partial class HomeOpsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260706125153_AddCalendarRecurrenceV2PersistenceFoundation")]
+    partial class AddCalendarRecurrenceV2PersistenceFoundation
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -52,6 +52,35 @@ public static class EventSeriesNormalizer
             occurrence.EndsAt,
             eventSeries.IsAllDay,
             eventSeries.CreatedUtc,
-            eventSeries.UpdatedUtc);
+            eventSeries.UpdatedUtc,
+            ToRecurrenceRuleDto(eventSeries.RecurrenceRule ?? ToLegacyCompatibilityRule(eventSeries)));
+    }
+
+    private static EventRecurrenceRule? ToLegacyCompatibilityRule(EventSeries eventSeries) => eventSeries.RecurrenceType switch
+    {
+        RecurrenceType.Daily => new EventRecurrenceRule { Frequency = RecurrenceFrequency.Daily, Interval = 1, EndMode = RecurrenceEndMode.Never },
+        RecurrenceType.Weekly => new EventRecurrenceRule { Frequency = RecurrenceFrequency.Weekly, Interval = 1, EndMode = RecurrenceEndMode.Never, WeeklyDays = WeeklyDays.Serialize([eventSeries.StartDate.DayOfWeek]) },
+        RecurrenceType.Monthly => new EventRecurrenceRule { Frequency = RecurrenceFrequency.Monthly, Interval = 1, EndMode = RecurrenceEndMode.Never, MonthlyDayOfMonth = eventSeries.StartDate.Day },
+        RecurrenceType.Yearly => new EventRecurrenceRule { Frequency = RecurrenceFrequency.Yearly, Interval = 1, EndMode = RecurrenceEndMode.Never, YearlyMonth = eventSeries.StartDate.Month, YearlyDayOfMonth = eventSeries.StartDate.Day },
+        _ => null,
+    };
+
+    private static RecurrenceRuleDto? ToRecurrenceRuleDto(EventRecurrenceRule? rule)
+    {
+        if (rule is null)
+        {
+            return null;
+        }
+
+        return new RecurrenceRuleDto(
+            rule.Frequency.ToString(),
+            rule.Interval,
+            rule.EndMode.ToString(),
+            rule.UntilDate,
+            rule.Count,
+            rule.WeeklyDays is null ? null : WeeklyDays.Parse(rule.WeeklyDays).Select(day => day.ToString()).ToArray(),
+            rule.MonthlyDayOfMonth,
+            rule.YearlyMonth,
+            rule.YearlyDayOfMonth);
     }
 }

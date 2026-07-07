@@ -18,4 +18,24 @@ public sealed record NormalizedICalendarEvent(
     string? Status,
     string? Transparency,
     RecurrenceType RecurrenceType,
-    string? RawRecurrenceRule);
+    string? RawRecurrenceRule,
+    EventRecurrenceRule? RecurrenceRule = null,
+    IReadOnlyList<NormalizedICalendarEventException>? Exceptions = null);
+
+public sealed record NormalizedICalendarEventException(
+    OccurrenceKey OccurrenceKey,
+    EventExceptionType ExceptionType,
+    string? Title = null,
+    string? Description = null,
+    string? Location = null,
+    bool? IsAllDay = null,
+    DateOnly? StartDate = null,
+    TimeOnly? StartTime = null,
+    DateOnly? EndDate = null,
+    TimeOnly? EndTime = null,
+    string? RawProviderRecurrenceId = null,
+    string? NormalizedProviderRecurrenceId = null,
+    string? DetachedProviderEventId = null,
+    string? DetachedProviderRevision = null,
+    string? DetachedContentFingerprint = null,
+    string? RawDetachedRecurrenceMetadata = null);

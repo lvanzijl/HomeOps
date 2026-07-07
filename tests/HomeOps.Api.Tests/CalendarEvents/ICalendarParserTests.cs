@@ -252,14 +252,100 @@ UID:complex-recurrence
 SUMMARY:Complex
 DTSTART:20260706T090000
 DTEND:20260706T100000
-RRULE:FREQ=WEEKLY;BYDAY=MO,WE
+RRULE:FREQ=MONTHLY;BYDAY=1MO
 END:VEVENT
 """));
 
         var calendarEvent = Assert.Single(result.Events);
         Assert.Equal(RecurrenceType.None, calendarEvent.RecurrenceType);
-        Assert.Equal("FREQ=WEEKLY;BYDAY=MO,WE", calendarEvent.RawRecurrenceRule);
+        Assert.Equal("FREQ=MONTHLY;BYDAY=1MO", calendarEvent.RawRecurrenceRule);
         Assert.Contains(result.Diagnostics, diagnostic => diagnostic.Code == "UnsupportedRecurrence" && diagnostic.ProviderEventId == "complex-recurrence");
+    }
+
+
+    [Fact]
+    public void MapsRecurrenceV2RuleAndExceptions()
+    {
+        var result = ICalendarParser.Parse(CalendarWith("""
+BEGIN:VEVENT
+UID:recurring-1
+SUMMARY:Training
+DTSTART:20260706T090000
+DTEND:20260706T100000
+RRULE:FREQ=WEEKLY;INTERVAL=2;COUNT=5;BYDAY=MO,WE
+EXDATE:20260708T090000,20260720T090000
+END:VEVENT
+BEGIN:VEVENT
+UID:recurring-1
+RECURRENCE-ID:20260722T090000
+SUMMARY:Moved Training
+DESCRIPTION:Bring shoes
+LOCATION:Gym B
+DTSTART:20260723T110000
+DTEND:20260723T120000
+SEQUENCE:2
+END:VEVENT
+BEGIN:VEVENT
+UID:recurring-1
+RECURRENCE-ID:20260803T090000
+STATUS:CANCELLED
+DTSTART:20260803T090000
+DTEND:20260803T100000
+END:VEVENT
+"""));
+
+        var calendarEvent = Assert.Single(result.Events);
+        Assert.Empty(result.Diagnostics);
+        Assert.Equal(RecurrenceType.Weekly, calendarEvent.RecurrenceType);
+        Assert.NotNull(calendarEvent.RecurrenceRule);
+        Assert.Equal(RecurrenceFrequency.Weekly, calendarEvent.RecurrenceRule.Frequency);
+        Assert.Equal(2, calendarEvent.RecurrenceRule.Interval);
+        Assert.Equal(RecurrenceEndMode.AfterCount, calendarEvent.RecurrenceRule.EndMode);
+        Assert.Equal(5, calendarEvent.RecurrenceRule.Count);
+        Assert.Equal("Monday,Wednesday", calendarEvent.RecurrenceRule.WeeklyDays);
+        Assert.NotNull(calendarEvent.Exceptions);
+        Assert.Equal(4, calendarEvent.Exceptions.Count);
+        Assert.Contains(calendarEvent.Exceptions, exception => exception.ExceptionType == EventExceptionType.Skipped && exception.OccurrenceKey.Serialize() == "2026-07-08T09:00:00");
+        Assert.Contains(calendarEvent.Exceptions, exception => exception.ExceptionType == EventExceptionType.Modified && exception.OccurrenceKey.Serialize() == "2026-07-22T09:00:00" && exception.Title == "Moved Training" && exception.Location == "Gym B");
+        Assert.Contains(calendarEvent.Exceptions, exception => exception.ExceptionType == EventExceptionType.Skipped && exception.OccurrenceKey.Serialize() == "2026-08-03T09:00:00" && exception.DetachedProviderEventId == "recurring-1");
+    }
+
+
+    [Fact]
+    public void RecurrenceWithoutByRuleFieldsUsesDtStartDefaults()
+    {
+        var result = ICalendarParser.Parse(CalendarWith("""
+BEGIN:VEVENT
+UID:weekly-default
+SUMMARY:Weekly default
+DTSTART:20260708T090000
+DTEND:20260708T100000
+RRULE:FREQ=WEEKLY
+END:VEVENT
+BEGIN:VEVENT
+UID:monthly-default
+SUMMARY:Monthly default
+DTSTART:20260708T090000
+DTEND:20260708T100000
+RRULE:FREQ=MONTHLY
+END:VEVENT
+BEGIN:VEVENT
+UID:yearly-default
+SUMMARY:Yearly default
+DTSTART:20260708T090000
+DTEND:20260708T100000
+RRULE:FREQ=YEARLY
+END:VEVENT
+"""));
+
+        Assert.Empty(result.Diagnostics);
+        var weekly = Assert.Single(result.Events, candidate => candidate.ProviderEventId == "weekly-default");
+        Assert.Equal("Wednesday", weekly.RecurrenceRule?.WeeklyDays);
+        var monthly = Assert.Single(result.Events, candidate => candidate.ProviderEventId == "monthly-default");
+        Assert.Equal(8, monthly.RecurrenceRule?.MonthlyDayOfMonth);
+        var yearly = Assert.Single(result.Events, candidate => candidate.ProviderEventId == "yearly-default");
+        Assert.Equal(7, yearly.RecurrenceRule?.YearlyMonth);
+        Assert.Equal(8, yearly.RecurrenceRule?.YearlyDayOfMonth);
     }
 
     [Fact]

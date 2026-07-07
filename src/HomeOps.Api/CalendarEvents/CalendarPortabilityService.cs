@@ -43,7 +43,7 @@ public static class CalendarPortabilityService
             .ToListAsync(cancellationToken);
         var series = await dbContext.EventSeries
             .AsNoTracking()
-            .Where(candidate => candidate.EventSource!.HouseholdId == SeedHousehold.Id && candidate.ProviderEventId == null)
+            .Where(candidate => candidate.EventSource!.HouseholdId == SeedHousehold.Id)
             .OrderBy(candidate => candidate.StartDate)
             .ThenBy(candidate => candidate.StartTime)
             .ThenBy(candidate => candidate.Title)
@@ -57,15 +57,21 @@ public static class CalendarPortabilityService
                 candidate.StartTime,
                 candidate.EndDate,
                 candidate.EndTime,
-                new CalendarExportRecurrence(candidate.RecurrenceType.ToString(), string.Empty),
+                ToExportRecurrence(candidate),
                 candidate.CreatedUtc,
-                candidate.UpdatedUtc))
+                candidate.UpdatedUtc,
+                candidate.Location,
+                candidate.ProviderEventId,
+                candidate.ProviderInstanceId,
+                candidate.ProviderRevision,
+                candidate.ContentFingerprint,
+                candidate.ImportedAtUtc))
             .ToListAsync(cancellationToken);
         var exceptions = await dbContext.EventExceptions
             .AsNoTracking()
-            .Where(exception => exception.EventSeries!.EventSource!.HouseholdId == SeedHousehold.Id && exception.EventSeries.ProviderEventId == null)
+            .Where(exception => exception.EventSeries!.EventSource!.HouseholdId == SeedHousehold.Id)
             .OrderBy(exception => exception.OccurrenceDate)
-            .Select(exception => new CalendarExportEventException(exception.Id, exception.EventSeriesId, exception.OccurrenceDate, exception.IsSkipped ? "Skipped" : "Modified", exception.Title, exception.Description, exception.StartDate, exception.StartTime, exception.EndDate, exception.EndTime))
+            .Select(exception => new CalendarExportEventException(exception.Id, exception.EventSeriesId, exception.OccurrenceDate, (exception.IsSkipped ? EventExceptionType.Skipped : exception.ExceptionType).ToString(), exception.Title, exception.Description, exception.StartDate, exception.StartTime, exception.EndDate, exception.EndTime, (exception.OccurrenceKey == default ? OccurrenceKey.FromOriginalStart(exception.OccurrenceDate, exception.EventSeries!.StartTime) : exception.OccurrenceKey).Serialize(), exception.Location, exception.IsAllDay, exception.RawProviderRecurrenceId, exception.NormalizedProviderRecurrenceId, exception.DetachedProviderEventId, exception.DetachedProviderRevision, exception.DetachedContentFingerprint, exception.RawDetachedRecurrenceMetadata))
             .ToListAsync(cancellationToken);
 
         return new CalendarExportDocument(
@@ -131,6 +137,7 @@ public static class CalendarPortabilityService
             UpsertRestoredProviderConfiguration(dbContext, existingSource, source.ProviderConfiguration, source.CreatedUtc, source.UpdatedUtc);
         }
 
+        var restoredSeriesById = document.Calendar.EventSeries.ToDictionary(series => series.Id);
         dbContext.EventSeries.AddRange(document.Calendar.EventSeries.Select(series => new EventSeries
         {
             Id = series.Id,
@@ -142,7 +149,14 @@ public static class CalendarPortabilityService
             StartTime = series.IsAllDay ? null : series.StartTime,
             EndDate = series.EndDate,
             EndTime = series.IsAllDay ? null : series.EndTime,
-            RecurrenceType = ParseRecurrenceType(series.Recurrence),
+            RecurrenceType = series.Recurrence?.Frequency is null ? ParseRecurrenceType(series.Recurrence) : RecurrenceType.None,
+            RecurrenceRule = ToRestoredRecurrenceRule(series.Recurrence),
+            Location = string.IsNullOrWhiteSpace(series.Location) ? null : series.Location.Trim(),
+            ProviderEventId = string.IsNullOrWhiteSpace(series.ProviderEventId) ? null : series.ProviderEventId.Trim(),
+            ProviderInstanceId = string.IsNullOrWhiteSpace(series.ProviderInstanceId) ? null : series.ProviderInstanceId.Trim(),
+            ProviderRevision = string.IsNullOrWhiteSpace(series.ProviderRevision) ? null : series.ProviderRevision.Trim(),
+            ContentFingerprint = string.IsNullOrWhiteSpace(series.ContentFingerprint) ? null : series.ContentFingerprint.Trim(),
+            ImportedAtUtc = series.ImportedAtUtc,
             CreatedUtc = series.CreatedUtc,
             UpdatedUtc = series.UpdatedUtc,
         }));
@@ -151,13 +165,23 @@ public static class CalendarPortabilityService
             Id = exception.Id,
             EventSeriesId = exception.EventSeriesId,
             OccurrenceDate = exception.OccurrenceDate,
+            OccurrenceKey = ToRestoredOccurrenceKey(exception, restoredSeriesById),
+            ExceptionType = ParseExceptionType(exception.ExceptionType),
             IsSkipped = string.Equals(exception.ExceptionType, "Skipped", StringComparison.OrdinalIgnoreCase),
             Title = string.IsNullOrWhiteSpace(exception.Title) ? null : exception.Title.Trim(),
             Description = string.IsNullOrWhiteSpace(exception.Description) ? null : exception.Description.Trim(),
+            Location = string.IsNullOrWhiteSpace(exception.Location) ? null : exception.Location.Trim(),
+            IsAllDay = exception.IsAllDay,
             StartDate = exception.StartDate,
             StartTime = exception.StartTime,
             EndDate = exception.EndDate,
             EndTime = exception.EndTime,
+            RawProviderRecurrenceId = string.IsNullOrWhiteSpace(exception.RawProviderRecurrenceId) ? null : exception.RawProviderRecurrenceId.Trim(),
+            NormalizedProviderRecurrenceId = string.IsNullOrWhiteSpace(exception.NormalizedProviderRecurrenceId) ? null : exception.NormalizedProviderRecurrenceId.Trim(),
+            DetachedProviderEventId = string.IsNullOrWhiteSpace(exception.DetachedProviderEventId) ? null : exception.DetachedProviderEventId.Trim(),
+            DetachedProviderRevision = string.IsNullOrWhiteSpace(exception.DetachedProviderRevision) ? null : exception.DetachedProviderRevision.Trim(),
+            DetachedContentFingerprint = string.IsNullOrWhiteSpace(exception.DetachedContentFingerprint) ? null : exception.DetachedContentFingerprint.Trim(),
+            RawDetachedRecurrenceMetadata = string.IsNullOrWhiteSpace(exception.RawDetachedRecurrenceMetadata) ? null : exception.RawDetachedRecurrenceMetadata.Trim(),
             CreatedUtc = DateTimeOffset.UtcNow,
             UpdatedUtc = DateTimeOffset.UtcNow,
         }));
@@ -165,6 +189,94 @@ public static class CalendarPortabilityService
 
         return new CalendarRestoreResult(true, new Dictionary<string, string[]>());
     }
+
+
+    private static CalendarExportRecurrence ToExportRecurrence(EventSeries series)
+    {
+        if (series.RecurrenceRule is null)
+        {
+            return new CalendarExportRecurrence(series.RecurrenceType.ToString(), string.Empty);
+        }
+
+        if (series.RecurrenceRule.UnsupportedRecurrenceStatus == UnsupportedRecurrenceStatus.Unsupported)
+        {
+            return new CalendarExportRecurrence(
+                RecurrenceType.None.ToString(),
+                series.RecurrenceRule.RawProviderRecurrenceRule ?? string.Empty,
+                Frequency: null,
+                RawProviderRecurrenceRule: series.RecurrenceRule.RawProviderRecurrenceRule,
+                UnsupportedRecurrenceStatus: series.RecurrenceRule.UnsupportedRecurrenceStatus.ToString(),
+                UnsupportedRecurrenceReason: series.RecurrenceRule.UnsupportedRecurrenceReason);
+        }
+
+        return new CalendarExportRecurrence(
+            series.RecurrenceRule.Frequency.ToString(),
+            series.RecurrenceRule.RawProviderRecurrenceRule ?? string.Empty,
+            series.RecurrenceRule.Frequency.ToString(),
+            series.RecurrenceRule.Interval,
+            series.RecurrenceRule.EndMode.ToString(),
+            series.RecurrenceRule.UntilDate,
+            series.RecurrenceRule.Count,
+            series.RecurrenceRule.WeeklyDays,
+            series.RecurrenceRule.MonthlyDayOfMonth,
+            series.RecurrenceRule.YearlyMonth,
+            series.RecurrenceRule.YearlyDayOfMonth,
+            series.RecurrenceRule.RawProviderRecurrenceRule,
+            series.RecurrenceRule.UnsupportedRecurrenceStatus.ToString(),
+            series.RecurrenceRule.UnsupportedRecurrenceReason);
+    }
+
+    private static EventRecurrenceRule? ToRestoredRecurrenceRule(CalendarExportRecurrence? recurrence)
+    {
+        if (recurrence is null)
+        {
+            return null;
+        }
+
+        var unsupportedStatus = Enum.TryParse<UnsupportedRecurrenceStatus>(recurrence.UnsupportedRecurrenceStatus, true, out var parsedUnsupportedStatus) ? parsedUnsupportedStatus : UnsupportedRecurrenceStatus.Supported;
+        if (recurrence.Frequency is null)
+        {
+            return unsupportedStatus == UnsupportedRecurrenceStatus.Unsupported
+                ? new EventRecurrenceRule
+                {
+                    RawProviderRecurrenceRule = string.IsNullOrWhiteSpace(recurrence.RawProviderRecurrenceRule) ? null : recurrence.RawProviderRecurrenceRule.Trim(),
+                    UnsupportedRecurrenceStatus = unsupportedStatus,
+                    UnsupportedRecurrenceReason = string.IsNullOrWhiteSpace(recurrence.UnsupportedRecurrenceReason) ? null : recurrence.UnsupportedRecurrenceReason.Trim(),
+                }
+                : null;
+        }
+
+        return new EventRecurrenceRule
+        {
+            Frequency = Enum.Parse<RecurrenceFrequency>(recurrence.Frequency, true),
+            Interval = recurrence.Interval ?? 1,
+            EndMode = Enum.TryParse<RecurrenceEndMode>(recurrence.EndMode, true, out var endMode) ? endMode : RecurrenceEndMode.Never,
+            UntilDate = recurrence.UntilDate,
+            Count = recurrence.Count,
+            WeeklyDays = recurrence.WeeklyDays,
+            MonthlyDayOfMonth = recurrence.MonthlyDayOfMonth,
+            YearlyMonth = recurrence.YearlyMonth,
+            YearlyDayOfMonth = recurrence.YearlyDayOfMonth,
+            RawProviderRecurrenceRule = string.IsNullOrWhiteSpace(recurrence.RawProviderRecurrenceRule) ? null : recurrence.RawProviderRecurrenceRule.Trim(),
+            UnsupportedRecurrenceStatus = unsupportedStatus,
+            UnsupportedRecurrenceReason = string.IsNullOrWhiteSpace(recurrence.UnsupportedRecurrenceReason) ? null : recurrence.UnsupportedRecurrenceReason.Trim(),
+        };
+    }
+
+    private static OccurrenceKey ToRestoredOccurrenceKey(CalendarExportEventException exception, IReadOnlyDictionary<Guid, CalendarExportEventSeries> seriesById)
+    {
+        if (!string.IsNullOrWhiteSpace(exception.OccurrenceKey) && OccurrenceKey.TryParse(exception.OccurrenceKey, out var key))
+        {
+            return key;
+        }
+
+        return seriesById.TryGetValue(exception.EventSeriesId, out var series)
+            ? OccurrenceKey.FromOriginalStart(exception.OccurrenceDate, series.StartTime)
+            : OccurrenceKey.FromOriginalStart(exception.OccurrenceDate, exception.StartTime);
+    }
+
+    private static EventExceptionType ParseExceptionType(string? exceptionType) =>
+        Enum.TryParse<EventExceptionType>(exceptionType, true, out var value) ? value : EventExceptionType.Modified;
 
     private static CalendarExportProviderConfiguration? ToExportProviderConfiguration(EventSourceConfiguration? configuration) => configuration switch
     {
@@ -343,7 +455,26 @@ public static class CalendarPortabilityService
         if (requiredRecurrence.Rules is null) errors["Calendar.Recurrence.Rules"] = ["Recurrence rules collection is required."];
         else if (requiredRecurrence.Rules.Any(rule => !IsSupportedRecurrence(rule))) errors["Calendar.Recurrence"] = ["Recurrence rules must use None, Daily, Weekly, Monthly, or Yearly."];
         if (requiredExceptions.Any(exception => exception.Id == Guid.Empty || exception.EventSeriesId == Guid.Empty || !seriesIds.Contains(exception.EventSeriesId) || exception.OccurrenceDate == default || !IsSupportedExceptionType(exception.ExceptionType))) errors["Calendar.Exceptions.Required"] = ["EventException records require id, supported type, occurrence date, and a valid EventSeries reference owned by this export."];
-        if (requiredEventSeries.Any(series => series.Recurrence is not null && !IsSupportedRecurrence(series.Recurrence))) errors["Calendar.EventSeries.Recurrence"] = ["EventSeries recurrence must use None, Daily, Weekly, Monthly, or Yearly."];
+        if (requiredExceptions.Any(exception => !string.IsNullOrWhiteSpace(exception.OccurrenceKey) && !OccurrenceKey.TryParse(exception.OccurrenceKey, out _))) errors["Calendar.Exceptions.OccurrenceKey"] = ["EventException occurrence keys must be formatted as yyyy-MM-dd or yyyy-MM-ddTHH:mm:ss."];
+        if (requiredExceptions.GroupBy(exception => new { exception.EventSeriesId, Key = string.IsNullOrWhiteSpace(exception.OccurrenceKey) ? exception.OccurrenceDate.ToString("O") : exception.OccurrenceKey }).Any(group => group.Count() > 1)) errors["Calendar.Exceptions.OccurrenceKey"] = ["EventException occurrence keys must be unique per EventSeries."];
+        if (requiredEventSeries.Any(series => series.Recurrence is not null && !IsSupportedRecurrence(series.Recurrence))) errors["Calendar.EventSeries.Recurrence"] = ["EventSeries recurrence must use None, Daily, Weekly, Monthly, or Yearly and valid Recurrence V2 fields."];
+        foreach (var series in requiredEventSeries.Where(series => series.Recurrence is not null && (series.Recurrence.Frequency is not null || IsUnsupportedRecurrence(series.Recurrence))))
+        {
+            var rule = ToRestoredRecurrenceRule(series.Recurrence);
+            if (rule is null)
+            {
+                continue;
+            }
+
+            if (rule.UnsupportedRecurrenceStatus == UnsupportedRecurrenceStatus.Unsupported)
+            {
+                if (string.IsNullOrWhiteSpace(rule.RawProviderRecurrenceRule)) errors[$"Calendar.EventSeries.{series.Id}.Recurrence"] = ["Unsupported recurrence metadata must preserve the raw provider recurrence rule."];
+                continue;
+            }
+
+            var validation = ValidateRestoredRecurrenceRule(rule, series.StartDate);
+            if (!validation.IsValid) errors[$"Calendar.EventSeries.{series.Id}.Recurrence"] = validation.Errors.ToArray();
+        }
         return errors;
     }
 
@@ -353,7 +484,46 @@ public static class CalendarPortabilityService
 
     private static string NormalizeSourceType(string sourceType) => string.Equals(sourceType.Trim(), "manual", StringComparison.OrdinalIgnoreCase) ? EventSourceTypes.Manual : sourceType.Trim();
 
-    private static bool IsSupportedRecurrence(CalendarExportRecurrence? recurrence) => recurrence is not null && Enum.TryParse<RecurrenceType>(recurrence.RuleType, true, out _);
+    private static bool IsSupportedRecurrence(CalendarExportRecurrence? recurrence)
+    {
+        if (recurrence is null) return false;
+        if (recurrence.Frequency is null)
+        {
+            return IsUnsupportedRecurrence(recurrence) || Enum.TryParse<RecurrenceType>(recurrence.RuleType, true, out _);
+        }
+
+        return Enum.TryParse<RecurrenceFrequency>(recurrence.Frequency, true, out _)
+            && (recurrence.EndMode is null || Enum.TryParse<RecurrenceEndMode>(recurrence.EndMode, true, out _))
+            && (recurrence.UnsupportedRecurrenceStatus is null || Enum.TryParse<UnsupportedRecurrenceStatus>(recurrence.UnsupportedRecurrenceStatus, true, out _));
+    }
+
+    private static bool IsUnsupportedRecurrence(CalendarExportRecurrence recurrence) =>
+        string.Equals(recurrence.UnsupportedRecurrenceStatus, nameof(UnsupportedRecurrenceStatus.Unsupported), StringComparison.OrdinalIgnoreCase);
+
+    private static RecurrenceValidationResult ValidateRestoredRecurrenceRule(EventRecurrenceRule rule, DateOnly firstOccurrenceDate)
+    {
+        if (rule.EndMode == RecurrenceEndMode.OnDate && rule.UntilDate < firstOccurrenceDate)
+        {
+            var validationRule = new EventRecurrenceRule
+            {
+                Frequency = rule.Frequency,
+                Interval = rule.Interval,
+                EndMode = rule.EndMode,
+                UntilDate = firstOccurrenceDate,
+                Count = rule.Count,
+                WeeklyDays = rule.WeeklyDays,
+                MonthlyDayOfMonth = rule.MonthlyDayOfMonth,
+                YearlyMonth = rule.YearlyMonth,
+                YearlyDayOfMonth = rule.YearlyDayOfMonth,
+                RawProviderRecurrenceRule = rule.RawProviderRecurrenceRule,
+                UnsupportedRecurrenceStatus = rule.UnsupportedRecurrenceStatus,
+                UnsupportedRecurrenceReason = rule.UnsupportedRecurrenceReason,
+            };
+            return EventRecurrenceRuleValidation.Validate(validationRule, firstOccurrenceDate);
+        }
+
+        return EventRecurrenceRuleValidation.Validate(rule, firstOccurrenceDate);
+    }
 
 
     private static bool IsSupportedSourceType(string sourceType) => sourceType is EventSourceTypes.Manual or EventSourceTypes.ICalFeed or EventSourceTypes.ICalFile or EventSourceTypes.GoogleCalendar or EventSourceTypes.CalDav or EventSourceTypes.Exchange or EventSourceTypes.SchoolHolidays or EventSourceTypes.TvSeries or EventSourceTypes.Provider;

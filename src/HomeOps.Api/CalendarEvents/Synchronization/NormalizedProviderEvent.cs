@@ -14,7 +14,9 @@ public sealed record NormalizedProviderEvent(
     DateOnly EndDate,
     TimeOnly? EndTime,
     bool IsAllDay,
-    RecurrenceType RecurrenceType)
+    RecurrenceType RecurrenceType,
+    EventRecurrenceRule? RecurrenceRule = null,
+    IReadOnlyList<NormalizedICalendarEventException>? Exceptions = null)
 {
     public static NormalizedProviderEvent FromICalendar(NormalizedICalendarEvent calendarEvent) =>
         new(
@@ -29,5 +31,7 @@ public sealed record NormalizedProviderEvent(
             calendarEvent.EndDate,
             calendarEvent.EndTime,
             calendarEvent.IsAllDay,
-            calendarEvent.RecurrenceType);
+            calendarEvent.RecurrenceType,
+            calendarEvent.RecurrenceRule,
+            calendarEvent.Exceptions ?? []);
 }

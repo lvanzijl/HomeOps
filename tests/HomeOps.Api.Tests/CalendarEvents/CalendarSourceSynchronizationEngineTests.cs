@@ -72,6 +72,55 @@ public sealed class CalendarSourceSynchronizationEngineTests
         Assert.Equal(SyncNow, persisted.LastImportedUtc);
     }
 
+
+    [Fact]
+    public async Task SuccessfulSnapshotCreatesRecurrenceRuleAndExceptions()
+    {
+        await using var database = await SqliteSyncTestDatabase.CreateAsync();
+        var source = await database.AddSourceAsync(EventSourceTypes.ICalFeed);
+        var engine = CreateEngine(database.Context);
+        var recurrenceRule = new EventRecurrenceRule { Frequency = RecurrenceFrequency.Weekly, Interval = 1, EndMode = RecurrenceEndMode.AfterCount, Count = 4, WeeklyDays = WeeklyDays.Serialize([DayOfWeek.Monday]), RawProviderRecurrenceRule = "FREQ=WEEKLY;COUNT=4;BYDAY=MO" };
+        var exceptions = new NormalizedICalendarEventException[]
+        {
+            new(OccurrenceKey.Parse("2026-07-13T09:00:00"), EventExceptionType.Skipped, RawProviderRecurrenceId: "20260713T090000", NormalizedProviderRecurrenceId: "2026-07-13T09:00:00"),
+            new(OccurrenceKey.Parse("2026-07-20T09:00:00"), EventExceptionType.Modified, Title: "Moved", Location: "Gym", StartDate: new DateOnly(2026, 7, 21), StartTime: new TimeOnly(11, 0), EndDate: new DateOnly(2026, 7, 21), EndTime: new TimeOnly(12, 0), RawProviderRecurrenceId: "20260720T090000", DetachedProviderEventId: "provider-1")
+        };
+
+        var result = await engine.SynchronizeAsync(source, CalendarProviderSnapshot.Successful([ProviderEvent("provider-1", recurrenceType: RecurrenceType.None, recurrenceRule: recurrenceRule, exceptions: exceptions)]));
+
+        Assert.True(result.Succeeded);
+        var series = await database.Context.EventSeries.Include(series => series.Exceptions).SingleAsync(series => series.ProviderEventId == "provider-1");
+        Assert.Equal(RecurrenceType.None, series.RecurrenceType);
+        Assert.NotNull(series.RecurrenceRule);
+        Assert.Equal(RecurrenceFrequency.Weekly, series.RecurrenceRule.Frequency);
+        Assert.Equal("FREQ=WEEKLY;COUNT=4;BYDAY=MO", series.RecurrenceRule.RawProviderRecurrenceRule);
+        Assert.Equal(2, series.Exceptions.Count);
+        Assert.Contains(series.Exceptions, exception => exception.ExceptionType == EventExceptionType.Skipped && exception.OccurrenceKey.Serialize() == "2026-07-13T09:00:00");
+        Assert.Contains(series.Exceptions, exception => exception.ExceptionType == EventExceptionType.Modified && exception.Title == "Moved" && exception.DetachedProviderEventId == "provider-1");
+    }
+
+    [Fact]
+    public async Task SuccessfulSnapshotUpdatesRecurrenceRuleAndRemovesMissingExceptions()
+    {
+        await using var database = await SqliteSyncTestDatabase.CreateAsync();
+        var source = await database.AddSourceAsync(EventSourceTypes.ICalFeed);
+        var existing = await database.AddImportedSeriesAsync(source.Id, "provider-1", "Old", "old-fingerprint", SyncNow.AddDays(-1));
+        existing.RecurrenceRule = new EventRecurrenceRule { Frequency = RecurrenceFrequency.Daily, Interval = 1, EndMode = RecurrenceEndMode.AfterCount, Count = 5, RawProviderRecurrenceRule = "FREQ=DAILY;COUNT=5" };
+        database.Context.EventExceptions.Add(new EventException { Id = Guid.NewGuid(), EventSeriesId = existing.Id, OccurrenceDate = new DateOnly(2026, 7, 7), OccurrenceKey = OccurrenceKey.Parse("2026-07-07T09:00:00"), ExceptionType = EventExceptionType.Skipped, IsSkipped = true, CreatedUtc = SyncNow.AddDays(-1), UpdatedUtc = SyncNow.AddDays(-1) });
+        await database.Context.SaveChangesAsync();
+        var engine = CreateEngine(database.Context);
+        var replacementRule = new EventRecurrenceRule { Frequency = RecurrenceFrequency.Monthly, Interval = 1, EndMode = RecurrenceEndMode.Never, MonthlyDayOfMonth = 6, RawProviderRecurrenceRule = "FREQ=MONTHLY;BYMONTHDAY=6" };
+
+        var result = await engine.SynchronizeAsync(source, CalendarProviderSnapshot.Successful([ProviderEvent("provider-1", title: "Updated", fingerprint: "new-fingerprint", recurrenceType: RecurrenceType.None, recurrenceRule: replacementRule, exceptions: [])]));
+
+        Assert.True(result.Succeeded);
+        database.Context.ChangeTracker.Clear();
+        var series = await database.Context.EventSeries.Include(series => series.Exceptions).SingleAsync(series => series.Id == existing.Id);
+        Assert.Equal(RecurrenceFrequency.Monthly, series.RecurrenceRule!.Frequency);
+        Assert.Equal(6, series.RecurrenceRule.MonthlyDayOfMonth);
+        Assert.Empty(series.Exceptions);
+    }
+
     [Fact]
     public async Task DuplicateProviderEventIdsAreRejectedAndDoNotCreateEvents()
     {
@@ -312,7 +361,10 @@ public sealed class CalendarSourceSynchronizationEngineTests
         string providerEventId,
         string? title = null,
         string? fingerprint = null,
-        string? location = null) =>
+        string? location = null,
+        RecurrenceType recurrenceType = RecurrenceType.None,
+        EventRecurrenceRule? recurrenceRule = null,
+        IReadOnlyList<NormalizedICalendarEventException>? exceptions = null) =>
         new(
             providerEventId,
             ProviderRevision: $"revision-{providerEventId}",
@@ -325,7 +377,9 @@ public sealed class CalendarSourceSynchronizationEngineTests
             EndDate: new DateOnly(2026, 7, 6),
             EndTime: new TimeOnly(10, 0),
             IsAllDay: false,
-            RecurrenceType: RecurrenceType.None);
+            RecurrenceType: recurrenceType,
+            RecurrenceRule: recurrenceRule,
+            Exceptions: exceptions ?? []);
 
     private static ICalendarParseDiagnostic Warning(string code) =>
         new(ICalendarParseDiagnosticSeverity.Warning, code, code);

@@ -13,7 +13,10 @@ public sealed record EventOccurrence(
     bool AllDay,
     bool Editable,
     string? ProviderEventId = null,
-    string? Location = null)
+    string? Location = null,
+    string? OccurrenceKey = null,
+    bool IsRecurring = false,
+    bool IsException = false)
 {
     public NormalizedEvent ToNormalizedEvent() => new(
         Id.ToString(),
@@ -25,5 +28,9 @@ public sealed record EventOccurrence(
         Editable,
         ProviderEventId: ProviderEventId,
         Description: Description,
-        Location: Location);
+        Location: Location,
+        OccurrenceKey: OccurrenceKey,
+        IsRecurring: IsRecurring,
+        IsException: IsException,
+        Recurrence: IsRecurring ? new RecurrenceSummaryDto(true) : null);
 }
