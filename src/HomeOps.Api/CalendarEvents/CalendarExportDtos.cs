@@ -64,10 +64,49 @@ public sealed record CalendarExportEventSeries(
     TimeOnly? EndTime,
     CalendarExportRecurrence? Recurrence,
     DateTimeOffset CreatedUtc,
-    DateTimeOffset UpdatedUtc);
+    DateTimeOffset UpdatedUtc,
+    string? Location = null,
+    string? ProviderEventId = null,
+    string? ProviderInstanceId = null,
+    string? ProviderRevision = null,
+    string? ContentFingerprint = null,
+    DateTimeOffset? ImportedAtUtc = null);
 
 public sealed record CalendarExportRecurrenceSection(IReadOnlyCollection<CalendarExportRecurrence> Rules);
 
-public sealed record CalendarExportRecurrence(string RuleType, string Value);
+public sealed record CalendarExportRecurrence(
+    string RuleType,
+    string Value,
+    string? Frequency = null,
+    int? Interval = null,
+    string? EndMode = null,
+    DateOnly? UntilDate = null,
+    int? Count = null,
+    string? WeeklyDays = null,
+    int? MonthlyDayOfMonth = null,
+    int? YearlyMonth = null,
+    int? YearlyDayOfMonth = null,
+    string? RawProviderRecurrenceRule = null,
+    string? UnsupportedRecurrenceStatus = null,
+    string? UnsupportedRecurrenceReason = null);
 
-public sealed record CalendarExportEventException(Guid Id, Guid EventSeriesId, DateOnly OccurrenceDate, string ExceptionType, string? Title = null, string? Description = null, DateOnly? StartDate = null, TimeOnly? StartTime = null, DateOnly? EndDate = null, TimeOnly? EndTime = null);
+public sealed record CalendarExportEventException(
+    Guid Id,
+    Guid EventSeriesId,
+    DateOnly OccurrenceDate,
+    string ExceptionType,
+    string? Title = null,
+    string? Description = null,
+    DateOnly? StartDate = null,
+    TimeOnly? StartTime = null,
+    DateOnly? EndDate = null,
+    TimeOnly? EndTime = null,
+    string? OccurrenceKey = null,
+    string? Location = null,
+    bool? IsAllDay = null,
+    string? RawProviderRecurrenceId = null,
+    string? NormalizedProviderRecurrenceId = null,
+    string? DetachedProviderEventId = null,
+    string? DetachedProviderRevision = null,
+    string? DetachedContentFingerprint = null,
+    string? RawDetachedRecurrenceMetadata = null);

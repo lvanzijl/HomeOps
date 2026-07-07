@@ -63,6 +63,7 @@ public sealed class CalendarSourceSynchronizationEngine(HomeOpsDbContext dbConte
             }
 
             var existingImportedSeries = await dbContext.EventSeries
+                .Include(series => series.Exceptions)
                 .Where(series => series.EventSourceId == source.Id && series.ProviderEventId != null)
                 .ToListAsync(cancellationToken);
             var existingByProviderEventId = existingImportedSeries.ToDictionary(series => series.ProviderEventId!, StringComparer.Ordinal);
@@ -134,7 +135,9 @@ public sealed class CalendarSourceSynchronizationEngine(HomeOpsDbContext dbConte
         series.EndDate = providerEvent.EndDate;
         series.EndTime = providerEvent.EndTime;
         series.IsAllDay = providerEvent.IsAllDay;
-        series.RecurrenceType = providerEvent.RecurrenceType;
+        series.RecurrenceType = providerEvent.RecurrenceRule is null ? providerEvent.RecurrenceType : RecurrenceType.None;
+        series.RecurrenceRule = CopyRule(providerEvent.RecurrenceRule);
+        ApplyProviderExceptions(series, providerEvent, attemptUtc);
         series.ProviderEventId = providerEvent.ProviderEventId;
         series.ProviderRevision = providerEvent.ProviderRevision;
         series.ContentFingerprint = providerEvent.ContentFingerprint;
@@ -142,6 +145,67 @@ public sealed class CalendarSourceSynchronizationEngine(HomeOpsDbContext dbConte
         series.LastSeenSyncAttemptUtc = attemptUtc;
         series.UpdatedUtc = attemptUtc;
     }
+
+
+    private static void ApplyProviderExceptions(EventSeries series, NormalizedProviderEvent providerEvent, DateTimeOffset attemptUtc)
+    {
+        var incoming = (providerEvent.Exceptions ?? []).ToDictionary(exception => exception.OccurrenceKey);
+        foreach (var existing in series.Exceptions.Where(exception => !incoming.ContainsKey(exception.OccurrenceKey)).ToArray())
+        {
+            series.Exceptions.Remove(existing);
+        }
+
+        foreach (var incomingException in incoming.Values)
+        {
+            var exception = series.Exceptions.FirstOrDefault(candidate => candidate.OccurrenceKey == incomingException.OccurrenceKey);
+            if (exception is null)
+            {
+                exception = new EventException
+                {
+                    Id = Guid.NewGuid(),
+                    EventSeriesId = series.Id,
+                    OccurrenceDate = incomingException.OccurrenceKey.Date,
+                    OccurrenceKey = incomingException.OccurrenceKey,
+                    CreatedUtc = attemptUtc,
+                };
+                series.Exceptions.Add(exception);
+            }
+
+            exception.ExceptionType = incomingException.ExceptionType;
+            exception.IsSkipped = incomingException.ExceptionType == EventExceptionType.Skipped;
+            exception.Title = incomingException.Title;
+            exception.Description = incomingException.Description;
+            exception.Location = incomingException.Location;
+            exception.IsAllDay = incomingException.IsAllDay;
+            exception.StartDate = incomingException.StartDate;
+            exception.StartTime = incomingException.StartTime;
+            exception.EndDate = incomingException.EndDate;
+            exception.EndTime = incomingException.EndTime;
+            exception.RawProviderRecurrenceId = incomingException.RawProviderRecurrenceId;
+            exception.NormalizedProviderRecurrenceId = incomingException.NormalizedProviderRecurrenceId;
+            exception.DetachedProviderEventId = incomingException.DetachedProviderEventId;
+            exception.DetachedProviderRevision = incomingException.DetachedProviderRevision;
+            exception.DetachedContentFingerprint = incomingException.DetachedContentFingerprint;
+            exception.RawDetachedRecurrenceMetadata = incomingException.RawDetachedRecurrenceMetadata;
+            exception.UpdatedUtc = attemptUtc;
+        }
+    }
+
+    private static EventRecurrenceRule? CopyRule(EventRecurrenceRule? rule) => rule is null ? null : new EventRecurrenceRule
+    {
+        Frequency = rule.Frequency,
+        Interval = rule.Interval,
+        EndMode = rule.EndMode,
+        UntilDate = rule.UntilDate,
+        Count = rule.Count,
+        WeeklyDays = rule.WeeklyDays,
+        MonthlyDayOfMonth = rule.MonthlyDayOfMonth,
+        YearlyMonth = rule.YearlyMonth,
+        YearlyDayOfMonth = rule.YearlyDayOfMonth,
+        RawProviderRecurrenceRule = rule.RawProviderRecurrenceRule,
+        UnsupportedRecurrenceStatus = rule.UnsupportedRecurrenceStatus,
+        UnsupportedRecurrenceReason = rule.UnsupportedRecurrenceReason,
+    };
 
     private static void ApplySuccessfulMetadata(EventSource source, DateTimeOffset attemptUtc, string? providerSourceId)
     {

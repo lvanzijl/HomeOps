@@ -14,6 +14,7 @@ public sealed class EventSeries
     public DateOnly EndDate { get; set; }
     public TimeOnly? EndTime { get; set; }
     public RecurrenceType RecurrenceType { get; set; } = RecurrenceType.None;
+    public EventRecurrenceRule? RecurrenceRule { get; set; }
     public string? ProviderEventId { get; set; }
     public string? ProviderInstanceId { get; set; }
     public string? ProviderRevision { get; set; }

@@ -219,7 +219,162 @@ public sealed class CalendarPortabilityTests
 
         Assert.True(result.Succeeded);
         Assert.Contains(export.Calendar.EventSeries, candidate => candidate.Recurrence?.RuleType == nameof(RecurrenceType.Weekly));
-        Assert.Contains(export.Calendar.Exceptions, candidate => candidate.ExceptionType == "Skipped");
+        Assert.Contains(export.Calendar.Exceptions, candidate => candidate.ExceptionType == "Skipped" && candidate.OccurrenceKey == $"{series.StartDate.AddDays(7):yyyy-MM-dd}T{series.StartTime:HH:mm:ss}");
+    }
+
+
+    [Fact]
+    public async Task ExportRestoreRoundTripsRecurrenceV2RulesExceptionsAndUnsupportedMetadata()
+    {
+        await using var sourceDbContext = CreateDbContext("recurrence-v2-export-source");
+        var manualSeries = await sourceDbContext.EventSeries.FirstAsync();
+        manualSeries.RecurrenceType = RecurrenceType.None;
+        manualSeries.RecurrenceRule = new EventRecurrenceRule { Frequency = RecurrenceFrequency.Weekly, Interval = 2, EndMode = RecurrenceEndMode.AfterCount, Count = 4, WeeklyDays = WeeklyDays.Serialize([DayOfWeek.Monday, DayOfWeek.Wednesday]) };
+        var importedSource = AddFeedSource(sourceDbContext, "Unsupported Feed", enabled: true, DateTimeOffset.UtcNow);
+        var importedSeries = new EventSeries
+        {
+            Id = Guid.Parse("30000000-0000-0000-0000-000000000001"),
+            EventSourceId = importedSource.Id,
+            ProviderEventId = "unsupported-provider",
+            Title = "Unsupported imported",
+            StartDate = new DateOnly(2026, 7, 6),
+            StartTime = new TimeOnly(9, 0),
+            EndDate = new DateOnly(2026, 7, 6),
+            EndTime = new TimeOnly(10, 0),
+            RecurrenceRule = new EventRecurrenceRule { RawProviderRecurrenceRule = "FREQ=MONTHLY;BYDAY=1MO", UnsupportedRecurrenceStatus = UnsupportedRecurrenceStatus.Unsupported, UnsupportedRecurrenceReason = "unsupported BYDAY" },
+            CreatedUtc = SeedCalendarEvents.SeededUtc,
+            UpdatedUtc = SeedCalendarEvents.SeededUtc,
+        };
+        sourceDbContext.EventSeries.Add(importedSeries);
+        sourceDbContext.EventExceptions.Add(new EventException
+        {
+            Id = Guid.Parse("dddddddd-dddd-dddd-dddd-dddddddddddd"),
+            EventSeriesId = manualSeries.Id,
+            OccurrenceDate = manualSeries.StartDate.AddDays(2),
+            OccurrenceKey = OccurrenceKey.FromOriginalStart(manualSeries.StartDate.AddDays(2), manualSeries.StartTime),
+            ExceptionType = EventExceptionType.Modified,
+            IsSkipped = false,
+            Title = "Moved manual",
+            Location = "Library",
+            StartDate = manualSeries.StartDate.AddDays(3),
+            StartTime = new TimeOnly(11, 0),
+            EndDate = manualSeries.StartDate.AddDays(3),
+            EndTime = new TimeOnly(12, 0),
+            CreatedUtc = SeedCalendarEvents.SeededUtc,
+            UpdatedUtc = SeedCalendarEvents.SeededUtc,
+        });
+        await sourceDbContext.SaveChangesAsync();
+
+        var export = await CalendarPortabilityService.ExportAsync(sourceDbContext);
+        await using var targetDbContext = CreateDbContext("recurrence-v2-export-target");
+        var result = await CalendarPortabilityService.RestoreAsync(targetDbContext, export);
+
+        Assert.True(result.Succeeded);
+        var exportedManual = Assert.Single(export.Calendar.EventSeries, candidate => candidate.Id == manualSeries.Id);
+        Assert.Equal("Weekly", exportedManual.Recurrence?.Frequency);
+        Assert.Equal("Monday,Wednesday", exportedManual.Recurrence?.WeeklyDays);
+        var exportedImported = Assert.Single(export.Calendar.EventSeries, candidate => candidate.Id == importedSeries.Id);
+        Assert.Null(exportedImported.Recurrence?.Frequency);
+        Assert.Equal(nameof(UnsupportedRecurrenceStatus.Unsupported), exportedImported.Recurrence?.UnsupportedRecurrenceStatus);
+        Assert.Equal("FREQ=MONTHLY;BYDAY=1MO", exportedImported.Recurrence?.RawProviderRecurrenceRule);
+        Assert.Contains(export.Calendar.Exceptions, exception => exception.EventSeriesId == manualSeries.Id && exception.OccurrenceKey == OccurrenceKey.FromOriginalStart(manualSeries.StartDate.AddDays(2), manualSeries.StartTime).Serialize() && exception.Location == "Library");
+        var restoredManual = await targetDbContext.EventSeries.Include(series => series.Exceptions).SingleAsync(series => series.Id == manualSeries.Id);
+        Assert.Equal(RecurrenceFrequency.Weekly, restoredManual.RecurrenceRule!.Frequency);
+        Assert.Equal(2, restoredManual.RecurrenceRule.Interval);
+        var restoredException = Assert.Single(restoredManual.Exceptions);
+        Assert.Equal(EventExceptionType.Modified, restoredException.ExceptionType);
+        Assert.Equal("Library", restoredException.Location);
+        var restoredImported = await targetDbContext.EventSeries.SingleAsync(series => series.Id == importedSeries.Id);
+        Assert.Equal(UnsupportedRecurrenceStatus.Unsupported, restoredImported.RecurrenceRule!.UnsupportedRecurrenceStatus);
+        Assert.Equal("FREQ=MONTHLY;BYDAY=1MO", restoredImported.RecurrenceRule.RawProviderRecurrenceRule);
+    }
+
+
+    [Fact]
+    public async Task RestoreRejectsInvalidRecurrenceAndDuplicateOccurrenceKeys()
+    {
+        await using var dbContext = CreateDbContext("recurrence-v2-invalid-restore");
+        var export = await CalendarPortabilityService.ExportAsync(dbContext);
+        var series = export.Calendar.EventSeries.First();
+        var invalidSeries = series with
+        {
+            Recurrence = new CalendarExportRecurrence(
+                "Weekly",
+                string.Empty,
+                Frequency: "Weekly",
+                Interval: 1,
+                EndMode: "Never")
+        };
+        var key = $"{series.StartDate:yyyy-MM-dd}T{series.StartTime:HH:mm:ss}";
+        var duplicateA = new CalendarExportEventException(Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"), series.Id, series.StartDate, "Skipped", OccurrenceKey: key);
+        var duplicateB = new CalendarExportEventException(Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"), series.Id, series.StartDate, "Skipped", OccurrenceKey: key);
+        var invalid = export with
+        {
+            Calendar = export.Calendar with
+            {
+                EventSeries = export.Calendar.EventSeries.Select(candidate => candidate.Id == series.Id ? invalidSeries : candidate).ToArray(),
+                Exceptions = [duplicateA, duplicateB]
+            }
+        };
+
+        var result = await CalendarPortabilityService.RestoreAsync(dbContext, invalid);
+
+        Assert.False(result.Succeeded);
+        Assert.Contains(result.ValidationErrors.Keys, key => key.Contains("Recurrence", StringComparison.Ordinal));
+        Assert.Contains("Calendar.Exceptions.OccurrenceKey", result.ValidationErrors.Keys);
+    }
+
+
+    [Fact]
+    public async Task RestoreUsesSeriesStartTimeForLegacyExceptionOccurrenceKeyFallback()
+    {
+        await using var dbContext = CreateDbContext("legacy-exception-key-restore");
+        var export = await CalendarPortabilityService.ExportAsync(dbContext);
+        var series = export.Calendar.EventSeries.First();
+        var legacyException = new CalendarExportEventException(
+            Guid.Parse("44444444-4444-4444-4444-444444444444"),
+            series.Id,
+            series.StartDate.AddDays(7),
+            "Modified",
+            Title: "Moved legacy occurrence",
+            StartDate: series.StartDate.AddDays(8),
+            StartTime: new TimeOnly(14, 30),
+            EndDate: series.StartDate.AddDays(8),
+            EndTime: new TimeOnly(15, 30),
+            OccurrenceKey: null);
+        var legacyBackup = export with { Calendar = export.Calendar with { Exceptions = [legacyException] } };
+
+        var result = await CalendarPortabilityService.RestoreAsync(dbContext, legacyBackup);
+
+        Assert.True(result.Succeeded);
+        var restoredException = await dbContext.EventExceptions.SingleAsync(exception => exception.Id == legacyException.Id);
+        Assert.Equal(OccurrenceKey.FromOriginalStart(legacyException.OccurrenceDate, series.StartTime), restoredException.OccurrenceKey);
+    }
+
+    [Fact]
+    public async Task RestoreAllowsRecurrenceEndedBeforeFirstOccurrenceForSplitHistory()
+    {
+        await using var dbContext = CreateDbContext("ended-before-first-restore");
+        var export = await CalendarPortabilityService.ExportAsync(dbContext);
+        var series = export.Calendar.EventSeries.First();
+        var endedHistory = series with
+        {
+            Recurrence = new CalendarExportRecurrence(
+                "Daily",
+                string.Empty,
+                Frequency: "Daily",
+                Interval: 1,
+                EndMode: "OnDate",
+                UntilDate: series.StartDate.AddDays(-1))
+        };
+        var backup = export with { Calendar = export.Calendar with { EventSeries = export.Calendar.EventSeries.Select(candidate => candidate.Id == series.Id ? endedHistory : candidate).ToArray() } };
+
+        var result = await CalendarPortabilityService.RestoreAsync(dbContext, backup);
+
+        Assert.True(result.Succeeded);
+        var restored = await dbContext.EventSeries.SingleAsync(candidate => candidate.Id == series.Id);
+        Assert.Equal(RecurrenceEndMode.OnDate, restored.RecurrenceRule?.EndMode);
+        Assert.Equal(series.StartDate.AddDays(-1), restored.RecurrenceRule?.UntilDate);
     }
 
     [Fact]
@@ -240,7 +395,7 @@ public sealed class CalendarPortabilityTests
     }
 
     [Fact]
-    public async Task ExportIncludesManualEventsAndProviderConfigurationButExcludesImportedEvents()
+    public async Task ExportIncludesManualAndImportedEventsWithProviderConfiguration()
     {
         await using var dbContext = CreateDbContext("source-config-export");
         var now = DateTimeOffset.UtcNow;
@@ -264,7 +419,7 @@ public sealed class CalendarPortabilityTests
         var export = await CalendarPortabilityService.ExportAsync(dbContext);
 
         Assert.Contains(export.Calendar.EventSeries, candidate => candidate.Title == "Dentist Appointment");
-        Assert.DoesNotContain(export.Calendar.EventSeries, candidate => candidate.Title == "Imported hidden from backup");
+        Assert.Contains(export.Calendar.EventSeries, candidate => candidate.Title == "Imported hidden from backup" && candidate.ProviderEventId == "provider-event");
         var feedExport = Assert.Single(export.Calendar.EventSources, source => source.Id == feedSource.Id);
         Assert.Equal(EventSourceTypes.ICalFeed, feedExport.ProviderConfiguration?.ProviderType);
         Assert.Equal("https://example.test/family.ics", feedExport.ProviderConfiguration?.ICalFeed?.FeedUrl);
@@ -276,7 +431,7 @@ public sealed class CalendarPortabilityTests
     }
 
     [Fact]
-    public async Task RestorePreservesSourceConfigurationAndManualEventsButNotImportedEvents()
+    public async Task RestorePreservesSourceConfigurationManualEventsAndImportedEvents()
     {
         await using var sourceDbContext = CreateDbContext("source-config-restore-source");
         var now = DateTimeOffset.UtcNow;
@@ -303,7 +458,7 @@ public sealed class CalendarPortabilityTests
 
         Assert.True(result.Succeeded);
         Assert.Contains(await targetDbContext.EventSeries.ToListAsync(), candidate => candidate.Title == "Dentist Appointment" && candidate.ProviderEventId is null);
-        Assert.DoesNotContain(await targetDbContext.EventSeries.ToListAsync(), candidate => candidate.Title == "Imported not restored" || candidate.ProviderEventId is not null);
+        Assert.Contains(await targetDbContext.EventSeries.ToListAsync(), candidate => candidate.Title == "Imported not restored" && candidate.ProviderEventId == "provider-event");
         var restoredFeed = await targetDbContext.EventSources.Include(source => source.Configuration).SingleAsync(source => source.Id == feedSource.Id);
         Assert.True(restoredFeed.IsEnabled);
         Assert.Equal(HomeOps.Api.CalendarEvents.EventSourceHealthStatus.NeverSynced, restoredFeed.HealthStatus);

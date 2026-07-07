@@ -167,6 +167,21 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             entity.Property(eventSeries => eventSeries.EndTime).HasColumnType("time without time zone");
             entity.Property(eventSeries => eventSeries.IsAllDay).IsRequired();
             entity.Property(eventSeries => eventSeries.RecurrenceType).HasConversion<string>().HasMaxLength(16).IsRequired();
+            entity.OwnsOne(eventSeries => eventSeries.RecurrenceRule, rule =>
+            {
+                rule.Property(recurrence => recurrence.Frequency).HasColumnName("RecurrenceFrequency").HasConversion<string>().HasMaxLength(16);
+                rule.Property(recurrence => recurrence.Interval).HasColumnName("RecurrenceInterval");
+                rule.Property(recurrence => recurrence.EndMode).HasColumnName("RecurrenceEndMode").HasConversion<string>().HasMaxLength(16);
+                rule.Property(recurrence => recurrence.UntilDate).HasColumnName("RecurrenceUntilDate").HasColumnType("date");
+                rule.Property(recurrence => recurrence.Count).HasColumnName("RecurrenceCount");
+                rule.Property(recurrence => recurrence.WeeklyDays).HasColumnName("RecurrenceWeeklyDays").HasMaxLength(64);
+                rule.Property(recurrence => recurrence.MonthlyDayOfMonth).HasColumnName("RecurrenceMonthlyDayOfMonth");
+                rule.Property(recurrence => recurrence.YearlyMonth).HasColumnName("RecurrenceYearlyMonth");
+                rule.Property(recurrence => recurrence.YearlyDayOfMonth).HasColumnName("RecurrenceYearlyDayOfMonth");
+                rule.Property(recurrence => recurrence.RawProviderRecurrenceRule).HasColumnName("RawProviderRecurrenceRule").HasMaxLength(2000);
+                rule.Property(recurrence => recurrence.UnsupportedRecurrenceStatus).HasColumnName("UnsupportedRecurrenceStatus").HasConversion<string>().HasMaxLength(32);
+                rule.Property(recurrence => recurrence.UnsupportedRecurrenceReason).HasColumnName("UnsupportedRecurrenceReason").HasMaxLength(500);
+            });
             entity.Property(eventSeries => eventSeries.CreatedUtc).IsRequired();
             entity.Property(eventSeries => eventSeries.UpdatedUtc).IsRequired();
             entity.HasOne(eventSeries => eventSeries.EventSource)
@@ -216,20 +231,36 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             entity.ToTable("EventExceptions");
             entity.HasKey(exception => exception.Id);
             entity.Property(exception => exception.OccurrenceDate).HasColumnType("date").IsRequired();
+            entity.Property(exception => exception.OccurrenceKey)
+                .HasConversion(
+                    key => key.Serialize(),
+                    value => OccurrenceKey.Parse(value))
+                .HasMaxLength(32)
+                .IsRequired();
+            entity.Property(exception => exception.ExceptionType).HasConversion<string>().HasMaxLength(16).IsRequired();
             entity.Property(exception => exception.IsSkipped).IsRequired();
             entity.Property(exception => exception.Title).HasMaxLength(240);
             entity.Property(exception => exception.Description).HasMaxLength(1000);
+            entity.Property(exception => exception.Location).HasMaxLength(500);
+            entity.Property(exception => exception.IsAllDay);
             entity.Property(exception => exception.StartDate).HasColumnType("date");
             entity.Property(exception => exception.StartTime).HasColumnType("time without time zone");
             entity.Property(exception => exception.EndDate).HasColumnType("date");
             entity.Property(exception => exception.EndTime).HasColumnType("time without time zone");
+            entity.Property(exception => exception.RawProviderRecurrenceId).HasMaxLength(512);
+            entity.Property(exception => exception.NormalizedProviderRecurrenceId).HasMaxLength(512);
+            entity.Property(exception => exception.DetachedProviderEventId).HasMaxLength(512);
+            entity.Property(exception => exception.DetachedProviderRevision).HasMaxLength(512);
+            entity.Property(exception => exception.DetachedContentFingerprint).HasMaxLength(128);
+            entity.Property(exception => exception.RawDetachedRecurrenceMetadata).HasMaxLength(2000);
             entity.Property(exception => exception.CreatedUtc).IsRequired();
             entity.Property(exception => exception.UpdatedUtc).IsRequired();
             entity.HasOne(exception => exception.EventSeries)
                 .WithMany(series => series.Exceptions)
                 .HasForeignKey(exception => exception.EventSeriesId)
                 .OnDelete(DeleteBehavior.Cascade);
-            entity.HasIndex(exception => new { exception.EventSeriesId, exception.OccurrenceDate }).IsUnique();
+            entity.HasIndex(exception => new { exception.EventSeriesId, exception.OccurrenceDate });
+            entity.HasIndex(exception => new { exception.EventSeriesId, exception.OccurrenceKey }).IsUnique();
         });
 
 

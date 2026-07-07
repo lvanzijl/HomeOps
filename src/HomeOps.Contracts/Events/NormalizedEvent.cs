@@ -13,6 +13,10 @@ namespace HomeOps.Contracts.Events;
 /// <param name="ProviderEventId">Optional identifier assigned by an provider.</param>
 /// <param name="Description">Optional normalized description.</param>
 /// <param name="Location">Optional normalized location.</param>
+/// <param name="OccurrenceKey">Original generated occurrence key for recurring occurrences.</param>
+/// <param name="IsRecurring">Whether this occurrence belongs to a recurring series.</param>
+/// <param name="IsException">Whether this occurrence reflects an exception override.</param>
+/// <param name="Recurrence">Optional recurrence summary for recurring occurrences.</param>
 public sealed record NormalizedEvent(
     string Id,
     string SourceId,
@@ -23,4 +27,8 @@ public sealed record NormalizedEvent(
     bool Editable,
     string? ProviderEventId = null,
     string? Description = null,
-    string? Location = null);
+    string? Location = null,
+    string? OccurrenceKey = null,
+    bool IsRecurring = false,
+    bool IsException = false,
+    RecurrenceSummaryDto? Recurrence = null);

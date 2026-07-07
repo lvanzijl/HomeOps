@@ -13,7 +13,7 @@ public static class ICalendarParser
     private static readonly HashSet<string> SupportedEventProperties = new(StringComparer.OrdinalIgnoreCase)
     {
         "UID", "SUMMARY", "DESCRIPTION", "LOCATION", "DTSTART", "DTEND", "DURATION", "LAST-MODIFIED", "CREATED",
-        "SEQUENCE", "STATUS", "TRANSP", "RRULE", "DTSTAMP", "BEGIN", "END",
+        "SEQUENCE", "STATUS", "TRANSP", "RRULE", "EXDATE", "RECURRENCE-ID", "DTSTAMP", "BEGIN", "END",
     };
 
     public static ICalendarParseResult Parse(string? content)
@@ -47,7 +47,10 @@ public static class ICalendarParser
             return new ICalendarParseResult(events, diagnostics);
         }
 
-        foreach (var calendarEvent in calendar.Events)
+        var eventBlocks = ExtractEventBlocks(content);
+        var detachedBlocks = eventBlocks.Where(block => block.RecurrenceId is not null).GroupBy(block => block.Uid, StringComparer.Ordinal).ToDictionary(group => group.Key, group => group.ToList(), StringComparer.Ordinal);
+
+        foreach (var calendarEvent in calendar.Events.Where(candidate => GetPropertyValue(candidate, "RECURRENCE-ID") is null))
         {
             AddUnsupportedPropertyDiagnostics(calendarEvent, diagnostics);
 
@@ -69,7 +72,9 @@ public static class ICalendarParser
                 continue;
             }
 
-            var recurrenceType = MapRecurrence(calendarEvent, uid, diagnostics, out var rawRecurrenceRule);
+            var block = eventBlocks.FirstOrDefault(candidate => string.Equals(candidate.Uid, uid, StringComparison.Ordinal) && candidate.RecurrenceId is null);
+            var recurrenceRule = MapRecurrenceRule(calendarEvent, block, uid, startDate, startTime, diagnostics, out var recurrenceType, out var rawRecurrenceRule);
+            var exceptions = MapExceptions(uid, calendar, block, detachedBlocks.TryGetValue(uid, out var uidDetachedBlocks) ? uidDetachedBlocks : [], recurrenceRule, startTime, diagnostics);
             var createdUtc = ToUtcDateTime(calendarEvent.Created, uid, diagnostics, "CREATED");
             var lastModifiedUtc = ToUtcDateTime(calendarEvent.LastModified, uid, diagnostics, "LAST-MODIFIED");
             var title = string.IsNullOrWhiteSpace(calendarEvent.Summary) ? "Untitled event" : calendarEvent.Summary.Trim();
@@ -78,7 +83,7 @@ public static class ICalendarParser
             var providerRevision = BuildProviderRevision(calendarEvent.Sequence, lastModifiedUtc);
             var status = NormalizeOptionalText(calendarEvent.Status);
             var transparency = NormalizeOptionalText(calendarEvent.Transparency);
-            var fingerprint = BuildContentFingerprint(uid, title, description, location, startDate, startTime, endDate, endTime, isAllDay, recurrenceType, rawRecurrenceRule, status, transparency);
+            var fingerprint = BuildContentFingerprint(uid, title, description, location, startDate, startTime, endDate, endTime, isAllDay, recurrenceType, rawRecurrenceRule, status, transparency, string.Join("|", exceptions.Select(exception => $"{exception.OccurrenceKey.Serialize()}:{exception.ExceptionType}:{exception.DetachedContentFingerprint}:{exception.RawProviderRecurrenceId}")));
 
             events.Add(new NormalizedICalendarEvent(
                 ProviderEventId: uid,
@@ -98,7 +103,9 @@ public static class ICalendarParser
                 Status: status,
                 Transparency: transparency,
                 RecurrenceType: recurrenceType,
-                RawRecurrenceRule: rawRecurrenceRule));
+                RawRecurrenceRule: rawRecurrenceRule,
+                RecurrenceRule: recurrenceRule,
+                Exceptions: exceptions));
         }
 
         return new ICalendarParseResult(events, diagnostics);
@@ -347,37 +354,398 @@ public static class ICalendarParser
         return DateTime.SpecifyKind(new DateTime(value.Year, value.Month, value.Day, value.Hour, value.Minute, value.Second), DateTimeKind.Unspecified);
     }
 
-    private static RecurrenceType MapRecurrence(CalendarEvent calendarEvent, string uid, List<ICalendarParseDiagnostic> diagnostics, out string? rawRecurrenceRule)
+    private static EventRecurrenceRule? MapRecurrenceRule(CalendarEvent calendarEvent, ParsedEventBlock? block, string uid, DateOnly firstDate, TimeOnly? firstTime, List<ICalendarParseDiagnostic> diagnostics, out RecurrenceType recurrenceType, out string? rawRecurrenceRule)
     {
-        rawRecurrenceRule = calendarEvent.Properties.FirstOrDefault(property => string.Equals(property.Name, "RRULE", StringComparison.OrdinalIgnoreCase))?.Value?.ToString();
-        var rule = calendarEvent.RecurrenceRule;
-        if (rule is null)
+        recurrenceType = RecurrenceType.None;
+        rawRecurrenceRule = block?.RRule ?? calendarEvent.Properties.FirstOrDefault(property => string.Equals(property.Name, "RRULE", StringComparison.OrdinalIgnoreCase))?.Value?.ToString();
+        if (string.IsNullOrWhiteSpace(rawRecurrenceRule))
         {
-            return RecurrenceType.None;
+            return null;
         }
 
-        if (rule.Interval != 1 || rule.Count is not null || rule.Until is not null ||
-            rule.BySecond.Count > 0 || rule.ByMinute.Count > 0 || rule.ByHour.Count > 0 || rule.ByDay.Count > 0 ||
-            rule.ByMonthDay.Count > 0 || rule.ByYearDay.Count > 0 || rule.ByWeekNo.Count > 0 || rule.ByMonth.Count > 0 || rule.BySetPosition.Count > 0)
+        var tokens = ParsePropertyTokens(rawRecurrenceRule);
+        var unsupported = new List<string>();
+        if (!tokens.TryGetValue("FREQ", out var frequencyValue))
         {
-            diagnostics.Add(Warning("UnsupportedRecurrence", "VEVENT RRULE is not representable by the current HomeOps recurrence model.", uid, "RRULE"));
-            return RecurrenceType.None;
+            unsupported.Add("missing FREQ");
         }
 
-        return rule.Frequency switch
+        var rule = new EventRecurrenceRule { RawProviderRecurrenceRule = rawRecurrenceRule };
+        switch (frequencyValue?.ToUpperInvariant())
         {
-            FrequencyType.Daily => RecurrenceType.Daily,
-            FrequencyType.Weekly => RecurrenceType.Weekly,
-            FrequencyType.Monthly => RecurrenceType.Monthly,
-            FrequencyType.Yearly => RecurrenceType.Yearly,
-            _ => UnsupportedRecurrence(uid, diagnostics),
-        };
+            case "DAILY":
+                rule.Frequency = RecurrenceFrequency.Daily;
+                recurrenceType = RecurrenceType.Daily;
+                break;
+            case "WEEKLY":
+                rule.Frequency = RecurrenceFrequency.Weekly;
+                recurrenceType = RecurrenceType.Weekly;
+                break;
+            case "MONTHLY":
+                rule.Frequency = RecurrenceFrequency.Monthly;
+                recurrenceType = RecurrenceType.Monthly;
+                break;
+            case "YEARLY":
+                rule.Frequency = RecurrenceFrequency.Yearly;
+                recurrenceType = RecurrenceType.Yearly;
+                break;
+            default:
+                unsupported.Add("unsupported FREQ");
+                break;
+        }
+
+        rule.Interval = tokens.TryGetValue("INTERVAL", out var intervalValue) && int.TryParse(intervalValue, CultureInfo.InvariantCulture, out var interval) ? interval : 1;
+        if (rule.Interval <= 0)
+        {
+            unsupported.Add("non-positive INTERVAL");
+        }
+
+        if (tokens.ContainsKey("COUNT") && tokens.ContainsKey("UNTIL"))
+        {
+            unsupported.Add("COUNT and UNTIL together");
+        }
+        else if (tokens.TryGetValue("COUNT", out var countValue))
+        {
+            if (int.TryParse(countValue, CultureInfo.InvariantCulture, out var count) && count > 0)
+            {
+                rule.EndMode = RecurrenceEndMode.AfterCount;
+                rule.Count = count;
+            }
+            else
+            {
+                unsupported.Add("invalid COUNT");
+            }
+        }
+        else if (tokens.TryGetValue("UNTIL", out var untilValue))
+        {
+            if (TryParseIcalendarDate(untilValue, out var untilDate))
+            {
+                rule.EndMode = RecurrenceEndMode.OnDate;
+                rule.UntilDate = untilDate;
+            }
+            else
+            {
+                unsupported.Add("invalid UNTIL");
+            }
+        }
+
+        foreach (var key in tokens.Keys)
+        {
+            if (key is not ("FREQ" or "INTERVAL" or "COUNT" or "UNTIL" or "BYDAY" or "BYMONTHDAY" or "BYMONTH"))
+            {
+                unsupported.Add($"unsupported {key}");
+            }
+        }
+
+        ApplyByRuleFields(rule, tokens, firstDate, unsupported);
+        var validation = EventRecurrenceRuleValidation.Validate(rule, firstDate);
+        if (!validation.IsValid)
+        {
+            unsupported.AddRange(validation.Errors);
+        }
+
+        if (unsupported.Count > 0)
+        {
+            recurrenceType = RecurrenceType.None;
+            diagnostics.Add(Warning("UnsupportedRecurrence", $"VEVENT RRULE is not representable by HomeOps Recurrence V2: {string.Join(", ", unsupported.Distinct(StringComparer.Ordinal))}.", uid, "RRULE"));
+            return new EventRecurrenceRule
+            {
+                RawProviderRecurrenceRule = rawRecurrenceRule,
+                UnsupportedRecurrenceStatus = UnsupportedRecurrenceStatus.Unsupported,
+                UnsupportedRecurrenceReason = string.Join("; ", unsupported.Distinct(StringComparer.Ordinal)),
+            };
+        }
+
+        rule.UnsupportedRecurrenceStatus = UnsupportedRecurrenceStatus.Supported;
+        return rule;
     }
 
-    private static RecurrenceType UnsupportedRecurrence(string uid, List<ICalendarParseDiagnostic> diagnostics)
+    private static void ApplyByRuleFields(EventRecurrenceRule rule, Dictionary<string, string> tokens, DateOnly firstDate, List<string> unsupported)
     {
-        diagnostics.Add(Warning("UnsupportedRecurrence", "VEVENT RRULE frequency is not representable by the current HomeOps recurrence model.", uid, "RRULE"));
-        return RecurrenceType.None;
+        if (tokens.TryGetValue("BYDAY", out var byDay))
+        {
+            var values = byDay.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            if (rule.Frequency != RecurrenceFrequency.Weekly || values.Length == 0 || values.Any(value => value.Any(char.IsDigit)))
+            {
+                unsupported.Add("unsupported BYDAY");
+            }
+            else
+            {
+                try
+                {
+                    rule.WeeklyDays = WeeklyDays.Serialize(values.Select(ParseWeekday));
+                }
+                catch (ArgumentException exception)
+                {
+                    unsupported.Add(exception.Message);
+                }
+            }
+        }
+
+        if (tokens.TryGetValue("BYMONTHDAY", out var byMonthDay))
+        {
+            var values = byMonthDay.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            if (values.Length != 1 || !int.TryParse(values[0], CultureInfo.InvariantCulture, out var day) || day <= 0)
+            {
+                unsupported.Add("unsupported BYMONTHDAY");
+            }
+            else if (rule.Frequency == RecurrenceFrequency.Monthly)
+            {
+                rule.MonthlyDayOfMonth = day;
+            }
+            else if (rule.Frequency == RecurrenceFrequency.Yearly)
+            {
+                rule.YearlyDayOfMonth = day;
+            }
+            else
+            {
+                unsupported.Add("BYMONTHDAY unsupported for frequency");
+            }
+        }
+
+        if (tokens.TryGetValue("BYMONTH", out var byMonth))
+        {
+            var values = byMonth.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            if (rule.Frequency != RecurrenceFrequency.Yearly || values.Length != 1 || !int.TryParse(values[0], CultureInfo.InvariantCulture, out var month))
+            {
+                unsupported.Add("unsupported BYMONTH");
+            }
+            else
+            {
+                rule.YearlyMonth = month;
+            }
+        }
+
+        if (rule.Frequency == RecurrenceFrequency.Weekly && string.IsNullOrWhiteSpace(rule.WeeklyDays))
+        {
+            rule.WeeklyDays = WeeklyDays.Serialize([firstDate.DayOfWeek]);
+        }
+
+        if (rule.Frequency == RecurrenceFrequency.Monthly && rule.MonthlyDayOfMonth is null)
+        {
+            rule.MonthlyDayOfMonth = firstDate.Day;
+        }
+
+        if (rule.Frequency == RecurrenceFrequency.Yearly)
+        {
+            rule.YearlyMonth ??= firstDate.Month;
+            rule.YearlyDayOfMonth ??= firstDate.Day;
+        }
+    }
+
+    private static IReadOnlyList<NormalizedICalendarEventException> MapExceptions(string uid, IcalCalendar calendar, ParsedEventBlock? masterBlock, IReadOnlyList<ParsedEventBlock> detachedBlocks, EventRecurrenceRule? recurrenceRule, TimeOnly? masterStartTime, List<ICalendarParseDiagnostic> diagnostics)
+    {
+        if (recurrenceRule is null || recurrenceRule.UnsupportedRecurrenceStatus == UnsupportedRecurrenceStatus.Unsupported)
+        {
+            return [];
+        }
+
+        var exceptions = new List<NormalizedICalendarEventException>();
+        foreach (var exdate in masterBlock?.ExDates ?? [])
+        {
+            if (!TryParseIcalendarDate(exdate, out var exdateDate, out var exdateTime))
+            {
+                diagnostics.Add(Warning("UnsupportedExDate", "VEVENT EXDATE could not be mapped safely.", uid, "EXDATE"));
+                continue;
+            }
+
+            var key = OccurrenceKey.FromOriginalStart(exdateDate, exdateTime ?? masterStartTime);
+            exceptions.Add(new NormalizedICalendarEventException(key, EventExceptionType.Skipped, RawProviderRecurrenceId: exdate, NormalizedProviderRecurrenceId: key.Serialize()));
+        }
+
+        foreach (var detachedBlock in detachedBlocks)
+        {
+            var detachedSummary = GetRawBlockValue(detachedBlock.Raw, "SUMMARY");
+            var detachedEvent = calendar.Events.FirstOrDefault(candidate => string.Equals(candidate.Uid, uid, StringComparison.Ordinal) && GetPropertyValue(candidate, "RECURRENCE-ID") is not null && (detachedSummary is null || string.Equals(NormalizeOptionalText(candidate.Summary), detachedSummary, StringComparison.Ordinal)));
+            if (!TryParseIcalendarDate(detachedBlock.RecurrenceId!, out var recurrenceDate, out var recurrenceTime))
+            {
+                diagnostics.Add(Warning("UnsupportedRecurrenceId", "Detached VEVENT RECURRENCE-ID could not be mapped safely.", uid, "RECURRENCE-ID"));
+                continue;
+            }
+
+            var key = OccurrenceKey.FromOriginalStart(recurrenceDate, recurrenceTime ?? masterStartTime);
+            var isCancelled = string.Equals(detachedBlock.Status, "CANCELLED", StringComparison.OrdinalIgnoreCase);
+            if (isCancelled || detachedEvent is null)
+            {
+                exceptions.Add(new NormalizedICalendarEventException(key, EventExceptionType.Skipped, RawProviderRecurrenceId: detachedBlock.RecurrenceId, NormalizedProviderRecurrenceId: key.Serialize(), DetachedProviderEventId: uid, RawDetachedRecurrenceMetadata: detachedBlock.Raw));
+                continue;
+            }
+
+            if (!TryReadDateRange(detachedEvent, uid, diagnostics, out var startDate, out var startTime, out var endDate, out var endTime, out var isAllDay))
+            {
+                continue;
+            }
+
+            var title = string.IsNullOrWhiteSpace(detachedEvent.Summary) ? null : detachedEvent.Summary.Trim();
+            var description = NormalizeOptionalText(detachedEvent.Description);
+            var location = NormalizeOptionalText(detachedEvent.Location);
+            var lastModifiedUtc = ToUtcDateTime(detachedEvent.LastModified, uid, diagnostics, "LAST-MODIFIED");
+            var providerRevision = BuildProviderRevision(detachedEvent.Sequence, lastModifiedUtc);
+            var fingerprint = BuildContentFingerprint(uid, detachedBlock.RecurrenceId, title, description, location, startDate, startTime, endDate, endTime, isAllDay, detachedBlock.Status);
+            exceptions.Add(new NormalizedICalendarEventException(key, EventExceptionType.Modified, title, description, location, isAllDay, startDate, startTime, endDate, endTime, detachedBlock.RecurrenceId, key.Serialize(), uid, providerRevision, fingerprint, detachedBlock.Raw));
+        }
+
+        return exceptions.GroupBy(exception => exception.OccurrenceKey).Select(group => group.Last()).ToArray();
+    }
+
+    private static Dictionary<string, string> ParsePropertyTokens(string value)
+    {
+        var tokens = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var normalized = value.StartsWith("RRULE:", StringComparison.OrdinalIgnoreCase) ? value[6..] : value;
+        foreach (var part in normalized.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            var pair = part.Split('=', 2);
+            if (pair.Length == 2)
+            {
+                tokens[pair[0].Trim().ToUpperInvariant()] = pair[1].Trim();
+            }
+        }
+
+        return tokens;
+    }
+
+    private static bool TryParseIcalendarDate(string value, out DateOnly date) => TryParseIcalendarDate(value, out date, out _);
+
+    private static bool TryParseIcalendarDate(string value, out DateOnly date, out TimeOnly? time)
+    {
+        date = default;
+        time = null;
+        var normalized = value.Trim().TrimEnd('Z');
+        if (DateTime.TryParseExact(normalized, "yyyyMMdd'T'HHmmss", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dateTime))
+        {
+            date = DateOnly.FromDateTime(dateTime);
+            time = TimeOnly.FromDateTime(dateTime);
+            return true;
+        }
+
+        if (DateTime.TryParseExact(normalized, "yyyyMMdd", CultureInfo.InvariantCulture, DateTimeStyles.None, out dateTime))
+        {
+            date = DateOnly.FromDateTime(dateTime);
+            return true;
+        }
+
+        return false;
+    }
+
+    private static DayOfWeek ParseWeekday(string value) => value.ToUpperInvariant() switch
+    {
+        "MO" => DayOfWeek.Monday,
+        "TU" => DayOfWeek.Tuesday,
+        "WE" => DayOfWeek.Wednesday,
+        "TH" => DayOfWeek.Thursday,
+        "FR" => DayOfWeek.Friday,
+        "SA" => DayOfWeek.Saturday,
+        "SU" => DayOfWeek.Sunday,
+        _ => throw new ArgumentException($"Unsupported weekday '{value}'."),
+    };
+
+    private static IReadOnlyList<ParsedEventBlock> ExtractEventBlocks(string content)
+    {
+        var blocks = new List<ParsedEventBlock>();
+        var current = new List<string>();
+        var inEvent = false;
+        foreach (var rawLine in UnfoldLines(content))
+        {
+            if (rawLine.Equals("BEGIN:VEVENT", StringComparison.OrdinalIgnoreCase))
+            {
+                inEvent = true;
+                current = [rawLine];
+                continue;
+            }
+
+            if (!inEvent)
+            {
+                continue;
+            }
+
+            current.Add(rawLine);
+            if (rawLine.Equals("END:VEVENT", StringComparison.OrdinalIgnoreCase))
+            {
+                blocks.Add(ParseEventBlock(current));
+                inEvent = false;
+            }
+        }
+
+        return blocks;
+    }
+
+    private static IEnumerable<string> UnfoldLines(string content)
+    {
+        string? previous = null;
+        using var reader = new StringReader(content);
+        string? line;
+        while ((line = reader.ReadLine()) is not null)
+        {
+            if ((line.StartsWith(' ') || line.StartsWith('\t')) && previous is not null)
+            {
+                previous += line[1..];
+                continue;
+            }
+
+            if (previous is not null)
+            {
+                yield return previous;
+            }
+
+            previous = line;
+        }
+
+        if (previous is not null)
+        {
+            yield return previous;
+        }
+    }
+
+    private static ParsedEventBlock ParseEventBlock(IReadOnlyList<string> lines)
+    {
+        string? uid = null;
+        string? recurrenceId = null;
+        string? rrule = null;
+        string? status = null;
+        var exdates = new List<string>();
+        foreach (var line in lines)
+        {
+            var separatorIndex = line.IndexOf(':', StringComparison.Ordinal);
+            if (separatorIndex < 0)
+            {
+                continue;
+            }
+
+            var name = line[..separatorIndex].Split(';', 2)[0];
+            var value = line[(separatorIndex + 1)..].Trim();
+            if (name.Equals("UID", StringComparison.OrdinalIgnoreCase)) uid = value;
+            else if (name.Equals("RECURRENCE-ID", StringComparison.OrdinalIgnoreCase)) recurrenceId = value;
+            else if (name.Equals("RRULE", StringComparison.OrdinalIgnoreCase)) rrule = value;
+            else if (name.Equals("EXDATE", StringComparison.OrdinalIgnoreCase)) exdates.AddRange(value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+            else if (name.Equals("STATUS", StringComparison.OrdinalIgnoreCase)) status = value;
+        }
+
+        return new ParsedEventBlock(uid ?? string.Empty, recurrenceId, rrule, exdates, status, string.Join(Environment.NewLine, lines));
+    }
+
+    private sealed record ParsedEventBlock(string Uid, string? RecurrenceId, string? RRule, IReadOnlyList<string> ExDates, string? Status, string Raw);
+
+    private static string? GetPropertyValue(CalendarEvent calendarEvent, string propertyName) =>
+        calendarEvent.Properties.FirstOrDefault(property => string.Equals(property.Name, propertyName, StringComparison.OrdinalIgnoreCase))?.Value?.ToString();
+
+    private static string? GetRawBlockValue(string rawBlock, string propertyName)
+    {
+        foreach (var line in rawBlock.Split(Environment.NewLine))
+        {
+            var separatorIndex = line.IndexOf(':', StringComparison.Ordinal);
+            if (separatorIndex < 0)
+            {
+                continue;
+            }
+
+            var name = line[..separatorIndex].Split(';', 2)[0];
+            if (name.Equals(propertyName, StringComparison.OrdinalIgnoreCase))
+            {
+                return NormalizeOptionalText(line[(separatorIndex + 1)..]);
+            }
+        }
+
+        return null;
     }
 
     private static void AddUnsupportedPropertyDiagnostics(CalendarEvent calendarEvent, List<ICalendarParseDiagnostic> diagnostics)
