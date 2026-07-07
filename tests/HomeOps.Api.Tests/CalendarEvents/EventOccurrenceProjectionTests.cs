@@ -12,7 +12,7 @@ public sealed class EventOccurrenceProjectionTests
         var end = new DateTimeOffset(2026, 6, 18, 10, 15, 0, TimeSpan.Zero);
         var created = new DateTimeOffset(2026, 6, 19, 0, 0, 0, TimeSpan.Zero);
 
-        var series = EventOccurrenceProjector.FromRequest(id, SeedCalendarEvents.EventSourceId, "Dentist Appointment", "Routine check-up", start, end, false, created, created);
+        var series = EventOccurrenceProjector.FromRequest(id, SeedCalendarEvents.EventSourceId, "Dentist Appointment", "Routine check-up", null, start, end, false, created, created);
 
         Assert.Equal(id, series.Id);
         Assert.Equal(SeedCalendarEvents.EventSourceId, series.EventSourceId);
@@ -29,7 +29,7 @@ public sealed class EventOccurrenceProjectionTests
     public void ProjectsTimedEventSeriesToEditableOccurrence()
     {
         var start = new DateTimeOffset(2026, 6, 22, 12, 0, 0, TimeSpan.Zero);
-        var series = EventOccurrenceProjector.FromRequest(Guid.NewGuid(), SeedCalendarEvents.EventSourceId, "Lunch", "Cafe", start, start.AddHours(1), false, start, start);
+        var series = EventOccurrenceProjector.FromRequest(Guid.NewGuid(), SeedCalendarEvents.EventSourceId, "Lunch", "Cafe", null, start, start.AddHours(1), false, start, start);
 
         var occurrence = EventOccurrenceProjector.Project(series);
 
@@ -45,7 +45,7 @@ public sealed class EventOccurrenceProjectionTests
     {
         var start = new DateTimeOffset(2026, 7, 12, 0, 0, 0, TimeSpan.Zero);
         var end = new DateTimeOffset(2026, 7, 13, 0, 0, 0, TimeSpan.Zero);
-        var series = EventOccurrenceProjector.FromRequest(Guid.NewGuid(), SeedCalendarEvents.EventSourceId, "Day Off", null, start, end, true, start, start);
+        var series = EventOccurrenceProjector.FromRequest(Guid.NewGuid(), SeedCalendarEvents.EventSourceId, "Day Off", null, null, start, end, true, start, start);
 
         var occurrence = EventOccurrenceProjector.Project(series);
 
@@ -63,7 +63,7 @@ public sealed class EventOccurrenceProjectionTests
     {
         var start = new DateTimeOffset(2026, 7, 12, 0, 0, 0, TimeSpan.Zero);
         var exclusiveEnd = new DateTimeOffset(2026, 7, 19, 0, 0, 0, TimeSpan.Zero);
-        var series = EventOccurrenceProjector.FromRequest(Guid.NewGuid(), SeedCalendarEvents.EventSourceId, "Vacation", "Family trip", start, exclusiveEnd, true, start, start);
+        var series = EventOccurrenceProjector.FromRequest(Guid.NewGuid(), SeedCalendarEvents.EventSourceId, "Vacation", "Family trip", null, start, exclusiveEnd, true, start, start);
 
         var occurrence = EventOccurrenceProjector.Project(series);
 

@@ -27,6 +27,7 @@ public sealed class EventFrameworkModelTests
 
         var normalizedEvent = new NormalizedEvent(
             Id: "event-1",
+            EventSeriesId: "series-1",
             SourceId: "manual-events",
             Title: "Example household event",
             StartsAt: startsAt,
