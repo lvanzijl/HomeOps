@@ -46,7 +46,7 @@ public sealed class EventSeriesApiTests
         await using var factory = new HomeOpsWebApplicationFactory();
         var client = factory.CreateClient();
         var start = new DateTimeOffset(2026, 6, 22, 12, 0, 0, TimeSpan.Zero);
-        var create = new CreateEventSeriesRequest("Lunch", "Cafe", start, start.AddHours(1), false);
+        var create = new CreateEventSeriesRequest("Lunch", "Cafe", null, start, start.AddHours(1), false);
 
         var createResponse = await client.PostAsJsonAsync("/api/events", create);
         Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
@@ -54,7 +54,7 @@ public sealed class EventSeriesApiTests
         Assert.NotNull(created);
         Assert.Equal("Lunch", created.Title);
 
-        var update = new UpdateEventSeriesRequest("Updated Lunch", "Kitchen", start.AddHours(1), start.AddHours(2), false);
+        var update = new UpdateEventSeriesRequest("Updated Lunch", "Kitchen", null, start.AddHours(1), start.AddHours(2), false);
         var updateResponse = await client.PutAsJsonAsync($"/api/events/{created.Id}", update);
         Assert.Equal(HttpStatusCode.OK, updateResponse.StatusCode);
         var updated = await updateResponse.Content.ReadFromJsonAsync<EventSeriesDto>();
@@ -96,7 +96,7 @@ public sealed class EventSeriesApiTests
         }
 
         var start = new DateTimeOffset(2026, 6, 16, 19, 0, 0, TimeSpan.Zero);
-        var response = await client.PostAsJsonAsync("/api/events", new CreateEventSeriesRequest("Filmavond", null, start, start.AddHours(2), false));
+        var response = await client.PostAsJsonAsync("/api/events", new CreateEventSeriesRequest("Filmavond", null, null, start, start.AddHours(2), false));
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         var created = await response.Content.ReadFromJsonAsync<EventSeriesDto>();
@@ -113,7 +113,7 @@ public sealed class EventSeriesApiTests
         var start = new DateTimeOffset(2026, 7, 12, 0, 0, 0, TimeSpan.Zero);
         var exclusiveEnd = new DateTimeOffset(2026, 7, 19, 0, 0, 0, TimeSpan.Zero);
 
-        var response = await client.PostAsJsonAsync("/api/events", new CreateEventSeriesRequest("Vacation", "Family trip", start, exclusiveEnd, true));
+        var response = await client.PostAsJsonAsync("/api/events", new CreateEventSeriesRequest("Vacation", "Family trip", null, start, exclusiveEnd, true));
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         var created = await response.Content.ReadFromJsonAsync<EventSeriesDto>();
@@ -130,7 +130,7 @@ public sealed class EventSeriesApiTests
         var client = factory.CreateClient();
         var start = new DateTimeOffset(2026, 6, 22, 12, 0, 0, TimeSpan.Zero);
 
-        var response = await client.PostAsJsonAsync("/api/events", new CreateEventSeriesRequest(" ", null, start, start.AddHours(1), false));
+        var response = await client.PostAsJsonAsync("/api/events", new CreateEventSeriesRequest(" ", null, null, start, start.AddHours(1), false));
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         var body = await response.Content.ReadAsStringAsync();
@@ -144,7 +144,7 @@ public sealed class EventSeriesApiTests
         var client = factory.CreateClient();
         var start = new DateTimeOffset(2026, 6, 22, 12, 0, 0, TimeSpan.Zero);
 
-        var response = await client.PostAsJsonAsync("/api/events", new CreateEventSeriesRequest("Invalid Range", null, start, start.AddMinutes(-1), false));
+        var response = await client.PostAsJsonAsync("/api/events", new CreateEventSeriesRequest("Invalid Range", null, null, start, start.AddMinutes(-1), false));
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         var body = await response.Content.ReadAsStringAsync();
@@ -157,11 +157,11 @@ public sealed class EventSeriesApiTests
         await using var factory = new HomeOpsWebApplicationFactory();
         var client = factory.CreateClient();
         var start = new DateTimeOffset(2026, 6, 22, 12, 0, 0, TimeSpan.Zero);
-        var createResponse = await client.PostAsJsonAsync("/api/events", new CreateEventSeriesRequest("All Day", null, start, start.AddHours(1), true));
+        var createResponse = await client.PostAsJsonAsync("/api/events", new CreateEventSeriesRequest("All Day", null, null, start, start.AddHours(1), true));
         var created = await createResponse.Content.ReadFromJsonAsync<EventSeriesDto>();
         Assert.NotNull(created);
 
-        var response = await client.PutAsJsonAsync($"/api/events/{created.Id}", new UpdateEventSeriesRequest("All Day", null, start, start, true));
+        var response = await client.PutAsJsonAsync($"/api/events/{created.Id}", new UpdateEventSeriesRequest("All Day", null, null, start, start, true));
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }

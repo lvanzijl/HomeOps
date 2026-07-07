@@ -48,6 +48,7 @@ public static class EventSeriesNormalizer
             eventSeries.EventSourceId,
             eventSeries.Title,
             eventSeries.Description,
+            eventSeries.Location,
             occurrence.StartsAt,
             occurrence.EndsAt,
             eventSeries.IsAllDay,

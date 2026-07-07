@@ -4126,6 +4126,9 @@
           "id": {
             "type": "string"
           },
+          "eventSeriesId": {
+            "type": "string"
+          },
           "sourceId": {
             "type": "string"
           },
@@ -4217,6 +4220,10 @@
             "type": "string"
           },
           "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "location": {
             "type": "string",
             "nullable": true
           },
@@ -4358,6 +4365,10 @@
             "type": "string",
             "nullable": true
           },
+          "location": {
+            "type": "string",
+            "nullable": true
+          },
           "startUtc": {
             "type": "string",
             "format": "date-time"
@@ -4388,6 +4399,10 @@
             "type": "string"
           },
           "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "location": {
             "type": "string",
             "nullable": true
           },

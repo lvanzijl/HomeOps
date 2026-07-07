@@ -79,6 +79,7 @@ public sealed class CalendarSourceDomainContractsTests
     {
         var normalizedEvent = new NormalizedEvent(
             Id: "event-1",
+            EventSeriesId: "series-1",
             SourceId: "source-1",
             Title: "Training",
             StartsAt: DateTimeOffset.Parse("2026-07-05T10:00:00Z"),

@@ -4,6 +4,7 @@ namespace HomeOps.Contracts.Events;
 /// Generic event model normalized across future source types.
 /// </summary>
 /// <param name="Id">Stable HomeOps event identifier.</param>
+/// <param name="EventSeriesId">Owning HomeOps event series identifier.</param>
 /// <param name="SourceId">Owning HomeOps event source identifier.</param>
 /// <param name="Title">Display title.</param>
 /// <param name="StartsAt">Event start timestamp.</param>
@@ -19,6 +20,7 @@ namespace HomeOps.Contracts.Events;
 /// <param name="Recurrence">Optional recurrence summary for recurring occurrences.</param>
 public sealed record NormalizedEvent(
     string Id,
+    string EventSeriesId,
     string SourceId,
     string Title,
     DateTimeOffset StartsAt,

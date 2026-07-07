@@ -4968,6 +4968,70 @@ button {
   gap: 0.8rem;
 }
 
+.agenda-recurrence-section,
+.agenda-recurrence-fields,
+.agenda-weekday-picker,
+.agenda-occurrence-actions,
+.agenda-scope-actions {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.agenda-recurrence-section {
+  background: rgba(255, 255, 255, 0.52);
+  border: 1px solid color-mix(in srgb, var(--domain-border, #99f6e4) 74%, white);
+  border-radius: var(--radius-panel);
+  padding: 0.9rem;
+}
+
+.agenda-recurrence-fields {
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+}
+
+.agenda-weekday-picker {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.agenda-weekday-picker legend {
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.45rem;
+  text-transform: uppercase;
+}
+
+.agenda-weekday-picker label {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+  display: inline-flex;
+  gap: 0.45rem;
+  margin: 0 0.35rem 0.35rem 0;
+  padding: 0.5rem 0.75rem;
+}
+
+.agenda-recurrence-loading,
+.agenda-recurrence-hint {
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.agenda-occurrence-actions {
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+}
+
+.agenda-recurrence-summary p {
+  margin: 0;
+}
+
+.agenda-scope-actions {
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+}
+
 .task-dialog-summary {
   background: rgba(255, 255, 255, 0.66);
   border: 1px solid color-mix(in srgb, var(--domain-border, #99f6e4) 76%, white);
@@ -4982,6 +5046,13 @@ button {
   display: flex;
   gap: 0.75rem;
   justify-content: flex-end;
+}
+
+.agenda-status-info {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
 }
 
 .home-capture-dialog button:not(.icon-button),

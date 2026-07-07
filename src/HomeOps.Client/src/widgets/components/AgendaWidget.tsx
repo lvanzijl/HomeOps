@@ -7,9 +7,21 @@ import {
 import { loadAgendaWeather } from "../../agenda/agendaWeatherApi";
 import {
   createCalendarAgendaEvent,
+  deleteCalendarAgendaFutureOccurrences,
+  deleteCalendarAgendaOccurrence,
   deleteCalendarAgendaEvent,
+  getCalendarAgendaEventSeries,
   loadCalendarAgendaData,
+  restoreCalendarAgendaOccurrence,
+  skipCalendarAgendaOccurrence,
+  splitCalendarAgendaEventSeries,
   updateCalendarAgendaEvent,
+  updateCalendarAgendaOccurrence,
+  type CalendarEventSeriesDetails,
+  type EventRecurrenceEndMode,
+  type EventRecurrenceFrequency,
+  type EventRecurrenceRuleInput,
+  type EventRecurrenceWeekday,
   type EventSeriesInput,
 } from "../../agenda/calendarEventsApi";
 import { useAgendaLayerSettings } from "../../agenda/layerSettings";
@@ -37,18 +49,52 @@ type AgendaWorkspaceMode = "planning" | "month";
 type EventFormState = {
   title: string;
   description: string;
+  location: string;
   startsAt: string;
   endsAt: string;
   allDay: boolean;
+  recurrenceFrequency: EventRecurrenceFrequency;
+  recurrenceInterval: string;
+  recurrenceEndMode: EventRecurrenceEndMode;
+  recurrenceUntilDate: string;
+  recurrenceCount: string;
+  recurrenceWeeklyDays: EventRecurrenceWeekday[];
+  recurrenceMonthlyDayOfMonth: string;
+  recurrenceYearlyMonth: string;
+  recurrenceYearlyDayOfMonth: string;
+};
+
+type RecurringSaveScope = "single" | "future" | "series";
+
+type PendingRecurringSave = {
+  event: NormalizedEvent;
+  input: EventSeriesInput;
+  allowSingle: boolean;
+};
+
+type RecentSkippedOccurrence = {
+  eventSeriesId: string;
+  occurrenceKey: string;
+  title: string;
 };
 
 function createEmptyForm(date = todayIsoDate()): EventFormState {
   return {
     title: "",
     description: "",
+    location: "",
     startsAt: `${date}T09:00`,
     endsAt: `${date}T10:00`,
     allDay: false,
+    recurrenceFrequency: "None",
+    recurrenceInterval: "1",
+    recurrenceEndMode: "Never",
+    recurrenceUntilDate: "",
+    recurrenceCount: "",
+    recurrenceWeeklyDays: [],
+    recurrenceMonthlyDayOfMonth: `${new Date(`${date}T12:00:00`).getDate()}`,
+    recurrenceYearlyMonth: `${new Date(`${date}T12:00:00`).getMonth() + 1}`,
+    recurrenceYearlyDayOfMonth: `${new Date(`${date}T12:00:00`).getDate()}`,
   };
 }
 
@@ -69,10 +115,20 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
   const [form, setForm] = useState<EventFormState>(() => createEmptyForm(today));
   const [editingEventId, setEditingEventId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<NormalizedEvent | null>(null);
+  const [editingEventSeries, setEditingEventSeries] =
+    useState<CalendarEventSeriesDetails | null>(null);
+  const [isLoadingEventSeries, setIsLoadingEventSeries] = useState(false);
   const [deletingEventId, setDeletingEventId] = useState<string | null>(null);
   const [isEventFormOpen, setIsEventFormOpen] = useState(false);
   const [eventDialogQuestion, setEventDialogQuestion] =
     useState<EventDialogQuestion>("title");
+  const [pendingRecurringSave, setPendingRecurringSave] =
+    useState<PendingRecurringSave | null>(null);
+  const [deleteScopeEvent, setDeleteScopeEvent] =
+    useState<NormalizedEvent | null>(null);
+  const [recentlySkippedOccurrence, setRecentlySkippedOccurrence] =
+    useState<RecentSkippedOccurrence | null>(null);
 
   useEffect(() => {
     const previousToday = previousTodayRef.current;
@@ -81,6 +137,13 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
     setSelectedDate((current) => (current === previousToday ? today : current));
     previousTodayRef.current = today;
   }, [today]);
+
+  async function reloadCalendarEvents() {
+    const data = await loadCalendarAgendaData();
+    setCalendarSources(data.sources);
+    setCalendarEvents(data.events);
+    setErrorMessage(null);
+  }
 
   useEffect(() => {
     let isMounted = true;
@@ -164,17 +227,38 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
 
     setIsSaving(true);
     try {
-      const savedEvent = editingEventId
-        ? await updateCalendarAgendaEvent(editingEventId, input)
-        : await createCalendarAgendaEvent(input);
+      if (
+        editingEvent?.isRecurring &&
+        editingEvent.occurrenceKey &&
+        editingEvent.eventSeriesId
+      ) {
+        setPendingRecurringSave({
+          event: editingEvent,
+          input,
+          allowSingle: !didRecurrenceChange(
+            input.recurrenceRule,
+            editingEventSeries?.recurrenceRule,
+          ),
+        });
+      } else {
+        const savedEvent = editingEventId
+          ? await updateCalendarAgendaEvent(
+              editingEvent?.eventSeriesId ?? editingEventId,
+              input,
+            )
+          : await createCalendarAgendaEvent(input);
 
-      setCalendarEvents((current) => {
-        const withoutSaved = current.filter(
-          (calendarEvent) => calendarEvent.id !== savedEvent.id,
-        );
-        return [...withoutSaved, savedEvent];
-      });
-      closeEventForm();
+        setCalendarEvents((current) => {
+          const withoutSaved = current.filter(
+            (calendarEvent) => calendarEvent.id !== savedEvent.id,
+          );
+          return [...withoutSaved, savedEvent];
+        });
+        if (editingEventId) {
+          setEditingEvent(savedEvent);
+        }
+        closeEventForm();
+      }
       setErrorMessage(null);
     } catch (error: unknown) {
       setErrorMessage(
@@ -187,6 +271,10 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
 
   function closeEventForm() {
     setEditingEventId(null);
+    setEditingEvent(null);
+    setEditingEventSeries(null);
+    setPendingRecurringSave(null);
+    setIsLoadingEventSeries(false);
     setIsEventFormOpen(false);
     setEventDialogQuestion("title");
     setForm(createEmptyForm(today));
@@ -194,36 +282,209 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
 
   function openNewEventForm(date = selectedDate || today) {
     setEditingEventId(null);
+    setEditingEvent(null);
+    setEditingEventSeries(null);
     setSelectedDate(date);
     setForm(createEmptyForm(date));
     setEventDialogQuestion("title");
     setIsEventFormOpen(true);
   }
 
-  function startEditing(event: NormalizedEvent) {
+  async function startEditing(event: NormalizedEvent) {
     setEditingEventId(event.id);
+    setEditingEvent(event);
+    setEditingEventSeries(null);
     setIsEventFormOpen(true);
     setEventDialogQuestion("title");
     setForm({
       title: event.title,
       description: event.description ?? "",
+      location: event.location ?? "",
       startsAt: toDateTimeLocal(event.startsAt),
       endsAt: event.endsAt ? toDateTimeLocal(event.endsAt) : "",
       allDay: event.allDay,
+      recurrenceFrequency: "None",
+      recurrenceInterval: "1",
+      recurrenceEndMode: "Never",
+      recurrenceUntilDate: "",
+      recurrenceCount: "",
+      recurrenceWeeklyDays: [],
+      recurrenceMonthlyDayOfMonth: `${new Date(event.startsAt).getDate()}`,
+      recurrenceYearlyMonth: `${new Date(event.startsAt).getMonth() + 1}`,
+      recurrenceYearlyDayOfMonth: `${new Date(event.startsAt).getDate()}`,
     });
+
+    if (event.isRecurring && event.eventSeriesId) {
+      setIsLoadingEventSeries(true);
+      try {
+        const eventSeries = await getCalendarAgendaEventSeries(event.eventSeriesId);
+        setEditingEventSeries(eventSeries);
+        setForm((current) => applySeriesRecurrenceToForm(current, eventSeries));
+      } catch (error: unknown) {
+        setErrorMessage(
+          toUserFacingError(
+            error,
+            "De herhaalinstellingen konden niet worden geladen.",
+          ),
+        );
+      } finally {
+        setIsLoadingEventSeries(false);
+      }
+    }
   }
 
-  async function removeEvent(eventId: string) {
-    setDeletingEventId(eventId);
+  async function performRecurringSave(scope: RecurringSaveScope) {
+    if (
+      !pendingRecurringSave?.event.eventSeriesId ||
+      !pendingRecurringSave.event.occurrenceKey
+    ) {
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      if (scope === "single") {
+        await updateCalendarAgendaOccurrence(
+          pendingRecurringSave.event.eventSeriesId,
+          pendingRecurringSave.event.occurrenceKey,
+          pendingRecurringSave.input,
+        );
+      } else if (scope === "future") {
+        await splitCalendarAgendaEventSeries(
+          pendingRecurringSave.event.eventSeriesId,
+          pendingRecurringSave.event.occurrenceKey,
+          pendingRecurringSave.input,
+        );
+      } else {
+        await updateCalendarAgendaEvent(
+          pendingRecurringSave.event.eventSeriesId,
+          pendingRecurringSave.input,
+        );
+      }
+
+      await reloadCalendarEvents();
+      closeEventForm();
+      setErrorMessage(null);
+    } catch (error: unknown) {
+      setErrorMessage(
+        toUserFacingError(error, "De afspraak kon niet worden opgeslagen."),
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function skipOccurrence(event: NormalizedEvent) {
+    if (!event.eventSeriesId || !event.occurrenceKey) {
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      await skipCalendarAgendaOccurrence(event.eventSeriesId, event.occurrenceKey);
+      await reloadCalendarEvents();
+      setRecentlySkippedOccurrence({
+        eventSeriesId: event.eventSeriesId,
+        occurrenceKey: event.occurrenceKey,
+        title: event.title,
+      });
+      closeEventForm();
+      setErrorMessage(null);
+    } catch (error: unknown) {
+      setErrorMessage(
+        toUserFacingError(error, "Deze afspraak kon niet worden overgeslagen."),
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function restoreOccurrence(
+    eventSeriesId: string,
+    occurrenceKey: string,
+    closeDialog = false,
+  ) {
+    setIsSaving(true);
+    try {
+      await restoreCalendarAgendaOccurrence(eventSeriesId, occurrenceKey);
+      await reloadCalendarEvents();
+      setRecentlySkippedOccurrence((current) =>
+        current?.eventSeriesId === eventSeriesId &&
+        current.occurrenceKey === occurrenceKey
+          ? null
+          : current,
+      );
+      if (closeDialog) {
+        closeEventForm();
+      }
+      setErrorMessage(null);
+    } catch (error: unknown) {
+      setErrorMessage(
+        toUserFacingError(error, "Deze afspraak kon niet worden teruggezet."),
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  async function removeEvent(event: NormalizedEvent) {
+    if (event.isRecurring && event.eventSeriesId && event.occurrenceKey) {
+      setDeleteScopeEvent(event);
+      return;
+    }
+
+    const eventId = event.eventSeriesId ?? event.id;
+    setDeletingEventId(event.id);
     try {
       await deleteCalendarAgendaEvent(eventId);
       setCalendarEvents((current) =>
-        current.filter((event) => event.id !== eventId),
+        current.filter((currentEvent) => currentEvent.id !== event.id),
       );
       setErrorMessage(null);
     } catch (error: unknown) {
       setErrorMessage(
         toUserFacingError(error, "De gebeurtenis kon niet worden verwijderd."),
+      );
+    } finally {
+      setDeletingEventId(null);
+    }
+  }
+
+  async function deleteRecurringEvent(
+    event: NormalizedEvent,
+    scope: RecurringSaveScope,
+  ) {
+    if (!event.eventSeriesId || !event.occurrenceKey) {
+      return;
+    }
+
+    setDeletingEventId(event.id);
+    try {
+      if (scope === "single") {
+        await deleteCalendarAgendaOccurrence(
+          event.eventSeriesId,
+          event.occurrenceKey,
+        );
+        setRecentlySkippedOccurrence({
+          eventSeriesId: event.eventSeriesId,
+          occurrenceKey: event.occurrenceKey,
+          title: event.title,
+        });
+      } else if (scope === "future") {
+        await deleteCalendarAgendaFutureOccurrences(
+          event.eventSeriesId,
+          event.occurrenceKey,
+        );
+      } else {
+        await deleteCalendarAgendaEvent(event.eventSeriesId);
+      }
+
+      await reloadCalendarEvents();
+      setDeleteScopeEvent(null);
+      setErrorMessage(null);
+    } catch (error: unknown) {
+      setErrorMessage(
+        toUserFacingError(error, "De afspraak kon niet worden verwijderd."),
       );
     } finally {
       setDeletingEventId(null);
@@ -265,6 +526,24 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
                 <p className="agenda-status agenda-status-error" role="alert">
                   {errorMessage}
                 </p>
+              ) : null}
+              {recentlySkippedOccurrence ? (
+                <div className="agenda-status agenda-status-info" role="status">
+                  <span>{recentlySkippedOccurrence.title} is deze keer overgeslagen.</span>
+                  <button
+                    type="button"
+                    className="secondary-action"
+                    onClick={() =>
+                      restoreOccurrence(
+                        recentlySkippedOccurrence.eventSeriesId,
+                        recentlySkippedOccurrence.occurrenceKey,
+                      )
+                    }
+                    disabled={isSaving}
+                  >
+                    {isSaving ? "Terugzetten…" : "Deze keer terugzetten"}
+                  </button>
+                </div>
               ) : null}
               {activeWorkspaceMode === "month" ? (
                 <AgendaSourceSelector
@@ -310,15 +589,130 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
               </button>
             </header>
             <EventConversationForm
+              editingEvent={editingEvent}
+              editingEventSeries={editingEventSeries}
               form={form}
               isEditing={editingEventId !== null}
+              isLoadingEventSeries={isLoadingEventSeries}
               isSaving={isSaving}
               question={eventDialogQuestion}
               onChange={setForm}
               onQuestionChange={setEventDialogQuestion}
+              onRestoreOccurrence={() =>
+                editingEvent?.eventSeriesId && editingEvent.occurrenceKey
+                  ? restoreOccurrence(
+                      editingEvent.eventSeriesId,
+                      editingEvent.occurrenceKey,
+                      true,
+                    )
+                  : Promise.resolve()
+              }
+              onSkipOccurrence={() =>
+                editingEvent ? skipOccurrence(editingEvent) : Promise.resolve()
+              }
               onSubmit={handleSubmit}
               today={today}
             />
+          </section>
+        </div>
+      ) : null}
+
+      {pendingRecurringSave ? (
+        <div
+          className="avatar-editor-backdrop"
+          role="presentation"
+          onClick={() => setPendingRecurringSave(null)}
+        >
+          <section
+            className="home-capture-dialog domain-agenda"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Kies wat je wilt opslaan"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <header>
+              <div>
+                <p className="eyebrow">Herhalen</p>
+                <h3>Wat wil je aanpassen?</h3>
+              </div>
+            </header>
+            <div className="agenda-scope-actions">
+              {pendingRecurringSave.allowSingle ? (
+                <button
+                  type="button"
+                  onClick={() => performRecurringSave("single")}
+                  disabled={isSaving}
+                >
+                  {isSaving ? "Opslaan…" : "Alleen deze afspraak"}
+                </button>
+              ) : null}
+              <button
+                type="button"
+                onClick={() => performRecurringSave("future")}
+                disabled={isSaving}
+              >
+                {isSaving ? "Opslaan…" : "Deze en volgende afspraken"}
+              </button>
+              <button
+                type="button"
+                onClick={() => performRecurringSave("series")}
+                disabled={isSaving}
+              >
+                {isSaving ? "Opslaan…" : "Hele reeks"}
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
+
+      {deleteScopeEvent ? (
+        <div
+          className="avatar-editor-backdrop"
+          role="presentation"
+          onClick={() => setDeleteScopeEvent(null)}
+        >
+          <section
+            className="home-capture-dialog domain-agenda"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Kies wat je wilt verwijderen"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <header>
+              <div>
+                <p className="eyebrow">Verwijderen</p>
+                <h3>Welke afspraken mogen weg?</h3>
+              </div>
+            </header>
+            <div className="agenda-scope-actions">
+              <button
+                type="button"
+                onClick={() => deleteRecurringEvent(deleteScopeEvent, "single")}
+                disabled={deletingEventId === deleteScopeEvent.id}
+              >
+                {deletingEventId === deleteScopeEvent.id
+                  ? "Verwijderen…"
+                  : "Alleen deze afspraak"}
+              </button>
+              <button
+                type="button"
+                onClick={() => deleteRecurringEvent(deleteScopeEvent, "future")}
+                disabled={deletingEventId === deleteScopeEvent.id}
+              >
+                {deletingEventId === deleteScopeEvent.id
+                  ? "Verwijderen…"
+                  : "Deze en volgende afspraken"}
+              </button>
+              <button
+                type="button"
+                onClick={() => deleteRecurringEvent(deleteScopeEvent, "series")}
+                disabled={deletingEventId === deleteScopeEvent.id}
+              >
+                {deletingEventId === deleteScopeEvent.id
+                  ? "Verwijderen…"
+                  : "Hele reeks"}
+              </button>
+            </div>
           </section>
         </div>
       ) : null}
@@ -362,26 +756,45 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
 }
 
 function EventConversationForm({
+  editingEvent,
+  editingEventSeries,
   form,
   isEditing,
+  isLoadingEventSeries,
   isSaving,
   question,
   onChange,
   onQuestionChange,
+  onRestoreOccurrence,
+  onSkipOccurrence,
   onSubmit,
   today,
 }: {
+  editingEvent: NormalizedEvent | null;
+  editingEventSeries: CalendarEventSeriesDetails | null;
   form: EventFormState;
   isEditing: boolean;
+  isLoadingEventSeries: boolean;
   isSaving: boolean;
   question: EventDialogQuestion;
   onChange: (form: EventFormState) => void;
   onQuestionChange: (question: EventDialogQuestion) => void;
+  onRestoreOccurrence: () => Promise<void>;
+  onSkipOccurrence: () => Promise<void>;
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
   today: string;
 }) {
   const titleIsValid = form.title.trim().length > 0;
   const submitLabel = isEditing ? "Afspraak opslaan" : "Afspraak maken";
+  const recurrenceSummaryLines = buildRecurrenceSummary(form);
+  const canSkipOccurrence = Boolean(
+    editingEvent?.isRecurring && editingEvent.eventSeriesId && editingEvent.occurrenceKey,
+  );
+  const canRestoreOccurrence = Boolean(
+    editingEvent?.isException &&
+      editingEvent.eventSeriesId &&
+      editingEvent.occurrenceKey,
+  );
 
   return (
     <form
@@ -541,7 +954,241 @@ function EventConversationForm({
                 placeholder="Notitie"
               />
             </label>
+            <label className="task-conversation-question">
+              <span>Waar is het?</span>
+              <input
+                value={form.location}
+                onChange={(event) =>
+                  onChange({ ...form, location: event.target.value })
+                }
+                placeholder="Locatie"
+              />
+            </label>
+            <section className="agenda-recurrence-section" aria-label="Herhalen">
+              <label className="task-conversation-question compact">
+                <span>Herhalen</span>
+                <select
+                  aria-label="Herhaalfrequentie"
+                  value={form.recurrenceFrequency}
+                  onChange={(event) =>
+                    onChange(
+                      setRecurrenceFrequency(
+                        form,
+                        event.target.value as EventRecurrenceFrequency,
+                      ),
+                    )
+                  }
+                  disabled={isLoadingEventSeries}
+                >
+                  <option value="None">Niet herhalen</option>
+                  <option value="Daily">Dagelijks</option>
+                  <option value="Weekly">Wekelijks</option>
+                  <option value="Monthly">Maandelijks</option>
+                  <option value="Yearly">Jaarlijks</option>
+                </select>
+              </label>
+              {isLoadingEventSeries ? (
+                <p className="agenda-recurrence-loading" role="status">
+                  Herhaalinstellingen laden…
+                </p>
+              ) : null}
+              {form.recurrenceFrequency !== "None" ? (
+                <div className="agenda-recurrence-fields">
+                  <label className="task-conversation-question compact">
+                    <span>Hoe vaak</span>
+                    <input
+                      aria-label="Hoe vaak"
+                      type="number"
+                      min="1"
+                      step="1"
+                      value={form.recurrenceInterval}
+                      onChange={(event) =>
+                        onChange({
+                          ...form,
+                          recurrenceInterval: event.target.value,
+                        })
+                      }
+                    />
+                  </label>
+
+                  {form.recurrenceFrequency === "Weekly" ? (
+                    <fieldset className="agenda-weekday-picker">
+                      <legend>Kies minstens één weekdag</legend>
+                      {weekdayOptions.map((weekday) => (
+                        <label key={weekday.value}>
+                          <input
+                            aria-label={weekday.label}
+                            type="checkbox"
+                            checked={form.recurrenceWeeklyDays.includes(
+                              weekday.value,
+                            )}
+                            onChange={() =>
+                              onChange(toggleWeeklyDay(form, weekday.value))
+                            }
+                          />
+                          <span>{weekday.label}</span>
+                        </label>
+                      ))}
+                    </fieldset>
+                  ) : null}
+
+                  {form.recurrenceFrequency === "Monthly" ? (
+                    <label className="task-conversation-question compact">
+                      <span>Dag van de maand</span>
+                      <input
+                        aria-label="Dag van de maand"
+                        type="number"
+                        min="1"
+                        max="31"
+                        value={form.recurrenceMonthlyDayOfMonth}
+                        onChange={(event) =>
+                          onChange({
+                            ...form,
+                            recurrenceMonthlyDayOfMonth: event.target.value,
+                          })
+                        }
+                      />
+                    </label>
+                  ) : null}
+
+                  {form.recurrenceFrequency === "Yearly" ? (
+                    <div className="agenda-time-grid">
+                      <label className="task-conversation-question compact">
+                        <span>Maand</span>
+                        <select
+                          aria-label="Maand"
+                          value={form.recurrenceYearlyMonth}
+                          onChange={(event) =>
+                            onChange({
+                              ...form,
+                              recurrenceYearlyMonth: event.target.value,
+                            })
+                          }
+                        >
+                          {monthOptions.map((month) => (
+                            <option key={month.value} value={month.value}>
+                              {month.label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="task-conversation-question compact">
+                        <span>Dag</span>
+                        <input
+                          aria-label="Dag"
+                          type="number"
+                          min="1"
+                          max="31"
+                          value={form.recurrenceYearlyDayOfMonth}
+                          onChange={(event) =>
+                            onChange({
+                              ...form,
+                              recurrenceYearlyDayOfMonth: event.target.value,
+                            })
+                          }
+                        />
+                      </label>
+                    </div>
+                  ) : null}
+
+                  <label className="task-conversation-question compact">
+                    <span>Eindigt</span>
+                    <select
+                      aria-label="Eindigt"
+                      value={form.recurrenceEndMode}
+                      onChange={(event) =>
+                        onChange({
+                          ...form,
+                          recurrenceEndMode: event.target.value as EventRecurrenceEndMode,
+                        })
+                      }
+                    >
+                      <option value="Never">Nooit</option>
+                      <option value="OnDate">Op datum</option>
+                      <option value="AfterCount">Na aantal keer</option>
+                    </select>
+                  </label>
+
+                  {form.recurrenceEndMode === "OnDate" ? (
+                    <label className="task-conversation-question compact">
+                      <span>Einddatum</span>
+                      <input
+                        aria-label="Einddatum"
+                        type="date"
+                        value={form.recurrenceUntilDate}
+                        onChange={(event) =>
+                          onChange({
+                            ...form,
+                            recurrenceUntilDate: event.target.value,
+                          })
+                        }
+                      />
+                    </label>
+                  ) : null}
+
+                  {form.recurrenceEndMode === "AfterCount" ? (
+                    <label className="task-conversation-question compact">
+                      <span>Aantal keer</span>
+                      <input
+                        aria-label="Aantal keer"
+                        type="number"
+                        min="1"
+                        step="1"
+                        value={form.recurrenceCount}
+                        onChange={(event) =>
+                          onChange({
+                            ...form,
+                            recurrenceCount: event.target.value,
+                          })
+                        }
+                      />
+                    </label>
+                  ) : null}
+                </div>
+              ) : null}
+            </section>
+            {editingEventSeries?.recurrenceRule &&
+            editingEvent?.isRecurring &&
+            didRecurrenceChange(
+              toEventSeriesInput(form).recurrenceRule,
+              editingEventSeries.recurrenceRule,
+            ) ? (
+              <p className="agenda-recurrence-hint">
+                Herhaalinstellingen horen bij de reeks. Je kiest straks welke
+                afspraken je wilt aanpassen.
+              </p>
+            ) : null}
+            {canSkipOccurrence || canRestoreOccurrence ? (
+              <div className="agenda-occurrence-actions">
+                {canSkipOccurrence ? (
+                  <button
+                    type="button"
+                    onClick={() => void onSkipOccurrence()}
+                    disabled={isSaving}
+                  >
+                    {isSaving ? "Overslaan…" : "Deze keer overslaan"}
+                  </button>
+                ) : null}
+                {canRestoreOccurrence ? (
+                  <button
+                    type="button"
+                    className="secondary-action"
+                    onClick={() => void onRestoreOccurrence()}
+                    disabled={isSaving}
+                  >
+                    {isSaving ? "Terugzetten…" : "Deze keer terugzetten"}
+                  </button>
+                ) : null}
+              </div>
+            ) : null}
             <p className="task-dialog-summary">{eventSummary(form)}</p>
+            {recurrenceSummaryLines.length > 0 ? (
+              <div className="task-dialog-summary agenda-recurrence-summary">
+                {recurrenceSummaryLines.map((line) => (
+                  <p key={line}>{line}</p>
+                ))}
+              </div>
+            ) : null}
           </div>
         ) : null}
       </div>
@@ -632,7 +1279,7 @@ function PlanningWorkspace({
   events: ReturnType<typeof hydrateAgendaEvents>;
   nowIso: string;
   onAddEvent: (date?: string) => void;
-  onDelete: (eventId: string) => void;
+  onDelete: (event: NormalizedEvent) => void;
   onEdit: (event: NormalizedEvent) => void;
   onOpenMonth: () => void;
   onToggleSource: (sourceId: string, enabled: boolean) => void;
@@ -728,7 +1375,7 @@ function TodayBriefingCard({
   briefing: PlanningBriefing["today"];
   dayWeather: WeatherTemperatureDisplay | null;
   deletingEventId: string | null;
-  onDelete: (eventId: string) => void;
+  onDelete: (event: NormalizedEvent) => void;
   onEdit: (event: NormalizedEvent) => void;
   selectedEventId: string | null;
   setSelectedEventId: (eventId: string | null) => void;
@@ -825,7 +1472,7 @@ function PlanningWeekCard({
   agendaWeatherSlots: AgendaWeatherSlotProjection[];
   deletingEventId: string | null;
   nowIso: string;
-  onDelete: (eventId: string) => void;
+  onDelete: (event: NormalizedEvent) => void;
   onEdit: (event: NormalizedEvent) => void;
   selectedEventId: string | null;
   setSelectedEventId: (eventId: string | null) => void;
@@ -924,7 +1571,7 @@ function PlanningOutlookCard({
   agendaWeatherSlots: AgendaWeatherSlotProjection[];
   deletingEventId: string | null;
   nowIso: string;
-  onDelete: (eventId: string) => void;
+  onDelete: (event: NormalizedEvent) => void;
   onEdit: (event: NormalizedEvent) => void;
   outlook: PlanningBriefing["outlook"];
   selectedEventId: string | null;
@@ -1070,7 +1717,7 @@ function PlanningEventRow({
   event: ReturnType<typeof hydrateAgendaEvents>[number];
   extra?: string;
   mode: "lead" | "today" | "compact";
-  onDelete: (eventId: string) => void;
+  onDelete: (event: NormalizedEvent) => void;
   onEdit: (event: NormalizedEvent) => void;
   selected: boolean;
   setSelectedEventId: (eventId: string | null) => void;
@@ -1129,7 +1776,7 @@ function PlanningEventRow({
           <button
             type="button"
             disabled={deletingEventId === event.id}
-            onClick={() => onDelete(event.id)}
+            onClick={() => onDelete(event)}
           >
             {deletingEventId === event.id ? "Verwijderen…" : "Verwijderen"}
           </button>
@@ -1151,7 +1798,7 @@ function WeekWorkspace({
   anchorDate: string;
   deletingEventId: string | null;
   events: ReturnType<typeof hydrateAgendaEvents>;
-  onDelete: (eventId: string) => void;
+  onDelete: (event: NormalizedEvent) => void;
   onEdit: (event: NormalizedEvent) => void;
   onNavigate: (date: string) => void;
   today: string;
@@ -1235,7 +1882,7 @@ function WeekDayCard({
   deletingEventId: string | null;
   events: ReturnType<typeof hydrateAgendaEvents>;
   isToday: boolean;
-  onDelete: (eventId: string) => void;
+  onDelete: (event: NormalizedEvent) => void;
   onEdit: (event: NormalizedEvent) => void;
 }) {
   const visibleIndicators = events.slice(0, maxMonthIndicators);
@@ -1313,7 +1960,7 @@ function MonthWorkspace({
   events: ReturnType<typeof hydrateAgendaEvents>;
   isEmpty: boolean;
   onAddEvent: (date?: string) => void;
-  onDelete: (eventId: string) => void;
+  onDelete: (event: NormalizedEvent) => void;
   onEdit: (event: NormalizedEvent) => void;
   onSelectDate: (date: string) => void;
   selectedDate: string;
@@ -1451,7 +2098,7 @@ function SelectedDayPanel({
   events: ReturnType<typeof hydrateAgendaEvents>;
   isAgendaEmpty: boolean;
   onAddEvent: () => void;
-  onDelete: (eventId: string) => void;
+  onDelete: (event: NormalizedEvent) => void;
   onEdit: (event: NormalizedEvent) => void;
   selectedDate: string;
 }) {
@@ -1498,7 +2145,7 @@ function AgendaEventList({
   agendaWeatherSlots?: AgendaWeatherSlotProjection[];
   deletingEventId: string | null;
   events: ReturnType<typeof hydrateAgendaEvents>;
-  onDelete: (eventId: string) => void;
+  onDelete: (event: NormalizedEvent) => void;
   onEdit: (event: NormalizedEvent) => void;
 }) {
   return (
@@ -1537,7 +2184,7 @@ function AgendaEventList({
                 <button
                   type="button"
                   disabled={deletingEventId === event.id}
-                  onClick={() => onDelete(event.id)}
+                  onClick={() => onDelete(event)}
                 >
                   {deletingEventId === event.id
                     ? "Verwijderen…"
@@ -1553,12 +2200,47 @@ function AgendaEventList({
 }
 
 function toEventSeriesInput(form: EventFormState): EventSeriesInput {
+  const recurrenceRule =
+    form.recurrenceFrequency === "None"
+      ? undefined
+      : {
+          frequency: form.recurrenceFrequency,
+          interval: Number(form.recurrenceInterval || "1"),
+          endMode: form.recurrenceEndMode,
+          untilDate:
+            form.recurrenceEndMode === "OnDate"
+              ? form.recurrenceUntilDate
+              : undefined,
+          count:
+            form.recurrenceEndMode === "AfterCount"
+              ? Number(form.recurrenceCount || "0")
+              : undefined,
+          weeklyDays:
+            form.recurrenceFrequency === "Weekly"
+              ? form.recurrenceWeeklyDays
+              : undefined,
+          monthlyDayOfMonth:
+            form.recurrenceFrequency === "Monthly"
+              ? Number(form.recurrenceMonthlyDayOfMonth || "0")
+              : undefined,
+          yearlyMonth:
+            form.recurrenceFrequency === "Yearly"
+              ? Number(form.recurrenceYearlyMonth || "0")
+              : undefined,
+          yearlyDayOfMonth:
+            form.recurrenceFrequency === "Yearly"
+              ? Number(form.recurrenceYearlyDayOfMonth || "0")
+              : undefined,
+        } satisfies EventRecurrenceRuleInput;
+
   return {
     title: form.title.trim(),
     description: form.description.trim() || undefined,
+    location: form.location.trim() || undefined,
     startsAt: toApiDateValue(form.startsAt, form.allDay),
     endsAt: form.endsAt ? toApiDateValue(form.endsAt, form.allDay) : undefined,
     allDay: form.allDay,
+    recurrenceRule,
   };
 }
 
@@ -1585,6 +2267,61 @@ function validateEventForm(form: EventFormState): string | null {
 
   if (input.endsAt && new Date(input.endsAt) < new Date(input.startsAt)) {
     return "De eindtijd moet gelijk aan of na de begintijd zijn.";
+  }
+
+  if (!input.recurrenceRule) {
+    return null;
+  }
+
+  if (!Number.isInteger(input.recurrenceRule.interval) || input.recurrenceRule.interval <= 0) {
+    return "Vul in hoe vaak deze afspraak zich herhaalt.";
+  }
+
+  if (
+    input.recurrenceRule.frequency === "Weekly" &&
+    (!input.recurrenceRule.weeklyDays ||
+      input.recurrenceRule.weeklyDays.length === 0)
+  ) {
+    return "Kies minstens één weekdag.";
+  }
+
+  if (
+    input.recurrenceRule.frequency === "Monthly" &&
+    (!input.recurrenceRule.monthlyDayOfMonth ||
+      input.recurrenceRule.monthlyDayOfMonth < 1 ||
+      input.recurrenceRule.monthlyDayOfMonth > 31)
+  ) {
+    return "Kies een geldige datum.";
+  }
+
+  if (input.recurrenceRule.frequency === "Yearly") {
+    const month = input.recurrenceRule.yearlyMonth ?? 0;
+    const day = input.recurrenceRule.yearlyDayOfMonth ?? 0;
+    if (
+      month < 1 ||
+      month > 12 ||
+      day < 1 ||
+      day > 31 ||
+      !isValidMonthDay(month, day)
+    ) {
+      return "Kies een geldige datum.";
+    }
+  }
+
+  if (input.recurrenceRule.endMode === "OnDate") {
+    if (!input.recurrenceRule.untilDate) {
+      return "Kies een geldige datum.";
+    }
+
+    if (input.recurrenceRule.untilDate < getEventDate(form)) {
+      return "Kies een geldige datum.";
+    }
+  }
+
+  if (input.recurrenceRule.endMode === "AfterCount") {
+    if (!input.recurrenceRule.count || input.recurrenceRule.count <= 0) {
+      return "Vul in hoe vaak deze afspraak zich herhaalt.";
+    }
   }
 
   return null;
@@ -1674,6 +2411,135 @@ function setAllDayEndDate(form: EventFormState, date: string): EventFormState {
   };
 }
 
+const weekdayOptions: Array<{
+  value: EventRecurrenceWeekday;
+  label: string;
+}> = [
+  { value: "Monday", label: "Ma" },
+  { value: "Tuesday", label: "Di" },
+  { value: "Wednesday", label: "Wo" },
+  { value: "Thursday", label: "Do" },
+  { value: "Friday", label: "Vr" },
+  { value: "Saturday", label: "Za" },
+  { value: "Sunday", label: "Zo" },
+];
+
+const monthOptions = [
+  "januari",
+  "februari",
+  "maart",
+  "april",
+  "mei",
+  "juni",
+  "juli",
+  "augustus",
+  "september",
+  "oktober",
+  "november",
+  "december",
+].map((label, index) => ({ value: `${index + 1}`, label }));
+
+function setRecurrenceFrequency(
+  form: EventFormState,
+  frequency: EventRecurrenceFrequency,
+): EventFormState {
+  if (frequency === "None") {
+    return {
+      ...form,
+      recurrenceFrequency: "None",
+      recurrenceInterval: "1",
+      recurrenceEndMode: "Never",
+      recurrenceUntilDate: "",
+      recurrenceCount: "",
+      recurrenceWeeklyDays: [],
+    };
+  }
+
+  const eventDate = new Date(`${getEventDate(form)}T12:00:00`);
+  return {
+    ...form,
+    recurrenceFrequency: frequency,
+    recurrenceInterval: form.recurrenceInterval || "1",
+    recurrenceWeeklyDays:
+      frequency === "Weekly"
+        ? form.recurrenceWeeklyDays.length > 0
+          ? form.recurrenceWeeklyDays
+          : [weekdayValueFromDate(eventDate)]
+        : [],
+    recurrenceMonthlyDayOfMonth: `${eventDate.getDate()}`,
+    recurrenceYearlyMonth: `${eventDate.getMonth() + 1}`,
+    recurrenceYearlyDayOfMonth: `${eventDate.getDate()}`,
+  };
+}
+
+function toggleWeeklyDay(
+  form: EventFormState,
+  weekday: EventRecurrenceWeekday,
+): EventFormState {
+  return {
+    ...form,
+    recurrenceWeeklyDays: form.recurrenceWeeklyDays.includes(weekday)
+      ? form.recurrenceWeeklyDays.filter((current) => current !== weekday)
+      : [...form.recurrenceWeeklyDays, weekday],
+  };
+}
+
+function applySeriesRecurrenceToForm(
+  form: EventFormState,
+  eventSeries: CalendarEventSeriesDetails,
+): EventFormState {
+  const recurrenceRule = eventSeries.recurrenceRule;
+  if (!recurrenceRule) {
+    return setRecurrenceFrequency(form, "None");
+  }
+
+  return {
+    ...form,
+    recurrenceFrequency: recurrenceRule.frequency,
+    recurrenceInterval: `${recurrenceRule.interval}`,
+    recurrenceEndMode: recurrenceRule.endMode,
+    recurrenceUntilDate: recurrenceRule.untilDate ?? "",
+    recurrenceCount: recurrenceRule.count ? `${recurrenceRule.count}` : "",
+    recurrenceWeeklyDays: recurrenceRule.weeklyDays ?? [],
+    recurrenceMonthlyDayOfMonth: recurrenceRule.monthlyDayOfMonth
+      ? `${recurrenceRule.monthlyDayOfMonth}`
+      : form.recurrenceMonthlyDayOfMonth,
+    recurrenceYearlyMonth: recurrenceRule.yearlyMonth
+      ? `${recurrenceRule.yearlyMonth}`
+      : form.recurrenceYearlyMonth,
+    recurrenceYearlyDayOfMonth: recurrenceRule.yearlyDayOfMonth
+      ? `${recurrenceRule.yearlyDayOfMonth}`
+      : form.recurrenceYearlyDayOfMonth,
+  };
+}
+
+function didRecurrenceChange(
+  left?: EventRecurrenceRuleInput | null,
+  right?: EventRecurrenceRuleInput | null,
+): boolean {
+  return JSON.stringify(normalizeRecurrenceForCompare(left)) !== JSON.stringify(normalizeRecurrenceForCompare(right));
+}
+
+function normalizeRecurrenceForCompare(
+  recurrenceRule?: EventRecurrenceRuleInput | null,
+) {
+  if (!recurrenceRule) {
+    return null;
+  }
+
+  return {
+    frequency: recurrenceRule.frequency,
+    interval: recurrenceRule.interval,
+    endMode: recurrenceRule.endMode,
+    untilDate: recurrenceRule.untilDate ?? null,
+    count: recurrenceRule.count ?? null,
+    weeklyDays: [...(recurrenceRule.weeklyDays ?? [])].sort(),
+    monthlyDayOfMonth: recurrenceRule.monthlyDayOfMonth ?? null,
+    yearlyMonth: recurrenceRule.yearlyMonth ?? null,
+    yearlyDayOfMonth: recurrenceRule.yearlyDayOfMonth ?? null,
+  };
+}
+
 function eventSummary(form: EventFormState) {
   const title = form.title.trim() || "Naamloze gebeurtenis";
   const date = getEventDate(form);
@@ -1682,6 +2548,90 @@ function eventSummary(form: EventFormState) {
     form.startsAt,
     "09:00",
   )}-${getEventTime(form.endsAt, "10:00")}`;
+}
+
+function buildRecurrenceSummary(form: EventFormState): string[] {
+  if (form.recurrenceFrequency === "None") {
+    return [];
+  }
+
+  const lines: string[] = [];
+  if (form.recurrenceFrequency === "Daily") {
+    lines.push(
+      Number(form.recurrenceInterval) > 1
+        ? `Elke ${form.recurrenceInterval} dagen`
+        : "Elke dag",
+    );
+  }
+
+  if (form.recurrenceFrequency === "Weekly") {
+    const weekdays = form.recurrenceWeeklyDays
+      .map((weekday) => weekdayToDutchLabel(weekday).toLowerCase())
+      .join(" en ");
+    lines.push(
+      Number(form.recurrenceInterval) > 1
+        ? `Elke ${form.recurrenceInterval} weken op ${weekdays}`
+        : `Elke week op ${weekdays}`,
+    );
+  }
+
+  if (form.recurrenceFrequency === "Monthly") {
+    const day = Number(form.recurrenceMonthlyDayOfMonth || "0");
+    lines.push(
+      Number(form.recurrenceInterval) > 1
+        ? `Elke ${form.recurrenceInterval} maanden op de ${day}e`
+        : `Elke maand op de ${day}e`,
+    );
+  }
+
+  if (form.recurrenceFrequency === "Yearly") {
+    const month = Number(form.recurrenceYearlyMonth || "0");
+    const day = Number(form.recurrenceYearlyDayOfMonth || "0");
+    lines.push(
+      `Elk jaar op ${day} ${monthOptions[month - 1]?.label ?? ""}`.trim(),
+    );
+  }
+
+  if (form.recurrenceEndMode === "OnDate" && form.recurrenceUntilDate) {
+    lines.push(`Eindigt op ${formatDutchLongDate(form.recurrenceUntilDate)}`);
+  }
+
+  if (form.recurrenceEndMode === "AfterCount" && form.recurrenceCount) {
+    lines.push(`Eindigt na ${form.recurrenceCount} keer`);
+  }
+
+  return lines;
+}
+
+function weekdayToDutchLabel(weekday: EventRecurrenceWeekday): string {
+  return (
+    weekdayOptions.find((option) => option.value === weekday)?.label ?? weekday
+  );
+}
+
+function weekdayValueFromDate(date: Date): EventRecurrenceWeekday {
+  return (
+    [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ][date.getDay()] as EventRecurrenceWeekday
+  );
+}
+
+function isValidMonthDay(month: number, day: number): boolean {
+  return day <= new Date(2028, month, 0).getDate();
+}
+
+function formatDutchLongDate(date: string): string {
+  return new Intl.DateTimeFormat("nl-NL", {
+    day: "numeric",
+    month: "long",
+  }).format(new Date(`${date}T12:00:00`));
 }
 
 function addDaysIso(date: string, days: number) {

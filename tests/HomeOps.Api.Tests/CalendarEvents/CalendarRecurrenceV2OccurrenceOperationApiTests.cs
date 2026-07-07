@@ -137,7 +137,7 @@ public sealed class CalendarRecurrenceV2OccurrenceOperationApiTests
         await using var factory = new HomeOpsWebApplicationFactory();
         var client = factory.CreateClient();
         var start = new DateTimeOffset(2026, 7, 6, 9, 0, 0, TimeSpan.Zero);
-        var nonRecurringResponse = await client.PostAsJsonAsync("/api/events", new CreateEventSeriesRequest("One off", null, start, start.AddHours(1), false));
+        var nonRecurringResponse = await client.PostAsJsonAsync("/api/events", new CreateEventSeriesRequest("One off", null, null, start, start.AddHours(1), false));
         var nonRecurring = await nonRecurringResponse.Content.ReadFromJsonAsync<EventSeriesDto>();
         Assert.NotNull(nonRecurring);
         var readOnlySeriesId = await AddReadOnlyRecurringSeriesAsync(factory);
@@ -172,7 +172,7 @@ public sealed class CalendarRecurrenceV2OccurrenceOperationApiTests
     private static async Task<EventSeriesDto> CreateDailySeriesAsync(HttpClient client, string title)
     {
         var start = new DateTimeOffset(2026, 7, 6, 9, 0, 0, TimeSpan.Zero);
-        var response = await client.PostAsJsonAsync("/api/events", new CreateEventSeriesRequest(title, "Template", start, start.AddHours(1), false, new RecurrenceRuleDto("Daily", 1, "AfterCount", Count: 5)));
+        var response = await client.PostAsJsonAsync("/api/events", new CreateEventSeriesRequest(title, "Template", null, start, start.AddHours(1), false, new RecurrenceRuleDto("Daily", 1, "AfterCount", Count: 5)));
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         var created = await response.Content.ReadFromJsonAsync<EventSeriesDto>();
         Assert.NotNull(created);

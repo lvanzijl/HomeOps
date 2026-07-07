@@ -18,11 +18,11 @@ public sealed class CalendarRecurrenceV2ManualEventApiTests
         var client = factory.CreateClient();
         var start = new DateTimeOffset(2026, 7, 6, 9, 0, 0, TimeSpan.Zero);
 
-        var nonRecurringResponse = await client.PostAsJsonAsync("/api/events", new CreateEventSeriesRequest("Dentist", null, start, start.AddHours(1), false));
-        var dailyResponse = await client.PostAsJsonAsync("/api/events", new CreateEventSeriesRequest("Daily", null, start, start.AddHours(1), false, new RecurrenceRuleDto("Daily", 2, "AfterCount", Count: 3)));
-        var weeklyResponse = await client.PostAsJsonAsync("/api/events", new CreateEventSeriesRequest("Weekly", null, start, start.AddHours(1), false, new RecurrenceRuleDto("Weekly", 1, "Never", WeeklyDays: ["Monday", "Wednesday"])));
-        var monthlyResponse = await client.PostAsJsonAsync("/api/events", new CreateEventSeriesRequest("Monthly", null, start, start.AddHours(1), false, new RecurrenceRuleDto("Monthly", 1, "OnDate", UntilDate: new DateOnly(2026, 12, 31), MonthlyDayOfMonth: 6)));
-        var yearlyResponse = await client.PostAsJsonAsync("/api/events", new CreateEventSeriesRequest("Yearly", null, start, start.AddHours(1), false, new RecurrenceRuleDto("Yearly", 1, "Never", YearlyMonth: 7, YearlyDayOfMonth: 6)));
+        var nonRecurringResponse = await client.PostAsJsonAsync("/api/events", new CreateEventSeriesRequest("Dentist", null, null, start, start.AddHours(1), false));
+        var dailyResponse = await client.PostAsJsonAsync("/api/events", new CreateEventSeriesRequest("Daily", null, null, start, start.AddHours(1), false, new RecurrenceRuleDto("Daily", 2, "AfterCount", Count: 3)));
+        var weeklyResponse = await client.PostAsJsonAsync("/api/events", new CreateEventSeriesRequest("Weekly", null, null, start, start.AddHours(1), false, new RecurrenceRuleDto("Weekly", 1, "Never", WeeklyDays: ["Monday", "Wednesday"])));
+        var monthlyResponse = await client.PostAsJsonAsync("/api/events", new CreateEventSeriesRequest("Monthly", null, null, start, start.AddHours(1), false, new RecurrenceRuleDto("Monthly", 1, "OnDate", UntilDate: new DateOnly(2026, 12, 31), MonthlyDayOfMonth: 6)));
+        var yearlyResponse = await client.PostAsJsonAsync("/api/events", new CreateEventSeriesRequest("Yearly", null, null, start, start.AddHours(1), false, new RecurrenceRuleDto("Yearly", 1, "Never", YearlyMonth: 7, YearlyDayOfMonth: 6)));
 
         Assert.Equal(HttpStatusCode.Created, nonRecurringResponse.StatusCode);
         Assert.Equal(HttpStatusCode.Created, dailyResponse.StatusCode);
@@ -50,11 +50,11 @@ public sealed class CalendarRecurrenceV2ManualEventApiTests
         await using var factory = new HomeOpsWebApplicationFactory();
         var client = factory.CreateClient();
         var start = new DateTimeOffset(2026, 7, 6, 9, 0, 0, TimeSpan.Zero);
-        var createResponse = await client.PostAsJsonAsync("/api/events", new CreateEventSeriesRequest("Practice", null, start, start.AddHours(1), false, new RecurrenceRuleDto("Weekly", 1, "Never", WeeklyDays: ["Monday"])));
+        var createResponse = await client.PostAsJsonAsync("/api/events", new CreateEventSeriesRequest("Practice", null, null, start, start.AddHours(1), false, new RecurrenceRuleDto("Weekly", 1, "Never", WeeklyDays: ["Monday"])));
         var created = await createResponse.Content.ReadFromJsonAsync<EventSeriesDto>();
         Assert.NotNull(created);
 
-        var update = new UpdateEventSeriesRequest("Practice updated", "Bring notebook", start.AddHours(1), start.AddHours(2), false, new RecurrenceRuleDto("Monthly", 2, "OnDate", UntilDate: new DateOnly(2026, 12, 31), MonthlyDayOfMonth: 6));
+        var update = new UpdateEventSeriesRequest("Practice updated", "Bring notebook", null, start.AddHours(1), start.AddHours(2), false, new RecurrenceRuleDto("Monthly", 2, "OnDate", UntilDate: new DateOnly(2026, 12, 31), MonthlyDayOfMonth: 6));
         var updateResponse = await client.PutAsJsonAsync($"/api/events/{created.Id}", update);
 
         Assert.Equal(HttpStatusCode.OK, updateResponse.StatusCode);
@@ -80,7 +80,7 @@ public sealed class CalendarRecurrenceV2ManualEventApiTests
         var client = factory.CreateClient();
         var start = new DateTimeOffset(2026, 7, 6, 9, 0, 0, TimeSpan.Zero);
 
-        var response = await client.PostAsJsonAsync("/api/events", new CreateEventSeriesRequest("Invalid", null, start, start.AddHours(1), false, recurrenceRule));
+        var response = await client.PostAsJsonAsync("/api/events", new CreateEventSeriesRequest("Invalid", null, null, start, start.AddHours(1), false, recurrenceRule));
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
@@ -91,7 +91,7 @@ public sealed class CalendarRecurrenceV2ManualEventApiTests
         await using var factory = new HomeOpsWebApplicationFactory();
         var client = factory.CreateClient();
         var start = new DateTimeOffset(2026, 7, 6, 9, 0, 0, TimeSpan.Zero);
-        var createResponse = await client.PostAsJsonAsync("/api/events", new CreateEventSeriesRequest("Board game", null, start, start.AddHours(1), false, new RecurrenceRuleDto("Weekly", 1, "Never", WeeklyDays: ["Monday"] )));
+        var createResponse = await client.PostAsJsonAsync("/api/events", new CreateEventSeriesRequest("Board game", null, null, start, start.AddHours(1), false, new RecurrenceRuleDto("Weekly", 1, "Never", WeeklyDays: ["Monday"] )));
         var created = await createResponse.Content.ReadFromJsonAsync<EventSeriesDto>();
         Assert.NotNull(created);
 

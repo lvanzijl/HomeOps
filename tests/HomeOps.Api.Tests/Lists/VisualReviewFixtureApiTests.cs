@@ -124,7 +124,7 @@ public sealed class VisualReviewFixtureApiTests
         var start = new DateTimeOffset(2026, 6, 16, 20, 0, 0, TimeSpan.Zero);
         var createResponse = await client.PostAsJsonAsync(
             "/api/events",
-            new CreateEventSeriesRequest("Filmavond", null, start, start.AddHours(1), false));
+            new CreateEventSeriesRequest("Filmavond", null, null, start, start.AddHours(1), false));
 
         Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
 
