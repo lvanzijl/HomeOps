@@ -1640,6 +1640,298 @@ export class HomeOpsApiClient {
         return Promise.resolve<void>(null as any);
     }
 
+    skipEventOccurrence(eventId: string, request: OccurrenceTargetRequest): Promise<void> {
+        let url_ = this.baseUrl + "/api/events/{eventId}/occurrences/skip";
+        if (eventId === undefined || eventId === null)
+            throw new globalThis.Error("The parameter 'eventId' must be defined.");
+        url_ = url_.replace("{eventId}", encodeURIComponent("" + eventId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processSkipEventOccurrence(_response);
+        });
+    }
+
+    protected processSkipEventOccurrence(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = HttpValidationProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    restoreEventOccurrence(eventId: string, request: OccurrenceTargetRequest): Promise<void> {
+        let url_ = this.baseUrl + "/api/events/{eventId}/occurrences/restore";
+        if (eventId === undefined || eventId === null)
+            throw new globalThis.Error("The parameter 'eventId' must be defined.");
+        url_ = url_.replace("{eventId}", encodeURIComponent("" + eventId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRestoreEventOccurrence(_response);
+        });
+    }
+
+    protected processRestoreEventOccurrence(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = HttpValidationProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    modifyEventOccurrence(eventId: string, request: ModifyOccurrenceRequest): Promise<void> {
+        let url_ = this.baseUrl + "/api/events/{eventId}/occurrences/modify";
+        if (eventId === undefined || eventId === null)
+            throw new globalThis.Error("The parameter 'eventId' must be defined.");
+        url_ = url_.replace("{eventId}", encodeURIComponent("" + eventId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processModifyEventOccurrence(_response);
+        });
+    }
+
+    protected processModifyEventOccurrence(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = HttpValidationProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    deleteEventOccurrence(eventId: string, occurrenceKey: string): Promise<void> {
+        let url_ = this.baseUrl + "/api/events/{eventId}/occurrences?";
+        if (eventId === undefined || eventId === null)
+            throw new globalThis.Error("The parameter 'eventId' must be defined.");
+        url_ = url_.replace("{eventId}", encodeURIComponent("" + eventId));
+        if (occurrenceKey === undefined || occurrenceKey === null)
+            throw new globalThis.Error("The parameter 'occurrenceKey' must be defined and cannot be null.");
+        else
+            url_ += "occurrenceKey=" + encodeURIComponent("" + occurrenceKey) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDeleteEventOccurrence(_response);
+        });
+    }
+
+    protected processDeleteEventOccurrence(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = HttpValidationProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    splitEventSeriesFromOccurrence(eventId: string, request: SplitEventSeriesRequest): Promise<EventSeriesDto> {
+        let url_ = this.baseUrl + "/api/events/{eventId}/occurrences/split";
+        if (eventId === undefined || eventId === null)
+            throw new globalThis.Error("The parameter 'eventId' must be defined.");
+        url_ = url_.replace("{eventId}", encodeURIComponent("" + eventId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processSplitEventSeriesFromOccurrence(_response);
+        });
+    }
+
+    protected processSplitEventSeriesFromOccurrence(response: Response): Promise<EventSeriesDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 201) {
+            return response.text().then((_responseText) => {
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result201 = EventSeriesDto.fromJS(resultData201);
+            return result201;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = HttpValidationProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<EventSeriesDto>(null as any);
+    }
+
+    deleteEventOccurrencesFromOccurrence(eventId: string, occurrenceKey: string): Promise<void> {
+        let url_ = this.baseUrl + "/api/events/{eventId}/occurrences/future?";
+        if (eventId === undefined || eventId === null)
+            throw new globalThis.Error("The parameter 'eventId' must be defined.");
+        url_ = url_.replace("{eventId}", encodeURIComponent("" + eventId));
+        if (occurrenceKey === undefined || occurrenceKey === null)
+            throw new globalThis.Error("The parameter 'occurrenceKey' must be defined and cannot be null.");
+        else
+            url_ += "occurrenceKey=" + encodeURIComponent("" + occurrenceKey) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDeleteEventOccurrencesFromOccurrence(_response);
+        });
+    }
+
+    protected processDeleteEventOccurrencesFromOccurrence(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = HttpValidationProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
     getFamilyMembers(): Promise<FamilyMemberDto[]> {
         let url_ = this.baseUrl + "/api/family-members";
         url_ = url_.replace(/[?&]$/, "");
@@ -5354,6 +5646,12 @@ export class CalendarExportEventSeries implements ICalendarExportEventSeries {
     recurrence?: CalendarExportRecurrence | undefined;
     createdUtc?: Date;
     updatedUtc?: Date;
+    location?: string | undefined;
+    providerEventId?: string | undefined;
+    providerInstanceId?: string | undefined;
+    providerRevision?: string | undefined;
+    contentFingerprint?: string | undefined;
+    importedAtUtc?: Date | undefined;
 
     constructor(data?: ICalendarExportEventSeries) {
         if (data) {
@@ -5378,6 +5676,12 @@ export class CalendarExportEventSeries implements ICalendarExportEventSeries {
             this.recurrence = _data["recurrence"] ? CalendarExportRecurrence.fromJS(_data["recurrence"]) : undefined as any;
             this.createdUtc = _data["createdUtc"] ? new Date(_data["createdUtc"].toString()) : undefined as any;
             this.updatedUtc = _data["updatedUtc"] ? new Date(_data["updatedUtc"].toString()) : undefined as any;
+            this.location = _data["location"];
+            this.providerEventId = _data["providerEventId"];
+            this.providerInstanceId = _data["providerInstanceId"];
+            this.providerRevision = _data["providerRevision"];
+            this.contentFingerprint = _data["contentFingerprint"];
+            this.importedAtUtc = _data["importedAtUtc"] ? new Date(_data["importedAtUtc"].toString()) : undefined as any;
         }
     }
 
@@ -5402,6 +5706,12 @@ export class CalendarExportEventSeries implements ICalendarExportEventSeries {
         data["recurrence"] = this.recurrence ? this.recurrence.toJSON() : undefined as any;
         data["createdUtc"] = this.createdUtc ? this.createdUtc.toISOString() : undefined as any;
         data["updatedUtc"] = this.updatedUtc ? this.updatedUtc.toISOString() : undefined as any;
+        data["location"] = this.location;
+        data["providerEventId"] = this.providerEventId;
+        data["providerInstanceId"] = this.providerInstanceId;
+        data["providerRevision"] = this.providerRevision;
+        data["contentFingerprint"] = this.contentFingerprint;
+        data["importedAtUtc"] = this.importedAtUtc ? this.importedAtUtc.toISOString() : undefined as any;
         return data;
     }
 }
@@ -5419,11 +5729,29 @@ export interface ICalendarExportEventSeries {
     recurrence?: CalendarExportRecurrence | undefined;
     createdUtc?: Date;
     updatedUtc?: Date;
+    location?: string | undefined;
+    providerEventId?: string | undefined;
+    providerInstanceId?: string | undefined;
+    providerRevision?: string | undefined;
+    contentFingerprint?: string | undefined;
+    importedAtUtc?: Date | undefined;
 }
 
 export class CalendarExportRecurrence implements ICalendarExportRecurrence {
     ruleType?: string;
     value?: string;
+    frequency?: string | undefined;
+    interval?: number | undefined;
+    endMode?: string | undefined;
+    untilDate?: Date | undefined;
+    count?: number | undefined;
+    weeklyDays?: string | undefined;
+    monthlyDayOfMonth?: number | undefined;
+    yearlyMonth?: number | undefined;
+    yearlyDayOfMonth?: number | undefined;
+    rawProviderRecurrenceRule?: string | undefined;
+    unsupportedRecurrenceStatus?: string | undefined;
+    unsupportedRecurrenceReason?: string | undefined;
 
     constructor(data?: ICalendarExportRecurrence) {
         if (data) {
@@ -5438,6 +5766,18 @@ export class CalendarExportRecurrence implements ICalendarExportRecurrence {
         if (_data) {
             this.ruleType = _data["ruleType"];
             this.value = _data["value"];
+            this.frequency = _data["frequency"];
+            this.interval = _data["interval"];
+            this.endMode = _data["endMode"];
+            this.untilDate = _data["untilDate"] ? new Date(_data["untilDate"].toString()) : undefined as any;
+            this.count = _data["count"];
+            this.weeklyDays = _data["weeklyDays"];
+            this.monthlyDayOfMonth = _data["monthlyDayOfMonth"];
+            this.yearlyMonth = _data["yearlyMonth"];
+            this.yearlyDayOfMonth = _data["yearlyDayOfMonth"];
+            this.rawProviderRecurrenceRule = _data["rawProviderRecurrenceRule"];
+            this.unsupportedRecurrenceStatus = _data["unsupportedRecurrenceStatus"];
+            this.unsupportedRecurrenceReason = _data["unsupportedRecurrenceReason"];
         }
     }
 
@@ -5452,6 +5792,18 @@ export class CalendarExportRecurrence implements ICalendarExportRecurrence {
         data = typeof data === 'object' ? data : {};
         data["ruleType"] = this.ruleType;
         data["value"] = this.value;
+        data["frequency"] = this.frequency;
+        data["interval"] = this.interval;
+        data["endMode"] = this.endMode;
+        data["untilDate"] = this.untilDate ? formatDate(this.untilDate) : undefined as any;
+        data["count"] = this.count;
+        data["weeklyDays"] = this.weeklyDays;
+        data["monthlyDayOfMonth"] = this.monthlyDayOfMonth;
+        data["yearlyMonth"] = this.yearlyMonth;
+        data["yearlyDayOfMonth"] = this.yearlyDayOfMonth;
+        data["rawProviderRecurrenceRule"] = this.rawProviderRecurrenceRule;
+        data["unsupportedRecurrenceStatus"] = this.unsupportedRecurrenceStatus;
+        data["unsupportedRecurrenceReason"] = this.unsupportedRecurrenceReason;
         return data;
     }
 }
@@ -5459,6 +5811,18 @@ export class CalendarExportRecurrence implements ICalendarExportRecurrence {
 export interface ICalendarExportRecurrence {
     ruleType?: string;
     value?: string;
+    frequency?: string | undefined;
+    interval?: number | undefined;
+    endMode?: string | undefined;
+    untilDate?: Date | undefined;
+    count?: number | undefined;
+    weeklyDays?: string | undefined;
+    monthlyDayOfMonth?: number | undefined;
+    yearlyMonth?: number | undefined;
+    yearlyDayOfMonth?: number | undefined;
+    rawProviderRecurrenceRule?: string | undefined;
+    unsupportedRecurrenceStatus?: string | undefined;
+    unsupportedRecurrenceReason?: string | undefined;
 }
 
 export class CalendarExportRecurrenceSection implements ICalendarExportRecurrenceSection {
@@ -5516,6 +5880,15 @@ export class CalendarExportEventException implements ICalendarExportEventExcepti
     startTime?: string | undefined;
     endDate?: Date | undefined;
     endTime?: string | undefined;
+    occurrenceKey?: string | undefined;
+    location?: string | undefined;
+    isAllDay?: boolean | undefined;
+    rawProviderRecurrenceId?: string | undefined;
+    normalizedProviderRecurrenceId?: string | undefined;
+    detachedProviderEventId?: string | undefined;
+    detachedProviderRevision?: string | undefined;
+    detachedContentFingerprint?: string | undefined;
+    rawDetachedRecurrenceMetadata?: string | undefined;
 
     constructor(data?: ICalendarExportEventException) {
         if (data) {
@@ -5538,6 +5911,15 @@ export class CalendarExportEventException implements ICalendarExportEventExcepti
             this.startTime = _data["startTime"];
             this.endDate = _data["endDate"] ? new Date(_data["endDate"].toString()) : undefined as any;
             this.endTime = _data["endTime"];
+            this.occurrenceKey = _data["occurrenceKey"];
+            this.location = _data["location"];
+            this.isAllDay = _data["isAllDay"];
+            this.rawProviderRecurrenceId = _data["rawProviderRecurrenceId"];
+            this.normalizedProviderRecurrenceId = _data["normalizedProviderRecurrenceId"];
+            this.detachedProviderEventId = _data["detachedProviderEventId"];
+            this.detachedProviderRevision = _data["detachedProviderRevision"];
+            this.detachedContentFingerprint = _data["detachedContentFingerprint"];
+            this.rawDetachedRecurrenceMetadata = _data["rawDetachedRecurrenceMetadata"];
         }
     }
 
@@ -5560,6 +5942,15 @@ export class CalendarExportEventException implements ICalendarExportEventExcepti
         data["startTime"] = this.startTime;
         data["endDate"] = this.endDate ? formatDate(this.endDate) : undefined as any;
         data["endTime"] = this.endTime;
+        data["occurrenceKey"] = this.occurrenceKey;
+        data["location"] = this.location;
+        data["isAllDay"] = this.isAllDay;
+        data["rawProviderRecurrenceId"] = this.rawProviderRecurrenceId;
+        data["normalizedProviderRecurrenceId"] = this.normalizedProviderRecurrenceId;
+        data["detachedProviderEventId"] = this.detachedProviderEventId;
+        data["detachedProviderRevision"] = this.detachedProviderRevision;
+        data["detachedContentFingerprint"] = this.detachedContentFingerprint;
+        data["rawDetachedRecurrenceMetadata"] = this.rawDetachedRecurrenceMetadata;
         return data;
     }
 }
@@ -5575,6 +5966,15 @@ export interface ICalendarExportEventException {
     startTime?: string | undefined;
     endDate?: Date | undefined;
     endTime?: string | undefined;
+    occurrenceKey?: string | undefined;
+    location?: string | undefined;
+    isAllDay?: boolean | undefined;
+    rawProviderRecurrenceId?: string | undefined;
+    normalizedProviderRecurrenceId?: string | undefined;
+    detachedProviderEventId?: string | undefined;
+    detachedProviderRevision?: string | undefined;
+    detachedContentFingerprint?: string | undefined;
+    rawDetachedRecurrenceMetadata?: string | undefined;
 }
 
 export class NormalizedEvent implements INormalizedEvent {
@@ -5588,6 +5988,10 @@ export class NormalizedEvent implements INormalizedEvent {
     providerEventId?: string | undefined;
     description?: string | undefined;
     location?: string | undefined;
+    occurrenceKey?: string | undefined;
+    isRecurring?: boolean;
+    isException?: boolean;
+    recurrence?: RecurrenceSummaryDto | undefined;
 
     constructor(data?: INormalizedEvent) {
         if (data) {
@@ -5610,6 +6014,10 @@ export class NormalizedEvent implements INormalizedEvent {
             this.providerEventId = _data["providerEventId"];
             this.description = _data["description"];
             this.location = _data["location"];
+            this.occurrenceKey = _data["occurrenceKey"];
+            this.isRecurring = _data["isRecurring"];
+            this.isException = _data["isException"];
+            this.recurrence = _data["recurrence"] ? RecurrenceSummaryDto.fromJS(_data["recurrence"]) : undefined as any;
         }
     }
 
@@ -5632,6 +6040,10 @@ export class NormalizedEvent implements INormalizedEvent {
         data["providerEventId"] = this.providerEventId;
         data["description"] = this.description;
         data["location"] = this.location;
+        data["occurrenceKey"] = this.occurrenceKey;
+        data["isRecurring"] = this.isRecurring;
+        data["isException"] = this.isException;
+        data["recurrence"] = this.recurrence ? this.recurrence.toJSON() : undefined as any;
         return data;
     }
 }
@@ -5647,6 +6059,58 @@ export interface INormalizedEvent {
     providerEventId?: string | undefined;
     description?: string | undefined;
     location?: string | undefined;
+    occurrenceKey?: string | undefined;
+    isRecurring?: boolean;
+    isException?: boolean;
+    recurrence?: RecurrenceSummaryDto | undefined;
+}
+
+export class RecurrenceSummaryDto implements IRecurrenceSummaryDto {
+    isRecurring?: boolean;
+    frequency?: string | undefined;
+    interval?: number | undefined;
+    endMode?: string | undefined;
+
+    constructor(data?: IRecurrenceSummaryDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.isRecurring = _data["isRecurring"];
+            this.frequency = _data["frequency"];
+            this.interval = _data["interval"];
+            this.endMode = _data["endMode"];
+        }
+    }
+
+    static fromJS(data: any): RecurrenceSummaryDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new RecurrenceSummaryDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["isRecurring"] = this.isRecurring;
+        data["frequency"] = this.frequency;
+        data["interval"] = this.interval;
+        data["endMode"] = this.endMode;
+        return data;
+    }
+}
+
+export interface IRecurrenceSummaryDto {
+    isRecurring?: boolean;
+    frequency?: string | undefined;
+    interval?: number | undefined;
+    endMode?: string | undefined;
 }
 
 export class EventSeriesDto implements IEventSeriesDto {
@@ -5659,6 +6123,8 @@ export class EventSeriesDto implements IEventSeriesDto {
     isAllDay?: boolean;
     createdUtc?: Date;
     updatedUtc?: Date;
+    recurrenceRule?: RecurrenceRuleDto | undefined;
+    exceptions?: EventExceptionDto[] | undefined;
 
     constructor(data?: IEventSeriesDto) {
         if (data) {
@@ -5680,6 +6146,12 @@ export class EventSeriesDto implements IEventSeriesDto {
             this.isAllDay = _data["isAllDay"];
             this.createdUtc = _data["createdUtc"] ? new Date(_data["createdUtc"].toString()) : undefined as any;
             this.updatedUtc = _data["updatedUtc"] ? new Date(_data["updatedUtc"].toString()) : undefined as any;
+            this.recurrenceRule = _data["recurrenceRule"] ? RecurrenceRuleDto.fromJS(_data["recurrenceRule"]) : undefined as any;
+            if (Array.isArray(_data["exceptions"])) {
+                this.exceptions = [] as any;
+                for (let item of _data["exceptions"])
+                    this.exceptions!.push(EventExceptionDto.fromJS(item));
+            }
         }
     }
 
@@ -5701,6 +6173,12 @@ export class EventSeriesDto implements IEventSeriesDto {
         data["isAllDay"] = this.isAllDay;
         data["createdUtc"] = this.createdUtc ? this.createdUtc.toISOString() : undefined as any;
         data["updatedUtc"] = this.updatedUtc ? this.updatedUtc.toISOString() : undefined as any;
+        data["recurrenceRule"] = this.recurrenceRule ? this.recurrenceRule.toJSON() : undefined as any;
+        if (Array.isArray(this.exceptions)) {
+            data["exceptions"] = [];
+            for (let item of this.exceptions)
+                data["exceptions"].push(item ? item.toJSON() : undefined as any);
+        }
         return data;
     }
 }
@@ -5715,6 +6193,152 @@ export interface IEventSeriesDto {
     isAllDay?: boolean;
     createdUtc?: Date;
     updatedUtc?: Date;
+    recurrenceRule?: RecurrenceRuleDto | undefined;
+    exceptions?: EventExceptionDto[] | undefined;
+}
+
+export class RecurrenceRuleDto implements IRecurrenceRuleDto {
+    frequency?: string;
+    interval?: number;
+    endMode?: string;
+    untilDate?: Date | undefined;
+    count?: number | undefined;
+    weeklyDays?: string[] | undefined;
+    monthlyDayOfMonth?: number | undefined;
+    yearlyMonth?: number | undefined;
+    yearlyDayOfMonth?: number | undefined;
+
+    constructor(data?: IRecurrenceRuleDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.frequency = _data["frequency"];
+            this.interval = _data["interval"];
+            this.endMode = _data["endMode"];
+            this.untilDate = _data["untilDate"] ? new Date(_data["untilDate"].toString()) : undefined as any;
+            this.count = _data["count"];
+            if (Array.isArray(_data["weeklyDays"])) {
+                this.weeklyDays = [] as any;
+                for (let item of _data["weeklyDays"])
+                    this.weeklyDays!.push(item);
+            }
+            this.monthlyDayOfMonth = _data["monthlyDayOfMonth"];
+            this.yearlyMonth = _data["yearlyMonth"];
+            this.yearlyDayOfMonth = _data["yearlyDayOfMonth"];
+        }
+    }
+
+    static fromJS(data: any): RecurrenceRuleDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new RecurrenceRuleDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["frequency"] = this.frequency;
+        data["interval"] = this.interval;
+        data["endMode"] = this.endMode;
+        data["untilDate"] = this.untilDate ? formatDate(this.untilDate) : undefined as any;
+        data["count"] = this.count;
+        if (Array.isArray(this.weeklyDays)) {
+            data["weeklyDays"] = [];
+            for (let item of this.weeklyDays)
+                data["weeklyDays"].push(item);
+        }
+        data["monthlyDayOfMonth"] = this.monthlyDayOfMonth;
+        data["yearlyMonth"] = this.yearlyMonth;
+        data["yearlyDayOfMonth"] = this.yearlyDayOfMonth;
+        return data;
+    }
+}
+
+export interface IRecurrenceRuleDto {
+    frequency?: string;
+    interval?: number;
+    endMode?: string;
+    untilDate?: Date | undefined;
+    count?: number | undefined;
+    weeklyDays?: string[] | undefined;
+    monthlyDayOfMonth?: number | undefined;
+    yearlyMonth?: number | undefined;
+    yearlyDayOfMonth?: number | undefined;
+}
+
+export class EventExceptionDto implements IEventExceptionDto {
+    eventSeriesId?: string;
+    occurrenceKey?: string;
+    exceptionType?: string;
+    title?: string | undefined;
+    description?: string | undefined;
+    location?: string | undefined;
+    isAllDay?: boolean | undefined;
+    startsAt?: Date | undefined;
+    endsAt?: Date | undefined;
+
+    constructor(data?: IEventExceptionDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.eventSeriesId = _data["eventSeriesId"];
+            this.occurrenceKey = _data["occurrenceKey"];
+            this.exceptionType = _data["exceptionType"];
+            this.title = _data["title"];
+            this.description = _data["description"];
+            this.location = _data["location"];
+            this.isAllDay = _data["isAllDay"];
+            this.startsAt = _data["startsAt"] ? new Date(_data["startsAt"].toString()) : undefined as any;
+            this.endsAt = _data["endsAt"] ? new Date(_data["endsAt"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): EventExceptionDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new EventExceptionDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["eventSeriesId"] = this.eventSeriesId;
+        data["occurrenceKey"] = this.occurrenceKey;
+        data["exceptionType"] = this.exceptionType;
+        data["title"] = this.title;
+        data["description"] = this.description;
+        data["location"] = this.location;
+        data["isAllDay"] = this.isAllDay;
+        data["startsAt"] = this.startsAt ? this.startsAt.toISOString() : undefined as any;
+        data["endsAt"] = this.endsAt ? this.endsAt.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface IEventExceptionDto {
+    eventSeriesId?: string;
+    occurrenceKey?: string;
+    exceptionType?: string;
+    title?: string | undefined;
+    description?: string | undefined;
+    location?: string | undefined;
+    isAllDay?: boolean | undefined;
+    startsAt?: Date | undefined;
+    endsAt?: Date | undefined;
 }
 
 export class CreateEventSeriesRequest implements ICreateEventSeriesRequest {
@@ -5723,6 +6347,7 @@ export class CreateEventSeriesRequest implements ICreateEventSeriesRequest {
     startUtc?: Date;
     endUtc?: Date | undefined;
     isAllDay?: boolean;
+    recurrenceRule?: RecurrenceRuleDto | undefined;
 
     constructor(data?: ICreateEventSeriesRequest) {
         if (data) {
@@ -5740,6 +6365,7 @@ export class CreateEventSeriesRequest implements ICreateEventSeriesRequest {
             this.startUtc = _data["startUtc"] ? new Date(_data["startUtc"].toString()) : undefined as any;
             this.endUtc = _data["endUtc"] ? new Date(_data["endUtc"].toString()) : undefined as any;
             this.isAllDay = _data["isAllDay"];
+            this.recurrenceRule = _data["recurrenceRule"] ? RecurrenceRuleDto.fromJS(_data["recurrenceRule"]) : undefined as any;
         }
     }
 
@@ -5757,6 +6383,7 @@ export class CreateEventSeriesRequest implements ICreateEventSeriesRequest {
         data["startUtc"] = this.startUtc ? this.startUtc.toISOString() : undefined as any;
         data["endUtc"] = this.endUtc ? this.endUtc.toISOString() : undefined as any;
         data["isAllDay"] = this.isAllDay;
+        data["recurrenceRule"] = this.recurrenceRule ? this.recurrenceRule.toJSON() : undefined as any;
         return data;
     }
 }
@@ -5767,6 +6394,7 @@ export interface ICreateEventSeriesRequest {
     startUtc?: Date;
     endUtc?: Date | undefined;
     isAllDay?: boolean;
+    recurrenceRule?: RecurrenceRuleDto | undefined;
 }
 
 export class UpdateEventSeriesRequest implements IUpdateEventSeriesRequest {
@@ -5775,6 +6403,7 @@ export class UpdateEventSeriesRequest implements IUpdateEventSeriesRequest {
     startUtc?: Date;
     endUtc?: Date | undefined;
     isAllDay?: boolean;
+    recurrenceRule?: RecurrenceRuleDto | undefined;
 
     constructor(data?: IUpdateEventSeriesRequest) {
         if (data) {
@@ -5792,6 +6421,7 @@ export class UpdateEventSeriesRequest implements IUpdateEventSeriesRequest {
             this.startUtc = _data["startUtc"] ? new Date(_data["startUtc"].toString()) : undefined as any;
             this.endUtc = _data["endUtc"] ? new Date(_data["endUtc"].toString()) : undefined as any;
             this.isAllDay = _data["isAllDay"];
+            this.recurrenceRule = _data["recurrenceRule"] ? RecurrenceRuleDto.fromJS(_data["recurrenceRule"]) : undefined as any;
         }
     }
 
@@ -5809,6 +6439,7 @@ export class UpdateEventSeriesRequest implements IUpdateEventSeriesRequest {
         data["startUtc"] = this.startUtc ? this.startUtc.toISOString() : undefined as any;
         data["endUtc"] = this.endUtc ? this.endUtc.toISOString() : undefined as any;
         data["isAllDay"] = this.isAllDay;
+        data["recurrenceRule"] = this.recurrenceRule ? this.recurrenceRule.toJSON() : undefined as any;
         return data;
     }
 }
@@ -5819,6 +6450,167 @@ export interface IUpdateEventSeriesRequest {
     startUtc?: Date;
     endUtc?: Date | undefined;
     isAllDay?: boolean;
+    recurrenceRule?: RecurrenceRuleDto | undefined;
+}
+
+export class OccurrenceTargetRequest implements IOccurrenceTargetRequest {
+    occurrenceKey?: string;
+
+    constructor(data?: IOccurrenceTargetRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.occurrenceKey = _data["occurrenceKey"];
+        }
+    }
+
+    static fromJS(data: any): OccurrenceTargetRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new OccurrenceTargetRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["occurrenceKey"] = this.occurrenceKey;
+        return data;
+    }
+}
+
+export interface IOccurrenceTargetRequest {
+    occurrenceKey?: string;
+}
+
+export class ModifyOccurrenceRequest implements IModifyOccurrenceRequest {
+    occurrenceKey?: string;
+    title?: string | undefined;
+    description?: string | undefined;
+    location?: string | undefined;
+    isAllDay?: boolean | undefined;
+    startUtc?: Date | undefined;
+    endUtc?: Date | undefined;
+
+    constructor(data?: IModifyOccurrenceRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.occurrenceKey = _data["occurrenceKey"];
+            this.title = _data["title"];
+            this.description = _data["description"];
+            this.location = _data["location"];
+            this.isAllDay = _data["isAllDay"];
+            this.startUtc = _data["startUtc"] ? new Date(_data["startUtc"].toString()) : undefined as any;
+            this.endUtc = _data["endUtc"] ? new Date(_data["endUtc"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): ModifyOccurrenceRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new ModifyOccurrenceRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["occurrenceKey"] = this.occurrenceKey;
+        data["title"] = this.title;
+        data["description"] = this.description;
+        data["location"] = this.location;
+        data["isAllDay"] = this.isAllDay;
+        data["startUtc"] = this.startUtc ? this.startUtc.toISOString() : undefined as any;
+        data["endUtc"] = this.endUtc ? this.endUtc.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface IModifyOccurrenceRequest {
+    occurrenceKey?: string;
+    title?: string | undefined;
+    description?: string | undefined;
+    location?: string | undefined;
+    isAllDay?: boolean | undefined;
+    startUtc?: Date | undefined;
+    endUtc?: Date | undefined;
+}
+
+export class SplitEventSeriesRequest implements ISplitEventSeriesRequest {
+    occurrenceKey?: string;
+    title?: string | undefined;
+    description?: string | undefined;
+    location?: string | undefined;
+    isAllDay?: boolean | undefined;
+    startUtc?: Date | undefined;
+    endUtc?: Date | undefined;
+    recurrenceRule?: RecurrenceRuleDto | undefined;
+
+    constructor(data?: ISplitEventSeriesRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.occurrenceKey = _data["occurrenceKey"];
+            this.title = _data["title"];
+            this.description = _data["description"];
+            this.location = _data["location"];
+            this.isAllDay = _data["isAllDay"];
+            this.startUtc = _data["startUtc"] ? new Date(_data["startUtc"].toString()) : undefined as any;
+            this.endUtc = _data["endUtc"] ? new Date(_data["endUtc"].toString()) : undefined as any;
+            this.recurrenceRule = _data["recurrenceRule"] ? RecurrenceRuleDto.fromJS(_data["recurrenceRule"]) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): SplitEventSeriesRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new SplitEventSeriesRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["occurrenceKey"] = this.occurrenceKey;
+        data["title"] = this.title;
+        data["description"] = this.description;
+        data["location"] = this.location;
+        data["isAllDay"] = this.isAllDay;
+        data["startUtc"] = this.startUtc ? this.startUtc.toISOString() : undefined as any;
+        data["endUtc"] = this.endUtc ? this.endUtc.toISOString() : undefined as any;
+        data["recurrenceRule"] = this.recurrenceRule ? this.recurrenceRule.toJSON() : undefined as any;
+        return data;
+    }
+}
+
+export interface ISplitEventSeriesRequest {
+    occurrenceKey?: string;
+    title?: string | undefined;
+    description?: string | undefined;
+    location?: string | undefined;
+    isAllDay?: boolean | undefined;
+    startUtc?: Date | undefined;
+    endUtc?: Date | undefined;
+    recurrenceRule?: RecurrenceRuleDto | undefined;
 }
 
 export class FamilyMemberDto implements IFamilyMemberDto {

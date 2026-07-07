@@ -20,6 +20,7 @@ public sealed record EventOccurrence(
 {
     public NormalizedEvent ToNormalizedEvent() => new(
         Id.ToString(),
+        EventSeriesId.ToString(),
         EventSourceId.ToString(),
         Title,
         StartsAt,
