@@ -27,6 +27,7 @@ export interface EventSource {
 
 export interface NormalizedEvent {
   id: string;
+  eventSeriesId?: string;
   sourceId: EventSource['id'];
   title: string;
   startsAt: string;
@@ -36,4 +37,13 @@ export interface NormalizedEvent {
   providerEventId?: string;
   description?: string;
   location?: string;
+  occurrenceKey?: string;
+  isRecurring?: boolean;
+  isException?: boolean;
+  recurrence?: {
+    isRecurring: boolean;
+    frequency?: string;
+    interval?: number;
+    endMode?: string;
+  };
 }

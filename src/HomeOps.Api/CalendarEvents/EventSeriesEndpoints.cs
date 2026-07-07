@@ -443,13 +443,12 @@ public static class EventSeriesEndpoints
             original.EventSourceId,
             request.Title?.Trim() ?? original.Title,
             request.Description is null ? original.Description : NormalizeDescription(request.Description),
+            request.Location is null ? original.Location : NormalizeDescription(request.Location),
             newStart,
             newEnd,
             request.IsAllDay ?? original.IsAllDay,
             now,
             now);
-
-        newSeries.Location = request.Location is null ? original.Location : string.IsNullOrWhiteSpace(request.Location) ? null : request.Location.Trim();
         newSeries.RecurrenceType = RecurrenceType.None;
         newSeries.RecurrenceRule = newRule;
         newSeries.ProviderEventId = original.ProviderEventId;

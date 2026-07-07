@@ -39,6 +39,7 @@ public sealed class GoogleCalendarAdapter : IEventSourceAdapter
 
         return new NormalizedEvent(
             Id: $"{configuration.SourceId}:{payload.Id}",
+            EventSeriesId: $"{configuration.SourceId}:{payload.Id}",
             SourceId: configuration.SourceId,
             Title: payload.Summary,
             StartsAt: MapStart(payload.Start),

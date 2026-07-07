@@ -64,6 +64,7 @@ public sealed class BirthdaySourceAdapter : IEventSourceAdapter
 
             yield return new NormalizedEvent(
                 Id: $"{configuration.SourceId}:{person.Id}:{occurrenceDate:yyyyMMdd}",
+                EventSeriesId: $"{configuration.SourceId}:{person.Id}",
                 SourceId: configuration.SourceId,
                 Title: $"{person.DisplayName} birthday",
                 StartsAt: new DateTimeOffset(occurrenceDate.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero),

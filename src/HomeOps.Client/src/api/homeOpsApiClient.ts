@@ -5979,6 +5979,7 @@ export interface ICalendarExportEventException {
 
 export class NormalizedEvent implements INormalizedEvent {
     id?: string;
+    eventSeriesId?: string;
     sourceId?: string;
     title?: string;
     startsAt?: Date;
@@ -6005,6 +6006,7 @@ export class NormalizedEvent implements INormalizedEvent {
     init(_data?: any) {
         if (_data) {
             this.id = _data["id"];
+            this.eventSeriesId = _data["eventSeriesId"];
             this.sourceId = _data["sourceId"];
             this.title = _data["title"];
             this.startsAt = _data["startsAt"] ? new Date(_data["startsAt"].toString()) : undefined as any;
@@ -6031,6 +6033,7 @@ export class NormalizedEvent implements INormalizedEvent {
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
         data["id"] = this.id;
+        data["eventSeriesId"] = this.eventSeriesId;
         data["sourceId"] = this.sourceId;
         data["title"] = this.title;
         data["startsAt"] = this.startsAt ? this.startsAt.toISOString() : undefined as any;
@@ -6050,6 +6053,7 @@ export class NormalizedEvent implements INormalizedEvent {
 
 export interface INormalizedEvent {
     id?: string;
+    eventSeriesId?: string;
     sourceId?: string;
     title?: string;
     startsAt?: Date;
@@ -6118,6 +6122,7 @@ export class EventSeriesDto implements IEventSeriesDto {
     eventSourceId?: string;
     title?: string;
     description?: string | undefined;
+    location?: string | undefined;
     startUtc?: Date;
     endUtc?: Date | undefined;
     isAllDay?: boolean;
@@ -6141,6 +6146,7 @@ export class EventSeriesDto implements IEventSeriesDto {
             this.eventSourceId = _data["eventSourceId"];
             this.title = _data["title"];
             this.description = _data["description"];
+            this.location = _data["location"];
             this.startUtc = _data["startUtc"] ? new Date(_data["startUtc"].toString()) : undefined as any;
             this.endUtc = _data["endUtc"] ? new Date(_data["endUtc"].toString()) : undefined as any;
             this.isAllDay = _data["isAllDay"];
@@ -6168,6 +6174,7 @@ export class EventSeriesDto implements IEventSeriesDto {
         data["eventSourceId"] = this.eventSourceId;
         data["title"] = this.title;
         data["description"] = this.description;
+        data["location"] = this.location;
         data["startUtc"] = this.startUtc ? this.startUtc.toISOString() : undefined as any;
         data["endUtc"] = this.endUtc ? this.endUtc.toISOString() : undefined as any;
         data["isAllDay"] = this.isAllDay;
@@ -6188,6 +6195,7 @@ export interface IEventSeriesDto {
     eventSourceId?: string;
     title?: string;
     description?: string | undefined;
+    location?: string | undefined;
     startUtc?: Date;
     endUtc?: Date | undefined;
     isAllDay?: boolean;
@@ -6344,6 +6352,7 @@ export interface IEventExceptionDto {
 export class CreateEventSeriesRequest implements ICreateEventSeriesRequest {
     title?: string;
     description?: string | undefined;
+    location?: string | undefined;
     startUtc?: Date;
     endUtc?: Date | undefined;
     isAllDay?: boolean;
@@ -6362,6 +6371,7 @@ export class CreateEventSeriesRequest implements ICreateEventSeriesRequest {
         if (_data) {
             this.title = _data["title"];
             this.description = _data["description"];
+            this.location = _data["location"];
             this.startUtc = _data["startUtc"] ? new Date(_data["startUtc"].toString()) : undefined as any;
             this.endUtc = _data["endUtc"] ? new Date(_data["endUtc"].toString()) : undefined as any;
             this.isAllDay = _data["isAllDay"];
@@ -6380,6 +6390,7 @@ export class CreateEventSeriesRequest implements ICreateEventSeriesRequest {
         data = typeof data === 'object' ? data : {};
         data["title"] = this.title;
         data["description"] = this.description;
+        data["location"] = this.location;
         data["startUtc"] = this.startUtc ? this.startUtc.toISOString() : undefined as any;
         data["endUtc"] = this.endUtc ? this.endUtc.toISOString() : undefined as any;
         data["isAllDay"] = this.isAllDay;
@@ -6391,6 +6402,7 @@ export class CreateEventSeriesRequest implements ICreateEventSeriesRequest {
 export interface ICreateEventSeriesRequest {
     title?: string;
     description?: string | undefined;
+    location?: string | undefined;
     startUtc?: Date;
     endUtc?: Date | undefined;
     isAllDay?: boolean;
@@ -6400,6 +6412,7 @@ export interface ICreateEventSeriesRequest {
 export class UpdateEventSeriesRequest implements IUpdateEventSeriesRequest {
     title?: string;
     description?: string | undefined;
+    location?: string | undefined;
     startUtc?: Date;
     endUtc?: Date | undefined;
     isAllDay?: boolean;
@@ -6418,6 +6431,7 @@ export class UpdateEventSeriesRequest implements IUpdateEventSeriesRequest {
         if (_data) {
             this.title = _data["title"];
             this.description = _data["description"];
+            this.location = _data["location"];
             this.startUtc = _data["startUtc"] ? new Date(_data["startUtc"].toString()) : undefined as any;
             this.endUtc = _data["endUtc"] ? new Date(_data["endUtc"].toString()) : undefined as any;
             this.isAllDay = _data["isAllDay"];
@@ -6436,6 +6450,7 @@ export class UpdateEventSeriesRequest implements IUpdateEventSeriesRequest {
         data = typeof data === 'object' ? data : {};
         data["title"] = this.title;
         data["description"] = this.description;
+        data["location"] = this.location;
         data["startUtc"] = this.startUtc ? this.startUtc.toISOString() : undefined as any;
         data["endUtc"] = this.endUtc ? this.endUtc.toISOString() : undefined as any;
         data["isAllDay"] = this.isAllDay;
@@ -6447,6 +6462,7 @@ export class UpdateEventSeriesRequest implements IUpdateEventSeriesRequest {
 export interface IUpdateEventSeriesRequest {
     title?: string;
     description?: string | undefined;
+    location?: string | undefined;
     startUtc?: Date;
     endUtc?: Date | undefined;
     isAllDay?: boolean;

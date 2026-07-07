@@ -29,6 +29,13 @@ vi.mock("../../agenda/calendarEventsApi", () => ({
   loadCalendarAgendaData: vi.fn(),
   createCalendarAgendaEvent: vi.fn(),
   updateCalendarAgendaEvent: vi.fn(),
+  updateCalendarAgendaOccurrence: vi.fn(),
+  getCalendarAgendaEventSeries: vi.fn(),
+  splitCalendarAgendaEventSeries: vi.fn(),
+  skipCalendarAgendaOccurrence: vi.fn(),
+  restoreCalendarAgendaOccurrence: vi.fn(),
+  deleteCalendarAgendaOccurrence: vi.fn(),
+  deleteCalendarAgendaFutureOccurrences: vi.fn(),
   deleteCalendarAgendaEvent: vi.fn(),
 }));
 vi.mock("../../agenda/agendaWeatherApi", () => ({
@@ -55,6 +62,7 @@ const calendarSource: EventSource = {
 
 const dentistEvent: NormalizedEvent = {
   id: "dentist",
+  eventSeriesId: "dentist",
   sourceId: calendarSource.id,
   title: "Dentist Appointment",
   startsAt: "2026-06-18T09:30:00.000Z",
@@ -101,6 +109,25 @@ const overflowEvents: NormalizedEvent[] = [
     editable: true,
   },
 ];
+
+const recurringSwimEvent: NormalizedEvent = {
+  id: "series-1-occurrence",
+  eventSeriesId: "series-1",
+  sourceId: calendarSource.id,
+  title: "Zwemles",
+  startsAt: "2026-06-18T15:30:00.000Z",
+  endsAt: "2026-06-18T16:15:00.000Z",
+  allDay: false,
+  editable: true,
+  occurrenceKey: "2026-06-18T15:30:00",
+  isRecurring: true,
+  recurrence: {
+    isRecurring: true,
+    frequency: "Weekly",
+    interval: 1,
+    endMode: "Never",
+  },
+};
 
 const currentWeekEvents: NormalizedEvent[] = [
   {
@@ -316,6 +343,12 @@ async function continueToDetails(user: ReturnType<typeof userEvent.setup>) {
   await user.click(screen.getByRole("button", { name: "Verder" }));
 }
 
+async function reachDetailsStep(user: ReturnType<typeof userEvent.setup>) {
+  while (screen.queryByRole("button", { name: "Verder" })) {
+    await user.click(screen.getByRole("button", { name: "Verder" }));
+  }
+}
+
 afterEach(() => {
   cleanup();
   window.localStorage.clear();
@@ -337,6 +370,7 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     });
     vi.mocked(calendarEventsApi.createCalendarAgendaEvent).mockResolvedValue({
       id: "new-event",
+      eventSeriesId: "new-event",
       sourceId: calendarSource.id,
       title: "New Calendar Event",
       startsAt: "2026-06-28T09:00:00.000Z",
@@ -348,6 +382,51 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
       ...dentistEvent,
       title: "Updated Dentist",
     });
+    vi.mocked(calendarEventsApi.getCalendarAgendaEventSeries).mockResolvedValue({
+      id: "series-1",
+      sourceId: calendarSource.id,
+      title: "Zwemles",
+      startsAt: "2026-06-18T09:30:00.000Z",
+      endsAt: "2026-06-18T10:15:00.000Z",
+      allDay: false,
+      recurrenceRule: {
+        frequency: "Weekly",
+        interval: 1,
+        endMode: "Never",
+        weeklyDays: ["Wednesday"],
+      },
+      exceptions: [],
+    });
+    vi.mocked(calendarEventsApi.updateCalendarAgendaOccurrence).mockResolvedValue(
+      undefined,
+    );
+    vi.mocked(calendarEventsApi.splitCalendarAgendaEventSeries).mockResolvedValue({
+      id: "series-2",
+      sourceId: calendarSource.id,
+      title: "Zwemles aangepast",
+      startsAt: "2026-06-18T09:30:00.000Z",
+      endsAt: "2026-06-18T10:15:00.000Z",
+      allDay: false,
+      recurrenceRule: {
+        frequency: "Weekly",
+        interval: 2,
+        endMode: "Never",
+        weeklyDays: ["Wednesday"],
+      },
+      exceptions: [],
+    });
+    vi.mocked(calendarEventsApi.skipCalendarAgendaOccurrence).mockResolvedValue(
+      undefined,
+    );
+    vi.mocked(
+      calendarEventsApi.restoreCalendarAgendaOccurrence,
+    ).mockResolvedValue(undefined);
+    vi.mocked(calendarEventsApi.deleteCalendarAgendaOccurrence).mockResolvedValue(
+      undefined,
+    );
+    vi.mocked(
+      calendarEventsApi.deleteCalendarAgendaFutureOccurrences,
+    ).mockResolvedValue(undefined);
     vi.mocked(calendarEventsApi.deleteCalendarAgendaEvent).mockResolvedValue(
       undefined,
     );
@@ -406,7 +485,7 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
       screen.getByLabelText("Wat gebeurt er?"),
       "New Calendar Event",
     );
-    await continueToDetails(user);
+    await reachDetailsStep(user);
     await user.click(screen.getByRole("button", { name: "Afspraak maken" }));
 
     expect(calendarEventsApi.createCalendarAgendaEvent).toHaveBeenCalledWith(
@@ -430,7 +509,7 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
       screen.getByLabelText("Wat gebeurt er?"),
       "Updated Dentist",
     );
-    await continueToDetails(user);
+    await reachDetailsStep(user);
     await user.click(screen.getByRole("button", { name: "Afspraak opslaan" }));
 
     expect(calendarEventsApi.updateCalendarAgendaEvent).toHaveBeenCalledWith(
@@ -451,6 +530,81 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     );
     await waitFor(() =>
       expect(screen.queryByText("Updated Dentist")).toBeNull(),
+    );
+  });
+
+  it("shows recurrence controls, skips one occurrence, and offers restore", async () => {
+    const user = setupUser();
+    const calendarEventsApi = await mockedCalendarEventsApi();
+    vi.mocked(calendarEventsApi.loadCalendarAgendaData).mockResolvedValue({
+      sources: [calendarSource],
+      events: [recurringSwimEvent],
+    });
+
+    render(<AgendaWidget {...widgetProps} />);
+    await openMonthView(user);
+    await screen.findByRole("button", { name: /18 juni 2026, 1 gebeurtenis/ });
+    await user.click(screen.getByRole("button", { name: /18 juni 2026, 1 gebeurtenis/ }));
+    await user.click(
+      within(screen.getByText("Zwemles").closest("li")!).getByRole("button", {
+        name: "Bewerken",
+      }),
+    );
+
+    await continueToDetails(user);
+    expect(await screen.findByLabelText("Herhaalfrequentie")).not.toBeNull();
+    expect(screen.getByText("Elke week op wo")).not.toBeNull();
+
+    await user.click(screen.getByRole("button", { name: "Deze keer overslaan" }));
+
+    expect(calendarEventsApi.skipCalendarAgendaOccurrence).toHaveBeenCalledWith(
+      "series-1",
+      "2026-06-18T15:30:00",
+    );
+    expect(
+      await screen.findByRole("button", { name: "Deze keer terugzetten" }),
+    ).not.toBeNull();
+  });
+
+  it("uses future scope when recurrence changes on a recurring occurrence", async () => {
+    const user = setupUser();
+    const calendarEventsApi = await mockedCalendarEventsApi();
+    vi.mocked(calendarEventsApi.loadCalendarAgendaData).mockResolvedValue({
+      sources: [calendarSource],
+      events: [recurringSwimEvent],
+    });
+
+    render(<AgendaWidget {...widgetProps} />);
+    await openMonthView(user);
+    await screen.findByRole("button", { name: /18 juni 2026, 1 gebeurtenis/ });
+    await user.click(screen.getByRole("button", { name: /18 juni 2026, 1 gebeurtenis/ }));
+    await user.click(
+      within(screen.getByText("Zwemles").closest("li")!).getByRole("button", {
+        name: "Bewerken",
+      }),
+    );
+    await reachDetailsStep(user);
+    await user.clear(screen.getByLabelText("Hoe vaak"));
+    await user.type(screen.getByLabelText("Hoe vaak"), "2");
+    await user.click(screen.getByRole("button", { name: "Afspraak opslaan" }));
+    expect(
+      await screen.findByRole("dialog", { name: "Kies wat je wilt opslaan" }),
+    ).not.toBeNull();
+    expect(screen.queryByRole("button", { name: "Alleen deze afspraak" })).toBeNull();
+
+    await user.click(
+      screen.getByRole("button", { name: "Deze en volgende afspraken" }),
+    );
+
+    expect(calendarEventsApi.splitCalendarAgendaEventSeries).toHaveBeenCalledWith(
+      "series-1",
+      "2026-06-18T15:30:00",
+      expect.objectContaining({
+        recurrenceRule: expect.objectContaining({
+          frequency: "Weekly",
+          interval: 2,
+        }),
+      }),
     );
   });
 
