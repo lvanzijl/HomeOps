@@ -1161,8 +1161,12 @@ function EventConversationForm({
             {canSkipOccurrence || canRestoreOccurrence ? (
               <div className="agenda-occurrence-actions">
                 {canSkipOccurrence ? (
-                  <button type="button" onClick={() => void onSkipOccurrence()}>
-                    Deze keer overslaan
+                  <button
+                    type="button"
+                    onClick={() => void onSkipOccurrence()}
+                    disabled={isSaving}
+                  >
+                    {isSaving ? "Overslaan…" : "Deze keer overslaan"}
                   </button>
                 ) : null}
                 {canRestoreOccurrence ? (
@@ -1170,8 +1174,9 @@ function EventConversationForm({
                     type="button"
                     className="secondary-action"
                     onClick={() => void onRestoreOccurrence()}
+                    disabled={isSaving}
                   >
-                    Deze keer terugzetten
+                    {isSaving ? "Terugzetten…" : "Deze keer terugzetten"}
                   </button>
                 ) : null}
               </div>
