@@ -16,6 +16,12 @@ Implemented the Avatar V2 Editor redesign as a frontend-only, catalog-driven UX 
 - `cd /home/runner/work/HomeOps/HomeOps && dotnet restore HomeOps.sln && dotnet build HomeOps.sln && dotnet test HomeOps.sln`
 - `cd /home/runner/work/HomeOps/HomeOps/src/HomeOps.Client && npm ci`
 - `cd /home/runner/work/HomeOps/HomeOps/src/HomeOps.Client && npm test -- src/avatarV2/AvatarEditorPage.test.tsx src/home/FamilyAvatarEditor.test.tsx`
+- `cd /home/runner/work/HomeOps/HomeOps/src/HomeOps.Client && npm test && npm run build`
+- Browser review against the live dev app at `http://127.0.0.1:5173/` with the family-member avatar editor open:
+  - Desktop `1366x900`: no document/body vertical overflow, preview/action rail stayed visible, and the active option panel remained the only scroll container.
+  - Mobile `390x844`: no document/body vertical overflow, preview stayed immediately visible above the compact horizontal category navigation, and the option panel scrolled internally.
+  - Keyboard review: Arrow-right moved focus between skin-tone swatches inside the active option group.
+- `runtime-tools-secret_scanning` on `src/HomeOps.Client/src/home/FamilyMemberPage.test.tsx`
 
 # Risks
 
