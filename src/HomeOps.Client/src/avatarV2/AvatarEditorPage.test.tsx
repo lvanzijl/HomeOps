@@ -45,7 +45,7 @@ describe('AvatarEditorPage', () => {
 
     expect(screen.getByRole('button', { name: /Kort speels/i }).getAttribute('aria-pressed')).toBe('true');
     expect(within(screen.getByLabelText('Avatarkeuzes')).getByRole('button', { name: /Hoodie/i }).getAttribute('aria-pressed')).toBe('true');
-    expect(within(screen.getByLabelText('Avatarkeuzes')).getByRole('button', { name: /Mintgroene accessoirekleur/i }).getAttribute('aria-pressed')).toBe('true');
+    expect(within(screen.getByLabelText('Avatarkeuzes')).getByRole('button', { name: /Accessoirekleur: Mintgroen/i }).getAttribute('aria-pressed')).toBe('true');
     expect(screen.getByText('Niet-opgeslagen wijzigingen')).not.toBeNull();
   });
 });
