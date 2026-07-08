@@ -22,6 +22,7 @@ Implemented the Avatar V2 Editor redesign as a frontend-only, catalog-driven UX 
   - Mobile `390x844`: no document/body vertical overflow, preview stayed immediately visible above the compact horizontal category navigation, and the option panel scrolled internally.
   - Keyboard review: Arrow-right moved focus between skin-tone swatches inside the active option group.
 - `runtime-tools-secret_scanning` on `src/HomeOps.Client/src/home/FamilyMemberPage.test.tsx`
+- `codeql_checker` (JavaScript) — 0 alerts
 
 # Risks
 
