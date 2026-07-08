@@ -745,3 +745,6 @@ Marketing Video Tasks Storyboard Update revises the existing FamilyBoard executa
 
 ### Completed Slice 2.81 — Weather Advice Localization Refactor
 Weather Advice Localization Refactor centralizes the frontend-only Dutch `DepartureAdviceCategory` to short header-label mapping for the Home Weather Pill and future Weather Detail Dialog or notification presentation reuse. The Home Weather Pill preserves its existing advice resolution and fallback behavior. Backend behavior, API contracts, generated clients, dependencies, project files, Weather UI scope, Agenda weather UI, detail dialogs, and binary artifacts remained unchanged.
+
+### Completed Slice 2.82 — Avatar Catalog Backend Foundation
+Avatar Catalog Backend Foundation adds the first backend-only catalog slice for Family Member avatars. The backend now has typed catalog categories/items/palettes, a local catalog source boundary, startup catalog validation, first-class skin tone catalog items, JSON `AvatarSelection` persistence with EF backfill from existing Avatar V2 columns, backend write validation, and legacy Avatar V2 token mapping that preserves existing API compatibility. No frontend, Avatar Editor, renderer, SVG, CSS, runtime Catalog API, compatibility rule engine, asset pipeline, or binary assets were introduced.

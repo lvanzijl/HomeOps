@@ -1,3 +1,5 @@
+using HomeOps.Api.AvatarCatalog;
+
 namespace HomeOps.Api.FamilyMembers;
 
 public sealed record AvatarV2ConfigDto(
@@ -16,7 +18,8 @@ public sealed record FamilyMemberDto(
     string Initials,
     FamilyMemberKind MemberKind,
     DateOnly? DateOfBirth,
-    AvatarV2ConfigDto AvatarV2Config);
+    AvatarV2ConfigDto AvatarV2Config,
+    AvatarSelectionDto AvatarSelection);
 
 public sealed record CreateFamilyMemberRequest(
     string Name,
@@ -24,7 +27,8 @@ public sealed record CreateFamilyMemberRequest(
     DateOnly? DateOfBirth,
     string? DisplayColor,
     string? Initials,
-    AvatarV2ConfigDto? AvatarV2Config);
+    AvatarV2ConfigDto? AvatarV2Config,
+    AvatarSelectionDto? AvatarSelection = null);
 
 public sealed record UpdateFamilyMemberRequest(
     string Name,
@@ -32,4 +36,5 @@ public sealed record UpdateFamilyMemberRequest(
     string Initials,
     FamilyMemberKind MemberKind,
     DateOnly? DateOfBirth,
-    AvatarV2ConfigDto? AvatarV2Config);
+    AvatarV2ConfigDto? AvatarV2Config,
+    AvatarSelectionDto? AvatarSelection = null);

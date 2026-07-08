@@ -1,4 +1,5 @@
 using HomeOps.Api.AgendaLayerSettings;
+using HomeOps.Api.AvatarCatalog;
 using HomeOps.Api.Data;
 using HomeOps.Api.Lists;
 using HomeOps.Api.Households;
@@ -25,6 +26,8 @@ CalendarPortabilityService.ConfigurePreRestoreSnapshotDirectory(
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApiDocument();
 builder.Services.AddSingleton<VisualReviewMarketingTimeProvider>();
+builder.Services.AddSingleton<IAvatarCatalogSource, LocalAvatarCatalogSource>();
+builder.Services.AddSingleton<AvatarCatalogService>();
 
 builder.Services.AddHttpClient<OpenMeteoWeatherProvider>();
 if (builder.Environment.IsEnvironment("VisualReview"))
@@ -84,6 +87,7 @@ else
 }
 
 var app = builder.Build();
+_ = app.Services.GetRequiredService<AvatarCatalogService>();
 
 if (!app.Environment.IsEnvironment("Testing") && !app.Environment.IsEnvironment("VisualReview"))
 {

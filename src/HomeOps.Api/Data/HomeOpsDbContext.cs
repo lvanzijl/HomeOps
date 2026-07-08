@@ -1,4 +1,6 @@
+using System.Text.Json;
 using HomeOps.Api.AgendaLayerSettings;
+using HomeOps.Api.AvatarCatalog;
 using HomeOps.Api.Households;
 using HomeOps.Api.Lists;
 using HomeOps.Api.CalendarEvents;
@@ -288,6 +290,11 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
                 avatar.Property(config => config.Accessory).HasColumnName("AvatarV2Accessory").HasMaxLength(32).IsRequired();
                 avatar.Property(config => config.AccessoryColor).HasColumnName("AvatarV2AccessoryColor").HasMaxLength(32).IsRequired();
             });
+            entity.Property(member => member.AvatarSelection)
+                .HasColumnType("jsonb")
+                .HasConversion(
+                    selection => JsonSerializer.Serialize(selection, (JsonSerializerOptions?)null),
+                    json => JsonSerializer.Deserialize<AvatarSelection>(json, (JsonSerializerOptions?)null) ?? new AvatarSelection());
             entity.HasOne(member => member.Household)
                 .WithMany()
                 .HasForeignKey(member => member.HouseholdId)
