@@ -610,6 +610,7 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
               onSkipOccurrence={() =>
                 editingEvent ? skipOccurrence(editingEvent) : Promise.resolve()
               }
+              onCancel={closeEventForm}
               onSubmit={handleSubmit}
               today={today}
             />
@@ -767,6 +768,7 @@ function EventConversationForm({
   onQuestionChange,
   onRestoreOccurrence,
   onSkipOccurrence,
+  onCancel,
   onSubmit,
   today,
 }: {
@@ -781,11 +783,16 @@ function EventConversationForm({
   onQuestionChange: (question: EventDialogQuestion) => void;
   onRestoreOccurrence: () => Promise<void>;
   onSkipOccurrence: () => Promise<void>;
+  onCancel: () => void;
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
   today: string;
 }) {
   const titleIsValid = form.title.trim().length > 0;
   const submitLabel = isEditing ? "Afspraak opslaan" : "Afspraak maken";
+  const showTitleQuestion = isEditing || question === "title";
+  const showDateQuestion = isEditing || question === "date";
+  const showDayKindQuestion = isEditing || question === "dayKind";
+  const showDetailsQuestion = isEditing || question === "details";
   const recurrenceSummaryLines = buildRecurrenceSummary(form);
   const canSkipOccurrence = Boolean(
     editingEvent?.isRecurring && editingEvent.eventSeriesId && editingEvent.occurrenceKey,
@@ -803,7 +810,7 @@ function EventConversationForm({
       aria-label="Calendar event conversation"
     >
       <div className="task-conversation-panel" key={question}>
-        {question === "title" ? (
+        {showTitleQuestion ? (
           <label className="task-conversation-question">
             <span>Wat gebeurt er?</span>
             <input
@@ -819,7 +826,7 @@ function EventConversationForm({
           </label>
         ) : null}
 
-        {question === "date" ? (
+        {showDateQuestion ? (
           <div className="task-date-question">
             <p className="task-question-label">Wanneer is het?</p>
             <div
@@ -861,7 +868,7 @@ function EventConversationForm({
           </div>
         ) : null}
 
-        {question === "dayKind" ? (
+        {showDayKindQuestion ? (
           <div className="task-date-question">
             <p className="task-question-label">Duurt het de hele dag?</p>
             <div
@@ -941,7 +948,7 @@ function EventConversationForm({
           </div>
         ) : null}
 
-        {question === "details" ? (
+        {showDetailsQuestion ? (
           <div className="task-extras-question">
             <label className="task-conversation-question">
               <span>Nog details?</span>
@@ -1194,7 +1201,11 @@ function EventConversationForm({
       </div>
 
       <div className="task-conversation-actions">
-        {question !== "title" ? (
+        {isEditing ? (
+          <button type="button" className="secondary-action" onClick={onCancel}>
+            Annuleren
+          </button>
+        ) : question !== "title" ? (
           <button
             type="button"
             className="secondary-action"
@@ -1203,8 +1214,8 @@ function EventConversationForm({
             Terug
           </button>
         ) : null}
-        {question === "details" ? (
-          <button type="submit" disabled={isSaving}>
+        {isEditing || question === "details" ? (
+          <button type="submit" disabled={isSaving || !titleIsValid}>
             {isSaving ? "Opslaan…" : submitLabel}
           </button>
         ) : (
