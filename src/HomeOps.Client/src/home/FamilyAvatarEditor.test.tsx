@@ -35,9 +35,9 @@ describe('FamilyAvatarEditor', () => {
     expect(screen.getByRole('button', { name: /Lang zacht/i }).getAttribute('aria-pressed')).toBe('true');
     expect(screen.getByRole('heading', { name: 'Hoofdvorm' })).not.toBeNull();
     expect(screen.getByRole('heading', { name: 'Huidskleur' })).not.toBeNull();
-    const skinToneButton = screen.getByRole('button', { name: /Huidskleur: Midden/i });
-    expect(skinToneButton).not.toBeNull();
-    expect(skinToneButton.textContent).toBe('');
+    const skinToneButtons = screen.getAllByRole('button', { name: /Huidskleur: Midden/i });
+    expect(skinToneButtons.length).toBeGreaterThan(0);
+    expect(skinToneButtons[0].textContent).toBe('');
 
     await user.click(screen.getByRole('button', { name: /Strik/i }));
     await user.click(screen.getByRole('button', { name: 'Opslaan' }));

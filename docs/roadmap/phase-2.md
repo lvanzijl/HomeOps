@@ -1,3 +1,6 @@
+### Completed Slice — Avatar Catalog Feature Expansion
+Avatar Catalog Feature Expansion validates the new catalog architecture at larger scale without redesigning the existing Avatar V2 editor shell. The slice expands skin tones into a first-class 12-swatch catalog, grows the natural hair palette to 18 active colors while preserving legacy plum migration, expands clothing to 32 neutral/soft/bright/seasonal colors, reuses the shared clothing palette for accessory colors instead of duplicating swatch data, and extends frontend renderer compatibility plus tests while keeping Dutch UI copy, viewport-fit behavior, Save/Cancel/Reset flows, and Avatar V2 artwork intact.
+
 ### Completed Slice — Avatar Catalog Frontend Read Path
 Avatar Catalog Frontend Read Path delivers the first FamilyBoard frontend catalog-consumption slice without redesigning the existing Avatar V2 editor shell. The slice regenerates the TypeScript client for `avatarSelection`, adds a local frontend avatar catalog plus Avatar Selection ↔ Avatar V2 adapter helpers, replaces hardcoded avatar option arrays with generic category/item/swatch rendering, and updates family-member create/save flows and tests so the editor consumes catalog metadata while preserving current Dutch UX, Avatar V2 renderer output, and non-backend scope boundaries.
 
