@@ -1,3 +1,4 @@
+using HomeOps.Api.AvatarCatalog;
 using HomeOps.Api.Data;
 using HomeOps.Api.Households;
 using Microsoft.EntityFrameworkCore;
@@ -12,32 +13,33 @@ public static class FamilyMemberEndpoints
     {
         var group = app.MapGroup("/api/family-members").WithTags("Family Members");
 
-        group.MapGet("/", async (HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        group.MapGet("/", async (HomeOpsDbContext dbContext, AvatarCatalogService avatarCatalog, CancellationToken cancellationToken) =>
         {
             var members = await dbContext.FamilyMembers.AsNoTracking()
                 .Where(member => member.HouseholdId == SeedHousehold.Id && !member.IsDeleted)
                 .OrderBy(member => member.Name)
-                .Select(member => ToDto(member))
                 .ToListAsync(cancellationToken);
-            return Results.Ok(members);
+            return Results.Ok(members.Select(member => ToDto(member, avatarCatalog)).ToList());
         }).WithName("GetFamilyMembers").Produces<IReadOnlyCollection<FamilyMemberDto>>();
 
-        group.MapGet("/{memberId}", async (string memberId, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        group.MapGet("/{memberId}", async (string memberId, HomeOpsDbContext dbContext, AvatarCatalogService avatarCatalog, CancellationToken cancellationToken) =>
         {
             var member = await dbContext.FamilyMembers.AsNoTracking()
                 .FirstOrDefaultAsync(member => member.Id == memberId && member.HouseholdId == SeedHousehold.Id, cancellationToken);
-            return member is null ? Results.NotFound() : Results.Ok(ToDto(member));
+            return member is null ? Results.NotFound() : Results.Ok(ToDto(member, avatarCatalog));
         }).WithName("GetFamilyMember").Produces<FamilyMemberDto>().Produces(StatusCodes.Status404NotFound);
 
-        group.MapPost("/", async (CreateFamilyMemberRequest request, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        group.MapPost("/", async (CreateFamilyMemberRequest request, HomeOpsDbContext dbContext, AvatarCatalogService avatarCatalog, CancellationToken cancellationToken) =>
         {
             var validation = Validate(request.Name, request.MemberKind, request.DateOfBirth);
             if (validation is not null) return validation;
+            var avatarResult = ResolveAvatarSelection(request.AvatarSelection, request.AvatarV2Config, avatarCatalog);
+            if (!avatarResult.IsValid) return Results.BadRequest(new { errors = avatarResult.Errors });
             var now = DateTimeOffset.UtcNow;
             var name = request.Name.Trim();
             var initials = string.IsNullOrWhiteSpace(request.Initials) ? BuildInitials(name) : request.Initials.Trim();
             var count = await dbContext.FamilyMembers.CountAsync(member => member.HouseholdId == SeedHousehold.Id, cancellationToken);
-            var avatarV2 = NormalizeAvatarV2Config(request.AvatarV2Config);
+            var avatarSelection = avatarResult.Selection!;
             var member = new FamilyMember
             {
                 Id = await BuildMemberId(dbContext, name, cancellationToken),
@@ -47,30 +49,34 @@ public static class FamilyMemberEndpoints
                 Initials = initials,
                 MemberKind = request.MemberKind,
                 DateOfBirth = request.DateOfBirth,
-                AvatarV2Config = avatarV2,
+                AvatarSelection = avatarSelection,
+                AvatarV2Config = avatarCatalog.ToLegacyAvatarV2(avatarSelection),
                 CreatedUtc = now,
                 UpdatedUtc = now,
             };
             dbContext.FamilyMembers.Add(member);
             await dbContext.SaveChangesAsync(cancellationToken);
-            return Results.Created($"/api/family-members/{member.Id}", ToDto(member));
+            return Results.Created($"/api/family-members/{member.Id}", ToDto(member, avatarCatalog));
         }).WithName("CreateFamilyMember").Produces<FamilyMemberDto>(StatusCodes.Status201Created).Produces(StatusCodes.Status400BadRequest);
 
-        group.MapPut("/{memberId}", async (string memberId, UpdateFamilyMemberRequest request, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        group.MapPut("/{memberId}", async (string memberId, UpdateFamilyMemberRequest request, HomeOpsDbContext dbContext, AvatarCatalogService avatarCatalog, CancellationToken cancellationToken) =>
         {
             var member = await dbContext.FamilyMembers.FirstOrDefaultAsync(member => member.Id == memberId && member.HouseholdId == SeedHousehold.Id, cancellationToken);
             if (member is null) return Results.NotFound();
             var validation = Validate(request.Name, request.MemberKind, request.DateOfBirth);
             if (validation is not null) return validation;
+            var avatarResult = ResolveAvatarSelection(request.AvatarSelection, request.AvatarV2Config, avatarCatalog);
+            if (!avatarResult.IsValid) return Results.BadRequest(new { errors = avatarResult.Errors });
             var displayColor = request.DisplayColor.Trim();
             var initials = request.Initials.Trim();
             if (displayColor.Length == 0 || initials.Length == 0) return Results.BadRequest(new { error = "Display color and initials are required." });
             member.Name = request.Name.Trim(); member.DisplayColor = displayColor; member.Initials = initials;
             member.MemberKind = request.MemberKind; member.DateOfBirth = request.DateOfBirth;
-            member.AvatarV2Config = NormalizeAvatarV2Config(request.AvatarV2Config);
+            member.AvatarSelection = avatarResult.Selection;
+            member.AvatarV2Config = avatarCatalog.ToLegacyAvatarV2(avatarResult.Selection);
             member.UpdatedUtc = DateTimeOffset.UtcNow;
             await dbContext.SaveChangesAsync(cancellationToken);
-            return Results.Ok(ToDto(member));
+            return Results.Ok(ToDto(member, avatarCatalog));
         }).WithName("UpdateFamilyMember").Produces<FamilyMemberDto>().Produces(StatusCodes.Status400BadRequest).Produces(StatusCodes.Status404NotFound);
 
         group.MapDelete("/{memberId}", async (string memberId, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
@@ -88,6 +94,13 @@ public static class FamilyMemberEndpoints
         }).WithName("DeleteFamilyMember").Produces(StatusCodes.Status204NoContent).Produces(StatusCodes.Status404NotFound);
 
         return app;
+    }
+
+    private static AvatarSelectionValidationResult ResolveAvatarSelection(AvatarSelectionDto? selectionDto, AvatarV2ConfigDto? legacyDto, AvatarCatalogService avatarCatalog)
+    {
+        if (selectionDto is not null && legacyDto is not null) return AvatarSelectionValidationResult.Invalid(new Dictionary<string, string[]> { ["avatarSelection"] = ["Provide either avatarSelection or avatarV2Config, not both."] });
+        if (selectionDto is not null) return avatarCatalog.ValidateForWrite(new AvatarSelection { SchemaVersion = selectionDto.SchemaVersion, Selections = selectionDto.Selections.ToDictionary(StringComparer.Ordinal) });
+        return AvatarSelectionValidationResult.Valid(avatarCatalog.MapLegacyAvatarV2(NormalizeAvatarV2Config(legacyDto)));
     }
 
     private static IResult? Validate(string name, FamilyMemberKind kind, DateOnly? dob)
@@ -109,7 +122,6 @@ public static class FamilyMemberEndpoints
 
     private static string BuildInitials(string name) => string.Concat(name.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(part => char.ToUpperInvariant(part[0])))[..Math.Min(2, string.Concat(name.Split(' ', StringSplitOptions.RemoveEmptyEntries).Take(2).Select(part => char.ToUpperInvariant(part[0]))).Length)];
 
-
     private static AvatarV2Config NormalizeAvatarV2Config(AvatarV2ConfigDto? config)
     {
         var defaults = new AvatarV2Config();
@@ -126,9 +138,11 @@ public static class FamilyMemberEndpoints
     }
 
     private static string Clean(string? value, string fallback) => string.IsNullOrWhiteSpace(value) ? fallback : value.Trim();
-
     private static AvatarV2ConfigDto ToAvatarV2Dto(AvatarV2Config config) => new(config.HeadVariant, config.HairStyle, config.HairColor, config.ClothingStyle, config.ClothingColor, config.Accessory, config.AccessoryColor);
-
-    private static FamilyMemberDto ToDto(FamilyMember member) => new(member.Id, member.Name, member.DisplayColor, member.Initials, member.MemberKind, member.DateOfBirth,
-        ToAvatarV2Dto(member.AvatarV2Config ?? new AvatarV2Config()));
+    private static AvatarSelectionDto ToAvatarSelectionDto(AvatarSelection selection) => new(selection.SchemaVersion, selection.Selections);
+    private static FamilyMemberDto ToDto(FamilyMember member, AvatarCatalogService avatarCatalog)
+    {
+        var selection = member.AvatarSelection ?? avatarCatalog.MapLegacyAvatarV2(member.AvatarV2Config);
+        return new(member.Id, member.Name, member.DisplayColor, member.Initials, member.MemberKind, member.DateOfBirth, ToAvatarV2Dto(avatarCatalog.ToLegacyAvatarV2(selection)), ToAvatarSelectionDto(selection));
+    }
 }

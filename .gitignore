@@ -13,6 +13,7 @@ npm-debug.log*
 
 # Repository-local execution caches
 .dotnet-home/
+.home/
 .npm-cache/
 .nuget/
 

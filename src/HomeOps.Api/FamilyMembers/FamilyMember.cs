@@ -1,3 +1,4 @@
+using HomeOps.Api.AvatarCatalog;
 using HomeOps.Api.Households;
 
 namespace HomeOps.Api.FamilyMembers;
@@ -17,4 +18,5 @@ public sealed class FamilyMember
     public DateTimeOffset CreatedUtc { get; set; }
     public DateTimeOffset UpdatedUtc { get; set; }
     public AvatarV2Config? AvatarV2Config { get; set; }
+    public AvatarSelection? AvatarSelection { get; set; }
 }
