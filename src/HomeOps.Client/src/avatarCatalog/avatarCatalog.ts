@@ -27,6 +27,9 @@ export interface AvatarCatalogText {
 export interface AvatarCatalogPresentation {
   control: 'tile' | 'swatch';
   density: 'compact';
+  itemLabelVisibility: 'visible' | 'hidden';
+  groupStrategy?: 'none' | 'tag';
+  optionMinWidthRem?: number;
 }
 
 export interface AvatarCatalogPreview {
@@ -81,11 +84,27 @@ export interface AvatarCatalogItem {
   legacyIds: readonly string[];
 }
 
+export interface AvatarCatalogEditorPanel {
+  id: string;
+  order: number;
+  labels: AvatarCatalogText;
+  accessibilityLabels: AvatarCatalogText;
+  descriptions: AvatarCatalogText;
+  categoryIds: readonly string[];
+}
+
+export interface AvatarCatalogOptionGroup {
+  id: string;
+  order: number;
+  labels: AvatarCatalogText;
+}
+
 export interface AvatarCatalogDefinition {
   catalogId: string;
   schemaVersion: string;
   defaultLocale: string;
   supportedLocales: readonly string[];
+  editorPanels: readonly AvatarCatalogEditorPanel[];
   categories: readonly AvatarCatalogCategory[];
   items: readonly AvatarCatalogItem[];
   defaults: Record<AvatarSelectionSlot, string>;
@@ -105,6 +124,21 @@ interface AvatarCatalogPaletteEntry {
 }
 
 const text = (nl: string, en: string): AvatarCatalogText => ({ 'nl-NL': nl, 'en-US': en });
+
+const optionGroups: Readonly<Record<string, AvatarCatalogOptionGroup>> = {
+  'group.skin': { id: 'group.skin', order: 10, labels: text('Huidskleuren', 'Skin tones') },
+  'group.natural-black': { id: 'group.natural-black', order: 10, labels: text('Zwart', 'Black') },
+  'group.natural-brown': { id: 'group.natural-brown', order: 20, labels: text('Bruin', 'Brown') },
+  'group.natural-blonde': { id: 'group.natural-blonde', order: 30, labels: text('Blond', 'Blonde') },
+  'group.natural-auburn': { id: 'group.natural-auburn', order: 40, labels: text('Kastanjerood', 'Auburn') },
+  'group.natural-ginger': { id: 'group.natural-ginger', order: 50, labels: text('Gember', 'Ginger') },
+  'group.grey-white': { id: 'group.grey-white', order: 60, labels: text('Grijs & wit', 'Grey & white') },
+  'group.legacy': { id: 'group.legacy', order: 70, labels: text('Bewaarde keuzes', 'Saved choices') },
+  'group.neutral': { id: 'group.neutral', order: 10, labels: text('Neutraal', 'Neutral') },
+  'group.soft': { id: 'group.soft', order: 20, labels: text('Zacht', 'Soft') },
+  'group.bright': { id: 'group.bright', order: 30, labels: text('Helder', 'Bright') },
+  'group.seasonal': { id: 'group.seasonal', order: 40, labels: text('Seizoen', 'Seasonal') },
+};
 
 function createColorItem({
   id,
@@ -160,7 +194,7 @@ const categories: readonly AvatarCatalogCategory[] = [
     labels: text('Haar', 'Hair'),
     accessibilityLabels: text('Kapselkeuzes', 'Hairstyle choices'),
     descriptions: text('Kies een kapsel.', 'Choose a hairstyle.'),
-    presentation: { control: 'tile', density: 'compact' },
+    presentation: { control: 'tile', density: 'compact', itemLabelVisibility: 'visible', groupStrategy: 'none', optionMinWidthRem: 8.5 },
     tags: ['editor', 'hair'],
     preview: {
       hiddenSelections: {
@@ -177,7 +211,7 @@ const categories: readonly AvatarCatalogCategory[] = [
     labels: text('Haarkleur', 'Hair color'),
     accessibilityLabels: text('Haarkleurkeuzes', 'Hair color choices'),
     descriptions: text('Kies een haarkleur.', 'Choose a hair color.'),
-    presentation: { control: 'swatch', density: 'compact' },
+    presentation: { control: 'swatch', density: 'compact', itemLabelVisibility: 'visible', groupStrategy: 'tag', optionMinWidthRem: 8.5 },
     tags: ['editor', 'hair', 'color'],
   },
   {
@@ -189,7 +223,7 @@ const categories: readonly AvatarCatalogCategory[] = [
     labels: text('Kleding', 'Clothing'),
     accessibilityLabels: text('Kledingkeuzes', 'Clothing choices'),
     descriptions: text('Kies een outfit.', 'Choose an outfit.'),
-    presentation: { control: 'tile', density: 'compact' },
+    presentation: { control: 'tile', density: 'compact', itemLabelVisibility: 'visible', groupStrategy: 'none', optionMinWidthRem: 8.5 },
     tags: ['editor', 'clothing'],
   },
   {
@@ -201,7 +235,7 @@ const categories: readonly AvatarCatalogCategory[] = [
     labels: text('Kledingkleur', 'Clothing color'),
     accessibilityLabels: text('Kledingkleurkeuzes', 'Clothing color choices'),
     descriptions: text('Kies een kledingkleur.', 'Choose a clothing color.'),
-    presentation: { control: 'swatch', density: 'compact' },
+    presentation: { control: 'swatch', density: 'compact', itemLabelVisibility: 'visible', groupStrategy: 'tag', optionMinWidthRem: 8.5 },
     tags: ['editor', 'clothing', 'color'],
   },
   {
@@ -213,7 +247,7 @@ const categories: readonly AvatarCatalogCategory[] = [
     labels: text('Accessoire', 'Accessory'),
     accessibilityLabels: text('Accessoirekeuzes', 'Accessory choices'),
     descriptions: text('Kies iets extra’s.', 'Choose an extra detail.'),
-    presentation: { control: 'tile', density: 'compact' },
+    presentation: { control: 'tile', density: 'compact', itemLabelVisibility: 'visible', groupStrategy: 'none', optionMinWidthRem: 8.5 },
     tags: ['editor', 'accessory'],
   },
   {
@@ -225,7 +259,7 @@ const categories: readonly AvatarCatalogCategory[] = [
     labels: text('Accessoirekleur', 'Accessory color'),
     accessibilityLabels: text('Accessoirekleurkeuzes', 'Accessory color choices'),
     descriptions: text('Kies een accessoirekleur.', 'Choose an accessory color.'),
-    presentation: { control: 'swatch', density: 'compact' },
+    presentation: { control: 'swatch', density: 'compact', itemLabelVisibility: 'visible', groupStrategy: 'tag', optionMinWidthRem: 8.5 },
     tags: ['editor', 'accessory', 'color'],
   },
   {
@@ -237,7 +271,7 @@ const categories: readonly AvatarCatalogCategory[] = [
     labels: text('Hoofdvorm', 'Head shape'),
     accessibilityLabels: text('Hoofdvormkeuzes', 'Head shape choices'),
     descriptions: text('Kies een hoofdvorm.', 'Choose a head shape.'),
-    presentation: { control: 'tile', density: 'compact' },
+    presentation: { control: 'tile', density: 'compact', itemLabelVisibility: 'visible', groupStrategy: 'none', optionMinWidthRem: 8.5 },
     tags: ['editor', 'head'],
   },
   {
@@ -249,8 +283,59 @@ const categories: readonly AvatarCatalogCategory[] = [
     labels: text('Huidskleur', 'Skin tone'),
     accessibilityLabels: text('Huidskleurkeuzes', 'Skin tone choices'),
     descriptions: text('Kies een huidskleur.', 'Choose a skin tone.'),
-    presentation: { control: 'swatch', density: 'compact' },
+    presentation: { control: 'swatch', density: 'compact', itemLabelVisibility: 'hidden', groupStrategy: 'none', optionMinWidthRem: 4.25 },
     tags: ['editor', 'skin', 'color'],
+  },
+];
+
+const editorPanels: readonly AvatarCatalogEditorPanel[] = [
+  {
+    id: 'skin-tone',
+    order: 10,
+    labels: text('Huidskleur', 'Skin tone'),
+    accessibilityLabels: text('Categorie huidskleur', 'Skin tone category'),
+    descriptions: text('Kies een huidskleur voor het live voorbeeld.', 'Choose a skin tone for the live preview.'),
+    categoryIds: ['skin.tone'],
+  },
+  {
+    id: 'hair-style',
+    order: 20,
+    labels: text('Kapsel', 'Hair style'),
+    accessibilityLabels: text('Categorie kapsel', 'Hair style category'),
+    descriptions: text('Kies één kapsel tegelijk.', 'Choose one hairstyle at a time.'),
+    categoryIds: ['hair.style'],
+  },
+  {
+    id: 'hair-color',
+    order: 30,
+    labels: text('Haarkleur', 'Hair color'),
+    accessibilityLabels: text('Categorie haarkleur', 'Hair color category'),
+    descriptions: text('Natuurlijke haarkleuren blijven eenvoudig en herkenbaar.', 'Natural hair colors stay simple and recognizable.'),
+    categoryIds: ['hair.color'],
+  },
+  {
+    id: 'clothing-style',
+    order: 40,
+    labels: text('Kledingstijl', 'Clothing style'),
+    accessibilityLabels: text('Categorie kledingstijl', 'Clothing style category'),
+    descriptions: text('Kies een outfit voor het gezinsbord.', 'Choose an outfit for the family board.'),
+    categoryIds: ['clothing.style'],
+  },
+  {
+    id: 'clothing-color',
+    order: 50,
+    labels: text('Kledingkleur', 'Clothing color'),
+    accessibilityLabels: text('Categorie kledingkleur', 'Clothing color category'),
+    descriptions: text('Kies uit rustige, zachte, heldere of seizoenskleuren.', 'Choose from neutral, soft, bright, or seasonal colors.'),
+    categoryIds: ['clothing.color'],
+  },
+  {
+    id: 'accessories',
+    order: 60,
+    labels: text('Accessoires', 'Accessories'),
+    accessibilityLabels: text('Categorie accessoires', 'Accessories category'),
+    descriptions: text('Kies een extra detail en laat de kleur meebewegen met het kledingpalet.', 'Choose an extra detail and let the color reuse the clothing palette.'),
+    categoryIds: ['accessory.style', 'accessory.color'],
   },
 ];
 
@@ -435,6 +520,7 @@ export const avatarCatalog: AvatarCatalogDefinition = {
   schemaVersion: avatarCatalogSchemaVersion,
   defaultLocale: avatarCatalogDefaultLocale,
   supportedLocales: ['nl-NL', 'en-US'],
+  editorPanels,
   categories,
   items,
   defaults: {
@@ -452,8 +538,16 @@ export const avatarCatalog: AvatarCatalogDefinition = {
 const categoryById = new Map(avatarCatalog.categories.map((category) => [category.id, category]));
 const itemById = new Map(avatarCatalog.items.map((item) => [item.id, item]));
 
+export function getAvatarCatalogEditorPanels(): readonly AvatarCatalogEditorPanel[] {
+  return [...avatarCatalog.editorPanels].sort((left, right) => left.order - right.order);
+}
+
 export function getAvatarCatalogCategories(): readonly AvatarCatalogCategory[] {
   return [...avatarCatalog.categories].sort((left, right) => left.order - right.order);
+}
+
+export function getAvatarCatalogCategoryForSlot(slot: AvatarSelectionSlot): AvatarCatalogCategory | undefined {
+  return avatarCatalog.categories.find((category) => category.slot === slot);
 }
 
 export function getAvatarCatalogCategory(categoryId: string): AvatarCatalogCategory | undefined {
@@ -474,9 +568,32 @@ export function getAvatarCatalogEditorItems(categoryId: string, selectedItemId: 
   return getAvatarCatalogItems(categoryId).filter((item) => item.status === 'active' || item.id === selectedItemId);
 }
 
+export function getAvatarCatalogOptionGroup(item: AvatarCatalogItem): AvatarCatalogOptionGroup | undefined {
+  const groupTag = item.tags.find((tag) => tag.startsWith('group.'));
+  return groupTag ? optionGroups[groupTag] : undefined;
+}
+
 export function localizeAvatarCatalogText(texts: AvatarCatalogText | undefined, fallback: string, locale = avatarCatalog.defaultLocale): string {
   if (!texts) return fallback;
   return texts[locale] ?? texts[avatarCatalog.defaultLocale] ?? Object.values(texts)[0] ?? fallback;
+}
+
+export function getAvatarCatalogSelectionLabel(selection: AvatarCatalogSelection, slot: AvatarSelectionSlot, locale = avatarCatalog.defaultLocale): string {
+  const item = getAvatarCatalogItem(selection.selections[slot]);
+  if (!item) {
+    return '';
+  }
+
+  return localizeAvatarCatalogText(item.labels, item.id, locale);
+}
+
+export function getAvatarCatalogPanelSummary(panel: AvatarCatalogEditorPanel, selection: AvatarCatalogSelection, locale = avatarCatalog.defaultLocale): string {
+  return panel.categoryIds
+    .map((categoryId) => getAvatarCatalogCategory(categoryId))
+    .filter((category): category is AvatarCatalogCategory => Boolean(category))
+    .map((category) => getAvatarCatalogSelectionLabel(selection, category.slot, locale))
+    .filter((label) => label.length > 0)
+    .join(' · ');
 }
 
 export function createAvatarSelection(overrides: Partial<Record<AvatarSelectionSlot, string>> = {}): AvatarCatalogSelection {

@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { AvatarCatalogControls } from '../avatarCatalog/AvatarCatalogControls';
-import { avatarSelectionsEqual, normalizeAvatarSelection } from '../avatarCatalog/avatarCatalog';
+import { avatarSelectionsEqual, getAvatarCatalogEditorPanels, getAvatarCatalogPanelSummary, localizeAvatarCatalogText, normalizeAvatarSelection } from '../avatarCatalog/avatarCatalog';
 import { avatarSelectionToAvatarV2Configuration, avatarSelectionToAvatarV2RenderConfig, avatarV2ConfigurationToAvatarSelection, defaultAvatarSelection } from '../avatarCatalog/avatarCatalogAdapter';
 import { renderAvatarV2Svg } from '../avatarV2/avatarV2';
 import { HomeOpsIcon } from '../icons/homeOpsIcons';
@@ -17,6 +17,27 @@ export function FamilyAvatarEditor({ member, onChange, onClose }: FamilyAvatarEd
   const [draftSelection, setDraftSelection] = useState(persistedSelection);
   const hasUnsavedChanges = !avatarSelectionsEqual(persistedSelection, draftSelection);
   const previewSvg = useMemo(() => renderAvatarV2Svg(avatarSelectionToAvatarV2RenderConfig(draftSelection)), [draftSelection]);
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
+  const summaryEntries = useMemo(() => getAvatarCatalogEditorPanels().map((panel) => ({
+    id: panel.id,
+    label: localizeAvatarCatalogText(panel.labels, panel.id),
+    value: getAvatarCatalogPanelSummary(panel, draftSelection),
+  })), [draftSelection]);
+
+  useEffect(() => {
+    closeButtonRef.current?.focus();
+  }, []);
+
+  useEffect(() => {
+    const close = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    window.addEventListener('keydown', close);
+    return () => window.removeEventListener('keydown', close);
+  }, [onClose]);
 
   function save() {
     onChange({
@@ -36,12 +57,26 @@ export function FamilyAvatarEditor({ member, onChange, onClose }: FamilyAvatarEd
             <h3>Avatar van {member.name} bewerken</h3>
             <p>Bekijk wijzigingen voor {member.name} en sla ze op bij dit gezinslid.</p>
           </div>
-          <button type="button" className="icon-button" onClick={onClose} aria-label="Avatarbewerker sluiten"><HomeOpsIcon name="close" /></button>
+          <button ref={closeButtonRef} type="button" className="icon-button" onClick={onClose} aria-label="Avatarbewerker sluiten"><HomeOpsIcon name="close" /></button>
         </header>
         <div className="avatar-v2-editor-layout">
           <aside className="avatar-v2-preview-card" aria-label={`Live avatarvoorbeeld voor ${member.name}`}>
+            <div className="avatar-v2-preview-card-header">
+              <div>
+                <p className="eyebrow">Live voorbeeld</p>
+                <h4>{member.name} op het gezinsbord</h4>
+              </div>
+              <p className={hasUnsavedChanges ? 'avatar-v2-status avatar-v2-status-unsaved' : 'avatar-v2-status'} aria-live="polite">{hasUnsavedChanges ? 'Niet-opgeslagen wijzigingen' : 'Opgeslagen'}</p>
+            </div>
             <div className="avatar-v2-preview" data-testid="family-avatar-v2-live-preview" dangerouslySetInnerHTML={{ __html: previewSvg }} />
-            <p className={hasUnsavedChanges ? 'avatar-v2-status avatar-v2-status-unsaved' : 'avatar-v2-status'} aria-live="polite">{hasUnsavedChanges ? 'Niet-opgeslagen wijzigingen' : 'Opgeslagen'}</p>
+            <dl className="avatar-v2-summary-list" aria-label={`Huidige avatarkeuzes voor ${member.name}`}>
+              {summaryEntries.map((entry) => (
+                <div key={entry.id}>
+                  <dt>{entry.label}</dt>
+                  <dd>{entry.value}</dd>
+                </div>
+              ))}
+            </dl>
             <div className="avatar-v2-actions">
               <button type="button" onClick={save} disabled={!hasUnsavedChanges}>Opslaan</button>
               <button type="button" onClick={() => setDraftSelection(persistedSelection)} disabled={!hasUnsavedChanges}>Annuleren</button>

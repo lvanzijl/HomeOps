@@ -1,4 +1,7 @@
-### Completed Slice — Avatar Catalog Feature Expansion
+### Completed Slice — Avatar V2 Editor Redesign
+Avatar V2 Editor Redesign upgrades the family-facing editor shell without changing backend behavior, API contracts, AvatarSelection persistence, or Avatar V2 rendering. The slice replaces the old stacked control cards with a catalog-driven preview rail plus bounded active-panel layout, adds vertical category navigation on desktop with compact navigation on smaller screens, groups large palettes, keeps skin-tone labels visual-first while preserving accessibility labels, improves keyboard/focus handling, and updates avatar-editor tests and implementation reporting.
+
+## Completed Slice — Avatar Catalog Feature Expansion
 Avatar Catalog Feature Expansion validates the new catalog architecture at larger scale without redesigning the existing Avatar V2 editor shell. The slice expands skin tones into a first-class 12-swatch catalog, grows the natural hair palette to 18 active colors while preserving legacy plum migration, expands clothing to 32 neutral/soft/bright/seasonal colors, reuses the shared clothing palette for accessory colors instead of duplicating swatch data, and extends frontend renderer compatibility plus tests while keeping Dutch UI copy, viewport-fit behavior, Save/Cancel/Reset flows, and Avatar V2 artwork intact.
 
 ### Completed Slice — Avatar Catalog Frontend Read Path
