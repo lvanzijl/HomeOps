@@ -1,4 +1,5 @@
 import { useMemo, type CSSProperties } from 'react';
+import { avatarSelectionToAvatarV2RenderConfig } from '../avatarCatalog/avatarCatalogAdapter';
 import { normalizeAvatarV2Configuration, toAvatarV2RenderConfig, type AvatarV2Configuration } from '../avatarV2/avatarConfig';
 import { renderAvatarV2Svg } from '../avatarV2/avatarV2';
 import type { FamilyMember } from './familyMembers';
@@ -32,6 +33,13 @@ function normalizeCompleteAvatarV2Configuration(value: unknown): AvatarV2Configu
 
 export function FamilyAvatar({ member, size = 'compact' }: FamilyAvatarProps) {
   const avatarV2Svg = useMemo(() => {
+    if (member.avatarSelection) {
+      return renderAvatarV2Svg(avatarSelectionToAvatarV2RenderConfig(member.avatarSelection)).replace(
+        ' role="img" aria-label="HomeOps Avatar V2 sample"',
+        ' aria-hidden="true" focusable="false"',
+      );
+    }
+
     const normalizedConfiguration = normalizeCompleteAvatarV2Configuration(member.avatarV2Config);
     if (!normalizedConfiguration) return null;
 
@@ -39,7 +47,7 @@ export function FamilyAvatar({ member, size = 'compact' }: FamilyAvatarProps) {
       ' role="img" aria-label="HomeOps Avatar V2 sample"',
       ' aria-hidden="true" focusable="false"',
     );
-  }, [member.avatarV2Config]);
+  }, [member.avatarSelection, member.avatarV2Config]);
 
   if (avatarV2Svg) {
     return (

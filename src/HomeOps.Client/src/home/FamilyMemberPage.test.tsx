@@ -421,6 +421,9 @@ describe("FamilyMemberPage", () => {
     expect(onChange).toHaveBeenCalledWith(
       expect.objectContaining({
         id: "alex",
+        avatarSelection: expect.objectContaining({
+          selections: expect.objectContaining({ hairStyle: "hair.style.curly-playful" }),
+        }),
         avatarV2Config: expect.objectContaining({ hairStyle: "curlyPlayful" }),
       }),
     );

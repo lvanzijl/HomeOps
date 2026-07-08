@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { avatarV2DefaultConfiguration } from './avatarV2/avatarConfig';
+import { defaultAvatarSelection } from './avatarCatalog/avatarCatalogAdapter';
 import { type FamilyMember } from './home/familyMembers';
 import { createFamilyMember } from './home/familyMembersApi';
 import { completeOnboarding } from './onboardingApi';
@@ -66,7 +66,7 @@ function MemberForm({ kind, onAdd }: { kind: FamilyMember['memberKind']; onAdd: 
   async function submit(event: FormEvent) {
     event.preventDefault();
     if (!name.trim() || (kind === 'child' && !dateOfBirth)) return;
-    await onAdd({ name: name.trim(), initials: buildInitials(name), memberKind: kind, dateOfBirth: kind === 'child' ? dateOfBirth : null, displayColor: kind === 'adult' ? '#c7d2fe' : '#bbf7d0', avatarV2Config: avatarV2DefaultConfiguration });
+    await onAdd({ name: name.trim(), initials: buildInitials(name), memberKind: kind, dateOfBirth: kind === 'child' ? dateOfBirth : null, displayColor: kind === 'adult' ? '#c7d2fe' : '#bbf7d0', avatarSelection: defaultAvatarSelection });
     setName(''); setDateOfBirth('');
   }
   return <form className="wizard-form" onSubmit={submit} aria-label={`${kind === 'adult' ? 'Volwassene' : 'Kind'} toevoegen`}><label>Naam<input value={name} onChange={(event) => setName(event.target.value)} required /></label>{kind === 'child' ? <label>Geboortedatum<input aria-label="Geboortedatum" type="date" value={dateOfBirth} onChange={(event) => setDateOfBirth(event.target.value)} required /></label> : null}<button type="submit">{kind === 'adult' ? 'Volwassene toevoegen' : 'Kind toevoegen'}</button></form>;

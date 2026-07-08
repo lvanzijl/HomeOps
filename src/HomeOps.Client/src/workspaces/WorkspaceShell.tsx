@@ -1,7 +1,7 @@
 import { FamilyBoardIcon } from '../design';
 import { HomeOpsIcon } from '../icons/homeOpsIcons';
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
-import { avatarV2DefaultConfiguration } from '../avatarV2/avatarConfig';
+import { defaultAvatarSelection } from '../avatarCatalog/avatarCatalogAdapter';
 import { hasCalendarSourceAttention, loadCalendarSources } from '../calendarSources/calendarSourcesApi';
 import { FamilyMemberPage } from '../home/FamilyMemberPage';
 import { HomeDashboard } from '../home/HomeDashboard';
@@ -274,7 +274,7 @@ function AddFamilyMemberDialog({ onCancel, onCreate }: { onCancel: () => void; o
   function submit(event: FormEvent) {
     event.preventDefault();
     if (!name.trim() || (memberKind === 'child' && !dateOfBirth)) return;
-    onCreate({ name: name.trim(), initials: buildInitials(name), memberKind, dateOfBirth: dateOfBirth || null, displayColor, avatarV2Config: avatarV2DefaultConfiguration });
+    onCreate({ name: name.trim(), initials: buildInitials(name), memberKind, dateOfBirth: dateOfBirth || null, displayColor, avatarSelection: defaultAvatarSelection });
   }
   return <div className="avatar-editor-backdrop" role="presentation"><section className="avatar-editor" role="dialog" aria-modal="true" aria-label="Gezinslid toevoegen"><header><div><p className="eyebrow">Gezin</p><h3>Gezinslid toevoegen</h3><p>Voeg iemand toe aan het gezinsbord zonder account aan te maken.</p></div><button type="button" className="icon-button" onClick={onCancel} aria-label="Gezinslid toevoegen sluiten"><HomeOpsIcon name="close" /></button></header><form className="avatar-editor-grid" onSubmit={submit}><label>Naam<input value={name} onChange={(event) => setName(event.target.value)} required /></label><label>Gezinslidtype<select value={memberKind} onChange={(event) => setMemberKind(event.target.value as FamilyMember['memberKind'])}><option value="adult">Volwassene</option><option value="child">Kind</option></select></label><label>Geboortedatum<input type="date" value={dateOfBirth} onChange={(event) => setDateOfBirth(event.target.value)} aria-required={memberKind === 'child'} /></label><label>Weergavekleur<input type="color" value={displayColor} onChange={(event) => setDisplayColor(event.target.value)} /></label><div className="family-member-actions"><button type="submit">Gezinslid toevoegen</button><button type="button" onClick={onCancel}>Annuleren</button></div></form></section></div>;
 }

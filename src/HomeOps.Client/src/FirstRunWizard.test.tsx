@@ -1,6 +1,7 @@
 import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { defaultAvatarSelection } from './avatarCatalog/avatarCatalogAdapter';
 import { FirstRunWizard } from './FirstRunWizard';
 import { WorkspaceShell } from './workspaces/WorkspaceShell';
 
@@ -47,15 +48,7 @@ describe('FirstRunWizard', () => {
     await user.click(screen.getByRole('button', { name: 'Volwassene toevoegen' }));
     expect(await screen.findByText('Alex')).not.toBeNull();
     const family = await familyApi();
-    expect(vi.mocked(family.createFamilyMember).mock.calls[0][0].avatarV2Config).toEqual({
-      headVariant: 'round',
-      hairStyle: 'shortMessy',
-      hairColor: 'hairCocoa',
-      clothingStyle: 'hoodie',
-      clothingColor: 'shirtSky',
-      accessory: 'star',
-      accessoryColor: 'accessoryCoral',
-    });
+    expect(vi.mocked(family.createFamilyMember).mock.calls[0][0].avatarSelection).toEqual(defaultAvatarSelection);
     await user.click(screen.getByRole('button', { name: 'Doorgaan' }));
 
     expect(screen.getByText('Kinderen toevoegen')).not.toBeNull();
@@ -63,15 +56,7 @@ describe('FirstRunWizard', () => {
     await user.type(screen.getByLabelText('Geboortedatum'), '2018-04-12');
     await user.click(screen.getByRole('button', { name: 'Kind toevoegen' }));
     expect(await screen.findByText('Riley')).not.toBeNull();
-    expect(vi.mocked(family.createFamilyMember).mock.calls[1][0].avatarV2Config).toEqual({
-      headVariant: 'round',
-      hairStyle: 'shortMessy',
-      hairColor: 'hairCocoa',
-      clothingStyle: 'hoodie',
-      clothingColor: 'shirtSky',
-      accessory: 'star',
-      accessoryColor: 'accessoryCoral',
-    });
+    expect(vi.mocked(family.createFamilyMember).mock.calls[1][0].avatarSelection).toEqual(defaultAvatarSelection);
     await user.click(screen.getByRole('button', { name: 'Gezin controleren' }));
 
     const review = screen.getByLabelText('Gezin controleren');

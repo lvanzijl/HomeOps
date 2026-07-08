@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { FamilyMemberKind } from '../api/homeOpsApiClient';
+import { createAvatarSelectionFixture } from '../avatarCatalog/avatarCatalogFixtures';
 import { createFamilyMember, saveFamilyMember } from './familyMembersApi';
 import type { FamilyMember } from './familyMembers';
 
@@ -12,6 +13,7 @@ const avatarV2Config = {
   accessory: 'star',
   accessoryColor: 'accessoryCoral',
 } as const;
+const avatarSelection = createAvatarSelectionFixture();
 
 function familyMemberResponse(overrides: Record<string, unknown> = {}) {
   return {
@@ -22,6 +24,7 @@ function familyMemberResponse(overrides: Record<string, unknown> = {}) {
     memberKind: FamilyMemberKind.Adult,
     dateOfBirth: null,
     avatarV2Config,
+    avatarSelection,
     ...overrides,
   };
 }
@@ -36,6 +39,7 @@ describe('familyMembersApi avatar contract cleanup', () => {
       const body = JSON.parse(options.body as string);
       expect(body.avatar).toBeUndefined();
       expect(body.avatarV2Config).toEqual(avatarV2Config);
+      expect(body.avatarSelection).toEqual(avatarSelection);
       return new Response(JSON.stringify(familyMemberResponse()), { status: 201, headers: { 'Content-Type': 'application/json' } });
     });
     vi.stubGlobal('fetch', fetch);
@@ -61,11 +65,13 @@ describe('familyMembersApi avatar contract cleanup', () => {
       displayColor: '#c7d2fe',
       initials: 'M',
       avatarV2Config,
+      avatarSelection,
     };
     const fetch = vi.fn(async (_url: string, options: RequestInit) => {
       const body = JSON.parse(options.body as string);
       expect(body.avatar).toBeUndefined();
       expect(body.avatarV2Config).toEqual(avatarV2Config);
+      expect(body.avatarSelection).toEqual(avatarSelection);
       return new Response(JSON.stringify(familyMemberResponse()), { status: 200, headers: { 'Content-Type': 'application/json' } });
     });
     vi.stubGlobal('fetch', fetch);

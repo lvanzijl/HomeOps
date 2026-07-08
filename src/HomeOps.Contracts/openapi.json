@@ -4541,6 +4541,9 @@
           },
           "avatarV2Config": {
             "$ref": "#/components/schemas/AvatarV2ConfigDto"
+          },
+          "avatarSelection": {
+            "$ref": "#/components/schemas/AvatarSelectionDto"
           }
         }
       },
@@ -4583,6 +4586,21 @@
           }
         }
       },
+      "AvatarSelectionDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "schemaVersion": {
+            "type": "string"
+          },
+          "selections": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        }
+      },
       "CreateFamilyMemberRequest": {
         "type": "object",
         "additionalProperties": false,
@@ -4611,6 +4629,14 @@
             "oneOf": [
               {
                 "$ref": "#/components/schemas/AvatarV2ConfigDto"
+              }
+            ]
+          },
+          "avatarSelection": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/AvatarSelectionDto"
               }
             ]
           }
@@ -4642,6 +4668,14 @@
             "oneOf": [
               {
                 "$ref": "#/components/schemas/AvatarV2ConfigDto"
+              }
+            ]
+          },
+          "avatarSelection": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/AvatarSelectionDto"
               }
             ]
           }
