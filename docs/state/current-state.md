@@ -841,3 +841,7 @@ Showcase Sample C and Showcase Sample D exposed that the wide head variant's ear
 - Fixed restore upsert handling for existing external EventSources with matching identifiers so provider configuration and NeverSynced state are restored without duplicate tracked source conflicts.
 - Hardened filesystem iCal file content loading so relative references cannot escape the configured storage root through sibling path-prefix matches.
 - Added regression coverage for the restore and file-store defects; no frontend, scheduler redesign, synchronization behavior changes, binary files, or screenshots were introduced.
+
+- 2026-07-07: Fixed the Calendar Recurrence V2 empty Agenda edit dialog by rendering existing appointment edit fields/actions directly while preserving create and recurring save-scope flows. See docs/reports/2026-07-07-calendar-recurrence-v2-empty-edit-dialog-fix/calendar-recurrence-v2-empty-edit-dialog-fix.md.
+
+- 2026-07-07: Resolved the follow-up frontend validation issues for the Agenda edit dialog fix by adding Vitest `--runInBand` compatibility and hardening Agenda weather/planning tests against async visual-review fixture updates.

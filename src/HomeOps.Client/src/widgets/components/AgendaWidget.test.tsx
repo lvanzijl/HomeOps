@@ -334,13 +334,17 @@ async function openCreateDialog(user: ReturnType<typeof userEvent.setup>) {
 }
 
 async function continueThroughDate(user: ReturnType<typeof userEvent.setup>) {
-  await user.click(screen.getByRole("button", { name: "Verder" }));
-  await user.click(screen.getByRole("button", { name: "Verder" }));
+  for (let step = 0; step < 2; step += 1) {
+    const nextButton = screen.queryByRole("button", { name: "Verder" });
+    if (!nextButton) return;
+    await user.click(nextButton);
+  }
 }
 
 async function continueToDetails(user: ReturnType<typeof userEvent.setup>) {
   await continueThroughDate(user);
-  await user.click(screen.getByRole("button", { name: "Verder" }));
+  const nextButton = screen.queryByRole("button", { name: "Verder" });
+  if (nextButton) await user.click(nextButton);
 }
 
 async function reachDetailsStep(user: ReturnType<typeof userEvent.setup>) {
@@ -665,21 +669,24 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
       ),
     );
 
-    expect(screen.getByLabelText("Wat gebeurt er?")).toHaveProperty(
+    const editDialog = screen.getByRole("dialog", { name: "Afspraak bewerken" });
+    expect(within(editDialog).getByLabelText("Wat gebeurt er?")).toHaveProperty(
       "value",
       "Dentist Appointment",
     );
-    await user.click(screen.getByRole("button", { name: "Verder" }));
-    expect(screen.getByLabelText("Kies datum")).toHaveProperty(
+    expect(within(editDialog).getByLabelText("Kies datum")).toHaveProperty(
       "value",
       "2026-06-18",
     );
-    await user.click(screen.getByRole("button", { name: "Verder" }));
     expect(
-      screen.getByRole("button", { name: "Kies een tijd" }).className,
+      within(editDialog).getByRole("button", { name: "Kies een tijd" }).className,
     ).toContain("selected");
-    expect(screen.getByLabelText("Begintijd")).toHaveProperty("value", "09:30");
-    expect(screen.getByLabelText("Eindtijd")).toHaveProperty("value", "10:15");
+    expect(within(editDialog).getByLabelText("Begintijd")).toHaveProperty("value", "09:30");
+    expect(within(editDialog).getByLabelText("Eindtijd")).toHaveProperty("value", "10:15");
+    expect(within(editDialog).getByLabelText("Waar is het?")).not.toBeNull();
+    expect(within(editDialog).getByLabelText("Herhaalfrequentie")).not.toBeNull();
+    expect(within(editDialog).getByRole("button", { name: "Annuleren" })).not.toBeNull();
+    expect(within(editDialog).getByRole("button", { name: "Afspraak opslaan" })).not.toBeNull();
   });
 
   it("prevents invalid timed event submission with existing validation", async () => {
@@ -857,11 +864,11 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
   it("shows agenda weather across today, week, outlook, and the selected planning day", async () => {
     const calendarEventsApi = await mockedCalendarEventsApi();
     mockVisualReviewMarketingTime(canonicalMarketingAnchorUtc);
-    vi.mocked(calendarEventsApi.loadCalendarAgendaData).mockResolvedValueOnce({
+    vi.mocked(calendarEventsApi.loadCalendarAgendaData).mockResolvedValue({
       sources: [calendarSource],
       events: marketingAgendaEvents,
     });
-    vi.mocked((await mockedAgendaWeatherApi()).loadAgendaWeather).mockResolvedValueOnce(
+    vi.mocked((await mockedAgendaWeatherApi()).loadAgendaWeather).mockResolvedValue(
       new AgendaWeatherProjection({
         slots: [
           new AgendaWeatherSlotProjection({
@@ -902,15 +909,15 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     const weekBriefing = screen.getByLabelText("Deze week");
     const outlookBriefing = screen.getByLabelText("Vooruitkijken");
 
-    expect(within(todayBriefing).getByTitle("Vandaag, 21°, Helder")).not.toBeNull();
+    await waitFor(() => {
+      expect(within(todayBriefing).getByText("Zwemles Thomas")).not.toBeNull();
+      expect(within(todayBriefing).getByTitle("Vandaag, 21°, Helder")).not.toBeNull();
+    });
     expect(
       within(todayBriefing)
         .getByRole("img", { name: "Vandaag, 21°, Helder" })
         .className,
     ).toContain("agenda-weather-cluster--today-header");
-    await waitFor(() => {
-      expect(within(todayBriefing).getByText("Zwemles Thomas")).not.toBeNull();
-    });
 
     const timedEvent = within(todayBriefing).getByText("Zwemles Thomas").closest("li");
     expect(timedEvent).not.toBeNull();
@@ -1233,7 +1240,7 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
   it("keeps planning editing actions available for upcoming grouped events", async () => {
     const user = setupUser();
     const calendarEventsApi = await mockedCalendarEventsApi();
-    vi.mocked(calendarEventsApi.loadCalendarAgendaData).mockResolvedValueOnce({
+    vi.mocked(calendarEventsApi.loadCalendarAgendaData).mockResolvedValue({
       sources: [calendarSource],
       events: timelineEvents,
     });
@@ -1243,6 +1250,10 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     expect(screen.queryByText("Verleden afspraak")).toBeNull();
 
     const todayGroup = screen.getByLabelText("Vandaag briefing");
+    await waitFor(() => {
+      expect(within(todayGroup).getByText("Tandarts controle")).not.toBeNull();
+      expect(within(todayGroup).getByText("Voetbal training")).not.toBeNull();
+    });
     const todayText = todayGroup.textContent ?? "";
     expect(todayText.indexOf("Tandarts controle")).toBeLessThan(
       todayText.indexOf("Voetbal training"),
