@@ -146,6 +146,8 @@
 
 - 2026-07-03: Updated the canonical FamilyBoard marketing storyboard after the product-wide viewport-first redesign so scenes reflect current Home, Agenda, Tasks, Shopping, Motivation, My Page, Avatar Editor, Weekly Reset, and Settings-reference behavior without application code changes, runtime validation, screenshots, video production, or binary artifacts.
 
+- 2026-07-08: Revised the Avatar Catalog Technical Architecture report to remove the initial runtime catalog API, simplify versioning to SchemaVersion, recommend immediate JSON AvatarSelection persistence, omit compatibility-rule and asset-pipeline infrastructure, add Catalog Providers, and strengthen the generic catalog-driven editor principle without production code changes.
+
 ## Current Phase
 Phase 2 — Durable Household Core
 
