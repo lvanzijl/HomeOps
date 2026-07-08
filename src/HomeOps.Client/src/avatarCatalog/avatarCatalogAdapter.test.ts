@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
+import { avatarCatalog, getAvatarCatalogEditorItems } from './avatarCatalog';
 import { avatarSelectionToAvatarV2Configuration, avatarSelectionToAvatarV2RenderConfig, avatarV2ConfigurationToAvatarSelection, defaultAvatarSelection } from './avatarCatalogAdapter';
 import { createAvatarSelectionFixture } from './avatarCatalogFixtures';
+
+function ids(items: readonly { id: string }[]) {
+  return items.map((item) => item.id);
+}
 
 describe('avatar catalog adapter', () => {
   it('maps default catalog selections back to the current Avatar V2 renderer output', () => {
@@ -15,13 +20,33 @@ describe('avatar catalog adapter', () => {
     });
   });
 
-  it('uses the shared clothing palette for accessory colors while preserving Avatar V2 tokens', () => {
+  it('renders expanded skin, hair, clothing, and accessory selections through Avatar V2 tokens', () => {
+    expect(avatarSelectionToAvatarV2RenderConfig(createAvatarSelectionFixture({
+      skinTone: 'skin.tone.rich-deep',
+      hairColor: 'hair.color.soft-white',
+      clothingColor: 'clothing.color.burgundy',
+      accessoryColor: 'accessory.color.white',
+    }))).toEqual(expect.objectContaining({
+      skinTone: 'skinRichDeep',
+      hair: expect.objectContaining({ color: 'hairSoftWhite' }),
+      shirt: expect.objectContaining({ color: 'shirtBurgundy' }),
+      accessory: expect.objectContaining({ color: 'shirtWhite' }),
+    }));
+  });
+
+  it('uses the shared clothing palette for accessory colors while preserving legacy Avatar V2 tokens where needed', () => {
     expect(avatarSelectionToAvatarV2RenderConfig(createAvatarSelectionFixture({
       accessoryColor: 'accessory.color.rose',
-      skinTone: 'skin.tone.deep',
+      skinTone: 'skin.tone.deep-brown',
     }))).toEqual(expect.objectContaining({
-      skinTone: 'skinBrown',
+      skinTone: 'skinDeepBrown',
       accessory: expect.objectContaining({ color: 'shirtRose' }),
+    }));
+
+    expect(avatarSelectionToAvatarV2Configuration(createAvatarSelectionFixture({
+      accessoryColor: 'accessory.color.sky',
+    }))).toEqual(expect.objectContaining({
+      accessoryColor: 'accessoryLilac',
     }));
   });
 
@@ -37,8 +62,14 @@ describe('avatar catalog adapter', () => {
     }).selections).toEqual(expect.objectContaining({
       headVariant: 'head.variant.oval',
       hairStyle: 'hair.style.curly-playful',
+      hairColor: 'hair.color.plum',
       accessoryColor: 'accessory.color.sky',
-      skinTone: 'skin.tone.peach',
+      skinTone: 'skin.tone.medium',
     }));
+  });
+
+  it('keeps deprecated legacy colors selectable only when already chosen', () => {
+    expect(ids(getAvatarCatalogEditorItems('hair.color', 'hair.color.plum'))).toContain('hair.color.plum');
+    expect(ids(getAvatarCatalogEditorItems('hair.color', avatarCatalog.defaults.hairColor))).not.toContain('hair.color.plum');
   });
 });
