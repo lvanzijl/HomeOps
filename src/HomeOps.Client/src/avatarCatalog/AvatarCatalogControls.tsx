@@ -124,7 +124,7 @@ function TileSection({
       <div
         className="avatar-v2-asset-grid"
         data-option-group
-        style={{ ['--avatar-option-min-width' as string]: `${category.presentation.optionMinWidthRem ?? 8.5}rem` }}
+        style={{ ['--avatar-option-min-width' as string]: `${getOptionMinWidthRem(category)}rem` }}
       >
         {items.map((item) => {
           const selected = item.id === selectedItemId;
@@ -181,7 +181,7 @@ function SwatchSection({
             <div
               className="avatar-v2-swatch-grid"
               data-option-group
-              style={{ ['--avatar-option-min-width' as string]: `${category.presentation.optionMinWidthRem ?? 8.5}rem` }}
+              style={{ ['--avatar-option-min-width' as string]: `${getOptionMinWidthRem(category)}rem` }}
             >
               {group.items.map((item) => {
                 const selected = item.id === selectedItemId;
@@ -248,6 +248,18 @@ function groupItems(category: AvatarCatalogCategory, items: readonly AvatarCatal
     const rightOrder = getAvatarCatalogOptionGroup(right.items[0])?.order ?? Number.MAX_SAFE_INTEGER;
     return leftOrder - rightOrder;
   });
+}
+
+function getOptionMinWidthRem(category: AvatarCatalogCategory) {
+  const configuredWidth = category.presentation.optionMinWidthRem ?? 8.5;
+
+  if (category.presentation.control === 'swatch') {
+    return category.presentation.itemLabelVisibility === 'hidden'
+      ? configuredWidth
+      : Math.min(configuredWidth, 6.75);
+  }
+
+  return Math.min(configuredWidth, 7.5);
 }
 
 function handleOptionGroupKeyDown(event: KeyboardEvent<HTMLButtonElement>) {

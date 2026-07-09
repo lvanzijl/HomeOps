@@ -65,6 +65,7 @@ describe('AvatarEditorPage', () => {
     render(<AvatarEditorPage />);
 
     expect(screen.getAllByRole('button', { name: /Huidskleur: Midden/i })[0].textContent).toBe('');
+    expect(screen.queryByText('Kies een huidskleur voor het live voorbeeld.')).toBeNull();
 
     await user.click(navButton('Kledingkleur')!);
 
@@ -73,5 +74,18 @@ describe('AvatarEditorPage', () => {
     expect(within(screen.getByLabelText('Avatarkeuzes')).getByRole('heading', { name: 'Helder' })).not.toBeNull();
     expect(within(screen.getByLabelText('Avatarkeuzes')).getByRole('heading', { name: 'Seizoen' })).not.toBeNull();
     expect(screen.getByRole('button', { name: /Kledingkleur: Hemelsblauw/i })).not.toBeNull();
+  });
+
+  it('keeps the accessories panel minimal while preserving its two visible sections', async () => {
+    const user = userEvent.setup();
+    render(<AvatarEditorPage />);
+
+    await user.click(navButton('Accessoires')!);
+
+    const controls = within(screen.getByLabelText('Avatarkeuzes'));
+    expect(controls.getByRole('heading', { name: 'Accessoires' })).not.toBeNull();
+    expect(controls.getByRole('heading', { name: 'Accessoire' })).not.toBeNull();
+    expect(controls.getByRole('heading', { name: 'Accessoirekleur' })).not.toBeNull();
+    expect(screen.queryByText('Kies een extra detail en laat de kleur meebewegen met het kledingpalet.')).toBeNull();
   });
 });

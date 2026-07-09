@@ -40,6 +40,7 @@ describe('FamilyAvatarEditor', () => {
     expect(screen.queryByText(/Bekijk wijzigingen voor Riley/i)).toBeNull();
     expect(screen.queryByText('Live voorbeeld')).toBeNull();
     expect(screen.queryByText('Categorie')).toBeNull();
+    expect(screen.queryByText('Kies een huidskleur voor het live voorbeeld.')).toBeNull();
     expect(navButton('Kapsel')).not.toBeNull();
     expect(navButton('Haarkleur')).not.toBeNull();
     expect(navButton('Kledingstijl')).not.toBeNull();
@@ -87,6 +88,19 @@ describe('FamilyAvatarEditor', () => {
     expect(within(screen.getByLabelText('Avatarkeuzes voor Riley')).getByRole('button', { name: /Steraccessoire/i }).getAttribute('aria-pressed')).toBe('true');
     expect(screen.getByText('Niet-opgeslagen wijzigingen')).not.toBeNull();
     expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('keeps the accessories panel compact while preserving style and color sections', async () => {
+    const user = userEvent.setup();
+    render(<FamilyAvatarEditor member={member} onChange={vi.fn()} onClose={vi.fn()} />);
+
+    await user.click(navButton('Accessoires')!);
+
+    const controls = within(screen.getByLabelText('Avatarkeuzes voor Riley'));
+    expect(controls.getByRole('heading', { name: 'Accessoires' })).not.toBeNull();
+    expect(controls.getByRole('heading', { name: 'Accessoire' })).not.toBeNull();
+    expect(controls.getByRole('heading', { name: 'Accessoirekleur' })).not.toBeNull();
+    expect(screen.queryByText('Kies een extra detail en laat de kleur meebewegen met het kledingpalet.')).toBeNull();
   });
 
   it('focuses the close button and closes with Escape', async () => {
