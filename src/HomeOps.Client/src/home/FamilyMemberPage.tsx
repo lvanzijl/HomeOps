@@ -258,7 +258,7 @@ export function FamilyMemberPage({
         <FamilyMemberContextDialog
           title={`Voortgang en doelen voor ${member.name}`}
           eyebrow="Mijn voortgang"
-          description="Bekijk persoonlijke voortgang en het gezinsdoel zonder de pagina te vergroten."
+          description="Persoonlijke voortgang en gezinsdoel."
           onClose={() => setActiveSurface(null)}
         >
           <div className="family-member-context-stack">
@@ -280,7 +280,7 @@ export function FamilyMemberPage({
         <FamilyMemberContextDialog
           title={`Herinneringen voor ${member.name}`}
           eyebrow="Geschiedenis"
-          description="Lees waarderingen en vieringen terug in een begrensd overzicht."
+          description="Waarderingen en vieringen."
           onClose={() => setActiveSurface(null)}
         >
           <div className="family-member-context-stack">
@@ -301,7 +301,7 @@ export function FamilyMemberPage({
         <FamilyMemberContextDialog
           title={`Instellingen voor ${member.name}`}
           eyebrow="Oudermodus"
-          description="Werk profielgegevens en gezinsopties bij in een begrensde beheerweergave."
+          description="Werk profielgegevens en gezinsopties bij."
           onClose={() => setActiveSurface(null)}
         >
           <ParentAdministration

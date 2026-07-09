@@ -256,6 +256,12 @@ describe("FamilyMemberPage", () => {
     expect(
       within(dialog).getByRole("heading", { name: "Voortgang en doelen voor Riley" }),
     ).not.toBeNull();
+    expect(within(dialog).getByText("Persoonlijke voortgang en gezinsdoel.")).not.toBeNull();
+    expect(
+      within(dialog).queryByText(
+        "Bekijk persoonlijke voortgang en het gezinsdoel zonder de pagina te vergroten.",
+      ),
+    ).toBeNull();
     expect(within(dialog).getByText("Read before bed")).not.toBeNull();
     expect(within(dialog).getByText("Gezinsdoel")).not.toBeNull();
     expect(within(dialog).getByText("Board game night")).not.toBeNull();
@@ -277,6 +283,12 @@ describe("FamilyMemberPage", () => {
     const dialog = screen.getByRole("dialog", {
       name: "Herinneringen voor Riley",
     });
+    expect(within(dialog).getByText("Waarderingen en vieringen.")).not.toBeNull();
+    expect(
+      within(dialog).queryByText(
+        "Lees waarderingen en vieringen terug in een begrensd overzicht.",
+      ),
+    ).toBeNull();
     expect(within(dialog).getByText("Vieringen om te onthouden")).not.toBeNull();
     expect(within(dialog).getByText("Family Picnic")).not.toBeNull();
     expect(within(dialog).getByText("Waarderingen")).not.toBeNull();
@@ -301,6 +313,12 @@ describe("FamilyMemberPage", () => {
     const dialog = screen.getByRole("dialog", {
       name: "Instellingen voor Riley",
     });
+    expect(within(dialog).getByText("Werk profielgegevens en gezinsopties bij.")).not.toBeNull();
+    expect(
+      within(dialog).queryByText(
+        "Werk profielgegevens en gezinsopties bij in een begrensde beheerweergave.",
+      ),
+    ).toBeNull();
     expect(within(dialog).getByLabelText("Riley instellingen voor volwassenen")).not.toBeNull();
     expect(within(dialog).getByText("Persoonlijke gegevens")).not.toBeNull();
     expect(within(dialog).getByRole("heading", { name: "Uiterlijk" })).not.toBeNull();
