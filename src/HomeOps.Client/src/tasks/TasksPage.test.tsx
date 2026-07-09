@@ -148,7 +148,7 @@ describe("TasksPage hierarchy compaction", () => {
     expect(await screen.findByText("Paint garage")).not.toBeNull();
   });
 
-  it("opens bounded planning detail instead of showing future lists by default", async () => {
+  it("opens planning detail instead of showing future lists by default", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     vi.setSystemTime(new Date("2026-06-20T08:00:00Z"));
     const user = userEvent.setup();
@@ -375,7 +375,7 @@ describe("TasksPage templates", () => {
 
     await screen.findByText("Voeg de eerste helpende taak toe");
     expect(screen.queryByText("Morning Routine")).toBeNull();
-    await user.click(screen.getByRole("button", { name: /Routinestarters/ }));
+    await user.click(screen.getByRole("button", { name: /Routines/ }));
     expect(await screen.findByText("Morning Routine")).not.toBeNull();
     await user.click(screen.getByRole("button", { name: "Toepassen" }));
 

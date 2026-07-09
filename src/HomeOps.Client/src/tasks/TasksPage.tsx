@@ -93,7 +93,7 @@ export function TasksPage({
       createFallbackTaskGroup(
         "today",
         "Vandaag",
-        "Nu eerst: alles wat vandaag aandacht nodig heeft.",
+        "Pak deze taken vandaag op.",
         "Vandaag is alles gedaan.",
         "primary",
       ),
@@ -105,7 +105,7 @@ export function TasksPage({
       createFallbackTaskGroup(
         "tomorrow",
         "Morgen",
-        "Klaarzetten zonder de dag drukker te maken.",
+        "Kijk wat morgen klaarstaat.",
         "Geen taken gepland voor morgen.",
       ),
     [groups],
@@ -116,7 +116,7 @@ export function TasksPage({
       createFallbackTaskGroup(
         "thisWeek",
         "Deze week",
-        "Binnenkort, maar niet meteen nu.",
+        "Bekijk wat later deze week speelt.",
         "Deze week staat er verder niets open.",
       ),
     [groups],
@@ -133,7 +133,7 @@ export function TasksPage({
     return {
       id: "later" as const,
       title: "Later",
-      description: "Rustig vooruit kijken.",
+      description: "Bewaar taken voor later.",
       emptyMessage: "Niets voor later op dit moment.",
       emphasis: "quiet" as const,
       tasks: laterTasks,
@@ -145,7 +145,7 @@ export function TasksPage({
       createFallbackTaskGroup(
         "completedRecently",
         "Afgerond",
-        "Net klaar, zodat terugzetten mogelijk blijft.",
+        "Bekijk wat net is afgerond.",
         "Nog niets afgerond.",
         "quiet",
       ),
@@ -168,7 +168,7 @@ export function TasksPage({
       createFallbackTaskGroup(
         "later",
         "Later",
-        "Rustig vooruit kijken.",
+        "Bewaar taken voor later.",
         "Niets voor later op dit moment.",
         "quiet",
       ),
@@ -481,9 +481,9 @@ export function TasksPage({
     >
       <header className="tasks-command-band">
         <div className="tasks-command-copy">
-          <p className="widget-type">Familie-acties voor vandaag</p>
+          <p className="widget-type">Vandaag</p>
           <h3>Taken voor het gezin</h3>
-          <p>Doe vandaag eerst; planning en beheer blijven compact beschikbaar.</p>
+          <p>Vandaag eerst.</p>
         </div>
         <div className="tasks-command-status" aria-label="Vandaag samenvatting">
           <span className="task-summary-chip">
@@ -581,31 +581,31 @@ export function TasksPage({
       <div className="task-secondary-rail" aria-label="Taakplanning acties">
         <TaskSecondaryActionTile
           count={laterGroup.tasks.length}
-          description="Rustig vooruit"
+          description="Later oppakken"
           label="Later"
           onClick={() => setActivePanel({ kind: "planning", section: "later" })}
         />
         <TaskSecondaryActionTile
           count={somedayTasks.length}
-          description="Bewaren zonder druk"
+          description="Idee bewaren"
           label="Ooit"
           onClick={() => setActivePanel({ kind: "someday" })}
         />
         <TaskSecondaryActionTile
           count={completedTaskGroup.tasks.length}
-          description="Terugzetten blijft dichtbij"
+          description="Bekijk en herstel"
           label="Afgerond"
           onClick={() => setActivePanel({ kind: "completed" })}
         />
         <TaskSecondaryActionTile
           count={templates.length}
-          description="Routines klaarzetten"
-          label="Routinestarters"
+          description="Snel opnieuw gebruiken"
+          label="Routines"
           onClick={() => setActivePanel({ kind: "templates" })}
         />
         <TaskSecondaryActionTile
           count={reviewTasks.length}
-          description="Kies samen wat deze week helpt"
+          description="Kies voor deze week"
           label={`Week plannen${reviewTasks.length > 0 ? ` (${reviewTasks.length})` : ""}`}
           onClick={() => setActivePanel({ kind: "weeklyReview" })}
         />
@@ -832,20 +832,20 @@ export function TasksPage({
                   : activePanel.kind === "someday"
                     ? "Ooit"
                     : activePanel.kind === "templates"
-                      ? "Routinestarters"
+                      ? "Routines"
                       : "Week plannen"
           }
           description={
             activePanel.kind === "planning"
-              ? "Bekijk morgen, deze week en later zonder de pagina langer te maken."
+              ? "Bekijk morgen, deze week en later."
               : activePanel.kind === "today"
-                ? "Alles wat vandaag aandacht vraagt in één bounded lijst."
+                ? "Taken voor vandaag."
                 : activePanel.kind === "completed"
-                  ? "Net afgerond, zodat terugzetten dichtbij blijft."
+                  ? "Bekijk wat net is afgerond."
                   : activePanel.kind === "someday"
-                    ? "Bewaar rustige ideeën zonder ze standaard in beeld te houden."
+                    ? "Bewaar ideeën voor later."
                     : activePanel.kind === "templates"
-                      ? "Gebruik vaste klusjes opnieuw nadat duidelijk is wat vandaag nodig is."
+                      ? "Gebruik routines opnieuw."
                       : "Bekijk losse taken en kies wat het gezin nog helpt."
           }
           onClose={() => setActivePanel(null)}
@@ -974,7 +974,7 @@ export function TasksPage({
                 <button type="submit">
                   {editingTemplate
                     ? "Routine opslaan"
-                    : "Opslaan als routine starter"}
+                    : "Opslaan als routine"}
                 </button>
               </form>
               {templates.length === 0 ? (
@@ -1093,7 +1093,7 @@ function PlanningSummaryPanel({
         <div>
           <p className="task-group-kicker">Daarna</p>
           <h4>Planning</h4>
-          <p>Houd zicht op morgen en deze week zonder meerdere lijsten te lezen.</p>
+          <p>Houd zicht op morgen en deze week.</p>
         </div>
         <button
           type="button"
