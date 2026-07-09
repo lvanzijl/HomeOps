@@ -106,6 +106,8 @@ describe('ShoppingListWidget API-backed behavior', () => {
     expect(screen.getAllByRole('heading', { name: 'Zonder winkel' }).length).toBeGreaterThan(0);
     expect(screen.getAllByText('Batteries')[0]).not.toBeNull();
     expect(document.querySelector('option[value=\"Corner Shop\"]')).not.toBeNull();
+    expect(screen.queryByText('Snel toevoegen')).toBeNull();
+    expect(screen.queryByText('Altijd zichtbaar tijdens het boodschappenrondje.')).toBeNull();
 
     await user.click(screen.getByRole('button', { name: /Afgevinkt/i }));
     await user.click(within(screen.getAllByText('Coffee')[0].closest('li')!).getAllByText('Winkel')[0]);
@@ -116,7 +118,7 @@ describe('ShoppingListWidget API-backed behavior', () => {
 
     expect(listsApi.updateShoppingListItemStore).toHaveBeenCalledWith(apiClient, 'shopping-list-id', 'coffee', 'Drugstore');
     expect(await screen.findByRole('heading', { name: 'Drugstore' })).not.toBeNull();
-    expect(await screen.findByText('(Drugstore)')).not.toBeNull();
+    expect(screen.queryByText('(Drugstore)')).toBeNull();
   });
 
 
