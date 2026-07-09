@@ -26,7 +26,7 @@ CalendarPortabilityService.ConfigurePreRestoreSnapshotDirectory(
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApiDocument();
 builder.Services.AddSingleton<VisualReviewMarketingTimeProvider>();
-builder.Services.AddSingleton<IAvatarCatalogSource, LocalAvatarCatalogSource>();
+builder.Services.AddSingleton<IAvatarCatalogSource, SharedAvatarCatalogSource>();
 builder.Services.AddSingleton<AvatarCatalogService>();
 
 builder.Services.AddHttpClient<OpenMeteoWeatherProvider>();

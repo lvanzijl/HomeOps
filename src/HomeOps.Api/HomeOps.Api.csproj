@@ -18,6 +18,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="..\shared\avatar-catalog.json" Link="avatar-catalog.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\HomeOps.Contracts\HomeOps.Contracts.csproj" />
   </ItemGroup>
 

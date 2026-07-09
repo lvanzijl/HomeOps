@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace HomeOps.Api.AvatarCatalog;
 
 public static class AvatarCatalogConstants
@@ -11,12 +13,19 @@ public sealed record AvatarCatalogDefinition(
     string SchemaVersion,
     string DefaultLocale,
     IReadOnlyList<string> SupportedLocales,
+    IReadOnlyList<AvatarCatalogPalette> Palettes,
     IReadOnlyList<AvatarCatalogCategory> Categories,
     IReadOnlyList<AvatarCatalogItem> Items,
     IReadOnlyDictionary<string, string> Defaults,
     AvatarCatalogThemePlaceholder? Theme = null);
 
 public sealed record AvatarCatalogThemePlaceholder(string Id, string Description);
+
+public sealed record AvatarCatalogPalette(
+    string Id,
+    int Order,
+    IReadOnlyDictionary<string, string> Labels,
+    IReadOnlyList<string> CategoryIds);
 
 public sealed record AvatarCatalogCategory(
     string Id,
@@ -28,7 +37,7 @@ public sealed record AvatarCatalogCategory(
     int Order,
     IReadOnlyDictionary<string, string> Labels,
     IReadOnlyDictionary<string, string> AccessibilityLabels,
-    IReadOnlyDictionary<string, string> Description,
+    [property: JsonPropertyName("descriptions")] IReadOnlyDictionary<string, string> Description,
     AvatarCatalogPresentation Presentation,
     IReadOnlyList<string> Tags);
 
@@ -43,7 +52,7 @@ public sealed record AvatarCatalogItem(
     IReadOnlyDictionary<string, string> Labels,
     IReadOnlyDictionary<string, string> ShortLabels,
     IReadOnlyDictionary<string, string> AccessibilityLabels,
-    IReadOnlyDictionary<string, string> Description,
+    [property: JsonPropertyName("descriptions")] IReadOnlyDictionary<string, string> Description,
     IReadOnlyList<string> Tags,
     AvatarCatalogRendererBinding? Renderer,
     AvatarCatalogColor? Color,

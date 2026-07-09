@@ -126,6 +126,7 @@ const familyRecordingActions = Object.freeze({
   async changeAvatarProperty({ page, touch }) {
     const dialog = familyDialog(page);
     await expectSingle(dialog, 'Thomas Avatar Editor dialog before change');
+    await tapLocator(touch, dialog.getByRole('button', { name: /Accessoires/ }).first(), 'Thomas Avatar Editor accessories category', { directClick: true, holdAfterMs: 500, clickTimeoutMs: 5000 });
     const option = dialog.getByRole('button', { name: /Haarband|Strik|Kroontje/ }).first();
     await tapLocator(touch, option, 'Thomas Avatar Editor accessory option', { directClick: true, holdAfterMs: readableResultHoldMs, clickTimeoutMs: 5000 });
     await expectSingle(dialog.getByText('Niet-opgeslagen wijzigingen', { exact: true }), 'Thomas Avatar Editor unsaved status');
