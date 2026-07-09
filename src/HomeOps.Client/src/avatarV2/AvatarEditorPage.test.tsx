@@ -15,6 +15,8 @@ describe('AvatarEditorPage', () => {
     render(<AvatarEditorPage />);
     const preview = screen.getByTestId('avatar-v2-live-preview');
     const initial = preview.innerHTML;
+    expect(screen.queryByText('Live voorbeeld')).toBeNull();
+    expect(screen.queryByText('Categorie')).toBeNull();
 
     await user.click(navButton('Kapsel')!);
     await user.click(screen.getByRole('button', { name: /Lang zacht/i }));
@@ -47,7 +49,7 @@ describe('AvatarEditorPage', () => {
     await user.click(screen.getByRole('button', { name: /Lang zacht/i }));
     await user.click(screen.getByRole('button', { name: 'Opslaan' }));
 
-    await user.click(screen.getByRole('button', { name: 'Resetten' }));
+    await user.click(screen.getByRole('button', { name: 'Avatar resetten' }));
 
     await user.click(navButton('Kapsel')!);
     expect(within(screen.getByLabelText('Avatarkeuzes')).getByRole('button', { name: /Kapsel kort speels/i }).getAttribute('aria-pressed')).toBe('true');

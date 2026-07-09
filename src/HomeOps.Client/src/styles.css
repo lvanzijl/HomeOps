@@ -5328,22 +5328,20 @@ button {
 
 .avatar-v2-preview-card {
   display: grid;
-  gap: 0.9rem;
-  grid-template-rows: auto auto auto auto;
+  gap: 0.8rem;
+  grid-template-rows: auto minmax(0, 1fr) auto;
   min-height: 0;
   padding: 1rem;
 }
 
 .avatar-v2-family-editor .avatar-v2-preview-card {
-  gap: 0.7rem;
+  gap: 0.75rem;
   padding: 0.9rem;
 }
 
-.avatar-v2-preview-card-header {
-  align-items: start;
+.avatar-v2-preview-status-row {
   display: flex;
-  gap: 0.75rem;
-  justify-content: space-between;
+  justify-content: flex-end;
 }
 
 .avatar-v2-preview {
@@ -5351,52 +5349,28 @@ button {
   border: 1px solid var(--border-warm);
   border-radius: 1.25rem;
   display: grid;
-  min-height: 18rem;
+  min-height: 21rem;
+  padding: 1rem;
   place-items: center;
 }
 
 .avatar-v2-family-editor .avatar-v2-preview {
-  min-height: 13rem;
+  min-height: 18rem;
 }
 
 .avatar-v2-preview svg {
-  height: min(48vw, 17rem);
-  width: min(48vw, 17rem);
+  height: min(48vw, 18.5rem);
+  width: min(48vw, 18.5rem);
 }
 
 .avatar-v2-family-editor .avatar-v2-preview svg {
-  height: min(26vw, 11rem);
-  width: min(26vw, 11rem);
-}
-
-.avatar-v2-summary-list {
-  display: grid;
-  gap: 0.55rem;
-  margin: 0;
-}
-
-.avatar-v2-summary-list div {
-  align-items: baseline;
-  display: grid;
-  gap: 0.15rem;
-}
-
-.avatar-v2-summary-list dt {
-  font-size: 0.8rem;
-  font-weight: 700;
-}
-
-.avatar-v2-summary-list dd {
-  color: var(--color-text-strong);
-  font-size: 0.92rem;
-  font-weight: 700;
-  margin: 0;
+  height: min(26vw, 13.5rem);
+  width: min(26vw, 13.5rem);
 }
 
 .avatar-v2-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+  display: grid;
+  gap: 0.55rem;
 }
 
 .avatar-v2-actions button,
@@ -5408,12 +5382,38 @@ button {
   cursor: pointer;
 }
 
+.avatar-v2-primary-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
 .avatar-v2-actions button {
+  min-height: 2.55rem;
+  padding: 0.55rem 0.9rem;
+}
+
+.avatar-v2-action-primary {
   background: var(--color-brand-accent);
+  border-color: var(--color-brand-accent);
   color: white;
   font-weight: 800;
-  min-height: 2.6rem;
-  padding: 0.55rem 0.9rem;
+}
+
+.avatar-v2-action-secondary {
+  background: var(--surface-default);
+  color: var(--color-text-strong);
+  font-weight: 700;
+}
+
+.avatar-v2-action-reset {
+  background: transparent;
+  border-color: color-mix(in srgb, #dc2626 38%, var(--border-default));
+  color: #b91c1c;
+  font-size: 0.9rem;
+  font-weight: 700;
+  justify-self: start;
+  min-height: 2.25rem;
+  padding: 0.4rem 0.75rem;
 }
 
 .avatar-v2-actions button:disabled {
@@ -5423,7 +5423,7 @@ button {
 
 .avatar-v2-controls-shell {
   display: grid;
-  gap: 0.85rem;
+  gap: 0.75rem;
   grid-template-columns: minmax(11rem, 13rem) minmax(0, 1fr);
   min-height: 0;
   overflow: hidden;
@@ -5431,7 +5431,8 @@ button {
 
 .avatar-v2-category-nav {
   display: grid;
-  gap: 0.65rem;
+  align-content: start;
+  gap: 0.45rem;
   min-height: 0;
 }
 
@@ -5439,26 +5440,28 @@ button {
   align-items: start;
   background: color-mix(in srgb, var(--surface-default) 86%, white);
   display: grid;
-  gap: 0.2rem;
-  padding: 0.8rem 0.85rem;
+  gap: 0.14rem;
+  padding: 0.58rem 0.72rem;
   text-align: left;
 }
 
 .avatar-v2-category-button span {
   color: var(--color-text-strong);
+  font-size: 0.92rem;
   font-weight: 800;
+  line-height: 1.15;
 }
 
 .avatar-v2-category-button small {
   color: var(--color-text-muted);
-  font-size: 0.78rem;
-  line-height: 1.35;
+  font-size: 0.72rem;
+  line-height: 1.25;
 }
 
 .avatar-v2-category-button[aria-pressed="true"] {
   background: color-mix(in srgb, var(--color-brand-accent) 12%, white);
   border-color: color-mix(in srgb, var(--color-brand-accent) 34%, var(--border-default));
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-brand-accent) 18%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-brand-accent) 18%, transparent);
 }
 
 .avatar-v2-control-panel {
@@ -5470,33 +5473,28 @@ button {
 
 .avatar-v2-control-panel-header {
   border-bottom: 1px solid color-mix(in srgb, var(--border-warm) 70%, white);
-  padding: 1rem 1rem 0.9rem;
+  padding: 0.85rem 0.95rem 0.8rem;
 }
 
 .avatar-v2-control-panel-body {
   display: grid;
-  gap: 0.85rem;
+  gap: 0.7rem;
   min-height: 0;
   overflow: auto;
-  padding: 1rem;
+  padding: 0.85rem;
   scrollbar-gutter: stable;
 }
 
 .avatar-v2-choice-section {
   display: grid;
-  gap: 0.65rem;
-  padding: 0.9rem;
-}
-
-.avatar-v2-section-heading {
-  display: grid;
-  gap: 0.18rem;
+  gap: 0.55rem;
+  padding: 0.75rem;
 }
 
 .avatar-v2-asset-grid,
 .avatar-v2-swatch-grid {
   display: grid;
-  gap: 0.65rem;
+  gap: 0.5rem;
   grid-template-columns: repeat(auto-fit, minmax(var(--avatar-option-min-width, 8.5rem), 1fr));
 }
 
@@ -5505,16 +5503,17 @@ button {
   background: var(--surface-default);
   color: var(--color-text-strong);
   display: grid;
-  gap: 0.45rem;
-  min-height: 9rem;
-  padding: 0.75rem 0.6rem;
+  gap: 0.35rem;
+  min-height: 7.8rem;
+  padding: 0.6rem 0.55rem;
   position: relative;
 }
 
 .avatar-v2-asset-tile[aria-pressed="true"],
 .avatar-v2-swatch-option[aria-pressed="true"] {
-  border-color: var(--color-brand-accent);
-  box-shadow: 0 0 0 3px
+  background: color-mix(in srgb, var(--color-brand-accent) 6%, white);
+  border-color: color-mix(in srgb, var(--color-brand-accent) 42%, var(--border-default));
+  box-shadow: 0 0 0 1px
     color-mix(in srgb, var(--color-brand-accent) 22%, transparent);
 }
 
@@ -5525,41 +5524,41 @@ button {
 }
 
 .avatar-v2-option-preview svg {
-  height: 5.35rem;
-  width: 5.35rem;
+  height: 4.85rem;
+  width: 4.85rem;
 }
 
 .avatar-v2-swatch-groups {
   display: grid;
-  gap: 0.9rem;
+  gap: 0.7rem;
 }
 
 .avatar-v2-swatch-group {
   display: grid;
-  gap: 0.55rem;
+  gap: 0.4rem;
 }
 
 .avatar-v2-swatch-group h5 {
   color: var(--color-text-strong);
-  font-size: 0.9rem;
+  font-size: 0.82rem;
 }
 
 .avatar-v2-swatch-option {
   align-items: center;
   background: var(--surface-default);
   display: flex;
-  gap: 0.7rem;
+  gap: 0.55rem;
   justify-content: flex-start;
-  min-height: 4rem;
-  padding: 0.6rem 0.75rem;
+  min-height: 3.3rem;
+  padding: 0.45rem 0.6rem;
   position: relative;
   text-align: left;
 }
 
 .avatar-v2-swatch-option-visual {
   justify-content: center;
-  min-height: 4.5rem;
-  padding: 0.45rem;
+  min-height: 3.6rem;
+  padding: 0.35rem;
 }
 
 .avatar-v2-swatch {
@@ -5567,18 +5566,18 @@ button {
   border-radius: 999px;
   box-shadow: 0 0 0 1px var(--border-default);
   flex: 0 0 auto;
-  height: 2.6rem;
-  width: 2.6rem;
+  height: 2.05rem;
+  width: 2.05rem;
 }
 
 .avatar-v2-swatch-option-visual .avatar-v2-swatch {
-  height: 3rem;
-  width: 3rem;
+  height: 2.35rem;
+  width: 2.35rem;
 }
 
 .avatar-v2-swatch-label {
   color: var(--color-text-strong);
-  font-size: 0.92rem;
+  font-size: 0.85rem;
   font-weight: 700;
 }
 
@@ -5588,18 +5587,18 @@ button {
   border-radius: 999px;
   color: white;
   display: inline-flex;
-  height: 1.4rem;
+  height: 1.15rem;
   justify-content: center;
   position: absolute;
-  right: 0.55rem;
-  top: 0.55rem;
-  width: 1.4rem;
+  right: 0.45rem;
+  top: 0.45rem;
+  width: 1.15rem;
 }
 
 .avatar-v2-selection-indicator svg,
 .avatar-v2-selection-indicator img {
-  height: 0.8rem;
-  width: 0.8rem;
+  height: 0.68rem;
+  width: 0.68rem;
 }
 
 @media (max-width: 900px) {
@@ -5635,16 +5634,20 @@ button {
   }
 
   .avatar-v2-preview {
-    min-height: 12rem;
+    min-height: 14rem;
   }
 
   .avatar-v2-preview svg,
   .avatar-v2-family-editor .avatar-v2-preview svg {
-    height: min(46vw, 9.75rem);
-    width: min(46vw, 9.75rem);
+    height: min(46vw, 10.5rem);
+    width: min(46vw, 10.5rem);
   }
 
-  .avatar-v2-actions button {
+  .avatar-v2-primary-actions {
+    flex-wrap: wrap;
+  }
+
+  .avatar-v2-primary-actions button {
     flex: 1 1 8rem;
   }
 

@@ -36,6 +36,10 @@ describe('FamilyAvatarEditor', () => {
     render(<FamilyAvatarEditor member={member} onChange={onChange} onClose={vi.fn()} />);
 
     expect(screen.getByRole('heading', { name: /Avatar van Riley bewerken/i })).not.toBeNull();
+    expect(screen.queryByText('Gezinslidavatar')).toBeNull();
+    expect(screen.queryByText(/Bekijk wijzigingen voor Riley/i)).toBeNull();
+    expect(screen.queryByText('Live voorbeeld')).toBeNull();
+    expect(screen.queryByText('Categorie')).toBeNull();
     expect(navButton('Kapsel')).not.toBeNull();
     expect(navButton('Haarkleur')).not.toBeNull();
     expect(navButton('Kledingstijl')).not.toBeNull();
@@ -75,7 +79,7 @@ describe('FamilyAvatarEditor', () => {
     const onChange = vi.fn();
     render(<FamilyAvatarEditor member={member} onChange={onChange} onClose={vi.fn()} />);
 
-    await user.click(screen.getByRole('button', { name: 'Resetten' }));
+    await user.click(screen.getByRole('button', { name: 'Avatar resetten' }));
 
     await user.click(navButton('Kapsel')!);
     expect(within(screen.getByLabelText('Avatarkeuzes voor Riley')).getByRole('button', { name: /Kapsel kort speels/i }).getAttribute('aria-pressed')).toBe('true');

@@ -41,6 +41,7 @@ export function AvatarCatalogControls({ selection, controlsLabel, onSelectionCha
   const activeCategories = activePanel?.categoryIds
     .map((categoryId) => getAvatarCatalogCategory(categoryId))
     .filter((category): category is AvatarCatalogCategory => Boolean(category)) ?? [];
+  const showSectionHeading = activeCategories.length > 1;
 
   return (
     <div className="avatar-v2-controls-shell" aria-label={controlsLabel}>
@@ -62,11 +63,7 @@ export function AvatarCatalogControls({ selection, controlsLabel, onSelectionCha
       {activePanel ? (
         <section className="avatar-v2-control-panel" aria-labelledby={`avatar-panel-${activePanel.id}`}>
           <header className="avatar-v2-control-panel-header">
-            <div>
-              <p className="eyebrow">Categorie</p>
-              <h3 id={`avatar-panel-${activePanel.id}`}>{localizeAvatarCatalogText(activePanel.labels, activePanel.id)}</h3>
-              <p>{localizeAvatarCatalogText(activePanel.descriptions, '')}</p>
-            </div>
+            <h3 id={`avatar-panel-${activePanel.id}`}>{localizeAvatarCatalogText(activePanel.labels, activePanel.id)}</h3>
           </header>
           <div className="avatar-v2-control-panel-body">
             {activeCategories.map((category) => {
@@ -79,6 +76,7 @@ export function AvatarCatalogControls({ selection, controlsLabel, onSelectionCha
                     key={category.id}
                     onSelect={(itemId) => onSelectionChange(updateAvatarSelection(selection, category.slot, itemId))}
                     selectedItemId={selection.selections[category.slot]}
+                    showHeading={showSectionHeading}
                   />
                 );
               }
@@ -92,6 +90,7 @@ export function AvatarCatalogControls({ selection, controlsLabel, onSelectionCha
                   renderSelectionPreview={renderSelectionPreview}
                   selectedItemId={selection.selections[category.slot]}
                   selection={selection}
+                  showHeading={showSectionHeading}
                 />
               );
             })}
@@ -109,6 +108,7 @@ function TileSection({
   renderSelectionPreview,
   selectedItemId,
   selection,
+  showHeading,
 }: {
   category: AvatarCatalogCategory;
   items: readonly AvatarCatalogItem[];
@@ -116,13 +116,11 @@ function TileSection({
   renderSelectionPreview: (selection: AvatarCatalogSelection) => string;
   selectedItemId: string;
   selection: AvatarCatalogSelection;
+  showHeading: boolean;
 }) {
   return (
     <section className="avatar-v2-choice-section avatar-v2-choice-section-tile" aria-labelledby={`${category.id}-title`}>
-      <div className="avatar-v2-section-heading">
-        <h4 id={`${category.id}-title`}>{localizeAvatarCatalogText(category.labels, category.id)}</h4>
-        <p>{localizeAvatarCatalogText(category.descriptions, '')}</p>
-      </div>
+      <h4 className={showHeading ? undefined : 'visually-hidden'} id={`${category.id}-title`}>{localizeAvatarCatalogText(category.labels, category.id)}</h4>
       <div
         className="avatar-v2-asset-grid"
         data-option-group
@@ -162,20 +160,19 @@ function SwatchSection({
   items,
   onSelect,
   selectedItemId,
+  showHeading,
 }: {
   category: AvatarCatalogCategory;
   items: readonly AvatarCatalogItem[];
   onSelect: (itemId: string) => void;
   selectedItemId: string;
+  showHeading: boolean;
 }) {
   const groupedItems = groupItems(category, items);
 
   return (
     <section className="avatar-v2-choice-section avatar-v2-choice-section-swatch" aria-labelledby={`${category.id}-title`}>
-      <div className="avatar-v2-section-heading">
-        <h4 id={`${category.id}-title`}>{localizeAvatarCatalogText(category.labels, category.id)}</h4>
-        <p>{localizeAvatarCatalogText(category.descriptions, '')}</p>
-      </div>
+      <h4 className={showHeading ? undefined : 'visually-hidden'} id={`${category.id}-title`}>{localizeAvatarCatalogText(category.labels, category.id)}</h4>
 
       <div className="avatar-v2-swatch-groups">
         {groupedItems.map((group) => (
