@@ -63,6 +63,7 @@ describe('ShoppingListWidget API-backed behavior', () => {
     expect(await screen.findAllByText('Bread')).not.toBeNull();
     expect(screen.queryByText('Coffee')).toBeNull();
     expect(screen.queryByText('Ondersteunende lijsten')).toBeNull();
+    expect(screen.getAllByText('Laatst toegevoegd: Batteries')).toHaveLength(1);
     expect(listsApi.loadShoppingPageLists).toHaveBeenCalledWith(apiClient);
   });
 
@@ -175,8 +176,34 @@ describe('ShoppingListWidget API-backed behavior', () => {
     vi.mocked(listsApi.loadShoppingPageLists).mockResolvedValueOnce({ shoppingList: { listId: 'shopping-list-id', name: 'Shopping', items: [] }, otherLists: [] });
     render(<ShoppingListWidget {...widgetProps} />);
     expect(await screen.findByText('Begin met je eerste boodschap')).not.toBeNull();
-    expect(screen.getByText('Deze ruimte blijft gereserveerd voor de actieve lijst per winkel.')).not.toBeNull();
+    expect(screen.getByText('Voeg iets toe om je lijst te starten.')).not.toBeNull();
     expect(screen.getByRole('link', { name: 'Voeg meteen iets toe.' })).not.toBeNull();
+  });
+
+  it('uses concise helper copy in the shopping dialogs', async () => {
+    const user = userEvent.setup();
+    render(<ShoppingListWidget {...widgetProps} />);
+
+    await screen.findAllByText('Bread');
+
+    await user.click(screen.getByRole('button', { name: /Afgevinkt/i }));
+    expect(await screen.findByText('Bekijk wat al is afgehandeld.')).not.toBeNull();
+    expect(screen.queryByText('Bekijk wat al is afgehandeld zonder de actieve lijst te verplaatsen.')).toBeNull();
+    await user.click(screen.getByRole('button', { name: 'Sluiten' }));
+
+    await user.click(screen.getByRole('button', { name: /Herstellen/i }));
+    expect(await screen.findByText('Zet recent verwijderde boodschappen terug.')).not.toBeNull();
+    expect(screen.queryByText('Open recente verwijderingen in een begrensd herstelvak.')).toBeNull();
+    await user.click(screen.getByRole('button', { name: 'Sluiten' }));
+
+    await user.click(screen.getByRole('button', { name: /Andere lijsten/i }));
+    expect(await screen.findByText('Open een andere lijst.')).not.toBeNull();
+    expect(screen.queryByText('Schakel naar ondersteunende lijsten zonder de standaardweergave uit te breiden.')).toBeNull();
+    await user.click(screen.getByRole('button', { name: 'Sluiten' }));
+
+    await user.click(screen.getByRole('button', { name: 'Beheer' }));
+    expect(await screen.findByText('Hernoem, archiveer of verwijder deze lijst.')).not.toBeNull();
+    expect(screen.queryByText('Hernoem, archiveer of verwijder de huidige boodschappenlijst op aanvraag.')).toBeNull();
   });
 
   it('can create the first Shopping list when no lists exist', async () => {

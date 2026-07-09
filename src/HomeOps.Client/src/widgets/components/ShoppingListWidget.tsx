@@ -168,7 +168,6 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
         {isLoading ? (
           <div className="shopping-region-state">
             <strong>Boodschappen laden…</strong>
-            <p>De actieve lijst wordt in dit vaste vak geladen.</p>
           </div>
         ) : error ? (
           <div className="shopping-region-state shopping-region-state-error" role="alert">
@@ -190,7 +189,7 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
         ) : (
           <div className="shopping-region-state shopping-region-state-empty">
             <strong>Begin met je eerste boodschap</strong>
-            <p>Deze ruimte blijft gereserveerd voor de actieve lijst per winkel.</p>
+            <p>Voeg iets toe om je lijst te starten.</p>
             {shoppingList.listId ? (
               <a href="#shopping-new-item">Voeg meteen iets toe.</a>
             ) : (
@@ -202,8 +201,7 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
         )}
       </section>
 
-      <footer className="shopping-footer-strip" aria-label="Boodschappenstatus">
-        <span className="shopping-footer-pill" title={statusMessage}>{statusMessage}</span>
+      <footer className="shopping-footer-strip" aria-label="Boodschappenacties">
         <button className="shopping-footer-action" onClick={() => setActivePanel('completed')} type="button">
           Afgevinkt <span>{shoppingCompletedItems.length}</span>
         </button>
@@ -323,13 +321,13 @@ function getPanelTitle(panel: ShoppingPanelKind) {
 function getPanelDescription(panel: ShoppingPanelKind) {
   switch (panel) {
     case 'completed':
-      return 'Bekijk wat al is afgehandeld zonder de actieve lijst te verplaatsen.';
+      return 'Bekijk wat al is afgehandeld.';
     case 'deleted':
-      return 'Open recente verwijderingen in een begrensd herstelvak.';
+      return 'Zet recent verwijderde boodschappen terug.';
     case 'otherLists':
-      return 'Schakel naar ondersteunende lijsten zonder de standaardweergave uit te breiden.';
+      return 'Open een andere lijst.';
     case 'manage':
-      return 'Hernoem, archiveer of verwijder de huidige boodschappenlijst op aanvraag.';
+      return 'Hernoem, archiveer of verwijder deze lijst.';
   }
 }
 
