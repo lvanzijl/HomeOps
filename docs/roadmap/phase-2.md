@@ -1,3 +1,6 @@
+### Completed Slice — Shopping UI Tightening
+Shopping UI Tightening applies only the requested frontend polish to the existing Home and Boodschappen shopping surfaces without changing layout direction, backend behavior, APIs, schema, or unrelated Home content. The slice removes Home's intra-store shopping separator lines, drops the Shopping page `Snel toevoegen` label/hint and Shopping-only `Dagelijkse gezinsplek` chip, keeps store grouping while removing repeated per-item store names and extra same-store separators, compacts item/action density so more rows fit, and tightens the quick-add command row while preserving the existing page structure.
+
 ### Completed Slice — Marketing Movie Production Fix
 Marketing Movie Production Fix restores the existing FamilyBoard Marketing Preview V1 production path after the Avatar Catalog / Avatar Editor changes by updating the executable Family scene to open the Accessoires catalog panel before selecting an accessory. The slice preserves the 9-scene narrative, canonical storyboard duration, production workflow, product UI, app behavior, and binary-free repository boundary after generated MP4 removal.
 

@@ -197,9 +197,11 @@ export function WorkspaceShell() {
               <h2 id="active-workspace-title">{activeWorkspace.label}</h2>
             ) : (
               <>
-                <p className="workspace-position">
-                  {activeWorkspaceIsPrimary ? 'Dagelijkse gezinsplek' : activeWorkspaceIsAdministration ? 'Gezinsinstellingen' : 'Familiecheck'}
-                </p>
+                {activeWorkspace.id !== 'lists' ? (
+                  <p className="workspace-position">
+                    {activeWorkspaceIsPrimary ? 'Dagelijkse gezinsplek' : activeWorkspaceIsAdministration ? 'Gezinsinstellingen' : 'Familiecheck'}
+                  </p>
+                ) : null}
                 <h2 id="active-workspace-title">{activeWorkspace.label}</h2>
                 <p>{activeWorkspace.description}</p>
               </>

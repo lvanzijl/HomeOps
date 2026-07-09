@@ -147,11 +147,7 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
 
   return (
     <article className="widget-card shopping-widget shopping-workspace" aria-label={instance.title}>
-      <section className="shopping-command-row" aria-label="Snel toevoegen">
-        <div className="shopping-command-copy">
-          <p className="widget-type">Snel toevoegen</p>
-          <p className="shopping-command-hint">Altijd zichtbaar tijdens het boodschappenrondje.</p>
-        </div>
+      <section className="shopping-command-row">
         <ListSurface
           apiClient={apiClient}
           list={shoppingList}
@@ -634,24 +630,25 @@ function ShoppingListRow({ item, onRemove, onStoreChange, onToggle, onUndo }: Sh
         <input checked={item.completed} onChange={() => onToggle(item.id)} type="checkbox" />
         <span title={item.label}>{item.label}</span>
         {item.deleted ? <small>Verwijderd</small> : null}
-        {onStoreChange && item.preferredStore ? <small>({item.preferredStore})</small> : null}
       </label>
-      {onStoreChange ? (
-        <details className="shopping-item-options">
-          <summary>Winkel</summary>
-          <label className="shopping-store-field">
-            <span className="visually-hidden">Winkel</span>
-            <input aria-label={`Winkel voor ${item.label}`} defaultValue={item.preferredStore ?? ''} list={`store-suggestions-${item.id}`} onBlur={(event) => onStoreChange(item.id, event.target.value || null)} placeholder="Winkel" type="text" />
-            <datalist id={`store-suggestions-${item.id}`}>
-              {(item.storeSuggestions ?? []).map((suggestion) => (
-                <option key={suggestion.store} value={suggestion.store}>{suggestion.store} ({suggestion.purchaseCount})</option>
-              ))}
-            </datalist>
-          </label>
-        </details>
-      ) : null}
-      {onUndo ? <button onClick={() => onUndo(item.id)} type="button">Terugzetten</button> : null}
-      {!item.deleted ? <button className="secondary-action" onClick={() => onRemove(item.id)} type="button">Weg</button> : null}
+      <div className="shopping-item-actions">
+        {onStoreChange ? (
+          <details className="shopping-item-options">
+            <summary>Winkel</summary>
+            <label className="shopping-store-field">
+              <span className="visually-hidden">Winkel</span>
+              <input aria-label={`Winkel voor ${item.label}`} defaultValue={item.preferredStore ?? ''} list={`store-suggestions-${item.id}`} onBlur={(event) => onStoreChange(item.id, event.target.value || null)} placeholder="Winkel" type="text" />
+              <datalist id={`store-suggestions-${item.id}`}>
+                {(item.storeSuggestions ?? []).map((suggestion) => (
+                  <option key={suggestion.store} value={suggestion.store}>{suggestion.store} ({suggestion.purchaseCount})</option>
+                ))}
+              </datalist>
+            </label>
+          </details>
+        ) : null}
+        {onUndo ? <button onClick={() => onUndo(item.id)} type="button">Terugzetten</button> : null}
+        {!item.deleted ? <button className="secondary-action" onClick={() => onRemove(item.id)} type="button">Weg</button> : null}
+      </div>
     </li>
   );
 }

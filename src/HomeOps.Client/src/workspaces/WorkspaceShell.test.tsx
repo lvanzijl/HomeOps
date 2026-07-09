@@ -213,4 +213,16 @@ describe('WorkspaceShell API-backed layouts', () => {
     expect(screen.queryByText('Dagelijkse gezinsplek')).toBeNull();
     expect(screen.queryByText('Gedeelde gezinsplanning en afspraken.')).toBeNull();
   });
+
+  it('omits the daily-place chip in the Shopping workspace header', async () => {
+    const user = userEvent.setup();
+    render(<WorkspaceShell />);
+
+    await screen.findByText('Open Agenda');
+    await user.click(screen.getByRole('button', { name: 'Boodschappen' }));
+
+    expect(screen.getByRole('heading', { name: 'Boodschappen', level: 2 })).not.toBeNull();
+    expect(screen.queryByText('Dagelijkse gezinsplek')).toBeNull();
+    expect(screen.getByText('Boodschappen en dagelijkse gezinslijstjes.')).not.toBeNull();
+  });
 });

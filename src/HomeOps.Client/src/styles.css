@@ -2100,7 +2100,7 @@ button {
 .shopping-summary-group .home-summary-list li {
   align-items: center;
   background: transparent;
-  border-bottom: 1px solid rgb(245 158 11 / 18%);
+  border-bottom: 0;
   border-radius: 0;
   gap: 0.55rem;
   grid-template-columns: auto 1fr;
@@ -8997,27 +8997,10 @@ button {
   border-radius: 1.1rem;
   box-shadow: 0 10px 24px rgb(146 64 14 / 5%);
   display: grid;
-  gap: 0.65rem;
-  grid-template-columns: auto minmax(0, 1fr) minmax(12rem, auto);
-  min-height: 4.4rem;
-  padding: 0.55rem 0.7rem;
-}
-
-.shopping-command-copy,
-.shopping-command-copy p {
-  margin: 0;
-}
-
-.shopping-command-copy {
-  display: grid;
-  gap: 0.15rem;
-}
-
-.shopping-command-hint {
-  color: #7f5539;
-  font-size: 0.78rem;
-  line-height: 1.2;
-  max-width: 12rem;
+  gap: 0.55rem;
+  grid-template-columns: minmax(0, 1fr) minmax(12rem, auto);
+  min-height: 3.75rem;
+  padding: 0.45rem 0.55rem;
 }
 
 .shopping-quick-add-surface {
@@ -9033,14 +9016,16 @@ button {
   border-color: color-mix(in srgb, var(--domain-accent, #f97316) 22%, white);
   border-radius: 0.95rem;
   display: grid;
-  gap: 0.45rem;
+  align-items: center;
+  column-gap: 0.3rem;
   grid-template-columns: minmax(0, 1fr) auto;
-  min-height: 3.2rem;
-  padding: 0.38rem;
+  min-height: 2.85rem;
+  padding: 0.28rem;
+  row-gap: 0.3rem;
 }
 
 .shopping-execution-form input {
-  min-height: 2.7rem;
+  min-height: 2.45rem;
 }
 
 .shopping-execution-form button {
@@ -9048,8 +9033,8 @@ button {
   border-color: #c2410c;
   color: #fff7ed;
   font-weight: 800;
-  min-height: 2.7rem;
-  padding-inline: 1rem;
+  min-height: 2.45rem;
+  padding-inline: 0.9rem;
 }
 
 .shopping-command-status {
@@ -9146,7 +9131,7 @@ button {
   border-radius: 1rem;
   box-shadow: 0 10px 24px rgb(146 64 14 / 5%);
   display: grid;
-  gap: 0.55rem;
+  gap: 0.45rem;
   padding: 0.6rem 0.7rem;
 }
 
@@ -9181,25 +9166,25 @@ button {
 }
 
 .shopping-list {
-  gap: 0.45rem;
+  gap: 0.28rem;
 }
 
 .shopping-item {
   align-items: center;
   background: rgb(255 251 235 / 78%);
-  border-color: color-mix(in srgb, var(--domain-accent, #f97316) 18%, white);
-  border-radius: 0.95rem;
+  border: 0;
+  border-radius: 0.7rem;
   display: grid;
-  gap: 0.4rem;
-  grid-template-columns: minmax(0, 1fr) auto auto;
-  min-height: 3.35rem;
-  padding: 0.45rem 0.55rem;
+  gap: 0.3rem 0.55rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+  min-height: 2.75rem;
+  padding: 0.35rem 0.45rem;
 }
 
 .shopping-item label {
   align-items: center;
   display: grid;
-  gap: 0.55rem;
+  gap: 0.45rem;
   grid-template-columns: auto minmax(0, 1fr);
   min-width: 0;
 }
@@ -9212,7 +9197,7 @@ button {
 .shopping-item label span {
   color: #3f2a17;
   display: -webkit-box;
-  font-size: 1rem;
+  font-size: 0.96rem;
   font-weight: 850;
   line-height: 1.15;
   overflow: hidden;
@@ -9222,12 +9207,20 @@ button {
 
 .shopping-item label small {
   grid-column: 2;
-  margin-top: -0.15rem;
+  margin-top: -0.05rem;
+ }
+
+.shopping-item-actions {
+  align-items: center;
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  justify-content: flex-end;
 }
 
 .shopping-item-options summary,
 .shopping-item button {
-  min-height: 2.2rem;
+  min-height: 2rem;
 }
 
 .shopping-item-options summary,
@@ -9466,10 +9459,6 @@ button {
     grid-template-columns: 1fr;
   }
 
-  .shopping-command-hint {
-    max-width: none;
-  }
-
   .shopping-command-status {
     white-space: normal;
   }
@@ -9482,6 +9471,10 @@ button {
 
   .shopping-item {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .shopping-item-actions {
+    justify-content: flex-start;
   }
 
   .shopping-item-options,
