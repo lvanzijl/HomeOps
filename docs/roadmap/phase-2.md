@@ -1,3 +1,6 @@
+### Completed Slice — Avatar Editor Polish Pass 2
+Avatar Editor Polish Pass 2 applies a second frontend-only refinement pass to the existing catalog-driven Avatar V2 Editor without changing backend behavior, API contracts, catalog architecture, renderer behavior, AvatarSelection persistence, or the overall editor concept. The slice removes vertical stretch behavior from the dialog columns, enlarges the preview so the avatar becomes the visual focus, compacts category cards and option density so more choices fit in the viewport, softens selected-state emphasis, preserves the minimalist Dutch UI approach, validates the no-page-scroll desktop dialog contract, and captures the full six-category Riley screenshot set.
+
 ### Completed Slice — Avatar Editor Polish
 Avatar Editor Polish applies a frontend-only refinement pass to the existing catalog-driven Avatar V2 Editor without changing backend behavior, contracts, catalog architecture, renderer output, or layout direction. The slice removes redundant visible copy, enlarges the stable live preview, compacts the category rail and swatches for better density, softens selected-state emphasis, clarifies Save/Cancel/Reset hierarchy, preserves the existing Dutch editor flow, validates default desktop viewport fit, and commits the required desktop editor screenshot.
 
