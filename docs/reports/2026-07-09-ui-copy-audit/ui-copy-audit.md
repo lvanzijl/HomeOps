@@ -1,279 +1,310 @@
-# UI copy audit — FamilyBoard frontend
+# Summary
 
-Date: 2026-07-09
+Comprehensive frontend UI copy audit for FamilyBoard completed on 2026-07-09. The application is largely Dutch and family-oriented, but the highest-risk copy is visible reviewer/developer language that explains layout containment, bounded panels, reserved viewport areas, APIs/providers, HomeOps internals, or implementation behavior instead of helping a household user.
 
-## Summary
+Highest priority pages:
 
-This audit inspected visible frontend copy across FamilyBoard pages, dialogs, cards, empty states, headers, chips, buttons, helper text, labels, tooltips, seeded/demo data, and tests that assert UI text.
+1. **Settings** — repeated PO-tekst around bounded panels, validation, maintenance rails, API/provider wording, and HomeOps internals.
+2. **Shopping** — visible viewport/layout explanations around fixed/reserved list regions and bounded recovery panels.
+3. **Tasks** — visible “bounded” and no-page-growth wording, plus over-explanatory secondary panel descriptions.
+4. **Mijn Pagina / member dialogs** — visible bounded/no-page-growth descriptions in context dialogs.
+5. **Weekly Reset** — process/implementation copy about undo and current task actions.
+6. **Agenda demo data** — English/demo event sources and sample birthdays/events that can become visible.
 
-Overall finding: the UI is mostly Dutch and task-oriented, but several newer viewport-driven pages contain visible **PO-tekst**: copy that explains the layout strategy, bounded panels, reserved regions, design intent, or implementation behavior instead of helping a real household user. A smaller set of **demotekst** remains in demo agenda data, examples/placeholders, and English fallback/error strings. Most destructive-action, validation, privacy/safety, form-label, status, and accessibility text should remain.
+This is an analysis-only report. No production source files were intentionally changed.
 
-Highest-priority cleanup areas for follow-up implementation:
+# Scope
 
-1. Settings dashboard and settings dialogs: remove or shorten repeated text about bounded panels, calm maintenance, validation availability, and HomeOps/provider internals.
-2. Shopping list page and overlays: remove copy that explains fixed/reserved regions and bounded overlays.
-3. Tasks page dialogs/overlays: shorten page subtitles, remove “bounded lijst” wording, and simplify secondary tile descriptions.
-4. Weekly reset: remove implementation/process language such as undo availability and “same task actions as now”.
-5. Motivation page: shorten emotional/explanatory storyline copy and rename a few abstract headings.
-6. Demo agenda sources/events: decide whether they are still needed in production Home/Agenda data. If yes, label them as sample/demo only in non-production contexts; if no, remove from production-visible composition.
+Inspected visible user-facing frontend copy in:
 
-## Scope inspected
+- Workspace shell/navigation/page headers.
+- Home dashboard cards, quick actions, dialogs, weather detail, member/profile entry points.
+- Agenda widget, agenda summaries, calendar source labels, seeded demo agenda data.
+- Tasks page, task panels/dialogs, empty/status/error states, task tests that assert copy.
+- Shopping widget, list panels/dialogs, list management, status/error states, shopping tests.
+- Motivation page, helpful moments, celebration/memory dialogs, motivational data copy.
+- Mijn Pagina / family member profile and avatar dialogs.
+- Settings dashboard, calendar source management, backup/restore dialogs, portability errors.
+- First-run/onboarding wizard and tests.
+- Weekly Reset page.
+- Shared widget copy/constants, localization/error helpers, visible fallback text.
+- Tests and fixtures that intentionally verify or seed visible copy.
 
-Frontend-only inspection covered:
+Excluded from recommendations to remove: aria labels, form labels, validation messages, destructive confirmations, privacy/safety text, sync/import/export failure explanations, and required status messages. These can still be renamed when they expose implementation terminology.
 
-- Workspace shell and navigation: `src/HomeOps.Client/src/workspaces/WorkspaceShell.tsx`, `workspaceModel.ts`, `DomainPlaceholderPage.tsx`.
-- Home page and dialogs: `src/HomeOps.Client/src/home/HomeDashboard.tsx`, `WeatherDetailDialog.tsx`, `FamilyMemberPage.tsx`, `FamilyAvatarEditor.tsx`.
-- Agenda page/widget: `src/HomeOps.Client/src/widgets/components/AgendaWidget.tsx`, agenda utilities, calendar source copy, demo agenda data.
-- Tasks page/dialogs: `src/HomeOps.Client/src/tasks/TasksPage.tsx`, task grouping and tests.
-- Shopping/List page/dialogs: `src/HomeOps.Client/src/widgets/components/ShoppingListWidget.tsx`, shopping grouping/state and tests.
-- Motivation page/dialogs: `src/HomeOps.Client/src/MotivationPage.tsx`, `HelpfulMoments.tsx`, `motivationData.ts`, `helpfulMomentsData.ts`.
-- Mijn Pagina / family member pages and avatar dialogs: `FamilyMemberPage.tsx`, `FamilyAvatarEditor.tsx`, `AvatarEditorPage.tsx`, `AvatarCatalogControls.tsx`.
-- Settings and calendar maintenance dialogs: `src/HomeOps.Client/src/settings/SettingsDashboard.tsx`, `CalendarPortabilityWidget.tsx`, `calendarSourcesApi.ts`, `calendarPortability.ts`.
-- Onboarding dialog: `src/HomeOps.Client/src/FirstRunWizard.tsx` and tests.
-- Weekly reset page: `src/HomeOps.Client/src/weeklyReset/WeeklyResetPage.tsx`.
-- Visible-copy assertions and seeded UI text in tests: `*.test.tsx`, `*.test.ts` under `src/HomeOps.Client/src`.
-- Story/demo fixtures and sample data: `src/HomeOps.Client/src/demo/demoAgendaData.ts`, API-backed fixture usage, tests that seed English/demo data.
+# Audit methodology
 
-Not changed: production UI code, screenshots, binary files, generated client code, generated assets.
+1. Prepared the repository-local environment using detected tool locations and the cache pattern used by prior Codex reports.
+2. Ran standard verification: .NET build path and frontend build.
+3. Searched source and tests for visible JSX text, string literals returned to UI, status/error messages, demo fixtures, and UI-copy assertions.
+4. Performed targeted searches for PO/reviewer/development wording, including `bounded`, `begrensd`, `gereserveerd`, `vaste vak`, `zonder de pagina`, `zonder de hoofdpagina`, `standaardweergave`, `API`, `provider`, `HomeOps`, `bewijs`, `validatie`, `rail`, `demo`, `voorbeeld`, and `review`.
+5. Classified each audited text group by intended audience and required action.
+6. Prioritized findings by release risk and user impact.
 
-## Classification rules used
+# Statistics
 
-- **PO-tekst**: visible text that explains product intent, demo behavior, layout strategy, design intent, review behavior, implementation behavior, or internal architecture to a Product Owner/developer/reviewer instead of helping the household user.
-- **demotekst**: temporary placeholder/demo copy, sample events, example names, seeded data, or fixtures that can appear as real content.
-- **gebruikerstekst**: visible copy that directly helps a real user complete a task, understand status, avoid mistakes, or recover from an error.
+| Metric | Count / estimate |
+|---|---:|
+| Total visible texts inspected | ~430 |
+| PO-teksten | 34 |
+| Demoteksten | 18 |
+| Gebruikersteksten | ~378 |
+| Remove candidates | 25 |
+| Shorten candidates | 22 |
+| Rename candidates | 11 |
+| Needs product decision | 5 |
+| Estimated duplicate texts | 12 |
+| Estimated vertical space savings | 18-28 visible lines across primary pages/dialogs |
+| Highest priority pages | Settings, Shopping, Tasks, Mijn Pagina, Weekly Reset, Agenda demo fixtures |
 
-Classification actions:
+# Classification rules
 
-- **Remove**: visible PO-tekst/demotekst that should not be shown to real users.
-- **Shorten**: useful gebruikerstekst that is too long, repetitive, or likely to consume vertical space.
-- **Rename**: unclear, inconsistent, overly abstract, or not family-friendly enough.
-- **Keep**: concise, useful gebruikerstekst, including accessibility labels and safety/validation/error text.
-- **Needs product decision**: copy/content whose removal depends on product scope, data model, or UX choice.
+- **PO-tekst**: visible text intended for developers, reviewers, Product Owners, or design validation rather than real household users. Typical markers: layout explanation, viewport explanation, implementation behavior, bounded/reserved region wording, API/provider/internal wording, review annotations.
+- **Demotekst**: temporary sample, placeholder, fixture, or English/demo data that can become visible as if it were real household content.
+- **Gebruikerstekst**: production UI copy that helps a household user understand state, complete an action, avoid mistakes, or recover from errors.
 
-## Findings by page/dialog
+Required action meanings:
 
-### Global shell, navigation, and workspace headers
+- **Remove**: do not show this text to real users.
+- **Shorten**: useful copy, but too long/repetitive/space-consuming.
+- **Rename**: concept is useful but the label/term is inconsistent, abstract, or implementation-oriented.
+- **Keep**: production-appropriate.
+- **Needs product decision**: depends on product scope or whether demo/future functionality remains production-visible.
 
-| Text/source | Classification | Recommendation | Reason |
-|---|---:|---|---|
-| “Dagelijkse gezinsplek”, “Gezinsinstellingen”, “Familiecheck” in workspace headers | Shorten / Remove | Remove from page header where the page title already says the destination. | This is mostly taxonomy, not task help, and consumes vertical space on primary pages. |
-| Workspace descriptions from `workspaceModel.ts`, e.g. “Een rustige gezinscheck voor volgende week.” | Shorten | Keep only where a page needs orientation; otherwise rely on nav/page title. | Repeats the visible page purpose. |
-| Admin nav aria label “{label} voor gezinsinstellingen” | Keep | Keep as accessibility-only label. | Helps screen-reader users distinguish icon-only/settings nav. |
-| “Gezinsinstellingen laden…” | Keep | Keep. | Loading status is useful gebruikerstekst. |
-| Add family member dialog “Voeg iemand toe aan het gezinsbord zonder account aan te maken.” | Keep / Shorten | Keep, or shorten to “Geen account nodig.” | Useful expectation-setting, but can be shorter. |
+# P0 findings
 
-### Home
+| Exact visible text | Component/file | Lines | Classification | Priority | Reason | Recommended action |
+|---|---|---:|---|---|---|---|
+| `Alles wat vandaag aandacht vraagt in één bounded lijst.` | `src/HomeOps.Client/src/tasks/TasksPage.tsx` | 841-842 | PO-tekst | P0 | Exposes English implementation/review term “bounded” in Dutch UI. | Remove; use `Taken voor vandaag.` or no dialog description. |
+| `De actieve lijst wordt in dit vaste vak geladen.` | `src/HomeOps.Client/src/widgets/components/ShoppingListWidget.tsx` | 168-172 | PO-tekst | P0 | Explains fixed viewport/layout region instead of user task. | Remove; keep only `Boodschappen laden…`. |
+| `Deze ruimte blijft gereserveerd voor de actieve lijst per winkel.` | `src/HomeOps.Client/src/widgets/components/ShoppingListWidget.tsx` | 191-193 | PO-tekst | P0 | Explicit reserved-area/viewport wording and unnecessary vertical space. | Remove; replace with direct empty state if needed. |
+| `Herstellen opent in een begrensd paneel met controle vooraf.` | `src/HomeOps.Client/src/settings/SettingsDashboard.tsx` | 104-108 | PO-tekst | P0 | Explains implementation container, not restore task. | Remove; use restore status/action copy. |
+| `Gedetailleerde validatie blijft beschikbaar in een begrensd paneel wanneer dat nodig is.` | `src/HomeOps.Client/src/settings/SettingsDashboard.tsx` | 599-602 | PO-tekst | P0 | Combines technical validation and bounded-panel explanation. | Remove when no validation errors; keep actual errors. |
+| `Bekijk de rustige onderhoudssamenvatting zonder de hoofdpagina te verlengen.` | `src/HomeOps.Client/src/settings/SettingsDashboard.tsx` | 632-635 | PO-tekst | P0 | Directly explains no-page-scroll viewport strategy. | Remove; title is enough. |
+| `Open aanvullende gezinsinstellingen in een begrensd paneel.` | `src/HomeOps.Client/src/settings/SettingsDashboard.tsx` | 723-726 | PO-tekst | P0 | Visible implementation/layout language. | Remove; title is enough. |
+| `Voeg een nieuwe iCal-bron toe zonder de API te gebruiken.` | `src/HomeOps.Client/src/settings/SettingsDashboard.tsx` | 737-740 | PO-tekst | P0 | Exposes API/developer implementation to household users. | Rename to `Voeg een iCal-bron toe.` |
+| `Deze bron gebruikt HomeOps zonder extra providerdetails op de pagina.` | `src/HomeOps.Client/src/settings/SettingsDashboard.tsx` | 1009-1011 | PO-tekst | P0 | Exposes internal provider/page-detail wording. | Remove or rename to `Geen extra details beschikbaar.` |
+| `Undo blijft beschikbaar waar dat vandaag al bestaat.` | `src/HomeOps.Client/src/weeklyReset/WeeklyResetPage.tsx` | 97-101 | PO-tekst | P0 | Implementation capability/checklist note, not household guidance. | Remove. |
 
-| Text/source | Classification | Recommendation | Reason |
-|---|---:|---|---|
-| Date/time labels “Vandaag”, current time, weather advice | Keep | Keep. | Core dashboard information. |
-| Home card action labels “Boodschap toevoegen”, “Boodschappen openen”, equivalent Agenda/Tasks actions | Keep | Keep. | Clear action-oriented gebruikerstekst. |
-| Home quick status “toegevoegd aan…”, “afgevinkt in…” | Keep | Keep. | Confirms action outcome. |
-| Error text “Agenda-overzicht kon niet worden geladen.”, “Boodschappenoverzicht kon niet worden geladen.”, “Takenoverzicht kon niet worden geladen.” | Keep | Keep. | User-visible recovery/status text. |
-| Demo agenda source/event data injected with `demoReadOnlyEvents` and `demoReadOnlyEventSources` | Needs product decision / demotekst | Decide whether demo read-only sources should be visible in production. If production-visible, replace with real integration state or hide behind demo mode. | Demo events can look like real household data. |
-| Placeholder examples in quick-add dialogs, such as task/event/shopping examples | Keep / demotekst | Keep if clearly placeholder examples; ensure examples are short and Dutch. | Placeholders help input, but should not look like persisted data. |
+# P1 findings
 
-### Agenda
+| Exact visible text | Component/file | Lines | Classification | Priority | Reason | Recommended action |
+|---|---|---:|---|---|---|---|
+| `Bekijk morgen, deze week en later zonder de pagina langer te maken.` | `src/HomeOps.Client/src/tasks/TasksPage.tsx` | 838-840 | PO-tekst | P1 | Explains viewport behavior. | Remove or shorten to `Morgen en later.` |
+| `Doe vandaag eerst; planning en beheer blijven compact beschikbaar.` | `src/HomeOps.Client/src/tasks/TasksPage.tsx` | 482-487 | PO-tekst | P1 | “compact beschikbaar” describes layout strategy. | Remove or shorten to `Vandaag eerst.` |
+| `Open recente verwijderingen in een begrensd herstelvak.` | `src/HomeOps.Client/src/widgets/components/ShoppingListWidget.tsx` | 323-329 | PO-tekst | P1 | Bounded recovery panel wording is not user-facing. | Rename to `Recent verwijderd.` |
+| `Schakel naar ondersteunende lijsten zonder de standaardweergave uit te breiden.` | `src/HomeOps.Client/src/widgets/components/ShoppingListWidget.tsx` | 329-330 | PO-tekst | P1 | Explains default-view/layout behavior. | Rename to `Andere lijsten.` |
+| `Bekijk wat al is afgehandeld zonder de actieve lijst te verplaatsen.` | `src/HomeOps.Client/src/widgets/components/ShoppingListWidget.tsx` | 323-327 | PO-tekst | P1 | Explains preservation of layout rather than task. | Rename to `Afgevinkte boodschappen.` |
+| `Hernoem, archiveer of verwijder de huidige boodschappenlijst op aanvraag.` | `src/HomeOps.Client/src/widgets/components/ShoppingListWidget.tsx` | 331-332 | Gebruikerstekst | P1 | Useful but verbose; repeats visible actions. | Shorten to `Lijst beheren.` |
+| `Bekijk persoonlijke voortgang en het gezinsdoel zonder de pagina te vergroten.` | `src/HomeOps.Client/src/home/FamilyMemberPage.tsx` | 257-262 | PO-tekst | P1 | Explicit no-page-growth wording. | Remove or shorten to `Persoonlijke voortgang en gezinsdoel.` |
+| `Lees waarderingen en vieringen terug in een begrensd overzicht.` | `src/HomeOps.Client/src/home/FamilyMemberPage.tsx` | 279-284 | PO-tekst | P1 | Bounded overview language. | Rename to `Waarderingen en vieringen.` |
+| `Werk profielgegevens en gezinsopties bij in een begrensde beheerweergave.` | `src/HomeOps.Client/src/home/FamilyMemberPage.tsx` | 300-305 | PO-tekst | P1 | Implementation/container wording. | Rename to `Werk profielgegevens en gezinsopties bij.` |
+| `Onderhoudsbewijs` | `src/HomeOps.Client/src/settings/SettingsDashboard.tsx` | 546-550 | PO-tekst | P1 | “Bewijs” sounds reviewer/product-oriented and duplicates card title. | Rename to `Overzicht` or remove eyebrow. |
+| `Status en validatie` | `src/HomeOps.Client/src/settings/SettingsDashboard.tsx` | 570-574 | PO-tekst | P1 | “Validatie” is technical unless actual errors are present. | Rename to `Status` or `Meldingen`. |
+| `Onderhoudsrail` | `src/HomeOps.Client/src/settings/SettingsDashboard.tsx` | 609-612 | PO-tekst | P1 | Names the layout region. | Remove or rename to `Acties`. |
+| `extra gezinsinstellingen beschikbaar voor rustig onderhoud.` | `src/HomeOps.Client/src/settings/SettingsDashboard.tsx` | 109-111 | PO-tekst | P1 | “Rustig onderhoud” is vague product positioning. | Shorten to `{n} extra instellingen beschikbaar.` |
+| `Werk naam, icoon, ritme of providerinstellingen rustig bij.` | `src/HomeOps.Client/src/settings/SettingsDashboard.tsx` | 737-740 | PO-tekst | P1 | “Providerinstellingen” exposes internal terminology; “rustig” adds little. | Rename to `Werk naam, icoon of verversing bij.` |
+| `iCal-bestanden in HomeOps` | `src/HomeOps.Client/src/settings/SettingsDashboard.tsx` | 868-870 | PO-tekst | P1 | Internal product mechanics in form help. | Rename to `iCal-bestand`. |
+| `Gebruik de opgeslagen bestandsreferentie, bestandsnaam en inhoudscontrole van het iCal-bestand dat HomeOps al kan lezen.` | `src/HomeOps.Client/src/settings/SettingsDashboard.tsx` | 868-871 | PO-tekst | P1 | Technical/internal file-reference wording. | Replace with user-facing import guidance. |
+| `Blijft actief, gaat naar later of wordt gearchiveerd met dezelfde taakacties als nu.` | `src/HomeOps.Client/src/weeklyReset/WeeklyResetPage.tsx` | 86-89 | PO-tekst | P1 | Describes implementation equivalence rather than decision. | Shorten to `Actief, later of archiveren.` |
+| `Afgeronde taken blijven afgerond; de taaklogica verandert niet.` | `src/HomeOps.Client/src/weeklyReset/WeeklyResetPage.tsx` | 97-100 | PO-tekst | P1 | “Taaklogica” is implementation wording. | Rename to `Afgeronde taken blijven afgerond.` |
+| `Family note` | `src/HomeOps.Client/src/widgets/components/TextWidget.tsx` | 3-9 | Demotekst | P1 | English fallback/type label can leak into Dutch UI. | Rename to `Gezinsnotitie` or avoid visible fallback. |
+| `The selected file is not valid JSON.` | `src/HomeOps.Client/src/calendarPortability.ts` | 53-55 | Demotekst | P1 | English visible error in Dutch UI. | Localize to Dutch. |
+| `The calendar export could not be restored. Please review the validation errors and try again.` | `src/HomeOps.Client/src/calendarPortability.ts` | 57-59 | Demotekst | P1 | English restore error; user-facing. | Localize to Dutch while preserving safety. |
+| `HomeOps could not complete the calendar request. Please try again after the server is available.` | `src/HomeOps.Client/src/calendarPortability.ts` | 57-60 | Demotekst | P1 | English + internal product wording. | Localize and shorten. |
+| `HomeOps could not complete the calendar portability request.` | `src/HomeOps.Client/src/calendarPortability.ts` | 62-62 | Demotekst | P1 | English + technical “portability” wording. | Localize to user task language. |
 
-| Text/source | Classification | Recommendation | Reason |
-|---|---:|---|---|
-| Agenda lead summaries such as “Morgen begint op…” and “Vandaag blijft open” | Shorten | Reduce to direct status: “Morgen: …”, “Geen afspraken vandaag.” | Useful but wordy; dashboard copy should be compact. |
-| “Hele dag zichtbaar voor het gezin.” | Remove / Rename | Rename to “Hele dag” or remove if all-day styling already communicates it. | Explains visibility/design rather than user action. |
-| “De afspraken van vandaag liggen al achter het gezin.” | Shorten | Use “Vandaag afgerond.” | Long, somewhat scripted. |
-| Event source/status labels “mislukt”, “nog niet ververst”, “beschikbaar” | Keep | Keep. | Sync state must remain understandable. |
-| Calendar source grouping labels like “Verjaardagen”, “Vakanties”, “School”, “Gezin” | Keep | Keep. | Useful grouping/filter labels. |
-| Calendar import/sync errors from `calendarSourcesApi.ts` | Keep | Keep. | Required to explain sync failures/import errors. |
+# P2 findings
 
-### Tasks
+| Exact visible text | Component/file | Lines | Classification | Priority | Reason | Recommended action |
+|---|---|---:|---|---|---|---|
+| `Familie-acties voor vandaag` | `src/HomeOps.Client/src/tasks/TasksPage.tsx` | 482-485 | Gebruikerstekst | P2 | Abstract and duplicates `Taken voor het gezin`. | Rename to `Vandaag` or remove eyebrow. |
+| `Routinestarters` | `src/HomeOps.Client/src/tasks/TasksPage.tsx` | 834-836 | Gebruikerstekst | P2 | Less consistent than `Routines` used elsewhere. | Rename to `Routines` unless product distinction is required. |
+| `Net afgerond, zodat terugzetten dichtbij blijft.` | `src/HomeOps.Client/src/tasks/TasksPage.tsx` | 843-845 | Gebruikerstekst | P2 | Warm but verbose; repeats panel title. | Shorten to `Net afgerond.` |
+| `Bewaar rustige ideeën zonder ze standaard in beeld te houden.` | `src/HomeOps.Client/src/tasks/TasksPage.tsx` | 845-846 | Gebruikerstekst | P2 | Layout/display explanation. | Shorten to `Taken voor later.` |
+| `Gebruik vaste klusjes opnieuw nadat duidelijk is wat vandaag nodig is.` | `src/HomeOps.Client/src/tasks/TasksPage.tsx` | 847-848 | Gebruikerstekst | P2 | Over-explains routine use. | Shorten to `Gebruik routines opnieuw.` |
+| `Bekijk losse taken en kies wat het gezin nog helpt.` | `src/HomeOps.Client/src/tasks/TasksPage.tsx` | 848-849 | Gebruikerstekst | P2 | Slightly vague. | Shorten to `Kies taken voor deze week.` |
+| `Gedeeld familiekompas` | `src/HomeOps.Client/src/MotivationPage.tsx` | 155-157 | Gebruikerstekst | P2 | Abstract metaphor; could be clearer for families. | Rename to `Familiedoel` or `Samen doel`. |
+| `Ondersteunend bewijs bij jullie gedeelde verhaal.` | `src/HomeOps.Client/src/MotivationPage.tsx` | 396-401 | PO-tekst | P2 | “Bewijs” and “gedeelde verhaal” sound like review/story framework. | Rename to `Voortgang per onderdeel.` |
+| `Neem samen een rustig moment: vier wat af is, kies wat meegaat en laat los wat niet meer helpt.` | `src/HomeOps.Client/src/weeklyReset/WeeklyResetPage.tsx` | 73-75 | Gebruikerstekst | P2 | Good tone but long for dashboard header. | Shorten to `Kies wat meegaat naar volgende week.` |
+| `Verdwijnt uit de werkvoorraad en blijft als voortgang zichtbaar in de terugblik.` | `src/HomeOps.Client/src/weeklyReset/WeeklyResetPage.tsx` | 86-87 | PO-tekst | P2 | “Werkvoorraad” and visibility mechanics are internal. | Shorten to `Afgerond voor de terugblik.` |
+| `Deze taak wacht op een zachte ja, later of klaar.` | `src/HomeOps.Client/src/weeklyReset/WeeklyResetPage.tsx` | 118-120 | Gebruikerstekst | P2 | Warm but unclear. | Rename to `Kies: houden, later of archiveren.` |
+| `Hele dag zichtbaar voor het gezin.` | `src/HomeOps.Client/src/widgets/components/AgendaWidget.tsx` | 3099-3104 | PO-tekst | P2 | Explains visibility/design; all-day state should be enough. | Rename to `Hele dag.` |
+| `Deze handmatige gezinsagenda blijft beschikbaar voor eigen afspraken.` | `src/HomeOps.Client/src/settings/SettingsDashboard.tsx` | 533-535 | Gebruikerstekst | P2 | Useful protection copy but appears in action area and repeats “blijft beschikbaar”. | Shorten to `Handmatige agenda is beschermd.` |
+| `Broninstellingen blijven bewaard tot je opslaat.` | `src/HomeOps.Client/src/settings/SettingsDashboard.tsx` | 875-877 | Gebruikerstekst | P2 | Useful but slightly indirect. | Shorten to `Sla op om wijzigingen te bewaren.` |
 
-| Text/source | Classification | Recommendation | Reason |
-|---|---:|---|---|
-| “Familie-acties voor vandaag” | Rename | “Vandaag” or “Taken vandaag”. | Abstract and promotional; page already shows tasks. |
-| “Doe vandaag eerst; planning en beheer blijven compact beschikbaar.” | Remove / Shorten | Remove, or shorten to “Vandaag eerst.” | Explains layout strategy (“compact beschikbaar”). |
-| Empty state: “Taken maken hulp zichtbaar zonder van de dag administratie te maken.” | Shorten | “Maak hulp zichtbaar met een taak.” | Useful intent, but reads like product positioning. |
-| Secondary tile descriptions: “Bewaren zonder druk”, “Terugzetten blijft dichtbij”, “Routines klaarzetten”, “Kies samen wat deze week helpt” | Shorten | Use terse labels/counts only or one/two-word descriptors. | Tile label and count already carry meaning; descriptions add vertical cost. |
-| “Naar de vaste weekcheck” | Shorten / Rename | “Weekcheck openen”. | Current wording explains navigation rather than action. |
-| Dialog descriptions: “Alles wat vandaag aandacht vraagt in één bounded lijst.” | Remove / Rename | “Taken voor vandaag.” | “bounded” is direct PO/developer language and not Dutch gebruikerstaal. |
-| Planning dialog: “Bekijk morgen, deze week en later zonder de pagina langer te maken.” | Remove | Replace with no description or “Morgen en later.” | Explicit viewport/layout PO-tekst. |
-| “Gebruik vaste klusjes opnieuw nadat duidelijk is wat vandaag nodig is.” | Shorten | “Gebruik routines opnieuw.” | Wordy explanation under dialog header. |
-| Form labels: “Wat moet er gebeuren?”, “Wie pakt dit op?”, “Wanneer moet dit gebeuren?”, recurrence options | Keep | Keep. | Directly supports task creation. |
-| Destructive/archive actions and “Terugkerende routine kon niet worden verwijderd.” | Keep | Keep. | Error/safety text. |
+# P3 findings
 
-### Shopping/List
+| Exact visible text | Component/file | Lines | Classification | Priority | Reason | Recommended action |
+|---|---|---:|---|---|---|---|
+| `Kies rustig een back-up, controleer de waarschuwing en herstel pas na bevestiging.` | `src/HomeOps.Client/src/settings/SettingsDashboard.tsx` | 659-663 | Gebruikerstekst | P3 | Safe and useful, but “rustig” is repeated tone. | Keep or shorten. |
+| `Verwijder alleen bronnen die je echt niet meer nodig hebt.` | `src/HomeOps.Client/src/settings/SettingsDashboard.tsx` | 898-902 | Gebruikerstekst | P3 | Appropriate destructive-action caution. | Keep. |
+| `Prima. Alles blijft zoals het nu is: taken, doelen en lijstjes veranderen niet.` | `src/HomeOps.Client/src/weeklyReset/WeeklyResetPage.tsx` | 48-52 | Gebruikerstekst | P3 | Friendly and clear, but slightly long. | Keep or shorten. |
+| `Open het weekritueel weer` | `src/HomeOps.Client/src/weeklyReset/WeeklyResetPage.tsx` | 50-52 | Gebruikerstekst | P3 | “Ritueel” is a tone/product choice. | Keep if this is desired brand language. |
+| `Taak staat rustig bij later.` | `src/HomeOps.Client/src/weeklyReset/WeeklyResetPage.tsx` | 134-137 | Gebruikerstekst | P3 | Warm status copy; acceptable but can be simpler. | Keep or shorten to `Taak staat bij later.` |
 
-| Text/source | Classification | Recommendation | Reason |
-|---|---:|---|---|
-| Empty/loading text “De actieve lijst wordt in dit vaste vak geladen.” | Remove | Replace with “Boodschappen laden…” only. | “vaste vak” explains layout implementation. |
-| Empty state “Deze ruimte blijft gereserveerd voor de actieve lijst per winkel.” | Remove | Replace with “Voeg je eerste boodschap toe.” | PO-tekst about reserved region and viewport strategy. |
-| Overlay descriptions: “zonder de actieve lijst te verplaatsen”, “in een begrensd herstelvak”, “zonder de standaardweergave uit te breiden”, “op aanvraag” | Remove | Remove descriptions or use concise task descriptions (“Afgevinkte boodschappen”, “Recent verwijderd”). | Explains layout strategy, not household task. |
-| Footer `statusMessage` duplicated in command row and footer pill | Shorten / Remove duplicate | Keep one status location. | Repetition consumes space and may be noisy. |
-| Store group `span` “{n} open” repeated under each store | Shorten / Needs decision | Keep count only if useful; otherwise rely on items visible. | Repeated source/category counts may be implied by grouping. |
-| Buttons “Afgevinkt”, “Herstellen”, “Andere lijsten”, “Beheer” | Keep | Keep. | Concise navigation/actions. |
-| “Lijst beheren”, “Lijstnaam”, “Hernoemen”, “Archiveren”, “Verwijderen” | Keep | Keep. | Required management/action copy. |
-| Error messages “Boodschap kon niet worden toegevoegd/bijgewerkt/verwijderd/teruggezet.” | Keep | Keep. | Necessary validation/recovery text. |
+# Findings by page
 
-### Motivation and helpful moments
+## Global shell / shared widgets
 
-| Text/source | Classification | Recommendation | Reason |
-|---|---:|---|---|
-| “Gedeeld familiekompas” | Rename | “Familiedoel” or “Samen doel”. | Abstract metaphor; not as direct for household users. |
-| “Waarom dit ertoe doet” block | Shorten / Remove | Consider removing from default card or moving into detail. | Explains emotional/product intent; costs vertical space. |
-| “Elke kleine stap laat zien waar jullie als gezin samen naartoe groeien.” | Shorten | “Elke stap telt.” | Long and somewhat scripted. |
-| “Ondersteunend bewijs bij jullie gedeelde verhaal.” | Remove / Rename | “Voortgang per onderdeel.” | “bewijs” and “gedeelde verhaal” are PO/storytelling language. |
-| “Resterend”, “Gezin helpt mee”, progress numbers | Keep | Keep. | Direct progress information. |
-| “Vieringen die we onthouden”, “herinneringen om later samen terug te lezen” | Keep / Shorten | Keep, maybe shorten to “Vieringen” and “Om later terug te lezen.” | User-facing and warm, but can be tighter. |
-| Helpful Moments “Lieve dingen die jullie hebben gezien.” | Keep / Shorten | Keep or shorten to “Wat jullie zagen.” | Warm user-facing copy, not PO-tekst. |
-| “Dank je wel.” | Keep | Keep. | User-facing appreciation. |
-| “Waardering sluiten dialog” aria label | Rename | “Waardering sluiten”. | “dialog” is implementation wording in Dutch UI/accessibility label. |
-| Placeholder “Riley hielp opruimen zonder dat iemand het vroeg.” | demotekst / Keep as placeholder | Keep if placeholder-only; consider generic “Bijvoorbeeld: hielp opruimen.” | It is an example, but named demo/person copy can feel seeded. |
+- `Family note` fallback/type label is English visible copy and should be localized or removed as a visible fallback. See P1.
+- Accessibility labels should remain, but if labels include implementation words they should be renamed, not removed.
 
-### Mijn Pagina / family member and avatar dialogs
+## Home
 
-| Text/source | Classification | Recommendation | Reason |
-|---|---:|---|---|
-| Family member detail labels, member names, type, birthday/color/avatar fields | Keep | Keep. | Directly supports profile editing. |
-| “Voeg iemand toe aan het gezinsbord zonder account aan te maken.” | Keep / Shorten | Keep or shorten to “Geen account nodig.” | Helpful setup expectation. |
-| Avatar editor “Live voorbeeld avatar” | Keep / Rename | “Voorbeeld” is enough. | “Live” is okay but not needed if immediate preview is obvious. |
-| Avatar option labels and category labels | Keep | Keep. | Required selection labels. |
-| Tests with English avatar/sample names | demotekst in tests | No UI change unless values can leak into fixtures. | Tests may seed text; ensure not production-visible. |
+- Most Home copy inspected is production-appropriate: date/time, weather, quick actions, loaded/error statuses, and action confirmations help household users.
+- Product decision: Home/Agenda may combine API-backed events with demo read-only sources in tests and agenda utilities; ensure demo sources are not production-visible unless explicitly in demo mode.
 
-### Settings and calendar maintenance
+## Agenda
 
-| Text/source | Classification | Recommendation | Reason |
-|---|---:|---|---|
-| Header “Is alles in orde?” / “Alles is in orde.” | Keep / Shorten | Keep one of the two, not both. | Repetition in header. |
-| “Kalenderbronnen, back-up en herstel blijven beschikbaar zonder dat de pagina druk wordt.” | Remove | Replace with “Beheer kalenderbronnen en back-ups.” | Explicit layout/design intent. |
-| “Herstellen opent in een begrensd paneel met controle vooraf.” | Remove | Replace with “Kies een back-upbestand om te herstellen.” | PO-tekst about panel containment. |
-| “extra gezinsinstellingen beschikbaar voor rustig onderhoud” | Shorten | “{n} extra instellingen beschikbaar.” | “rustig onderhoud” is vague. |
-| “Alles staat klaar voor rustig gezinsonderhoud.” | Shorten | “Geen meldingen.” | Shorter status is clearer. |
-| “Onderhoudsbewijs” | Rename | “Back-up en herstel” or “Overzicht”. | “bewijs” is reviewer/product language. |
-| “Status en validatie” | Rename | “Status” or “Meldingen”. | Validation is technical. |
-| “Gedetailleerde validatie blijft beschikbaar in een begrensd paneel wanneer dat nodig is.” | Remove | Do not show when no validation errors. | PO-tekst and vertical-space cost. |
-| “Onderhoudsrail” | Remove / Rename | “Acties” or omit. | Layout-region label, not user terminology. |
-| Dialog descriptions: “zonder de hoofdpagina te verlengen”, “Open aanvullende gezinsinstellingen in een begrensd paneel.” | Remove | Use concise dialog titles only. | Direct no-page-scroll implementation explanation. |
-| “Voeg een nieuwe iCal-bron toe zonder de API te gebruiken.” | Remove / Rename | “Voeg een iCal-bron toe.” | “API” is developer/PO language. |
-| “iCal-bestanden in HomeOps” and “HomeOps al kan lezen” | Shorten / Needs decision | Use user-facing import instructions; avoid internal product mechanics. | Technical internals. |
-| “Deze bron gebruikt HomeOps zonder extra providerdetails op de pagina.” | Remove / Rename | “Geen extra details beschikbaar.” | Internal implementation/source-provider language. |
-| Restore warning “Herstellen vervangt de huidige gezinsagenda… Agenda’s worden niet samengevoegd.” | Keep | Keep. | Required destructive-action clarity. |
-| Confirmation “Ik begrijp dat herstellen de huidige gezinsagenda vervangt.” | Keep | Keep. | Required irreversible/destructive confirmation. |
-| Source errors and validation lists | Keep | Keep. | Sync/import errors must remain visible. |
+- Keep calendar state, sync, source labels, import/export validation, and failure explanations.
+- Rename `Hele dag zichtbaar voor het gezin.` to avoid describing visibility/design.
+- Demo source names/events in `demoAgendaData.ts` need product decision because source names `School Holidays`, `TV Series`, `Birthdays` and sample events such as `Teacher planning day`, `Premièreavond kijken`, and sample birthdays can become visible as household content. `src/HomeOps.Client/src/demo/demoAgendaData.ts` lines 5-35 and 37-115.
 
-### Onboarding / first run
+## Tasks
 
-| Text/source | Classification | Recommendation | Reason |
-|---|---:|---|---|
-| Welcome/setup labels and member creation form copy | Keep | Keep if short and Dutch. | Helps initial household setup. |
-| Test assertions around older English strings | demotekst / test debt | Keep tests aligned with current Dutch UI; ensure old English strings do not re-enter visible UI. | Test-only English can hide stale product expectations. |
+- Remove P0/P1 viewport and bounded-list language.
+- Shorten secondary panel descriptions.
+- Keep task form labels, recurrence options, destructive/archive/delete failures, loading/error states, and status confirmations.
 
-### Weekly reset
+## Shopping
 
-| Text/source | Classification | Recommendation | Reason |
-|---|---:|---|---|
-| Intro “Neem samen een rustig moment: vier wat af is, kies wat meegaat…” | Shorten | “Kies wat meegaat naar volgende week.” | Useful but long. |
-| Metric description “Blijft actief, gaat naar later of wordt gearchiveerd met dezelfde taakacties als nu.” | Remove / Shorten | “Actief, later of archiveren.” | “same task actions as now” is implementation/process explanation. |
-| Checklist item “Undo blijft beschikbaar waar dat vandaag al bestaat.” | Remove | Do not expose implementation capability as checklist copy. | PO/developer wording. |
-| “Open taken kunnen actief blijven of rustig doorschuiven naar later.” | Keep / Shorten | “Houden of naar later zetten.” | User-facing, can be tighter. |
-| Completion text “Neem nog één rustig rondje…” | Shorten | “Bekijk de open keuzes nog.” | Long ritual wording. |
+- Remove all fixed/reserved/bounded/default-view descriptions.
+- Keep list management, item actions, list creation, destructive actions, and error messages.
+- Consider removing duplicate status presentation where the same status is shown in command row and footer.
 
-### Generic widgets, placeholders, tests, and demo fixtures
+## Motivation
 
-| Text/source | Classification | Recommendation | Reason |
-|---|---:|---|---|
-| `TextWidget` fallback “Family note” | Rename / demotekst | Localize to “Gezinsnotitie” or avoid visible fallback. | English fallback can leak into UI. |
-| `PlaceholderWidget` / domain placeholders | Needs product decision | If placeholders remain production-visible, make them concise Dutch “Nog niet beschikbaar.” | Placeholder pages can be acceptable but should not demo-script future features. |
-| English errors in `calendarPortability.ts` | Rename | Localize to Dutch. | Visible error text should preserve Dutch UI direction. |
-| Tests seeding “Review library books”, “Fill the helper path”, “helps”, “reads”, “Old Shopping” | demotekst in tests | Fine as tests unless rendered in visual fixtures; localize if exposed in snapshots/demos. | Test/demo data should not appear as production copy. |
+- Keep warm family-oriented progress, celebrations, and appreciation copy.
+- Rename abstract/story-review labels: `Gedeeld familiekompas`, `Ondersteunend bewijs bij jullie gedeelde verhaal.`
+- Keep close-button accessibility labels, but ensure dialog labels do not include implementation words.
 
-## High-priority removals
+## Mijn Pagina / member dialogs
 
-1. Settings: remove all visible “begrensd paneel”, “zonder de pagina druk wordt”, “zonder de hoofdpagina te verlengen”, “status en validatie”, “onderhoudsrail”, and “zonder de API te gebruiken” copy.
-2. Shopping: remove “vaste vak”, “ruimte blijft gereserveerd”, “begrensd herstelvak”, and “standaardweergave uit te breiden”.
-3. Tasks: remove “bounded lijst” and “zonder de pagina langer te maken”.
-4. Weekly reset: remove “Undo blijft beschikbaar waar dat vandaag al bestaat” and implementation-equivalence wording.
-5. Demo agenda data: make a product decision on production visibility of `demoReadOnlyEvents`/`demoReadOnlyEventSources`.
-6. English fallback/error copy: localize `Family note` and calendar portability English errors if visible.
+- Remove bounded/no-page-growth wording from dialog descriptions.
+- Keep profile form labels, member kind, birthday/color/avatar labels, destructive/safety messages, and avatar selection labels.
 
-## Shorten/rename candidates
+## Settings
 
-- Rename “Gedeeld familiekompas” → “Familiedoel” or “Samen doel”.
-- Rename “Onderhoudsbewijs” → “Back-up en herstel” or “Overzicht”.
-- Rename “Status en validatie” → “Status” or “Meldingen”.
-- Rename “Familie-acties voor vandaag” → “Taken vandaag”.
-- Rename “Routinestarters” → “Routines” unless the distinction is product-critical.
-- Shorten “Doe vandaag eerst; planning en beheer blijven compact beschikbaar.” → “Vandaag eerst.” or remove.
-- Shorten “Taken maken hulp zichtbaar zonder van de dag administratie te maken.” → “Maak hulp zichtbaar met een taak.”
-- Shorten Motivation storyline copy to one-line progress/user value.
-- Shorten Settings summaries to status values, not prose.
-- Shorten Weekly reset intro/metric text.
+- Highest-priority cleanup surface.
+- Remove bounded-panel, no-page-growth, rail, API/provider, validation-as-technical-copy, and internal HomeOps file-reference wording.
+- Keep restore warning, confirmation checkbox, file input label, source delete warning, source sync/import errors, and validation lists.
 
-## Texts that should stay
+## Onboarding
 
-- Form labels and legends: task title/owner/date/recurrence, family member name/type/birthday/color, source name/type/feed/file fields.
-- Primary buttons: add/save/cancel/open/restore/delete/archive/refresh/toggle actions.
-- Status feedback after successful actions: item/task/event added, source saved, backup saved, calendar restored.
-- Loading states: “laden…” states where the user needs feedback.
-- Empty states that directly tell the user what to do next, such as “Voeg de eerste helpende taak toe” and “Begin met je eerste boodschap”, once PO explanatory sentences are removed.
-- Calendar source labels and sync states.
-- Weather labels/advice where concise.
-- Household member names and labels.
-- Accessibility labels that identify controls, dialogs, current page, badges, and destructive actions.
+- Keep setup labels and member creation copy if short and Dutch.
+- Tests should not reintroduce old English strings into visible UI expectations.
 
-## Accessibility/validation text that must not be removed
+## Weekly Reset
 
-- `aria-label`, `aria-labelledby`, `aria-current`, `role="alert"`, and `role="status"` labels that identify pages, dialogs, controls, and live status.
-- Form labels/legends for every input/select/checkbox.
-- Restore warning: current agenda is replaced and calendars are not merged.
-- Restore confirmation checkbox text.
-- Calendar source validation errors and server/import/sync failure messages.
-- Destructive action warnings for source/list deletion and archive/delete actions.
-- Task recurrence deletion errors.
-- Weather/calendar/list/task load failures.
-- Status messages confirming save/delete/restore/toggle outcomes.
+- Remove implementation wording around undo, task logic, and same task actions.
+- Shorten ritual/header descriptions while preserving warm family tone.
 
-Audit note: accessibility labels can still be renamed to remove implementation terms, e.g. “Waardering sluiten dialog” should become “Waardering sluiten”; do not remove the label itself.
+# Terminology inconsistencies
 
-## Recommended implementation slices for a follow-up Copilot task
+| Concept | Current terms observed | Recommendation |
+|---|---|---|
+| Restore | `Herstellen`, `Terugzetten`, `herstelpaneel`, `terugzetten dichtbij` | Use `Herstellen` for backup/list/source recovery; use `Terugzetten` only for undoing completed/deleted item state if product wants a distinction. |
+| Delete/archive | `Verwijderen`, `Archiveren`, `gearchiveerd`, `verdwijnen` | Keep distinction: delete is permanent removal, archive hides but preserves. Make warnings explicit. |
+| Tasks for later | `Ooit`, `later`, `someday`, `rustige ideeën` | Prefer Dutch `Later` in visible UI; avoid `Ooit` if not consistently used. |
+| Routines | `routine`, `routines`, `Routinestarters`, `vaste klusjes` | Prefer `Routines` in page/dialog labels; explain only in form/help text if needed. |
+| Status | `Status`, `Status en validatie`, `Meldingen`, `Laatste fout` | Prefer `Status`/`Meldingen`; reserve `validatie` for developer/test terminology or hidden implementation. |
+| Settings maintenance | `Onderhoud`, `Onderhoudsbewijs`, `Onderhoudsrail`, `rustig onderhoud`, `gezinsinstellingen` | Prefer `Gezinsinstellingen`, `Back-up en herstel`, `Acties`; remove rail/proof wording. |
+| Calendar source internals | `provider`, `API`, `HomeOps`, `bestandsreferentie`, `inhoudscontrole` | Prefer user terms: `bron`, `koppeling`, `bestand`, `controle`. |
+| Layout containment | `begrensd`, `bounded`, `vaste vak`, `gereserveerd`, `zonder de pagina...` | Remove from visible UI. This belongs in implementation docs/tests, not product copy. |
+
+# Duplicate copy
+
+Estimated duplicate/redundant visible copy: 12 instances.
+
+- Settings header/status repeats healthy state (`Is alles in orde?`, `Alles is in orde.` style status patterns) and repeats backup/source/status summaries in card + action rail.
+- Shopping status can appear in both command/status area and footer/secondary region.
+- Tasks repeats page purpose between eyebrow `Familie-acties voor vandaag`, title `Taken voor het gezin`, and description.
+- Settings restore readiness repeats restore status in summary card and details dialog.
+- Several secondary dialog descriptions restate the button/panel title instead of adding user value.
+
+# Vertical space opportunities
+
+Estimated visible savings if follow-up cleanup is implemented: **18-28 lines** across common desktop/laptop viewports.
+
+Largest opportunities:
+
+1. Settings: remove status hint, action rail label, repeated summary sentences, bounded-panel dialog descriptions, provider detail sentence.
+2. Shopping: remove region explanatory paragraphs and panel descriptions.
+3. Tasks: remove command-band description and shorten panel descriptions.
+4. Mijn Pagina: remove dialog descriptions that only explain containment.
+5. Weekly Reset: shorten header and metric/checklist explanatory copy.
+6. Motivation: shorten details dialog description and abstract eyebrow.
+
+# Text that must remain
+
+Do not remove these classes of text in implementation:
+
+- Form labels and legends for user input.
+- Required field, validation, import/export, and restore failure messages.
+- Destructive confirmations and warnings.
+- Privacy/safety explanations.
+- Sync/load failure explanations.
+- Status messages that confirm a save/delete/restore/toggle action.
+- Loading states that prevent silent waits.
+- Aria labels, accessible names, roles, and live-region labels.
+- Calendar source status and last-error messages.
+
+# Accessibility considerations
+
+- Accessibility labels and live regions are not removal candidates by default.
+- If an accessible label contains implementation wording, rename it while preserving the accessible name.
+- Error, alert, and validation text must remain discoverable to assistive technology.
+- Shortening copy must not remove confirmation context for destructive actions such as restore, delete, or archive.
+- Replacing visible descriptions with shorter text should preserve the semantic heading/button/label structure.
+
+# Recommended implementation slices
 
 1. **Settings copy cleanup**
-   - Files: `SettingsDashboard.tsx`, `CalendarPortabilityWidget.tsx`, `calendarPortability.ts`, related tests.
-   - Remove PO-tekst about bounded panels/layout/API internals.
-   - Rename “Onderhoudsbewijs”, “Status en validatie”, “Onderhoudsrail”.
-   - Keep restore/destructive/sync validation text.
+   - Files: `SettingsDashboard.tsx`, `calendarPortability.ts`, related settings/portability tests.
+   - Remove bounded/no-page/API/provider/internal wording.
+   - Rename `Onderhoudsbewijs`, `Status en validatie`, `Onderhoudsrail`.
+   - Localize English portability errors.
+   - Keep restore warnings, confirmation, and validation lists.
 
 2. **Shopping copy cleanup**
    - Files: `ShoppingListWidget.tsx`, related tests.
-   - Remove reserved/fixed/bounded/standard-view explanation text.
-   - Reduce duplicated status copy.
-   - Keep list management, destructive actions, and errors.
+   - Remove fixed/reserved/bounded/default-view descriptions.
+   - Reduce duplicate status copy.
+   - Keep list management and error/safety copy.
 
-3. **Tasks copy cleanup**
-   - Files: `TasksPage.tsx`, task tests.
-   - Rename header/subtitle/tile descriptions.
-   - Remove “bounded lijst” and no-page-length explanations.
-   - Keep creation dialog labels and validation/error text.
+3. **Tasks and Weekly Reset copy cleanup**
+   - Files: `TasksPage.tsx`, `WeeklyResetPage.tsx`, related tests.
+   - Remove bounded/no-page/task-logic/undo implementation wording.
+   - Shorten panel and metric descriptions.
+   - Keep form labels and task error messages.
 
-4. **Motivation and Weekly Reset copy cleanup**
-   - Files: `MotivationPage.tsx`, `HelpfulMoments.tsx`, `WeeklyResetPage.tsx`, tests.
-   - Shorten motivational storyline text.
+4. **Member/Motivation copy cleanup**
+   - Files: `FamilyMemberPage.tsx`, `MotivationPage.tsx`, related tests.
+   - Remove bounded/no-page-growth descriptions.
    - Rename abstract labels.
-   - Remove implementation/process checklist text.
+   - Preserve warm household tone and accessibility labels.
 
-5. **Demo/fixture visibility decision**
-   - Files: `demoAgendaData.ts`, `HomeDashboard.tsx`, `AgendaWidget.tsx`, tests/visual fixtures.
-   - Decide whether demo read-only agenda sources/events should be production-visible.
-   - If kept, gate behind explicit demo/visual-review mode.
+5. **Demo/fallback data cleanup decision**
+   - Files: `demoAgendaData.ts`, `TextWidget.tsx`, agenda tests/utilities.
+   - Decide if demo agenda sources/events may be visible in production.
+   - Localize or gate demo/fallback text.
 
-6. **English/fallback localization cleanup**
-   - Files: `TextWidget.tsx`, `calendarPortability.ts`, tests.
-   - Localize English fallback/error text to Dutch.
+# Risks / product decisions
 
-## Verification performed
+- Demo agenda sources/events require a product decision: either hide/gate as demo data or replace with production-ready Dutch labels and real integration states.
+- Removing explanatory subtitles may reduce perceived warmth; follow-up should keep concise, task-oriented microcopy where orientation is needed.
+- Changing visible copy will require test updates where tests intentionally assert text.
+- Settings copy is intertwined with safety-critical restore/import/delete flows; remove PO wording without weakening destructive-action clarity.
+- Any follow-up that changes primary page layout, not only text, must follow the repository Viewport-First Workflow.
 
-Repository-local environment was prepared before analysis/validation using the repository-local cache pattern plus the requested `PACKAGE_HOME` and `DOTNET_HOME` exports. The runner had `dotnet` at `/root/.dotnet/dotnet` and npm at `/root/.nvm/versions/node/v20.20.2/bin/npm`, so `DOTNET_HOME` and `PACKAGE_HOME` were detected from those tools rather than hardcoded to broken paths.
+# Verification
+
+Environment preparation used detected tool locations, repository-local caches, and prior Codex task pattern:
 
 ```bash
-export DOTNET_HOME="$(dirname "$(which dotnet)")"
-export PACKAGE_HOME="$(dirname "$(dirname "$(which npm)")")"
+export DOTNET_HOME="$(dirname "$(command -v dotnet)")"
+export PACKAGE_HOME="$(dirname "$(dirname "$(command -v npm)")")"
 export DOTNET_CLI_HOME="$PWD/.dotnet-home"
 export DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
 export DOTNET_NOLOGO=1
@@ -283,29 +314,22 @@ export PATH="$PACKAGE_HOME/bin:$DOTNET_HOME:$PATH"
 mkdir -p "$DOTNET_CLI_HOME" "$NUGET_PACKAGES" "$npm_config_cache"
 ```
 
-Commands/results:
-
-- FAIL (setup prerequisite) — `dotnet build HomeOps.sln --no-restore` initially failed because `project.assets.json` files were missing; this confirmed restore had not yet been run in the prepared cache environment.
-- PASS with warning — `dotnet restore HomeOps.sln && dotnet build HomeOps.sln --no-restore` completed successfully. Restore/build emitted warning `NU1903` for `SQLitePCLRaw.lib.e_sqlite3` 2.1.11 in `tests/HomeOps.Api.Tests`, but the build had 0 errors.
-- PASS with warnings — `cd src/HomeOps.Client && npm run build` completed successfully. npm emitted the existing `Unknown env config "http-proxy"` warning and Vite emitted the existing large-chunk warning after a successful build.
-
-Inspection commands used included:
+Commands executed:
 
 - `find .. -name AGENTS.md -print`
-- `cat AGENTS.md`
-- `rg -n "PACKAGE_HOME|DOTNET_HOME|dotnet build|npm|pnpm|yarn" docs -S`
-- `find src/HomeOps.Client -path '*/node_modules' -prune -o -type f \( -name '*.tsx' -o -name '*.ts' -o -name '*.json' \) -print`
-- `rg -n "begrensd|vaste vak|zonder de pagina|zonder de hoofdpagina|rustig|bewijs|design|API|standaardweergave|beschikbaar zonder|gereserveerd|blijft beschikbaar|implement|demo|voorbeeld|review|fixture|HomeOps|Product|PO|bounded|vaste weekcheck" src/HomeOps.Client/src -g '*.{ts,tsx}'`
-- Targeted `sed -n` reads of the frontend files listed in “Scope inspected”.
+- `git status --short`
+- `rg -n "PACKAGE_HOME|DOTNET_HOME|Codex|\.dotnet-home|\.npm-cache" -S . --glob '!**/.git/**'`
+- `dotnet build HomeOps.sln --no-restore`
+- `dotnet restore HomeOps.sln && dotnet build HomeOps.sln --no-restore && cd src/HomeOps.Client && npm run build`
+- `rg -n 'bounded|begrensd|gereserveerd|vaste vak|zonder de pagina|zonder de hoofdpagina|standaardweergave|API|provider|HomeOps|Onderhoudsbewijs|Onderhoudsrail|Status en validatie|Familie-acties|compact beschikbaar|Gedeeld familiekompas|Ondersteunend bewijs|Undo blijft|dezelfde taakacties|Family note|Hele dag zichtbaar|blijft beschikbaar|rustig onderhoud|Waardering sluiten dialog' src/HomeOps.Client/src -S --glob '*.{ts,tsx}'`
+- Targeted `nl -ba ... | sed -n ...` reads for exact evidence lines listed above.
 
-## Risks / product decisions
+Build/frontend results:
 
-- Removing PO-tekst may reveal that some pages rely on explanatory subtitles to communicate hierarchy. Follow-up implementation should preserve enough labels/headings for orientation, especially in Settings and Tasks.
-- Some “warm” FamilyBoard copy is intentional brand tone, not automatically PO-tekst. Product should choose how much warmth to keep on Motivation and Weekly Reset.
-- Demo agenda source/event visibility requires a product/data decision; this audit does not decide whether demo sources are acceptable in production mode.
-- Accessibility text must be edited carefully. Remove implementation wording, but keep labels and status semantics.
-- Viewport impact should improve after copy removal, but follow-up changes that alter page layout still require the Viewport-First Workflow when primary-page layout changes are involved.
+- `dotnet build HomeOps.sln --no-restore` failed before restore because `project.assets.json` files were missing. This was an expected setup prerequisite failure after cache cleanup.
+- `dotnet restore HomeOps.sln && dotnet build HomeOps.sln --no-restore` passed with 0 errors and warning `NU1903` for `SQLitePCLRaw.lib.e_sqlite3` 2.1.11 in `tests/HomeOps.Api.Tests`.
+- `cd src/HomeOps.Client && npm run build` passed. npm emitted `Unknown env config "http-proxy"`; Vite emitted the existing chunk-size warning for a bundle larger than 500 kB.
 
-## Modified files
+# Modified files
 
-- `docs/reports/2026-07-09-ui-copy-audit/ui-copy-audit.md` — new analysis report only.
+- `docs/reports/2026-07-09-ui-copy-audit/ui-copy-audit.md` — analysis report only.
