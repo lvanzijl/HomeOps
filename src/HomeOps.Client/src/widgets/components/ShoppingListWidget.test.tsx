@@ -189,17 +189,17 @@ describe('ShoppingListWidget API-backed behavior', () => {
     await user.click(screen.getByRole('button', { name: /Afgevinkt/i }));
     expect(await screen.findByText('Bekijk wat al is afgehandeld.')).not.toBeNull();
     expect(screen.queryByText('Bekijk wat al is afgehandeld zonder de actieve lijst te verplaatsen.')).toBeNull();
-    await user.click(screen.getByRole('button', { name: 'Sluiten' }));
+    await user.click(screen.getByRole('button', { name: 'Sluit boodschappenpaneel' }));
 
     await user.click(screen.getByRole('button', { name: /Herstellen/i }));
     expect(await screen.findByText('Zet recent verwijderde boodschappen terug.')).not.toBeNull();
     expect(screen.queryByText('Open recente verwijderingen in een begrensd herstelvak.')).toBeNull();
-    await user.click(screen.getByRole('button', { name: 'Sluiten' }));
+    await user.click(screen.getByRole('button', { name: 'Sluit boodschappenpaneel' }));
 
     await user.click(screen.getByRole('button', { name: /Andere lijsten/i }));
     expect(await screen.findByText('Open een andere lijst.')).not.toBeNull();
     expect(screen.queryByText('Schakel naar ondersteunende lijsten zonder de standaardweergave uit te breiden.')).toBeNull();
-    await user.click(screen.getByRole('button', { name: 'Sluiten' }));
+    await user.click(screen.getByRole('button', { name: 'Sluit boodschappenpaneel' }));
 
     await user.click(screen.getByRole('button', { name: 'Beheer' }));
     expect(await screen.findByText('Hernoem, archiveer of verwijder deze lijst.')).not.toBeNull();
