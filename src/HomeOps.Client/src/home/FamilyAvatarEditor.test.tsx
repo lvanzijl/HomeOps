@@ -46,9 +46,15 @@ describe('FamilyAvatarEditor', () => {
     expect(navButton('Kledingstijl')).not.toBeNull();
     expect(navButton('Kledingkleur')).not.toBeNull();
     expect(navButton('Accessoires')).not.toBeNull();
+    expect(within(screen.getByLabelText('Avatarkeuzes voor Riley')).getByRole('heading', { name: 'Menselijk' })).not.toBeNull();
+    expect(within(screen.getByLabelText('Avatarkeuzes voor Riley')).getByRole('heading', { name: 'Fantasy' })).not.toBeNull();
     const skinToneButtons = screen.getAllByRole('button', { name: /Huidskleur: Midden/i });
     expect(skinToneButtons.length).toBeGreaterThan(0);
     expect(skinToneButtons[0].textContent).toBe('');
+    await user.click(navButton('Kapsel')!);
+    expect(screen.getByRole('button', { name: /Kapsel lang zacht/i }).textContent).toBe('');
+    await user.click(navButton('Haarkleur')!);
+    expect(screen.getByRole('button', { name: /Haarkleur: Natuurlijk zwart/i }).textContent).toBe('');
 
     await user.click(navButton('Accessoires')!);
     await user.click(within(screen.getByLabelText('Avatarkeuzes voor Riley')).getByRole('button', { name: /Strik accessoire/i }));
@@ -97,9 +103,11 @@ describe('FamilyAvatarEditor', () => {
     await user.click(navButton('Accessoires')!);
 
     const controls = within(screen.getByLabelText('Avatarkeuzes voor Riley'));
-    expect(controls.getByRole('heading', { name: 'Accessoires' })).not.toBeNull();
+    expect(controls.queryByRole('heading', { name: 'Accessoires' })).toBeNull();
     expect(controls.getByRole('heading', { name: 'Accessoire' })).not.toBeNull();
     expect(controls.getByRole('heading', { name: 'Accessoirekleur' })).not.toBeNull();
+    expect(controls.getByRole('button', { name: /Bloemspeld accessoire/i }).textContent).toBe('');
+    expect(controls.getByRole('button', { name: /Accessoirekleur: Mintgroen/i }).textContent).toBe('');
     expect(screen.queryByText('Kies een extra detail en laat de kleur meebewegen met het kledingpalet.')).toBeNull();
   });
 

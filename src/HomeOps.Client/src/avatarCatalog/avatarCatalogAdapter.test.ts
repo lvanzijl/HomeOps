@@ -22,15 +22,15 @@ describe('avatar catalog adapter', () => {
 
   it('renders expanded skin, hair, clothing, and accessory selections through Avatar V2 tokens', () => {
     expect(avatarSelectionToAvatarV2RenderConfig(createAvatarSelectionFixture({
-      skinTone: 'skin.tone.rich-deep',
-      hairColor: 'hair.color.soft-white',
-      clothingColor: 'clothing.color.burgundy',
-      accessoryColor: 'accessory.color.white',
+      skinTone: 'skin.tone.elf',
+      hairColor: 'hair.color.royal-blue',
+      clothingColor: 'clothing.color.midnight',
+      accessoryColor: 'accessory.color.frost',
     }))).toEqual(expect.objectContaining({
-      skinTone: 'skinRichDeep',
-      hair: expect.objectContaining({ color: 'hairSoftWhite' }),
-      shirt: expect.objectContaining({ color: 'shirtBurgundy' }),
-      accessory: expect.objectContaining({ color: 'shirtWhite' }),
+      skinTone: 'skinElf',
+      hair: expect.objectContaining({ color: 'hairRoyalBlue' }),
+      shirt: expect.objectContaining({ color: 'shirtMidnight' }),
+      accessory: expect.objectContaining({ color: 'shirtFrost' }),
     }));
   });
 

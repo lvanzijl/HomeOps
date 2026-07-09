@@ -61,40 +61,35 @@ export function AvatarCatalogControls({ selection, controlsLabel, onSelectionCha
       </nav>
 
       {activePanel ? (
-        <section className="avatar-v2-control-panel" aria-labelledby={`avatar-panel-${activePanel.id}`}>
-          <header className="avatar-v2-control-panel-header">
-            <h3 id={`avatar-panel-${activePanel.id}`}>{localizeAvatarCatalogText(activePanel.labels, activePanel.id)}</h3>
-          </header>
-          <div className="avatar-v2-control-panel-body">
-            {activeCategories.map((category) => {
-              const items = getAvatarCatalogEditorItems(category.id, selection.selections[category.slot]);
-              if (category.presentation.control === 'swatch') {
-                return (
-                  <SwatchSection
-                    category={category}
-                    items={items}
-                    key={category.id}
-                    onSelect={(itemId) => onSelectionChange(updateAvatarSelection(selection, category.slot, itemId))}
-                    selectedItemId={selection.selections[category.slot]}
-                    showHeading={showSectionHeading}
-                  />
-                );
-              }
-
+        <section className="avatar-v2-control-panel" aria-label={localizeAvatarCatalogText(activePanel.labels, activePanel.id)}>
+          {activeCategories.map((category) => {
+            const items = getAvatarCatalogEditorItems(category.id, selection.selections[category.slot]);
+            if (category.presentation.control === 'swatch') {
               return (
-                <TileSection
+                <SwatchSection
                   category={category}
                   items={items}
                   key={category.id}
                   onSelect={(itemId) => onSelectionChange(updateAvatarSelection(selection, category.slot, itemId))}
-                  renderSelectionPreview={renderSelectionPreview}
                   selectedItemId={selection.selections[category.slot]}
-                  selection={selection}
                   showHeading={showSectionHeading}
                 />
               );
-            })}
-          </div>
+            }
+
+            return (
+              <TileSection
+                category={category}
+                items={items}
+                key={category.id}
+                onSelect={(itemId) => onSelectionChange(updateAvatarSelection(selection, category.slot, itemId))}
+                renderSelectionPreview={renderSelectionPreview}
+                selectedItemId={selection.selections[category.slot]}
+                selection={selection}
+                showHeading={showSectionHeading}
+              />
+            );
+          })}
         </section>
       ) : null}
     </div>
@@ -118,6 +113,8 @@ function TileSection({
   selection: AvatarCatalogSelection;
   showHeading: boolean;
 }) {
+  const showItemLabel = category.presentation.itemLabelVisibility === 'visible';
+
   return (
     <section className="avatar-v2-choice-section avatar-v2-choice-section-tile" aria-labelledby={`${category.id}-title`}>
       <h4 className={showHeading ? undefined : 'visually-hidden'} id={`${category.id}-title`}>{localizeAvatarCatalogText(category.labels, category.id)}</h4>
@@ -132,7 +129,7 @@ function TileSection({
             <button
               aria-label={localizeAvatarCatalogText(item.accessibilityLabels, localizeAvatarCatalogText(item.labels, item.id))}
               aria-pressed={selected}
-              className="avatar-v2-asset-tile"
+              className={`avatar-v2-asset-tile ${showItemLabel ? 'avatar-v2-asset-tile-labelled' : 'avatar-v2-asset-tile-visual'}`}
               key={item.id}
               onClick={() => onSelect(item.id)}
               onKeyDown={handleOptionGroupKeyDown}
@@ -145,7 +142,7 @@ function TileSection({
                   __html: renderSelectionPreview(buildAvatarTilePreviewSelection(selection, category, item.id)),
                 }}
               />
-              <strong>{localizeAvatarCatalogText(item.labels, item.id)}</strong>
+              {showItemLabel ? <strong>{localizeAvatarCatalogText(item.labels, item.id)}</strong> : null}
               {selected ? <SelectionIndicator /> : null}
             </button>
           );
@@ -259,7 +256,9 @@ function getOptionMinWidthRem(category: AvatarCatalogCategory) {
       : Math.min(configuredWidth, 6.75);
   }
 
-  return Math.min(configuredWidth, 7.5);
+  return category.presentation.itemLabelVisibility === 'hidden'
+    ? configuredWidth
+    : Math.min(configuredWidth, 7.5);
 }
 
 function handleOptionGroupKeyDown(event: KeyboardEvent<HTMLButtonElement>) {
