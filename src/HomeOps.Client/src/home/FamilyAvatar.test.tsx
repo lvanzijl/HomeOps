@@ -1,5 +1,6 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
+import { createAvatarSelectionFixture } from '../avatarCatalog/avatarCatalogFixtures';
 import { avatarV2DefaultConfiguration } from '../avatarV2/avatarConfig';
 import { FamilyAvatar } from './FamilyAvatar';
 import type { FamilyMember } from './familyMembers';
@@ -16,6 +17,14 @@ const member: FamilyMember = {
 afterEach(cleanup);
 
 describe('FamilyAvatar', () => {
+  it('renders Avatar V2 when avatarSelection exists', () => {
+    render(<FamilyAvatar member={{ ...member, avatarSelection: createAvatarSelectionFixture({ skinTone: 'skin.tone.deep' }) }} />);
+
+    const avatar = screen.getByRole('img', { name: 'Taylor household avatar' });
+    expect(avatar.className).toContain('family-avatar-v2');
+    expect(avatar.querySelector('svg')?.getAttribute('aria-hidden')).toBe('true');
+  });
+
   it('renders Avatar V2 when avatarV2Config exists', () => {
     render(<FamilyAvatar member={{ ...member, avatarV2Config: avatarV2DefaultConfiguration }} />);
 

@@ -22,11 +22,68 @@ export const avatarV2DefaultConfiguration: AvatarV2Configuration = {
 
 const headVariants: readonly AvatarHeadVariant[] = ['round', 'oval', 'wide'];
 const hairStyles: readonly HairStyle[] = ['softCrop', 'curlyCloud', 'sideBob', 'swoop', 'layeredMessy', 'shortMessy', 'longSoft', 'curlyPlayful'];
-const hairColors: readonly PaletteToken[] = ['hairCocoa', 'hairChestnut', 'hairPlum'];
+const hairColors: readonly PaletteToken[] = [
+  'hairSoftBlack',
+  'hairNaturalBlack',
+  'hairBlueBlack',
+  'hairEspresso',
+  'hairCocoa',
+  'hairChestnut',
+  'hairWalnut',
+  'hairDarkBlonde',
+  'hairGoldenBlonde',
+  'hairHoneyBlonde',
+  'hairLightBlonde',
+  'hairSoftAuburn',
+  'hairRichAuburn',
+  'hairLightGinger',
+  'hairCopperGinger',
+  'hairSteelGrey',
+  'hairSilverGrey',
+  'hairSoftWhite',
+  'hairPlum',
+];
 const clothingStyles: readonly ShirtStyle[] = ['roundedTee', 'collar', 'hoodie', 'sweater', 'tShirt', 'overall'];
-const clothingColors: readonly PaletteToken[] = ['shirtSky', 'shirtMint', 'shirtRose', 'shirtSun'];
+const clothingColors: readonly PaletteToken[] = [
+  'shirtWhite',
+  'shirtCream',
+  'shirtLightGrey',
+  'shirtCharcoal',
+  'shirtBlack',
+  'shirtNavy',
+  'shirtDenim',
+  'shirtBrown',
+  'shirtBlush',
+  'shirtPeach',
+  'shirtButter',
+  'shirtSage',
+  'shirtMint',
+  'shirtSky',
+  'shirtLavender',
+  'shirtLilac',
+  'shirtRed',
+  'shirtOrange',
+  'shirtSun',
+  'shirtGreen',
+  'shirtBlue',
+  'shirtPurple',
+  'shirtRose',
+  'shirtTeal',
+  'shirtBurgundy',
+  'shirtPumpkin',
+  'shirtMustard',
+  'shirtForest',
+  'shirtEvergreen',
+  'shirtWinterBlue',
+  'shirtPlum',
+  'shirtCocoa',
+];
 const accessories: readonly AccessoryStyle[] = ['none', 'star', 'flower', 'headband', 'bow', 'chestStar', 'leafPin', 'tinyCrown'];
-const accessoryColors: readonly PaletteToken[] = ['accessoryLilac', 'accessoryCoral'];
+const accessoryColors: readonly PaletteToken[] = [
+  'accessoryLilac',
+  'accessoryCoral',
+  ...clothingColors,
+];
 
 function includes<T extends string>(values: readonly T[], value: unknown): value is T {
   return typeof value === 'string' && values.includes(value as T);
@@ -60,7 +117,7 @@ export function toAvatarV2RenderConfig(configuration: AvatarV2Configuration): Av
   return {
     base: 'child',
     headVariant: configuration.headVariant,
-    skinTone: 'skinPeach',
+    skinTone: 'skinMedium',
     hair: { style: configuration.hairStyle, color: configuration.hairColor },
     glasses: { style: 'none', color: 'lineBlue' },
     shirt: { style: configuration.clothingStyle, color: configuration.clothingColor },
