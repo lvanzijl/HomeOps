@@ -2641,6 +2641,7 @@ button {
 .avatar-editor {
   background: var(--surface-warm-tint);
   border: 1px solid #f1dcc4;
+  box-sizing: border-box;
   border-radius: 1.5rem;
   box-shadow: var(--elevation-dialog);
   max-width: 44rem;
@@ -5626,11 +5627,6 @@ button {
     height: calc(100vh - 1.5rem);
     max-height: calc(100vh - 1.5rem);
     width: min(100vw - 1rem, 48rem);
-  }
-
-  .avatar-v2-preview-card-header {
-    align-items: start;
-    flex-direction: column;
   }
 
   .avatar-v2-preview {

@@ -1,3 +1,6 @@
+### Completed Slice — Avatar Editor Polish
+Avatar Editor Polish applies a frontend-only refinement pass to the existing catalog-driven Avatar V2 Editor without changing backend behavior, contracts, catalog architecture, renderer output, or layout direction. The slice removes redundant visible copy, enlarges the stable live preview, compacts the category rail and swatches for better density, softens selected-state emphasis, clarifies Save/Cancel/Reset hierarchy, preserves the existing Dutch editor flow, validates default desktop viewport fit, and commits the required desktop editor screenshot.
+
 ### Completed Slice — Shopping UI Tightening
 Shopping UI Tightening applies only the requested frontend polish to the existing Home and Boodschappen shopping surfaces without changing layout direction, backend behavior, APIs, schema, or unrelated Home content. The slice removes Home's intra-store shopping separator lines, drops the Shopping page `Snel toevoegen` label/hint and Shopping-only `Dagelijkse gezinsplek` chip, keeps store grouping while removing repeated per-item store names and extra same-store separators, compacts item/action density so more rows fit, and tightens the quick-add command row while preserving the existing page structure.
 
