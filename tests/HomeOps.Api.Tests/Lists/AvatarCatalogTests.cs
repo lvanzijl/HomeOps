@@ -12,15 +12,15 @@ public sealed class AvatarCatalogTests(HomeOpsWebApplicationFactory factory) : I
     [Fact]
     public void StartupCatalogValidationAcceptsBundledCatalog()
     {
-        var service = new AvatarCatalogService(new LocalAvatarCatalogSource());
+        var service = new AvatarCatalogService(new SharedAvatarCatalogSource());
         Assert.Equal("hair.style.short-messy", service.DefaultSelection().Selections[AvatarSelectionSlots.HairStyle]);
-        Assert.Contains(service.Catalog.Items, item => item.Id == "skin.tone.peach" && item.AccessibilityLabels.ContainsKey("nl-NL"));
+        Assert.Contains(service.Catalog.Items, item => item.Id == "skin.tone.medium" && item.AccessibilityLabels.ContainsKey("nl-NL"));
     }
 
     [Fact]
     public void StartupCatalogValidationRejectsInvalidCatalog()
     {
-        var source = new LocalAvatarCatalogSource();
+        var source = new SharedAvatarCatalogSource();
         var catalog = source.LoadCatalog() with { Defaults = new Dictionary<string, string> { [AvatarSelectionSlots.HairStyle] = "missing.item" } };
         var error = Assert.Throws<InvalidOperationException>(() => AvatarCatalogValidator.Validate(catalog));
         Assert.Contains("missing.item", error.Message);

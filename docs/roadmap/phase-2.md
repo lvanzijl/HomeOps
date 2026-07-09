@@ -1,3 +1,9 @@
+### Completed Slice — Marketing Movie Production Fix
+Marketing Movie Production Fix restores the existing FamilyBoard Marketing Preview V1 production path after the Avatar Catalog / Avatar Editor changes by updating the executable Family scene to open the Accessoires catalog panel before selecting an accessory. The slice preserves the 9-scene narrative, canonical storyboard duration, production workflow, product UI, app behavior, and binary-free repository boundary after generated MP4 removal.
+
+### Completed Slice — Shared Avatar Catalog Source
+Shared Avatar Catalog Source consolidates the duplicated backend and frontend Avatar Catalog definitions into one source-controlled JSON catalog consumed by backend startup validation and frontend catalog helpers. The slice keeps AvatarSelection JSON persistence, existing API contracts, renderer adapter behavior, editor behavior, catalog IDs, Dutch/English localization, accessibility labels, defaults, and SchemaVersion intact while intentionally avoiding a Catalog API, runtime synchronization, compatibility rules, asset-pipeline work, catalog schema changes, avatar functionality expansion, screenshots, or binary artifacts.
+
 ### Completed Slice — Avatar V2 Editor Redesign
 Avatar V2 Editor Redesign upgrades the family-facing editor shell without changing backend behavior, API contracts, AvatarSelection persistence, or Avatar V2 rendering. The slice replaces the old stacked control cards with a catalog-driven preview rail plus bounded active-panel layout, adds vertical category navigation on desktop with compact navigation on smaller screens, groups large palettes, keeps skin-tone labels visual-first while preserving accessibility labels, improves keyboard/focus handling, and updates avatar-editor tests and implementation reporting.
 
