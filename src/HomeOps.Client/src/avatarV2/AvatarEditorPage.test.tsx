@@ -15,6 +15,8 @@ describe('AvatarEditorPage', () => {
     render(<AvatarEditorPage />);
     const preview = screen.getByTestId('avatar-v2-live-preview');
     const initial = preview.innerHTML;
+    expect(screen.queryByText('Live voorbeeld')).toBeNull();
+    expect(screen.queryByText('Categorie')).toBeNull();
 
     await user.click(navButton('Kapsel')!);
     await user.click(screen.getByRole('button', { name: /Lang zacht/i }));
@@ -47,7 +49,7 @@ describe('AvatarEditorPage', () => {
     await user.click(screen.getByRole('button', { name: /Lang zacht/i }));
     await user.click(screen.getByRole('button', { name: 'Opslaan' }));
 
-    await user.click(screen.getByRole('button', { name: 'Resetten' }));
+    await user.click(screen.getByRole('button', { name: 'Avatar resetten' }));
 
     await user.click(navButton('Kapsel')!);
     expect(within(screen.getByLabelText('Avatarkeuzes')).getByRole('button', { name: /Kapsel kort speels/i }).getAttribute('aria-pressed')).toBe('true');
@@ -58,11 +60,20 @@ describe('AvatarEditorPage', () => {
     expect(screen.getByText('Niet-opgeslagen wijzigingen')).not.toBeNull();
   });
 
-  it('shows grouped labeled palettes while keeping skin tones visual-first', async () => {
+  it('shows grouped visual palettes and visual-only style tiles', async () => {
     const user = userEvent.setup();
     render(<AvatarEditorPage />);
 
+    expect(within(screen.getByLabelText('Avatarkeuzes')).getByRole('heading', { name: 'Menselijk' })).not.toBeNull();
+    expect(within(screen.getByLabelText('Avatarkeuzes')).getByRole('heading', { name: 'Fantasy' })).not.toBeNull();
     expect(screen.getAllByRole('button', { name: /Huidskleur: Midden/i })[0].textContent).toBe('');
+    expect(screen.queryByText('Kies een huidskleur voor het live voorbeeld.')).toBeNull();
+
+    await user.click(navButton('Kapsel')!);
+    expect(screen.getByRole('button', { name: /Lang zacht/i }).textContent).toBe('');
+
+    await user.click(navButton('Haarkleur')!);
+    expect(screen.getByRole('button', { name: /Haarkleur: Natuurlijk zwart/i }).textContent).toBe('');
 
     await user.click(navButton('Kledingkleur')!);
 
@@ -70,6 +81,21 @@ describe('AvatarEditorPage', () => {
     expect(within(screen.getByLabelText('Avatarkeuzes')).getByRole('heading', { name: 'Zacht' })).not.toBeNull();
     expect(within(screen.getByLabelText('Avatarkeuzes')).getByRole('heading', { name: 'Helder' })).not.toBeNull();
     expect(within(screen.getByLabelText('Avatarkeuzes')).getByRole('heading', { name: 'Seizoen' })).not.toBeNull();
-    expect(screen.getByRole('button', { name: /Kledingkleur: Hemelsblauw/i })).not.toBeNull();
+    expect(screen.getByRole('button', { name: /Kledingkleur: Hemelsblauw/i }).textContent).toBe('');
+  });
+
+  it('keeps the accessories panel minimal while preserving its two visible sections', async () => {
+    const user = userEvent.setup();
+    render(<AvatarEditorPage />);
+
+    await user.click(navButton('Accessoires')!);
+
+    const controls = within(screen.getByLabelText('Avatarkeuzes'));
+    expect(controls.queryByRole('heading', { name: 'Accessoires' })).toBeNull();
+    expect(controls.getByRole('heading', { name: 'Accessoire' })).not.toBeNull();
+    expect(controls.getByRole('heading', { name: 'Accessoirekleur' })).not.toBeNull();
+    expect(controls.getByRole('button', { name: /Bloemspeld accessoire/i }).textContent).toBe('');
+    expect(controls.getByRole('button', { name: /Accessoirekleur: Mintgroen/i }).textContent).toBe('');
+    expect(screen.queryByText('Kies een extra detail en laat de kleur meebewegen met het kledingpalet.')).toBeNull();
   });
 });

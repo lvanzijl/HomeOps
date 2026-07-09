@@ -41,6 +41,7 @@ export function AvatarCatalogControls({ selection, controlsLabel, onSelectionCha
   const activeCategories = activePanel?.categoryIds
     .map((categoryId) => getAvatarCatalogCategory(categoryId))
     .filter((category): category is AvatarCatalogCategory => Boolean(category)) ?? [];
+  const showSectionHeading = activeCategories.length > 1;
 
   return (
     <div className="avatar-v2-controls-shell" aria-label={controlsLabel}>
@@ -60,42 +61,35 @@ export function AvatarCatalogControls({ selection, controlsLabel, onSelectionCha
       </nav>
 
       {activePanel ? (
-        <section className="avatar-v2-control-panel" aria-labelledby={`avatar-panel-${activePanel.id}`}>
-          <header className="avatar-v2-control-panel-header">
-            <div>
-              <p className="eyebrow">Categorie</p>
-              <h3 id={`avatar-panel-${activePanel.id}`}>{localizeAvatarCatalogText(activePanel.labels, activePanel.id)}</h3>
-              <p>{localizeAvatarCatalogText(activePanel.descriptions, '')}</p>
-            </div>
-          </header>
-          <div className="avatar-v2-control-panel-body">
-            {activeCategories.map((category) => {
-              const items = getAvatarCatalogEditorItems(category.id, selection.selections[category.slot]);
-              if (category.presentation.control === 'swatch') {
-                return (
-                  <SwatchSection
-                    category={category}
-                    items={items}
-                    key={category.id}
-                    onSelect={(itemId) => onSelectionChange(updateAvatarSelection(selection, category.slot, itemId))}
-                    selectedItemId={selection.selections[category.slot]}
-                  />
-                );
-              }
-
+        <section className="avatar-v2-control-panel" aria-label={localizeAvatarCatalogText(activePanel.labels, activePanel.id)}>
+          {activeCategories.map((category) => {
+            const items = getAvatarCatalogEditorItems(category.id, selection.selections[category.slot]);
+            if (category.presentation.control === 'swatch') {
               return (
-                <TileSection
+                <SwatchSection
                   category={category}
                   items={items}
                   key={category.id}
                   onSelect={(itemId) => onSelectionChange(updateAvatarSelection(selection, category.slot, itemId))}
-                  renderSelectionPreview={renderSelectionPreview}
                   selectedItemId={selection.selections[category.slot]}
-                  selection={selection}
+                  showHeading={showSectionHeading}
                 />
               );
-            })}
-          </div>
+            }
+
+            return (
+              <TileSection
+                category={category}
+                items={items}
+                key={category.id}
+                onSelect={(itemId) => onSelectionChange(updateAvatarSelection(selection, category.slot, itemId))}
+                renderSelectionPreview={renderSelectionPreview}
+                selectedItemId={selection.selections[category.slot]}
+                selection={selection}
+                showHeading={showSectionHeading}
+              />
+            );
+          })}
         </section>
       ) : null}
     </div>
@@ -109,6 +103,7 @@ function TileSection({
   renderSelectionPreview,
   selectedItemId,
   selection,
+  showHeading,
 }: {
   category: AvatarCatalogCategory;
   items: readonly AvatarCatalogItem[];
@@ -116,17 +111,17 @@ function TileSection({
   renderSelectionPreview: (selection: AvatarCatalogSelection) => string;
   selectedItemId: string;
   selection: AvatarCatalogSelection;
+  showHeading: boolean;
 }) {
+  const showItemLabel = category.presentation.itemLabelVisibility === 'visible';
+
   return (
     <section className="avatar-v2-choice-section avatar-v2-choice-section-tile" aria-labelledby={`${category.id}-title`}>
-      <div className="avatar-v2-section-heading">
-        <h4 id={`${category.id}-title`}>{localizeAvatarCatalogText(category.labels, category.id)}</h4>
-        <p>{localizeAvatarCatalogText(category.descriptions, '')}</p>
-      </div>
+      <h4 className={showHeading ? undefined : 'visually-hidden'} id={`${category.id}-title`}>{localizeAvatarCatalogText(category.labels, category.id)}</h4>
       <div
         className="avatar-v2-asset-grid"
         data-option-group
-        style={{ ['--avatar-option-min-width' as string]: `${category.presentation.optionMinWidthRem ?? 8.5}rem` }}
+        style={{ ['--avatar-option-min-width' as string]: `${getOptionMinWidthRem(category)}rem` }}
       >
         {items.map((item) => {
           const selected = item.id === selectedItemId;
@@ -134,7 +129,7 @@ function TileSection({
             <button
               aria-label={localizeAvatarCatalogText(item.accessibilityLabels, localizeAvatarCatalogText(item.labels, item.id))}
               aria-pressed={selected}
-              className="avatar-v2-asset-tile"
+              className={`avatar-v2-asset-tile ${showItemLabel ? 'avatar-v2-asset-tile-labelled' : 'avatar-v2-asset-tile-visual'}`}
               key={item.id}
               onClick={() => onSelect(item.id)}
               onKeyDown={handleOptionGroupKeyDown}
@@ -147,7 +142,7 @@ function TileSection({
                   __html: renderSelectionPreview(buildAvatarTilePreviewSelection(selection, category, item.id)),
                 }}
               />
-              <strong>{localizeAvatarCatalogText(item.labels, item.id)}</strong>
+              {showItemLabel ? <strong>{localizeAvatarCatalogText(item.labels, item.id)}</strong> : null}
               {selected ? <SelectionIndicator /> : null}
             </button>
           );
@@ -162,20 +157,19 @@ function SwatchSection({
   items,
   onSelect,
   selectedItemId,
+  showHeading,
 }: {
   category: AvatarCatalogCategory;
   items: readonly AvatarCatalogItem[];
   onSelect: (itemId: string) => void;
   selectedItemId: string;
+  showHeading: boolean;
 }) {
   const groupedItems = groupItems(category, items);
 
   return (
     <section className="avatar-v2-choice-section avatar-v2-choice-section-swatch" aria-labelledby={`${category.id}-title`}>
-      <div className="avatar-v2-section-heading">
-        <h4 id={`${category.id}-title`}>{localizeAvatarCatalogText(category.labels, category.id)}</h4>
-        <p>{localizeAvatarCatalogText(category.descriptions, '')}</p>
-      </div>
+      <h4 className={showHeading ? undefined : 'visually-hidden'} id={`${category.id}-title`}>{localizeAvatarCatalogText(category.labels, category.id)}</h4>
 
       <div className="avatar-v2-swatch-groups">
         {groupedItems.map((group) => (
@@ -184,7 +178,7 @@ function SwatchSection({
             <div
               className="avatar-v2-swatch-grid"
               data-option-group
-              style={{ ['--avatar-option-min-width' as string]: `${category.presentation.optionMinWidthRem ?? 8.5}rem` }}
+              style={{ ['--avatar-option-min-width' as string]: `${getOptionMinWidthRem(category)}rem` }}
             >
               {group.items.map((item) => {
                 const selected = item.id === selectedItemId;
@@ -251,6 +245,20 @@ function groupItems(category: AvatarCatalogCategory, items: readonly AvatarCatal
     const rightOrder = getAvatarCatalogOptionGroup(right.items[0])?.order ?? Number.MAX_SAFE_INTEGER;
     return leftOrder - rightOrder;
   });
+}
+
+function getOptionMinWidthRem(category: AvatarCatalogCategory) {
+  const configuredWidth = category.presentation.optionMinWidthRem ?? 8.5;
+
+  if (category.presentation.control === 'swatch') {
+    return category.presentation.itemLabelVisibility === 'hidden'
+      ? configuredWidth
+      : Math.min(configuredWidth, 6.75);
+  }
+
+  return category.presentation.itemLabelVisibility === 'hidden'
+    ? configuredWidth
+    : Math.min(configuredWidth, 7.5);
 }
 
 function handleOptionGroupKeyDown(event: KeyboardEvent<HTMLButtonElement>) {

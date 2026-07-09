@@ -16,6 +16,14 @@ export type PaletteToken =
   | "skinPeach"
   | "skinHoney"
   | "skinBrown"
+  | "skinElf"
+  | "skinOrc"
+  | "skinGoblin"
+  | "skinBlue"
+  | "skinPurple"
+  | "skinRed"
+  | "skinGreen"
+  | "skinGrey"
   | "hairSoftBlack"
   | "hairNaturalBlack"
   | "hairBlueBlack"
@@ -34,6 +42,17 @@ export type PaletteToken =
   | "hairSteelGrey"
   | "hairSilverGrey"
   | "hairSoftWhite"
+  | "hairBrightSilver"
+  | "hairPearlWhite"
+  | "hairRoyalBlue"
+  | "hairElectricCyan"
+  | "hairEmerald"
+  | "hairLime"
+  | "hairViolet"
+  | "hairPink"
+  | "hairMagenta"
+  | "hairSunsetOrange"
+  | "hairGoldenYellow"
   | "hairPlum"
   | "shirtWhite"
   | "shirtCream"
@@ -67,6 +86,22 @@ export type PaletteToken =
   | "shirtWinterBlue"
   | "shirtPlum"
   | "shirtCocoa"
+  | "shirtStone"
+  | "shirtTaupe"
+  | "shirtSlate"
+  | "shirtMidnight"
+  | "shirtApricot"
+  | "shirtDustyRose"
+  | "shirtSeafoam"
+  | "shirtPowderBlue"
+  | "shirtCoral"
+  | "shirtAqua"
+  | "shirtViolet"
+  | "shirtLime"
+  | "shirtTerracotta"
+  | "shirtOlive"
+  | "shirtCranberry"
+  | "shirtFrost"
   | "lineBerry"
   | "lineBlue"
   | "accessoryLilac"
@@ -169,6 +204,14 @@ const palette: Record<PaletteToken, ExpandedSwatch> = {
   skinPeach: { base: "#f4bf9b", shade: "#df9778", highlight: "#ffd8bf", line: "#9f5f55" },
   skinHoney: { base: "#d99f67", shade: "#b97845", highlight: "#efbd87", line: "#7f523f" },
   skinBrown: { base: "#9b6547", shade: "#73422f", highlight: "#bd8060", line: "#55332b" },
+  skinElf: { base: "#d5e8cf", shade: "#b2caa8", highlight: "#eef8ea", line: "#7b9277" },
+  skinOrc: { base: "#8a9c5a", shade: "#6a7b3f", highlight: "#a9ba72", line: "#4c5c2b" },
+  skinGoblin: { base: "#6f8c4b", shade: "#547035", highlight: "#8baa67", line: "#3b4e25" },
+  skinBlue: { base: "#84b6d9", shade: "#6192b7", highlight: "#aed2ed", line: "#456b8b" },
+  skinPurple: { base: "#ad92c8", shade: "#8a6fad", highlight: "#ccb7e0", line: "#644d83" },
+  skinRed: { base: "#cc7f7b", shade: "#a55d5b", highlight: "#e0a3a0", line: "#7b4342" },
+  skinGreen: { base: "#85b57f", shade: "#62915d", highlight: "#a8d1a3", line: "#476744" },
+  skinGrey: { base: "#b6b8c3", shade: "#9195a3", highlight: "#d5d8e0", line: "#6a6e7a" },
   hairSoftBlack: { base: "#2f2624", shade: "#1f1817", highlight: "#4a3a37", line: "#15100f" },
   hairNaturalBlack: { base: "#201918", shade: "#15100f", highlight: "#352b29", line: "#0c0909" },
   hairBlueBlack: { base: "#1c232d", shade: "#12171f", highlight: "#313a47", line: "#0c1016" },
@@ -187,6 +230,17 @@ const palette: Record<PaletteToken, ExpandedSwatch> = {
   hairSteelGrey: { base: "#7f8791", shade: "#5e6570", highlight: "#a2abb6", line: "#454b53" },
   hairSilverGrey: { base: "#b7bcc4", shade: "#8f959f", highlight: "#d4d8df", line: "#676d77" },
   hairSoftWhite: { base: "#f1f3f5", shade: "#d6d9de", highlight: "#ffffff", line: "#9aa1aa" },
+  hairBrightSilver: { base: "#d5d8df", shade: "#b2b7c1", highlight: "#f2f4f7", line: "#7e858f" },
+  hairPearlWhite: { base: "#f8f7f2", shade: "#ddd9d0", highlight: "#ffffff", line: "#a9a59d" },
+  hairRoyalBlue: { base: "#3f67d2", shade: "#2c4aa5", highlight: "#6f90ea", line: "#1f3472" },
+  hairElectricCyan: { base: "#3dc9de", shade: "#2699ae", highlight: "#75e4ef", line: "#1d6f7f" },
+  hairEmerald: { base: "#31a36c", shade: "#217a4f", highlight: "#58c28a", line: "#19573a" },
+  hairLime: { base: "#a0c940", shade: "#7a9d2c", highlight: "#c0df72", line: "#576f1f" },
+  hairViolet: { base: "#8f63d7", shade: "#6b45af", highlight: "#b090ee", line: "#4a307b" },
+  hairPink: { base: "#e890bf", shade: "#c96b9f", highlight: "#f3b2d3", line: "#94506f" },
+  hairMagenta: { base: "#c756b8", shade: "#9a3990", highlight: "#de82d1", line: "#6f2868" },
+  hairSunsetOrange: { base: "#e88549", shade: "#bb5f2f", highlight: "#f4a56f", line: "#874220" },
+  hairGoldenYellow: { base: "#e0bc43", shade: "#b28f2c", highlight: "#f0d56f", line: "#7e641f" },
   hairPlum: { base: "#6f4a66", shade: "#4e344d", highlight: "#92708a", line: "#3f2a3d" },
   shirtWhite: { base: "#f7f7f7", shade: "#dcdde1", highlight: "#ffffff", line: "#a3a6ad" },
   shirtCream: { base: "#f1e6cf", shade: "#d7c3a1", highlight: "#fbf4e6", line: "#a89068" },
@@ -220,6 +274,22 @@ const palette: Record<PaletteToken, ExpandedSwatch> = {
   shirtWinterBlue: { base: "#5a7fb9", shade: "#405f8d", highlight: "#7e9dce", line: "#2d4464" },
   shirtPlum: { base: "#7b5aa2", shade: "#5b417f", highlight: "#9a7ac2", line: "#402c59" },
   shirtCocoa: { base: "#8b5c45", shade: "#66412f", highlight: "#a97860", line: "#452d21" },
+  shirtStone: { base: "#cfc9bf", shade: "#aba395", highlight: "#e4dfd6", line: "#7e776c" },
+  shirtTaupe: { base: "#b59e8a", shade: "#927b67", highlight: "#ceb8a6", line: "#6a5647" },
+  shirtSlate: { base: "#6f7f93", shade: "#566476", highlight: "#8d9cb0", line: "#3e4856" },
+  shirtMidnight: { base: "#24324a", shade: "#182235", highlight: "#40526e", line: "#111826" },
+  shirtApricot: { base: "#f2bb92", shade: "#d6946b", highlight: "#f8d1b4", line: "#986347" },
+  shirtDustyRose: { base: "#d9a6b2", shade: "#bb7f8d", highlight: "#ebc3cb", line: "#835864" },
+  shirtSeafoam: { base: "#9fd9d0", shade: "#73bbb0", highlight: "#c2ece6", line: "#4f857d" },
+  shirtPowderBlue: { base: "#b2c9ec", shade: "#88a8d2", highlight: "#d1def6", line: "#60789f" },
+  shirtCoral: { base: "#ef7f6f", shade: "#cf5c4c", highlight: "#f5a191", line: "#994237" },
+  shirtAqua: { base: "#3bc5c6", shade: "#27999a", highlight: "#73dfdf", line: "#1d6d6d" },
+  shirtViolet: { base: "#7353d7", shade: "#5438b4", highlight: "#9a84ec", line: "#3c287f" },
+  shirtLime: { base: "#9bce3d", shade: "#76a52a", highlight: "#bde16d", line: "#54731d" },
+  shirtTerracotta: { base: "#b55b3c", shade: "#8e4127", highlight: "#cf7c5e", line: "#64301e" },
+  shirtOlive: { base: "#7f8c3f", shade: "#616b2b", highlight: "#9ca95a", line: "#464d1f" },
+  shirtCranberry: { base: "#a33f56", shade: "#7a2a3f", highlight: "#c36177", line: "#561d2c" },
+  shirtFrost: { base: "#c7d9f3", shade: "#9eb7da", highlight: "#e1ebfb", line: "#7088a7" },
   lineBerry: { base: "#7f5369", shade: "#5d394c", highlight: "#a6798d", line: "#4b2f3f" },
   lineBlue: { base: "#587c9b", shade: "#3f5c73", highlight: "#83a8c6", line: "#30495c" },
   accessoryLilac: { base: "#8fc8ef", shade: "#67a8d8", highlight: "#b6ddf6", line: "#417895" },

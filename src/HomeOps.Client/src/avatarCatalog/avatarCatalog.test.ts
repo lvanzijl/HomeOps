@@ -5,10 +5,10 @@ import { renderAvatarV2Svg } from '../avatarV2/avatarV2';
 
 describe('avatar catalog metadata', () => {
   it('exposes the expanded skin, hair, clothing, and accessory palettes', () => {
-    expect(getAvatarCatalogItems('skin.tone')).toHaveLength(12);
-    expect(getAvatarCatalogItems('hair.color').filter((item) => item.status === 'active')).toHaveLength(18);
-    expect(getAvatarCatalogItems('clothing.color')).toHaveLength(32);
-    expect(getAvatarCatalogItems('accessory.color')).toHaveLength(32);
+    expect(getAvatarCatalogItems('skin.tone')).toHaveLength(20);
+    expect(getAvatarCatalogItems('hair.color').filter((item) => item.status === 'active')).toHaveLength(29);
+    expect(getAvatarCatalogItems('clothing.color')).toHaveLength(48);
+    expect(getAvatarCatalogItems('accessory.color')).toHaveLength(48);
   });
 
   it('provides accessibility labels for every selectable item', () => {
