@@ -104,34 +104,27 @@ export function SettingsDashboard({ widgetInstances, onCalendarSourcesChanged }:
   const restoreReadinessSummary = restoreReady
     ? restoreConfirmed
       ? "Back-up staat klaar om veilig te herstellen."
-      : "Back-up is geladen en wacht op bevestiging in het herstelpaneel."
-    : "Herstellen opent in een begrensd paneel met controle vooraf.";
+      : "Back-up is geladen en wacht op je bevestiging."
+    : "Kies een back-up om het herstel te controleren.";
   const configurationSummary = hasAdditionalSettings
-    ? `${additionalWidgets.length} extra gezinsinstelling${additionalWidgets.length === 1 ? "" : "en"} beschikbaar voor rustig onderhoud.`
-    : "Geen extra gezinsinstellingen vragen op dit moment aandacht.";
+    ? `${additionalWidgets.length} extra gezinsinstelling${additionalWidgets.length === 1 ? "" : "en"} beschikbaar.`
+    : "Er zijn nu geen extra gezinsinstellingen.";
   const sourceSummary = isLoadingSources
     ? "Kalenderbronnen laden…"
     : onlyManualSource
-      ? "Alleen de handmatige gezinsagenda staat klaar. Voeg een iCal-bron toe voor gedeelde imports."
+      ? "Alleen je gezinsagenda staat klaar. Voeg een iCal-bron toe om andere agenda’s te importeren."
       : `${sourceCount} bronnen ingesteld, ${visibleSourceCount} zichtbaar in de agenda.`;
-  const maintenanceSummary = status?.kind === "error"
-    ? "Controleer de melding hieronder voordat je verdergaat."
-    : hasSourceAttention
-      ? "Een of meer kalenderbronnen vragen aandacht."
-      : status?.kind === "success"
-        ? status.message
-        : "Geen actieve onderhoudsmeldingen.";
   const statusTitle = status?.refreshResults?.length
     ? "Laatste verversing"
     : status?.kind === "error"
-      ? "Actieve waarschuwing"
+      ? "Waarschuwing"
       : status?.kind === "success"
-        ? "Laatste onderhoud"
-        : "Onderhoudsmelding";
+        ? "Laatste actie"
+        : "Melding";
   const statusMessage = status?.message
     ?? (hasSourceAttention
       ? `${sources.filter((source) => source.enabled && source.state === "failed").length} kalenderbron${sources.filter((source) => source.enabled && source.state === "failed").length === 1 ? " heeft" : "nen hebben"} aandacht nodig.`
-      : "Alles staat klaar voor rustig gezinsonderhoud.");
+      : "Alles staat klaar.");
 
   useEffect(() => {
     void reloadSources(true);
@@ -411,7 +404,7 @@ export function SettingsDashboard({ widgetInstances, onCalendarSourcesChanged }:
   }
 
   return (
-    <section className="settings-dashboard" aria-label="Instellingen onderhoudsdashboard">
+    <section className="settings-dashboard" aria-label="Instellingenoverzicht">
       <header className={`settings-dashboard-header ${needsAttention ? "attention" : "ready"}`}>
         <div className="settings-dashboard-header-copy">
           <p className="widget-type">Instellingen</p>
@@ -419,13 +412,13 @@ export function SettingsDashboard({ widgetInstances, onCalendarSourcesChanged }:
           <h2>{needsAttention ? "Aandacht nodig." : "Alles is in orde."}</h2>
           <p>
             {needsAttention
-              ? "Controleer de kalenderbronnen of onderhoudsmelding hieronder."
-              : "Kalenderbronnen, back-up en herstel blijven beschikbaar zonder dat de pagina druk wordt."}
+              ? "Controleer de kalenderbronnen of melding hieronder."
+              : "Kalenderbronnen, back-ups en herstel staan hier voor je klaar."}
           </p>
         </div>
-        <div className="settings-dashboard-header-state" aria-label="Algemene onderhoudsstatus">
+        <div className="settings-dashboard-header-state" aria-label="Algemene status">
           <FamilyBoardIcon name={needsAttention ? "status.pending" : "status.ready"} size="large" />
-          <span>{needsAttention ? "Aandacht in instellingen" : "Gezin klaar"}</span>
+          <span>{needsAttention ? "Aandacht nodig" : "Klaar voor gebruik"}</span>
         </div>
       </header>
 
@@ -444,8 +437,8 @@ export function SettingsDashboard({ widgetInstances, onCalendarSourcesChanged }:
           <dl className="settings-summary-list">
             <SettingsSummaryItem title="Kalenderbronnen" value={sourceSummary} tone={hasSourceAttention ? "pending" : "ready"} />
             <SettingsSummaryItem title="Laatste back-up" value={exportSummary} tone={backupReady ? "ready" : "pending"} />
-            <SettingsSummaryItem title="Herstelgereedheid" value={restoreReadinessSummary} tone={restoreReady ? "ready" : "pending"} />
-            <SettingsSummaryItem title="Gezinsconfiguratie" value={configurationSummary} tone="ready" />
+            <SettingsSummaryItem title="Herstelstatus" value={restoreReadinessSummary} tone={restoreReady ? "ready" : "pending"} />
+            <SettingsSummaryItem title="Extra instellingen" value={configurationSummary} tone="ready" />
           </dl>
 
           <div className="settings-source-toolbar">
@@ -460,7 +453,7 @@ export function SettingsDashboard({ widgetInstances, onCalendarSourcesChanged }:
           {onlyManualSource ? (
             <section className="settings-source-empty" aria-label="Lege kalenderbronnenstatus">
               <h4>Voeg een iCal-bron toe</h4>
-              <p>Je handmatige gezinsagenda staat al klaar. Voeg een iCal-feed of iCal-bestand toe om extra agenda’s automatisch mee te nemen.</p>
+              <p>Je handmatige gezinsagenda staat al klaar. Voeg een iCal-feed of iCal-bestand toe om extra agenda’s te importeren.</p>
             </section>
           ) : null}
 
@@ -546,7 +539,7 @@ export function SettingsDashboard({ widgetInstances, onCalendarSourcesChanged }:
           <article className="settings-card settings-proof-card">
             <div className="settings-card-header">
               <div>
-                <p className="widget-type">Onderhoudsbewijs</p>
+                <p className="widget-type">Overzicht</p>
                 <h3>Back-up en herstel</h3>
               </div>
             </div>
@@ -570,7 +563,7 @@ export function SettingsDashboard({ widgetInstances, onCalendarSourcesChanged }:
           <article className={`settings-card settings-status-card ${status?.kind ?? "idle"}`}>
             <div className="settings-card-header">
               <div>
-                <p className="widget-type">Status en validatie</p>
+                <p className="widget-type">Meldingen</p>
                 <h3>{statusTitle}</h3>
               </div>
             </div>
@@ -598,7 +591,7 @@ export function SettingsDashboard({ widgetInstances, onCalendarSourcesChanged }:
                 </ul>
               ) : status?.refreshResults?.length ? null : (
                 <p className="settings-status-hint">
-                  Gedetailleerde validatie blijft beschikbaar in een begrensd paneel wanneer dat nodig is.
+                  Nieuwe meldingen verschijnen hier automatisch.
                 </p>
               )}
             </div>
@@ -608,7 +601,7 @@ export function SettingsDashboard({ widgetInstances, onCalendarSourcesChanged }:
 
       <footer className="settings-action-rail">
         <div className="settings-action-rail-summary">
-          <p className="widget-type">Onderhoudsrail</p>
+          <p className="widget-type">Snelle acties</p>
           <p>{status?.kind === "error" ? status.message : hasSourceAttention ? sourceSummary : exportSummary}</p>
         </div>
         <div className="settings-action-rail-buttons">
@@ -619,7 +612,7 @@ export function SettingsDashboard({ widgetInstances, onCalendarSourcesChanged }:
             Herstellen
           </button>
           <button onClick={() => setActiveSurface("details")} type="button">
-            Onderhoudsdetails
+            Details bekijken
           </button>
           {hasAdditionalSettings ? (
             <button onClick={() => setActiveSurface("settings")} type="button">
@@ -631,9 +624,9 @@ export function SettingsDashboard({ widgetInstances, onCalendarSourcesChanged }:
 
       {activeSurface === "details" ? (
         <SettingsSurfaceDialog
-          description="Bekijk de rustige onderhoudssamenvatting zonder de hoofdpagina te verlengen."
+          description="Bekijk back-up, herstel en kalenderbronnen in één overzicht."
           onClose={closeSurface}
-          title="Onderhoudsdetails"
+          title="Details"
         >
           <div className="settings-surface-grid">
             <section className="settings-surface-card">
@@ -641,7 +634,7 @@ export function SettingsDashboard({ widgetInstances, onCalendarSourcesChanged }:
               <p>{exportSummary}</p>
             </section>
             <section className="settings-surface-card">
-              <h4>Herstelgereedheid</h4>
+              <h4>Herstelstatus</h4>
               <p>{restoreReadinessSummary}</p>
             </section>
             <section className="settings-surface-card">
@@ -722,7 +715,7 @@ export function SettingsDashboard({ widgetInstances, onCalendarSourcesChanged }:
 
       {activeSurface === "settings" ? (
         <SettingsSurfaceDialog
-          description="Open aanvullende gezinsinstellingen in een begrensd paneel."
+          description="Bekijk aanvullende gezinsinstellingen."
           onClose={closeSurface}
           title="Gezinsinstellingen"
         >
@@ -736,7 +729,7 @@ export function SettingsDashboard({ widgetInstances, onCalendarSourcesChanged }:
 
       {activeSurface === "createSource" || activeSurface === "editSource" ? (
         <SettingsSurfaceDialog
-          description={activeSurface === "editSource" ? "Werk naam, icoon, ritme of providerinstellingen rustig bij." : "Voeg een nieuwe iCal-bron toe zonder de API te gebruiken."}
+          description={activeSurface === "editSource" ? "Werk naam, icoon, ritme of brongegevens bij." : "Voeg een nieuwe iCal-bron toe."}
           onClose={closeSurface}
           title={activeSurface === "editSource" ? "Kalenderbron bewerken" : "Kalenderbron toevoegen"}
         >
@@ -824,7 +817,7 @@ export function SettingsDashboard({ widgetInstances, onCalendarSourcesChanged }:
             ) : (
               <>
                 <label className="settings-file-field settings-source-form-span-2">
-                  <span>Bestandsreferentie</span>
+                  <span>Bestandslocatie</span>
                   <input
                     disabled={isSavingSource}
                     onChange={(event) =>
@@ -852,7 +845,7 @@ export function SettingsDashboard({ widgetInstances, onCalendarSourcesChanged }:
                   />
                 </label>
                 <label className="settings-file-field">
-                  <span>Inhoudscontrole</span>
+                  <span>Controlecode</span>
                   <input
                     disabled={isSavingSource}
                     onChange={(event) =>
@@ -866,8 +859,8 @@ export function SettingsDashboard({ widgetInstances, onCalendarSourcesChanged }:
                   />
                 </label>
                 <section className="settings-surface-card settings-source-form-span-2">
-                  <h4>iCal-bestanden in HomeOps</h4>
-                  <p>Gebruik de opgeslagen bestandsreferentie, bestandsnaam en inhoudscontrole van het iCal-bestand dat HomeOps al kan lezen.</p>
+                  <h4>iCal-bestand</h4>
+                  <p>Vul de locatie, bestandsnaam en controlecode van het opgeslagen iCal-bestand in.</p>
                 </section>
               </>
             )}
@@ -908,7 +901,7 @@ export function SettingsDashboard({ widgetInstances, onCalendarSourcesChanged }:
             </section>
             <section className="settings-restore-warning">
               <h4>Verwijderen is definitief</h4>
-              <p>De gekoppelde geïmporteerde agenda-items verdwijnen ook uit HomeOps. De handmatige gezinsagenda blijft altijd beschermd.</p>
+              <p>De gekoppelde geïmporteerde agenda-items verdwijnen ook uit je agenda. De handmatige gezinsagenda blijft altijd beschikbaar.</p>
             </section>
             <div className="settings-surface-actions">
               <button onClick={closeSurface} type="button">
@@ -975,7 +968,7 @@ function SettingsSurfaceDialog({ children, description, onClose, title }: Settin
       >
         <header className="settings-surface-header">
           <div>
-            <p className="widget-type">Gezinsonderhoud</p>
+            <p className="widget-type">Instellingen</p>
             <h3 id={titleId}>{title}</h3>
             <p>{description}</p>
           </div>
@@ -1008,5 +1001,5 @@ function describeProviderConfiguration(source: CalendarSource) {
 
   return source.writable
     ? "Handmatige gezinsagenda voor eigen afspraken."
-    : "Deze bron gebruikt HomeOps zonder extra providerdetails op de pagina.";
+    : "Deze bron is klaar voor agenda-import.";
 }

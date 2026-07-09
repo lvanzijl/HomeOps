@@ -204,15 +204,15 @@ export function getFriendlyCalendarSourceError(error: unknown): string {
     }
 
     if (error.status === 400) {
-      return "HomeOps kon deze kalenderbron niet opslaan. Controleer de ingevulde gegevens en probeer het opnieuw.";
+      return "Deze kalenderbron kon niet worden opgeslagen. Controleer de ingevulde gegevens en probeer het opnieuw.";
     }
 
     if (error.status >= 500) {
-      return "HomeOps kon de kalenderbron nu niet verwerken. Probeer het zo opnieuw.";
+      return "Deze kalenderbron kon nu niet worden verwerkt. Probeer het zo opnieuw.";
     }
   }
 
-  return "HomeOps kon de kalenderbron nu niet verwerken.";
+  return "Deze kalenderbron kon nu niet worden verwerkt.";
 }
 
 export function getCalendarSourceValidationErrors(error: unknown): string[] {
@@ -424,7 +424,7 @@ function getFriendlyCalendarSourceIssueMessage(code?: string, message?: string):
   switch (code) {
     case "NotFound":
     case "HttpFailure":
-      return "HomeOps kon deze bron niet ophalen. Controleer het adres en probeer het opnieuw.";
+      return "Deze bron kon niet worden opgehaald. Controleer het adres en probeer het opnieuw.";
     case "Timeout":
       return "Het ophalen van deze bron duurde te lang. Probeer het zo opnieuw.";
     case "NetworkFailure":
@@ -442,18 +442,18 @@ function getFriendlyCalendarSourceIssueMessage(code?: string, message?: string):
     case "MissingFile":
       return "Het gekoppelde iCal-bestand is niet gevonden. Controleer de bestandsverwijzing.";
     case "AccessDenied":
-      return "HomeOps mag het gekoppelde iCal-bestand nu niet lezen.";
+      return "Het gekoppelde iCal-bestand kan nu niet worden gelezen.";
     case "StorageFailure":
-      return "HomeOps kon het gekoppelde iCal-bestand nu niet openen.";
+      return "Het gekoppelde iCal-bestand kon nu niet worden geopend.";
     case "InvalidContent":
     case "ParseFailure":
-      return "HomeOps kon deze iCal-inhoud niet lezen. Controleer de bron en probeer opnieuw.";
+      return "Deze iCal-inhoud kon niet worden gelezen. Controleer de bron en probeer opnieuw.";
     case "UnsupportedProvider":
-      return "Deze bron kan nog niet worden ververst in HomeOps.";
+      return "Deze bron kan nu niet worden ververst.";
     case "Unknown":
-      return "HomeOps kon deze bron nu niet verwerken.";
+      return "Deze bron kon nu niet worden verwerkt.";
     default:
-      return message?.trim() || "HomeOps kon deze bron nu niet verwerken.";
+      return message?.trim() || "Deze bron kon nu niet worden verwerkt.";
   }
 }
 
@@ -594,7 +594,7 @@ function toFriendlyFieldLabel(field: string): string {
     case "providerConfiguration.iCalFile.originalFilename":
     case "providerConfiguration.iCalFile.contentHash":
     case "iCalFile":
-      return "Bestandsinstellingen";
+      return "Bestandsgegevens";
     default:
       return field;
   }

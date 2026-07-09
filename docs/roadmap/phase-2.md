@@ -1,3 +1,6 @@
+### Completed Slice — Settings UI Copy Cleanup
+Settings UI Copy Cleanup removes the remaining Product Owner, layout-contract, and implementation-facing wording from the Settings dashboard without redesigning the page, changing layout behavior, altering business logic, or touching other FamilyBoard pages. The slice keeps restore warnings, destructive confirmation, import/export validation, loading and error feedback, source-management behavior, and accessibility labels intact while renaming maintenance/internal terms to concise Dutch household wording and localizing the remaining calendar portability fallback text.
+
 ### Completed Slice — Avatar Editor Visual Catalog
 Avatar Editor Visual Catalog applies the next frontend-only refinement pass to the existing catalog-driven Avatar V2 Editor without changing backend behavior, API contracts, AvatarSelection persistence, Avatar Catalog architecture, renderer behavior, or the overall editor concept. The slice turns the editor into a quieter visual catalog browser with content-sized option panels, larger preview emphasis, denser category navigation, visual-only style/color controls, expanded fantasy skin tones plus broader hair and clothing palettes, required Riley desktop screenshots, and validated 1366×900 no-page-scroll dialog behavior.
 

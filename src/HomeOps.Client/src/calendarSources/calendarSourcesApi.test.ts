@@ -27,8 +27,8 @@ describe('calendarSourcesApi', () => {
       }),
     }));
 
-    expect(source.lastError?.message).toBe('HomeOps kon deze bron niet ophalen. Controleer het adres en probeer het opnieuw.');
-    expect(getCalendarSourceStatusMessage(source)).toBe('HomeOps kon deze bron niet ophalen. Controleer het adres en probeer het opnieuw.');
+    expect(source.lastError?.message).toBe('Deze bron kon niet worden opgehaald. Controleer het adres en probeer het opnieuw.');
+    expect(getCalendarSourceStatusMessage(source)).toBe('Deze bron kon niet worden opgehaald. Controleer het adres en probeer het opnieuw.');
   });
 
   it('maps technical refresh failures to household-friendly summaries', () => {

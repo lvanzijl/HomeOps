@@ -16,10 +16,10 @@ export function createCalendarPortabilityClient(): HomeOpsApiClient {
 
 export function summarizeCalendarExport(document: CalendarExportDocument): CalendarExportSummary {
   return {
-    format: document.format ?? 'Unknown format',
+    format: document.format ?? 'Onbekend formaat',
     schemaVersion: document.schemaVersion ?? 0,
     payloadVersion: document.calendar?.version ?? 0,
-    exportedUtc: document.exportedUtc?.toISOString() ?? 'Unknown timestamp',
+    exportedUtc: document.exportedUtc?.toISOString() ?? 'Onbekend tijdstip',
     eventSeriesCount: document.calendar?.eventSeries?.length ?? 0,
   };
 }
@@ -51,15 +51,15 @@ export function getFriendlyCalendarPortabilityError(error: unknown): string {
   }
 
   if (error instanceof SyntaxError) {
-    return 'The selected file is not valid JSON.';
+    return 'Het gekozen bestand is geen geldig JSON-bestand.';
   }
 
   if (ApiException.isApiException(error)) {
-    if (error.status === 400) return 'The calendar export could not be restored. Please review the validation errors and try again.';
-    if (error.status >= 500) return 'HomeOps could not complete the calendar request. Please try again after the server is available.';
+    if (error.status === 400) return 'Deze back-up kan niet worden hersteld. Controleer de meldingen en probeer opnieuw.';
+    if (error.status >= 500) return 'De back-up kon nu niet worden verwerkt. Probeer het opnieuw zodra de server beschikbaar is.';
   }
 
-  return 'HomeOps could not complete the calendar portability request.';
+  return 'De back-up kon nu niet worden verwerkt.';
 }
 
 export function getValidationErrors(error: unknown): string[] {
