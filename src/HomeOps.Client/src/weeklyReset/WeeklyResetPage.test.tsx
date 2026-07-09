@@ -21,7 +21,7 @@ describe('WeeklyResetPage', () => {
     expect(screen.getByText('Riley: Read together')).toBeTruthy();
     expect(screen.getByText('Old Shopping')).toBeTruthy();
     expect(screen.getByText('Riley: Helped clean up')).toBeTruthy();
-    expect(screen.getByText('Undo blijft beschikbaar waar dat vandaag al bestaat.')).toBeTruthy();
+    expect(screen.getByText('Kies wat nog helpt')).toBeTruthy();
   });
 
   it('keeps the skip confirmation intentional and non-destructive', async () => {
@@ -29,7 +29,7 @@ describe('WeeklyResetPage', () => {
     render(<WeeklyResetPage />);
     await userEvent.click(await screen.findByRole('button', { name: 'Deze week overslaan' }));
     expect(screen.getByText('Vandaag slaan we over')).toBeTruthy();
-    expect(screen.getByText('Prima. Alles blijft zoals het nu is: taken, doelen en lijstjes veranderen niet.')).toBeTruthy();
+    expect(screen.getByText('Prima. Jullie laten het deze week zoals het is en kunnen later altijd terugkomen.')).toBeTruthy();
     await userEvent.click(screen.getByRole('button', { name: 'Open het weekritueel weer' }));
     expect(await screen.findByText('Zijn we klaar voor volgende week?')).toBeTruthy();
   });
