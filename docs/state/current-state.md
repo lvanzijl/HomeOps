@@ -882,3 +882,9 @@ Showcase Sample C and Showcase Sample D exposed that the wide head variant's ear
 - Preserved existing accessory IDs, the single accessory slot, Tiny Crown compatibility, non-headwear mount behavior, eyewear, mouths, eyes, clothing, hair definitions, backend contracts, and persistence.
 - Regenerated the text SVG variety sheet from renderer output and reviewed a temporary 72-combination headwear matrix across six headwear items, round/oval/wide heads, and short/long/curly/side-bob hairstyles.
 - Added renderer invariant tests for anatomy-relative headwear alignment and non-headwear compatibility; implementation report updated at `docs/reports/2026-07-10-avatar-accessories-v2/avatar-accessories-v2.md`.
+
+
+## Avatar Accessories V2 Headwear Model V2 — 2026-07-10
+- Replaced the first shared headwear pseudo-geometry with renderer-owned anatomy-relative placement: `resolveAvatarAnatomy` now exposes semantic head top, width, height, hairline, and forehead anchors while headwear families derive their own band/brim/shell/base positions from those anchors and the protected eye line.
+- Corrected Baseball Cap, Beanie, Party Hat, Crown, Sun Hat, and Helmet vertical placement across round, oval, and wide heads with short, long, curly, and side-bob hairstyles while preserving accessory IDs, the single accessory slot, mount compatibility, layer ordering, non-headwear accessories, API contracts, and persistence.
+- Regenerated the text SVG variety sheet and updated renderer invariant tests/reporting for the Headwear Model V2 follow-up.

@@ -548,11 +548,11 @@ describe("Avatar V2 SVG renderer", () => {
           expect(svg).toContain('data-headwear-model="anatomy-relative"');
           expect(svg).toContain(`data-accessory-asset="${style}"`);
           expect(center).toBeCloseTo(anatomy.head.center.x, 1);
-          expect(width).toBeCloseTo(anatomy.head.bounds.width * 0.92, 1);
+          expect(width).toBeCloseTo(anatomy.head.width, 1);
           expect(scale).toBeGreaterThan(0.8);
           expect(scale).toBeLessThan(1.2);
-          expect(baseline).toBeGreaterThanOrEqual(anatomy.head.hairline.y + 14);
-          expect(baseline).toBeLessThan(anatomy.face.eyeLineY);
+          expect(baseline).toBeGreaterThanOrEqual(anatomy.head.top.y - 2);
+          expect(baseline).toBeLessThan(anatomy.face.eyeLineY - 5);
           expect(svg).not.toContain('<image');
           expect(validateAvatarV2AssetSvg(svg)).toBe(true);
         }
