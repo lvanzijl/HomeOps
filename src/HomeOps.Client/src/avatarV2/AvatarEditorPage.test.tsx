@@ -56,7 +56,6 @@ describe('AvatarEditorPage', () => {
     await user.click(categoryButton('Kleding')!);
     expect(within(screen.getByLabelText('Avatarkeuzes')).getByRole('button', { name: /Hoodie outfit/i }).getAttribute('aria-pressed')).toBe('true');
     await user.click(categoryButton('Accessoires')!);
-    await user.click(within(screen.getByLabelText('Avatarkeuzes')).getByRole('button', { name: 'Kleur' }));
     expect(within(screen.getByLabelText('Avatarkeuzes')).getByRole('button', { name: /Accessoirekleur: Mintgroen/i }).getAttribute('aria-pressed')).toBe('true');
     expect(screen.getByText('Niet-opgeslagen wijzigingen')).not.toBeNull();
   });
@@ -72,12 +71,9 @@ describe('AvatarEditorPage', () => {
 
     await user.click(categoryButton('Haar')!);
     expect(screen.getByRole('button', { name: /Lang zacht/i }).textContent).toBe('');
-
-    await user.click(within(screen.getByLabelText('Avatarkeuzes')).getByRole('button', { name: 'Kleur' }));
     expect(screen.getByRole('button', { name: /Haarkleur: Natuurlijk zwart/i }).textContent).toBe('');
 
     await user.click(categoryButton('Kleding')!);
-    await user.click(within(screen.getByLabelText('Avatarkeuzes')).getByRole('button', { name: 'Kleur' }));
 
     expect(within(screen.getByLabelText('Avatarkeuzes')).getByRole('heading', { name: 'Neutraal' })).not.toBeNull();
     expect(within(screen.getByLabelText('Avatarkeuzes')).getByRole('heading', { name: 'Zacht' })).not.toBeNull();
@@ -119,7 +115,6 @@ describe('AvatarEditorPage', () => {
     expect(controls.getByRole('heading', { name: 'Accessoire' })).not.toBeNull();
     expect(controls.getByRole('button', { name: /Bloemspeld accessoire/i }).textContent).toBe('');
 
-    await user.click(controls.getByRole('button', { name: 'Kleur' }));
     expect(controls.getByRole('heading', { name: 'Accessoirekleur' })).not.toBeNull();
     expect(controls.getByRole('button', { name: /Accessoirekleur: Mintgroen/i }).textContent).toBe('');
   });
