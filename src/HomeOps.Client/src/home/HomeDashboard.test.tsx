@@ -39,10 +39,6 @@ vi.mock("../motivationData", async (importOriginal) => ({
   ...(await importOriginal<typeof import("../motivationData")>()),
   loadMotivationSnapshot: vi.fn(),
 }));
-vi.mock("../demo/demoAgendaData", () => ({
-  demoReadOnlyEvents: [],
-  demoReadOnlyEventSources: [],
-}));
 vi.mock("./homeWeatherApi", () => ({
   loadHomeWeather: vi.fn(),
 }));

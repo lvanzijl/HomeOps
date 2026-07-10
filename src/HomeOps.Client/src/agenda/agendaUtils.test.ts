@@ -38,7 +38,7 @@ const eventSources = [manualSource, ...demoReadOnlyEventSources];
 const events = [...manualEvents, ...demoReadOnlyEvents];
 
 describe('agenda source datasets', () => {
-  it('combines API-backed calendar events with read-only demo sources', () => {
+  it('combines API-backed calendar events with read-only fixture sources', () => {
     expect(demoReadOnlyEventSources.length).toBeGreaterThanOrEqual(3);
     expect(new Set(eventSources.map((source) => source.color.hex)).size).toBeGreaterThanOrEqual(3);
     expect(eventSources.some((source) => source.id === 'birthdays')).toBe(true);

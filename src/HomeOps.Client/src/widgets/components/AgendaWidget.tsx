@@ -1242,8 +1242,8 @@ function AgendaSourceSelector({
   onToggleSource: (sourceId: string, enabled: boolean) => void;
 }) {
   return (
-    <div className="source-selector" role="group" aria-label="Bronnen in de agenda">
-      <span className="source-selector-label">Bronnen</span>
+    <div className="source-selector" role="group" aria-label="Kalenderbronnen">
+      <span className="source-selector-label">Kalenderbronnen</span>
       {eventSources.map((source) => (
         <label key={source.id} className={source.canDisplayEvents === false ? "source-selector-unavailable" : undefined}>
           <input
@@ -3100,7 +3100,7 @@ function getPlanningPreparationCue(
   if (event.source.type === "schoolHolidays") {
     return "Vakantiedag: opvang of dagindeling controleren.";
   }
-  if (event.allDay) return "Hele dag zichtbaar voor het gezin.";
+  if (event.allDay) return "Hele dag.";
   return undefined;
 }
 
