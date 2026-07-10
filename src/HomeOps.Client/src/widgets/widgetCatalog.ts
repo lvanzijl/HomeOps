@@ -20,37 +20,37 @@ export const widgetDefinitions: readonly WidgetDefinition[] = [
     type: 'text',
     title: 'Welkom',
     settings: {
-      body: 'FamilyBoard is klaar voor toekomstige gezinswidgets.',
+      body: 'Hier kun je straks extra informatie voor je gezin toevoegen.',
     },
   },
   {
     id: 'house-placeholder',
     type: 'placeholder',
-    title: 'Huis-placeholder',
+    title: 'Huis',
     settings: {
-      body: 'Huiswidgets komen in latere fases.',
+      body: 'Hier komt straks huisinformatie.',
     },
   },
   {
     id: 'media-placeholder',
     type: 'placeholder',
-    title: 'Media-placeholder',
+    title: 'Media',
     settings: {
-      body: 'Mediawidgets komen in latere fases.',
+      body: 'Hier komt straks media voor je gezin.',
     },
   },
   {
     id: 'calendar-portability-admin',
     type: 'calendarPortability',
-    title: 'Agenda exporteren / herstellen',
+    title: 'Agenda back-up en herstel',
     settings: {},
   },
   {
     id: 'settings-placeholder',
     type: 'placeholder',
-    title: 'Instellingen-placeholder',
+    title: 'Instellingen',
     settings: {
-      body: 'Instellingenwidgets komen in latere fases.',
+      body: 'Hier komen straks extra instellingen.',
     },
   },
 ] as const;

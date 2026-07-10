@@ -47,7 +47,7 @@ export function parseCalendarExportJson(json: string): CalendarExportDocument {
 export function getFriendlyCalendarPortabilityError(error: unknown): string {
   const validationErrors = getValidationErrors(error);
   if (validationErrors.length > 0) {
-    return validationErrors.join(' ');
+    return 'Deze agenda-back-up kan niet worden hersteld. Controleer de meldingen en probeer opnieuw.';
   }
 
   if (error instanceof SyntaxError) {
@@ -55,11 +55,11 @@ export function getFriendlyCalendarPortabilityError(error: unknown): string {
   }
 
   if (ApiException.isApiException(error)) {
-    if (error.status === 400) return 'Deze back-up kan niet worden hersteld. Controleer de meldingen en probeer opnieuw.';
-    if (error.status >= 500) return 'De back-up kon nu niet worden verwerkt. Probeer het opnieuw zodra de server beschikbaar is.';
+    if (error.status === 400) return 'Deze agenda-back-up kan niet worden hersteld. Controleer de meldingen en probeer opnieuw.';
+    if (error.status >= 500) return 'De agenda-back-up kan nu niet worden verwerkt. Probeer het opnieuw zodra de server beschikbaar is.';
   }
 
-  return 'De back-up kon nu niet worden verwerkt.';
+  return 'De agenda-back-up kan nu niet worden verwerkt.';
 }
 
 export function getValidationErrors(error: unknown): string[] {
