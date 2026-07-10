@@ -50,7 +50,6 @@ describe('FamilyAvatarEditor', () => {
 
     await user.click(categoryButton('Haar')!);
     expect(screen.getByRole('button', { name: /Kapsel lang zacht/i }).textContent).toBe('');
-    await user.click(within(screen.getByLabelText('Avatarkeuzes voor Riley')).getByRole('button', { name: 'Kleur' }));
     expect(screen.getByRole('button', { name: /Haarkleur: Natuurlijk zwart/i }).textContent).toBe('');
 
     await user.click(categoryButton('Accessoires')!);
@@ -93,7 +92,7 @@ describe('FamilyAvatarEditor', () => {
     expect(onChange).not.toHaveBeenCalled();
   });
 
-  it('keeps the accessories category compact with separate style and color sub-tabs', async () => {
+  it('shows style and color together in one surface without a sub-tab hop', async () => {
     const user = userEvent.setup();
     render(<FamilyAvatarEditor member={member} onChange={vi.fn()} onClose={vi.fn()} />);
 
@@ -102,10 +101,8 @@ describe('FamilyAvatarEditor', () => {
     const controls = within(screen.getByLabelText('Avatarkeuzes voor Riley'));
     expect(controls.queryByRole('heading', { name: 'Accessoires' })).toBeNull();
     expect(controls.getByRole('heading', { name: 'Accessoire' })).not.toBeNull();
-    expect(controls.getByRole('button', { name: /Bloemspeld accessoire/i }).textContent).toBe('');
-
-    await user.click(controls.getByRole('button', { name: 'Kleur' }));
     expect(controls.getByRole('heading', { name: 'Accessoirekleur' })).not.toBeNull();
+    expect(controls.getByRole('button', { name: /Bloemspeld accessoire/i }).textContent).toBe('');
     expect(controls.getByRole('button', { name: /Accessoirekleur: Mintgroen/i }).textContent).toBe('');
   });
 
