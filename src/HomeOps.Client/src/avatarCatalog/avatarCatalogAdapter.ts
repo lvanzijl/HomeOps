@@ -51,6 +51,9 @@ export function avatarSelectionToAvatarV2RenderConfig(selection: AvatarCatalogSe
       style: rendererToken(normalized.selections.eyewearStyle, 'eyewear.style') as AvatarConfig['glasses']['style'],
       color: 'lineBlue',
     },
+    mouth: {
+      style: rendererToken(normalized.selections.mouthStyle, 'mouth.style') as NonNullable<AvatarConfig['mouth']>['style'],
+    },
     shirt: {
       style: rendererToken(normalized.selections.clothingStyle, 'clothing.style') as AvatarConfig['shirt']['style'],
       color: rendererToken(normalized.selections.clothingColor, 'clothing.color') as PaletteToken,

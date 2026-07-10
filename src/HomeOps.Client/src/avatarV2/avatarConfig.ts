@@ -147,6 +147,7 @@ export function toAvatarV2RenderConfig(configuration: AvatarV2Configuration): Av
     skinTone: 'skinMedium',
     hair: { style: configuration.hairStyle, color: configuration.hairColor },
     glasses: { style: 'none', color: 'lineBlue' },
+    mouth: { style: 'neutral' },
     shirt: { style: configuration.clothingStyle, color: configuration.clothingColor },
     accessory: {
       style: configuration.accessory,

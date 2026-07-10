@@ -9,6 +9,7 @@ export const avatarSelectionSlots = {
   hairColor: 'hairColor',
   clothingStyle: 'clothingStyle',
   clothingColor: 'clothingColor',
+  mouthStyle: 'mouthStyle',
   eyewearStyle: 'eyewearStyle',
   accessoryStyle: 'accessoryStyle',
   accessoryColor: 'accessoryColor',

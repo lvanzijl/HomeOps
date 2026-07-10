@@ -132,6 +132,17 @@ export type ShirtStyle =
   | "sweater"
   | "tShirt"
   | "overall";
+export type MouthStyle =
+  | "neutral"
+  | "smile"
+  | "bigSmile"
+  | "openSmile"
+  | "laughing"
+  | "smirk"
+  | "determined"
+  | "surprised"
+  | "sad"
+  | "tongueOut";
 export type AccessoryStyle =
   | "none"
   | "starClip"
@@ -184,6 +195,7 @@ export interface AvatarConfig {
   skinTone: PaletteToken;
   hair: { style: HairStyle; color: PaletteToken };
   glasses: { style: GlassesStyle; color: PaletteToken };
+  mouth?: { style: MouthStyle };
   shirt: { style: ShirtStyle; color: PaletteToken };
   accessory: {
     style: AccessoryStyle;
@@ -450,7 +462,69 @@ function renderHeadAndFace({ config, anatomy }: AvatarRenderContext): string {
     e = anatomy.ears;
   const ear = (side: string, a: AvatarAnchor) =>
     `<ellipse data-anatomy="ear-${side}" cx="${a.x}" cy="${a.y}" rx="${e.width / 2}" ry="${e.height / 2}" fill="${skin.base}" stroke="${skin.line}" stroke-width="3"/>`;
-  return `<g id="avatar-v2-layer-base">${ear("left", e.left)}${ear("right", e.right)}<path data-anatomy="head-${anatomy.head.variant}" d="${headPath(h, anatomy.head.variant)}" fill="${skin.base}" stroke="${skin.line}" stroke-width="3"/><path d="M${h.x + 19} ${h.y + 22}c17-17 45-21 64-2" fill="none" stroke="${skin.highlight}" stroke-width="8" stroke-linecap="round" opacity="0.4"/><circle cx="${anatomy.face.leftEye.x}" cy="${anatomy.face.eyeLineY}" r="5" fill="#3d2c30"/><circle cx="${anatomy.face.rightEye.x}" cy="${anatomy.face.eyeLineY}" r="5" fill="#3d2c30"/><circle cx="${anatomy.face.leftEye.x + 2}" cy="${anatomy.face.eyeLineY - 2}" r="1.5" fill="#fff8f2"/><circle cx="${anatomy.face.rightEye.x - 2}" cy="${anatomy.face.eyeLineY - 2}" r="1.5" fill="#fff8f2"/><path d="M${anatomy.face.mouth.x - 18} ${anatomy.face.mouth.y}c10 12 27 12 37-1" fill="none" stroke="#7a4545" stroke-width="4" stroke-linecap="round"/></g>`;
+  return `<g id="avatar-v2-layer-base">${ear("left", e.left)}${ear("right", e.right)}<path data-anatomy="head-${anatomy.head.variant}" d="${headPath(h, anatomy.head.variant)}" fill="${skin.base}" stroke="${skin.line}" stroke-width="3"/><path d="M${h.x + 19} ${h.y + 22}c17-17 45-21 64-2" fill="none" stroke="${skin.highlight}" stroke-width="8" stroke-linecap="round" opacity="0.4"/><circle cx="${anatomy.face.leftEye.x}" cy="${anatomy.face.eyeLineY}" r="5" fill="#3d2c30"/><circle cx="${anatomy.face.rightEye.x}" cy="${anatomy.face.eyeLineY}" r="5" fill="#3d2c30"/><circle cx="${anatomy.face.leftEye.x + 2}" cy="${anatomy.face.eyeLineY - 2}" r="1.5" fill="#fff8f2"/><circle cx="${anatomy.face.rightEye.x - 2}" cy="${anatomy.face.eyeLineY - 2}" r="1.5" fill="#fff8f2"/></g>`;
+}
+export const avatarV2MouthStyles = [
+  "neutral",
+  "smile",
+  "bigSmile",
+  "openSmile",
+  "laughing",
+  "smirk",
+  "determined",
+  "surprised",
+  "sad",
+  "tongueOut",
+] as const satisfies readonly MouthStyle[];
+export const avatarV2DefaultMouthStyle: MouthStyle = "neutral";
+
+// Shared mouth ink matching the original face line so every style keeps the
+// established FamilyBoard stroke weight and warm colour.
+const MOUTH_LINE = "#7a4545";
+const MOUTH_INNER = "#8a5152";
+const MOUTH_TONGUE = "#d98a8a";
+const MOUTH_TEETH = "#fff8f2";
+const mouthLine = (d: string) =>
+  `<path d="${d}" fill="none" stroke="${MOUTH_LINE}" stroke-width="4" stroke-linecap="round"/>`;
+const mouthFilled = (d: string, fill: string) =>
+  `<path d="${d}" fill="${fill}" stroke="${MOUTH_LINE}" stroke-width="3" stroke-linejoin="round"/>`;
+
+function mouthStyleArtwork(cx: number, cy: number): Record<MouthStyle, string> {
+  const teethTop = (spread: number, top: number, depth: number) =>
+    `<path d="M${cx - spread} ${cy + top}Q${cx} ${cy + top + 3} ${cx + spread} ${cy + top}L${cx + spread - 1} ${cy + top + depth}Q${cx} ${cy + top + depth + 3} ${cx - spread + 1} ${cy + top + depth}Z" fill="${MOUTH_TEETH}"/>`;
+  return {
+    // Compatibility default: identical geometry to the original face mouth.
+    neutral: mouthLine(`M${cx - 18} ${cy}c10 12 27 12 37-1`),
+    smile: mouthLine(`M${cx - 19} ${cy - 2}c10 15 28 15 38-1`),
+    bigSmile: mouthLine(`M${cx - 22} ${cy - 3}c11 19 33 19 44-1`),
+    openSmile:
+      mouthFilled(
+        `M${cx - 16} ${cy - 2}Q${cx} ${cy + 2} ${cx + 16} ${cy - 2}Q${cx} ${cy + 15} ${cx - 16} ${cy - 2}Z`,
+        MOUTH_INNER,
+      ) + teethTop(13, -1, 3),
+    laughing:
+      mouthFilled(
+        `M${cx - 18} ${cy - 3}Q${cx} ${cy + 1} ${cx + 18} ${cy - 3}Q${cx} ${cy + 22} ${cx - 18} ${cy - 3}Z`,
+        MOUTH_INNER,
+      ) +
+      teethTop(15, -2, 4) +
+      `<path d="M${cx - 8} ${cy + 9}Q${cx} ${cy + 6} ${cx + 8} ${cy + 9}Q${cx + 10} ${cy + 19} ${cx} ${cy + 19}Q${cx - 10} ${cy + 19} ${cx - 8} ${cy + 9}Z" fill="${MOUTH_TONGUE}"/>`,
+    smirk: mouthLine(`M${cx - 16} ${cy + 3}Q${cx - 2} ${cy + 6} ${cx + 16} ${cy - 6}`),
+    determined: mouthLine(`M${cx - 16} ${cy}Q${cx} ${cy + 3} ${cx + 16} ${cy}`),
+    surprised: `<ellipse cx="${cx}" cy="${cy + 3}" rx="8.5" ry="11" fill="${MOUTH_INNER}" stroke="${MOUTH_LINE}" stroke-width="3"/>`,
+    sad: mouthLine(`M${cx - 16} ${cy + 4}Q${cx} ${cy - 6} ${cx + 16} ${cy + 4}`),
+    tongueOut:
+      `<path d="M${cx - 7} ${cy + 2}Q${cx - 9} ${cy + 15} ${cx} ${cy + 16}Q${cx + 9} ${cy + 15} ${cx + 7} ${cy + 2}Z" fill="${MOUTH_TONGUE}" stroke="${MOUTH_LINE}" stroke-width="2" stroke-linejoin="round"/>` +
+      `<path d="M${cx} ${cy + 6}L${cx} ${cy + 13}" fill="none" stroke="${MOUTH_LINE}" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>` +
+      mouthLine(`M${cx - 17} ${cy - 1}q17 13 34 -1`),
+  };
+}
+
+function renderMouth({ config, anatomy }: AvatarRenderContext): string {
+  const style = config.mouth?.style ?? avatarV2DefaultMouthStyle;
+  const artwork = mouthStyleArtwork(anatomy.face.mouth.x, anatomy.face.mouth.y);
+  const art = artwork[style] ?? artwork[avatarV2DefaultMouthStyle];
+  return `<g id="avatar-v2-layer-mouth" data-mouth-style="${style}">${art}</g>`;
 }
 function hairParts(ctx: AvatarRenderContext) {
   const c = sw(ctx.config.hair.color),
@@ -916,7 +990,7 @@ export function validateAvatarV2HairSvg(svg: string, style: HairStyle): boolean 
 export function renderAvatarV2Svg(config: AvatarConfig): string {
   const anatomy = resolveAvatarAnatomy(config),
     ctx = { config, anatomy };
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192" role="img" aria-label="HomeOps Avatar V2 sample">${renderHairLayer(ctx, "back")}${renderShirt(ctx)}${renderHeadAndFace(ctx)}${renderBehindFrontHairAccessory(ctx)}${renderHairLayer(ctx, "front")}${renderGlasses(ctx)}${renderHairLayer(ctx, "hi")}${renderAccessory(ctx)}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192" role="img" aria-label="HomeOps Avatar V2 sample">${renderHairLayer(ctx, "back")}${renderShirt(ctx)}${renderHeadAndFace(ctx)}${renderMouth(ctx)}${renderBehindFrontHairAccessory(ctx)}${renderHairLayer(ctx, "front")}${renderGlasses(ctx)}${renderHairLayer(ctx, "hi")}${renderAccessory(ctx)}</svg>`;
 }
 export const avatarV2SampleConfigs = {
   playfulChild: {

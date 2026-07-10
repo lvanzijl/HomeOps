@@ -52,10 +52,11 @@ describe('avatar catalog metadata', () => {
     expect(eyewearCategory?.slot).toBe('eyewearStyle');
     expect(eyewearCategory?.allowsNone).toBe(true);
 
-    // Eyewear is surfaced within the Face editor category.
+    // Eyewear is surfaced within the Face editor category, alongside mouth styles.
     const facePanel = avatarCatalog.editorPanels.find((panel) => panel.id === 'face');
     expect(facePanel?.categoryIds).toContain('eyewear.style');
-    expect(facePanel?.categoryIds[0]).toBe('eyewear.style');
+    expect(facePanel?.categoryIds).toContain('mouth.style');
+    expect(facePanel?.categoryIds[0]).toBe('mouth.style');
   });
 
   it('renders every active eyewear style through the Avatar V2 glasses layer', () => {
@@ -69,6 +70,40 @@ describe('avatar catalog metadata', () => {
       } else {
         expect(svg).toContain('avatar-v2-layer-glasses');
       }
+    }
+  });
+
+  it('exposes ten mouth styles defaulting to the neutral compatibility mouth', () => {
+    const mouths = getAvatarCatalogItems('mouth.style');
+    expect(mouths.map((item) => item.id)).toEqual([
+      'mouth.style.neutral',
+      'mouth.style.smile',
+      'mouth.style.big-smile',
+      'mouth.style.open-smile',
+      'mouth.style.laughing',
+      'mouth.style.smirk',
+      'mouth.style.determined',
+      'mouth.style.surprised',
+      'mouth.style.sad',
+      'mouth.style.tongue-out',
+    ]);
+    expect(mouths.every((item) => item.status === 'active')).toBe(true);
+    expect(avatarCatalog.defaults.mouthStyle).toBe('mouth.style.neutral');
+
+    const mouthCategory = avatarCatalog.categories.find((category) => category.id === 'mouth.style');
+    expect(mouthCategory?.slot).toBe('mouthStyle');
+    expect(mouthCategory?.required).toBe(false);
+    expect(mouthCategory?.allowsNone).toBe(false);
+  });
+
+  it('renders every active mouth style through the Avatar V2 mouth layer', () => {
+    for (const item of getAvatarCatalogItems('mouth.style')) {
+      const svg = renderAvatarV2Svg(
+        avatarSelectionToAvatarV2RenderConfig(updateAvatarSelection(defaultAvatarSelection, 'mouthStyle', item.id)),
+      );
+      expect(svg.startsWith('<svg')).toBe(true);
+      expect(svg).toContain('avatar-v2-layer-mouth');
+      expect(svg).toContain(`data-mouth-style="${item.renderer?.rendererToken}"`);
     }
   });
 });

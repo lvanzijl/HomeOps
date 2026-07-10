@@ -131,6 +131,66 @@ public sealed class AvatarCatalogTests(HomeOpsWebApplicationFactory factory) : I
         Assert.Equal("eyewear.style.none", service.DefaultSelection().Selections[AvatarSelectionSlots.EyewearStyle]);
     }
 
+    [Fact]
+    public async Task CreateAcceptsMouthSelectionAndPersistsIt()
+    {
+        var selection = ValidSelection();
+        selection[AvatarSelectionSlots.MouthStyle] = "mouth.style.laughing";
+        var response = await _client.PostAsJsonAsync("/api/family-members", Request(selection));
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var created = await response.Content.ReadFromJsonAsync<FamilyMemberDto>();
+        Assert.NotNull(created);
+        Assert.Equal("mouth.style.laughing", created.AvatarSelection.Selections[AvatarSelectionSlots.MouthStyle]);
+    }
+
+    [Fact]
+    public async Task CreateRejectsUnknownMouthItemId()
+    {
+        var selection = ValidSelection();
+        selection[AvatarSelectionSlots.MouthStyle] = "mouth.style.grimace";
+        var response = await _client.PostAsJsonAsync("/api/family-members", Request(selection));
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CreateRejectsCategoryMismatchedMouthItemId()
+    {
+        var selection = ValidSelection();
+        selection[AvatarSelectionSlots.MouthStyle] = "eyewear.style.round";
+        var response = await _client.PostAsJsonAsync("/api/family-members", Request(selection));
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CreateWithoutMouthRemainsValidAndDefaultsToNeutral()
+    {
+        var selection = ValidSelection();
+        Assert.False(selection.ContainsKey(AvatarSelectionSlots.MouthStyle));
+        var response = await _client.PostAsJsonAsync("/api/family-members", Request(selection));
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var created = await response.Content.ReadFromJsonAsync<FamilyMemberDto>();
+        Assert.NotNull(created);
+        Assert.Equal("mouth.style.neutral", created.AvatarSelection.Selections[AvatarSelectionSlots.MouthStyle]);
+    }
+
+    [Fact]
+    public async Task LegacyAvatarV2ConfigDefaultsMouthToNeutralForCompatibility()
+    {
+        var legacy = new AvatarV2ConfigDto("oval", "sideBob", "hairChestnut", "sweater", "shirtRose", "flower", "accessoryLilac");
+        var response = await _client.PostAsJsonAsync("/api/family-members", new CreateFamilyMemberRequest("Mouth Legacy", FamilyMemberKind.Adult, null, null, null, legacy));
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var created = await response.Content.ReadFromJsonAsync<FamilyMemberDto>();
+        Assert.NotNull(created);
+        Assert.Equal("mouth.style.neutral", created.AvatarSelection.Selections[AvatarSelectionSlots.MouthStyle]);
+    }
+
+    [Fact]
+    public void DefaultSelectionIncludesNeutralMouth()
+    {
+        var service = new AvatarCatalogService(new SharedAvatarCatalogSource());
+        Assert.Equal("mouth.style.neutral", service.DefaultSelection().Selections[AvatarSelectionSlots.MouthStyle]);
+    }
+
     private static CreateFamilyMemberRequest Request(Dictionary<string, string> selections) =>
         new("Catalog Kid", FamilyMemberKind.Child, new DateOnly(2020, 1, 2), null, null, null, new AvatarSelectionDto(AvatarCatalogConstants.SchemaVersion, selections));
 
