@@ -182,7 +182,7 @@ export function HelpfulMomentsSection({
                 type="button"
                 className="icon-button"
                 onClick={() => setCreating(false)}
-                aria-label="Waardering sluiten dialog"
+                aria-label="Waardering sluiten"
               >
                 <HomeOpsIcon name="close" />
               </button>

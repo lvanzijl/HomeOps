@@ -153,7 +153,7 @@ export function MotivationPage({ members }: MotivationPageProps) {
                     variant="spot"
                   />
                   <div>
-                    <p className="eyebrow">Gedeeld familiekompas</p>
+                    <p className="eyebrow">Familiedoel</p>
                     <h3>{familyGoal.title}</h3>
                     <p className="motivation-copy">
                       {familyGoalAnticipationMessage(familyGoal)}
@@ -197,11 +197,11 @@ export function MotivationPage({ members }: MotivationPageProps) {
                   onCelebrated={handleFormSaved}
                 />
                 <div className="family-purpose-storyline">
-                  <p className="eyebrow">Waarom dit ertoe doet</p>
+                  <p className="eyebrow">Volgende stap</p>
                   <p className="motivation-copy">
                     {percent >= 100
                       ? "Jullie hebben samen genoeg gedaan om dit gezinsmoment echt te laten landen."
-                      : "Elke kleine stap laat zien waar jullie als gezin samen naartoe groeien."}
+                      : "Elke stap brengt jullie dichter bij samen vieren."}
                   </p>
                 </div>
               </div>
@@ -397,7 +397,7 @@ export function MotivationPage({ members }: MotivationPageProps) {
         <MotivationDetailDialog
           label="Voortgangsdetails"
           title="Rustige voortgang"
-          description="Ondersteunend bewijs bij jullie gedeelde verhaal."
+          description="Voortgang per onderdeel."
           onClose={() => setShowStatsDetail(false)}
         >
           <div className="family-stat-grid motivation-detail-stat-grid">
@@ -518,11 +518,11 @@ function CelebrationStoryCard({
   return (
     <section
       className="motivation-dashboard-card celebration-story-card"
-      aria-label="Vieringsverhaal"
+      aria-label="Gezinsviering"
     >
       <div className="dashboard-card-heading">
         <div>
-          <p className="eyebrow">Vieringsverhaal</p>
+          <p className="eyebrow">Gezinsviering</p>
           <h3>Wat we straks samen vieren</h3>
         </div>
         <HomeOpsIcon name={celebrationIcon} variant="spot" />
@@ -540,7 +540,7 @@ function CelebrationStoryCard({
               <strong>{latestMemory?.title ?? "Nog geen herinnering bewaard"}</strong>
               <span>
                 {latestMemory
-                  ? `${memories.length} herinneringen voor jullie verhaal`
+                  ? `${memories.length} herinneringen om te bewaren`
                   : "Jullie eerste viering kan hier straks blijven hangen."}
               </span>
             </div>

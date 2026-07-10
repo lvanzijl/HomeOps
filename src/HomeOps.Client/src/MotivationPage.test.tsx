@@ -92,6 +92,17 @@ describe("MotivationPage", () => {
     expect(
       await within(familyGoal).findByText("Fill the family helper path"),
     ).not.toBeNull();
+    expect(within(familyGoal).getByText("Familiedoel")).not.toBeNull();
+    expect(within(familyGoal).getByText("Volgende stap")).not.toBeNull();
+    expect(
+      within(familyGoal).getByText("Elke stap brengt jullie dichter bij samen vieren."),
+    ).not.toBeNull();
+    expect(within(familyGoal).queryByText("Gedeeld familiekompas")).toBeNull();
+    expect(
+      within(familyGoal).queryByText(
+        "Elke kleine stap laat zien waar jullie als gezin samen naartoe groeien.",
+      ),
+    ).toBeNull();
     expect(
       familyGoal
         .querySelector(".motivation-ownership-asset img")
@@ -115,6 +126,12 @@ describe("MotivationPage", () => {
     expect(
       within(familyGoal).getAllByText(/Board game night together/).length,
     ).toBeGreaterThan(0);
+    const celebrationCard = screen.getByLabelText("Gezinsviering");
+    expect(within(celebrationCard).getByText("Gezinsviering")).not.toBeNull();
+    expect(
+      within(celebrationCard).getByText("1 herinneringen om te bewaren"),
+    ).not.toBeNull();
+    expect(screen.queryByText("Vieringsverhaal")).toBeNull();
     await userEvent.setup().click(screen.getByRole("button", { name: "Historie bekijken" }));
     expect(await screen.findByLabelText("Vieringsherinneringen")).not.toBeNull();
     expect(screen.getByText("Vieringen die we onthouden")).not.toBeNull();
@@ -126,6 +143,9 @@ describe("MotivationPage", () => {
         .querySelector("img")
         ?.getAttribute("src"),
     ).toContain("data-asset-name='child-my-help-mattered'");
+    expect(
+      screen.queryByText("Ondersteunend bewijs bij jullie gedeelde verhaal."),
+    ).toBeNull();
 
     await userEvent.setup().click(screen.getByRole("button", { name: "Doelen beheren" }));
     const individualGoals = await screen.findByLabelText(
@@ -152,6 +172,9 @@ describe("MotivationPage", () => {
     expect(
       within(individualGoals).getByText("Help with dinner"),
     ).not.toBeNull();
+
+    await userEvent.setup().click(screen.getByRole("button", { name: "Meer voortgang" }));
+    expect(await screen.findByText("Voortgang per onderdeel.")).not.toBeNull();
   });
 
   it("marks a ready family celebration as celebrated", async () => {
