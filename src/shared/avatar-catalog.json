@@ -97,10 +97,11 @@
         "en-US": "Face category"
       },
       "descriptions": {
-        "nl-NL": "Kies een mond en een bril voor op het gezicht.",
-        "en-US": "Choose a mouth and glasses for the face."
+        "nl-NL": "Kies ogen, mond en bril voor op het gezicht.",
+        "en-US": "Choose eyes, mouth, and glasses for the face."
       },
       "categoryIds": [
+        "eye.style",
         "mouth.style",
         "eyewear.style"
       ]
@@ -329,6 +330,39 @@
         "clothing",
         "color",
         "clothing.secondary"
+      ]
+    },
+    {
+      "id": "eye.style",
+      "slot": "eyeStyle",
+      "required": false,
+      "allowsNone": false,
+      "order": 43,
+      "labels": {
+        "nl-NL": "Ogen",
+        "en-US": "Eyes"
+      },
+      "shortLabels": {
+        "nl-NL": "Ogen",
+        "en-US": "Eyes"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Oogstijl",
+        "en-US": "Eye style"
+      },
+      "descriptions": {
+        "nl-NL": "Kies de vaste oogvorm van de avatar.",
+        "en-US": "Choose the avatar's stable eye shape."
+      },
+      "presentation": {
+        "control": "tile",
+        "density": "compact",
+        "itemLabelVisibility": "visible",
+        "optionMinWidthRem": 7
+      },
+      "tags": [
+        "face",
+        "identity"
       ]
     },
     {
@@ -5842,6 +5876,142 @@
       "legacyIds": []
     },
     {
+      "id": "eye.style.classic-round",
+      "categoryId": "eye.style",
+      "type": "rendererStyle",
+      "status": "active",
+      "order": 1,
+      "labels": {
+        "nl-NL": "Klassiek rond",
+        "en-US": "Classic Round"
+      },
+      "shortLabels": {
+        "nl-NL": "Klassiek rond",
+        "en-US": "Classic Round"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Oogstijl Klassiek rond",
+        "en-US": "Eye style Classic Round"
+      },
+      "descriptions": {
+        "nl-NL": "Compatibility default matching the original FamilyBoard eyes.",
+        "en-US": "Compatibility default matching the original FamilyBoard eyes."
+      },
+      "tags": [
+        "face",
+        "identity",
+        "eyes"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "classicRound",
+        "layer": "eyes"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "eye.style.soft-almond",
+      "categoryId": "eye.style",
+      "type": "rendererStyle",
+      "status": "active",
+      "order": 2,
+      "labels": {
+        "nl-NL": "Zacht amandel",
+        "en-US": "Soft Almond"
+      },
+      "shortLabels": {
+        "nl-NL": "Zacht amandel",
+        "en-US": "Soft Almond"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Oogstijl Zacht amandel",
+        "en-US": "Eye style Soft Almond"
+      },
+      "descriptions": {
+        "nl-NL": "A softly elongated neutral eye shape.",
+        "en-US": "A softly elongated neutral eye shape."
+      },
+      "tags": [
+        "face",
+        "identity",
+        "eyes"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "softAlmond",
+        "layer": "eyes"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "eye.style.gentle-arc",
+      "categoryId": "eye.style",
+      "type": "rendererStyle",
+      "status": "active",
+      "order": 3,
+      "labels": {
+        "nl-NL": "Zachte boog",
+        "en-US": "Gentle Arc"
+      },
+      "shortLabels": {
+        "nl-NL": "Zachte boog",
+        "en-US": "Gentle Arc"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Oogstijl Zachte boog",
+        "en-US": "Eye style Gentle Arc"
+      },
+      "descriptions": {
+        "nl-NL": "An open eye shape with a gentle upper arc.",
+        "en-US": "An open eye shape with a gentle upper arc."
+      },
+      "tags": [
+        "face",
+        "identity",
+        "eyes"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "gentleArc",
+        "layer": "eyes"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "eye.style.bright-wide",
+      "categoryId": "eye.style",
+      "type": "rendererStyle",
+      "status": "active",
+      "order": 4,
+      "labels": {
+        "nl-NL": "Helder wijd",
+        "en-US": "Bright Wide"
+      },
+      "shortLabels": {
+        "nl-NL": "Helder wijd",
+        "en-US": "Bright Wide"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Oogstijl Helder wijd",
+        "en-US": "Eye style Bright Wide"
+      },
+      "descriptions": {
+        "nl-NL": "A subtly wider, brighter open eye shape.",
+        "en-US": "A subtly wider, brighter open eye shape."
+      },
+      "tags": [
+        "face",
+        "identity",
+        "eyes"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "brightWide",
+        "layer": "eyes"
+      },
+      "legacyIds": []
+    },
+    {
       "id": "mouth.style.neutral",
       "categoryId": "mouth.style",
       "type": "rendererStyle",
@@ -9170,6 +9340,7 @@
     "clothingColor": "clothing.color.sky",
     "accessoryStyle": "accessory.style.star",
     "accessoryColor": "accessory.color.mint",
+    "eyeStyle": "eye.style.classic-round",
     "mouthStyle": "mouth.style.neutral",
     "eyewearStyle": "eyewear.style.none",
     "clothingSecondaryColor": "clothing.secondary-color.white"

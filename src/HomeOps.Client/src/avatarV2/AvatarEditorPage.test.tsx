@@ -82,6 +82,31 @@ describe('AvatarEditorPage', () => {
     expect(screen.getByRole('button', { name: /Kledingkleur: Hemelsblauw/i }).textContent).toBe('');
   });
 
+  it('exposes eye styles first inside the Face category and applies an eye choice', async () => {
+    const user = userEvent.setup();
+    render(<AvatarEditorPage />);
+
+    await user.click(categoryButton('Gezicht')!);
+
+    const controls = within(screen.getByLabelText('Avatarkeuzes'));
+    const headings = controls.getAllByRole('heading').map((heading) => heading.textContent);
+    expect(headings.indexOf('Ogen')).toBeLessThan(headings.indexOf('Mond'));
+    expect(headings.indexOf('Mond')).toBeLessThan(headings.indexOf('Bril'));
+
+    const eyes = within(controls.getByRole('region', { name: 'Ogen' }));
+    expect(eyes.getByRole('button', { name: /Klassiek rond/i }).getAttribute('aria-pressed')).toBe('true');
+    expect(eyes.getAllByRole('button')).toHaveLength(4);
+    const preview = screen.getByTestId('avatar-v2-live-preview');
+    const initial = preview.innerHTML;
+    expect(initial).toContain('data-eye-style="classicRound"');
+
+    await user.click(eyes.getByRole('button', { name: /Zacht amandel/i }));
+    expect(eyes.getByRole('button', { name: /Zacht amandel/i }).getAttribute('aria-pressed')).toBe('true');
+    expect(eyes.getByRole('button', { name: /Klassiek rond/i }).getAttribute('aria-pressed')).toBe('false');
+    expect(preview.innerHTML).not.toBe(initial);
+    expect(preview.innerHTML).toContain('data-eye-style="softAlmond"');
+  });
+
   it('exposes eyewear inside the Face category and applies a glasses choice', async () => {
     const user = userEvent.setup();
     render(<AvatarEditorPage />);

@@ -10,6 +10,7 @@ export const avatarSelectionSlots = {
   clothingStyle: 'clothingStyle',
   clothingColor: 'clothingColor',
   clothingSecondaryColor: 'clothingSecondaryColor',
+  eyeStyle: 'eyeStyle',
   mouthStyle: 'mouthStyle',
   eyewearStyle: 'eyewearStyle',
   accessoryStyle: 'accessoryStyle',

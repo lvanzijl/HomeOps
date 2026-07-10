@@ -3,7 +3,9 @@ import {
   avatarV2SampleConfigs,
   avatarV2AccessoryAssets,
   avatarV2ClothingAssets,
+  avatarV2DefaultEyeStyle,
   avatarV2DefaultMouthStyle,
+  avatarV2EyeStyles,
   avatarV2MouthStyles,
   expandAvatarPaletteToken,
   renderAvatarV2Svg,
@@ -82,6 +84,31 @@ describe("Avatar V2 SVG renderer", () => {
       expect(svg).not.toContain('rx="55" ry="41"');
       expect(svg).not.toContain('opacity="0.16"');
     }
+  });
+
+
+  it("renders every eye style in its own layer above base and below mouth/glasses", () => {
+    expect(avatarV2EyeStyles).toEqual(["classicRound", "softAlmond", "gentleArc", "brightWide"]);
+    for (const style of avatarV2EyeStyles) {
+      const config = { ...avatarV2SampleConfigs.adult, eyes: { style }, glasses: { style: "regular" as const, color: "lineBlue" as const } };
+      const svg = renderAvatarV2Svg(config);
+      expect(validateAvatarV2AssetSvg(svg)).toBe(true);
+      expect(svg).toContain(`data-eye-style="${style}"`);
+      expect(svg.indexOf("avatar-v2-layer-eyes")).toBeGreaterThan(svg.indexOf("avatar-v2-layer-base"));
+      expect(svg.indexOf("avatar-v2-layer-eyes")).toBeLessThan(svg.indexOf("avatar-v2-layer-mouth"));
+      expect(svg.indexOf("avatar-v2-layer-eyes")).toBeLessThan(svg.indexOf("avatar-v2-layer-glasses"));
+      expect(svg).toBe(renderAvatarV2Svg(config));
+    }
+  });
+
+  it("uses Classic Round as the eye compatibility default", () => {
+    const config = avatarV2SampleConfigs.adult;
+    const anatomy = resolveAvatarAnatomy(config);
+    const svg = renderAvatarV2Svg(config);
+    expect(svg).toContain('id="avatar-v2-layer-eyes"');
+    expect(svg).toContain('data-eye-style="classicRound"');
+    expect(svg).toContain(`<circle cx="${anatomy.face.leftEye.x}" cy="${anatomy.face.eyeLineY}" r="5" fill="#3d2c30"/>`);
+    expect(svg).toBe(renderAvatarV2Svg({ ...config, eyes: { style: avatarV2DefaultEyeStyle } }));
   });
 
   it("renders the mouth layer with the neutral compatibility default", () => {

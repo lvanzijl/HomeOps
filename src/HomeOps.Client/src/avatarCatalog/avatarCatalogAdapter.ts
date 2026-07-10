@@ -51,6 +51,9 @@ export function avatarSelectionToAvatarV2RenderConfig(selection: AvatarCatalogSe
       style: rendererToken(normalized.selections.eyewearStyle, 'eyewear.style') as AvatarConfig['glasses']['style'],
       color: 'lineBlue',
     },
+    eyes: {
+      style: rendererToken(normalized.selections.eyeStyle, 'eye.style') as NonNullable<AvatarConfig['eyes']>['style'],
+    },
     mouth: {
       style: rendererToken(normalized.selections.mouthStyle, 'mouth.style') as NonNullable<AvatarConfig['mouth']>['style'],
     },
@@ -77,6 +80,7 @@ export function avatarV2ConfigurationToAvatarSelection(configuration: unknown): 
     [avatarSelectionSlots.hairColor]: selectionIdForRendererToken(avatarSelectionSlots.hairColor, normalized.hairColor),
     [avatarSelectionSlots.clothingStyle]: selectionIdForRendererToken(avatarSelectionSlots.clothingStyle, normalized.clothingStyle),
     [avatarSelectionSlots.clothingColor]: selectionIdForRendererToken(avatarSelectionSlots.clothingColor, normalized.clothingColor),
+    [avatarSelectionSlots.eyeStyle]: avatarCatalog.defaults.eyeStyle,
     [avatarSelectionSlots.accessoryStyle]: selectionIdForRendererToken(avatarSelectionSlots.accessoryStyle, normalized.accessory),
     [avatarSelectionSlots.accessoryColor]: selectionIdForRendererToken(avatarSelectionSlots.accessoryColor, normalized.accessoryColor),
   });

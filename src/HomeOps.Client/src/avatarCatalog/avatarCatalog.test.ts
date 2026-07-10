@@ -53,11 +53,23 @@ describe('avatar catalog metadata', () => {
     expect(eyewearCategory?.slot).toBe('eyewearStyle');
     expect(eyewearCategory?.allowsNone).toBe(true);
 
-    // Eyewear is surfaced within the Face editor category, alongside mouth styles.
+    // Face editor category order is Eyes, Mouth, then Eyewear.
     const facePanel = avatarCatalog.editorPanels.find((panel) => panel.id === 'face');
-    expect(facePanel?.categoryIds).toContain('eyewear.style');
-    expect(facePanel?.categoryIds).toContain('mouth.style');
-    expect(facePanel?.categoryIds[0]).toBe('mouth.style');
+    expect(facePanel?.categoryIds).toEqual(['eye.style', 'mouth.style', 'eyewear.style']);
+  });
+
+
+  it('exposes four identity eye styles defaulting to Classic Round', () => {
+    const eyes = getAvatarCatalogItems('eye.style');
+    expect(eyes.map((item) => item.id)).toEqual([
+      'eye.style.classic-round',
+      'eye.style.soft-almond',
+      'eye.style.gentle-arc',
+      'eye.style.bright-wide',
+    ]);
+    expect(eyes.every((item) => item.status === 'active')).toBe(true);
+    expect(eyes.every((item) => item.renderer?.layer === 'eyes')).toBe(true);
+    expect(avatarCatalog.defaults.eyeStyle).toBe('eye.style.classic-round');
   });
 
   it('renders every active eyewear style through the Avatar V2 glasses layer', () => {

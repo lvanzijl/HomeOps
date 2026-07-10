@@ -131,6 +131,67 @@ public sealed class AvatarCatalogTests(HomeOpsWebApplicationFactory factory) : I
         Assert.Equal("eyewear.style.none", service.DefaultSelection().Selections[AvatarSelectionSlots.EyewearStyle]);
     }
 
+
+    [Fact]
+    public async Task CreateAcceptsEyeSelectionAndPersistsIt()
+    {
+        var selection = ValidSelection();
+        selection[AvatarSelectionSlots.EyeStyle] = "eye.style.soft-almond";
+        var response = await _client.PostAsJsonAsync("/api/family-members", Request(selection));
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var created = await response.Content.ReadFromJsonAsync<FamilyMemberDto>();
+        Assert.NotNull(created);
+        Assert.Equal("eye.style.soft-almond", created.AvatarSelection.Selections[AvatarSelectionSlots.EyeStyle]);
+    }
+
+    [Fact]
+    public async Task CreateRejectsUnknownEyeItemId()
+    {
+        var selection = ValidSelection();
+        selection[AvatarSelectionSlots.EyeStyle] = "eye.style.sleepy";
+        var response = await _client.PostAsJsonAsync("/api/family-members", Request(selection));
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CreateRejectsCategoryMismatchedEyeItemId()
+    {
+        var selection = ValidSelection();
+        selection[AvatarSelectionSlots.EyeStyle] = "mouth.style.laughing";
+        var response = await _client.PostAsJsonAsync("/api/family-members", Request(selection));
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CreateWithoutEyesRemainsValidAndDefaultsToClassicRound()
+    {
+        var selection = ValidSelection();
+        Assert.False(selection.ContainsKey(AvatarSelectionSlots.EyeStyle));
+        var response = await _client.PostAsJsonAsync("/api/family-members", Request(selection));
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var created = await response.Content.ReadFromJsonAsync<FamilyMemberDto>();
+        Assert.NotNull(created);
+        Assert.Equal("eye.style.classic-round", created.AvatarSelection.Selections[AvatarSelectionSlots.EyeStyle]);
+    }
+
+    [Fact]
+    public async Task LegacyAvatarV2ConfigDefaultsEyesToClassicRoundForCompatibility()
+    {
+        var legacy = new AvatarV2ConfigDto("oval", "sideBob", "hairChestnut", "sweater", "shirtRose", "flower", "accessoryLilac");
+        var response = await _client.PostAsJsonAsync("/api/family-members", new CreateFamilyMemberRequest("Eye Legacy", FamilyMemberKind.Adult, null, null, null, legacy));
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var created = await response.Content.ReadFromJsonAsync<FamilyMemberDto>();
+        Assert.NotNull(created);
+        Assert.Equal("eye.style.classic-round", created.AvatarSelection.Selections[AvatarSelectionSlots.EyeStyle]);
+    }
+
+    [Fact]
+    public void DefaultSelectionIncludesClassicRoundEyes()
+    {
+        var service = new AvatarCatalogService(new SharedAvatarCatalogSource());
+        Assert.Equal("eye.style.classic-round", service.DefaultSelection().Selections[AvatarSelectionSlots.EyeStyle]);
+    }
+
     [Fact]
     public async Task CreateAcceptsMouthSelectionAndPersistsIt()
     {
