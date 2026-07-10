@@ -51,6 +51,78 @@ The expanded Accessories V2 collection is:
 
 New SVG artwork was added to the existing `avatarV2AccessoryAssets` map. The renderer still emits a single accessory layer for the configured accessory, with the existing special headband partial-occlusion behavior preserved. Existing avatars, existing glasses, and existing accessory layer ordering remain stable.
 
+# Headwear Alignment Correction
+
+## Root Cause
+
+The completed Accessories V2 headwear artwork reused the `headTop` mount only as catalog/renderer metadata. The six headwear assets were not actually transformed through `ctx.anatomy.mounts.headTop`; instead, they drew absolute SVG coordinates derived from a fixed `head.bounds.y + 9` top value and mostly fixed widths. That meant `headTop` documented intent but did not control the rendered headwear position.
+
+Because round, oval, and wide heads have different top Y values, heights, and widths, fixed-width artwork drifted visually across variants. Wide heads made brims and helmets read too narrow or misplaced, oval heads shifted crown/base relationships, and all six items shared the same systemic anchor problem rather than six independent defects.
+
+The correction identified that headwear needs shared anatomy-relative geometry rather than independent per-item per-variant coordinates:
+
+- head center X;
+- crown/top Y;
+- headwear width derived from the resolved head width;
+- a hairline/brim baseline that stays above the eye line;
+- a lower rim/band baseline for covering hats.
+
+## Shared Anatomy / Mount Correction
+
+`resolveAvatarAnatomy` now resolves explicit `head.headwear` geometry next to the existing head bounds, center, and hairline. The geometry derives from the active head variant once and exposes a center point, crown Y, brim Y, lower Y, width, and scale. Each Accessories V2 headwear renderer consumes that shared geometry and emits `data-headwear-model="anatomy-relative"` along with center/width/baseline metadata for targeted tests.
+
+The assets still keep local item-specific silhouettes, but those silhouettes are positioned and scaled through the shared headwear anchors. No saved IDs, catalog IDs, persistence slots, avatar selections, eyewear, hair assets, mouth assets, clothing assets, backend contracts, or database models changed.
+
+## Layer Strategy
+
+The existing accessory layer remains after front hair, glasses, and hair highlights for these six items. This is intentional for the current limited model: caps, beanies, sun hats, and helmets should visually cover upper/front hair rather than render as tiny ornaments behind it, and they must not render behind the whole head. The correction does not introduce a universal hat simulation or split hair redesign. Existing curly headband split rendering remains unchanged and continues to be the only special partial-occlusion accessory path.
+
+## Affected Items
+
+Corrected through the shared anatomy-relative model:
+
+- Baseball Cap / Pet (`baseballCap`)
+- Beanie / Muts (`beanie`)
+- Party Hat / Feesthoed (`partyHat`)
+- Crown / Kroon (`crown`)
+- Sun Hat / Zonnehoed (`sunHat`)
+- Helmet / Helm (`helmet`)
+
+## Visual Matrix Reviewed
+
+A temporary renderer-generated matrix was created outside the repository at `/tmp/avatar-headwear-v2-alignment-matrix.svg`. It covered all 72 required combinations:
+
+- six headwear items;
+- round, oval, and wide head variants;
+- short, long, curly, and side-bob representative hairstyles.
+
+The committed `avatar-accessories-v2-variety.svg` was regenerated from renderer output as a text SVG headwear alignment sheet, and XML parsing passed.
+
+## Compatibility Impact
+
+Compatibility is preserved:
+
+- existing accessory IDs and saved selections still resolve;
+- the single `accessoryStyle` slot is unchanged;
+- non-headwear accessories continue to use their existing mounted accessory model;
+- Tiny Crown remains distinct from the larger Crown;
+- eyewear, mouths, eyes, clothing, hair definitions, and backend validation are unchanged.
+
+## Tests Added
+
+Focused renderer tests now verify shared invariants instead of full-SVG snapshots:
+
+- every Accessories V2 headwear item renders through `data-headwear-model="anatomy-relative"`;
+- headwear center stays aligned to the resolved head center;
+- headwear width scales from the resolved head width;
+- brim/band baselines remain between the hairline and protected eye-line threshold;
+- every headwear item renders for round, oval, and wide heads across representative hairstyles;
+- non-headwear accessories do not receive the headwear model metadata.
+
+## Remaining Limitations
+
+The renderer still uses a deliberately limited hat-over-hair strategy rather than simulating per-hairstyle hair tucked under every hat. This is acceptable for the current slice because the corrected headwear now centers and scales consistently across the current head variants and representative hairstyles, while future richer hat/hair interaction can be handled in a dedicated renderer slice if product requirements need it.
+
 # Editor Integration
 
 The top-level editor rail still exposes `Accessoires`. Inside the existing Accessories option surface, the accessory style category now uses tag-based visual groups:
@@ -106,7 +178,7 @@ Playwright browser dependencies were installed in the container because Chromium
 # Risks
 
 - Neckwear currently uses conservative chest/neck artwork without a dedicated `neckCenter` mount; a future renderer slice can add that mount if more complex neckwear is needed.
-- Headwear is deliberately simple and does not solve full hat/hair occlusion for every future silhouette.
+- Headwear is now anatomy-relative for the six Accessories V2 items, but it remains a limited hat-over-hair model rather than a full per-hairstyle occlusion simulation for every future silhouette.
 - The single accessory slot means a user still cannot combine a hat, hair clip, and scarf simultaneously.
 
 # Future Opportunities

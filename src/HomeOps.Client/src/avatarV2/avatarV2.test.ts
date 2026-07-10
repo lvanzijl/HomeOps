@@ -517,6 +517,64 @@ describe("Avatar V2 SVG renderer", () => {
     }
   });
 
+  it("positions all headwear through shared anatomy-relative geometry across head variants", () => {
+    const headwear = ["baseballCap", "beanie", "partyHat", "crown", "sunHat", "helmet"] as const;
+    const headVariants = ["round", "oval", "wide"] as const;
+    const hairstyles = ["shortMessy", "longSoft", "curlyPlayful", "sideBob"] as const;
+
+    for (const headVariant of headVariants) {
+      for (const hairStyle of hairstyles) {
+        const baseConfig = {
+          ...avatarV2SampleConfigs.showcaseSampleA,
+          headVariant,
+          hair: { style: hairStyle, color: "hairCocoa" as const },
+        };
+        const anatomy = resolveAvatarAnatomy(baseConfig);
+
+        for (const style of headwear) {
+          const svg = renderAvatarV2Svg({
+            ...baseConfig,
+            accessory: {
+              style,
+              color: "accessoryCoral" as const,
+              mount: avatarV2AccessoryAssets[style].metadata.recommendedMount,
+            },
+          });
+          const center = Number(svg.match(/data-headwear-center-x="([^"]+)"/)?.[1]);
+          const baseline = Number(svg.match(/data-headwear-baseline-y="([^"]+)"/)?.[1]);
+          const width = Number(svg.match(/data-headwear-width="([^"]+)"/)?.[1]);
+          const scale = Number(svg.match(/data-headwear-scale="([^"]+)"/)?.[1]);
+
+          expect(svg).toContain('data-headwear-model="anatomy-relative"');
+          expect(svg).toContain(`data-accessory-asset="${style}"`);
+          expect(center).toBeCloseTo(anatomy.head.center.x, 1);
+          expect(width).toBeCloseTo(anatomy.head.bounds.width * 0.92, 1);
+          expect(scale).toBeGreaterThan(0.8);
+          expect(scale).toBeLessThan(1.2);
+          expect(baseline).toBeGreaterThanOrEqual(anatomy.head.hairline.y + 14);
+          expect(baseline).toBeLessThan(anatomy.face.eyeLineY);
+          expect(svg).not.toContain('<image');
+          expect(validateAvatarV2AssetSvg(svg)).toBe(true);
+        }
+      }
+    }
+  });
+
+  it("keeps non-headwear accessories on their existing mount model", () => {
+    const svg = renderAvatarV2Svg({
+      ...avatarV2SampleConfigs.showcaseSampleA,
+      accessory: {
+        style: "flower",
+        color: "accessoryCoral" as const,
+        mount: "hairLeft" as const,
+      },
+    });
+
+    expect(svg).toContain('data-avatar-mount="hairLeft"');
+    expect(svg).not.toContain("data-headwear-model");
+    expect(svg).not.toContain("data-headwear-center-x");
+  });
+
   it("renders redesigned curly hair and rejected accessories with asset-specific guards", () => {
     const baseConfig = {
       ...avatarV2SampleConfigs.showcaseSampleF,
