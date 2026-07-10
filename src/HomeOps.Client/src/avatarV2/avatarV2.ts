@@ -746,8 +746,8 @@ export const avatarV2ClothingAssets: Record<ShirtStyle, ClothingAsset> = {
       previewPriority: 30,
     },
     colorRegions: ["primary"],
-    render: (_ctx, c) =>
-      `${avatarV2ClothingAssets.roundedTee.render(_ctx, c)}<path d="M78 137l18 18 18-18" fill="#fff6ed" stroke="${c.line}" stroke-width="3"/>`,
+    render: (_ctx, c, s) =>
+      `${avatarV2ClothingAssets.roundedTee.render(_ctx, c, s)}<path d="M78 137l18 18 18-18" fill="#fff6ed" stroke="${c.line}" stroke-width="3"/>`,
   },
   tShirt: {
     id: "tShirt",
