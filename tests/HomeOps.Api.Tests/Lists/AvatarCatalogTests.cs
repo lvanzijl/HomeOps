@@ -114,6 +114,57 @@ public sealed class AvatarCatalogTests(HomeOpsWebApplicationFactory factory) : I
         }
     }
 
+
+    [Fact]
+    public async Task CreateAcceptsHeadShapeSelectionAndPersistsIt()
+    {
+        var selection = ValidSelection();
+        selection[AvatarSelectionSlots.HeadVariant] = "head.variant.wide";
+        var response = await _client.PostAsJsonAsync("/api/family-members", Request(selection));
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var created = await response.Content.ReadFromJsonAsync<FamilyMemberDto>();
+        Assert.NotNull(created);
+        Assert.Equal("head.variant.wide", created.AvatarSelection.Selections[AvatarSelectionSlots.HeadVariant]);
+        Assert.Equal("wide", created.AvatarV2Config.HeadVariant);
+    }
+
+    [Fact]
+    public async Task CreateRejectsUnknownHeadShapeItemId()
+    {
+        var selection = ValidSelection();
+        selection[AvatarSelectionSlots.HeadVariant] = "head.variant.square";
+        var response = await _client.PostAsJsonAsync("/api/family-members", Request(selection));
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CreateRejectsCategoryMismatchedHeadShapeItemId()
+    {
+        var selection = ValidSelection();
+        selection[AvatarSelectionSlots.HeadVariant] = "eye.style.bright-wide";
+        var response = await _client.PostAsJsonAsync("/api/family-members", Request(selection));
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public void HeadShapeCatalogExposesOnlyExistingRendererVariants()
+    {
+        var service = new AvatarCatalogService(new SharedAvatarCatalogSource());
+        var shapes = service.Catalog.Items
+            .Where(item => item.CategoryId == "head.variant")
+            .OrderBy(item => item.Order)
+            .ToArray();
+
+        Assert.Equal(new[] { "head.variant.round", "head.variant.oval", "head.variant.wide" }, shapes.Select(item => item.Id));
+        Assert.Equal(new[] { "round", "oval", "wide" }, shapes.Select(item => item.Renderer?.RendererToken));
+        Assert.All(shapes, item =>
+        {
+            Assert.Equal("head", item.Renderer?.Layer);
+            Assert.NotEmpty(item.AccessibilityLabels);
+        });
+        Assert.Equal("head.variant.round", service.DefaultSelection().Selections[AvatarSelectionSlots.HeadVariant]);
+    }
+
     [Fact]
     public async Task CreateAcceptsEyewearSelectionAndPersistsIt()
     {
