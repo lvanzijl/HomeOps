@@ -807,7 +807,7 @@ function EventConversationForm({
     <form
       className="calendar-event-form task-conversation-form"
       onSubmit={onSubmit}
-      aria-label="Calendar event conversation"
+      aria-label="Agenda-item invullen"
     >
       <div className="task-conversation-panel" key={question}>
         {showTitleQuestion ? (
