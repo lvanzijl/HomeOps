@@ -23,6 +23,8 @@ export function relationshipDisplayText(person: Pick<KnownPerson, 'relationshipT
     : relationshipLabels[person.relationshipType];
 }
 
+export const relationshipGroupOrder = ['Friends', 'Family', 'School', 'Teachers', 'Helpers', 'Neighbours', 'Other'] as const;
+
 export function relationshipGroup(type: KnownPersonRelationshipType): string {
   switch (type) {
     case 'grandparent':
@@ -57,4 +59,20 @@ export function filterKnownPeople(people: readonly KnownPerson[], query: string)
     person.customRelationshipLabel ?? '',
     relationshipDisplayText(person),
   ].some((value) => value.toLocaleLowerCase().includes(normalized)));
+}
+
+export function groupedKnownPeople(people: readonly KnownPerson[]): ReadonlyArray<{ group: string; people: readonly KnownPerson[] }> {
+  const groups = new Map<string, KnownPerson[]>();
+  people.forEach((person) => {
+    const group = relationshipGroup(person.relationshipType);
+    groups.set(group, [...(groups.get(group) ?? []), person]);
+  });
+
+  return [...groups.entries()]
+    .sort(([left], [right]) => {
+      const leftIndex = relationshipGroupOrder.indexOf(left as (typeof relationshipGroupOrder)[number]);
+      const rightIndex = relationshipGroupOrder.indexOf(right as (typeof relationshipGroupOrder)[number]);
+      return (leftIndex === -1 ? Number.MAX_SAFE_INTEGER : leftIndex) - (rightIndex === -1 ? Number.MAX_SAFE_INTEGER : rightIndex);
+    })
+    .map(([group, items]) => ({ group, people: items }));
 }

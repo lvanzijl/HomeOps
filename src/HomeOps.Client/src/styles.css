@@ -2356,7 +2356,7 @@ button {
 .family-member-dashboard {
   display: grid;
   gap: clamp(0.75rem, 1vw, 1rem);
-  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr) minmax(17rem, 0.86fr);
   min-height: 0;
   overflow: hidden;
 }
@@ -10388,4 +10388,64 @@ button {
   max-width: 52rem;
   overflow: auto;
   width: calc(100vw - 2rem);
+}
+
+
+.member-people-card {
+  background: rgb(255 255 255 / 82%);
+  border: 1px solid var(--border-default);
+  border-radius: 1.1rem;
+  display: grid;
+  gap: 0.65rem;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  min-height: 0;
+  overflow: hidden;
+  padding: 0.85rem;
+}
+
+.member-people-header {
+  align-items: start;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+}
+
+.member-people-header h3,
+.member-people-header p {
+  margin: 0.1rem 0;
+}
+
+.member-people-search {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.member-people-search input {
+  border: 1px solid var(--border-default);
+  border-radius: 0.75rem;
+  min-height: 2.35rem;
+  padding: 0.4rem 0.65rem;
+}
+
+.member-people-groups {
+  display: grid;
+  gap: 0.65rem;
+  min-height: 0;
+  overflow: auto;
+  padding-right: 0.15rem;
+}
+
+.member-people-groups h4 {
+  font-size: 0.9rem;
+  margin: 0 0 0.4rem;
+}
+
+.member-people-list {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.member-people-item {
+  min-width: 0;
+  width: 100%;
 }
