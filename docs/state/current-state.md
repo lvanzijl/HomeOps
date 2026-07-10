@@ -861,3 +861,9 @@ Showcase Sample C and Showcase Sample D exposed that the wide head variant's ear
 - 2026-07-07: Fixed the Calendar Recurrence V2 empty Agenda edit dialog by rendering existing appointment edit fields/actions directly while preserving create and recurring save-scope flows. See docs/reports/2026-07-07-calendar-recurrence-v2-empty-edit-dialog-fix/calendar-recurrence-v2-empty-edit-dialog-fix.md.
 
 - 2026-07-07: Resolved the follow-up frontend validation issues for the Agenda edit dialog fix by adding Vitest `--runInBand` compatibility and hardening Agenda weather/planning tests against async visual-review fixture updates.
+
+## Avatar Editor V4 UX Redesign — 2026-07-10
+- Redesigned the catalog-driven Avatar V2 Editor's editing experience (frontend only) into an Adaptive Studio: a single always-visible category bar (Huid, Haar, Gezicht, Kleding, Accessoires) plus one bounded, internally-scrolling option surface that shows all of the active category's attributes at once, removing the V3 `Stijl`/`Kleur` sub-tab hop and its `activeCategoryId` state.
+- Made multi-attribute section headings visible and sticky, enlarged the permanent hero preview, and reused the existing option tiles, live mini-previews, grouped swatches, and catalog-driven sizing unchanged; renderer, SVG artwork, catalog data/structure, adapter, persistence, backend validation, and API contracts were not changed, so a saved avatar renders identically.
+- Preserved save/cancel/reset/live-preview/Escape-close/focus/`aria-pressed`/arrow-key roving-focus behaviour; updated only the two editor test files to the single-surface model.
+- Validated with dotnet restore/build/test (359), frontend tests (215), production frontend build, and live 1440×900 no-page-scroll desktop review; report and five populated screenshots at `docs/reports/2026-07-10-avatar-editor-v4/`.
