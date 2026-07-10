@@ -87,6 +87,14 @@ describe('avatar catalog adapter', () => {
     ).toEqual(expect.objectContaining({ style: 'heart' }));
   });
 
+
+  it('maps the eye selection to the Avatar V2 eye style and defaults to Classic Round', () => {
+    expect(avatarSelectionToAvatarV2RenderConfig(defaultAvatarSelection).eyes).toEqual({ style: 'classicRound' });
+    expect(avatarSelectionToAvatarV2RenderConfig(createAvatarSelectionFixture({ eyeStyle: 'eye.style.soft-almond' })).eyes).toEqual({ style: 'softAlmond' });
+    expect(avatarSelectionToAvatarV2RenderConfig(createAvatarSelectionFixture({ eyeStyle: 'eye.style.gentle-arc' })).eyes).toEqual({ style: 'gentleArc' });
+    expect(avatarSelectionToAvatarV2RenderConfig(createAvatarSelectionFixture({ eyeStyle: 'eye.style.bright-wide' })).eyes).toEqual({ style: 'brightWide' });
+  });
+
   it('maps the mouth selection to the Avatar V2 mouth style and defaults to neutral', () => {
     expect(avatarSelectionToAvatarV2RenderConfig(defaultAvatarSelection).mouth).toEqual({
       style: 'neutral',

@@ -144,6 +144,11 @@ export type ShirtStyle =
   | "sportsShirt"
   | "apronSmock";
 export type AvatarClothingColorRegion = "primary" | "secondary";
+export type EyeStyle =
+  | "classicRound"
+  | "softAlmond"
+  | "gentleArc"
+  | "brightWide";
 export type MouthStyle =
   | "neutral"
   | "smile"
@@ -207,6 +212,7 @@ export interface AvatarConfig {
   skinTone: PaletteToken;
   hair: { style: HairStyle; color: PaletteToken };
   glasses: { style: GlassesStyle; color: PaletteToken };
+  eyes?: { style: EyeStyle };
   mouth?: { style: MouthStyle };
   shirt: { style: ShirtStyle; color: PaletteToken; secondaryColor?: PaletteToken };
   accessory: {
@@ -481,7 +487,32 @@ function renderHeadAndFace({ config, anatomy }: AvatarRenderContext): string {
     e = anatomy.ears;
   const ear = (side: string, a: AvatarAnchor) =>
     `<ellipse data-anatomy="ear-${side}" cx="${a.x}" cy="${a.y}" rx="${e.width / 2}" ry="${e.height / 2}" fill="${skin.base}" stroke="${skin.line}" stroke-width="3"/>`;
-  return `<g id="avatar-v2-layer-base">${ear("left", e.left)}${ear("right", e.right)}<path data-anatomy="head-${anatomy.head.variant}" d="${headPath(h, anatomy.head.variant)}" fill="${skin.base}" stroke="${skin.line}" stroke-width="3"/><path d="M${h.x + 19} ${h.y + 22}c17-17 45-21 64-2" fill="none" stroke="${skin.highlight}" stroke-width="8" stroke-linecap="round" opacity="0.4"/><circle cx="${anatomy.face.leftEye.x}" cy="${anatomy.face.eyeLineY}" r="5" fill="#3d2c30"/><circle cx="${anatomy.face.rightEye.x}" cy="${anatomy.face.eyeLineY}" r="5" fill="#3d2c30"/><circle cx="${anatomy.face.leftEye.x + 2}" cy="${anatomy.face.eyeLineY - 2}" r="1.5" fill="#fff8f2"/><circle cx="${anatomy.face.rightEye.x - 2}" cy="${anatomy.face.eyeLineY - 2}" r="1.5" fill="#fff8f2"/></g>`;
+  return `<g id="avatar-v2-layer-base">${ear("left", e.left)}${ear("right", e.right)}<path data-anatomy="head-${anatomy.head.variant}" d="${headPath(h, anatomy.head.variant)}" fill="${skin.base}" stroke="${skin.line}" stroke-width="3"/><path d="M${h.x + 19} ${h.y + 22}c17-17 45-21 64-2" fill="none" stroke="${skin.highlight}" stroke-width="8" stroke-linecap="round" opacity="0.4"/></g>`;
+}
+export const avatarV2EyeStyles = ["classicRound", "softAlmond", "gentleArc", "brightWide"] as const satisfies readonly EyeStyle[];
+export const avatarV2DefaultEyeStyle: EyeStyle = "classicRound";
+const EYE_INK = "#3d2c30";
+const EYE_CATCHLIGHT = "#fff8f2";
+const eyeCatchlight = (x: number, y: number, side: "left" | "right") =>
+  `<circle cx="${x + (side === "left" ? 2 : -2)}" cy="${y - 2}" r="1.5" fill="${EYE_CATCHLIGHT}"/>`;
+function eyeStyleArtwork(anchor: AvatarAnchor, style: EyeStyle, side: "left" | "right"): string {
+  const { x } = anchor;
+  const y = anchor.y;
+  if (style === "softAlmond") {
+    return `<ellipse cx="${x}" cy="${y}" rx="6.5" ry="4.25" fill="${EYE_INK}"/>${eyeCatchlight(x, y, side)}`;
+  }
+  if (style === "gentleArc") {
+    return `<ellipse cx="${x}" cy="${y + 0.5}" rx="5.4" ry="4.6" fill="${EYE_INK}"/><path d="M${x - 5.5} ${y - 2.2}Q${x} ${y - 6} ${x + 5.5} ${y - 2.2}" fill="none" stroke="#6f4448" stroke-width="2" stroke-linecap="round" opacity="0.72"/>${eyeCatchlight(x, y + 0.5, side)}`;
+  }
+  if (style === "brightWide") {
+    return `<ellipse cx="${x}" cy="${y}" rx="5.7" ry="6" fill="${EYE_INK}"/>${eyeCatchlight(x, y, side)}`;
+  }
+  return `<circle cx="${x}" cy="${y}" r="5" fill="${EYE_INK}"/>${eyeCatchlight(x, y, side)}`;
+}
+function renderEyes({ config, anatomy }: AvatarRenderContext): string {
+  const style = config.eyes?.style ?? avatarV2DefaultEyeStyle;
+  const safeStyle = avatarV2EyeStyles.includes(style) ? style : avatarV2DefaultEyeStyle;
+  return `<g id="avatar-v2-layer-eyes" data-eye-style="${safeStyle}">${eyeStyleArtwork(anatomy.face.leftEye, safeStyle, "left")}${eyeStyleArtwork(anatomy.face.rightEye, safeStyle, "right")}</g>`;
 }
 export const avatarV2MouthStyles = [
   "neutral",
@@ -1110,7 +1141,7 @@ export function validateAvatarV2HairSvg(svg: string, style: HairStyle): boolean 
 export function renderAvatarV2Svg(config: AvatarConfig): string {
   const anatomy = resolveAvatarAnatomy(config),
     ctx = { config, anatomy };
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192" role="img" aria-label="HomeOps Avatar V2 sample">${renderHairLayer(ctx, "back")}${renderShirt(ctx)}${renderHeadAndFace(ctx)}${renderMouth(ctx)}${renderBehindFrontHairAccessory(ctx)}${renderHairLayer(ctx, "front")}${renderGlasses(ctx)}${renderHairLayer(ctx, "hi")}${renderAccessory(ctx)}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192" role="img" aria-label="HomeOps Avatar V2 sample">${renderHairLayer(ctx, "back")}${renderShirt(ctx)}${renderHeadAndFace(ctx)}${renderEyes(ctx)}${renderMouth(ctx)}${renderBehindFrontHairAccessory(ctx)}${renderHairLayer(ctx, "front")}${renderGlasses(ctx)}${renderHairLayer(ctx, "hi")}${renderAccessory(ctx)}</svg>`;
 }
 export const avatarV2SampleConfigs = {
   playfulChild: {
