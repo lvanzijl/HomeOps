@@ -891,3 +891,8 @@ Showcase Sample C and Showcase Sample D exposed that the wide head variant's ear
 - Replaced the first shared headwear pseudo-geometry with renderer-owned anatomy-relative placement: `resolveAvatarAnatomy` now exposes semantic head top, width, height, hairline, and forehead anchors while headwear families derive their own band/brim/shell/base positions from those anchors and the protected eye line.
 - Corrected Baseball Cap, Beanie, Party Hat, Crown, Sun Hat, and Helmet vertical placement across round, oval, and wide heads with short, long, curly, and side-bob hairstyles while preserving accessory IDs, the single accessory slot, mount compatibility, layer ordering, non-headwear accessories, API contracts, and persistence.
 - Regenerated the text SVG variety sheet and updated renderer invariant tests/reporting for the Headwear Model V2 follow-up.
+
+## Avatar Contacts V1 Frontend Foundation — 2026-07-10
+- Refactored the FamilyMember avatar editor into a thin adapter over a reusable AvatarSelection-only editor while preserving FamilyMember labels, save behavior, renderer path, and legacy Avatar V2 config translation.
+- Added frontend KnownPerson models, generated-client-backed KnownPerson API mapping, and a non-navigated KnownPerson avatar editor wrapper for future People surfaces.
+- Validated backend restore/build, frontend build, focused avatar/KnownPerson tests, focused Agenda rerun after a transient full-suite failure, final full frontend tests, and NSwag generation with no generated diff.
