@@ -191,6 +191,56 @@ public sealed class AvatarCatalogTests(HomeOpsWebApplicationFactory factory) : I
         Assert.Equal("mouth.style.neutral", service.DefaultSelection().Selections[AvatarSelectionSlots.MouthStyle]);
     }
 
+    [Fact]
+    public async Task CreateAcceptsSecondaryClothingColorAndPersistsIt()
+    {
+        var selection = ValidSelection();
+        selection[AvatarSelectionSlots.ClothingStyle] = "clothing.style.polo";
+        selection[AvatarSelectionSlots.ClothingSecondaryColor] = "clothing.secondary-color.butter";
+        var response = await _client.PostAsJsonAsync("/api/family-members", Request(selection));
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var created = await response.Content.ReadFromJsonAsync<FamilyMemberDto>();
+        Assert.NotNull(created);
+        Assert.Equal("clothing.secondary-color.butter", created.AvatarSelection.Selections[AvatarSelectionSlots.ClothingSecondaryColor]);
+    }
+
+    [Fact]
+    public async Task CreateRejectsUnknownSecondaryClothingColorItemId()
+    {
+        var selection = ValidSelection();
+        selection[AvatarSelectionSlots.ClothingSecondaryColor] = "clothing.secondary-color.neon";
+        var response = await _client.PostAsJsonAsync("/api/family-members", Request(selection));
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CreateRejectsCategoryMismatchedSecondaryClothingColorItemId()
+    {
+        var selection = ValidSelection();
+        selection[AvatarSelectionSlots.ClothingSecondaryColor] = "clothing.color.white";
+        var response = await _client.PostAsJsonAsync("/api/family-members", Request(selection));
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CreateWithoutSecondaryClothingColorDefaultsToWhite()
+    {
+        var selection = ValidSelection();
+        Assert.False(selection.ContainsKey(AvatarSelectionSlots.ClothingSecondaryColor));
+        var response = await _client.PostAsJsonAsync("/api/family-members", Request(selection));
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var created = await response.Content.ReadFromJsonAsync<FamilyMemberDto>();
+        Assert.NotNull(created);
+        Assert.Equal("clothing.secondary-color.white", created.AvatarSelection.Selections[AvatarSelectionSlots.ClothingSecondaryColor]);
+    }
+
+    [Fact]
+    public void DefaultSelectionIncludesSecondaryClothingColor()
+    {
+        var service = new AvatarCatalogService(new SharedAvatarCatalogSource());
+        Assert.Equal("clothing.secondary-color.white", service.DefaultSelection().Selections[AvatarSelectionSlots.ClothingSecondaryColor]);
+    }
+
     private static CreateFamilyMemberRequest Request(Dictionary<string, string> selections) =>
         new("Catalog Kid", FamilyMemberKind.Child, new DateOnly(2020, 1, 2), null, null, null, new AvatarSelectionDto(AvatarCatalogConstants.SchemaVersion, selections));
 

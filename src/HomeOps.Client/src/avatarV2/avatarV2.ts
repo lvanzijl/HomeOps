@@ -131,7 +131,11 @@ export type ShirtStyle =
   | "hoodie"
   | "sweater"
   | "tShirt"
-  | "overall";
+  | "overall"
+  | "polo"
+  | "jacket"
+  | "dress";
+export type AvatarClothingColorRegion = "primary" | "secondary";
 export type MouthStyle =
   | "neutral"
   | "smile"
@@ -196,7 +200,7 @@ export interface AvatarConfig {
   hair: { style: HairStyle; color: PaletteToken };
   glasses: { style: GlassesStyle; color: PaletteToken };
   mouth?: { style: MouthStyle };
-  shirt: { style: ShirtStyle; color: PaletteToken };
+  shirt: { style: ShirtStyle; color: PaletteToken; secondaryColor?: PaletteToken };
   accessory: {
     style: AccessoryStyle;
     color: PaletteToken;
@@ -429,7 +433,14 @@ export interface HairAsset {
 export interface ClothingAsset {
   id: ShirtStyle;
   metadata: AvatarAssetMetadata;
-  render: SvgPart;
+  /**
+   * Independently colorable regions this garment draws. Every garment supports
+   * "primary". Garments that also list "secondary" receive a distinct secondary
+   * swatch; primary-only garments ignore the secondary swatch entirely, so they
+   * render identically regardless of any secondary color selection.
+   */
+  colorRegions: readonly AvatarClothingColorRegion[];
+  render: (ctx: AvatarRenderContext, primary: ExpandedSwatch, secondary: ExpandedSwatch) => string;
 }
 export interface AccessoryAsset {
   id: Exclude<AccessoryStyle, "none">;
@@ -723,6 +734,7 @@ export const avatarV2ClothingAssets: Record<ShirtStyle, ClothingAsset> = {
       category: "clothing",
       previewPriority: 20,
     },
+    colorRegions: ["primary"],
     render: (_ctx, c) =>
       `<path data-clothing-asset="roundedTee" d="M42 172c8-32 27-49 54-49s46 17 54 49z" fill="${c.base}" stroke="${c.line}" stroke-width="3"/><path d="M62 150c17-13 48-14 68 0" fill="none" stroke="${c.highlight}" stroke-width="7" stroke-linecap="round" opacity="0.5"/>`,
   },
@@ -733,8 +745,9 @@ export const avatarV2ClothingAssets: Record<ShirtStyle, ClothingAsset> = {
       category: "clothing",
       previewPriority: 30,
     },
-    render: (_ctx, c) =>
-      `${avatarV2ClothingAssets.roundedTee.render(_ctx, c)}<path d="M78 137l18 18 18-18" fill="#fff6ed" stroke="${c.line}" stroke-width="3"/>`,
+    colorRegions: ["primary"],
+    render: (_ctx, c, s) =>
+      `${avatarV2ClothingAssets.roundedTee.render(_ctx, c, s)}<path d="M78 137l18 18 18-18" fill="#fff6ed" stroke="${c.line}" stroke-width="3"/>`,
   },
   tShirt: {
     id: "tShirt",
@@ -743,6 +756,7 @@ export const avatarV2ClothingAssets: Record<ShirtStyle, ClothingAsset> = {
       category: "clothing",
       previewPriority: 10,
     },
+    colorRegions: ["primary"],
     render: (_ctx, c) =>
       `<path data-clothing-asset="tShirt" d="M39 173l8-29c6-13 19-20 34-22l15 13 15-13c16 2 28 9 34 22l8 29z" fill="${c.base}" stroke="${c.line}" stroke-width="3"/><path d="M80 123c5 8 27 8 32 0" fill="none" stroke="${c.line}" stroke-width="3"/><path d="M54 151h84" stroke="${c.highlight}" stroke-width="6" stroke-linecap="round" opacity="0.48"/>`,
   },
@@ -753,6 +767,7 @@ export const avatarV2ClothingAssets: Record<ShirtStyle, ClothingAsset> = {
       category: "clothing",
       previewPriority: 40,
     },
+    colorRegions: ["primary"],
     render: (_ctx, c) =>
       `<path data-clothing-asset="sweater" d="M40 173c7-33 27-51 56-51s49 18 56 51z" fill="${c.base}" stroke="${c.line}" stroke-width="3"/><path d="M73 125c7 14 39 14 46 0" fill="none" stroke="${c.line}" stroke-width="4"/><path d="M58 146h76M54 160h84" stroke="${c.highlight}" stroke-width="5" stroke-linecap="round" opacity="0.5"/>`,
   },
@@ -763,6 +778,7 @@ export const avatarV2ClothingAssets: Record<ShirtStyle, ClothingAsset> = {
       category: "clothing",
       previewPriority: 50,
     },
+    colorRegions: ["primary"],
     render: (_ctx, c) =>
       `<path data-clothing-asset="hoodie" d="M41 173c7-33 27-51 55-51s48 18 55 51z" fill="${c.base}" stroke="${c.line}" stroke-width="3"/><path d="M63 139c10-17 23-24 33-24s23 7 33 24c-12 11-54 11-66 0z" fill="${c.shade}" stroke="${c.line}" stroke-width="3"/><path d="M78 130c8 9 27 11 36 0" fill="none" stroke="${c.highlight}" stroke-width="5" stroke-linecap="round" opacity="0.65"/><path d="M88 137l-4 21M104 137l4 21" stroke="${c.line}" stroke-width="3" stroke-linecap="round"/><circle cx="84" cy="160" r="2.5" fill="${c.line}"/><circle cx="108" cy="160" r="2.5" fill="${c.line}"/>`,
   },
@@ -773,13 +789,52 @@ export const avatarV2ClothingAssets: Record<ShirtStyle, ClothingAsset> = {
       category: "clothing",
       previewPriority: 60,
     },
+    colorRegions: ["primary"],
     render: (_ctx, c) =>
       `<path data-clothing-asset="overall" d="M42 173c8-32 27-49 54-49s46 17 54 49z" fill="${c.highlight}" stroke="${c.line}" stroke-width="3"/><path d="M68 173v-43h18l10 14 10-14h18v43z" fill="${c.base}" stroke="${c.line}" stroke-width="3"/><path d="M76 130v-12M116 130v-12" stroke="${c.line}" stroke-width="5" stroke-linecap="round"/><circle cx="82" cy="142" r="3" fill="${c.line}"/><circle cx="110" cy="142" r="3" fill="${c.line}"/>`,
   },
+  polo: {
+    id: "polo",
+    metadata: {
+      displayName: "Polo",
+      category: "clothing",
+      previewPriority: 25,
+    },
+    colorRegions: ["primary", "secondary"],
+    render: (_ctx, c, s) =>
+      `<path data-clothing-asset="polo" d="M42 173c8-33 27-51 54-51s46 18 54 51z" fill="${c.base}" stroke="${c.line}" stroke-width="3"/><path d="M60 154h72" stroke="${c.highlight}" stroke-width="5" stroke-linecap="round" opacity="0.4"/><rect x="91" y="132" width="10" height="27" rx="2.5" fill="${s.base}" stroke="${s.line}" stroke-width="2.5"/><path d="M82 123L96 138L84 142Z" fill="${s.base}" stroke="${s.line}" stroke-width="2.5" stroke-linejoin="round"/><path d="M110 123L96 138L108 142Z" fill="${s.base}" stroke="${s.line}" stroke-width="2.5" stroke-linejoin="round"/><circle cx="96" cy="142" r="1.9" fill="${s.line}"/><circle cx="96" cy="151" r="1.9" fill="${s.line}"/>`,
+  },
+  jacket: {
+    id: "jacket",
+    metadata: {
+      displayName: "Jacket",
+      category: "clothing",
+      previewPriority: 55,
+    },
+    colorRegions: ["primary", "secondary"],
+    render: (_ctx, c, s) =>
+      `<path data-clothing-asset="jacket" d="M41 173c7-33 27-51 55-51s48 18 55 51z" fill="${c.base}" stroke="${c.line}" stroke-width="3"/><path d="M88 126h16l-3 47h-10z" fill="${s.base}" stroke="${s.line}" stroke-width="2.5"/><path d="M88 132h16M88 142h16M88 152h16M88 162h16" stroke="${s.shade}" stroke-width="1.6" stroke-linecap="round"/><path d="M69 128c9-6 20-8 27-8l-8 16-22 12z" fill="${c.shade}" stroke="${c.line}" stroke-width="3" stroke-linejoin="round"/><path d="M123 128c-9-6-20-8-27-8l8 16 22 12z" fill="${c.shade}" stroke="${c.line}" stroke-width="3" stroke-linejoin="round"/><path d="M96 126v47" stroke="${s.line}" stroke-width="2" stroke-linecap="round"/>`,
+  },
+  dress: {
+    id: "dress",
+    metadata: {
+      displayName: "Dress",
+      category: "clothing",
+      previewPriority: 35,
+    },
+    colorRegions: ["primary", "secondary"],
+    render: (_ctx, c, s) =>
+      `<path data-clothing-asset="dress" d="M56 152L42 173H150L136 152Z" fill="${s.base}" stroke="${s.line}" stroke-width="3" stroke-linejoin="round"/><path d="M70 160q26 9 52 0" fill="none" stroke="${s.highlight}" stroke-width="4" stroke-linecap="round" opacity="0.5"/><path d="M55 153c5-19 21-31 41-31s36 12 41 31z" fill="${c.base}" stroke="${c.line}" stroke-width="3"/><path d="M74 125c7 12 41 12 48 0" fill="none" stroke="${c.line}" stroke-width="3"/><path d="M60 150h72" stroke="${c.highlight}" stroke-width="4" stroke-linecap="round" opacity="0.45"/>`,
+  },
 };
 function renderShirt(ctx: AvatarRenderContext): string {
-  const c = sw(ctx.config.shirt.color);
-  return `<g id="avatar-v2-layer-shirt">${avatarV2ClothingAssets[ctx.config.shirt.style].render(ctx, c)}</g>`;
+  const asset = avatarV2ClothingAssets[ctx.config.shirt.style];
+  const primary = sw(ctx.config.shirt.color);
+  const supportsSecondary = asset.colorRegions.includes("secondary");
+  const secondary = supportsSecondary && ctx.config.shirt.secondaryColor
+    ? sw(ctx.config.shirt.secondaryColor)
+    : primary;
+  return `<g id="avatar-v2-layer-shirt">${asset.render(ctx, primary, secondary)}</g>`;
 }
 export const avatarV2AccessoryAssets: Record<
   Exclude<AccessoryStyle, "none">,

@@ -8,6 +8,7 @@ import {
   getAvatarCatalogEditorPanels,
   getAvatarCatalogOptionGroup,
   getAvatarCatalogPanelSummary,
+  isAvatarCatalogCategoryAvailable,
   localizeAvatarCatalogText,
   updateAvatarSelection,
   type AvatarCatalogCategory,
@@ -47,8 +48,13 @@ export function AvatarCatalogControls({ selection, controlsLabel, onSelectionCha
     [activePanel],
   );
 
+  const visibleCategories = useMemo(
+    () => activeCategories.filter((category) => isAvatarCatalogCategoryAvailable(category, selection)),
+    [activeCategories, selection],
+  );
+
   const activePanelLabel = activePanel ? localizeAvatarCatalogText(activePanel.labels, activePanel.id) : controlsLabel;
-  const multiAttribute = activeCategories.length > 1;
+  const multiAttribute = visibleCategories.length > 1;
 
   return (
     <div className="avatar-v2-controls-shell" aria-label={controlsLabel}>
@@ -80,7 +86,7 @@ export function AvatarCatalogControls({ selection, controlsLabel, onSelectionCha
       {activePanel ? (
         <section className="avatar-v2-category-body" aria-label={activePanelLabel}>
           <div className="avatar-v2-option-surface" data-testid="avatar-v2-option-surface">
-            {activeCategories.map((category) => {
+            {visibleCategories.map((category) => {
               const selectedItemId = selection.selections[category.slot];
               const items = getAvatarCatalogEditorItems(category.id, selectedItemId);
               const onSelect = (itemId: string) => onSelectionChange(updateAvatarSelection(selection, category.slot, itemId));

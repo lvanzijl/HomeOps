@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { avatarSelectionToAvatarV2RenderConfig, defaultAvatarSelection } from './avatarCatalogAdapter';
-import { avatarCatalog, getAvatarCatalogItems, localizeAvatarCatalogText, updateAvatarSelection } from './avatarCatalog';
+import { avatarCatalog, getAvatarCatalogItems, getAvatarCatalogStyleColorRegions, isAvatarCatalogCategoryAvailable, localizeAvatarCatalogText, updateAvatarSelection } from './avatarCatalog';
 import { renderAvatarV2Svg } from '../avatarV2/avatarV2';
 
 describe('avatar catalog metadata', () => {
@@ -9,6 +9,7 @@ describe('avatar catalog metadata', () => {
     expect(getAvatarCatalogItems('hair.color').filter((item) => item.status === 'active')).toHaveLength(29);
     expect(getAvatarCatalogItems('clothing.color')).toHaveLength(48);
     expect(getAvatarCatalogItems('accessory.color')).toHaveLength(48);
+    expect(getAvatarCatalogItems('clothing.secondary-color')).toHaveLength(48);
   });
 
   it('provides accessibility labels for every selectable item', () => {
@@ -105,5 +106,84 @@ describe('avatar catalog metadata', () => {
       expect(svg).toContain('avatar-v2-layer-mouth');
       expect(svg).toContain(`data-mouth-style="${item.renderer?.rendererToken}"`);
     }
+  });
+
+  it('exposes clothing styles with declared color regions', () => {
+    const styles = getAvatarCatalogItems('clothing.style');
+    expect(styles.map((item) => item.id)).toEqual([
+      'clothing.style.t-shirt',
+      'clothing.style.rounded-tee',
+      'clothing.style.polo',
+      'clothing.style.collar',
+      'clothing.style.dress',
+      'clothing.style.hoodie',
+      'clothing.style.sweater',
+      'clothing.style.jacket',
+      'clothing.style.overall',
+    ]);
+
+    const dualColor = ['clothing.style.polo', 'clothing.style.dress', 'clothing.style.jacket'];
+    for (const style of styles) {
+      const regions = getAvatarCatalogStyleColorRegions(style);
+      expect(regions).toEqual(dualColor.includes(style.id) ? ['primary', 'secondary'] : ['primary']);
+    }
+  });
+
+  it('mirrors the clothing palette for the secondary clothing color category', () => {
+    const clothingColors = getAvatarCatalogItems('clothing.color');
+    const secondaryColors = getAvatarCatalogItems('clothing.secondary-color');
+
+    expect(secondaryColors.map((item) => item.id.replace('clothing.secondary-color.', ''))).toEqual(
+      clothingColors.map((item) => item.id.replace('clothing.color.', '')),
+    );
+
+    for (const clothingColor of clothingColors) {
+      const suffix = clothingColor.id.replace('clothing.color.', '');
+      const secondaryColor = secondaryColors.find((item) => item.id === `clothing.secondary-color.${suffix}`);
+      expect(secondaryColor?.color).toEqual(clothingColor.color);
+      expect(secondaryColor?.renderer?.rendererToken).toEqual(clothingColor.renderer?.rendererToken);
+    }
+
+    const secondaryCategory = avatarCatalog.categories.find((category) => category.id === 'clothing.secondary-color');
+    expect(secondaryCategory?.slot).toBe('clothingSecondaryColor');
+    expect(secondaryCategory?.required).toBe(false);
+    expect(secondaryCategory?.colorRegion).toBe('secondary');
+    expect(secondaryCategory?.governingSlot).toBe('clothingStyle');
+    expect(avatarCatalog.defaults.clothingSecondaryColor).toBe('clothing.secondary-color.white');
+
+    // Secondary color is surfaced within the Clothing editor panel.
+    const clothingPanel = avatarCatalog.editorPanels.find((panel) => panel.id === 'clothing');
+    expect(clothingPanel?.categoryIds).toContain('clothing.secondary-color');
+  });
+
+  it('offers the secondary clothing color only for garments that support it', () => {
+    const secondaryCategory = avatarCatalog.categories.find((category) => category.id === 'clothing.secondary-color');
+    expect(secondaryCategory).toBeDefined();
+
+    const primaryOnly = updateAvatarSelection(defaultAvatarSelection, 'clothingStyle', 'clothing.style.hoodie');
+    expect(isAvatarCatalogCategoryAvailable(secondaryCategory!, primaryOnly)).toBe(false);
+
+    const dualColor = updateAvatarSelection(defaultAvatarSelection, 'clothingStyle', 'clothing.style.polo');
+    expect(isAvatarCatalogCategoryAvailable(secondaryCategory!, dualColor)).toBe(true);
+  });
+
+  it('renders a distinct secondary clothing color for dual-color garments', () => {
+    const dualSelection = updateAvatarSelection(
+      updateAvatarSelection(
+        updateAvatarSelection(defaultAvatarSelection, 'clothingStyle', 'clothing.style.jacket'),
+        'clothingColor',
+        'clothing.color.navy',
+      ),
+      'clothingSecondaryColor',
+      'clothing.secondary-color.butter',
+    );
+
+    const config = avatarSelectionToAvatarV2RenderConfig(dualSelection);
+    expect(config.shirt.style).toBe('jacket');
+    expect(config.shirt.color).toBe('shirtNavy');
+    expect(config.shirt.secondaryColor).toBe('shirtButter');
+
+    const svg = renderAvatarV2Svg(config);
+    expect(svg).toContain('data-clothing-asset="jacket"');
   });
 });

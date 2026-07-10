@@ -365,6 +365,9 @@ describe("Avatar V2 SVG renderer", () => {
       "sweater",
       "hoodie",
       "overall",
+      "polo",
+      "jacket",
+      "dress",
     ]);
     expect(Object.keys(avatarV2AccessoryAssets)).toEqual([
       "chestStar",
@@ -387,6 +390,50 @@ describe("Avatar V2 SVG renderer", () => {
     expect(avatarV2AccessoryAssets.flower.metadata.recommendedMount).toBe(
       "hairLeft",
     );
+  });
+
+  it("declares clothing color regions and keeps single-color garments primary-only", () => {
+    const singleColor = ["roundedTee", "collar", "tShirt", "sweater", "hoodie", "overall"] as const;
+    const dualColor = ["polo", "jacket", "dress"] as const;
+
+    for (const style of singleColor) {
+      expect(avatarV2ClothingAssets[style].colorRegions).toEqual(["primary"]);
+    }
+    for (const style of dualColor) {
+      expect(avatarV2ClothingAssets[style].colorRegions).toEqual(["primary", "secondary"]);
+    }
+  });
+
+  it("ignores the secondary color for single-color garments (backward compatibility)", () => {
+    for (const style of ["roundedTee", "collar", "tShirt", "sweater", "hoodie", "overall"] as const) {
+      const base = {
+        ...avatarV2SampleConfigs.showcaseSampleA,
+        accessory: { ...avatarV2SampleConfigs.showcaseSampleA.accessory, style: "none" as const },
+      };
+      const withoutSecondary = renderAvatarV2Svg({ ...base, shirt: { style, color: "shirtSky" as const } });
+      const withSecondary = renderAvatarV2Svg({ ...base, shirt: { style, color: "shirtSky" as const, secondaryColor: "shirtRed" as const } });
+      expect(withSecondary).toBe(withoutSecondary);
+    }
+  });
+
+  it("applies an independent secondary color for dual-color garments", () => {
+    for (const style of ["polo", "jacket", "dress"] as const) {
+      const base = {
+        ...avatarV2SampleConfigs.showcaseSampleA,
+        accessory: { ...avatarV2SampleConfigs.showcaseSampleA.accessory, style: "none" as const },
+      };
+      const config = { ...base, shirt: { style, color: "shirtNavy" as const, secondaryColor: "shirtButter" as const } };
+      const svg = renderAvatarV2Svg(config);
+      expect(svg).toContain(`data-clothing-asset="${style}"`);
+      expect(validateAvatarV2AssetSvg(svg)).toBe(true);
+      // Secondary swatch base color must appear in the output.
+      expect(svg).toContain(expandAvatarPaletteToken("shirtButter").base);
+      // Changing only the secondary color must change the rendering.
+      const recolored = renderAvatarV2Svg({ ...base, shirt: { style, color: "shirtNavy" as const, secondaryColor: "shirtGreen" as const } });
+      expect(recolored).not.toBe(svg);
+      // Deterministic output.
+      expect(renderAvatarV2Svg(config)).toBe(svg);
+    }
   });
 
   it("renders new asset V1 clothing and accessories deterministically as valid SVG", () => {
