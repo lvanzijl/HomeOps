@@ -99,10 +99,13 @@ describe('FamilyAvatarEditor', () => {
     await user.click(categoryButton('Accessoires')!);
 
     const controls = within(screen.getByLabelText('Avatarkeuzes voor Riley'));
-    expect(controls.queryByRole('heading', { name: 'Accessoires' })).toBeNull();
-    expect(controls.getByRole('heading', { name: 'Accessoire' })).not.toBeNull();
+    expect(controls.queryByRole('heading', { name: 'Accessoires' })).not.toBeNull();
+    expect(controls.getByRole('heading', { name: 'Haaraccessoires' })).not.toBeNull();
+    expect(controls.getByRole('heading', { name: 'Hoofddeksels' })).not.toBeNull();
+    expect(controls.getByRole('heading', { name: 'Halsaccessoires' })).not.toBeNull();
     expect(controls.getByRole('heading', { name: 'Accessoirekleur' })).not.toBeNull();
-    expect(controls.getByRole('button', { name: /Bloemspeld accessoire/i }).textContent).toBe('');
+    expect(controls.getByRole('button', { name: /Bloemspeld accessoire/i }).textContent).toContain('Bloemspeld');
+    expect(controls.getByRole('button', { name: /Pet accessoire/i })).not.toBeNull();
     expect(controls.getByRole('button', { name: /Accessoirekleur: Mintgroen/i }).textContent).toBe('');
   });
 

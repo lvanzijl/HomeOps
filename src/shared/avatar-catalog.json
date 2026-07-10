@@ -141,8 +141,8 @@
         "en-US": "Accessories category"
       },
       "descriptions": {
-        "nl-NL": "Kies een extra detail; de kleur volgt het kledingpalet.",
-        "en-US": "Choose an extra detail; the color follows the clothing palette."
+        "nl-NL": "Kies één accessoire, gegroepeerd als haaraccessoire, hoofddeksel of halsaccessoire.",
+        "en-US": "Choose one accessory, grouped as hair accessory, headwear, or neckwear."
       },
       "categoryIds": [
         "accessory.style",
@@ -439,27 +439,27 @@
       "allowsNone": true,
       "order": 50,
       "labels": {
-        "nl-NL": "Accessoire",
-        "en-US": "Accessory"
+        "nl-NL": "Accessoires",
+        "en-US": "Accessories"
       },
       "shortLabels": {
         "nl-NL": "Stijl",
         "en-US": "Style"
       },
       "accessibilityLabels": {
-        "nl-NL": "Accessoirekeuzes",
-        "en-US": "Accessory choices"
+        "nl-NL": "Accessoirekeuzes gegroepeerd op type",
+        "en-US": "Accessory choices grouped by type"
       },
       "descriptions": {
-        "nl-NL": "Kies iets extra’s.",
-        "en-US": "Choose an extra detail."
+        "nl-NL": "Kies één accessoire uit haaraccessoires, hoofddeksels en halsaccessoires.",
+        "en-US": "Choose one accessory from hair accessories, headwear, and neckwear."
       },
       "presentation": {
         "control": "tile",
         "density": "compact",
-        "itemLabelVisibility": "hidden",
-        "groupStrategy": "none",
-        "optionMinWidthRem": 5.15
+        "itemLabelVisibility": "visible",
+        "groupStrategy": "tag",
+        "optionMinWidthRem": 6.6
       },
       "tags": [
         "editor",
@@ -6534,7 +6534,11 @@
         "en-US": "No accessory"
       },
       "tags": [
-        "accessory"
+        "accessory",
+        "group.none",
+        "family.none",
+        "region.none",
+        "theme.core"
       ],
       "renderer": {
         "rendererFamily": "avatar-v2-svg",
@@ -6560,7 +6564,11 @@
         "en-US": "Star accessory"
       },
       "tags": [
-        "accessory"
+        "accessory",
+        "group.hair-accessories",
+        "family.hair-accessory",
+        "region.hair",
+        "theme.core"
       ],
       "renderer": {
         "rendererFamily": "avatar-v2-svg",
@@ -6587,7 +6595,11 @@
         "en-US": "Flower pin accessory"
       },
       "tags": [
-        "accessory"
+        "accessory",
+        "group.hair-accessories",
+        "family.hair-accessory",
+        "region.hair",
+        "theme.core"
       ],
       "renderer": {
         "rendererFamily": "avatar-v2-svg",
@@ -6614,7 +6626,11 @@
         "en-US": "Headband accessory"
       },
       "tags": [
-        "accessory"
+        "accessory",
+        "group.hair-accessories",
+        "family.hair-accessory",
+        "region.hair",
+        "theme.core"
       ],
       "renderer": {
         "rendererFamily": "avatar-v2-svg",
@@ -6641,7 +6657,11 @@
         "en-US": "Bow accessory"
       },
       "tags": [
-        "accessory"
+        "accessory",
+        "group.hair-accessories",
+        "family.hair-accessory",
+        "region.hair",
+        "theme.core"
       ],
       "renderer": {
         "rendererFamily": "avatar-v2-svg",
@@ -6668,7 +6688,11 @@
         "en-US": "Chest star accessory"
       },
       "tags": [
-        "accessory"
+        "accessory",
+        "group.neckwear",
+        "family.neckwear",
+        "region.neck",
+        "theme.core"
       ],
       "renderer": {
         "rendererFamily": "avatar-v2-svg",
@@ -6695,7 +6719,11 @@
         "en-US": "Leaf pin accessory"
       },
       "tags": [
-        "accessory"
+        "accessory",
+        "group.hair-accessories",
+        "family.hair-accessory",
+        "region.hair",
+        "theme.core"
       ],
       "renderer": {
         "rendererFamily": "avatar-v2-svg",
@@ -6722,7 +6750,11 @@
         "en-US": "Tiny crown accessory"
       },
       "tags": [
-        "accessory"
+        "accessory",
+        "group.headwear",
+        "family.headwear",
+        "region.head",
+        "theme.dress-up"
       ],
       "renderer": {
         "rendererFamily": "avatar-v2-svg",
@@ -6733,6 +6765,296 @@
       "legacyIds": [
         "tinyCrown"
       ]
+    },
+    {
+      "id": "accessory.style.hair-clip",
+      "categoryId": "accessory.style",
+      "type": "rendererStyle",
+      "status": "active",
+      "order": 90,
+      "labels": {
+        "nl-NL": "Haarspeld",
+        "en-US": "Hair clip"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Haarspeld accessoire",
+        "en-US": "Hair clip accessory"
+      },
+      "tags": [
+        "accessory",
+        "group.hair-accessories",
+        "family.hair-accessory",
+        "region.hair",
+        "theme.core"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "hairClip",
+        "layer": "accessory",
+        "mountPoint": "hairRight"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "accessory.style.ribbon",
+      "categoryId": "accessory.style",
+      "type": "rendererStyle",
+      "status": "active",
+      "order": 100,
+      "labels": {
+        "nl-NL": "Lint",
+        "en-US": "Ribbon"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Lint accessoire",
+        "en-US": "Ribbon accessory"
+      },
+      "tags": [
+        "accessory",
+        "group.hair-accessories",
+        "family.hair-accessory",
+        "region.hair",
+        "theme.core"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "ribbon",
+        "layer": "accessory",
+        "mountPoint": "hairRight"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "accessory.style.baseball-cap",
+      "categoryId": "accessory.style",
+      "type": "rendererStyle",
+      "status": "active",
+      "order": 110,
+      "labels": {
+        "nl-NL": "Pet",
+        "en-US": "Baseball cap"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Pet accessoire",
+        "en-US": "Baseball cap accessory"
+      },
+      "tags": [
+        "accessory",
+        "group.headwear",
+        "family.headwear",
+        "region.head",
+        "theme.core"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "baseballCap",
+        "layer": "accessory",
+        "mountPoint": "headTop"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "accessory.style.beanie",
+      "categoryId": "accessory.style",
+      "type": "rendererStyle",
+      "status": "active",
+      "order": 120,
+      "labels": {
+        "nl-NL": "Muts",
+        "en-US": "Beanie"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Muts accessoire",
+        "en-US": "Beanie accessory"
+      },
+      "tags": [
+        "accessory",
+        "group.headwear",
+        "family.headwear",
+        "region.head",
+        "theme.core"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "beanie",
+        "layer": "accessory",
+        "mountPoint": "headTop"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "accessory.style.party-hat",
+      "categoryId": "accessory.style",
+      "type": "rendererStyle",
+      "status": "active",
+      "order": 130,
+      "labels": {
+        "nl-NL": "Feesthoed",
+        "en-US": "Party hat"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Feesthoed accessoire",
+        "en-US": "Party hat accessory"
+      },
+      "tags": [
+        "accessory",
+        "group.headwear",
+        "family.headwear",
+        "region.head",
+        "theme.holiday"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "partyHat",
+        "layer": "accessory",
+        "mountPoint": "headTop"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "accessory.style.crown",
+      "categoryId": "accessory.style",
+      "type": "rendererStyle",
+      "status": "active",
+      "order": 140,
+      "labels": {
+        "nl-NL": "Kroon",
+        "en-US": "Crown"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Kroon accessoire",
+        "en-US": "Crown accessory"
+      },
+      "tags": [
+        "accessory",
+        "group.headwear",
+        "family.headwear",
+        "region.head",
+        "theme.dress-up"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "crown",
+        "layer": "accessory",
+        "mountPoint": "headTop"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "accessory.style.sun-hat",
+      "categoryId": "accessory.style",
+      "type": "rendererStyle",
+      "status": "active",
+      "order": 150,
+      "labels": {
+        "nl-NL": "Zonnehoed",
+        "en-US": "Sun hat"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Zonnehoed accessoire",
+        "en-US": "Sun hat accessory"
+      },
+      "tags": [
+        "accessory",
+        "group.headwear",
+        "family.headwear",
+        "region.head",
+        "theme.seasonal"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "sunHat",
+        "layer": "accessory",
+        "mountPoint": "headTop"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "accessory.style.helmet",
+      "categoryId": "accessory.style",
+      "type": "rendererStyle",
+      "status": "active",
+      "order": 160,
+      "labels": {
+        "nl-NL": "Helm",
+        "en-US": "Helmet"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Helm accessoire",
+        "en-US": "Helmet accessory"
+      },
+      "tags": [
+        "accessory",
+        "group.headwear",
+        "family.headwear",
+        "region.head",
+        "theme.occupation"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "helmet",
+        "layer": "accessory",
+        "mountPoint": "headTop"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "accessory.style.necklace",
+      "categoryId": "accessory.style",
+      "type": "rendererStyle",
+      "status": "active",
+      "order": 170,
+      "labels": {
+        "nl-NL": "Ketting",
+        "en-US": "Necklace"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Ketting accessoire",
+        "en-US": "Necklace accessory"
+      },
+      "tags": [
+        "accessory",
+        "group.neckwear",
+        "family.neckwear",
+        "region.neck",
+        "theme.core"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "necklace",
+        "layer": "accessory",
+        "mountPoint": "chestCenter"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "accessory.style.scarf",
+      "categoryId": "accessory.style",
+      "type": "rendererStyle",
+      "status": "active",
+      "order": 180,
+      "labels": {
+        "nl-NL": "Sjaal",
+        "en-US": "Scarf"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Sjaal accessoire",
+        "en-US": "Scarf accessory"
+      },
+      "tags": [
+        "accessory",
+        "group.neckwear",
+        "family.neckwear",
+        "region.neck",
+        "theme.seasonal"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "scarf",
+        "layer": "accessory",
+        "mountPoint": "chestCenter"
+      },
+      "legacyIds": []
     },
     {
       "id": "accessory.color.white",
@@ -9456,6 +9778,38 @@
       "labels": {
         "nl-NL": "Bewaarde keuzes",
         "en-US": "Saved choices"
+      }
+    },
+    {
+      "id": "group.none",
+      "order": 1,
+      "labels": {
+        "nl-NL": "Geen",
+        "en-US": "None"
+      }
+    },
+    {
+      "id": "group.hair-accessories",
+      "order": 50,
+      "labels": {
+        "nl-NL": "Haaraccessoires",
+        "en-US": "Hair accessories"
+      }
+    },
+    {
+      "id": "group.headwear",
+      "order": 60,
+      "labels": {
+        "nl-NL": "Hoofddeksels",
+        "en-US": "Headwear"
+      }
+    },
+    {
+      "id": "group.neckwear",
+      "order": 70,
+      "labels": {
+        "nl-NL": "Halsaccessoires",
+        "en-US": "Neckwear"
       }
     }
   ]

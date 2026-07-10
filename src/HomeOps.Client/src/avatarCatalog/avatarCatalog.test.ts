@@ -34,6 +34,53 @@ describe('avatar catalog metadata', () => {
     }
   });
 
+
+  it('exposes Accessories V2 as one grouped single-select accessory slot', () => {
+    const accessories = getAvatarCatalogItems('accessory.style');
+    expect(accessories.map((item) => item.id)).toEqual([
+      'accessory.style.none',
+      'accessory.style.star',
+      'accessory.style.flower',
+      'accessory.style.headband',
+      'accessory.style.bow',
+      'accessory.style.chest-star',
+      'accessory.style.leaf-pin',
+      'accessory.style.tiny-crown',
+      'accessory.style.hair-clip',
+      'accessory.style.ribbon',
+      'accessory.style.baseball-cap',
+      'accessory.style.beanie',
+      'accessory.style.party-hat',
+      'accessory.style.crown',
+      'accessory.style.sun-hat',
+      'accessory.style.helmet',
+      'accessory.style.necklace',
+      'accessory.style.scarf',
+    ]);
+
+    const category = avatarCatalog.categories.find((candidate) => candidate.id === 'accessory.style');
+    expect(category?.slot).toBe('accessoryStyle');
+    expect(category?.presentation.groupStrategy).toBe('tag');
+    expect(category?.presentation.itemLabelVisibility).toBe('visible');
+    expect(avatarCatalog.defaults.accessoryStyle).toBe('accessory.style.star');
+    expect(accessories.every((item) => item.tags.some((tag) => tag.startsWith('group.')))).toBe(true);
+  });
+
+  it('renders every active Accessories V2 item through the existing accessory slot', () => {
+    for (const item of getAvatarCatalogItems('accessory.style')) {
+      const svg = renderAvatarV2Svg(
+        avatarSelectionToAvatarV2RenderConfig(updateAvatarSelection(defaultAvatarSelection, 'accessoryStyle', item.id)),
+      );
+      expect(svg.startsWith('<svg')).toBe(true);
+      if (item.id === 'accessory.style.none') {
+        expect(svg).not.toContain('avatar-v2-layer-accessory');
+      } else {
+        expect(svg).toContain('avatar-v2-layer-accessory');
+        expect(svg).toContain(`data-accessory-asset="${item.renderer?.rendererToken}"`);
+      }
+    }
+  });
+
   it('exposes a single-select eyewear category defaulting to no glasses', () => {
     const eyewear = getAvatarCatalogItems('eyewear.style');
     expect(eyewear.map((item) => item.id)).toEqual([

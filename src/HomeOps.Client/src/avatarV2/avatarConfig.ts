@@ -105,7 +105,7 @@ const clothingColors: readonly PaletteToken[] = [
   'shirtCranberry',
   'shirtFrost',
 ];
-const accessories: readonly AccessoryStyle[] = ['none', 'star', 'flower', 'headband', 'bow', 'chestStar', 'leafPin', 'tinyCrown'];
+const accessories: readonly AccessoryStyle[] = ['none', 'star', 'flower', 'headband', 'bow', 'chestStar', 'leafPin', 'tinyCrown', 'hairClip', 'ribbon', 'baseballCap', 'beanie', 'partyHat', 'crown', 'sunHat', 'helmet', 'necklace', 'scarf'];
 const accessoryColors: readonly PaletteToken[] = [
   'accessoryLilac',
   'accessoryCoral',
@@ -139,6 +139,16 @@ export function toAvatarV2RenderConfig(configuration: AvatarV2Configuration): Av
     chestStar: 'chestCenter',
     leafPin: 'hairRight',
     tinyCrown: 'headTop',
+    hairClip: 'hairRight',
+    ribbon: 'hairRight',
+    baseballCap: 'headTop',
+    beanie: 'headTop',
+    partyHat: 'headTop',
+    crown: 'headTop',
+    sunHat: 'headTop',
+    helmet: 'headTop',
+    necklace: 'chestCenter',
+    scarf: 'chestCenter',
     starClip: 'hairRight',
   };
   return {

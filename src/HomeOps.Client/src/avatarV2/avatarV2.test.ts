@@ -412,6 +412,16 @@ describe("Avatar V2 SVG renderer", () => {
       "bow",
       "starClip",
       "leafPin",
+      "hairClip",
+      "ribbon",
+      "baseballCap",
+      "beanie",
+      "partyHat",
+      "crown",
+      "sunHat",
+      "helmet",
+      "necklace",
+      "scarf",
       "tinyCrown",
     ]);
     for (const asset of [
@@ -473,7 +483,7 @@ describe("Avatar V2 SVG renderer", () => {
 
   it("renders new asset V1 clothing and accessories deterministically as valid SVG", () => {
     const clothing = ["hoodie", "sweater", "tShirt", "overall"] as const;
-    const accessories = ["star", "flower", "headband", "bow"] as const;
+    const accessories = ["star", "flower", "headband", "bow", "hairClip", "ribbon", "baseballCap", "beanie", "partyHat", "crown", "sunHat", "helmet", "necklace", "scarf"] as const;
 
     for (const style of clothing) {
       const config = {
