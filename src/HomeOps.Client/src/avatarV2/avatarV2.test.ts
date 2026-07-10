@@ -3,6 +3,8 @@ import {
   avatarV2SampleConfigs,
   avatarV2AccessoryAssets,
   avatarV2ClothingAssets,
+  avatarV2DefaultMouthStyle,
+  avatarV2MouthStyles,
   expandAvatarPaletteToken,
   renderAvatarV2Svg,
   resolveAvatarAnatomy,
@@ -79,6 +81,38 @@ describe("Avatar V2 SVG renderer", () => {
 
       expect(svg).not.toContain('rx="55" ry="41"');
       expect(svg).not.toContain('opacity="0.16"');
+    }
+  });
+
+  it("renders the mouth layer with the neutral compatibility default", () => {
+    const config = avatarV2SampleConfigs.adult;
+    const anatomy = resolveAvatarAnatomy(config);
+    const svg = renderAvatarV2Svg(config);
+
+    expect(svg).toContain("avatar-v2-layer-mouth");
+    expect(svg).toContain('data-mouth-style="neutral"');
+    // The default mouth keeps the exact geometry and ink of the original face
+    // so existing avatars stay visually unchanged.
+    expect(svg).toContain(
+      `<path d="M${anatomy.face.mouth.x - 18} ${anatomy.face.mouth.y}c10 12 27 12 37-1" fill="none" stroke="#7a4545" stroke-width="4" stroke-linecap="round"/>`,
+    );
+    // Configs without a mouth fall back to the neutral compatibility default.
+    expect(renderAvatarV2Svg(config)).toBe(
+      renderAvatarV2Svg({ ...config, mouth: { style: avatarV2DefaultMouthStyle } }),
+    );
+  });
+
+  it("renders every mouth style through a stable, deterministic mouth layer", () => {
+    expect(avatarV2MouthStyles).toHaveLength(10);
+    for (const style of avatarV2MouthStyles) {
+      const config = { ...avatarV2SampleConfigs.adult, mouth: { style } };
+      const svg = renderAvatarV2Svg(config);
+      expect(validateAvatarV2AssetSvg(svg)).toBe(true);
+      expect(svg).toContain(`data-mouth-style="${style}"`);
+      // The mouth sits above the base face but below front hair.
+      expect(svg.indexOf("avatar-v2-layer-mouth")).toBeGreaterThan(svg.indexOf("avatar-v2-layer-base"));
+      expect(svg.indexOf("avatar-v2-layer-mouth")).toBeLessThan(svg.indexOf("avatar-v2-layer-front-hair"));
+      expect(svg).toBe(renderAvatarV2Svg(config));
     }
   });
 

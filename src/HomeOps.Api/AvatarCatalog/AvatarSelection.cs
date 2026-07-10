@@ -24,6 +24,7 @@ public static class AvatarSelectionSlots
     public const string HairColor = "hairColor";
     public const string ClothingStyle = "clothingStyle";
     public const string ClothingColor = "clothingColor";
+    public const string MouthStyle = "mouthStyle";
     public const string EyewearStyle = "eyewearStyle";
     public const string AccessoryStyle = "accessoryStyle";
     public const string AccessoryColor = "accessoryColor";

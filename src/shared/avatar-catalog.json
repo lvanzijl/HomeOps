@@ -97,10 +97,11 @@
         "en-US": "Face category"
       },
       "descriptions": {
-        "nl-NL": "Kies een bril voor op het gezicht.",
-        "en-US": "Choose glasses for the face."
+        "nl-NL": "Kies een mond en een bril voor op het gezicht.",
+        "en-US": "Choose a mouth and glasses for the face."
       },
       "categoryIds": [
+        "mouth.style",
         "eyewear.style"
       ]
     },
@@ -289,6 +290,41 @@
         "editor",
         "clothing",
         "color"
+      ]
+    },
+    {
+      "id": "mouth.style",
+      "slot": "mouthStyle",
+      "required": false,
+      "allowsNone": false,
+      "order": 44,
+      "labels": {
+        "nl-NL": "Mond",
+        "en-US": "Mouth"
+      },
+      "shortLabels": {
+        "nl-NL": "Mond",
+        "en-US": "Mouth"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Mondkeuzes",
+        "en-US": "Mouth choices"
+      },
+      "descriptions": {
+        "nl-NL": "Kies een mondexpressie voor het gezicht.",
+        "en-US": "Choose a mouth expression for the face."
+      },
+      "presentation": {
+        "control": "tile",
+        "density": "compact",
+        "itemLabelVisibility": "hidden",
+        "groupStrategy": "none",
+        "optionMinWidthRem": 5.15
+      },
+      "tags": [
+        "editor",
+        "face",
+        "mouth"
       ]
     },
     {
@@ -3706,6 +3742,306 @@
       ]
     },
     {
+      "id": "mouth.style.neutral",
+      "categoryId": "mouth.style",
+      "type": "rendererStyle",
+      "status": "active",
+      "order": 10,
+      "labels": {
+        "nl-NL": "Neutraal",
+        "en-US": "Neutral"
+      },
+      "shortLabels": {
+        "nl-NL": "Neutraal",
+        "en-US": "Neutral"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Neutrale mond",
+        "en-US": "Neutral mouth"
+      },
+      "tags": [
+        "editor",
+        "face",
+        "mouth"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "neutral",
+        "layer": "mouth"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "mouth.style.smile",
+      "categoryId": "mouth.style",
+      "type": "rendererStyle",
+      "status": "active",
+      "order": 20,
+      "labels": {
+        "nl-NL": "Glimlach",
+        "en-US": "Smile"
+      },
+      "shortLabels": {
+        "nl-NL": "Glimlach",
+        "en-US": "Smile"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Glimlachende mond",
+        "en-US": "Smiling mouth"
+      },
+      "tags": [
+        "editor",
+        "face",
+        "mouth"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "smile",
+        "layer": "mouth"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "mouth.style.big-smile",
+      "categoryId": "mouth.style",
+      "type": "rendererStyle",
+      "status": "active",
+      "order": 30,
+      "labels": {
+        "nl-NL": "Brede lach",
+        "en-US": "Big smile"
+      },
+      "shortLabels": {
+        "nl-NL": "Brede lach",
+        "en-US": "Big smile"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Brede lachende mond",
+        "en-US": "Big smiling mouth"
+      },
+      "tags": [
+        "editor",
+        "face",
+        "mouth"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "bigSmile",
+        "layer": "mouth"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "mouth.style.open-smile",
+      "categoryId": "mouth.style",
+      "type": "rendererStyle",
+      "status": "active",
+      "order": 40,
+      "labels": {
+        "nl-NL": "Open lach",
+        "en-US": "Open smile"
+      },
+      "shortLabels": {
+        "nl-NL": "Open lach",
+        "en-US": "Open smile"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Open lachende mond",
+        "en-US": "Open smiling mouth"
+      },
+      "tags": [
+        "editor",
+        "face",
+        "mouth"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "openSmile",
+        "layer": "mouth"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "mouth.style.laughing",
+      "categoryId": "mouth.style",
+      "type": "rendererStyle",
+      "status": "active",
+      "order": 50,
+      "labels": {
+        "nl-NL": "Lachend",
+        "en-US": "Laughing"
+      },
+      "shortLabels": {
+        "nl-NL": "Lachend",
+        "en-US": "Laughing"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Lachende mond",
+        "en-US": "Laughing mouth"
+      },
+      "tags": [
+        "editor",
+        "face",
+        "mouth"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "laughing",
+        "layer": "mouth"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "mouth.style.smirk",
+      "categoryId": "mouth.style",
+      "type": "rendererStyle",
+      "status": "active",
+      "order": 60,
+      "labels": {
+        "nl-NL": "Grijns",
+        "en-US": "Smirk"
+      },
+      "shortLabels": {
+        "nl-NL": "Grijns",
+        "en-US": "Smirk"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Grijnzende mond",
+        "en-US": "Smirking mouth"
+      },
+      "tags": [
+        "editor",
+        "face",
+        "mouth"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "smirk",
+        "layer": "mouth"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "mouth.style.determined",
+      "categoryId": "mouth.style",
+      "type": "rendererStyle",
+      "status": "active",
+      "order": 70,
+      "labels": {
+        "nl-NL": "Vastberaden",
+        "en-US": "Determined"
+      },
+      "shortLabels": {
+        "nl-NL": "Vastberaden",
+        "en-US": "Determined"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Vastberaden mond",
+        "en-US": "Determined mouth"
+      },
+      "tags": [
+        "editor",
+        "face",
+        "mouth"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "determined",
+        "layer": "mouth"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "mouth.style.surprised",
+      "categoryId": "mouth.style",
+      "type": "rendererStyle",
+      "status": "active",
+      "order": 80,
+      "labels": {
+        "nl-NL": "Verrast",
+        "en-US": "Surprised"
+      },
+      "shortLabels": {
+        "nl-NL": "Verrast",
+        "en-US": "Surprised"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Verraste mond",
+        "en-US": "Surprised mouth"
+      },
+      "tags": [
+        "editor",
+        "face",
+        "mouth"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "surprised",
+        "layer": "mouth"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "mouth.style.sad",
+      "categoryId": "mouth.style",
+      "type": "rendererStyle",
+      "status": "active",
+      "order": 90,
+      "labels": {
+        "nl-NL": "Verdrietig",
+        "en-US": "Sad"
+      },
+      "shortLabels": {
+        "nl-NL": "Verdrietig",
+        "en-US": "Sad"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Verdrietige mond",
+        "en-US": "Sad mouth"
+      },
+      "tags": [
+        "editor",
+        "face",
+        "mouth"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "sad",
+        "layer": "mouth"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "mouth.style.tongue-out",
+      "categoryId": "mouth.style",
+      "type": "rendererStyle",
+      "status": "active",
+      "order": 100,
+      "labels": {
+        "nl-NL": "Tong uit",
+        "en-US": "Tongue out"
+      },
+      "shortLabels": {
+        "nl-NL": "Tong uit",
+        "en-US": "Tongue out"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Mond met tong uit",
+        "en-US": "Tongue-out mouth"
+      },
+      "tags": [
+        "editor",
+        "face",
+        "mouth"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "tongueOut",
+        "layer": "mouth"
+      },
+      "legacyIds": []
+    },
+    {
       "id": "eyewear.style.none",
       "categoryId": "eyewear.style",
       "type": "none",
@@ -6734,6 +7070,7 @@
     "clothingColor": "clothing.color.sky",
     "accessoryStyle": "accessory.style.star",
     "accessoryColor": "accessory.color.mint",
+    "mouthStyle": "mouth.style.neutral",
     "eyewearStyle": "eyewear.style.none"
   },
   "optionGroups": [

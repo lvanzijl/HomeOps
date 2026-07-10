@@ -87,6 +87,20 @@ describe('avatar catalog adapter', () => {
     ).toEqual(expect.objectContaining({ style: 'heart' }));
   });
 
+  it('maps the mouth selection to the Avatar V2 mouth style and defaults to neutral', () => {
+    expect(avatarSelectionToAvatarV2RenderConfig(defaultAvatarSelection).mouth).toEqual({
+      style: 'neutral',
+    });
+
+    expect(
+      avatarSelectionToAvatarV2RenderConfig(createAvatarSelectionFixture({ mouthStyle: 'mouth.style.laughing' })).mouth,
+    ).toEqual({ style: 'laughing' });
+
+    expect(
+      avatarSelectionToAvatarV2RenderConfig(createAvatarSelectionFixture({ mouthStyle: 'mouth.style.tongue-out' })).mouth,
+    ).toEqual({ style: 'tongueOut' });
+  });
+
   it('keeps deprecated legacy colors selectable only when already chosen', () => {
     expect(ids(getAvatarCatalogEditorItems('hair.color', 'hair.color.plum'))).toContain('hair.color.plum');
     expect(ids(getAvatarCatalogEditorItems('hair.color', avatarCatalog.defaults.hairColor))).not.toContain('hair.color.plum');

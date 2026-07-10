@@ -105,6 +105,30 @@ describe('AvatarEditorPage', () => {
     expect(screen.getByText('Niet-opgeslagen wijzigingen')).not.toBeNull();
   });
 
+  it('exposes mouth styles inside the Face category and applies a mouth choice', async () => {
+    const user = userEvent.setup();
+    render(<AvatarEditorPage />);
+
+    await user.click(categoryButton('Gezicht')!);
+
+    const controls = within(screen.getByLabelText('Avatarkeuzes'));
+    expect(controls.getByRole('heading', { name: 'Mond' })).not.toBeNull();
+
+    const mouth = within(controls.getByRole('region', { name: 'Mond' }));
+    // Mouth defaults to the neutral compatibility expression.
+    expect(mouth.getByRole('button', { name: 'Neutrale mond' }).getAttribute('aria-pressed')).toBe('true');
+    const preview = screen.getByTestId('avatar-v2-live-preview');
+    const initial = preview.innerHTML;
+    expect(initial).toContain('data-mouth-style="neutral"');
+
+    await user.click(mouth.getByRole('button', { name: 'Lachende mond' }));
+    expect(mouth.getByRole('button', { name: 'Lachende mond' }).getAttribute('aria-pressed')).toBe('true');
+    expect(mouth.getByRole('button', { name: 'Neutrale mond' }).getAttribute('aria-pressed')).toBe('false');
+    expect(preview.innerHTML).not.toBe(initial);
+    expect(preview.innerHTML).toContain('data-mouth-style="laughing"');
+    expect(screen.getByText('Niet-opgeslagen wijzigingen')).not.toBeNull();
+  });
+
   it('groups head accessories and their colors under the Accessories category', async () => {
     const user = userEvent.setup();
     render(<AvatarEditorPage />);
