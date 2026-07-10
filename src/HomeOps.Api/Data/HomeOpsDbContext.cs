@@ -5,6 +5,7 @@ using HomeOps.Api.Households;
 using HomeOps.Api.Lists;
 using HomeOps.Api.CalendarEvents;
 using HomeOps.Api.FamilyMembers;
+using HomeOps.Api.KnownPeople;
 using HomeOps.Api.Motivation;
 using HomeOps.Api.WidgetLayouts;
 using HomeOps.Api.Tasks;
@@ -31,6 +32,7 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
     public DbSet<TaskTemplate> TaskTemplates => Set<TaskTemplate>();
     public DbSet<TaskTemplateItem> TaskTemplateItems => Set<TaskTemplateItem>();
     public DbSet<FamilyMember> FamilyMembers => Set<FamilyMember>();
+    public DbSet<KnownPerson> KnownPeople => Set<KnownPerson>();
     public DbSet<MotivationFamilyGoal> MotivationFamilyGoals => Set<MotivationFamilyGoal>();
     public DbSet<MotivationIndividualGoal> MotivationIndividualGoals => Set<MotivationIndividualGoal>();
     public DbSet<HelpfulMoment> HelpfulMoments => Set<HelpfulMoment>();
@@ -301,6 +303,45 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
                 .OnDelete(DeleteBehavior.Restrict);
             entity.HasIndex(member => new { member.HouseholdId, member.Name });
             entity.HasIndex(member => new { member.HouseholdId, member.IsDeleted, member.Name });
+        });
+
+
+
+        modelBuilder.Entity<KnownPerson>(entity =>
+        {
+            entity.ToTable("KnownPeople", table =>
+            {
+                table.HasCheckConstraint("CK_KnownPeople_Scope_FamilyMember", "(\"Scope\" = 'Shared' AND \"FamilyMemberId\" IS NULL) OR (\"Scope\" = 'PrivateToMember' AND \"FamilyMemberId\" IS NOT NULL)");
+            });
+            entity.HasKey(person => person.Id);
+            entity.Property(person => person.DisplayName).HasMaxLength(160).IsRequired();
+            entity.Property(person => person.Nickname).HasMaxLength(80);
+            entity.Property(person => person.RelationshipType).HasConversion<string>().HasMaxLength(32).IsRequired();
+            entity.Property(person => person.CustomRelationshipLabel).HasMaxLength(80);
+            entity.Property(person => person.Scope).HasConversion<string>().HasMaxLength(32).IsRequired();
+            entity.Property(person => person.FamilyMemberId).HasMaxLength(120);
+            entity.Property(person => person.Initials).HasMaxLength(8).IsRequired();
+            entity.Property(person => person.AvatarSelection)
+                .HasColumnType("jsonb")
+                .HasConversion(
+                    selection => JsonSerializer.Serialize(selection, (JsonSerializerOptions?)null),
+                    json => JsonSerializer.Deserialize<AvatarSelection>(json, (JsonSerializerOptions?)null) ?? new AvatarSelection());
+            entity.Property(person => person.IsDeleted).IsRequired();
+            entity.Property(person => person.DeletedUtc);
+            entity.Property(person => person.CreatedUtc).IsRequired();
+            entity.Property(person => person.UpdatedUtc).IsRequired();
+            entity.HasOne(person => person.Household)
+                .WithMany()
+                .HasForeignKey(person => person.HouseholdId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(person => person.FamilyMember)
+                .WithMany()
+                .HasForeignKey(person => person.FamilyMemberId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(person => new { person.HouseholdId, person.IsDeleted, person.DisplayName });
+            entity.HasIndex(person => new { person.HouseholdId, person.Scope, person.IsDeleted, person.DisplayName });
+            entity.HasIndex(person => new { person.HouseholdId, person.FamilyMemberId, person.IsDeleted, person.DisplayName });
+            entity.HasIndex(person => new { person.HouseholdId, person.RelationshipType, person.IsDeleted });
         });
 
         modelBuilder.Entity<RecurringTaskSeries>(entity =>
