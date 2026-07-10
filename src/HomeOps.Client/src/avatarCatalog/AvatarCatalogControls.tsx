@@ -138,39 +138,47 @@ function TileSection({
 }) {
   const showItemLabel = category.presentation.itemLabelVisibility === 'visible';
   const headingText = localizeAvatarCatalogText(category.labels, category.id);
+  const groupedItems = groupItems(category, items);
 
   return (
     <section className="avatar-v2-choice-section avatar-v2-choice-section-tile" aria-labelledby={`${category.id}-title`}>
       <h4 className={showSectionHeading ? 'avatar-v2-choice-title' : 'visually-hidden'} id={`${category.id}-title`}>{headingText}</h4>
-      <div
-        className="avatar-v2-asset-grid"
-        data-option-group
-        style={{ ['--avatar-option-min-width' as string]: `${getOptionMinWidthRem(category)}rem` }}
-      >
-        {items.map((item) => {
-          const selected = item.id === selectedItemId;
-          return (
-            <button
-              aria-label={localizeAvatarCatalogText(item.accessibilityLabels, localizeAvatarCatalogText(item.labels, item.id))}
-              aria-pressed={selected}
-              className={`avatar-v2-asset-tile ${showItemLabel ? 'avatar-v2-asset-tile-labelled' : 'avatar-v2-asset-tile-visual'}`}
-              key={item.id}
-              onClick={() => onSelect(item.id)}
-              onKeyDown={handleOptionGroupKeyDown}
-              type="button"
+      <div className="avatar-v2-asset-groups">
+        {groupedItems.map((group) => (
+          <section className="avatar-v2-asset-group" key={group.id} aria-label={groupedItems.length > 1 ? group.label : undefined}>
+            {groupedItems.length > 1 ? <h5>{group.label}</h5> : null}
+            <div
+              className="avatar-v2-asset-grid"
+              data-option-group
+              style={{ ['--avatar-option-min-width' as string]: `${getOptionMinWidthRem(category)}rem` }}
             >
-              <span
-                aria-hidden="true"
-                className="avatar-v2-option-preview"
-                dangerouslySetInnerHTML={{
-                  __html: renderSelectionPreview(buildAvatarTilePreviewSelection(selection, category, item.id)),
-                }}
-              />
-              {showItemLabel ? <strong>{localizeAvatarCatalogText(item.labels, item.id)}</strong> : null}
-              {selected ? <SelectionIndicator /> : null}
-            </button>
-          );
-        })}
+              {group.items.map((item) => {
+                const selected = item.id === selectedItemId;
+                return (
+                  <button
+                    aria-label={localizeAvatarCatalogText(item.accessibilityLabels, localizeAvatarCatalogText(item.labels, item.id))}
+                    aria-pressed={selected}
+                    className={`avatar-v2-asset-tile ${showItemLabel ? 'avatar-v2-asset-tile-labelled' : 'avatar-v2-asset-tile-visual'}`}
+                    key={item.id}
+                    onClick={() => onSelect(item.id)}
+                    onKeyDown={handleOptionGroupKeyDown}
+                    type="button"
+                  >
+                    <span
+                      aria-hidden="true"
+                      className="avatar-v2-option-preview"
+                      dangerouslySetInnerHTML={{
+                        __html: renderSelectionPreview(buildAvatarTilePreviewSelection(selection, category, item.id)),
+                      }}
+                    />
+                    {showItemLabel ? <strong>{localizeAvatarCatalogText(item.labels, item.id)}</strong> : null}
+                    {selected ? <SelectionIndicator /> : null}
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        ))}
       </div>
     </section>
   );

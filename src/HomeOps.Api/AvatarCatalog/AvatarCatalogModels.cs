@@ -41,7 +41,7 @@ public sealed record AvatarCatalogCategory(
     AvatarCatalogPresentation Presentation,
     IReadOnlyList<string> Tags);
 
-public sealed record AvatarCatalogPresentation(string Control, string Density);
+public sealed record AvatarCatalogPresentation(string Control, string Density, string? ItemLabelVisibility = null, string? GroupStrategy = null, decimal? OptionMinWidthRem = null);
 
 public sealed record AvatarCatalogItem(
     string Id,

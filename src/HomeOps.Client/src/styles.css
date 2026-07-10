@@ -5586,16 +5586,19 @@ button {
   width: 3.3rem;
 }
 
+.avatar-v2-asset-groups,
 .avatar-v2-swatch-groups {
   display: grid;
   gap: 0.42rem;
 }
 
+.avatar-v2-asset-group,
 .avatar-v2-swatch-group {
   display: grid;
   gap: 0.2rem;
 }
 
+.avatar-v2-asset-group h5,
 .avatar-v2-swatch-group h5 {
   color: var(--color-text-strong);
   font-size: 0.72rem;

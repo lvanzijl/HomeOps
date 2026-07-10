@@ -169,7 +169,17 @@ export type AccessoryStyle =
   | "star"
   | "flower"
   | "headband"
-  | "bow";
+  | "bow"
+  | "hairClip"
+  | "ribbon"
+  | "baseballCap"
+  | "beanie"
+  | "partyHat"
+  | "crown"
+  | "sunHat"
+  | "helmet"
+  | "necklace"
+  | "scarf";
 export type AvatarMountPoint =
   | "chestCenter"
   | "hairLeft"
@@ -949,7 +959,7 @@ export const avatarV2AccessoryAssets: Record<
         ctx,
         c,
         "chestCenter",
-        `<path d="M0-13l4 8 9 1-7 6 2 9-8-4-8 4 2-9-7-6 9-1z" fill="${c.base}" stroke="${c.line}" stroke-width="3"/><path d="M-3-5l3-4 3 4" fill="none" stroke="${c.highlight}" stroke-width="3" stroke-linecap="round" opacity="0.7"/>`,
+        `<path data-accessory-asset="chestStar" d="M0-13l4 8 9 1-7 6 2 9-8-4-8 4 2-9-7-6 9-1z" fill="${c.base}" stroke="${c.line}" stroke-width="3"/><path d="M-3-5l3-4 3 4" fill="none" stroke="${c.highlight}" stroke-width="3" stroke-linecap="round" opacity="0.7"/>`,
       ),
   },
   star: {
@@ -1036,6 +1046,59 @@ export const avatarV2AccessoryAssets: Record<
         `<path data-accessory-asset="leafPin" d="M-14 2C-5-14 10-16 17-4 10 13-5 17-14 2z" fill="${c.base}" stroke="${c.line}" stroke-width="3"/><path d="M-10 1C-2-1 7-4 14-8" fill="none" stroke="${c.highlight}" stroke-width="3" stroke-linecap="round"/><path d="M-2-1l-3-7M4-3l3 6" fill="none" stroke="${c.line}" stroke-width="2" stroke-linecap="round" opacity="0.55"/>`,
       ),
   },
+
+  hairClip: {
+    id: "hairClip",
+    metadata: { displayName: "Hair Clip", category: "accessory", previewPriority: 52, recommendedMount: "hairRight" },
+    render: (ctx, c) =>
+      renderMounted(ctx, c, "hairRight", `<rect data-accessory-asset="hairClip" x="-17" y="-5" width="34" height="10" rx="5" fill="${c.base}" stroke="${c.line}" stroke-width="3"/><path d="M-10-1h20" stroke="${c.highlight}" stroke-width="3" stroke-linecap="round" opacity="0.75"/>`),
+  },
+  ribbon: {
+    id: "ribbon",
+    metadata: { displayName: "Ribbon", category: "accessory", previewPriority: 54, recommendedMount: "hairRight" },
+    render: (ctx, c) =>
+      renderMounted(ctx, c, "hairRight", `<path data-accessory-asset="ribbon" d="M-5 0c-9-8-17-6-19 3 4 7 12 8 19 2 7 6 15 5 19-2-2-9-10-11-19-3z" fill="${c.base}" stroke="${c.line}" stroke-width="3"/><path d="M-4 6l-5 17 9-5 8 5-4-17z" fill="${c.shade}" stroke="${c.line}" stroke-width="3" stroke-linejoin="round"/><circle cx="0" cy="3" r="4" fill="${c.highlight}" stroke="${c.line}" stroke-width="2"/>`),
+  },
+  baseballCap: {
+    id: "baseballCap",
+    metadata: { displayName: "Baseball Cap", category: "accessory", previewPriority: 56, recommendedMount: "headTop" },
+    render: (ctx, c) => renderHeadwear(ctx, c, "baseballCap"),
+  },
+  beanie: {
+    id: "beanie",
+    metadata: { displayName: "Beanie", category: "accessory", previewPriority: 58, recommendedMount: "headTop" },
+    render: (ctx, c) => renderHeadwear(ctx, c, "beanie"),
+  },
+  partyHat: {
+    id: "partyHat",
+    metadata: { displayName: "Party Hat", category: "accessory", previewPriority: 60, recommendedMount: "headTop" },
+    render: (ctx, c) => renderHeadwear(ctx, c, "partyHat"),
+  },
+  crown: {
+    id: "crown",
+    metadata: { displayName: "Crown", category: "accessory", previewPriority: 62, recommendedMount: "headTop" },
+    render: (ctx, c) => renderHeadwear(ctx, c, "crown"),
+  },
+  sunHat: {
+    id: "sunHat",
+    metadata: { displayName: "Sun Hat", category: "accessory", previewPriority: 64, recommendedMount: "headTop" },
+    render: (ctx, c) => renderHeadwear(ctx, c, "sunHat"),
+  },
+  helmet: {
+    id: "helmet",
+    metadata: { displayName: "Helmet", category: "accessory", previewPriority: 66, recommendedMount: "headTop" },
+    render: (ctx, c) => renderHeadwear(ctx, c, "helmet"),
+  },
+  necklace: {
+    id: "necklace",
+    metadata: { displayName: "Necklace", category: "accessory", previewPriority: 68, recommendedMount: "chestCenter" },
+    render: (ctx, c) => renderNeckAccessory(ctx, c, "necklace"),
+  },
+  scarf: {
+    id: "scarf",
+    metadata: { displayName: "Scarf", category: "accessory", previewPriority: 69, recommendedMount: "chestCenter" },
+    render: (ctx, c) => renderNeckAccessory(ctx, c, "scarf"),
+  },
   tinyCrown: {
     id: "tinyCrown",
     metadata: {
@@ -1053,6 +1116,31 @@ export const avatarV2AccessoryAssets: Record<
       ),
   },
 };
+function renderHeadwear(ctx: AvatarRenderContext, c: ExpandedSwatch, style: "baseballCap" | "beanie" | "partyHat" | "crown" | "sunHat" | "helmet"): string {
+  const h = ctx.anatomy.head.bounds;
+  const cx = ctx.anatomy.head.center.x;
+  const top = h.y + 9;
+  const line = c.line;
+  const shapes: Record<typeof style, string> = {
+    baseballCap: `<path data-accessory-asset="baseballCap" d="M${cx - 35} ${top + 18}c8-19 62-19 70 0v10h-70z" fill="${c.base}" stroke="${line}" stroke-width="3"/><path d="M${cx + 12} ${top + 28}c14-1 26 3 34 10-16 5-31 3-43-4z" fill="${c.shade}" stroke="${line}" stroke-width="3"/><path d="M${cx - 14} ${top + 17}c8-5 20-6 31-1" stroke="${c.highlight}" stroke-width="4" stroke-linecap="round" opacity="0.65"/>`,
+    beanie: `<path data-accessory-asset="beanie" d="M${cx - 38} ${top + 26}c4-30 72-30 76 0v10h-76z" fill="${c.base}" stroke="${line}" stroke-width="3"/><path d="M${cx - 40} ${top + 34}h80" stroke="${line}" stroke-width="8" stroke-linecap="round"/><circle cx="${cx}" cy="${top - 1}" r="8" fill="${c.highlight}" stroke="${line}" stroke-width="3"/>`,
+    partyHat: `<path data-accessory-asset="partyHat" d="M${cx - 18} ${top + 35}L${cx + 5} ${top - 23}L${cx + 31} ${top + 35}z" fill="${c.base}" stroke="${line}" stroke-width="3"/><path d="M${cx - 9} ${top + 14}l25 9M${cx - 1} ${top - 6}l15 6" stroke="${c.highlight}" stroke-width="4" stroke-linecap="round" opacity="0.7"/><circle cx="${cx + 5}" cy="${top - 26}" r="6" fill="${c.highlight}" stroke="${line}" stroke-width="2"/>`,
+    crown: `<path data-accessory-asset="crown" d="M${cx - 34} ${top + 25}l9-21 17 17 16-25 17 25 17-17 8 21v18h-84z" fill="${c.base}" stroke="${line}" stroke-width="3" stroke-linejoin="round"/><path d="M${cx - 20} ${top + 32}h40" stroke="${c.highlight}" stroke-width="4" stroke-linecap="round" opacity="0.65"/>`,
+    sunHat: `<path data-accessory-asset="sunHat" d="M${cx - 38} ${top + 22}c6-22 70-22 76 0v11h-76z" fill="${c.base}" stroke="${line}" stroke-width="3"/><path d="M${cx - 60} ${top + 33}c32-10 88-10 120 0-16 13-105 13-120 0z" fill="${c.shade}" stroke="${line}" stroke-width="3"/><path d="M${cx - 28} ${top + 23}c15-5 38-5 56 0" stroke="${c.highlight}" stroke-width="4" stroke-linecap="round" opacity="0.6"/>`,
+    helmet: `<path data-accessory-asset="helmet" d="M${cx - 43} ${top + 34}c0-31 18-47 43-47s43 16 43 47v8h-86z" fill="${c.base}" stroke="${line}" stroke-width="3"/><path d="M${cx} ${top - 10}v47M${cx - 32} ${top + 18}c19 6 45 6 64 0" stroke="${c.highlight}" stroke-width="4" stroke-linecap="round" opacity="0.62"/>`,
+  };
+  return `<g id="avatar-v2-layer-accessory" data-avatar-mount="headTop">${shapes[style]}</g>`;
+}
+
+function renderNeckAccessory(ctx: AvatarRenderContext, c: ExpandedSwatch, style: "necklace" | "scarf"): string {
+  const cx = ctx.anatomy.body.chest.x;
+  const y = ctx.anatomy.body.neck.y + 14;
+  if (style === "necklace") {
+    return `<g id="avatar-v2-layer-accessory" data-avatar-mount="chestCenter"><path data-accessory-asset="necklace" d="M${cx - 24} ${y}q24 34 48 0" fill="none" stroke="${c.line}" stroke-width="4" stroke-linecap="round"/><circle cx="${cx}" cy="${y + 27}" r="8" fill="${c.base}" stroke="${c.line}" stroke-width="3"/><path d="M${cx - 3} ${y + 25}h6" stroke="${c.highlight}" stroke-width="3" stroke-linecap="round" opacity="0.7"/></g>`;
+  }
+  return `<g id="avatar-v2-layer-accessory" data-avatar-mount="chestCenter"><path data-accessory-asset="scarf" d="M${cx - 31} ${y + 1}c15 14 47 14 62 0v15c-16 13-47 13-62 0z" fill="${c.base}" stroke="${c.line}" stroke-width="3"/><path d="M${cx - 2} ${y + 12}l-10 35h20l8-33z" fill="${c.shade}" stroke="${c.line}" stroke-width="3" stroke-linejoin="round"/><path d="M${cx - 20} ${y + 12}c11 6 28 6 40 0" stroke="${c.highlight}" stroke-width="4" stroke-linecap="round" opacity="0.55"/></g>`;
+}
+
 function headbandAnchorCurve(anatomy: AvatarAnatomy) {
   const h = anatomy.head.bounds;
   const left = { x: h.x + h.width * 0.07, y: h.y + h.height * 0.36 };

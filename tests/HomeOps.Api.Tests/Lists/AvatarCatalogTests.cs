@@ -82,6 +82,38 @@ public sealed class AvatarCatalogTests(HomeOpsWebApplicationFactory factory) : I
         Assert.Equal("clothing.color.mint", member.AvatarSelection.Selections[AvatarSelectionSlots.ClothingColor]);
     }
 
+
+    [Fact]
+    public void AccessoriesV2CatalogKeepsSingleSlotAndGroupedRendererBindings()
+    {
+        var service = new AvatarCatalogService(new SharedAvatarCatalogSource());
+        var category = Assert.Single(service.Catalog.Categories, candidate => candidate.Id == "accessory.style");
+        Assert.Equal(AvatarSelectionSlots.AccessoryStyle, category.Slot);
+        Assert.Equal("tag", category.Presentation.GroupStrategy);
+
+        var expected = new[]
+        {
+            "accessory.style.hair-clip",
+            "accessory.style.ribbon",
+            "accessory.style.baseball-cap",
+            "accessory.style.beanie",
+            "accessory.style.party-hat",
+            "accessory.style.crown",
+            "accessory.style.sun-hat",
+            "accessory.style.helmet",
+            "accessory.style.necklace",
+            "accessory.style.scarf"
+        };
+
+        foreach (var id in expected)
+        {
+            var item = Assert.Single(service.Catalog.Items, candidate => candidate.Id == id);
+            Assert.Equal("accessory.style", item.CategoryId);
+            Assert.NotNull(item.Renderer);
+            Assert.Contains(item.Tags, tag => tag.StartsWith("group.", StringComparison.Ordinal));
+        }
+    }
+
     [Fact]
     public async Task CreateAcceptsEyewearSelectionAndPersistsIt()
     {
