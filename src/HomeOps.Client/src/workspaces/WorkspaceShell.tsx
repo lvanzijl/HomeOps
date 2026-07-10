@@ -227,6 +227,7 @@ export function WorkspaceShell() {
             <DomainPlaceholderPage title="Beloningen" purpose="Voor toekomstige punten, beloningen en gezinsvoortgang." />
           ) : activeWorkspace.id === 'settings' ? (
             <SettingsDashboard
+              members={members}
               onCalendarSourcesChanged={(sources) => setSettingsNeedsAttention(hasCalendarSourceAttention(sources))}
               widgetInstances={widgetInstances}
             />

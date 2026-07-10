@@ -36,6 +36,8 @@ import { FamilyBoardIcon } from "../design";
 import { WidgetRenderer } from "../widgets/WidgetRenderer";
 import { getWidgetDefinition } from "../widgets/widgetCatalog";
 import type { WidgetInstance } from "../widgets/widgetModel";
+import { PeopleManagement } from "../knownPeople/PeopleManagement";
+import type { FamilyMember } from "../home/familyMembers";
 
 interface MaintenanceStatus {
   kind: "success" | "error";
@@ -46,6 +48,7 @@ interface MaintenanceStatus {
 
 interface SettingsDashboardProps {
   widgetInstances: readonly WidgetInstance[];
+  members?: readonly FamilyMember[];
   onCalendarSourcesChanged?(sources: readonly CalendarSource[]): void;
 }
 
@@ -56,9 +59,10 @@ type SettingsSurface =
   | "createSource"
   | "editSource"
   | "deleteSource"
+  | "people"
   | null;
 
-export function SettingsDashboard({ widgetInstances, onCalendarSourcesChanged }: SettingsDashboardProps) {
+export function SettingsDashboard({ widgetInstances, members = [], onCalendarSourcesChanged }: SettingsDashboardProps) {
   const [activeSurface, setActiveSurface] = useState<SettingsSurface>(null);
   const [selectedSourceId, setSelectedSourceId] = useState<string | null>(null);
   const [sourceForm, setSourceForm] = useState<CalendarSourceFormValues>(() => createCalendarSourceFormValues());
@@ -614,6 +618,9 @@ export function SettingsDashboard({ widgetInstances, onCalendarSourcesChanged }:
           <button onClick={() => setActiveSurface("details")} type="button">
             Details bekijken
           </button>
+          <button onClick={() => setActiveSurface("people")} type="button">
+            People beheren
+          </button>
           {hasAdditionalSettings ? (
             <button onClick={() => setActiveSurface("settings")} type="button">
               Gezinsinstellingen
@@ -710,6 +717,16 @@ export function SettingsDashboard({ widgetInstances, onCalendarSourcesChanged }:
               </button>
             </div>
           </div>
+        </SettingsSurfaceDialog>
+      ) : null}
+
+      {activeSurface === "people" ? (
+        <SettingsSurfaceDialog
+          description="Beheer People als gedeelde of gezinslid-specifieke contacten."
+          onClose={closeSurface}
+          title="People"
+        >
+          <PeopleManagement members={members} />
         </SettingsSurfaceDialog>
       ) : null}
 
