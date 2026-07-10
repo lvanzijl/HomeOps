@@ -17,14 +17,14 @@
 - Do not introduce a generic `Person` base class.
 - Do not introduce `AvatarProfile`, avatar snapshots, or future decorative-reference persistence in V1.
 - Keep `FamilyMember` as its own semantic entity and keep all semantic ownership references pointing only at `FamilyMember`.
-- Use scope terminology for where a person belongs: `Shared` and `PrivateToMember`.
+- Use scope terminology for where a `KnownPerson` belongs: `Shared` and `PrivateToMember`.
 - Model relationships with a normalized enum plus an optional custom display label.
-- Treat **People** as a product capability, not necessarily a dedicated page; private People primarily belong with their owning family member.
+- Treat **People** as a product capability, not necessarily a dedicated page; private member-scoped People primarily belong with their owning family member.
 - Decorative avatars for shopping, tasks, and agenda events remain out of scope for V1 implementation.
 
 ### Architectural recommendation
 
-Avatar Contacts V1 should add a household-scoped `KnownPerson` aggregate that directly owns an `AvatarSelection`, mirrors the useful display fields from `FamilyMember`, and participates only in People management and future avatar picker read models. The system should treat People as lightweight visual identities, not principals, assignees, attendees, recipients, or account holders.
+Avatar Contacts V1 should add a household-scoped `KnownPerson` aggregate that directly owns an `AvatarSelection`, mirrors the useful display fields from `FamilyMember`, and participates only in People management and future avatar picker read models. The system should treat `KnownPerson` records as lightweight visual identities, not principals, assignees, attendees, recipients, or account holders.
 
 ## 2. Product Vision
 
@@ -34,15 +34,15 @@ Avatar Contacts V1 establishes a **People** catalog for non-family-member identi
 
 The V1 product outcome is a clear implementation contract for future backend and frontend slices:
 
-- People can be created, edited, soft-deleted, and listed;
-- People can be shared with the household or private to one family member;
-- People reuse the same avatar catalog and editor infrastructure as family members;
-- People are available later to picker surfaces as optional decorative candidates;
+- `KnownPerson` records can be created, edited, soft-deleted, and listed;
+- `KnownPerson` records can use shared household scope or private member scope;
+- `KnownPerson` records reuse the same avatar catalog and editor infrastructure as family members;
+- `KnownPerson` records are available later to picker surfaces as optional decorative candidates;
 - no decorative persistence is introduced in V1.
 
 Product terminology and implementation terminology are intentionally separate:
 
-- Product surfaces should say **People**, **Shared People**, **Friends**, **Add person**, and **Edit person**.
+- Product surfaces should say **People**, **Shared People**, **Friends**, **Teachers**, **Add person**, and **Edit person**.
 - Backend, persistence, DTO, and implementation discussions should use `KnownPerson`.
 - Avoid prose such as “known people,” “private known people,” and “shared known people” in user-facing rationale unless the sentence is explicitly about `KnownPerson` rows or code.
 
@@ -63,7 +63,7 @@ The backend avatar catalog service provides:
 - write validation for schema version, slots, item existence, category compatibility, required categories, and retired items;
 - normalization with defaults.
 
-These functions are entity-neutral enough to be reused by KnownPerson entities. A KnownPerson backend slice should call the same validation service rather than create KnownPerson-specific avatar rules.
+These functions are entity-neutral enough to be reused by `KnownPerson` entities. A `KnownPerson` backend slice should call the same validation service rather than create `KnownPerson`-specific avatar rules.
 
 The frontend avatar system already has a useful split:
 
@@ -90,14 +90,14 @@ Use **KnownPerson**.
 - It describes the backend/domain entity precisely without implying phone, email, or address-book data.
 - It clearly means “a known external person” rather than a family member.
 - It supports grandparents, teachers, neighbours, friends, classmates, and babysitters without implying application access.
-- User-facing copy can still say People, Shared People, and Thomas's People, while backend/API code uses the more precise `KnownPerson` name.
+- User-facing copy can still say People, Shared People, Friends, Teachers, Add person, and Edit person, while backend/API code uses the more precise `KnownPerson` name.
 - It is less ambiguous than `HouseholdPerson`, which could sound like a family member or household user.
 
 #### Terminology caveat
 
-The UI should avoid “KnownPeople” and “Known Persons” as user-facing destination labels because they sound technical. The product terminology remains **People**, **Shared People**, and member-scoped labels such as **Thomas's People**, while the implementation entity is `KnownPerson`.
+The UI should avoid “KnownPeople” and “Known Persons” as user-facing destination labels because they sound technical. The product terminology remains **People**, **Shared People**, relationship group labels such as **Friends** and **Teachers**, and actions such as **Add person** and **Edit person**, while the implementation entity is `KnownPerson`.
 
-Member pages should use the relationship label users expect most often. For a child or household member, the primary member-page presentation should usually be **Friends**, with other relationships below or in secondary sections when needed. The central capability may still use **People** and **Shared People**.
+Member pages should not use redundant labels such as **Thomas's People** or **Robin's People** because the member context is already established by the page. For a child or household member, the first visible relationship section should normally be **Friends**, with **Teachers** and other relationship sections below or in secondary sections when needed. Relationship sections are presentation concerns derived from `KnownPersonRelationshipType`; they must not introduce additional domain concepts or persistence fields. The central capability may still use **People** and **Shared People**.
 
 ### Recommended entity shape
 
@@ -220,23 +220,47 @@ The model is:
 
 ### Invariants
 
-- Every person belongs to exactly one household.
+- Every `KnownPerson` belongs to exactly one household.
 - `Scope = Shared` means `FamilyMemberId` must be null.
 - `Scope = PrivateToMember` means `FamilyMemberId` must reference an active, non-deleted `FamilyMember` in the same household.
-- A person cannot move to another household.
-- A private person cannot reference a family member from another household.
-- Soft-deleted family members cannot become new private person references.
+- A `KnownPerson` cannot move to another household.
+- A `KnownPerson` with `Scope = PrivateToMember` cannot reference a family member from another household.
+- Soft-deleted family members cannot become new `KnownPerson` private-member references.
 - If a family member is soft-deleted, existing private KnownPerson rows should remain rows but should be hidden from default people lists unless an administrative recovery view is later added.
-- A person's scope controls management placement and future picker context only; it does not create permissions.
-- Shared People may be listed in all household-level decorative picker contexts.
-- Private People belong with the owning `FamilyMember` and should be listed primarily in that member's context.
+- A `KnownPerson` scope controls management placement and future picker context only; it does not create permissions.
+- `KnownPerson` records with `Scope = Shared` may be listed in all household-level decorative picker contexts.
+- `KnownPerson` records with `Scope = PrivateToMember` belong with the owning `FamilyMember` and should be listed primarily in that member's context.
+
+### Future private-to-shared promotion
+
+A future design may allow a private `KnownPerson` to be promoted to shared scope without creating a duplicate identity:
+
+```text
+Scope = PrivateToMember
+FamilyMemberId = Thomas
+
+↓
+
+Scope = Shared
+FamilyMemberId = null
+```
+
+Intended principles:
+
+- Promotion updates the existing `KnownPerson`.
+- Promotion does not create a duplicate identity.
+- The `KnownPerson` ID remains unchanged.
+- The avatar remains unchanged.
+- Future decorative references continue working because the identity remains the same.
+- Demotion from `Shared` to `PrivateToMember` is intentionally outside the scope of V1.
+- No promotion workflow should be implemented in V1.
 
 ### API validation expectations
 
-- Create/update must reject `Shared` People with a `FamilyMemberId`.
-- Create/update must reject `PrivateToMember` People without a valid `FamilyMemberId`.
+- Create/update must reject `KnownPerson` payloads where `Scope = Shared` includes a `FamilyMemberId`.
+- Create/update must reject `KnownPerson` payloads where `Scope = PrivateToMember` omits a valid `FamilyMemberId`.
 - Create/update must reject unknown enum values.
-- Endpoints must filter out `IsDeleted` People by default.
+- Endpoints must filter out `IsDeleted` `KnownPerson` records by default.
 
 ## 7. Relationship Model
 
@@ -302,12 +326,12 @@ Both `FamilyMember` and `KnownPerson` directly own their own `AvatarSelection`.
 
 - Do not create a shared avatar profile table or any avatar snapshot persistence in V1.
 - Do not duplicate the avatar catalog.
-- Do not create a KnownPerson-specific renderer.
-- Do not add legacy `AvatarV2Config` columns to KnownPerson rows unless an implementation slice proves they are necessary for temporary renderer compatibility.
-- New People should default to `AvatarCatalogService.DefaultSelection()` when no selection is provided.
-- KnownPerson create/update must validate with `AvatarCatalogService.ValidateForWrite()`.
-- Retired catalog items must not be newly selectable for People, matching family member behavior.
-- Existing KnownPerson selections should normalize missing optional slots to defaults in the same way family member selections do.
+- Do not create a `KnownPerson`-specific renderer.
+- Do not add legacy `AvatarV2Config` columns to `KnownPerson` rows unless an implementation slice proves they are necessary for temporary renderer compatibility.
+- New `KnownPerson` records should default to `AvatarCatalogService.DefaultSelection()` when no selection is provided.
+- `KnownPerson` create/update must validate with `AvatarCatalogService.ValidateForWrite()`.
+- Retired catalog items must not be newly selectable for `KnownPerson` avatar selections, matching family member behavior.
+- Existing `KnownPerson` selections should normalize missing optional slots to defaults in the same way family member selections do.
 
 ### Frontend direction
 
@@ -328,7 +352,7 @@ Then keep wrappers:
 - `FamilyAvatarEditor` adapts `FamilyMember` to `AvatarSelectionEditor`.
 - `KnownPersonAvatarEditor` adapts `KnownPerson` to `AvatarSelectionEditor`.
 
-This preserves existing behavior while making People use the same controls, renderer, validation expectations, and visual quality tier.
+This preserves existing behavior while making KnownPerson editing use the same controls, renderer, validation expectations, and visual quality tier.
 
 ## 9. People Management UX
 
@@ -342,8 +366,14 @@ Recommended top-level IA:
 People
 - Family Members
 - Shared People
-- Thomas's People
-- Robin's People
+- Thomas
+  - Friends
+  - Teachers
+  - Other
+- Robin
+  - Friends
+  - Teachers
+  - Other
 ```
 
 ### Why People is the right surface
@@ -383,38 +413,41 @@ The UX should still make private People feel naturally owned by their member con
 
 ## 10. Member Page Integration
 
-Private People primarily belong with their owning `FamilyMember`. Each `FamilyMember` page should include a bounded **People** section for that member's private People.
+Private member-scoped relationship lists primarily belong with their owning `FamilyMember`. Each `FamilyMember` page should include bounded relationship sections for that member's private `KnownPerson` records.
 
 Recommended member page section:
 
 ```text
 Thomas
-- Friends
-  - Vic
-  - Tim
-  - Emma
 
-- Other relationships
-  - Juf Sophie
-  - Coach Mark
+Friends
+- Vic
+- Tim
+- Emma
+
+Teachers
+- Juf Sophie
+
+Other
+- Coach Mark
 
 Manage
 - Add person
-- Edit name, relationship, avatar
+- Edit person
 - link: Manage all People
 ```
 
 ### Requirements
 
 - The section must be internally bounded and must not introduce page-level vertical scrolling on primary pages.
-- The section should summarize when there are many private People, for example showing a limited list and “+N more”.
-- Editing should use the same KnownPerson editor model as any central People management capability.
-- Shared People may be visible as suggestions or references later, but member pages should primarily focus on that member's private People.
+- The relationship sections should summarize when there are many private `KnownPerson` records, for example showing a limited list and “+N more”.
+- Editing should use the same `KnownPerson` editor model as any central People management capability.
+- Shared People may be visible as suggestions or references later, but member pages should primarily focus on that member's private relationship sections.
 - The first visible relationship group should be **Friends** when friend relationships exist, because that is the most common member-page mental model. Other relationship types can appear below Friends, be summarized, or be available behind the same management affordance.
 
 ### Product rationale
 
-Private People are often meaningful to a child: classmates, friends, teachers, coaches, or babysitters. Placing them on the member page makes quick editing natural without forcing the household to maintain every private social connection centrally.
+Private member-scoped People are often meaningful to a child: classmates, friends, teachers, coaches, or babysitters. Placing them on the member page makes quick editing natural without forcing the household to maintain every private social connection centrally.
 
 ## 11. Shared People Management
 
@@ -449,15 +482,15 @@ Babysitter, Neighbour -> Helpers
 Friend, FamilyFriend -> Friends
 ```
 
-Future relationship types can introduce new presentation groups by changing presentation mapping only; they should not require a domain-model migration unless the relationship type itself is new.
+Future relationship types can introduce new presentation groups by changing presentation mapping only; they should not require a domain-model migration unless the `KnownPersonRelationshipType` value itself is new.
 
 ### Shared People behavior
 
-- Shared People are visible in household-level management.
-- Shared People are eligible for future decorative picker contexts that are not member-specific.
-- Shared People have no owner member.
-- Shared People are part of the household-level People management capability.
-- Shared People should not appear as task assignees or calendar participants.
+- `KnownPerson` records with `Scope = Shared` are visible in household-level management.
+- `KnownPerson` records with `Scope = Shared` are eligible for future decorative picker contexts that are not member-specific.
+- `KnownPerson` records with `Scope = Shared` have no owner member.
+- `KnownPerson` records with `Scope = Shared` are part of the household-level People management capability.
+- `KnownPerson` records with `Scope = Shared` should not appear as task assignees or calendar participants.
 
 ### UI terminology
 
@@ -465,8 +498,6 @@ Use:
 
 - People
 - Shared People
-- Thomas's People
-- Robin's People
 - Add person
 - Edit person
 - Relationship
@@ -503,13 +534,13 @@ Future ranking should consider:
 - fuzzy matching for minor typos;
 - localization aliases such as Dutch family/school terms;
 - current family member context;
-- scope, with matching private People ranked higher in that member's context;
-- shared People as household-level fallbacks.
+- scope, with matching private `KnownPerson` records ranked higher in that member's context;
+- `KnownPerson` records with `Scope = Shared` as household-level fallbacks.
 
 ### Non-goals for V1
 
 - No picker algorithm implementation.
-- No automatic text scanning that creates People.
+- No automatic text scanning that creates `KnownPerson` records.
 - No automatic decorative attachment.
 - No AI-based inference.
 - No external People import.
@@ -546,13 +577,13 @@ This section defines product behavior only. It does not design the persistence m
 
 ### V1 boundary
 
-Do not add `DecorativeAvatarRef`, `DecorativeAvatarId`, or related columns to shopping items, tasks, or calendar events in V1. This specification only confirms that People are suitable future sources.
+Do not add `DecorativeAvatarRef`, `DecorativeAvatarId`, or related columns to shopping items, tasks, or calendar events in V1. This specification only confirms that `KnownPerson` records are suitable future sources.
 
 ## 14. API Direction
 
 ### Product decision
 
-Add KnownPerson endpoints in a future implementation slice; do not modify APIs in this design task.
+Add `KnownPerson` endpoints in a future implementation slice; do not modify APIs in this design task.
 
 Recommended route family:
 
@@ -670,7 +701,7 @@ OR
 
 ## 16. Migration Impact
 
-### V1 KnownPerson migration
+### V1 `KnownPerson` migration
 
 A future implementation migration would add only the `KnownPeople` table, indexes, constraints, and EF mapping. It should not migrate existing family members. It should not alter task, shopping, calendar, or motivation tables.
 
@@ -683,13 +714,13 @@ A future implementation migration would add only the `KnownPeople` table, indexe
 
 ### API/client generation impact
 
-Adding KnownPerson endpoints and DTOs will update OpenAPI/NSwag outputs in the implementation slice. That is expected, but it should be limited to KnownPerson CRUD and any generic avatar-editor frontend changes needed to reuse existing avatar infrastructure.
+Adding `KnownPerson` endpoints and DTOs will update OpenAPI/NSwag outputs in the implementation slice. That is expected, but it should be limited to `KnownPerson` CRUD and any generic avatar-editor frontend changes needed to reuse existing avatar infrastructure.
 
 ## 17. Alternatives Considered
 
 ### Dedicated `Person` base class
 
-A generic `Person` would unify family members and People, but it would blur the product boundary between household members and lightweight external people. It would also create migration risk because many existing semantic fields point to `FamilyMemberId`.
+A generic `Person` would unify family members and `KnownPerson` records, but it would blur the product boundary between household members and lightweight external people. It would also create migration risk because many existing semantic fields point to `FamilyMemberId`.
 
 ### `HouseholdPerson`
 
@@ -705,9 +736,9 @@ Member-page-only management handles private friends/classmates well but fails fo
 
 ## 18. Rejected Designs
 
-### Rejected: People as family members with a flag
+### Rejected: KnownPerson records as family members with a flag
 
-Do not add a `FamilyMemberKind.KnownPerson` or `IsKnownPerson` flag. That would invite People into task ownership, motivation, family pages, and other semantic member-only flows.
+Do not add a `FamilyMemberKind.KnownPerson` or `IsKnownPerson` flag. That would invite `KnownPerson` records into task ownership, motivation, family pages, and other semantic member-only flows.
 
 ### Rejected: polymorphic task ownership
 
@@ -736,9 +767,9 @@ Implement Avatar Contacts V1 in future slices as follows:
 1. Add a household-scoped `KnownPerson` entity with `KnownPersonScope`, `KnownPersonRelationshipType`, direct `AvatarSelection` ownership, and soft-delete lifecycle.
 2. Preserve `FamilyMember` as the only semantic household member entity.
 3. Reuse the existing avatar catalog, renderer, defaults, and validation service.
-4. Refactor the frontend avatar editor around a generic selection editor, keeping family-member and KnownPerson wrappers.
-5. Add a viewport-first **People** management capability with sections for Family Members, grouped Shared People, and each member's private People. The frontend design may realize this as a page, dialog, drawer, or extension of an existing surface.
-6. Add member-page shortcuts for the owning member's private People.
+4. Refactor the frontend avatar editor around a generic selection editor, keeping family-member and `KnownPerson` wrappers.
+5. Add a viewport-first **People** management capability with sections for Family Members, grouped Shared People, and member subsections organized by relationship such as Friends, Teachers, and Other. The frontend design may realize this as a page, dialog, drawer, or extension of an existing surface.
+6. Add member-page shortcuts organized by relationship for the owning member's private `KnownPerson` records.
 7. Do not add permission assumptions in V1; all management capabilities are currently available until future authentication introduces restrictions.
 8. Keep decorative avatar references out of V1 persistence, while designing future picker read models around `FamilyMember | KnownPerson` source types, without deciding decorative persistence in this slice.
 
