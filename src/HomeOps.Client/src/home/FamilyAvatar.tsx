@@ -54,12 +54,12 @@ export function FamilyAvatar({ member, size = 'compact' }: FamilyAvatarProps) {
       <span
         className={`family-avatar-portrait family-avatar-v2 family-avatar-${size}`}
         style={{ '--avatar-bg': member.displayColor } as CSSProperties}
-        aria-label={`${member.name} household avatar`}
+        aria-label={`Avatar van ${member.name}`}
         role="img"
         dangerouslySetInnerHTML={{ __html: avatarV2Svg }}
       />
     );
   }
 
-  return <span className={`family-avatar-fallback family-avatar-${size}`} aria-label={`${member.name} avatar fallback`}>{member.initials}</span>;
+  return <span className={`family-avatar-fallback family-avatar-${size}`} aria-label={`Avatar van ${member.name}`}>{member.initials}</span>;
 }

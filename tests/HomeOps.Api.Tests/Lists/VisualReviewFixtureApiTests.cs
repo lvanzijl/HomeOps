@@ -49,7 +49,7 @@ public sealed class VisualReviewFixtureApiTests
         using var verifyScope = factory.Services.CreateScope();
         var verifyDb = verifyScope.ServiceProvider.GetRequiredService<HomeOpsDbContext>();
         Assert.DoesNotContain(verifyDb.Lists, list => list.Name == "Manual setup should be removed");
-        Assert.Contains(verifyDb.ListItems, item => item.Id == Guid.Parse("77000000-0000-0000-0000-000000000201") && item.Text == "Milk");
+        Assert.Contains(verifyDb.ListItems, item => item.Id == Guid.Parse("77000000-0000-0000-0000-000000000201") && item.Text == "Melk");
     }
 
     [Theory]
