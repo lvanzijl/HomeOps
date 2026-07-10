@@ -68,6 +68,25 @@ describe('avatar catalog adapter', () => {
     }));
   });
 
+  it('maps the eyewear selection to the Avatar V2 glasses style and defaults to none', () => {
+    expect(avatarSelectionToAvatarV2RenderConfig(defaultAvatarSelection).glasses).toEqual({
+      style: 'none',
+      color: 'lineBlue',
+    });
+
+    expect(
+      avatarSelectionToAvatarV2RenderConfig(createAvatarSelectionFixture({ eyewearStyle: 'eyewear.style.round' })).glasses,
+    ).toEqual(expect.objectContaining({ style: 'round' }));
+
+    expect(
+      avatarSelectionToAvatarV2RenderConfig(createAvatarSelectionFixture({ eyewearStyle: 'eyewear.style.thick-frame' })).glasses,
+    ).toEqual(expect.objectContaining({ style: 'thickFrame' }));
+
+    expect(
+      avatarSelectionToAvatarV2RenderConfig(createAvatarSelectionFixture({ eyewearStyle: 'eyewear.style.heart' })).glasses,
+    ).toEqual(expect.objectContaining({ style: 'heart' }));
+  });
+
   it('keeps deprecated legacy colors selectable only when already chosen', () => {
     expect(ids(getAvatarCatalogEditorItems('hair.color', 'hair.color.plum'))).toContain('hair.color.plum');
     expect(ids(getAvatarCatalogEditorItems('hair.color', avatarCatalog.defaults.hairColor))).not.toContain('hair.color.plum');

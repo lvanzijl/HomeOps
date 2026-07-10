@@ -69,16 +69,32 @@ public sealed class AvatarCatalogService
         if (selection is null) return AvatarSelectionValidationResult.Valid(DefaultSelection());
         if (selection.SchemaVersion != AvatarCatalogConstants.SchemaVersion) errors["avatarSelection.schemaVersion"] = [$"Schema version '{selection.SchemaVersion}' is not supported."];
         foreach (var slot in selection.Selections.Keys.Where(slot => !_categoriesBySlot.ContainsKey(slot))) errors[$"avatarSelection.selections.{slot}"] = ["Unknown avatar selection slot."];
+
+        // Validate every provided selection that targets a known category, including optional
+        // categories such as eyewear, so unknown or incompatible item IDs are always rejected.
+        foreach (var pair in selection.Selections)
+        {
+            if (!_categoriesBySlot.TryGetValue(pair.Key, out var category)) continue;
+            var key = $"avatarSelection.selections.{pair.Key}";
+            if (errors.ContainsKey(key)) continue;
+            if (string.IsNullOrWhiteSpace(pair.Value)) { errors[key] = ["A selection is required."]; continue; }
+            if (!_itemsById.TryGetValue(pair.Value, out var providedItem)) { errors[key] = ["Unknown catalog item ID."]; continue; }
+            if (providedItem.CategoryId != category.Id) { errors[key] = ["Catalog item does not belong to the selected category."]; continue; }
+            if (providedItem.Status == AvatarCatalogItemStatus.Retired) errors[key] = ["Retired catalog items cannot be selected."];
+        }
+
         foreach (var category in _catalog.Categories.Where(category => category.Required))
         {
+            var key = $"avatarSelection.selections.{category.Slot}";
+            if (errors.ContainsKey(key)) continue;
             if (!selection.Selections.TryGetValue(category.Slot, out var itemId) || string.IsNullOrWhiteSpace(itemId))
             {
-                errors[$"avatarSelection.selections.{category.Slot}"] = ["A selection is required."];
+                errors[key] = ["A selection is required."];
                 continue;
             }
-            if (!_itemsById.TryGetValue(itemId, out var item)) { errors[$"avatarSelection.selections.{category.Slot}"] = ["Unknown catalog item ID."]; continue; }
-            if (item.CategoryId != category.Id) { errors[$"avatarSelection.selections.{category.Slot}"] = ["Catalog item does not belong to the selected category."]; continue; }
-            if (item.Status == AvatarCatalogItemStatus.Retired) errors[$"avatarSelection.selections.{category.Slot}"] = ["Retired catalog items cannot be selected."];
+            if (!_itemsById.TryGetValue(itemId, out var item)) { errors[key] = ["Unknown catalog item ID."]; continue; }
+            if (item.CategoryId != category.Id) { errors[key] = ["Catalog item does not belong to the selected category."]; continue; }
+            if (item.Status == AvatarCatalogItemStatus.Retired) errors[key] = ["Retired catalog items cannot be selected."];
         }
         return errors.Count == 0 ? AvatarSelectionValidationResult.Valid(NormalizeWithDefaults(selection)) : AvatarSelectionValidationResult.Invalid(errors);
     }

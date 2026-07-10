@@ -8,7 +8,7 @@ import type { FamilyMember } from './familyMembers';
 
 afterEach(() => cleanup());
 
-function navButton(label: string) {
+function categoryButton(label: string) {
   return within(screen.getByLabelText(/Avatarkeuzes voor Riley navigatie/i)).getByText(label).closest('button');
 }
 
@@ -36,27 +36,24 @@ describe('FamilyAvatarEditor', () => {
     render(<FamilyAvatarEditor member={member} onChange={onChange} onClose={vi.fn()} />);
 
     expect(screen.getByRole('heading', { name: /Avatar van Riley bewerken/i })).not.toBeNull();
-    expect(screen.queryByText('Gezinslidavatar')).toBeNull();
-    expect(screen.queryByText(/Bekijk wijzigingen voor Riley/i)).toBeNull();
     expect(screen.queryByText('Live voorbeeld')).toBeNull();
-    expect(screen.queryByText('Categorie')).toBeNull();
-    expect(screen.queryByText('Kies een huidskleur voor het live voorbeeld.')).toBeNull();
-    expect(navButton('Kapsel')).not.toBeNull();
-    expect(navButton('Haarkleur')).not.toBeNull();
-    expect(navButton('Kledingstijl')).not.toBeNull();
-    expect(navButton('Kledingkleur')).not.toBeNull();
-    expect(navButton('Accessoires')).not.toBeNull();
+    expect(categoryButton('Huid')).not.toBeNull();
+    expect(categoryButton('Haar')).not.toBeNull();
+    expect(categoryButton('Gezicht')).not.toBeNull();
+    expect(categoryButton('Kleding')).not.toBeNull();
+    expect(categoryButton('Accessoires')).not.toBeNull();
     expect(within(screen.getByLabelText('Avatarkeuzes voor Riley')).getByRole('heading', { name: 'Menselijk' })).not.toBeNull();
     expect(within(screen.getByLabelText('Avatarkeuzes voor Riley')).getByRole('heading', { name: 'Fantasy' })).not.toBeNull();
     const skinToneButtons = screen.getAllByRole('button', { name: /Huidskleur: Midden/i });
     expect(skinToneButtons.length).toBeGreaterThan(0);
     expect(skinToneButtons[0].textContent).toBe('');
-    await user.click(navButton('Kapsel')!);
+
+    await user.click(categoryButton('Haar')!);
     expect(screen.getByRole('button', { name: /Kapsel lang zacht/i }).textContent).toBe('');
-    await user.click(navButton('Haarkleur')!);
+    await user.click(within(screen.getByLabelText('Avatarkeuzes voor Riley')).getByRole('button', { name: 'Kleur' }));
     expect(screen.getByRole('button', { name: /Haarkleur: Natuurlijk zwart/i }).textContent).toBe('');
 
-    await user.click(navButton('Accessoires')!);
+    await user.click(categoryButton('Accessoires')!);
     await user.click(within(screen.getByLabelText('Avatarkeuzes voor Riley')).getByRole('button', { name: /Strik accessoire/i }));
     await user.click(screen.getByRole('button', { name: 'Opslaan' }));
 
@@ -73,7 +70,7 @@ describe('FamilyAvatarEditor', () => {
     const user = userEvent.setup();
     render(<FamilyAvatarEditor member={member} onChange={vi.fn()} onClose={vi.fn()} />);
 
-    await user.click(navButton('Accessoires')!);
+    await user.click(categoryButton('Accessoires')!);
     await user.click(within(screen.getByLabelText('Avatarkeuzes voor Riley')).getByRole('button', { name: /Strik accessoire/i }));
     await user.click(screen.getByRole('button', { name: 'Annuleren' }));
 
@@ -88,27 +85,40 @@ describe('FamilyAvatarEditor', () => {
 
     await user.click(screen.getByRole('button', { name: 'Avatar resetten' }));
 
-    await user.click(navButton('Kapsel')!);
+    await user.click(categoryButton('Haar')!);
     expect(within(screen.getByLabelText('Avatarkeuzes voor Riley')).getByRole('button', { name: /Kapsel kort speels/i }).getAttribute('aria-pressed')).toBe('true');
-    await user.click(navButton('Accessoires')!);
+    await user.click(categoryButton('Accessoires')!);
     expect(within(screen.getByLabelText('Avatarkeuzes voor Riley')).getByRole('button', { name: /Steraccessoire/i }).getAttribute('aria-pressed')).toBe('true');
     expect(screen.getByText('Niet-opgeslagen wijzigingen')).not.toBeNull();
     expect(onChange).not.toHaveBeenCalled();
   });
 
-  it('keeps the accessories panel compact while preserving style and color sections', async () => {
+  it('keeps the accessories category compact with separate style and color sub-tabs', async () => {
     const user = userEvent.setup();
     render(<FamilyAvatarEditor member={member} onChange={vi.fn()} onClose={vi.fn()} />);
 
-    await user.click(navButton('Accessoires')!);
+    await user.click(categoryButton('Accessoires')!);
 
     const controls = within(screen.getByLabelText('Avatarkeuzes voor Riley'));
     expect(controls.queryByRole('heading', { name: 'Accessoires' })).toBeNull();
     expect(controls.getByRole('heading', { name: 'Accessoire' })).not.toBeNull();
-    expect(controls.getByRole('heading', { name: 'Accessoirekleur' })).not.toBeNull();
     expect(controls.getByRole('button', { name: /Bloemspeld accessoire/i }).textContent).toBe('');
+
+    await user.click(controls.getByRole('button', { name: 'Kleur' }));
+    expect(controls.getByRole('heading', { name: 'Accessoirekleur' })).not.toBeNull();
     expect(controls.getByRole('button', { name: /Accessoirekleur: Mintgroen/i }).textContent).toBe('');
-    expect(screen.queryByText('Kies een extra detail en laat de kleur meebewegen met het kledingpalet.')).toBeNull();
+  });
+
+  it('surfaces eyewear under the Face category', async () => {
+    const user = userEvent.setup();
+    render(<FamilyAvatarEditor member={member} onChange={vi.fn()} onClose={vi.fn()} />);
+
+    await user.click(categoryButton('Gezicht')!);
+
+    const controls = within(screen.getByLabelText('Avatarkeuzes voor Riley'));
+    expect(controls.getByRole('heading', { name: 'Bril' })).not.toBeNull();
+    const eyewear = within(controls.getByRole('region', { name: 'Bril' }));
+    expect(eyewear.getByRole('button', { name: /Geen bril/i }).getAttribute('aria-pressed')).toBe('true');
   });
 
   it('focuses the close button and closes with Escape', async () => {

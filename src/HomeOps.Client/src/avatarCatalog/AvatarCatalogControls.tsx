@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState, type KeyboardEvent } from 'react';
 import { HomeOpsIcon } from '../icons/homeOpsIcons';
+import { AvatarCategoryGlyph } from './avatarCategoryGlyphs';
 import {
   buildAvatarTilePreviewSelection,
   getAvatarCatalogCategory,
+  getAvatarCatalogCategoryTabLabel,
   getAvatarCatalogEditorItems,
   getAvatarCatalogEditorPanels,
   getAvatarCatalogOptionGroup,
@@ -38,58 +40,90 @@ export function AvatarCatalogControls({ selection, controlsLabel, onSelectionCha
   }, [activePanelId, panels]);
 
   const activePanel = panels.find((panel) => panel.id === activePanelId) ?? panels[0];
-  const activeCategories = activePanel?.categoryIds
-    .map((categoryId) => getAvatarCatalogCategory(categoryId))
-    .filter((category): category is AvatarCatalogCategory => Boolean(category)) ?? [];
-  const showSectionHeading = activeCategories.length > 1;
+  const activeCategories = useMemo(
+    () =>
+      activePanel?.categoryIds
+        .map((categoryId) => getAvatarCatalogCategory(categoryId))
+        .filter((category): category is AvatarCatalogCategory => Boolean(category)) ?? [],
+    [activePanel],
+  );
+
+  const [activeCategoryId, setActiveCategoryId] = useState(activeCategories[0]?.id ?? '');
+
+  useEffect(() => {
+    if (!activeCategories.some((category) => category.id === activeCategoryId)) {
+      setActiveCategoryId(activeCategories[0]?.id ?? '');
+    }
+  }, [activeCategories, activeCategoryId]);
+
+  const activeCategory = activeCategories.find((category) => category.id === activeCategoryId) ?? activeCategories[0];
+  const activePanelLabel = activePanel ? localizeAvatarCatalogText(activePanel.labels, activePanel.id) : controlsLabel;
 
   return (
     <div className="avatar-v2-controls-shell" aria-label={controlsLabel}>
-      <nav className="avatar-v2-category-nav" aria-label={`${controlsLabel} navigatie`}>
-        {panels.map((panel) => (
-          <button
-            aria-pressed={panel.id === activePanel?.id}
-            className="avatar-v2-category-button"
-            key={panel.id}
-            onClick={() => setActivePanelId(panel.id)}
-            type="button"
-          >
-            <span>{localizeAvatarCatalogText(panel.labels, panel.id)}</span>
-            <small>{getAvatarCatalogPanelSummary(panel, selection)}</small>
-          </button>
-        ))}
+      <nav className="avatar-v2-category-rail" aria-label={`${controlsLabel} navigatie`} data-option-group>
+        {panels.map((panel) => {
+          const isActive = panel.id === activePanel?.id;
+          const summary = getAvatarCatalogPanelSummary(panel, selection);
+          return (
+            <button
+              aria-pressed={isActive}
+              className="avatar-v2-category-chip"
+              key={panel.id}
+              onClick={() => setActivePanelId(panel.id)}
+              onKeyDown={handleOptionGroupKeyDown}
+              type="button"
+            >
+              <span className="avatar-v2-category-chip-icon" aria-hidden="true">
+                <AvatarCategoryGlyph icon={panel.icon} />
+              </span>
+              <span className="avatar-v2-category-chip-text">
+                <span className="avatar-v2-category-chip-label">{localizeAvatarCatalogText(panel.labels, panel.id)}</span>
+                {summary ? <small className="avatar-v2-category-chip-summary">{summary}</small> : null}
+              </span>
+            </button>
+          );
+        })}
       </nav>
 
-      {activePanel ? (
-        <section className="avatar-v2-control-panel" aria-label={localizeAvatarCatalogText(activePanel.labels, activePanel.id)}>
-          {activeCategories.map((category) => {
-            const items = getAvatarCatalogEditorItems(category.id, selection.selections[category.slot]);
-            if (category.presentation.control === 'swatch') {
-              return (
-                <SwatchSection
-                  category={category}
-                  items={items}
+      {activePanel && activeCategory ? (
+        <section className="avatar-v2-category-body" aria-label={activePanelLabel}>
+          {activeCategories.length > 1 ? (
+            <div className="avatar-v2-attribute-tabs" role="group" aria-label={`${activePanelLabel} onderdelen`} data-option-group>
+              {activeCategories.map((category) => (
+                <button
+                  aria-pressed={category.id === activeCategory.id}
+                  className="avatar-v2-attribute-tab"
                   key={category.id}
-                  onSelect={(itemId) => onSelectionChange(updateAvatarSelection(selection, category.slot, itemId))}
-                  selectedItemId={selection.selections[category.slot]}
-                  showHeading={showSectionHeading}
-                />
-              );
-            }
+                  onClick={() => setActiveCategoryId(category.id)}
+                  onKeyDown={handleOptionGroupKeyDown}
+                  type="button"
+                >
+                  {getAvatarCatalogCategoryTabLabel(category)}
+                </button>
+              ))}
+            </div>
+          ) : null}
 
-            return (
-              <TileSection
-                category={category}
-                items={items}
-                key={category.id}
-                onSelect={(itemId) => onSelectionChange(updateAvatarSelection(selection, category.slot, itemId))}
-                renderSelectionPreview={renderSelectionPreview}
-                selectedItemId={selection.selections[category.slot]}
-                selection={selection}
-                showHeading={showSectionHeading}
+          <div className="avatar-v2-attribute-scroll">
+            {activeCategory.presentation.control === 'swatch' ? (
+              <SwatchSection
+                category={activeCategory}
+                items={getAvatarCatalogEditorItems(activeCategory.id, selection.selections[activeCategory.slot])}
+                onSelect={(itemId) => onSelectionChange(updateAvatarSelection(selection, activeCategory.slot, itemId))}
+                selectedItemId={selection.selections[activeCategory.slot]}
               />
-            );
-          })}
+            ) : (
+              <TileSection
+                category={activeCategory}
+                items={getAvatarCatalogEditorItems(activeCategory.id, selection.selections[activeCategory.slot])}
+                onSelect={(itemId) => onSelectionChange(updateAvatarSelection(selection, activeCategory.slot, itemId))}
+                renderSelectionPreview={renderSelectionPreview}
+                selectedItemId={selection.selections[activeCategory.slot]}
+                selection={selection}
+              />
+            )}
+          </div>
         </section>
       ) : null}
     </div>
@@ -103,7 +137,6 @@ function TileSection({
   renderSelectionPreview,
   selectedItemId,
   selection,
-  showHeading,
 }: {
   category: AvatarCatalogCategory;
   items: readonly AvatarCatalogItem[];
@@ -111,13 +144,12 @@ function TileSection({
   renderSelectionPreview: (selection: AvatarCatalogSelection) => string;
   selectedItemId: string;
   selection: AvatarCatalogSelection;
-  showHeading: boolean;
 }) {
   const showItemLabel = category.presentation.itemLabelVisibility === 'visible';
 
   return (
     <section className="avatar-v2-choice-section avatar-v2-choice-section-tile" aria-labelledby={`${category.id}-title`}>
-      <h4 className={showHeading ? undefined : 'visually-hidden'} id={`${category.id}-title`}>{localizeAvatarCatalogText(category.labels, category.id)}</h4>
+      <h4 className="visually-hidden" id={`${category.id}-title`}>{localizeAvatarCatalogText(category.labels, category.id)}</h4>
       <div
         className="avatar-v2-asset-grid"
         data-option-group
@@ -157,19 +189,17 @@ function SwatchSection({
   items,
   onSelect,
   selectedItemId,
-  showHeading,
 }: {
   category: AvatarCatalogCategory;
   items: readonly AvatarCatalogItem[];
   onSelect: (itemId: string) => void;
   selectedItemId: string;
-  showHeading: boolean;
 }) {
   const groupedItems = groupItems(category, items);
 
   return (
     <section className="avatar-v2-choice-section avatar-v2-choice-section-swatch" aria-labelledby={`${category.id}-title`}>
-      <h4 className={showHeading ? undefined : 'visually-hidden'} id={`${category.id}-title`}>{localizeAvatarCatalogText(category.labels, category.id)}</h4>
+      <h4 className="visually-hidden" id={`${category.id}-title`}>{localizeAvatarCatalogText(category.labels, category.id)}</h4>
 
       <div className="avatar-v2-swatch-groups">
         {groupedItems.map((group) => (
