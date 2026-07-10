@@ -10280,3 +10280,112 @@ button {
     flex-direction: column;
   }
 }
+
+.people-management {
+  display: grid;
+  gap: 1rem;
+  min-height: 0;
+}
+
+.people-management-header,
+.people-dialog header,
+.people-dialog-actions,
+.people-avatar-field {
+  align-items: center;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+}
+
+.people-family-summary,
+.people-scope-section,
+.people-scope-section section,
+.people-dialog {
+  background: rgb(255 255 255 / 78%);
+  border: 1px solid var(--border-default);
+  border-radius: 1rem;
+  padding: 0.85rem;
+}
+
+.people-family-list,
+.people-card-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.people-family-list span {
+  background: var(--surface-muted);
+  border-radius: 999px;
+  font-weight: 800;
+  padding: 0.35rem 0.65rem;
+}
+
+.people-search-field,
+.people-dialog label,
+.people-dialog fieldset {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.people-search-field input,
+.people-dialog input,
+.people-dialog select {
+  border: 1px solid var(--border-default);
+  border-radius: 0.7rem;
+  min-height: 2.4rem;
+  padding: 0.45rem 0.65rem;
+}
+
+.people-sections,
+.people-scope-section {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.people-card {
+  align-items: center;
+  background: white;
+  border: 1px solid var(--border-default);
+  border-radius: 0.9rem;
+  display: flex;
+  gap: 0.65rem;
+  min-width: 13rem;
+  padding: 0.65rem;
+  text-align: left;
+}
+
+.people-card span {
+  display: grid;
+}
+
+.people-card small,
+.people-management-header p,
+.people-state {
+  color: var(--color-text-muted);
+}
+
+.people-error {
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+  border-radius: 0.9rem;
+  color: #991b1b;
+  padding: 0.65rem;
+}
+
+.people-dialog-backdrop {
+  align-items: center;
+  background: rgb(15 23 42 / 45%);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  position: fixed;
+  z-index: 90;
+}
+
+.people-dialog {
+  max-height: calc(100vh - 2rem);
+  max-width: 52rem;
+  overflow: auto;
+  width: calc(100vw - 2rem);
+}
