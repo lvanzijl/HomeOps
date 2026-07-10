@@ -87,6 +87,9 @@ describe("HelpfulMomentsSection", () => {
     await user.click(screen.getByRole("button", { name: "Waardering toevoegen" }));
     const dialog = screen.getByRole("dialog", { name: "Waardering delen" });
     expect(within(dialog).getByText("Wie hielp?")).not.toBeNull();
+    expect(
+      within(dialog).getByRole("button", { name: "Waardering sluiten" }),
+    ).not.toBeNull();
 
     await user.click(within(dialog).getByRole("button", { name: /Riley/ }));
     expect(within(dialog).getByText("Wat gebeurde er?")).not.toBeNull();
