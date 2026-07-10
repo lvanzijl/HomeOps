@@ -47,7 +47,7 @@ export function WeeklyResetPage() {
       <section className="weekly-reset-page weekly-reset-skipped">
         <p className="eyebrow">Familiecheck</p>
         <h2>Vandaag slaan we over</h2>
-        <p>Prima. Alles blijft zoals het nu is: taken, doelen en lijstjes veranderen niet.</p>
+        <p>Prima. Jullie laten het deze week zoals het is en kunnen later altijd terugkomen.</p>
         <button type="button" onClick={() => setSkipped(false)}>
           Open het weekritueel weer
         </button>
@@ -72,7 +72,7 @@ export function WeeklyResetPage() {
         <div className="weekly-reset-hero-copy">
           <p className="eyebrow">Familiecheck</p>
           <h2 id="weekly-reset-title">Zijn we klaar voor volgende week?</h2>
-          <p>Neem samen een rustig moment: vier wat af is, kies wat meegaat en laat los wat niet meer helpt.</p>
+          <p>Kijk samen terug, kies wat meegaat en rond af wat niet meer past.</p>
         </div>
         <button
           type="button"
@@ -84,21 +84,21 @@ export function WeeklyResetPage() {
       </header>
 
       <section className="reset-readiness-grid" aria-label="Overzicht van het weekritueel">
-        <RitualMetricCard value={completedCount} label="afgeronde taken" description="Verdwijnt uit de werkvoorraad en blijft als voortgang zichtbaar in de terugblik." />
-        <RitualMetricCard value={reviewCount} label="keuzes voor volgende week" description="Blijft actief, gaat naar later of wordt gearchiveerd met dezelfde taakacties als nu." />
-        <RitualMetricCard value={resetCount} label="gezinsafspraken" description="Doelen en lijstjes blijven bestaan, tenzij jullie bewust archiveren." />
+        <RitualMetricCard value={completedCount} label="afgeronde taken" description="Even stilstaan bij wat deze week lukte." />
+        <RitualMetricCard value={reviewCount} label="keuzes voor volgende week" description="Taken die samen een rustige keuze vragen." />
+        <RitualMetricCard value={resetCount} label="gezinsafspraken" description="Doelen en lijstjes om samen kort langs te lopen." />
       </section>
 
       <section className="reset-intention-card" aria-label="Wat gebeurt er tijdens het weekritueel">
         <div>
-          <p className="eyebrow">Wat verandert er?</p>
-          <h3>Jullie maken alleen bewuste keuzes</h3>
+          <p className="eyebrow">Waar letten jullie op?</p>
+          <h3>Kies wat nog helpt</h3>
         </div>
         <ul>
-          <li>Terugkerende taken komen volgens de bestaande regels weer terug.</li>
-          <li>Open taken kunnen actief blijven of rustig doorschuiven naar later.</li>
-          <li>Afgeronde taken blijven afgerond; de taaklogica verandert niet.</li>
-          <li>Undo blijft beschikbaar waar dat vandaag al bestaat.</li>
+          <li>Begin bij wat gelukt is en geef daar even aandacht aan.</li>
+          <li>Kies per open taak: meenemen, later bewaren of loslaten.</li>
+          <li>Check of gezins- en kinddoelen nog passen bij komende week.</li>
+          <li>Loop boodschappenlijstjes kort langs en houd alleen over wat helpt.</li>
         </ul>
       </section>
 
@@ -117,7 +117,7 @@ export function WeeklyResetPage() {
             reset.reviewCandidates.map((task) => (
               <div className="reset-row ritual-decision-row" key={task.id}>
                 <strong>{task.title}</strong>
-                <span>Deze taak wacht op een zachte ja, later of klaar.</span>
+                <span>Samen kiezen: mee, later of loslaten.</span>
                 <div className="reset-actions">
                   <button
                     type="button"
@@ -169,7 +169,7 @@ export function WeeklyResetPage() {
             title="Kinddoelen"
             actions={`${reset.individualGoals.length} actief`}
           />
-          <p className="ritual-card-intro">Bevestig of ieder kind nog een passend doel heeft.</p>
+          <p className="ritual-card-intro">Bekijk samen of ieder kind nog een passend doel heeft.</p>
           {reset.individualGoals.length === 0 ? (
             <p className="ritual-empty">Geen actieve kinddoelen om vandaag te bespreken.</p>
           ) : (
@@ -193,14 +193,14 @@ export function WeeklyResetPage() {
             title="Boodschappen"
             actions={`${reset.shoppingReviewCandidates.length} lijst${reset.shoppingReviewCandidates.length === 1 ? "" : "en"}`}
           />
-          <p className="ritual-card-intro">Kijk alleen naar lijstjes die mogelijk aandacht vragen; er wordt hier niets automatisch verwijderd.</p>
+          <p className="ritual-card-intro">Loop samen langs welke lijstjes nog passen bij komende week.</p>
           {reset.shoppingReviewCandidates.length === 0 ? (
             <p className="ritual-empty">Geen boodschappenlijstjes die om aandacht vragen.</p>
           ) : (
             reset.shoppingReviewCandidates.map((list) => (
               <div className="reset-row" key={list.id}>
                 <strong>{list.name}</strong>
-                <span>{list.itemCount} items · blijft staan voor een bewuste keuze later</span>
+                <span>{list.itemCount} items · kijk of deze lijst nog past bij komende week</span>
               </div>
             ))
           )}
@@ -279,14 +279,14 @@ function GoalCard({
         title={title}
         actions={goal ? "loopt door" : "geen actief doel"}
       />
-      <p className="ritual-card-intro">Bespreek of dit gezinsdoel nog energie geeft voor volgende week.</p>
+      <p className="ritual-card-intro">Bespreek of dit gezinsdoel nog past bij komende week.</p>
       {!goal ? (
         <p className="ritual-empty">Geen actief gezinsdoel om vandaag te bespreken.</p>
       ) : (
         <div className="reset-row ritual-decision-row">
           <strong>{goal.title}</strong>
           <span>
-            {goal.currentProgress} / {goal.targetCount} {goal.unitLabel} · blijft doorlopen als jullie niets veranderen
+            {goal.currentProgress} / {goal.targetCount} {goal.unitLabel} · kijk samen of dit doel nog past
           </span>
           <div className="reset-actions">
             <button type="button">Gaat mee</button>
@@ -316,7 +316,7 @@ function IndividualGoalRow({
         {goal.familyMemberName}: {goal.title}
       </strong>
       <span>
-        {goal.currentProgress} / {goal.targetCount} {goal.unitLabel} · blijft doorlopen als jullie niets veranderen
+        {goal.currentProgress} / {goal.targetCount} {goal.unitLabel} · kijk samen of dit doel nog past
       </span>
       <div className="reset-actions">
         <button type="button">Gaat mee</button>
