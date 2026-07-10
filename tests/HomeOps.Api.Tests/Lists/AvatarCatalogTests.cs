@@ -204,6 +204,28 @@ public sealed class AvatarCatalogTests(HomeOpsWebApplicationFactory factory) : I
         Assert.Equal("clothing.secondary-color.butter", created.AvatarSelection.Selections[AvatarSelectionSlots.ClothingSecondaryColor]);
     }
 
+    [Theory]
+    [InlineData("clothing.style.zip-hoodie")]
+    [InlineData("clothing.style.varsity-jacket")]
+    [InlineData("clothing.style.rugby-shirt")]
+    [InlineData("clothing.style.contrast-pocket-hoodie")]
+    [InlineData("clothing.style.winter-coat")]
+    [InlineData("clothing.style.cardigan")]
+    [InlineData("clothing.style.sports-shirt")]
+    [InlineData("clothing.style.apron-smock")]
+    public async Task CreateAcceptsNewDualColorClothingSelections(string clothingStyle)
+    {
+        var selection = ValidSelection();
+        selection[AvatarSelectionSlots.ClothingStyle] = clothingStyle;
+        selection[AvatarSelectionSlots.ClothingSecondaryColor] = "clothing.secondary-color.butter";
+        var response = await _client.PostAsJsonAsync("/api/family-members", Request(selection));
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var created = await response.Content.ReadFromJsonAsync<FamilyMemberDto>();
+        Assert.NotNull(created);
+        Assert.Equal(clothingStyle, created.AvatarSelection.Selections[AvatarSelectionSlots.ClothingStyle]);
+        Assert.Equal("clothing.secondary-color.butter", created.AvatarSelection.Selections[AvatarSelectionSlots.ClothingSecondaryColor]);
+    }
+
     [Fact]
     public async Task CreateRejectsUnknownSecondaryClothingColorItemId()
     {

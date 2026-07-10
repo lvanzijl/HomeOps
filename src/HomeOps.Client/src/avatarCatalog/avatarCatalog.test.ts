@@ -120,9 +120,17 @@ describe('avatar catalog metadata', () => {
       'clothing.style.sweater',
       'clothing.style.jacket',
       'clothing.style.overall',
+      'clothing.style.zip-hoodie',
+      'clothing.style.varsity-jacket',
+      'clothing.style.rugby-shirt',
+      'clothing.style.contrast-pocket-hoodie',
+      'clothing.style.winter-coat',
+      'clothing.style.cardigan',
+      'clothing.style.sports-shirt',
+      'clothing.style.apron-smock',
     ]);
 
-    const dualColor = ['clothing.style.polo', 'clothing.style.dress', 'clothing.style.jacket'];
+    const dualColor = ['clothing.style.polo', 'clothing.style.dress', 'clothing.style.jacket', 'clothing.style.zip-hoodie', 'clothing.style.varsity-jacket', 'clothing.style.rugby-shirt', 'clothing.style.contrast-pocket-hoodie', 'clothing.style.winter-coat', 'clothing.style.cardigan', 'clothing.style.sports-shirt', 'clothing.style.apron-smock'];
     for (const style of styles) {
       const regions = getAvatarCatalogStyleColorRegions(style);
       expect(regions).toEqual(dualColor.includes(style.id) ? ['primary', 'secondary'] : ['primary']);
@@ -163,8 +171,10 @@ describe('avatar catalog metadata', () => {
     const primaryOnly = updateAvatarSelection(defaultAvatarSelection, 'clothingStyle', 'clothing.style.hoodie');
     expect(isAvatarCatalogCategoryAvailable(secondaryCategory!, primaryOnly)).toBe(false);
 
-    const dualColor = updateAvatarSelection(defaultAvatarSelection, 'clothingStyle', 'clothing.style.polo');
-    expect(isAvatarCatalogCategoryAvailable(secondaryCategory!, dualColor)).toBe(true);
+    for (const id of ['clothing.style.polo', 'clothing.style.dress', 'clothing.style.jacket', 'clothing.style.zip-hoodie', 'clothing.style.varsity-jacket', 'clothing.style.rugby-shirt', 'clothing.style.contrast-pocket-hoodie', 'clothing.style.winter-coat', 'clothing.style.cardigan', 'clothing.style.sports-shirt', 'clothing.style.apron-smock']) {
+      const dualColor = updateAvatarSelection(defaultAvatarSelection, 'clothingStyle', id);
+      expect(isAvatarCatalogCategoryAvailable(secondaryCategory!, dualColor)).toBe(true);
+    }
   });
 
   it('renders a distinct secondary clothing color for dual-color garments', () => {

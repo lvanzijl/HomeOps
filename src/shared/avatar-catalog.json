@@ -2122,6 +2122,270 @@
       "legacyIds": []
     },
     {
+      "id": "clothing.style.zip-hoodie",
+      "categoryId": "clothing.style",
+      "type": "rendererStyle",
+      "status": "active",
+      "order": 65,
+      "colorRegions": [
+        "primary",
+        "secondary"
+      ],
+      "labels": {
+        "nl-NL": "Vest met rits",
+        "en-US": "Zip hoodie"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Vest met rits outfit",
+        "en-US": "Zip hoodie outfit"
+      },
+      "descriptions": {
+        "nl-NL": "Een hoodie met aparte voering, rits en koordjes.",
+        "en-US": "A hoodie with separate lining, zipper, and drawstrings."
+      },
+      "tags": [
+        "clothing",
+        "clothing.dual-color"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "zipHoodie",
+        "layer": "shirt"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.style.varsity-jacket",
+      "categoryId": "clothing.style",
+      "type": "rendererStyle",
+      "status": "active",
+      "order": 75,
+      "colorRegions": [
+        "primary",
+        "secondary"
+      ],
+      "labels": {
+        "nl-NL": "Collegejack",
+        "en-US": "Varsity jacket"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Collegejack outfit",
+        "en-US": "Varsity jacket outfit"
+      },
+      "descriptions": {
+        "nl-NL": "Een collegejack met contrasterende mouwen en boorden.",
+        "en-US": "A varsity jacket with contrasting sleeves and ribbed trim."
+      },
+      "tags": [
+        "clothing",
+        "clothing.dual-color"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "varsityJacket",
+        "layer": "shirt"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.style.rugby-shirt",
+      "categoryId": "clothing.style",
+      "type": "rendererStyle",
+      "status": "active",
+      "order": 85,
+      "colorRegions": [
+        "primary",
+        "secondary"
+      ],
+      "labels": {
+        "nl-NL": "Rugbyshirt",
+        "en-US": "Rugby shirt"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Rugbyshirt outfit",
+        "en-US": "Rugby shirt outfit"
+      },
+      "descriptions": {
+        "nl-NL": "Een rugbyshirt met aparte kraag, knoopbies en manchetten.",
+        "en-US": "A rugby shirt with separate collar, placket, and cuffs."
+      },
+      "tags": [
+        "clothing",
+        "clothing.dual-color"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "rugbyShirt",
+        "layer": "shirt"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.style.contrast-pocket-hoodie",
+      "categoryId": "clothing.style",
+      "type": "rendererStyle",
+      "status": "active",
+      "order": 95,
+      "colorRegions": [
+        "primary",
+        "secondary"
+      ],
+      "labels": {
+        "nl-NL": "Hoodie met contrastzak",
+        "en-US": "Contrast pocket hoodie"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Hoodie met contrastzak outfit",
+        "en-US": "Contrast pocket hoodie outfit"
+      },
+      "descriptions": {
+        "nl-NL": "Een hoodie met contrasterende zak, voering en koordjes.",
+        "en-US": "A hoodie with a contrasting pocket, lining, and drawstrings."
+      },
+      "tags": [
+        "clothing",
+        "clothing.dual-color"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "contrastPocketHoodie",
+        "layer": "shirt"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.style.winter-coat",
+      "categoryId": "clothing.style",
+      "type": "rendererStyle",
+      "status": "active",
+      "order": 105,
+      "colorRegions": [
+        "primary",
+        "secondary"
+      ],
+      "labels": {
+        "nl-NL": "Winterjas",
+        "en-US": "Winter coat"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Winterjas outfit",
+        "en-US": "Winter coat outfit"
+      },
+      "descriptions": {
+        "nl-NL": "Een winterjas met contrasterende kraag, sluiting en boorden.",
+        "en-US": "A winter coat with contrasting collar, closure, and cuffs."
+      },
+      "tags": [
+        "clothing",
+        "clothing.dual-color"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "winterCoat",
+        "layer": "shirt"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.style.cardigan",
+      "categoryId": "clothing.style",
+      "type": "rendererStyle",
+      "status": "active",
+      "order": 115,
+      "colorRegions": [
+        "primary",
+        "secondary"
+      ],
+      "labels": {
+        "nl-NL": "Vest",
+        "en-US": "Cardigan"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Vest outfit",
+        "en-US": "Cardigan outfit"
+      },
+      "descriptions": {
+        "nl-NL": "Een vest met zichtbaar shirt en aparte knoopbies.",
+        "en-US": "A cardigan with a visible shirt and separate button strip."
+      },
+      "tags": [
+        "clothing",
+        "clothing.dual-color"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "cardigan",
+        "layer": "shirt"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.style.sports-shirt",
+      "categoryId": "clothing.style",
+      "type": "rendererStyle",
+      "status": "active",
+      "order": 125,
+      "colorRegions": [
+        "primary",
+        "secondary"
+      ],
+      "labels": {
+        "nl-NL": "Sportshirt",
+        "en-US": "Sports shirt"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Sportshirt outfit",
+        "en-US": "Sports shirt outfit"
+      },
+      "descriptions": {
+        "nl-NL": "Een sportshirt met contrasterende zij- en schouderpanelen.",
+        "en-US": "A sports shirt with contrasting side and shoulder panels."
+      },
+      "tags": [
+        "clothing",
+        "clothing.dual-color"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "sportsShirt",
+        "layer": "shirt"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.style.apron-smock",
+      "categoryId": "clothing.style",
+      "type": "rendererStyle",
+      "status": "active",
+      "order": 135,
+      "colorRegions": [
+        "primary",
+        "secondary"
+      ],
+      "labels": {
+        "nl-NL": "Schort",
+        "en-US": "Apron / Smock"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Schort outfit",
+        "en-US": "Apron / Smock outfit"
+      },
+      "descriptions": {
+        "nl-NL": "Een schort of smock met contrasterende voorkant en bandjes.",
+        "en-US": "An apron or smock with a contrasting front and straps."
+      },
+      "tags": [
+        "clothing",
+        "clothing.dual-color"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "apronSmock",
+        "layer": "shirt"
+      },
+      "legacyIds": []
+    },
+    {
       "id": "clothing.color.white",
       "categoryId": "clothing.color",
       "type": "color",
