@@ -199,15 +199,11 @@ export interface AvatarAnatomy {
     variant: AvatarHeadVariant;
     bounds: AvatarBounds;
     center: AvatarPoint;
+    top: AvatarPoint;
     hairline: AvatarAnchor;
-    headwear: {
-      center: AvatarPoint;
-      crownY: number;
-      brimY: number;
-      lowerY: number;
-      width: number;
-      scale: number;
-    };
+    forehead: AvatarPoint;
+    width: number;
+    height: number;
   };
   face: {
     eyeLineY: number;
@@ -370,8 +366,6 @@ export function resolveAvatarAnatomy(config: AvatarConfig): AvatarAnatomy {
   };
   const b = presets[variant];
   const center = { x: b.x + b.width / 2, y: b.y + b.height / 2 };
-  const headwearWidth = b.width * 0.92;
-  const headwearScale = headwearWidth / 94;
   const hairlineY = b.y + (variant === "oval" ? 20 : 17);
   const faceTuning = {
     round: {
@@ -409,15 +403,11 @@ export function resolveAvatarAnatomy(config: AvatarConfig): AvatarAnatomy {
       variant,
       bounds: b,
       center,
+      top: { x: center.x, y: b.y },
       hairline: { x: center.x, y: hairlineY },
-      headwear: {
-        center: { x: center.x, y: b.y + b.height * 0.18 },
-        crownY: b.y + 4,
-        brimY: hairlineY + 15,
-        lowerY: hairlineY + 21,
-        width: headwearWidth,
-        scale: headwearScale,
-      },
+      forehead: { x: center.x, y: b.y + b.height * 0.28 },
+      width: b.width,
+      height: b.height,
     },
     face: {
       eyeLineY: b.y + faceTuning.eyeYOffset,
@@ -1137,26 +1127,62 @@ export const avatarV2AccessoryAssets: Record<
 };
 type HeadwearStyle = "baseballCap" | "beanie" | "partyHat" | "crown" | "sunHat" | "helmet";
 
-function renderHeadwear(ctx: AvatarRenderContext, c: ExpandedSwatch, style: HeadwearStyle): string {
-  const headwear = ctx.anatomy.head.headwear;
-  const cx = headwear.center.x;
-  const top = headwear.crownY;
-  const brim = headwear.brimY;
-  const lower = headwear.lowerY;
-  const w = headwear.width;
-  const scale = headwear.scale;
-  const hw = w / 2;
-  const line = c.line;
-  const shapes: Record<HeadwearStyle, string> = {
-    baseballCap: `<path data-accessory-asset="baseballCap" data-headwear-center-x="${n(cx)}" data-headwear-baseline-y="${n(brim)}" d="M${n(cx - hw * 0.78)} ${n(brim - 6)}c${n(w * 0.18)}-${n(w * 0.28)} ${n(w * 0.78)}-${n(w * 0.28)} ${n(w * 0.96)} 0v${n(12 * scale)}h-${n(w * 0.96)}z" fill="${c.base}" stroke="${line}" stroke-width="3"/><path d="M${n(cx + hw * 0.22)} ${n(brim + 5)}c${n(16 * scale)}-1 ${n(31 * scale)} 3 ${n(41 * scale)} ${n(11 * scale)}-${n(18 * scale)} ${n(6 * scale)}-${n(36 * scale)} ${n(4 * scale)}-${n(49 * scale)}-${n(5 * scale)}z" fill="${c.shade}" stroke="${line}" stroke-width="3"/><path d="M${n(cx - hw * 0.3)} ${n(brim - 7)}c${n(11 * scale)}-${n(6 * scale)} ${n(25 * scale)}-${n(7 * scale)} ${n(38 * scale)}-1" stroke="${c.highlight}" stroke-width="4" stroke-linecap="round" opacity="0.65"/>`,
-    beanie: `<path data-accessory-asset="beanie" data-headwear-center-x="${n(cx)}" data-headwear-baseline-y="${n(lower)}" d="M${n(cx - hw * 0.82)} ${n(lower - 10)}c${n(5 * scale)}-${n(35 * scale)} ${n(w * 0.82)}-${n(35 * scale)} ${n(w * 0.88)} 0v${n(12 * scale)}h-${n(w * 0.88)}z" fill="${c.base}" stroke="${line}" stroke-width="3"/><path d="M${n(cx - hw * 0.86)} ${n(lower)}h${n(w * 0.92)}" stroke="${line}" stroke-width="${n(8 * scale)}" stroke-linecap="round"/><circle cx="${n(cx)}" cy="${n(Math.max(8, top - 4 * scale))}" r="${n(8 * scale)}" fill="${c.highlight}" stroke="${line}" stroke-width="3"/>`,
-    partyHat: `<path data-accessory-asset="partyHat" data-headwear-center-x="${n(cx)}" data-headwear-baseline-y="${n(brim)}" d="M${n(cx - hw * 0.37)} ${n(brim)}L${n(cx + 4 * scale)} ${n(Math.max(8, top - 10 * scale))}L${n(cx + hw * 0.42)} ${n(brim)}z" fill="${c.base}" stroke="${line}" stroke-width="3"/><path d="M${n(cx - hw * 0.18)} ${n(brim - 23 * scale)}l${n(30 * scale)} ${n(11 * scale)}M${n(cx - hw * 0.04)} ${n(brim - 45 * scale)}l${n(18 * scale)} ${n(7 * scale)}" stroke="${c.highlight}" stroke-width="4" stroke-linecap="round" opacity="0.7"/><circle cx="${n(cx + 4 * scale)}" cy="${n(Math.max(6, top - 13 * scale))}" r="${n(6 * scale)}" fill="${c.highlight}" stroke="${line}" stroke-width="2"/>`,
-    crown: `<path data-accessory-asset="crown" data-headwear-center-x="${n(cx)}" data-headwear-baseline-y="${n(brim)}" d="M${n(cx - hw * 0.8)} ${n(brim - 6)}l${n(10 * scale)}-${n(24 * scale)} ${n(20 * scale)} ${n(19 * scale)} ${n(18 * scale)}-${n(28 * scale)} ${n(20 * scale)} ${n(28 * scale)} ${n(20 * scale)}-${n(19 * scale)} ${n(10 * scale)} ${n(24 * scale)}v${n(17 * scale)}h-${n(w * 0.96)}z" fill="${c.base}" stroke="${line}" stroke-width="3" stroke-linejoin="round"/><path d="M${n(cx - 22 * scale)} ${n(brim + 2 * scale)}h${n(44 * scale)}" stroke="${c.highlight}" stroke-width="4" stroke-linecap="round" opacity="0.65"/>`,
-    sunHat: `<path data-accessory-asset="sunHat" data-headwear-center-x="${n(cx)}" data-headwear-baseline-y="${n(brim)}" d="M${n(cx - hw * 0.75)} ${n(brim - 9)}c${n(7 * scale)}-${n(26 * scale)} ${n(w * 0.78)}-${n(26 * scale)} ${n(w * 0.86)} 0v${n(12 * scale)}h-${n(w * 0.86)}z" fill="${c.base}" stroke="${line}" stroke-width="3"/><path d="M${n(cx - hw * 1.15)} ${n(brim + 3)}c${n(w * 0.62)}-${n(12 * scale)} ${n(w * 1.06)}-${n(12 * scale)} ${n(w * 1.68)} 0-${n(18 * scale)} ${n(15 * scale)}-${n(w * 1.5)} ${n(15 * scale)}-${n(w * 1.68)} 0z" fill="${c.shade}" stroke="${line}" stroke-width="3"/><path d="M${n(cx - hw * 0.55)} ${n(brim - 8)}c${n(18 * scale)}-${n(6 * scale)} ${n(42 * scale)}-${n(6 * scale)} ${n(61 * scale)} 0" stroke="${c.highlight}" stroke-width="4" stroke-linecap="round" opacity="0.6"/>`,
-    helmet: `<path data-accessory-asset="helmet" data-headwear-center-x="${n(cx)}" data-headwear-baseline-y="${n(lower)}" d="M${n(cx - hw * 0.92)} ${n(lower - 2)}c0-${n(38 * scale)} ${n(21 * scale)}-${n(56 * scale)} ${n(hw * 0.92)}-${n(56 * scale)}s${n(hw * 0.92)} ${n(18 * scale)} ${n(hw * 0.92)} ${n(56 * scale)}v${n(9 * scale)}h-${n(w * 0.92)}z" fill="${c.base}" stroke="${line}" stroke-width="3"/><path d="M${n(cx)} ${n(lower - 55 * scale)}v${n(53 * scale)}M${n(cx - hw * 0.68)} ${n(lower - 20 * scale)}c${n(23 * scale)} ${n(7 * scale)} ${n(52 * scale)} ${n(7 * scale)} ${n(75 * scale)} 0" stroke="${c.highlight}" stroke-width="4" stroke-linecap="round" opacity="0.62"/>`,
+type HeadwearPlacement = {
+  centerX: number;
+  width: number;
+  scale: number;
+  headTopY: number;
+  hairlineY: number;
+  foreheadY: number;
+  eyeSafeY: number;
+};
+
+function resolveHeadwearPlacement(anatomy: AvatarAnatomy): HeadwearPlacement {
+  const eyeSafeY = anatomy.face.eyeLineY - 8;
+  return {
+    centerX: anatomy.head.center.x,
+    width: anatomy.head.width,
+    scale: anatomy.head.width / 102,
+    headTopY: anatomy.head.top.y,
+    hairlineY: anatomy.head.hairline.y,
+    foreheadY: Math.min(anatomy.head.forehead.y, eyeSafeY - 6),
+    eyeSafeY,
   };
-  return `<g id="avatar-v2-layer-accessory" data-avatar-mount="headTop" data-headwear-model="anatomy-relative" data-headwear-width="${n(w)}" data-headwear-scale="${n(scale)}">${shapes[style]}</g>`;
 }
+
+function renderHeadwear(ctx: AvatarRenderContext, c: ExpandedSwatch, style: HeadwearStyle): string {
+  const placement = resolveHeadwearPlacement(ctx.anatomy);
+  const cx = placement.centerX;
+  const headWidth = placement.width;
+  const scale = placement.scale;
+  const line = c.line;
+  const safe = placement.eyeSafeY;
+  const hairline = Math.min(placement.hairlineY, safe - 10);
+  const forehead = Math.min(placement.foreheadY, safe - 7);
+  const top = placement.headTopY;
+  const capBandY = Math.min(hairline + 5 * scale, safe - 6);
+  const brimY = Math.min(forehead - 2 * scale, safe - 7);
+  const beanieBandY = Math.min(hairline + 2 * scale, safe - 8);
+  const helmetRimY = Math.min(hairline + 8 * scale, safe - 6);
+  const crownBaseY = Math.min(hairline - 2 * scale, safe - 12);
+  const partyBaseY = Math.min(hairline - 1 * scale, safe - 10);
+  const sunBrimY = Math.min(forehead - 3 * scale, safe - 8);
+  const capWidth = headWidth * 0.94;
+  const beanieWidth = headWidth * 0.88;
+  const crownWidth = headWidth * 0.72;
+  const helmetWidth = headWidth * 0.96;
+  const sunWidth = headWidth * 1.28;
+  const shapes: Record<HeadwearStyle, string> = {
+    baseballCap: `<path data-accessory-asset="baseballCap" data-headwear-center-x="${n(cx)}" data-headwear-baseline-y="${n(capBandY)}" data-headwear-eye-safe-y="${n(safe)}" d="M${n(cx - capWidth * 0.48)} ${n(capBandY)}c${n(5 * scale)}-${n(25 * scale)} ${n(capWidth * 0.28)}-${n(38 * scale)} ${n(capWidth * 0.52)}-${n(36 * scale)}c${n(capWidth * 0.22)} ${n(2 * scale)} ${n(capWidth * 0.36)} ${n(15 * scale)} ${n(capWidth * 0.42)} ${n(36 * scale)}z" fill="${c.base}" stroke="${line}" stroke-width="3"/><path d="M${n(cx + capWidth * 0.22)} ${n(brimY)}c${n(22 * scale)}-${n(1 * scale)} ${n(42 * scale)} ${n(4 * scale)} ${n(55 * scale)} ${n(13 * scale)}c-${n(19 * scale)} ${n(7 * scale)}-${n(43 * scale)} ${n(5 * scale)}-${n(64 * scale)}-${n(6 * scale)}z" fill="${c.shade}" stroke="${line}" stroke-width="3"/><path d="M${n(cx - capWidth * 0.28)} ${n(capBandY - 7 * scale)}c${n(14 * scale)}-${n(7 * scale)} ${n(31 * scale)}-${n(8 * scale)} ${n(47 * scale)}-${n(2 * scale)}" stroke="${c.highlight}" stroke-width="4" stroke-linecap="round" opacity="0.65"/>`,
+    beanie: `<path data-accessory-asset="beanie" data-headwear-center-x="${n(cx)}" data-headwear-baseline-y="${n(beanieBandY)}" data-headwear-eye-safe-y="${n(safe)}" d="M${n(cx - beanieWidth * 0.5)} ${n(beanieBandY)}c${n(3 * scale)}-${n(33 * scale)} ${n(beanieWidth * 0.22)}-${n(47 * scale)} ${n(beanieWidth * 0.5)}-${n(47 * scale)}s${n(beanieWidth * 0.47)} ${n(14 * scale)} ${n(beanieWidth * 0.5)} ${n(47 * scale)}z" fill="${c.base}" stroke="${line}" stroke-width="3"/><path d="M${n(cx - beanieWidth * 0.52)} ${n(beanieBandY)}h${n(beanieWidth * 1.04)}" stroke="${line}" stroke-width="${n(8 * scale)}" stroke-linecap="round"/><circle cx="${n(cx)}" cy="${n(Math.max(7, top - 5 * scale))}" r="${n(8 * scale)}" fill="${c.highlight}" stroke="${line}" stroke-width="3"/>`,
+    partyHat: `<path data-accessory-asset="partyHat" data-headwear-center-x="${n(cx)}" data-headwear-baseline-y="${n(partyBaseY)}" data-headwear-eye-safe-y="${n(safe)}" d="M${n(cx - headWidth * 0.22)} ${n(partyBaseY)}L${n(cx + 3 * scale)} ${n(Math.max(7, top - 14 * scale))}L${n(cx + headWidth * 0.24)} ${n(partyBaseY)}z" fill="${c.base}" stroke="${line}" stroke-width="3"/><path d="M${n(cx - headWidth * 0.11)} ${n(partyBaseY - 25 * scale)}l${n(29 * scale)} ${n(11 * scale)}M${n(cx - headWidth * 0.02)} ${n(partyBaseY - 46 * scale)}l${n(18 * scale)} ${n(7 * scale)}" stroke="${c.highlight}" stroke-width="4" stroke-linecap="round" opacity="0.7"/><circle cx="${n(cx + 3 * scale)}" cy="${n(Math.max(6, top - 17 * scale))}" r="${n(6 * scale)}" fill="${c.highlight}" stroke="${line}" stroke-width="2"/>`,
+    crown: `<path data-accessory-asset="crown" data-headwear-center-x="${n(cx)}" data-headwear-baseline-y="${n(crownBaseY)}" data-headwear-eye-safe-y="${n(safe)}" d="M${n(cx - crownWidth * 0.5)} ${n(crownBaseY)}l${n(8 * scale)}-${n(25 * scale)} ${n(crownWidth * 0.22)} ${n(18 * scale)} ${n(crownWidth * 0.2)}-${n(29 * scale)} ${n(crownWidth * 0.2)} ${n(29 * scale)} ${n(crownWidth * 0.22)}-${n(18 * scale)} ${n(8 * scale)} ${n(25 * scale)}v${n(13 * scale)}h-${n(crownWidth)}z" fill="${c.base}" stroke="${line}" stroke-width="3" stroke-linejoin="round"/><path d="M${n(cx - crownWidth * 0.28)} ${n(crownBaseY + 2 * scale)}h${n(crownWidth * 0.56)}" stroke="${c.highlight}" stroke-width="4" stroke-linecap="round" opacity="0.65"/>`,
+    sunHat: `<path data-accessory-asset="sunHat" data-headwear-center-x="${n(cx)}" data-headwear-baseline-y="${n(sunBrimY)}" data-headwear-eye-safe-y="${n(safe)}" d="M${n(cx - headWidth * 0.36)} ${n(sunBrimY - 3 * scale)}c${n(5 * scale)}-${n(24 * scale)} ${n(headWidth * 0.22)}-${n(35 * scale)} ${n(headWidth * 0.42)}-${n(34 * scale)}c${n(headWidth * 0.2)} ${n(1 * scale)} ${n(headWidth * 0.34)} ${n(13 * scale)} ${n(headWidth * 0.39)} ${n(34 * scale)}z" fill="${c.base}" stroke="${line}" stroke-width="3"/><path d="M${n(cx - sunWidth * 0.5)} ${n(sunBrimY)}c${n(sunWidth * 0.33)}-${n(12 * scale)} ${n(sunWidth * 0.67)}-${n(12 * scale)} ${n(sunWidth)} 0c-${n(16 * scale)} ${n(14 * scale)}-${n(sunWidth - 16 * scale)} ${n(14 * scale)}-${n(sunWidth)} 0z" fill="${c.shade}" stroke="${line}" stroke-width="3"/><path d="M${n(cx - headWidth * 0.27)} ${n(sunBrimY - 7 * scale)}c${n(17 * scale)}-${n(6 * scale)} ${n(41 * scale)}-${n(6 * scale)} ${n(58 * scale)} 0" stroke="${c.highlight}" stroke-width="4" stroke-linecap="round" opacity="0.6"/>`,
+    helmet: `<path data-accessory-asset="helmet" data-headwear-center-x="${n(cx)}" data-headwear-baseline-y="${n(helmetRimY)}" data-headwear-eye-safe-y="${n(safe)}" d="M${n(cx - helmetWidth * 0.5)} ${n(helmetRimY)}c0-${n(35 * scale)} ${n(helmetWidth * 0.19)}-${n(53 * scale)} ${n(helmetWidth * 0.5)}-${n(53 * scale)}s${n(helmetWidth * 0.5)} ${n(18 * scale)} ${n(helmetWidth * 0.5)} ${n(53 * scale)}v${n(8 * scale)}h-${n(helmetWidth)}z" fill="${c.base}" stroke="${line}" stroke-width="3"/><path d="M${n(cx)} ${n(helmetRimY - 52 * scale)}v${n(50 * scale)}M${n(cx - helmetWidth * 0.34)} ${n(helmetRimY - 18 * scale)}c${n(23 * scale)} ${n(7 * scale)} ${n(52 * scale)} ${n(7 * scale)} ${n(75 * scale)} 0" stroke="${c.highlight}" stroke-width="4" stroke-linecap="round" opacity="0.62"/>`,
+  };
+  return `<g id="avatar-v2-layer-accessory" data-avatar-mount="headTop" data-headwear-model="anatomy-relative" data-headwear-width="${n(headWidth)}" data-headwear-scale="${n(scale)}">${shapes[style]}</g>`;
+}
+
 
 function renderNeckAccessory(ctx: AvatarRenderContext, c: ExpandedSwatch, style: "necklace" | "scarf"): string {
   const cx = ctx.anatomy.body.chest.x;
