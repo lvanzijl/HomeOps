@@ -129,17 +129,27 @@ describe('AvatarEditorPage', () => {
     expect(screen.getByText('Niet-opgeslagen wijzigingen')).not.toBeNull();
   });
 
-  it('groups head accessories and their colors under the Accessories category', async () => {
+  it('reveals the secondary clothing color only for dual-color garments', async () => {
     const user = userEvent.setup();
     render(<AvatarEditorPage />);
 
-    await user.click(categoryButton('Accessoires')!);
-
+    await user.click(categoryButton('Kleding')!);
     const controls = within(screen.getByLabelText('Avatarkeuzes'));
-    expect(controls.getByRole('heading', { name: 'Accessoire' })).not.toBeNull();
-    expect(controls.getByRole('button', { name: /Bloemspeld accessoire/i }).textContent).toBe('');
 
-    expect(controls.getByRole('heading', { name: 'Accessoirekleur' })).not.toBeNull();
-    expect(controls.getByRole('button', { name: /Accessoirekleur: Mintgroen/i }).textContent).toBe('');
+    // The default garment (hoodie) is single-color, so no secondary color control is shown.
+    expect(controls.queryByRole('heading', { name: 'Tweede kledingkleur' })).toBeNull();
+
+    // Selecting a dual-color garment exposes the secondary clothing color palette.
+    await user.click(controls.getByRole('button', { name: /Polo outfit/i }));
+    expect(controls.getByRole('heading', { name: 'Tweede kledingkleur' })).not.toBeNull();
+
+    const preview = screen.getByTestId('avatar-v2-live-preview');
+    const beforeSecondary = preview.innerHTML;
+    await user.click(controls.getByRole('button', { name: /Tweede kledingkleur: Rood/i }));
+    expect(preview.innerHTML).not.toBe(beforeSecondary);
+
+    // Switching back to a single-color garment hides the secondary control again.
+    await user.click(controls.getByRole('button', { name: /Hoodie outfit/i }));
+    expect(controls.queryByRole('heading', { name: 'Tweede kledingkleur' })).toBeNull();
   });
 });

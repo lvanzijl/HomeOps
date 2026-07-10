@@ -9,6 +9,7 @@ export const avatarSelectionSlots = {
   hairColor: 'hairColor',
   clothingStyle: 'clothingStyle',
   clothingColor: 'clothingColor',
+  clothingSecondaryColor: 'clothingSecondaryColor',
   mouthStyle: 'mouthStyle',
   eyewearStyle: 'eyewearStyle',
   accessoryStyle: 'accessoryStyle',
@@ -38,6 +39,8 @@ export interface AvatarCatalogPreview {
   hiddenSelections?: Partial<Record<AvatarSelectionSlot, string>>;
 }
 
+export type AvatarClothingColorRegion = 'primary' | 'secondary';
+
 export interface AvatarCatalogCategory {
   id: string;
   slot: AvatarSelectionSlot;
@@ -51,6 +54,13 @@ export interface AvatarCatalogCategory {
   presentation: AvatarCatalogPresentation;
   tags: readonly string[];
   preview?: AvatarCatalogPreview;
+  /**
+   * When set, marks this category as controlling a specific clothing color
+   * region. A "secondary" region category is only offered while the garment
+   * selected in {@link governingSlot} declares support for that region.
+   */
+  colorRegion?: AvatarClothingColorRegion;
+  governingSlot?: AvatarSelectionSlot;
 }
 
 export interface AvatarCatalogRendererBinding {
@@ -84,6 +94,8 @@ export interface AvatarCatalogItem {
   tags: readonly string[];
   renderer?: AvatarCatalogRendererBinding;
   color?: AvatarCatalogColor;
+  /** Colorable regions this renderer style draws. Defaults to primary-only when omitted. */
+  colorRegions?: readonly AvatarClothingColorRegion[];
   legacyIds: readonly string[];
 }
 
@@ -182,6 +194,25 @@ export function getAvatarCatalogOptionGroup(item: AvatarCatalogItem): AvatarCata
   return groupTag ? optionGroups.get(groupTag) : undefined;
 }
 
+export function getAvatarCatalogStyleColorRegions(item: AvatarCatalogItem | undefined): readonly AvatarClothingColorRegion[] {
+  return item?.colorRegions ?? ['primary'];
+}
+
+/**
+ * Determines whether a category should be offered for the current selection.
+ * Region-gated color categories (e.g. the secondary clothing color) are only
+ * available while the governing style selection supports that region, so
+ * single-color garments never expose an inert control.
+ */
+export function isAvatarCatalogCategoryAvailable(category: AvatarCatalogCategory, selection: AvatarCatalogSelection): boolean {
+  if (!category.colorRegion || category.colorRegion === 'primary' || !category.governingSlot) {
+    return true;
+  }
+
+  const governingItem = getAvatarCatalogItem(selection.selections[category.governingSlot]);
+  return getAvatarCatalogStyleColorRegions(governingItem).includes(category.colorRegion);
+}
+
 export function localizeAvatarCatalogText(texts: AvatarCatalogText | undefined, fallback: string, locale = avatarCatalog.defaultLocale): string {
   if (!texts) return fallback;
   return texts[locale] ?? texts[avatarCatalog.defaultLocale] ?? Object.values(texts)[0] ?? fallback;
@@ -205,6 +236,7 @@ export function getAvatarCatalogPanelSummary(panel: AvatarCatalogEditorPanel, se
   return panel.categoryIds
     .map((categoryId) => getAvatarCatalogCategory(categoryId))
     .filter((category): category is AvatarCatalogCategory => Boolean(category))
+    .filter((category) => isAvatarCatalogCategoryAvailable(category, selection))
     .map((category) => getAvatarCatalogSelectionLabel(selection, category.slot, locale))
     .filter((label) => label.length > 0)
     .join(' · ');

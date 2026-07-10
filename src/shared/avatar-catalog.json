@@ -118,12 +118,13 @@
         "en-US": "Clothing category"
       },
       "descriptions": {
-        "nl-NL": "Kies een outfit en een kledingkleur.",
-        "en-US": "Choose an outfit and a clothing color."
+        "nl-NL": "Kies een outfit en kledingkleuren.",
+        "en-US": "Choose an outfit and clothing colors."
       },
       "categoryIds": [
         "clothing.style",
-        "clothing.color"
+        "clothing.color",
+        "clothing.secondary-color"
       ]
     },
     {
@@ -290,6 +291,44 @@
         "editor",
         "clothing",
         "color"
+      ]
+    },
+    {
+      "id": "clothing.secondary-color",
+      "slot": "clothingSecondaryColor",
+      "required": false,
+      "allowsNone": false,
+      "order": 41,
+      "colorRegion": "secondary",
+      "governingSlot": "clothingStyle",
+      "labels": {
+        "nl-NL": "Tweede kledingkleur",
+        "en-US": "Secondary clothing color"
+      },
+      "shortLabels": {
+        "nl-NL": "Accent",
+        "en-US": "Accent"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Tweede kledingkleurkeuzes",
+        "en-US": "Secondary clothing color choices"
+      },
+      "descriptions": {
+        "nl-NL": "Kies een tweede kledingkleur voor kleding met een accent.",
+        "en-US": "Choose a secondary clothing color for garments with an accent."
+      },
+      "presentation": {
+        "control": "swatch",
+        "density": "compact",
+        "itemLabelVisibility": "hidden",
+        "groupStrategy": "tag",
+        "optionMinWidthRem": 3.2
+      },
+      "tags": [
+        "editor",
+        "clothing",
+        "color",
+        "clothing.secondary"
       ]
     },
     {
@@ -1833,6 +1872,9 @@
       },
       "legacyIds": [
         "tShirt"
+      ],
+      "colorRegions": [
+        "primary"
       ]
     },
     {
@@ -1859,6 +1901,9 @@
       },
       "legacyIds": [
         "roundedTee"
+      ],
+      "colorRegions": [
+        "primary"
       ]
     },
     {
@@ -1885,6 +1930,9 @@
       },
       "legacyIds": [
         "collar"
+      ],
+      "colorRegions": [
+        "primary"
       ]
     },
     {
@@ -1911,6 +1959,9 @@
       },
       "legacyIds": [
         "hoodie"
+      ],
+      "colorRegions": [
+        "primary"
       ]
     },
     {
@@ -1937,6 +1988,9 @@
       },
       "legacyIds": [
         "sweater"
+      ],
+      "colorRegions": [
+        "primary"
       ]
     },
     {
@@ -1963,7 +2017,109 @@
       },
       "legacyIds": [
         "overall"
+      ],
+      "colorRegions": [
+        "primary"
       ]
+    },
+    {
+      "id": "clothing.style.polo",
+      "categoryId": "clothing.style",
+      "type": "rendererStyle",
+      "status": "active",
+      "order": 25,
+      "colorRegions": [
+        "primary",
+        "secondary"
+      ],
+      "labels": {
+        "nl-NL": "Polo",
+        "en-US": "Polo"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Polo outfit",
+        "en-US": "Polo outfit"
+      },
+      "descriptions": {
+        "nl-NL": "Kies een polo met een aparte kraagkleur.",
+        "en-US": "A polo with a separate collar color."
+      },
+      "tags": [
+        "clothing",
+        "clothing.dual-color"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "polo",
+        "layer": "shirt"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.style.dress",
+      "categoryId": "clothing.style",
+      "type": "rendererStyle",
+      "status": "active",
+      "order": 35,
+      "colorRegions": [
+        "primary",
+        "secondary"
+      ],
+      "labels": {
+        "nl-NL": "Jurk",
+        "en-US": "Dress"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Jurk outfit",
+        "en-US": "Dress outfit"
+      },
+      "descriptions": {
+        "nl-NL": "Kies een jurk met een aparte rokkleur.",
+        "en-US": "A dress with a separate skirt color."
+      },
+      "tags": [
+        "clothing",
+        "clothing.dual-color"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "dress",
+        "layer": "shirt"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.style.jacket",
+      "categoryId": "clothing.style",
+      "type": "rendererStyle",
+      "status": "active",
+      "order": 55,
+      "colorRegions": [
+        "primary",
+        "secondary"
+      ],
+      "labels": {
+        "nl-NL": "Jack",
+        "en-US": "Jacket"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Jack outfit",
+        "en-US": "Jacket outfit"
+      },
+      "descriptions": {
+        "nl-NL": "Kies een jack met een aparte binnenkleur.",
+        "en-US": "A jacket with a separate inner color."
+      },
+      "tags": [
+        "clothing",
+        "clothing.dual-color"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "jacket",
+        "layer": "shirt"
+      },
+      "legacyIds": []
     },
     {
       "id": "clothing.color.white",
@@ -3740,6 +3896,1686 @@
       "legacyIds": [
         "shirtFrost"
       ]
+    },
+    {
+      "id": "clothing.secondary-color.white",
+      "categoryId": "clothing.secondary-color",
+      "type": "color",
+      "status": "active",
+      "order": 10,
+      "labels": {
+        "nl-NL": "Wit",
+        "en-US": "White"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Tweede kledingkleur: Wit",
+        "en-US": "Secondary clothing color: White"
+      },
+      "tags": [
+        "clothing",
+        "color",
+        "palette.clothing",
+        "group.neutral"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "shirtWhite",
+        "layer": "shirt"
+      },
+      "color": {
+        "format": "expandedSwatch",
+        "paletteId": "clothing",
+        "base": "#f7f7f7",
+        "shade": "#dcdde1",
+        "highlight": "#ffffff",
+        "line": "#a3a6ad"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.secondary-color.cream",
+      "categoryId": "clothing.secondary-color",
+      "type": "color",
+      "status": "active",
+      "order": 20,
+      "labels": {
+        "nl-NL": "Crème",
+        "en-US": "Cream"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Tweede kledingkleur: Crème",
+        "en-US": "Secondary clothing color: Cream"
+      },
+      "tags": [
+        "clothing",
+        "color",
+        "palette.clothing",
+        "group.neutral"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "shirtCream",
+        "layer": "shirt"
+      },
+      "color": {
+        "format": "expandedSwatch",
+        "paletteId": "clothing",
+        "base": "#f1e6cf",
+        "shade": "#d7c3a1",
+        "highlight": "#fbf4e6",
+        "line": "#a89068"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.secondary-color.light-grey",
+      "categoryId": "clothing.secondary-color",
+      "type": "color",
+      "status": "active",
+      "order": 30,
+      "labels": {
+        "nl-NL": "Lichtgrijs",
+        "en-US": "Light grey"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Tweede kledingkleur: Lichtgrijs",
+        "en-US": "Secondary clothing color: Light grey"
+      },
+      "tags": [
+        "clothing",
+        "color",
+        "palette.clothing",
+        "group.neutral"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "shirtLightGrey",
+        "layer": "shirt"
+      },
+      "color": {
+        "format": "expandedSwatch",
+        "paletteId": "clothing",
+        "base": "#d6d9df",
+        "shade": "#b2b8c2",
+        "highlight": "#eceef2",
+        "line": "#7d8692"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.secondary-color.charcoal",
+      "categoryId": "clothing.secondary-color",
+      "type": "color",
+      "status": "active",
+      "order": 40,
+      "labels": {
+        "nl-NL": "Antraciet",
+        "en-US": "Charcoal"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Tweede kledingkleur: Antraciet",
+        "en-US": "Secondary clothing color: Charcoal"
+      },
+      "tags": [
+        "clothing",
+        "color",
+        "palette.clothing",
+        "group.neutral"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "shirtCharcoal",
+        "layer": "shirt"
+      },
+      "color": {
+        "format": "expandedSwatch",
+        "paletteId": "clothing",
+        "base": "#525760",
+        "shade": "#3b4048",
+        "highlight": "#707780",
+        "line": "#2b2f35"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.secondary-color.black",
+      "categoryId": "clothing.secondary-color",
+      "type": "color",
+      "status": "active",
+      "order": 50,
+      "labels": {
+        "nl-NL": "Zwart",
+        "en-US": "Black"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Tweede kledingkleur: Zwart",
+        "en-US": "Secondary clothing color: Black"
+      },
+      "tags": [
+        "clothing",
+        "color",
+        "palette.clothing",
+        "group.neutral"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "shirtBlack",
+        "layer": "shirt"
+      },
+      "color": {
+        "format": "expandedSwatch",
+        "paletteId": "clothing",
+        "base": "#2a2c31",
+        "shade": "#191b1f",
+        "highlight": "#41444b",
+        "line": "#101115"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.secondary-color.navy",
+      "categoryId": "clothing.secondary-color",
+      "type": "color",
+      "status": "active",
+      "order": 60,
+      "labels": {
+        "nl-NL": "Marineblauw",
+        "en-US": "Navy"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Tweede kledingkleur: Marineblauw",
+        "en-US": "Secondary clothing color: Navy"
+      },
+      "tags": [
+        "clothing",
+        "color",
+        "palette.clothing",
+        "group.neutral"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "shirtNavy",
+        "layer": "shirt"
+      },
+      "color": {
+        "format": "expandedSwatch",
+        "paletteId": "clothing",
+        "base": "#365072",
+        "shade": "#273a54",
+        "highlight": "#4d6a8f",
+        "line": "#1b2736"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.secondary-color.denim",
+      "categoryId": "clothing.secondary-color",
+      "type": "color",
+      "status": "active",
+      "order": 70,
+      "labels": {
+        "nl-NL": "Denim",
+        "en-US": "Denim"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Tweede kledingkleur: Denim",
+        "en-US": "Secondary clothing color: Denim"
+      },
+      "tags": [
+        "clothing",
+        "color",
+        "palette.clothing",
+        "group.neutral"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "shirtDenim",
+        "layer": "shirt"
+      },
+      "color": {
+        "format": "expandedSwatch",
+        "paletteId": "clothing",
+        "base": "#5a79a0",
+        "shade": "#405a7a",
+        "highlight": "#7d97b8",
+        "line": "#2f4056"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.secondary-color.brown",
+      "categoryId": "clothing.secondary-color",
+      "type": "color",
+      "status": "active",
+      "order": 80,
+      "labels": {
+        "nl-NL": "Bruin",
+        "en-US": "Brown"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Tweede kledingkleur: Bruin",
+        "en-US": "Secondary clothing color: Brown"
+      },
+      "tags": [
+        "clothing",
+        "color",
+        "palette.clothing",
+        "group.neutral"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "shirtBrown",
+        "layer": "shirt"
+      },
+      "color": {
+        "format": "expandedSwatch",
+        "paletteId": "clothing",
+        "base": "#8a6246",
+        "shade": "#654531",
+        "highlight": "#a87e61",
+        "line": "#452d21"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.secondary-color.blush",
+      "categoryId": "clothing.secondary-color",
+      "type": "color",
+      "status": "active",
+      "order": 90,
+      "labels": {
+        "nl-NL": "Blush",
+        "en-US": "Blush"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Tweede kledingkleur: Blush",
+        "en-US": "Secondary clothing color: Blush"
+      },
+      "tags": [
+        "clothing",
+        "color",
+        "palette.clothing",
+        "group.soft"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "shirtBlush",
+        "layer": "shirt"
+      },
+      "color": {
+        "format": "expandedSwatch",
+        "paletteId": "clothing",
+        "base": "#e9bec6",
+        "shade": "#ce97a0",
+        "highlight": "#f5d6dc",
+        "line": "#8f626a"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.secondary-color.peach",
+      "categoryId": "clothing.secondary-color",
+      "type": "color",
+      "status": "active",
+      "order": 100,
+      "labels": {
+        "nl-NL": "Perzik",
+        "en-US": "Peach"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Tweede kledingkleur: Perzik",
+        "en-US": "Secondary clothing color: Peach"
+      },
+      "tags": [
+        "clothing",
+        "color",
+        "palette.clothing",
+        "group.soft"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "shirtPeach",
+        "layer": "shirt"
+      },
+      "color": {
+        "format": "expandedSwatch",
+        "paletteId": "clothing",
+        "base": "#f0c5ad",
+        "shade": "#d8a184",
+        "highlight": "#f8dccb",
+        "line": "#9a6a56"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.secondary-color.butter",
+      "categoryId": "clothing.secondary-color",
+      "type": "color",
+      "status": "active",
+      "order": 110,
+      "labels": {
+        "nl-NL": "Botergeel",
+        "en-US": "Butter yellow"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Tweede kledingkleur: Botergeel",
+        "en-US": "Secondary clothing color: Butter yellow"
+      },
+      "tags": [
+        "clothing",
+        "color",
+        "palette.clothing",
+        "group.soft"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "shirtButter",
+        "layer": "shirt"
+      },
+      "color": {
+        "format": "expandedSwatch",
+        "paletteId": "clothing",
+        "base": "#f3dfa0",
+        "shade": "#dbc06a",
+        "highlight": "#faedc4",
+        "line": "#9a7e39"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.secondary-color.sage",
+      "categoryId": "clothing.secondary-color",
+      "type": "color",
+      "status": "active",
+      "order": 120,
+      "labels": {
+        "nl-NL": "Salie",
+        "en-US": "Sage"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Tweede kledingkleur: Salie",
+        "en-US": "Secondary clothing color: Sage"
+      },
+      "tags": [
+        "clothing",
+        "color",
+        "palette.clothing",
+        "group.soft"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "shirtSage",
+        "layer": "shirt"
+      },
+      "color": {
+        "format": "expandedSwatch",
+        "paletteId": "clothing",
+        "base": "#b9cda6",
+        "shade": "#91ab7b",
+        "highlight": "#d2dfc4",
+        "line": "#647655"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.secondary-color.mint",
+      "categoryId": "clothing.secondary-color",
+      "type": "color",
+      "status": "active",
+      "order": 130,
+      "labels": {
+        "nl-NL": "Mintgroen",
+        "en-US": "Mint"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Tweede kledingkleur: Mintgroen",
+        "en-US": "Secondary clothing color: Mint"
+      },
+      "tags": [
+        "clothing",
+        "color",
+        "palette.clothing",
+        "group.soft"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "shirtMint",
+        "layer": "shirt"
+      },
+      "color": {
+        "format": "expandedSwatch",
+        "paletteId": "clothing",
+        "base": "#9edfc0",
+        "shade": "#72bf9a",
+        "highlight": "#c5efd9",
+        "line": "#4f8f70"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.secondary-color.sky",
+      "categoryId": "clothing.secondary-color",
+      "type": "color",
+      "status": "active",
+      "order": 140,
+      "labels": {
+        "nl-NL": "Hemelsblauw",
+        "en-US": "Sky blue"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Tweede kledingkleur: Hemelsblauw",
+        "en-US": "Secondary clothing color: Sky blue"
+      },
+      "tags": [
+        "clothing",
+        "color",
+        "palette.clothing",
+        "group.soft"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "shirtSky",
+        "layer": "shirt"
+      },
+      "color": {
+        "format": "expandedSwatch",
+        "paletteId": "clothing",
+        "base": "#8fc8ef",
+        "shade": "#67a8d8",
+        "highlight": "#b6ddf6",
+        "line": "#417895"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.secondary-color.lavender",
+      "categoryId": "clothing.secondary-color",
+      "type": "color",
+      "status": "active",
+      "order": 150,
+      "labels": {
+        "nl-NL": "Lavendel",
+        "en-US": "Lavender"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Tweede kledingkleur: Lavendel",
+        "en-US": "Secondary clothing color: Lavender"
+      },
+      "tags": [
+        "clothing",
+        "color",
+        "palette.clothing",
+        "group.soft"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "shirtLavender",
+        "layer": "shirt"
+      },
+      "color": {
+        "format": "expandedSwatch",
+        "paletteId": "clothing",
+        "base": "#bcaee8",
+        "shade": "#9486c7",
+        "highlight": "#d8ceF4",
+        "line": "#695b9b"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.secondary-color.lilac",
+      "categoryId": "clothing.secondary-color",
+      "type": "color",
+      "status": "active",
+      "order": 160,
+      "labels": {
+        "nl-NL": "Sering",
+        "en-US": "Lilac"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Tweede kledingkleur: Sering",
+        "en-US": "Secondary clothing color: Lilac"
+      },
+      "tags": [
+        "clothing",
+        "color",
+        "palette.clothing",
+        "group.soft"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "shirtLilac",
+        "layer": "shirt"
+      },
+      "color": {
+        "format": "expandedSwatch",
+        "paletteId": "clothing",
+        "base": "#d1b8ea",
+        "shade": "#b08dcd",
+        "highlight": "#e6d7f6",
+        "line": "#846499"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.secondary-color.red",
+      "categoryId": "clothing.secondary-color",
+      "type": "color",
+      "status": "active",
+      "order": 170,
+      "labels": {
+        "nl-NL": "Rood",
+        "en-US": "Red"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Tweede kledingkleur: Rood",
+        "en-US": "Secondary clothing color: Red"
+      },
+      "tags": [
+        "clothing",
+        "color",
+        "palette.clothing",
+        "group.bright"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "shirtRed",
+        "layer": "shirt"
+      },
+      "color": {
+        "format": "expandedSwatch",
+        "paletteId": "clothing",
+        "base": "#e55a61",
+        "shade": "#c33a43",
+        "highlight": "#f0888d",
+        "line": "#8d2a31"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.secondary-color.orange",
+      "categoryId": "clothing.secondary-color",
+      "type": "color",
+      "status": "active",
+      "order": 180,
+      "labels": {
+        "nl-NL": "Oranje",
+        "en-US": "Orange"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Tweede kledingkleur: Oranje",
+        "en-US": "Secondary clothing color: Orange"
+      },
+      "tags": [
+        "clothing",
+        "color",
+        "palette.clothing",
+        "group.bright"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "shirtOrange",
+        "layer": "shirt"
+      },
+      "color": {
+        "format": "expandedSwatch",
+        "paletteId": "clothing",
+        "base": "#f08b44",
+        "shade": "#cf6828",
+        "highlight": "#f6ae74",
+        "line": "#93421b"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.secondary-color.sun",
+      "categoryId": "clothing.secondary-color",
+      "type": "color",
+      "status": "active",
+      "order": 190,
+      "labels": {
+        "nl-NL": "Zonnig geel",
+        "en-US": "Sun yellow"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Tweede kledingkleur: Zonnig geel",
+        "en-US": "Secondary clothing color: Sun yellow"
+      },
+      "tags": [
+        "clothing",
+        "color",
+        "palette.clothing",
+        "group.bright"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "shirtSun",
+        "layer": "shirt"
+      },
+      "color": {
+        "format": "expandedSwatch",
+        "paletteId": "clothing",
+        "base": "#f7d56e",
+        "shade": "#e6b94b",
+        "highlight": "#ffe89a",
+        "line": "#9a7a2f"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.secondary-color.green",
+      "categoryId": "clothing.secondary-color",
+      "type": "color",
+      "status": "active",
+      "order": 200,
+      "labels": {
+        "nl-NL": "Groen",
+        "en-US": "Green"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Tweede kledingkleur: Groen",
+        "en-US": "Secondary clothing color: Green"
+      },
+      "tags": [
+        "clothing",
+        "color",
+        "palette.clothing",
+        "group.bright"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "shirtGreen",
+        "layer": "shirt"
+      },
+      "color": {
+        "format": "expandedSwatch",
+        "paletteId": "clothing",
+        "base": "#59bf68",
+        "shade": "#3d9d4e",
+        "highlight": "#86d991",
+        "line": "#2b6f38"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.secondary-color.blue",
+      "categoryId": "clothing.secondary-color",
+      "type": "color",
+      "status": "active",
+      "order": 210,
+      "labels": {
+        "nl-NL": "Blauw",
+        "en-US": "Blue"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Tweede kledingkleur: Blauw",
+        "en-US": "Secondary clothing color: Blue"
+      },
+      "tags": [
+        "clothing",
+        "color",
+        "palette.clothing",
+        "group.bright"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "shirtBlue",
+        "layer": "shirt"
+      },
+      "color": {
+        "format": "expandedSwatch",
+        "paletteId": "clothing",
+        "base": "#4d87e2",
+        "shade": "#3366c0",
+        "highlight": "#78a7ef",
+        "line": "#244787"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.secondary-color.purple",
+      "categoryId": "clothing.secondary-color",
+      "type": "color",
+      "status": "active",
+      "order": 220,
+      "labels": {
+        "nl-NL": "Paars",
+        "en-US": "Purple"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Tweede kledingkleur: Paars",
+        "en-US": "Secondary clothing color: Purple"
+      },
+      "tags": [
+        "clothing",
+        "color",
+        "palette.clothing",
+        "group.bright"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "shirtPurple",
+        "layer": "shirt"
+      },
+      "color": {
+        "format": "expandedSwatch",
+        "paletteId": "clothing",
+        "base": "#8c67db",
+        "shade": "#6945b7",
+        "highlight": "#af92ee",
+        "line": "#4a307f"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.secondary-color.rose",
+      "categoryId": "clothing.secondary-color",
+      "type": "color",
+      "status": "active",
+      "order": 230,
+      "labels": {
+        "nl-NL": "Roze",
+        "en-US": "Pink"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Tweede kledingkleur: Roze",
+        "en-US": "Secondary clothing color: Pink"
+      },
+      "tags": [
+        "clothing",
+        "color",
+        "palette.clothing",
+        "group.bright"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "shirtRose",
+        "layer": "shirt"
+      },
+      "color": {
+        "format": "expandedSwatch",
+        "paletteId": "clothing",
+        "base": "#f0a8bd",
+        "shade": "#d97f9c",
+        "highlight": "#f7c8d7",
+        "line": "#9a5268"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.secondary-color.teal",
+      "categoryId": "clothing.secondary-color",
+      "type": "color",
+      "status": "active",
+      "order": 240,
+      "labels": {
+        "nl-NL": "Teal",
+        "en-US": "Teal"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Tweede kledingkleur: Teal",
+        "en-US": "Secondary clothing color: Teal"
+      },
+      "tags": [
+        "clothing",
+        "color",
+        "palette.clothing",
+        "group.bright"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "shirtTeal",
+        "layer": "shirt"
+      },
+      "color": {
+        "format": "expandedSwatch",
+        "paletteId": "clothing",
+        "base": "#44b3b0",
+        "shade": "#2f8f8e",
+        "highlight": "#73d1cf",
+        "line": "#216565"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.secondary-color.burgundy",
+      "categoryId": "clothing.secondary-color",
+      "type": "color",
+      "status": "active",
+      "order": 250,
+      "labels": {
+        "nl-NL": "Bordeaux",
+        "en-US": "Burgundy"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Tweede kledingkleur: Bordeaux",
+        "en-US": "Secondary clothing color: Burgundy"
+      },
+      "tags": [
+        "clothing",
+        "color",
+        "palette.clothing",
+        "group.seasonal"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "shirtBurgundy",
+        "layer": "shirt"
+      },
+      "color": {
+        "format": "expandedSwatch",
+        "paletteId": "clothing",
+        "base": "#8f3f59",
+        "shade": "#6c2b41",
+        "highlight": "#b15f79",
+        "line": "#4a1d2d"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.secondary-color.pumpkin",
+      "categoryId": "clothing.secondary-color",
+      "type": "color",
+      "status": "active",
+      "order": 260,
+      "labels": {
+        "nl-NL": "Pompoen",
+        "en-US": "Pumpkin"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Tweede kledingkleur: Pompoen",
+        "en-US": "Secondary clothing color: Pumpkin"
+      },
+      "tags": [
+        "clothing",
+        "color",
+        "palette.clothing",
+        "group.seasonal"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "shirtPumpkin",
+        "layer": "shirt"
+      },
+      "color": {
+        "format": "expandedSwatch",
+        "paletteId": "clothing",
+        "base": "#cc6d2d",
+        "shade": "#a8511e",
+        "highlight": "#e08e4b",
+        "line": "#733514"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.secondary-color.mustard",
+      "categoryId": "clothing.secondary-color",
+      "type": "color",
+      "status": "active",
+      "order": 270,
+      "labels": {
+        "nl-NL": "Mosterd",
+        "en-US": "Mustard"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Tweede kledingkleur: Mosterd",
+        "en-US": "Secondary clothing color: Mustard"
+      },
+      "tags": [
+        "clothing",
+        "color",
+        "palette.clothing",
+        "group.seasonal"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "shirtMustard",
+        "layer": "shirt"
+      },
+      "color": {
+        "format": "expandedSwatch",
+        "paletteId": "clothing",
+        "base": "#c3a23b",
+        "shade": "#9f7f24",
+        "highlight": "#dbc05e",
+        "line": "#6f5818"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.secondary-color.forest",
+      "categoryId": "clothing.secondary-color",
+      "type": "color",
+      "status": "active",
+      "order": 280,
+      "labels": {
+        "nl-NL": "Bosgroen",
+        "en-US": "Forest"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Tweede kledingkleur: Bosgroen",
+        "en-US": "Secondary clothing color: Forest"
+      },
+      "tags": [
+        "clothing",
+        "color",
+        "palette.clothing",
+        "group.seasonal"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "shirtForest",
+        "layer": "shirt"
+      },
+      "color": {
+        "format": "expandedSwatch",
+        "paletteId": "clothing",
+        "base": "#3d7750",
+        "shade": "#29583b",
+        "highlight": "#5a9770",
+        "line": "#1c3b28"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.secondary-color.evergreen",
+      "categoryId": "clothing.secondary-color",
+      "type": "color",
+      "status": "active",
+      "order": 290,
+      "labels": {
+        "nl-NL": "Dennengroen",
+        "en-US": "Evergreen"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Tweede kledingkleur: Dennengroen",
+        "en-US": "Secondary clothing color: Evergreen"
+      },
+      "tags": [
+        "clothing",
+        "color",
+        "palette.clothing",
+        "group.seasonal"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "shirtEvergreen",
+        "layer": "shirt"
+      },
+      "color": {
+        "format": "expandedSwatch",
+        "paletteId": "clothing",
+        "base": "#2f6658",
+        "shade": "#204a3f",
+        "highlight": "#4b8574",
+        "line": "#16322b"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.secondary-color.winter-blue",
+      "categoryId": "clothing.secondary-color",
+      "type": "color",
+      "status": "active",
+      "order": 300,
+      "labels": {
+        "nl-NL": "Winterblauw",
+        "en-US": "Winter blue"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Tweede kledingkleur: Winterblauw",
+        "en-US": "Secondary clothing color: Winter blue"
+      },
+      "tags": [
+        "clothing",
+        "color",
+        "palette.clothing",
+        "group.seasonal"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "shirtWinterBlue",
+        "layer": "shirt"
+      },
+      "color": {
+        "format": "expandedSwatch",
+        "paletteId": "clothing",
+        "base": "#5a7fb9",
+        "shade": "#405f8d",
+        "highlight": "#7e9dce",
+        "line": "#2d4464"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.secondary-color.plum",
+      "categoryId": "clothing.secondary-color",
+      "type": "color",
+      "status": "active",
+      "order": 310,
+      "labels": {
+        "nl-NL": "Pruim",
+        "en-US": "Plum"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Tweede kledingkleur: Pruim",
+        "en-US": "Secondary clothing color: Plum"
+      },
+      "tags": [
+        "clothing",
+        "color",
+        "palette.clothing",
+        "group.seasonal"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "shirtPlum",
+        "layer": "shirt"
+      },
+      "color": {
+        "format": "expandedSwatch",
+        "paletteId": "clothing",
+        "base": "#7b5aa2",
+        "shade": "#5b417f",
+        "highlight": "#9a7ac2",
+        "line": "#402c59"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.secondary-color.cocoa",
+      "categoryId": "clothing.secondary-color",
+      "type": "color",
+      "status": "active",
+      "order": 320,
+      "labels": {
+        "nl-NL": "Cacao",
+        "en-US": "Cocoa"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Tweede kledingkleur: Cacao",
+        "en-US": "Secondary clothing color: Cocoa"
+      },
+      "tags": [
+        "clothing",
+        "color",
+        "palette.clothing",
+        "group.seasonal"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "shirtCocoa",
+        "layer": "shirt"
+      },
+      "color": {
+        "format": "expandedSwatch",
+        "paletteId": "clothing",
+        "base": "#8b5c45",
+        "shade": "#66412f",
+        "highlight": "#a97860",
+        "line": "#452d21"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.secondary-color.stone",
+      "categoryId": "clothing.secondary-color",
+      "type": "color",
+      "status": "active",
+      "order": 330,
+      "labels": {
+        "nl-NL": "Steen",
+        "en-US": "Stone"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Tweede kledingkleur: Steen",
+        "en-US": "Secondary clothing color: Stone"
+      },
+      "tags": [
+        "clothing",
+        "color",
+        "palette.clothing",
+        "group.neutral"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "shirtStone",
+        "layer": "shirt"
+      },
+      "color": {
+        "format": "expandedSwatch",
+        "paletteId": "clothing",
+        "base": "#cfc9bf",
+        "shade": "#aba395",
+        "highlight": "#e4dfd6",
+        "line": "#7e776c"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.secondary-color.taupe",
+      "categoryId": "clothing.secondary-color",
+      "type": "color",
+      "status": "active",
+      "order": 340,
+      "labels": {
+        "nl-NL": "Taupe",
+        "en-US": "Taupe"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Tweede kledingkleur: Taupe",
+        "en-US": "Secondary clothing color: Taupe"
+      },
+      "tags": [
+        "clothing",
+        "color",
+        "palette.clothing",
+        "group.neutral"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "shirtTaupe",
+        "layer": "shirt"
+      },
+      "color": {
+        "format": "expandedSwatch",
+        "paletteId": "clothing",
+        "base": "#b59e8a",
+        "shade": "#927b67",
+        "highlight": "#ceb8a6",
+        "line": "#6a5647"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.secondary-color.slate",
+      "categoryId": "clothing.secondary-color",
+      "type": "color",
+      "status": "active",
+      "order": 350,
+      "labels": {
+        "nl-NL": "Leisteen",
+        "en-US": "Slate"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Tweede kledingkleur: Leisteen",
+        "en-US": "Secondary clothing color: Slate"
+      },
+      "tags": [
+        "clothing",
+        "color",
+        "palette.clothing",
+        "group.neutral"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "shirtSlate",
+        "layer": "shirt"
+      },
+      "color": {
+        "format": "expandedSwatch",
+        "paletteId": "clothing",
+        "base": "#6f7f93",
+        "shade": "#566476",
+        "highlight": "#8d9cb0",
+        "line": "#3e4856"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.secondary-color.midnight",
+      "categoryId": "clothing.secondary-color",
+      "type": "color",
+      "status": "active",
+      "order": 360,
+      "labels": {
+        "nl-NL": "Middernacht",
+        "en-US": "Midnight"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Tweede kledingkleur: Middernacht",
+        "en-US": "Secondary clothing color: Midnight"
+      },
+      "tags": [
+        "clothing",
+        "color",
+        "palette.clothing",
+        "group.neutral"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "shirtMidnight",
+        "layer": "shirt"
+      },
+      "color": {
+        "format": "expandedSwatch",
+        "paletteId": "clothing",
+        "base": "#24324a",
+        "shade": "#182235",
+        "highlight": "#40526e",
+        "line": "#111826"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.secondary-color.apricot",
+      "categoryId": "clothing.secondary-color",
+      "type": "color",
+      "status": "active",
+      "order": 370,
+      "labels": {
+        "nl-NL": "Abrikoos",
+        "en-US": "Apricot"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Tweede kledingkleur: Abrikoos",
+        "en-US": "Secondary clothing color: Apricot"
+      },
+      "tags": [
+        "clothing",
+        "color",
+        "palette.clothing",
+        "group.soft"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "shirtApricot",
+        "layer": "shirt"
+      },
+      "color": {
+        "format": "expandedSwatch",
+        "paletteId": "clothing",
+        "base": "#f2bb92",
+        "shade": "#d6946b",
+        "highlight": "#f8d1b4",
+        "line": "#986347"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.secondary-color.dusty-rose",
+      "categoryId": "clothing.secondary-color",
+      "type": "color",
+      "status": "active",
+      "order": 380,
+      "labels": {
+        "nl-NL": "Oudroze",
+        "en-US": "Dusty rose"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Tweede kledingkleur: Oudroze",
+        "en-US": "Secondary clothing color: Dusty rose"
+      },
+      "tags": [
+        "clothing",
+        "color",
+        "palette.clothing",
+        "group.soft"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "shirtDustyRose",
+        "layer": "shirt"
+      },
+      "color": {
+        "format": "expandedSwatch",
+        "paletteId": "clothing",
+        "base": "#d9a6b2",
+        "shade": "#bb7f8d",
+        "highlight": "#ebc3cb",
+        "line": "#835864"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.secondary-color.seafoam",
+      "categoryId": "clothing.secondary-color",
+      "type": "color",
+      "status": "active",
+      "order": 390,
+      "labels": {
+        "nl-NL": "Zeeschuim",
+        "en-US": "Seafoam"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Tweede kledingkleur: Zeeschuim",
+        "en-US": "Secondary clothing color: Seafoam"
+      },
+      "tags": [
+        "clothing",
+        "color",
+        "palette.clothing",
+        "group.soft"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "shirtSeafoam",
+        "layer": "shirt"
+      },
+      "color": {
+        "format": "expandedSwatch",
+        "paletteId": "clothing",
+        "base": "#9fd9d0",
+        "shade": "#73bbb0",
+        "highlight": "#c2ece6",
+        "line": "#4f857d"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.secondary-color.powder-blue",
+      "categoryId": "clothing.secondary-color",
+      "type": "color",
+      "status": "active",
+      "order": 400,
+      "labels": {
+        "nl-NL": "Poederblauw",
+        "en-US": "Powder blue"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Tweede kledingkleur: Poederblauw",
+        "en-US": "Secondary clothing color: Powder blue"
+      },
+      "tags": [
+        "clothing",
+        "color",
+        "palette.clothing",
+        "group.soft"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "shirtPowderBlue",
+        "layer": "shirt"
+      },
+      "color": {
+        "format": "expandedSwatch",
+        "paletteId": "clothing",
+        "base": "#b2c9ec",
+        "shade": "#88a8d2",
+        "highlight": "#d1def6",
+        "line": "#60789f"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.secondary-color.coral",
+      "categoryId": "clothing.secondary-color",
+      "type": "color",
+      "status": "active",
+      "order": 410,
+      "labels": {
+        "nl-NL": "Koraal",
+        "en-US": "Coral"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Tweede kledingkleur: Koraal",
+        "en-US": "Secondary clothing color: Coral"
+      },
+      "tags": [
+        "clothing",
+        "color",
+        "palette.clothing",
+        "group.bright"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "shirtCoral",
+        "layer": "shirt"
+      },
+      "color": {
+        "format": "expandedSwatch",
+        "paletteId": "clothing",
+        "base": "#ef7f6f",
+        "shade": "#cf5c4c",
+        "highlight": "#f5a191",
+        "line": "#994237"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.secondary-color.aqua",
+      "categoryId": "clothing.secondary-color",
+      "type": "color",
+      "status": "active",
+      "order": 420,
+      "labels": {
+        "nl-NL": "Aqua",
+        "en-US": "Aqua"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Tweede kledingkleur: Aqua",
+        "en-US": "Secondary clothing color: Aqua"
+      },
+      "tags": [
+        "clothing",
+        "color",
+        "palette.clothing",
+        "group.bright"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "shirtAqua",
+        "layer": "shirt"
+      },
+      "color": {
+        "format": "expandedSwatch",
+        "paletteId": "clothing",
+        "base": "#3bc5c6",
+        "shade": "#27999a",
+        "highlight": "#73dfdf",
+        "line": "#1d6d6d"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.secondary-color.violet",
+      "categoryId": "clothing.secondary-color",
+      "type": "color",
+      "status": "active",
+      "order": 430,
+      "labels": {
+        "nl-NL": "Violet",
+        "en-US": "Violet"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Tweede kledingkleur: Violet",
+        "en-US": "Secondary clothing color: Violet"
+      },
+      "tags": [
+        "clothing",
+        "color",
+        "palette.clothing",
+        "group.bright"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "shirtViolet",
+        "layer": "shirt"
+      },
+      "color": {
+        "format": "expandedSwatch",
+        "paletteId": "clothing",
+        "base": "#7353d7",
+        "shade": "#5438b4",
+        "highlight": "#9a84ec",
+        "line": "#3c287f"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.secondary-color.lime",
+      "categoryId": "clothing.secondary-color",
+      "type": "color",
+      "status": "active",
+      "order": 440,
+      "labels": {
+        "nl-NL": "Limoen",
+        "en-US": "Lime"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Tweede kledingkleur: Limoen",
+        "en-US": "Secondary clothing color: Lime"
+      },
+      "tags": [
+        "clothing",
+        "color",
+        "palette.clothing",
+        "group.bright"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "shirtLime",
+        "layer": "shirt"
+      },
+      "color": {
+        "format": "expandedSwatch",
+        "paletteId": "clothing",
+        "base": "#9bce3d",
+        "shade": "#76a52a",
+        "highlight": "#bde16d",
+        "line": "#54731d"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.secondary-color.terracotta",
+      "categoryId": "clothing.secondary-color",
+      "type": "color",
+      "status": "active",
+      "order": 450,
+      "labels": {
+        "nl-NL": "Terracotta",
+        "en-US": "Terracotta"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Tweede kledingkleur: Terracotta",
+        "en-US": "Secondary clothing color: Terracotta"
+      },
+      "tags": [
+        "clothing",
+        "color",
+        "palette.clothing",
+        "group.seasonal"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "shirtTerracotta",
+        "layer": "shirt"
+      },
+      "color": {
+        "format": "expandedSwatch",
+        "paletteId": "clothing",
+        "base": "#b55b3c",
+        "shade": "#8e4127",
+        "highlight": "#cf7c5e",
+        "line": "#64301e"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.secondary-color.olive",
+      "categoryId": "clothing.secondary-color",
+      "type": "color",
+      "status": "active",
+      "order": 460,
+      "labels": {
+        "nl-NL": "Olijf",
+        "en-US": "Olive"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Tweede kledingkleur: Olijf",
+        "en-US": "Secondary clothing color: Olive"
+      },
+      "tags": [
+        "clothing",
+        "color",
+        "palette.clothing",
+        "group.seasonal"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "shirtOlive",
+        "layer": "shirt"
+      },
+      "color": {
+        "format": "expandedSwatch",
+        "paletteId": "clothing",
+        "base": "#7f8c3f",
+        "shade": "#616b2b",
+        "highlight": "#9ca95a",
+        "line": "#464d1f"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.secondary-color.cranberry",
+      "categoryId": "clothing.secondary-color",
+      "type": "color",
+      "status": "active",
+      "order": 470,
+      "labels": {
+        "nl-NL": "Cranberry",
+        "en-US": "Cranberry"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Tweede kledingkleur: Cranberry",
+        "en-US": "Secondary clothing color: Cranberry"
+      },
+      "tags": [
+        "clothing",
+        "color",
+        "palette.clothing",
+        "group.seasonal"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "shirtCranberry",
+        "layer": "shirt"
+      },
+      "color": {
+        "format": "expandedSwatch",
+        "paletteId": "clothing",
+        "base": "#a33f56",
+        "shade": "#7a2a3f",
+        "highlight": "#c36177",
+        "line": "#561d2c"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "clothing.secondary-color.frost",
+      "categoryId": "clothing.secondary-color",
+      "type": "color",
+      "status": "active",
+      "order": 480,
+      "labels": {
+        "nl-NL": "Vorst",
+        "en-US": "Frost"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Tweede kledingkleur: Vorst",
+        "en-US": "Secondary clothing color: Frost"
+      },
+      "tags": [
+        "clothing",
+        "color",
+        "palette.clothing",
+        "group.seasonal"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "shirtFrost",
+        "layer": "shirt"
+      },
+      "color": {
+        "format": "expandedSwatch",
+        "paletteId": "clothing",
+        "base": "#c7d9f3",
+        "shade": "#9eb7da",
+        "highlight": "#e1ebfb",
+        "line": "#7088a7"
+      },
+      "legacyIds": []
     },
     {
       "id": "mouth.style.neutral",
@@ -7071,7 +8907,8 @@
     "accessoryStyle": "accessory.style.star",
     "accessoryColor": "accessory.color.mint",
     "mouthStyle": "mouth.style.neutral",
-    "eyewearStyle": "eyewear.style.none"
+    "eyewearStyle": "eyewear.style.none",
+    "clothingSecondaryColor": "clothing.secondary-color.white"
   },
   "optionGroups": [
     {

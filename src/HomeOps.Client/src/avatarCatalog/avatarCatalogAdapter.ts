@@ -57,6 +57,7 @@ export function avatarSelectionToAvatarV2RenderConfig(selection: AvatarCatalogSe
     shirt: {
       style: rendererToken(normalized.selections.clothingStyle, 'clothing.style') as AvatarConfig['shirt']['style'],
       color: rendererToken(normalized.selections.clothingColor, 'clothing.color') as PaletteToken,
+      secondaryColor: rendererToken(normalized.selections.clothingSecondaryColor, 'clothing.secondary-color') as PaletteToken,
     },
     accessory: {
       style: rendererToken(normalized.selections.accessoryStyle, 'accessory.style') as AvatarConfig['accessory']['style'],
