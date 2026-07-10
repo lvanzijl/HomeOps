@@ -2,6 +2,13 @@ import { CreateHelpfulMomentRequest, HomeOpsApiClient, type HelpfulMomentDto } f
 
 export const recognitionTags = ['Kindness', 'Initiative', 'Teamwork', 'Responsibility', 'Routine'] as const;
 export type RecognitionTag = typeof recognitionTags[number];
+const recognitionTagLabels: Record<RecognitionTag, string> = {
+  Kindness: 'Lief',
+  Initiative: 'Initiatief',
+  Teamwork: 'Samen',
+  Responsibility: 'Verantwoordelijk',
+  Routine: 'Routine',
+};
 
 export interface HelpfulMoment {
   id: string;
@@ -39,6 +46,10 @@ function helpfulMomentFromApi(moment: HelpfulMomentDto): HelpfulMoment {
     recognitionTag: (recognitionTags as readonly string[]).includes(moment.recognitionTag ?? '') ? moment.recognitionTag as RecognitionTag : 'Kindness',
     createdUtc: moment.createdUtc ? moment.createdUtc.toISOString() : '',
   };
+}
+
+export function getRecognitionTagLabel(tag: string | undefined): string {
+  return recognitionTagLabels[(tag ?? 'Kindness') as RecognitionTag] ?? recognitionTagLabels.Kindness;
 }
 
 export async function loadHelpfulMoments(familyMemberId?: string, limit = 12): Promise<HelpfulMoment[]> {

@@ -3,6 +3,7 @@ import { FamilyAvatar } from "./home/FamilyAvatar";
 import type { FamilyMember } from "./home/familyMembers";
 import {
   createHelpfulMoment,
+  getRecognitionTagLabel,
   loadHelpfulMoments,
   recognitionTags,
   type HelpfulMoment,
@@ -87,7 +88,7 @@ export function HelpfulMomentsSection({
             <strong>{moment.familyMemberName}</strong>
             <span>
               <HomeOpsIcon name={iconName} />
-              {moment.recognitionTag}
+              {getRecognitionTagLabel(moment.recognitionTag)}
             </span>
           </div>
           <h4>{moment.title}</h4>
@@ -373,7 +374,7 @@ function HelpfulMomentForm({
                   onClick={() => chooseTag(tag)}
                 >
                   <HomeOpsIcon name={getHelpfulMomentIconName(tag)} />
-                  <strong>{tag}</strong>
+                  <strong>{getRecognitionTagLabel(tag)}</strong>
                 </button>
               ))}
             </div>
@@ -406,7 +407,7 @@ function HelpfulMomentForm({
               <strong>{selectedMember?.name}</strong>
             </p>
             <p>{title}</p>
-            <p>{recognitionTag}</p>
+            <p>{getRecognitionTagLabel(recognitionTag)}</p>
             {description.trim() ? (
               <p>{description}</p>
             ) : (

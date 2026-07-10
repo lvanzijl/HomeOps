@@ -20,7 +20,7 @@ describe('FamilyAvatar', () => {
   it('renders Avatar V2 when avatarSelection exists', () => {
     render(<FamilyAvatar member={{ ...member, avatarSelection: createAvatarSelectionFixture({ skinTone: 'skin.tone.deep' }) }} />);
 
-    const avatar = screen.getByRole('img', { name: 'Taylor household avatar' });
+    const avatar = screen.getByRole('img', { name: 'Avatar van Taylor' });
     expect(avatar.className).toContain('family-avatar-v2');
     expect(avatar.querySelector('svg')?.getAttribute('aria-hidden')).toBe('true');
   });
@@ -28,7 +28,7 @@ describe('FamilyAvatar', () => {
   it('renders Avatar V2 when avatarV2Config exists', () => {
     render(<FamilyAvatar member={{ ...member, avatarV2Config: avatarV2DefaultConfiguration }} />);
 
-    const avatar = screen.getByRole('img', { name: 'Taylor household avatar' });
+    const avatar = screen.getByRole('img', { name: 'Avatar van Taylor' });
     expect(avatar.className).toContain('family-avatar-v2');
     expect(avatar.querySelector('svg')?.getAttribute('aria-hidden')).toBe('true');
   });
@@ -36,14 +36,14 @@ describe('FamilyAvatar', () => {
   it('renders initials fallback when avatarV2Config is missing', () => {
     render(<FamilyAvatar member={member} />);
 
-    expect(screen.getByLabelText('Taylor avatar fallback')).not.toBeNull();
+    expect(screen.getByLabelText('Avatar van Taylor')).not.toBeNull();
     expect(screen.getByText('T')).not.toBeNull();
   });
 
   it('renders initials fallback when avatarV2Config is invalid', () => {
     render(<FamilyAvatar member={{ ...member, avatarV2Config: { ...avatarV2DefaultConfiguration, hairStyle: 'legacy-short' } as unknown as FamilyMember['avatarV2Config'] }} />);
 
-    expect(screen.getByLabelText('Taylor avatar fallback')).not.toBeNull();
+    expect(screen.getByLabelText('Avatar van Taylor')).not.toBeNull();
     expect(screen.getByText('T')).not.toBeNull();
   });
 

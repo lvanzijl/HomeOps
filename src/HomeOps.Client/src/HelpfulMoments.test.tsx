@@ -46,7 +46,7 @@ describe("HelpfulMomentsSection", () => {
     ).not.toBeNull();
     expect(within(section).getByText("Riley")).not.toBeNull();
     expect(within(section).getByText("Wat wij waarderen")).not.toBeNull();
-    expect(within(section).getByText("Kindness")).not.toBeNull();
+    expect(within(section).getByText("Lief")).not.toBeNull();
     expect(
       within(section).getByText("Lieve dingen die jullie hebben gezien."),
     ).not.toBeNull();
@@ -106,7 +106,7 @@ describe("HelpfulMomentsSection", () => {
     ).not.toBeNull();
 
     await user.click(
-      within(dialog).getByRole("button", { name: /Initiative/ }),
+      within(dialog).getByRole("button", { name: /Initiatief/ }),
     );
     expect(within(dialog).getByText("Nog iets erbij?")).not.toBeNull();
 
@@ -153,7 +153,7 @@ describe("HelpfulMomentsSection", () => {
     await user.click(within(dialog).getByRole("button", { name: /Jordan/ }));
     await user.type(within(dialog).getByRole("textbox"), "Shared blocks");
     await user.click(within(dialog).getByRole("button", { name: "Verder" }));
-    await user.click(within(dialog).getByRole("button", { name: /Kindness/ }));
+    await user.click(within(dialog).getByRole("button", { name: /Lief/ }));
     await user.type(
       within(dialog).getByRole("textbox"),
       "That made the afternoon feel kind.",

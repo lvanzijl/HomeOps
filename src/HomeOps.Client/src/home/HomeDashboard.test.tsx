@@ -517,7 +517,7 @@ describe("HomeDashboard", () => {
 
     const strip = screen.getByLabelText("Gezinsleden");
     const portrait = within(strip).getByRole("button", { name: "Alex gezinslidpagina openen" });
-    const avatar = within(strip).getByRole("img", { name: "Alex household avatar" });
+    const avatar = within(strip).getByRole("img", { name: "Avatar van Alex" });
     expect(portrait.className).toContain("home-family-portrait");
     expect(portrait.className).not.toContain("family-chip");
     expect(within(portrait).getByText("Alex").className).toContain("home-family-portrait-caption");

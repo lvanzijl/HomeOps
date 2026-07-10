@@ -188,7 +188,7 @@ describe("FamilyMemberPage", () => {
 
     expect(
       screen
-        .getAllByRole("img", { name: "Alex household avatar" })
+        .getAllByRole("img", { name: "Avatar van Alex" })
         .some((avatar) => avatar.className.includes("family-avatar-v2")),
     ).toBe(true);
   });
