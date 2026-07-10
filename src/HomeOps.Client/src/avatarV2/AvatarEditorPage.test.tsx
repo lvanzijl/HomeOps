@@ -82,7 +82,7 @@ describe('AvatarEditorPage', () => {
     expect(screen.getByRole('button', { name: /Kledingkleur: Hemelsblauw/i }).textContent).toBe('');
   });
 
-  it('exposes eye styles first inside the Face category and applies an eye choice', async () => {
+  it('exposes head shape first inside the Face category and applies a head shape choice', async () => {
     const user = userEvent.setup();
     render(<AvatarEditorPage />);
 
@@ -90,9 +90,31 @@ describe('AvatarEditorPage', () => {
 
     const controls = within(screen.getByLabelText('Avatarkeuzes'));
     const headings = controls.getAllByRole('heading').map((heading) => heading.textContent);
+    expect(headings.indexOf('Hoofdvorm')).toBeLessThan(headings.indexOf('Ogen'));
     expect(headings.indexOf('Ogen')).toBeLessThan(headings.indexOf('Mond'));
     expect(headings.indexOf('Mond')).toBeLessThan(headings.indexOf('Bril'));
 
+    const headShapes = within(controls.getByRole('region', { name: 'Hoofdvorm' }));
+    expect(headShapes.getByRole('button', { name: /Ronde hoofdvorm/i }).getAttribute('aria-pressed')).toBe('true');
+    expect(headShapes.getAllByRole('button')).toHaveLength(3);
+    const preview = screen.getByTestId('avatar-v2-live-preview');
+    const initial = preview.innerHTML;
+    expect(initial).toContain('data-anatomy="head-round"');
+
+    await user.click(headShapes.getByRole('button', { name: /Ovale hoofdvorm/i }));
+    expect(headShapes.getByRole('button', { name: /Ovale hoofdvorm/i }).getAttribute('aria-pressed')).toBe('true');
+    expect(headShapes.getByRole('button', { name: /Ronde hoofdvorm/i }).getAttribute('aria-pressed')).toBe('false');
+    expect(preview.innerHTML).not.toBe(initial);
+    expect(preview.innerHTML).toContain('data-anatomy="head-oval"');
+  });
+
+  it('exposes eye styles inside the Face category and applies an eye choice', async () => {
+    const user = userEvent.setup();
+    render(<AvatarEditorPage />);
+
+    await user.click(categoryButton('Gezicht')!);
+
+    const controls = within(screen.getByLabelText('Avatarkeuzes'));
     const eyes = within(controls.getByRole('region', { name: 'Ogen' }));
     expect(eyes.getByRole('button', { name: /Klassiek rond/i }).getAttribute('aria-pressed')).toBe('true');
     expect(eyes.getAllByRole('button')).toHaveLength(4);

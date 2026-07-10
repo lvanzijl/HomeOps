@@ -97,10 +97,11 @@
         "en-US": "Face category"
       },
       "descriptions": {
-        "nl-NL": "Kies ogen, mond en bril voor op het gezicht.",
-        "en-US": "Choose eyes, mouth, and glasses for the face."
+        "nl-NL": "Kies hoofdvorm, ogen, mond en bril voor op het gezicht.",
+        "en-US": "Choose head shape, eyes, mouth, and glasses for the face."
       },
       "categoryIds": [
+        "head.variant",
         "eye.style",
         "mouth.style",
         "eyewear.style"

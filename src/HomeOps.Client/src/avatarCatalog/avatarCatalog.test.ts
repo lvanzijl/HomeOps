@@ -35,6 +35,39 @@ describe('avatar catalog metadata', () => {
   });
 
 
+
+  it('exposes the three existing head variants as the first Face identity category', () => {
+    const headShapes = getAvatarCatalogItems('head.variant');
+    expect(headShapes.map((item) => item.id)).toEqual([
+      'head.variant.round',
+      'head.variant.oval',
+      'head.variant.wide',
+    ]);
+    expect(headShapes.every((item) => item.status === 'active')).toBe(true);
+    expect(headShapes.every((item) => item.renderer?.layer === 'head')).toBe(true);
+    expect(headShapes.map((item) => item.renderer?.rendererToken)).toEqual(['round', 'oval', 'wide']);
+    expect(avatarCatalog.defaults.headVariant).toBe('head.variant.round');
+
+    const headCategory = avatarCatalog.categories.find((category) => category.id === 'head.variant');
+    expect(headCategory?.slot).toBe('headVariant');
+    expect(headCategory?.required).toBe(true);
+    expect(headCategory?.allowsNone).toBe(false);
+
+    const facePanel = avatarCatalog.editorPanels.find((panel) => panel.id === 'face');
+    expect(facePanel?.categoryIds).toEqual(['head.variant', 'eye.style', 'mouth.style', 'eyewear.style']);
+  });
+
+  it('renders every exposed head shape through the existing Avatar V2 head geometry', () => {
+    for (const item of getAvatarCatalogItems('head.variant')) {
+      const svg = renderAvatarV2Svg(
+        avatarSelectionToAvatarV2RenderConfig(updateAvatarSelection(defaultAvatarSelection, 'headVariant', item.id)),
+      );
+      expect(svg.startsWith('<svg')).toBe(true);
+      expect(svg).toContain(`data-anatomy="head-${item.renderer?.rendererToken}"`);
+      expect(svg).toContain('avatar-v2-layer-base');
+    }
+  });
+
   it('exposes Accessories V2 as one grouped single-select accessory slot', () => {
     const accessories = getAvatarCatalogItems('accessory.style');
     expect(accessories.map((item) => item.id)).toEqual([
@@ -100,9 +133,9 @@ describe('avatar catalog metadata', () => {
     expect(eyewearCategory?.slot).toBe('eyewearStyle');
     expect(eyewearCategory?.allowsNone).toBe(true);
 
-    // Face editor category order is Eyes, Mouth, then Eyewear.
+    // Face editor category order is Head Shape, Eyes, Mouth, then Eyewear.
     const facePanel = avatarCatalog.editorPanels.find((panel) => panel.id === 'face');
-    expect(facePanel?.categoryIds).toEqual(['eye.style', 'mouth.style', 'eyewear.style']);
+    expect(facePanel?.categoryIds).toEqual(['head.variant', 'eye.style', 'mouth.style', 'eyewear.style']);
   });
 
 

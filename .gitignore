@@ -21,6 +21,8 @@ npm-debug.log*
 .env
 
 # Local tool caches
+.playwright-browsers/
+test-results/
 .dotnet-home/
 .nuget/
 .npm-cache/

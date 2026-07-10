@@ -68,6 +68,12 @@ describe('avatar catalog adapter', () => {
     }));
   });
 
+  it('maps the exposed head shape selection to the existing Avatar V2 head variant tokens', () => {
+    expect(avatarSelectionToAvatarV2RenderConfig(defaultAvatarSelection).headVariant).toBe('round');
+    expect(avatarSelectionToAvatarV2RenderConfig(createAvatarSelectionFixture({ headVariant: 'head.variant.oval' })).headVariant).toBe('oval');
+    expect(avatarSelectionToAvatarV2RenderConfig(createAvatarSelectionFixture({ headVariant: 'head.variant.wide' })).headVariant).toBe('wide');
+  });
+
   it('maps the eyewear selection to the Avatar V2 glasses style and defaults to none', () => {
     expect(avatarSelectionToAvatarV2RenderConfig(defaultAvatarSelection).glasses).toEqual({
       style: 'none',
