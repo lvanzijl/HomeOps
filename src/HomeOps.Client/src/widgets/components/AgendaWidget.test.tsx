@@ -19,12 +19,6 @@ import type {
 } from "../../events/eventSourceModel";
 import { AgendaWidget } from "./AgendaWidget";
 
-vi.mock("../../demo/demoAgendaData", () => ({
-  demoReadOnlyEvents: [],
-  demoReadOnlyEventSources: [],
-  demoToday: "2026-06-18",
-}));
-
 vi.mock("../../agenda/calendarEventsApi", () => ({
   loadCalendarAgendaData: vi.fn(),
   createCalendarAgendaEvent: vi.fn(),
@@ -465,10 +459,10 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     expect(screen.getByRole("button", { name: "Maand bekijken" })).not.toBeNull();
     expect(
       within(screen.getByLabelText("Plannen")).getByRole("group", {
-        name: "Bronnen in de agenda",
+        name: "Kalenderbronnen",
       }),
     ).not.toBeNull();
-    expect(screen.getByText("Bronnen")).not.toBeNull();
+    expect(screen.getByText("Kalenderbronnen")).not.toBeNull();
 
     await openMonthView(user);
     expect(screen.getByRole("button", { name: "Terug naar planning" })).not.toBeNull();

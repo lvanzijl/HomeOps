@@ -11,10 +11,6 @@ import {
   loadCalendarAgendaData,
 } from "../agenda/calendarEventsApi";
 import { formatEventTime, hydrateAgendaEvents } from "../agenda/agendaUtils";
-import {
-  demoReadOnlyEvents,
-  demoReadOnlyEventSources,
-} from "../demo/demoAgendaData";
 import type { EventSource, NormalizedEvent } from "../events/eventSourceModel";
 import {
   addShoppingListItem,
@@ -91,9 +87,7 @@ export function HomeDashboard({
     "loading" | "ready" | "error"
   >("loading");
   const [events, setEvents] = useState<NormalizedEvent[]>([]);
-  const [sources, setSources] = useState<EventSource[]>([
-    ...demoReadOnlyEventSources,
-  ]);
+  const [sources, setSources] = useState<EventSource[]>([]);
   const [lists, setLists] = useState<ListSummary[]>([]);
   const [tasks, setTasks] = useState<readonly HouseholdTask[]>([]);
   const [agendaError, setAgendaError] = useState<string | null>(null);
@@ -212,8 +206,8 @@ export function HomeDashboard({
       loadCalendarAgendaData()
         .then((data) => {
           if (ignore) return;
-          setSources([...data.sources, ...demoReadOnlyEventSources]);
-          setEvents([...data.events, ...demoReadOnlyEvents]);
+          setSources(data.sources);
+          setEvents(data.events);
           setAgendaError(null);
         })
         .catch(() => {
@@ -260,8 +254,8 @@ export function HomeDashboard({
       loadShoppingListSummary(),
       loadTasks(),
     ]);
-    setSources([...agendaData.sources, ...demoReadOnlyEventSources]);
-    setEvents([...agendaData.events, ...demoReadOnlyEvents]);
+    setSources(agendaData.sources);
+    setEvents(agendaData.events);
     setLists(listData ? [listData] : []);
     setTasks(taskData);
   }
