@@ -367,6 +367,14 @@ describe("Avatar V2 SVG renderer", () => {
       "overall",
       "polo",
       "jacket",
+      "zipHoodie",
+      "varsityJacket",
+      "rugbyShirt",
+      "contrastPocketHoodie",
+      "winterCoat",
+      "cardigan",
+      "sportsShirt",
+      "apronSmock",
       "dress",
     ]);
     expect(Object.keys(avatarV2AccessoryAssets)).toEqual([
@@ -394,7 +402,7 @@ describe("Avatar V2 SVG renderer", () => {
 
   it("declares clothing color regions and keeps single-color garments primary-only", () => {
     const singleColor = ["roundedTee", "collar", "tShirt", "sweater", "hoodie", "overall"] as const;
-    const dualColor = ["polo", "jacket", "dress"] as const;
+    const dualColor = ["polo", "jacket", "dress", "zipHoodie", "varsityJacket", "rugbyShirt", "contrastPocketHoodie", "winterCoat", "cardigan", "sportsShirt", "apronSmock"] as const;
 
     for (const style of singleColor) {
       expect(avatarV2ClothingAssets[style].colorRegions).toEqual(["primary"]);
@@ -417,7 +425,7 @@ describe("Avatar V2 SVG renderer", () => {
   });
 
   it("applies an independent secondary color for dual-color garments", () => {
-    for (const style of ["polo", "jacket", "dress"] as const) {
+    for (const style of ["polo", "jacket", "dress", "zipHoodie", "varsityJacket", "rugbyShirt", "contrastPocketHoodie", "winterCoat", "cardigan", "sportsShirt", "apronSmock"] as const) {
       const base = {
         ...avatarV2SampleConfigs.showcaseSampleA,
         accessory: { ...avatarV2SampleConfigs.showcaseSampleA.accessory, style: "none" as const },

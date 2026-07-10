@@ -134,7 +134,15 @@ export type ShirtStyle =
   | "overall"
   | "polo"
   | "jacket"
-  | "dress";
+  | "dress"
+  | "zipHoodie"
+  | "varsityJacket"
+  | "rugbyShirt"
+  | "contrastPocketHoodie"
+  | "winterCoat"
+  | "cardigan"
+  | "sportsShirt"
+  | "apronSmock";
 export type AvatarClothingColorRegion = "primary" | "secondary";
 export type MouthStyle =
   | "neutral"
@@ -814,6 +822,63 @@ export const avatarV2ClothingAssets: Record<ShirtStyle, ClothingAsset> = {
     colorRegions: ["primary", "secondary"],
     render: (_ctx, c, s) =>
       `<path data-clothing-asset="jacket" d="M41 173c7-33 27-51 55-51s48 18 55 51z" fill="${c.base}" stroke="${c.line}" stroke-width="3"/><path d="M88 126h16l-3 47h-10z" fill="${s.base}" stroke="${s.line}" stroke-width="2.5"/><path d="M88 132h16M88 142h16M88 152h16M88 162h16" stroke="${s.shade}" stroke-width="1.6" stroke-linecap="round"/><path d="M69 128c9-6 20-8 27-8l-8 16-22 12z" fill="${c.shade}" stroke="${c.line}" stroke-width="3" stroke-linejoin="round"/><path d="M123 128c-9-6-20-8-27-8l8 16 22 12z" fill="${c.shade}" stroke="${c.line}" stroke-width="3" stroke-linejoin="round"/><path d="M96 126v47" stroke="${s.line}" stroke-width="2" stroke-linecap="round"/>`,
+  },
+
+  zipHoodie: {
+    id: "zipHoodie",
+    metadata: { displayName: "Zip Hoodie", category: "clothing", previewPriority: 70 },
+    colorRegions: ["primary", "secondary"],
+    render: (_ctx, c, s) =>
+      `<path data-clothing-asset="zipHoodie" d="M40 173c7-34 27-52 56-52s49 18 56 52z" fill="${c.base}" stroke="${c.line}" stroke-width="3"/><path d="M60 140c9-19 23-29 36-29s27 10 36 29c-13 11-59 11-72 0z" fill="${c.shade}" stroke="${c.line}" stroke-width="3"/><path d="M72 137c7-11 16-16 24-16s17 5 24 16c-13 7-35 7-48 0z" fill="${s.base}" stroke="${s.line}" stroke-width="2.5"/><path d="M96 128v45" stroke="${s.line}" stroke-width="3" stroke-linecap="round"/><path d="M87 137l-5 21M105 137l5 21" stroke="${s.line}" stroke-width="2.5" stroke-linecap="round"/><circle cx="82" cy="160" r="2.3" fill="${s.line}"/><circle cx="110" cy="160" r="2.3" fill="${s.line}"/><path d="M58 155h76" stroke="${c.highlight}" stroke-width="5" stroke-linecap="round" opacity="0.38"/>`,
+  },
+  varsityJacket: {
+    id: "varsityJacket",
+    metadata: { displayName: "Varsity Jacket", category: "clothing", previewPriority: 75 },
+    colorRegions: ["primary", "secondary"],
+    render: (_ctx, c, s) =>
+      `<path data-clothing-asset="varsityJacket" d="M42 173c7-33 27-51 54-51s47 18 54 51z" fill="${c.base}" stroke="${c.line}" stroke-width="3"/><path d="M44 173l8-28c4-10 11-17 21-20l10 48zM148 173l-8-28c-4-10-11-17-21-20l-10 48z" fill="${s.base}" stroke="${s.line}" stroke-width="3" stroke-linejoin="round"/><path d="M75 124c8 7 34 7 42 0l-8 13H83z" fill="${s.base}" stroke="${s.line}" stroke-width="2.5"/><path d="M56 157h80M52 169h88" stroke="${s.line}" stroke-width="4" stroke-linecap="round"/><path d="M96 128v45" stroke="${c.line}" stroke-width="2.5" stroke-linecap="round"/><path d="M65 151h62" stroke="${c.highlight}" stroke-width="4" stroke-linecap="round" opacity="0.35"/>`,
+  },
+  rugbyShirt: {
+    id: "rugbyShirt",
+    metadata: { displayName: "Rugby Shirt", category: "clothing", previewPriority: 80 },
+    colorRegions: ["primary", "secondary"],
+    render: (_ctx, c, s) =>
+      `<path data-clothing-asset="rugbyShirt" d="M39 173l8-29c6-13 19-20 34-22l15 13 15-13c16 2 28 9 34 22l8 29z" fill="${c.base}" stroke="${c.line}" stroke-width="3"/><path d="M80 123l16 18 16-18" fill="${s.base}" stroke="${s.line}" stroke-width="3" stroke-linejoin="round"/><rect x="90" y="133" width="12" height="25" rx="2.5" fill="${s.base}" stroke="${s.line}" stroke-width="2.5"/><path d="M56 158h22M114 158h22" stroke="${s.line}" stroke-width="5" stroke-linecap="round"/><circle cx="96" cy="143" r="1.9" fill="${s.line}"/><path d="M55 149h82" stroke="${c.highlight}" stroke-width="5" stroke-linecap="round" opacity="0.35"/>`,
+  },
+  contrastPocketHoodie: {
+    id: "contrastPocketHoodie",
+    metadata: { displayName: "Contrast Pocket Hoodie", category: "clothing", previewPriority: 85 },
+    colorRegions: ["primary", "secondary"],
+    render: (_ctx, c, s) =>
+      `<path data-clothing-asset="contrastPocketHoodie" d="M41 173c7-33 27-51 55-51s48 18 55 51z" fill="${c.base}" stroke="${c.line}" stroke-width="3"/><path d="M64 138c10-18 22-25 32-25s22 7 32 25c-12 10-52 10-64 0z" fill="${c.shade}" stroke="${c.line}" stroke-width="3"/><path d="M78 134c6 8 30 8 36 0" fill="none" stroke="${s.line}" stroke-width="4" stroke-linecap="round"/><path d="M72 151h48l8 22H64z" fill="${s.base}" stroke="${s.line}" stroke-width="3" stroke-linejoin="round"/><path d="M74 161h44" stroke="${s.highlight}" stroke-width="4" stroke-linecap="round" opacity="0.55"/><path d="M88 138l-5 15M104 138l5 15" stroke="${s.line}" stroke-width="2.5" stroke-linecap="round"/>`,
+  },
+  winterCoat: {
+    id: "winterCoat",
+    metadata: { displayName: "Winter Coat", category: "clothing", previewPriority: 90 },
+    colorRegions: ["primary", "secondary"],
+    render: (_ctx, c, s) =>
+      `<path data-clothing-asset="winterCoat" d="M38 173c5-34 25-54 58-54s53 20 58 54z" fill="${c.base}" stroke="${c.line}" stroke-width="3"/><path d="M68 125c8 10 48 10 56 0l-9 24H77z" fill="${s.base}" stroke="${s.line}" stroke-width="3" stroke-linejoin="round"/><path d="M86 128h20l-4 45H90z" fill="${s.base}" stroke="${s.line}" stroke-width="2.5"/><path d="M55 160h26M111 160h26" stroke="${s.line}" stroke-width="5" stroke-linecap="round"/><circle cx="96" cy="142" r="2.3" fill="${s.line}"/><circle cx="96" cy="154" r="2.3" fill="${s.line}"/><path d="M57 151h78" stroke="${c.highlight}" stroke-width="5" stroke-linecap="round" opacity="0.35"/>`,
+  },
+  cardigan: {
+    id: "cardigan",
+    metadata: { displayName: "Cardigan", category: "clothing", previewPriority: 95 },
+    colorRegions: ["primary", "secondary"],
+    render: (_ctx, c, s) =>
+      `<path data-clothing-asset="cardigan" d="M42 173c8-33 27-51 54-51s46 18 54 51z" fill="${c.base}" stroke="${c.line}" stroke-width="3"/><path d="M82 126h28l9 47H73z" fill="${s.base}" stroke="${s.line}" stroke-width="2.5"/><path d="M82 126c-11 8-18 23-20 47M110 126c11 8 18 23 20 47" fill="none" stroke="${c.line}" stroke-width="3" stroke-linecap="round"/><path d="M96 129v44" stroke="${s.line}" stroke-width="2.5" stroke-linecap="round"/><circle cx="96" cy="141" r="2" fill="${s.line}"/><circle cx="96" cy="153" r="2" fill="${s.line}"/><path d="M57 156h23M112 156h23" stroke="${c.highlight}" stroke-width="5" stroke-linecap="round" opacity="0.42"/>`,
+  },
+  sportsShirt: {
+    id: "sportsShirt",
+    metadata: { displayName: "Sports Shirt", category: "clothing", previewPriority: 100 },
+    colorRegions: ["primary", "secondary"],
+    render: (_ctx, c, s) =>
+      `<path data-clothing-asset="sportsShirt" d="M39 173l8-29c6-13 19-20 34-22l15 13 15-13c16 2 28 9 34 22l8 29z" fill="${s.base}" stroke="${s.line}" stroke-width="3"/><path d="M68 173l8-49c7-2 13-2 20 11 7-13 13-13 20-11l8 49z" fill="${c.base}" stroke="${c.line}" stroke-width="3" stroke-linejoin="round"/><path d="M80 123c5 8 27 8 32 0" fill="none" stroke="${s.line}" stroke-width="3"/><path d="M54 148l22 2M138 148l-22 2" stroke="${s.highlight}" stroke-width="5" stroke-linecap="round" opacity="0.5"/><path d="M83 154h26" stroke="${c.highlight}" stroke-width="5" stroke-linecap="round" opacity="0.4"/>`,
+  },
+  apronSmock: {
+    id: "apronSmock",
+    metadata: { displayName: "Apron / Smock", category: "clothing", previewPriority: 105 },
+    colorRegions: ["primary", "secondary"],
+    render: (_ctx, c, s) =>
+      `<path data-clothing-asset="apronSmock" d="M39 173l8-29c6-13 19-20 34-22l15 13 15-13c16 2 28 9 34 22l8 29z" fill="${c.base}" stroke="${c.line}" stroke-width="3"/><path d="M78 128l18 16 18-16" fill="none" stroke="${s.line}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M72 142h48l10 31H62z" fill="${s.base}" stroke="${s.line}" stroke-width="3" stroke-linejoin="round"/><path d="M74 153h44" stroke="${s.highlight}" stroke-width="5" stroke-linecap="round" opacity="0.5"/><path d="M64 169h64" stroke="${s.shade}" stroke-width="2.5" stroke-linecap="round" opacity="0.7"/>`,
   },
   dress: {
     id: "dress",
