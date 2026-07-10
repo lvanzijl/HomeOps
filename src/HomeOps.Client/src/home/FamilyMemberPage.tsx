@@ -19,6 +19,25 @@ import {
   type MotivationIndividualGoal,
   type MotivationSnapshot,
 } from "../motivationData";
+import { KnownPersonAvatar } from "../knownPeople/KnownPersonAvatar";
+import type { KnownPerson } from "../knownPeople/knownPeople";
+import {
+  KnownPersonForm,
+  createEmptyKnownPersonDraft,
+  type KnownPersonDraft,
+  type KnownPersonFormSaveState,
+} from "../knownPeople/KnownPersonForm";
+import {
+  createKnownPerson,
+  deleteKnownPerson,
+  listKnownPeople,
+  updateKnownPerson,
+} from "../knownPeople/knownPeopleApi";
+import {
+  filterKnownPeople,
+  groupedKnownPeople,
+  relationshipDisplayText,
+} from "../knownPeople/peoplePresentation";
 import { FamilyAvatar } from "./FamilyAvatar";
 import { FamilyAvatarEditor } from "./FamilyAvatarEditor";
 import type { FamilyMember, FamilyMemberKind } from "./familyMembers";
@@ -170,7 +189,9 @@ export function FamilyMemberPage({
           </p>
           <div className="family-member-identity-title-row">
             <h1>{member.name}</h1>
-            <p className="family-member-identity-context">{ageContext(member, age)}</p>
+            <p className="family-member-identity-context">
+              {ageContext(member, age)}
+            </p>
           </div>
           <div className="family-member-daily-status">
             <strong>Hoe gaat het vandaag?</strong>
@@ -218,6 +239,7 @@ export function FamilyMemberPage({
           ageBand={ageBand}
           dueTodayCount={dueTodayCount}
         />
+        <MemberPeopleSection member={member} />
       </div>
 
       <nav
@@ -327,6 +349,172 @@ export function FamilyMemberPage({
   );
 }
 
+function MemberPeopleSection({ member }: { member: FamilyMember }) {
+  const [people, setPeople] = useState<readonly KnownPerson[]>([]);
+  const [query, setQuery] = useState("");
+  const [status, setStatus] = useState<"loading" | "ready" | "error">(
+    "loading",
+  );
+  const [error, setError] = useState<string | null>(null);
+  const [draft, setDraft] = useState<KnownPersonDraft | null>(null);
+  const [saveState, setSaveState] = useState<KnownPersonFormSaveState>("idle");
+
+  useEffect(() => {
+    let ignore = false;
+    setStatus("loading");
+    setError(null);
+    listKnownPeople({ scope: "privateToMember", familyMemberId: member.id })
+      .then((loadedPeople) => {
+        if (!ignore) {
+          setPeople(
+            loadedPeople.filter(
+              (person) =>
+                person.scope === "privateToMember" &&
+                person.familyMemberId === member.id,
+            ),
+          );
+          setStatus("ready");
+        }
+      })
+      .catch(() => {
+        if (!ignore) {
+          setStatus("error");
+          setError("People konden niet worden geladen.");
+        }
+      });
+    return () => {
+      ignore = true;
+    };
+  }, [member.id]);
+
+  const visiblePeople = filterKnownPeople(people, query);
+  const groups = groupedKnownPeople(visiblePeople);
+
+  async function saveDraft(
+    person: Parameters<typeof createKnownPerson>[0],
+    id?: string,
+  ) {
+    setSaveState("saving");
+    setError(null);
+    try {
+      const saved = id
+        ? await updateKnownPerson({ ...person, id })
+        : await createKnownPerson(person);
+      setPeople((current) =>
+        id
+          ? current.map((item) => (item.id === saved.id ? saved : item))
+          : [...current, saved],
+      );
+      setDraft(null);
+    } catch {
+      setError("Deze persoon kon niet worden opgeslagen.");
+    } finally {
+      setSaveState("idle");
+    }
+  }
+
+  async function removeDraft(id: string) {
+    setSaveState("deleting");
+    setError(null);
+    try {
+      await deleteKnownPerson(id);
+      setPeople((current) => current.filter((person) => person.id !== id));
+      setDraft(null);
+    } catch {
+      setError("Deze persoon kon niet worden verwijderd.");
+    } finally {
+      setSaveState("idle");
+    }
+  }
+
+  return (
+    <article className="member-people-card" aria-label="People">
+      <header className="member-people-header">
+        <div>
+          <p className="eyebrow">People</p>
+          <h3>Vrienden en bekenden</h3>
+        </div>
+        <button
+          className="secondary-action compact-action"
+          type="button"
+          onClick={() =>
+            setDraft(createEmptyKnownPersonDraft("privateToMember", member.id))
+          }
+        >
+          Add person
+        </button>
+      </header>
+      <label className="member-people-search">
+        <span>Search</span>
+        <input
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Zoek op naam of relatie"
+        />
+      </label>
+      {error ? (
+        <p className="people-error" role="alert">
+          {error}
+        </p>
+      ) : null}
+      {status === "loading" ? (
+        <p className="people-state">People laden…</p>
+      ) : null}
+      {status === "ready" && people.length === 0 ? (
+        <p className="people-state">Nog geen People toegevoegd.</p>
+      ) : null}
+      {status === "ready" && people.length > 0 && visiblePeople.length === 0 ? (
+        <p className="people-state">
+          Geen People gevonden voor deze zoekopdracht.
+        </p>
+      ) : null}
+      {status === "ready" && groups.length > 0 ? (
+        <div className="member-people-groups">
+          {groups.map(({ group, people: groupedPeople }) => (
+            <section key={group}>
+              <h4>{group}</h4>
+              <div className="member-people-list">
+                {groupedPeople.map((person) => (
+                  <button
+                    className="people-card member-people-item"
+                    key={person.id}
+                    type="button"
+                    onClick={() => setDraft(person)}
+                  >
+                    <KnownPersonAvatar person={person} />
+                    <span>
+                      <strong>{person.displayName}</strong>
+                      {person.nickname ? (
+                        <small>{person.nickname}</small>
+                      ) : null}
+                      <small>{relationshipDisplayText(person)}</small>
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      ) : null}
+      {draft ? (
+        <div className="people-dialog-backdrop" role="presentation">
+          <KnownPersonForm
+            draft={draft}
+            members={[member]}
+            scopeMode={{ kind: "privateToMember", familyMemberId: member.id }}
+            saveState={saveState}
+            error={error}
+            onChange={setDraft}
+            onCancel={() => setDraft(null)}
+            onSubmit={(person, id) => void saveDraft(person, id)}
+            onDelete={(id) => void removeDraft(id)}
+          />
+        </div>
+      ) : null}
+    </article>
+  );
+}
+
 function FamilyMemberContextDialog({
   eyebrow,
   title,
@@ -421,8 +609,8 @@ function ParentAdministration({
               </div>
             </div>
             <p className="parent-identity-note">
-              De avatar blijft bovenaan deze pagina zichtbaar. Gebruik hier alleen
-              de administratieve kleurinstelling.
+              De avatar blijft bovenaan deze pagina zichtbaar. Gebruik hier
+              alleen de administratieve kleurinstelling.
             </p>
             <label className="family-member-color-field">
               Weergavekleur
@@ -727,7 +915,9 @@ function TodaySection({
             ))}
           </ul>
           {hiddenTasks > 0 ? (
-            <p className="family-member-more-count">+{hiddenTasks} meer klaar</p>
+            <p className="family-member-more-count">
+              +{hiddenTasks} meer klaar
+            </p>
           ) : null}
         </>
       ) : null}
@@ -886,7 +1076,9 @@ function ChildCelebrationMemories({
       >
         <p className="eyebrow">Gezinsherinneringen</p>
         <h3>
-          {ageBand === "early-child" ? "Samen gelukt" : "Vieringen om te onthouden"}
+          {ageBand === "early-child"
+            ? "Samen gelukt"
+            : "Vieringen om te onthouden"}
         </h3>
         <p>Nog geen herinneringen om terug te lezen.</p>
       </article>
@@ -937,7 +1129,9 @@ function IndividualGoalProgress({
       />
       <p className="eyebrow">Deze week</p>
       <h3>
-        {ageBand === "early-child" ? "Sterren om te verzamelen" : "Mijn voortgang"}
+        {ageBand === "early-child"
+          ? "Sterren om te verzamelen"
+          : "Mijn voortgang"}
       </h3>
       {goals.length === 0 ? (
         <p>Nog geen persoonlijk doel. Een volwassene kan er één toevoegen.</p>
