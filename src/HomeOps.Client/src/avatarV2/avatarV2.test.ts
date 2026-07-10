@@ -32,6 +32,28 @@ describe("Avatar V2 SVG renderer", () => {
     expect(svg).toBe(renderAvatarV2Svg(avatarV2SampleConfigs.adult));
   });
 
+  it("renders framed, tinted, and novelty eyewear styles with a stable glasses layer", () => {
+    const framed = ["regular", "thickFrame", "round", "rectangular", "sunglasses"] as const;
+    for (const style of framed) {
+      const svg = renderAvatarV2Svg({
+        ...avatarV2SampleConfigs.calmChildWithGlasses,
+        glasses: { ...avatarV2SampleConfigs.calmChildWithGlasses.glasses, style },
+      });
+      expect(svg).toContain("avatar-v2-layer-glasses");
+      expect(svg).toContain("<rect");
+    }
+
+    for (const style of ["star", "heart"] as const) {
+      const svg = renderAvatarV2Svg({
+        ...avatarV2SampleConfigs.calmChildWithGlasses,
+        glasses: { ...avatarV2SampleConfigs.calmChildWithGlasses.glasses, style },
+      });
+      expect(svg).toContain("avatar-v2-layer-glasses");
+      // Novelty lenses use shaped paths rather than rectangular frames.
+      expect(svg).toMatch(/id="avatar-v2-layer-glasses"[^>]*>\s*<path/);
+    }
+  });
+
   it("omits optional glasses and accessory layers without breaking rendering", () => {
     const svg = renderAvatarV2Svg(avatarV2SampleConfigs.calmChildWithGlasses);
     const withoutOptional = renderAvatarV2Svg({

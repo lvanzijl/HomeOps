@@ -150,10 +150,11 @@
         "en-US": "Accessories category"
       },
       "descriptions": {
-        "nl-NL": "Kies een extra detail en laat de kleur meebewegen met het kledingpalet.",
-        "en-US": "Choose an extra detail and let the color reuse the clothing palette."
+        "nl-NL": "Kies een bril en extra details; kleuren volgen het kledingpalet.",
+        "en-US": "Choose glasses and extra details; colors follow the clothing palette."
       },
       "categoryIds": [
+        "eyewear.style",
         "accessory.style",
         "accessory.color"
       ]
@@ -285,6 +286,38 @@
         "editor",
         "clothing",
         "color"
+      ]
+    },
+    {
+      "id": "eyewear.style",
+      "slot": "eyewearStyle",
+      "required": false,
+      "allowsNone": true,
+      "order": 45,
+      "labels": {
+        "nl-NL": "Bril",
+        "en-US": "Glasses"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Brilkeuzes",
+        "en-US": "Glasses choices"
+      },
+      "descriptions": {
+        "nl-NL": "Kies een bril voor op het gezicht.",
+        "en-US": "Choose glasses for the face."
+      },
+      "presentation": {
+        "control": "tile",
+        "density": "compact",
+        "itemLabelVisibility": "hidden",
+        "groupStrategy": "none",
+        "optionMinWidthRem": 5.15
+      },
+      "tags": [
+        "editor",
+        "accessory",
+        "face",
+        "eyewear"
       ]
     },
     {
@@ -3662,6 +3695,214 @@
       ]
     },
     {
+      "id": "eyewear.style.none",
+      "categoryId": "eyewear.style",
+      "type": "none",
+      "status": "active",
+      "order": 10,
+      "labels": {
+        "nl-NL": "Geen bril",
+        "en-US": "No glasses"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Geen bril",
+        "en-US": "No glasses"
+      },
+      "tags": [
+        "accessory",
+        "face",
+        "eyewear"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "none",
+        "layer": "glasses"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "eyewear.style.regular",
+      "categoryId": "eyewear.style",
+      "type": "rendererStyle",
+      "status": "active",
+      "order": 20,
+      "labels": {
+        "nl-NL": "Bril",
+        "en-US": "Glasses"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Gewone bril",
+        "en-US": "Regular glasses"
+      },
+      "tags": [
+        "accessory",
+        "face",
+        "eyewear"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "regular",
+        "layer": "glasses"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "eyewear.style.thick-frame",
+      "categoryId": "eyewear.style",
+      "type": "rendererStyle",
+      "status": "active",
+      "order": 30,
+      "labels": {
+        "nl-NL": "Dik montuur",
+        "en-US": "Thick-frame glasses"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Bril met dik montuur",
+        "en-US": "Thick-frame glasses"
+      },
+      "tags": [
+        "accessory",
+        "face",
+        "eyewear"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "thickFrame",
+        "layer": "glasses"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "eyewear.style.round",
+      "categoryId": "eyewear.style",
+      "type": "rendererStyle",
+      "status": "active",
+      "order": 40,
+      "labels": {
+        "nl-NL": "Ronde bril",
+        "en-US": "Round glasses"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Ronde bril",
+        "en-US": "Round glasses"
+      },
+      "tags": [
+        "accessory",
+        "face",
+        "eyewear"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "round",
+        "layer": "glasses"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "eyewear.style.rectangular",
+      "categoryId": "eyewear.style",
+      "type": "rendererStyle",
+      "status": "active",
+      "order": 50,
+      "labels": {
+        "nl-NL": "Rechthoekige bril",
+        "en-US": "Rectangular glasses"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Rechthoekige bril",
+        "en-US": "Rectangular glasses"
+      },
+      "tags": [
+        "accessory",
+        "face",
+        "eyewear"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "rectangular",
+        "layer": "glasses"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "eyewear.style.sunglasses",
+      "categoryId": "eyewear.style",
+      "type": "rendererStyle",
+      "status": "active",
+      "order": 60,
+      "labels": {
+        "nl-NL": "Zonnebril",
+        "en-US": "Sunglasses"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Zonnebril",
+        "en-US": "Sunglasses"
+      },
+      "tags": [
+        "accessory",
+        "face",
+        "eyewear"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "sunglasses",
+        "layer": "glasses"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "eyewear.style.star",
+      "categoryId": "eyewear.style",
+      "type": "rendererStyle",
+      "status": "active",
+      "order": 70,
+      "labels": {
+        "nl-NL": "Sterrenbril",
+        "en-US": "Star glasses"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Bril met sterren",
+        "en-US": "Star glasses"
+      },
+      "tags": [
+        "accessory",
+        "face",
+        "eyewear"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "star",
+        "layer": "glasses"
+      },
+      "legacyIds": []
+    },
+    {
+      "id": "eyewear.style.heart",
+      "categoryId": "eyewear.style",
+      "type": "rendererStyle",
+      "status": "active",
+      "order": 80,
+      "labels": {
+        "nl-NL": "Hartjesbril",
+        "en-US": "Heart glasses"
+      },
+      "accessibilityLabels": {
+        "nl-NL": "Bril met hartjes",
+        "en-US": "Heart glasses"
+      },
+      "tags": [
+        "accessory",
+        "face",
+        "eyewear"
+      ],
+      "renderer": {
+        "rendererFamily": "avatar-v2-svg",
+        "rendererToken": "heart",
+        "layer": "glasses"
+      },
+      "legacyIds": []
+    },
+    {
       "id": "accessory.style.none",
       "categoryId": "accessory.style",
       "type": "none",
@@ -6481,7 +6722,8 @@
     "clothingStyle": "clothing.style.hoodie",
     "clothingColor": "clothing.color.sky",
     "accessoryStyle": "accessory.style.star",
-    "accessoryColor": "accessory.color.mint"
+    "accessoryColor": "accessory.color.mint",
+    "eyewearStyle": "eyewear.style.none"
   },
   "optionGroups": [
     {

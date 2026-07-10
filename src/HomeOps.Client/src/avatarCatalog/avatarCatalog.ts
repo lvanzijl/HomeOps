@@ -9,6 +9,7 @@ export const avatarSelectionSlots = {
   hairColor: 'hairColor',
   clothingStyle: 'clothingStyle',
   clothingColor: 'clothingColor',
+  eyewearStyle: 'eyewearStyle',
   accessoryStyle: 'accessoryStyle',
   accessoryColor: 'accessoryColor',
 } as const;

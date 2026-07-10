@@ -33,22 +33,41 @@ describe('avatar catalog metadata', () => {
     }
   });
 
-  it('renders every active expanded color choice through the existing Avatar V2 renderer', () => {
-    const colorCategories = [
-      ['skin.tone', 'skinTone'],
-      ['hair.color', 'hairColor'],
-      ['clothing.color', 'clothingColor'],
-      ['accessory.color', 'accessoryColor'],
-    ] as const;
+  it('exposes a single-select eyewear category defaulting to no glasses', () => {
+    const eyewear = getAvatarCatalogItems('eyewear.style');
+    expect(eyewear.map((item) => item.id)).toEqual([
+      'eyewear.style.none',
+      'eyewear.style.regular',
+      'eyewear.style.thick-frame',
+      'eyewear.style.round',
+      'eyewear.style.rectangular',
+      'eyewear.style.sunglasses',
+      'eyewear.style.star',
+      'eyewear.style.heart',
+    ]);
+    expect(eyewear.every((item) => item.status === 'active')).toBe(true);
+    expect(avatarCatalog.defaults.eyewearStyle).toBe('eyewear.style.none');
 
-    for (const [categoryId, slot] of colorCategories) {
-      for (const item of getAvatarCatalogItems(categoryId).filter((candidate) => candidate.status === 'active')) {
-        const svg = renderAvatarV2Svg(
-          avatarSelectionToAvatarV2RenderConfig(updateAvatarSelection(defaultAvatarSelection, slot, item.id)),
-        );
+    const eyewearCategory = avatarCatalog.categories.find((category) => category.id === 'eyewear.style');
+    expect(eyewearCategory?.slot).toBe('eyewearStyle');
+    expect(eyewearCategory?.allowsNone).toBe(true);
 
-        expect(svg.startsWith('<svg')).toBe(true);
-        expect(svg).toContain('avatar-v2-layer-base');
+    // Eyewear is surfaced within the broader Accessories editor panel.
+    const accessoriesPanel = avatarCatalog.editorPanels.find((panel) => panel.id === 'accessories');
+    expect(accessoriesPanel?.categoryIds).toContain('eyewear.style');
+    expect(accessoriesPanel?.categoryIds[0]).toBe('eyewear.style');
+  });
+
+  it('renders every active eyewear style through the Avatar V2 glasses layer', () => {
+    for (const item of getAvatarCatalogItems('eyewear.style')) {
+      const svg = renderAvatarV2Svg(
+        avatarSelectionToAvatarV2RenderConfig(updateAvatarSelection(defaultAvatarSelection, 'eyewearStyle', item.id)),
+      );
+      expect(svg.startsWith('<svg')).toBe(true);
+      if (item.id === 'eyewear.style.none') {
+        expect(svg).not.toContain('avatar-v2-layer-glasses');
+      } else {
+        expect(svg).toContain('avatar-v2-layer-glasses');
       }
     }
   });

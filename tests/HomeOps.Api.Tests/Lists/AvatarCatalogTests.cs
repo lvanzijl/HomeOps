@@ -82,13 +82,62 @@ public sealed class AvatarCatalogTests(HomeOpsWebApplicationFactory factory) : I
         Assert.Equal("clothing.color.mint", member.AvatarSelection.Selections[AvatarSelectionSlots.ClothingColor]);
     }
 
+    [Fact]
+    public async Task CreateAcceptsEyewearSelectionAndPersistsIt()
+    {
+        var selection = ValidSelection();
+        selection[AvatarSelectionSlots.EyewearStyle] = "eyewear.style.round";
+        var response = await _client.PostAsJsonAsync("/api/family-members", Request(selection));
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var created = await response.Content.ReadFromJsonAsync<FamilyMemberDto>();
+        Assert.NotNull(created);
+        Assert.Equal("eyewear.style.round", created.AvatarSelection.Selections[AvatarSelectionSlots.EyewearStyle]);
+    }
+
+    [Fact]
+    public async Task CreateRejectsUnknownEyewearItemId()
+    {
+        var selection = ValidSelection();
+        selection[AvatarSelectionSlots.EyewearStyle] = "eyewear.style.laser";
+        var response = await _client.PostAsJsonAsync("/api/family-members", Request(selection));
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CreateRejectsCategoryMismatchedEyewearItemId()
+    {
+        var selection = ValidSelection();
+        selection[AvatarSelectionSlots.EyewearStyle] = "accessory.style.star";
+        var response = await _client.PostAsJsonAsync("/api/family-members", Request(selection));
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CreateWithoutEyewearRemainsValidAndDefaultsToNone()
+    {
+        var selection = ValidSelection();
+        Assert.False(selection.ContainsKey(AvatarSelectionSlots.EyewearStyle));
+        var response = await _client.PostAsJsonAsync("/api/family-members", Request(selection));
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var created = await response.Content.ReadFromJsonAsync<FamilyMemberDto>();
+        Assert.NotNull(created);
+        Assert.Equal("eyewear.style.none", created.AvatarSelection.Selections[AvatarSelectionSlots.EyewearStyle]);
+    }
+
+    [Fact]
+    public void DefaultSelectionIncludesEyewearNone()
+    {
+        var service = new AvatarCatalogService(new SharedAvatarCatalogSource());
+        Assert.Equal("eyewear.style.none", service.DefaultSelection().Selections[AvatarSelectionSlots.EyewearStyle]);
+    }
+
     private static CreateFamilyMemberRequest Request(Dictionary<string, string> selections) =>
         new("Catalog Kid", FamilyMemberKind.Child, new DateOnly(2020, 1, 2), null, null, null, new AvatarSelectionDto(AvatarCatalogConstants.SchemaVersion, selections));
 
     private static Dictionary<string, string> ValidSelection() => new(StringComparer.Ordinal)
     {
         [AvatarSelectionSlots.HeadVariant] = "head.variant.round",
-        [AvatarSelectionSlots.SkinTone] = "skin.tone.peach",
+        [AvatarSelectionSlots.SkinTone] = "skin.tone.medium",
         [AvatarSelectionSlots.HairStyle] = "hair.style.short-messy",
         [AvatarSelectionSlots.HairColor] = "hair.color.cocoa",
         [AvatarSelectionSlots.ClothingStyle] = "clothing.style.hoodie",

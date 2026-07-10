@@ -84,7 +84,7 @@ describe('AvatarEditorPage', () => {
     expect(screen.getByRole('button', { name: /Kledingkleur: Hemelsblauw/i }).textContent).toBe('');
   });
 
-  it('keeps the accessories panel minimal while preserving its two visible sections', async () => {
+  it('exposes the Eyewear section inside the Accessories panel and applies a glasses choice', async () => {
     const user = userEvent.setup();
     render(<AvatarEditorPage />);
 
@@ -92,10 +92,25 @@ describe('AvatarEditorPage', () => {
 
     const controls = within(screen.getByLabelText('Avatarkeuzes'));
     expect(controls.queryByRole('heading', { name: 'Accessoires' })).toBeNull();
+    expect(controls.getByRole('heading', { name: 'Bril' })).not.toBeNull();
     expect(controls.getByRole('heading', { name: 'Accessoire' })).not.toBeNull();
     expect(controls.getByRole('heading', { name: 'Accessoirekleur' })).not.toBeNull();
+
+    // Eyewear defaults to "no glasses" and lets a single pair be chosen at a time.
+    const eyewear = within(controls.getByRole('region', { name: 'Bril' }));
+    expect(eyewear.getByRole('button', { name: /Geen bril/i }).getAttribute('aria-pressed')).toBe('true');
+    const preview = screen.getByTestId('avatar-v2-live-preview');
+    const initial = preview.innerHTML;
+
+    await user.click(eyewear.getByRole('button', { name: /Ronde bril/i }));
+    expect(eyewear.getByRole('button', { name: /Ronde bril/i }).getAttribute('aria-pressed')).toBe('true');
+    expect(eyewear.getByRole('button', { name: /Geen bril/i }).getAttribute('aria-pressed')).toBe('false');
+    expect(preview.innerHTML).not.toBe(initial);
+    expect(preview.innerHTML).toContain('avatar-v2-layer-glasses');
+    expect(screen.getByText('Niet-opgeslagen wijzigingen')).not.toBeNull();
+
+    // Head accessories remain available alongside eyewear.
     expect(controls.getByRole('button', { name: /Bloemspeld accessoire/i }).textContent).toBe('');
     expect(controls.getByRole('button', { name: /Accessoirekleur: Mintgroen/i }).textContent).toBe('');
-    expect(screen.queryByText('Kies een extra detail en laat de kleur meebewegen met het kledingpalet.')).toBeNull();
   });
 });

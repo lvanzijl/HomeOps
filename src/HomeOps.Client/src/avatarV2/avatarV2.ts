@@ -115,7 +115,16 @@ export type HairStyle =
   | "shortMessy"
   | "longSoft"
   | "curlyPlayful";
-export type GlassesStyle = "none" | "round" | "softSquare";
+export type GlassesStyle =
+  | "none"
+  | "regular"
+  | "thickFrame"
+  | "round"
+  | "rectangular"
+  | "softSquare"
+  | "sunglasses"
+  | "star"
+  | "heart";
 export type ShirtStyle =
   | "roundedTee"
   | "collar"
@@ -580,18 +589,57 @@ function renderHairLayer(
         : "avatar-v2-layer-hair-highlights";
   return parts[part] ? `<g id="${id}">${parts[part]}</g>` : "";
 }
+const round2 = (value: number) => Math.round(value * 100) / 100;
+
+function glassesNoveltyLensPath(style: "star" | "heart", cx: number, cy: number): string {
+  if (style === "star") {
+    const outerRadius = 12;
+    const innerRadius = 4.8;
+    const points = 5;
+    const coordinates: string[] = [];
+    for (let index = 0; index < points * 2; index += 1) {
+      const radius = index % 2 === 0 ? outerRadius : innerRadius;
+      const angle = -Math.PI / 2 + (index * Math.PI) / points;
+      coordinates.push(`${round2(cx + radius * Math.cos(angle))} ${round2(cy + radius * Math.sin(angle))}`);
+    }
+    return `M${coordinates.join("L")}Z`;
+  }
+
+  return `M${cx} ${cy + 8}C${cx - 12} ${cy - 3} ${cx - 12} ${cy - 15} ${cx} ${cy - 8}C${cx + 12} ${cy - 15} ${cx + 12} ${cy - 3} ${cx} ${cy + 8}Z`;
+}
+
 function renderGlasses({ config, anatomy }: AvatarRenderContext): string {
-  if (config.glasses.style === "none") return "";
-  const c = sw(config.glasses.color),
-    r = config.glasses.style === "round" ? 'rx="13"' : 'rx="8"',
-    lensWidth = config.glasses.style === "round" ? 29 : 30,
-    lensHeight = 24,
-    leftLensX = anatomy.face.leftEye.x - lensWidth / 2,
-    rightLensX = anatomy.face.rightEye.x - lensWidth / 2,
-    leftInnerX = leftLensX + lensWidth,
-    rightInnerX = rightLensX,
-    y = anatomy.face.eyeLineY - lensHeight / 2;
-  return `<g id="avatar-v2-layer-glasses" fill="none" stroke="${c.line}" stroke-width="4" stroke-linecap="round"><rect x="${leftLensX}" y="${y}" width="${lensWidth}" height="${lensHeight}" ${r}/><rect x="${rightLensX}" y="${y}" width="${lensWidth}" height="${lensHeight}" ${r}/><path d="M${leftInnerX} ${anatomy.face.eyeLineY}H${rightInnerX}"/><path d="M${leftLensX} ${anatomy.face.eyeLineY - 2}L${anatomy.ears.left.x + anatomy.ears.width / 2} ${anatomy.ears.left.y - 8}M${rightLensX + lensWidth} ${anatomy.face.eyeLineY - 2}L${anatomy.ears.right.x - anatomy.ears.width / 2} ${anatomy.ears.right.y - 8}"/></g>`;
+  const style = config.glasses.style;
+  if (style === "none") return "";
+  const c = sw(config.glasses.color);
+  const leftTempleEndX = anatomy.ears.left.x + anatomy.ears.width / 2;
+  const rightTempleEndX = anatomy.ears.right.x - anatomy.ears.width / 2;
+  const templeStartY = anatomy.face.eyeLineY - 2;
+  const leftTempleEndY = anatomy.ears.left.y - 8;
+  const rightTempleEndY = anatomy.ears.right.y - 8;
+
+  if (style === "star" || style === "heart") {
+    const leftPath = glassesNoveltyLensPath(style, anatomy.face.leftEye.x, anatomy.face.eyeLineY);
+    const rightPath = glassesNoveltyLensPath(style, anatomy.face.rightEye.x, anatomy.face.eyeLineY);
+    const bridgeStartX = anatomy.face.leftEye.x + 12;
+    const bridgeEndX = anatomy.face.rightEye.x - 12;
+    return `<g id="avatar-v2-layer-glasses" stroke="${c.line}" stroke-width="3" stroke-linejoin="round"><path fill="${c.base}" d="${leftPath}"/><path fill="${c.base}" d="${rightPath}"/><path fill="none" stroke-linecap="round" d="M${bridgeStartX} ${anatomy.face.eyeLineY}H${bridgeEndX}M${anatomy.face.leftEye.x - 12} ${templeStartY}L${leftTempleEndX} ${leftTempleEndY}M${anatomy.face.rightEye.x + 12} ${templeStartY}L${rightTempleEndX} ${rightTempleEndY}"/></g>`;
+  }
+
+  const round = style === "round";
+  const rx = round ? 13 : style === "rectangular" ? 4 : 8;
+  const strokeWidth = style === "thickFrame" ? 6 : 4;
+  const lensWidth = round ? 29 : 30;
+  const lensHeight = 24;
+  const leftLensX = anatomy.face.leftEye.x - lensWidth / 2;
+  const rightLensX = anatomy.face.rightEye.x - lensWidth / 2;
+  const leftInnerX = leftLensX + lensWidth;
+  const rightInnerX = rightLensX;
+  const y = anatomy.face.eyeLineY - lensHeight / 2;
+  const lensFill = style === "sunglasses" ? c.line : "none";
+  const bridge = `<path fill="none" d="M${leftInnerX} ${anatomy.face.eyeLineY}H${rightInnerX}"/>`;
+  const temples = `<path fill="none" d="M${leftLensX} ${templeStartY}L${leftTempleEndX} ${leftTempleEndY}M${rightLensX + lensWidth} ${templeStartY}L${rightTempleEndX} ${rightTempleEndY}"/>`;
+  return `<g id="avatar-v2-layer-glasses" fill="${lensFill}" stroke="${c.line}" stroke-width="${strokeWidth}" stroke-linecap="round"><rect x="${leftLensX}" y="${y}" width="${lensWidth}" height="${lensHeight}" rx="${rx}"/><rect x="${rightLensX}" y="${y}" width="${lensWidth}" height="${lensHeight}" rx="${rx}"/>${bridge}${temples}</g>`;
 }
 export const avatarV2ClothingAssets: Record<ShirtStyle, ClothingAsset> = {
   roundedTee: {

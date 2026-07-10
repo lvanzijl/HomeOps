@@ -47,7 +47,10 @@ export function avatarSelectionToAvatarV2RenderConfig(selection: AvatarCatalogSe
       style: rendererToken(normalized.selections.hairStyle, 'hair.style') as AvatarConfig['hair']['style'],
       color: rendererToken(normalized.selections.hairColor, 'hair.color') as PaletteToken,
     },
-    glasses: { style: 'none', color: 'lineBlue' },
+    glasses: {
+      style: rendererToken(normalized.selections.eyewearStyle, 'eyewear.style') as AvatarConfig['glasses']['style'],
+      color: 'lineBlue',
+    },
     shirt: {
       style: rendererToken(normalized.selections.clothingStyle, 'clothing.style') as AvatarConfig['shirt']['style'],
       color: rendererToken(normalized.selections.clothingColor, 'clothing.color') as PaletteToken,
