@@ -44,6 +44,7 @@ export interface AvatarCatalogCategory {
   allowsNone: boolean;
   order: number;
   labels: AvatarCatalogText;
+  shortLabels?: AvatarCatalogText;
   accessibilityLabels: AvatarCatalogText;
   descriptions: AvatarCatalogText;
   presentation: AvatarCatalogPresentation;
@@ -88,6 +89,7 @@ export interface AvatarCatalogItem {
 export interface AvatarCatalogEditorPanel {
   id: string;
   order: number;
+  icon?: string;
   labels: AvatarCatalogText;
   accessibilityLabels: AvatarCatalogText;
   descriptions: AvatarCatalogText;
@@ -191,6 +193,11 @@ export function getAvatarCatalogSelectionLabel(selection: AvatarCatalogSelection
   }
 
   return localizeAvatarCatalogText(item.labels, item.id, locale);
+}
+
+export function getAvatarCatalogCategoryTabLabel(category: AvatarCatalogCategory, locale = avatarCatalog.defaultLocale): string {
+  const fallback = localizeAvatarCatalogText(category.labels, category.id, locale);
+  return localizeAvatarCatalogText(category.shortLabels, fallback, locale);
 }
 
 export function getAvatarCatalogPanelSummary(panel: AvatarCatalogEditorPanel, selection: AvatarCatalogSelection, locale = avatarCatalog.defaultLocale): string {

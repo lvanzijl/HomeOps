@@ -5,7 +5,7 @@ import { AvatarEditorPage } from './AvatarEditorPage';
 
 afterEach(() => cleanup());
 
-function navButton(label: string) {
+function categoryButton(label: string) {
   return within(screen.getByLabelText('Avatarkeuzes navigatie')).getByText(label).closest('button');
 }
 
@@ -18,7 +18,7 @@ describe('AvatarEditorPage', () => {
     expect(screen.queryByText('Live voorbeeld')).toBeNull();
     expect(screen.queryByText('Categorie')).toBeNull();
 
-    await user.click(navButton('Kapsel')!);
+    await user.click(categoryButton('Haar')!);
     await user.click(screen.getByRole('button', { name: /Lang zacht/i }));
 
     expect(preview.innerHTML).not.toBe(initial);
@@ -29,7 +29,7 @@ describe('AvatarEditorPage', () => {
     const user = userEvent.setup();
     render(<AvatarEditorPage />);
 
-    await user.click(navButton('Accessoires')!);
+    await user.click(categoryButton('Accessoires')!);
     await user.click(within(screen.getByLabelText('Avatarkeuzes')).getByRole('button', { name: /Bloemspeld accessoire/i }));
     await user.click(screen.getByRole('button', { name: 'Opslaan' }));
     expect(screen.getByText('Opgeslagen')).not.toBeNull();
@@ -45,17 +45,18 @@ describe('AvatarEditorPage', () => {
   it('resets the draft to Avatar V2 defaults without saving automatically', async () => {
     const user = userEvent.setup();
     render(<AvatarEditorPage />);
-    await user.click(navButton('Kapsel')!);
+    await user.click(categoryButton('Haar')!);
     await user.click(screen.getByRole('button', { name: /Lang zacht/i }));
     await user.click(screen.getByRole('button', { name: 'Opslaan' }));
 
     await user.click(screen.getByRole('button', { name: 'Avatar resetten' }));
 
-    await user.click(navButton('Kapsel')!);
+    await user.click(categoryButton('Haar')!);
     expect(within(screen.getByLabelText('Avatarkeuzes')).getByRole('button', { name: /Kapsel kort speels/i }).getAttribute('aria-pressed')).toBe('true');
-    await user.click(navButton('Kledingstijl')!);
+    await user.click(categoryButton('Kleding')!);
     expect(within(screen.getByLabelText('Avatarkeuzes')).getByRole('button', { name: /Hoodie outfit/i }).getAttribute('aria-pressed')).toBe('true');
-    await user.click(navButton('Accessoires')!);
+    await user.click(categoryButton('Accessoires')!);
+    await user.click(within(screen.getByLabelText('Avatarkeuzes')).getByRole('button', { name: 'Kleur' }));
     expect(within(screen.getByLabelText('Avatarkeuzes')).getByRole('button', { name: /Accessoirekleur: Mintgroen/i }).getAttribute('aria-pressed')).toBe('true');
     expect(screen.getByText('Niet-opgeslagen wijzigingen')).not.toBeNull();
   });
@@ -64,18 +65,19 @@ describe('AvatarEditorPage', () => {
     const user = userEvent.setup();
     render(<AvatarEditorPage />);
 
+    // Skin is the default category and renders grouped, visual-only swatches.
     expect(within(screen.getByLabelText('Avatarkeuzes')).getByRole('heading', { name: 'Menselijk' })).not.toBeNull();
     expect(within(screen.getByLabelText('Avatarkeuzes')).getByRole('heading', { name: 'Fantasy' })).not.toBeNull();
     expect(screen.getAllByRole('button', { name: /Huidskleur: Midden/i })[0].textContent).toBe('');
-    expect(screen.queryByText('Kies een huidskleur voor het live voorbeeld.')).toBeNull();
 
-    await user.click(navButton('Kapsel')!);
+    await user.click(categoryButton('Haar')!);
     expect(screen.getByRole('button', { name: /Lang zacht/i }).textContent).toBe('');
 
-    await user.click(navButton('Haarkleur')!);
+    await user.click(within(screen.getByLabelText('Avatarkeuzes')).getByRole('button', { name: 'Kleur' }));
     expect(screen.getByRole('button', { name: /Haarkleur: Natuurlijk zwart/i }).textContent).toBe('');
 
-    await user.click(navButton('Kledingkleur')!);
+    await user.click(categoryButton('Kleding')!);
+    await user.click(within(screen.getByLabelText('Avatarkeuzes')).getByRole('button', { name: 'Kleur' }));
 
     expect(within(screen.getByLabelText('Avatarkeuzes')).getByRole('heading', { name: 'Neutraal' })).not.toBeNull();
     expect(within(screen.getByLabelText('Avatarkeuzes')).getByRole('heading', { name: 'Zacht' })).not.toBeNull();
@@ -84,17 +86,14 @@ describe('AvatarEditorPage', () => {
     expect(screen.getByRole('button', { name: /Kledingkleur: Hemelsblauw/i }).textContent).toBe('');
   });
 
-  it('exposes the Eyewear section inside the Accessories panel and applies a glasses choice', async () => {
+  it('exposes eyewear inside the Face category and applies a glasses choice', async () => {
     const user = userEvent.setup();
     render(<AvatarEditorPage />);
 
-    await user.click(navButton('Accessoires')!);
+    await user.click(categoryButton('Gezicht')!);
 
     const controls = within(screen.getByLabelText('Avatarkeuzes'));
-    expect(controls.queryByRole('heading', { name: 'Accessoires' })).toBeNull();
     expect(controls.getByRole('heading', { name: 'Bril' })).not.toBeNull();
-    expect(controls.getByRole('heading', { name: 'Accessoire' })).not.toBeNull();
-    expect(controls.getByRole('heading', { name: 'Accessoirekleur' })).not.toBeNull();
 
     // Eyewear defaults to "no glasses" and lets a single pair be chosen at a time.
     const eyewear = within(controls.getByRole('region', { name: 'Bril' }));
@@ -108,9 +107,20 @@ describe('AvatarEditorPage', () => {
     expect(preview.innerHTML).not.toBe(initial);
     expect(preview.innerHTML).toContain('avatar-v2-layer-glasses');
     expect(screen.getByText('Niet-opgeslagen wijzigingen')).not.toBeNull();
+  });
 
-    // Head accessories remain available alongside eyewear.
+  it('groups head accessories and their colors under the Accessories category', async () => {
+    const user = userEvent.setup();
+    render(<AvatarEditorPage />);
+
+    await user.click(categoryButton('Accessoires')!);
+
+    const controls = within(screen.getByLabelText('Avatarkeuzes'));
+    expect(controls.getByRole('heading', { name: 'Accessoire' })).not.toBeNull();
     expect(controls.getByRole('button', { name: /Bloemspeld accessoire/i }).textContent).toBe('');
+
+    await user.click(controls.getByRole('button', { name: 'Kleur' }));
+    expect(controls.getByRole('heading', { name: 'Accessoirekleur' })).not.toBeNull();
     expect(controls.getByRole('button', { name: /Accessoirekleur: Mintgroen/i }).textContent).toBe('');
   });
 });

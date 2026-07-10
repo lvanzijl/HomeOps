@@ -434,7 +434,7 @@ describe("FamilyMemberPage", () => {
         name: "Avatarbewerker voor Alex",
       }),
     ).not.toBeNull();
-    await user.click(within(screen.getByLabelText("Avatarkeuzes voor Alex navigatie")).getByText("Kapsel").closest("button")!);
+    await user.click(within(screen.getByLabelText("Avatarkeuzes voor Alex navigatie")).getByText("Haar").closest("button")!);
     await user.click(within(screen.getByLabelText("Avatarkeuzes voor Alex")).getByRole("button", { name: /Speelse krullen/i }));
     await user.click(screen.getByRole("button", { name: "Opslaan" }));
     expect(onChange).toHaveBeenCalledWith(

@@ -52,10 +52,10 @@ describe('avatar catalog metadata', () => {
     expect(eyewearCategory?.slot).toBe('eyewearStyle');
     expect(eyewearCategory?.allowsNone).toBe(true);
 
-    // Eyewear is surfaced within the broader Accessories editor panel.
-    const accessoriesPanel = avatarCatalog.editorPanels.find((panel) => panel.id === 'accessories');
-    expect(accessoriesPanel?.categoryIds).toContain('eyewear.style');
-    expect(accessoriesPanel?.categoryIds[0]).toBe('eyewear.style');
+    // Eyewear is surfaced within the Face editor category.
+    const facePanel = avatarCatalog.editorPanels.find((panel) => panel.id === 'face');
+    expect(facePanel?.categoryIds).toContain('eyewear.style');
+    expect(facePanel?.categoryIds[0]).toBe('eyewear.style');
   });
 
   it('renders every active eyewear style through the Avatar V2 glasses layer', () => {

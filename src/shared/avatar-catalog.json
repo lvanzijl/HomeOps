@@ -44,15 +44,16 @@
   ],
   "editorPanels": [
     {
-      "id": "skin-tone",
+      "id": "skin",
       "order": 10,
+      "icon": "skin",
       "labels": {
-        "nl-NL": "Huidskleur",
-        "en-US": "Skin tone"
+        "nl-NL": "Huid",
+        "en-US": "Skin"
       },
       "accessibilityLabels": {
-        "nl-NL": "Categorie huidskleur",
-        "en-US": "Skin tone category"
+        "nl-NL": "Categorie huid",
+        "en-US": "Skin category"
       },
       "descriptions": {
         "nl-NL": "Kies een huidskleur voor het live voorbeeld.",
@@ -63,84 +64,71 @@
       ]
     },
     {
-      "id": "hair-style",
+      "id": "hair",
       "order": 20,
+      "icon": "hair",
       "labels": {
-        "nl-NL": "Kapsel",
-        "en-US": "Hair style"
+        "nl-NL": "Haar",
+        "en-US": "Hair"
       },
       "accessibilityLabels": {
-        "nl-NL": "Categorie kapsel",
-        "en-US": "Hair style category"
+        "nl-NL": "Categorie haar",
+        "en-US": "Hair category"
       },
       "descriptions": {
-        "nl-NL": "Kies één kapsel tegelijk.",
-        "en-US": "Choose one hairstyle at a time."
+        "nl-NL": "Kies een kapsel en een haarkleur.",
+        "en-US": "Choose a hairstyle and a hair color."
       },
       "categoryIds": [
-        "hair.style"
-      ]
-    },
-    {
-      "id": "hair-color",
-      "order": 30,
-      "labels": {
-        "nl-NL": "Haarkleur",
-        "en-US": "Hair color"
-      },
-      "accessibilityLabels": {
-        "nl-NL": "Categorie haarkleur",
-        "en-US": "Hair color category"
-      },
-      "descriptions": {
-        "nl-NL": "Natuurlijke haarkleuren blijven eenvoudig en herkenbaar.",
-        "en-US": "Natural hair colors stay simple and recognizable."
-      },
-      "categoryIds": [
+        "hair.style",
         "hair.color"
       ]
     },
     {
-      "id": "clothing-style",
-      "order": 40,
+      "id": "face",
+      "order": 30,
+      "icon": "face",
       "labels": {
-        "nl-NL": "Kledingstijl",
-        "en-US": "Clothing style"
+        "nl-NL": "Gezicht",
+        "en-US": "Face"
       },
       "accessibilityLabels": {
-        "nl-NL": "Categorie kledingstijl",
-        "en-US": "Clothing style category"
+        "nl-NL": "Categorie gezicht",
+        "en-US": "Face category"
       },
       "descriptions": {
-        "nl-NL": "Kies een outfit voor het gezinsbord.",
-        "en-US": "Choose an outfit for the family board."
+        "nl-NL": "Kies een bril voor op het gezicht.",
+        "en-US": "Choose glasses for the face."
       },
       "categoryIds": [
-        "clothing.style"
+        "eyewear.style"
       ]
     },
     {
-      "id": "clothing-color",
-      "order": 50,
+      "id": "clothing",
+      "order": 40,
+      "icon": "clothing",
       "labels": {
-        "nl-NL": "Kledingkleur",
-        "en-US": "Clothing color"
+        "nl-NL": "Kleding",
+        "en-US": "Clothing"
       },
       "accessibilityLabels": {
-        "nl-NL": "Categorie kledingkleur",
-        "en-US": "Clothing color category"
+        "nl-NL": "Categorie kleding",
+        "en-US": "Clothing category"
       },
       "descriptions": {
-        "nl-NL": "Kies uit rustige, zachte, heldere of seizoenskleuren.",
-        "en-US": "Choose from neutral, soft, bright, or seasonal colors."
+        "nl-NL": "Kies een outfit en een kledingkleur.",
+        "en-US": "Choose an outfit and a clothing color."
       },
       "categoryIds": [
+        "clothing.style",
         "clothing.color"
       ]
     },
     {
       "id": "accessories",
-      "order": 60,
+      "order": 50,
+      "icon": "accessories",
       "labels": {
         "nl-NL": "Accessoires",
         "en-US": "Accessories"
@@ -150,11 +138,10 @@
         "en-US": "Accessories category"
       },
       "descriptions": {
-        "nl-NL": "Kies een bril en extra details; kleuren volgen het kledingpalet.",
-        "en-US": "Choose glasses and extra details; colors follow the clothing palette."
+        "nl-NL": "Kies een extra detail; de kleur volgt het kledingpalet.",
+        "en-US": "Choose an extra detail; the color follows the clothing palette."
       },
       "categoryIds": [
-        "eyewear.style",
         "accessory.style",
         "accessory.color"
       ]
@@ -170,6 +157,10 @@
       "labels": {
         "nl-NL": "Haar",
         "en-US": "Hair"
+      },
+      "shortLabels": {
+        "nl-NL": "Stijl",
+        "en-US": "Style"
       },
       "accessibilityLabels": {
         "nl-NL": "Kapselkeuzes",
@@ -206,6 +197,10 @@
         "nl-NL": "Haarkleur",
         "en-US": "Hair color"
       },
+      "shortLabels": {
+        "nl-NL": "Kleur",
+        "en-US": "Color"
+      },
       "accessibilityLabels": {
         "nl-NL": "Haarkleurkeuzes",
         "en-US": "Hair color choices"
@@ -237,6 +232,10 @@
         "nl-NL": "Kleding",
         "en-US": "Clothing"
       },
+      "shortLabels": {
+        "nl-NL": "Stijl",
+        "en-US": "Style"
+      },
       "accessibilityLabels": {
         "nl-NL": "Kledingkeuzes",
         "en-US": "Clothing choices"
@@ -266,6 +265,10 @@
       "labels": {
         "nl-NL": "Kledingkleur",
         "en-US": "Clothing color"
+      },
+      "shortLabels": {
+        "nl-NL": "Kleur",
+        "en-US": "Color"
       },
       "accessibilityLabels": {
         "nl-NL": "Kledingkleurkeuzes",
@@ -330,6 +333,10 @@
         "nl-NL": "Accessoire",
         "en-US": "Accessory"
       },
+      "shortLabels": {
+        "nl-NL": "Stijl",
+        "en-US": "Style"
+      },
       "accessibilityLabels": {
         "nl-NL": "Accessoirekeuzes",
         "en-US": "Accessory choices"
@@ -359,6 +366,10 @@
       "labels": {
         "nl-NL": "Accessoirekleur",
         "en-US": "Accessory color"
+      },
+      "shortLabels": {
+        "nl-NL": "Kleur",
+        "en-US": "Color"
       },
       "accessibilityLabels": {
         "nl-NL": "Accessoirekleurkeuzes",
