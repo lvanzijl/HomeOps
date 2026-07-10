@@ -2142,6 +2142,220 @@ export class HomeOpsApiClient {
         return Promise.resolve<void>(null as any);
     }
 
+    getKnownPeople(scope: KnownPersonScope | null | undefined, familyMemberId: string | null | undefined): Promise<KnownPersonDto[]> {
+        let url_ = this.baseUrl + "/api/known-people?";
+        if (scope !== undefined && scope !== null)
+            url_ += "scope=" + encodeURIComponent("" + scope) + "&";
+        if (familyMemberId !== undefined && familyMemberId !== null)
+            url_ += "familyMemberId=" + encodeURIComponent("" + familyMemberId) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetKnownPeople(_response);
+        });
+    }
+
+    protected processGetKnownPeople(response: Response): Promise<KnownPersonDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(KnownPersonDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<KnownPersonDto[]>(null as any);
+    }
+
+    createKnownPerson(request: CreateKnownPersonRequest): Promise<KnownPersonDto> {
+        let url_ = this.baseUrl + "/api/known-people";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCreateKnownPerson(_response);
+        });
+    }
+
+    protected processCreateKnownPerson(response: Response): Promise<KnownPersonDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 201) {
+            return response.text().then((_responseText) => {
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result201 = KnownPersonDto.fromJS(resultData201);
+            return result201;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<KnownPersonDto>(null as any);
+    }
+
+    getKnownPerson(knownPersonId: string): Promise<KnownPersonDto> {
+        let url_ = this.baseUrl + "/api/known-people/{knownPersonId}";
+        if (knownPersonId === undefined || knownPersonId === null)
+            throw new globalThis.Error("The parameter 'knownPersonId' must be defined.");
+        url_ = url_.replace("{knownPersonId}", encodeURIComponent("" + knownPersonId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetKnownPerson(_response);
+        });
+    }
+
+    protected processGetKnownPerson(response: Response): Promise<KnownPersonDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = KnownPersonDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<KnownPersonDto>(null as any);
+    }
+
+    updateKnownPerson(knownPersonId: string, request: UpdateKnownPersonRequest): Promise<KnownPersonDto> {
+        let url_ = this.baseUrl + "/api/known-people/{knownPersonId}";
+        if (knownPersonId === undefined || knownPersonId === null)
+            throw new globalThis.Error("The parameter 'knownPersonId' must be defined.");
+        url_ = url_.replace("{knownPersonId}", encodeURIComponent("" + knownPersonId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateKnownPerson(_response);
+        });
+    }
+
+    protected processUpdateKnownPerson(response: Response): Promise<KnownPersonDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = KnownPersonDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<KnownPersonDto>(null as any);
+    }
+
+    deleteKnownPerson(knownPersonId: string): Promise<void> {
+        let url_ = this.baseUrl + "/api/known-people/{knownPersonId}";
+        if (knownPersonId === undefined || knownPersonId === null)
+            throw new globalThis.Error("The parameter 'knownPersonId' must be defined.");
+        url_ = url_.replace("{knownPersonId}", encodeURIComponent("" + knownPersonId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDeleteKnownPerson(_response);
+        });
+    }
+
+    protected processDeleteKnownPerson(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
     getOnboardingStatus(): Promise<OnboardingStatusDto> {
         let url_ = this.baseUrl + "/api/onboarding/status";
         url_ = url_.replace(/[?&]$/, "");
@@ -6927,6 +7141,230 @@ export interface IUpdateFamilyMemberRequest {
     memberKind?: FamilyMemberKind;
     dateOfBirth?: Date | undefined;
     avatarV2Config?: AvatarV2ConfigDto | undefined;
+    avatarSelection?: AvatarSelectionDto | undefined;
+}
+
+export class KnownPersonDto implements IKnownPersonDto {
+    id?: string;
+    displayName?: string;
+    nickname?: string | undefined;
+    relationshipType?: KnownPersonRelationshipType;
+    customRelationshipLabel?: string | undefined;
+    scope?: KnownPersonScope;
+    familyMemberId?: string | undefined;
+    initials?: string;
+    avatarSelection?: AvatarSelectionDto;
+    createdUtc?: Date;
+    updatedUtc?: Date;
+
+    constructor(data?: IKnownPersonDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.displayName = _data["displayName"];
+            this.nickname = _data["nickname"];
+            this.relationshipType = _data["relationshipType"];
+            this.customRelationshipLabel = _data["customRelationshipLabel"];
+            this.scope = _data["scope"];
+            this.familyMemberId = _data["familyMemberId"];
+            this.initials = _data["initials"];
+            this.avatarSelection = _data["avatarSelection"] ? AvatarSelectionDto.fromJS(_data["avatarSelection"]) : undefined as any;
+            this.createdUtc = _data["createdUtc"] ? new Date(_data["createdUtc"].toString()) : undefined as any;
+            this.updatedUtc = _data["updatedUtc"] ? new Date(_data["updatedUtc"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): KnownPersonDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new KnownPersonDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["displayName"] = this.displayName;
+        data["nickname"] = this.nickname;
+        data["relationshipType"] = this.relationshipType;
+        data["customRelationshipLabel"] = this.customRelationshipLabel;
+        data["scope"] = this.scope;
+        data["familyMemberId"] = this.familyMemberId;
+        data["initials"] = this.initials;
+        data["avatarSelection"] = this.avatarSelection ? this.avatarSelection.toJSON() : undefined as any;
+        data["createdUtc"] = this.createdUtc ? this.createdUtc.toISOString() : undefined as any;
+        data["updatedUtc"] = this.updatedUtc ? this.updatedUtc.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface IKnownPersonDto {
+    id?: string;
+    displayName?: string;
+    nickname?: string | undefined;
+    relationshipType?: KnownPersonRelationshipType;
+    customRelationshipLabel?: string | undefined;
+    scope?: KnownPersonScope;
+    familyMemberId?: string | undefined;
+    initials?: string;
+    avatarSelection?: AvatarSelectionDto;
+    createdUtc?: Date;
+    updatedUtc?: Date;
+}
+
+export enum KnownPersonRelationshipType {
+    Friend = 0,
+    FamilyFriend = 1,
+    Grandparent = 2,
+    Uncle = 3,
+    Aunt = 4,
+    Cousin = 5,
+    Teacher = 6,
+    Coach = 7,
+    Babysitter = 8,
+    Classmate = 9,
+    Neighbour = 10,
+    Other = 11,
+}
+
+export enum KnownPersonScope {
+    Shared = 0,
+    PrivateToMember = 1,
+}
+
+export class CreateKnownPersonRequest implements ICreateKnownPersonRequest {
+    displayName?: string;
+    nickname?: string | undefined;
+    relationshipType?: KnownPersonRelationshipType;
+    customRelationshipLabel?: string | undefined;
+    scope?: KnownPersonScope;
+    familyMemberId?: string | undefined;
+    initials?: string | undefined;
+    avatarSelection?: AvatarSelectionDto | undefined;
+
+    constructor(data?: ICreateKnownPersonRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.displayName = _data["displayName"];
+            this.nickname = _data["nickname"];
+            this.relationshipType = _data["relationshipType"];
+            this.customRelationshipLabel = _data["customRelationshipLabel"];
+            this.scope = _data["scope"];
+            this.familyMemberId = _data["familyMemberId"];
+            this.initials = _data["initials"];
+            this.avatarSelection = _data["avatarSelection"] ? AvatarSelectionDto.fromJS(_data["avatarSelection"]) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): CreateKnownPersonRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreateKnownPersonRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["displayName"] = this.displayName;
+        data["nickname"] = this.nickname;
+        data["relationshipType"] = this.relationshipType;
+        data["customRelationshipLabel"] = this.customRelationshipLabel;
+        data["scope"] = this.scope;
+        data["familyMemberId"] = this.familyMemberId;
+        data["initials"] = this.initials;
+        data["avatarSelection"] = this.avatarSelection ? this.avatarSelection.toJSON() : undefined as any;
+        return data;
+    }
+}
+
+export interface ICreateKnownPersonRequest {
+    displayName?: string;
+    nickname?: string | undefined;
+    relationshipType?: KnownPersonRelationshipType;
+    customRelationshipLabel?: string | undefined;
+    scope?: KnownPersonScope;
+    familyMemberId?: string | undefined;
+    initials?: string | undefined;
+    avatarSelection?: AvatarSelectionDto | undefined;
+}
+
+export class UpdateKnownPersonRequest implements IUpdateKnownPersonRequest {
+    displayName?: string;
+    nickname?: string | undefined;
+    relationshipType?: KnownPersonRelationshipType;
+    customRelationshipLabel?: string | undefined;
+    scope?: KnownPersonScope;
+    familyMemberId?: string | undefined;
+    initials?: string | undefined;
+    avatarSelection?: AvatarSelectionDto | undefined;
+
+    constructor(data?: IUpdateKnownPersonRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.displayName = _data["displayName"];
+            this.nickname = _data["nickname"];
+            this.relationshipType = _data["relationshipType"];
+            this.customRelationshipLabel = _data["customRelationshipLabel"];
+            this.scope = _data["scope"];
+            this.familyMemberId = _data["familyMemberId"];
+            this.initials = _data["initials"];
+            this.avatarSelection = _data["avatarSelection"] ? AvatarSelectionDto.fromJS(_data["avatarSelection"]) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): UpdateKnownPersonRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpdateKnownPersonRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["displayName"] = this.displayName;
+        data["nickname"] = this.nickname;
+        data["relationshipType"] = this.relationshipType;
+        data["customRelationshipLabel"] = this.customRelationshipLabel;
+        data["scope"] = this.scope;
+        data["familyMemberId"] = this.familyMemberId;
+        data["initials"] = this.initials;
+        data["avatarSelection"] = this.avatarSelection ? this.avatarSelection.toJSON() : undefined as any;
+        return data;
+    }
+}
+
+export interface IUpdateKnownPersonRequest {
+    displayName?: string;
+    nickname?: string | undefined;
+    relationshipType?: KnownPersonRelationshipType;
+    customRelationshipLabel?: string | undefined;
+    scope?: KnownPersonScope;
+    familyMemberId?: string | undefined;
+    initials?: string | undefined;
     avatarSelection?: AvatarSelectionDto | undefined;
 }
 

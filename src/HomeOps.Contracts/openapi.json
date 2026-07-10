@@ -1859,6 +1859,195 @@
         }
       }
     },
+    "/api/known-people": {
+      "get": {
+        "tags": [
+          "Known People"
+        ],
+        "operationId": "GetKnownPeople",
+        "parameters": [
+          {
+            "name": "scope",
+            "in": "query",
+            "schema": {
+              "nullable": true,
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/KnownPersonScope"
+                }
+              ]
+            },
+            "x-position": 1
+          },
+          {
+            "name": "familyMemberId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/KnownPersonDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Known People"
+        ],
+        "operationId": "CreateKnownPerson",
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateKnownPersonRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnownPersonDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/known-people/{knownPersonId}": {
+      "get": {
+        "tags": [
+          "Known People"
+        ],
+        "operationId": "GetKnownPerson",
+        "parameters": [
+          {
+            "name": "knownPersonId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnownPersonDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Known People"
+        ],
+        "operationId": "UpdateKnownPerson",
+        "parameters": [
+          {
+            "name": "knownPersonId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateKnownPersonRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/KnownPersonDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": ""
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Known People"
+        ],
+        "operationId": "DeleteKnownPerson",
+        "parameters": [
+          {
+            "name": "knownPersonId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
     "/api/onboarding/status": {
       "get": {
         "tags": [
@@ -4670,6 +4859,197 @@
                 "$ref": "#/components/schemas/AvatarV2ConfigDto"
               }
             ]
+          },
+          "avatarSelection": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/AvatarSelectionDto"
+              }
+            ]
+          }
+        }
+      },
+      "KnownPersonDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "displayName": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 0
+          },
+          "nickname": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 0,
+            "nullable": true
+          },
+          "relationshipType": {
+            "$ref": "#/components/schemas/KnownPersonRelationshipType"
+          },
+          "customRelationshipLabel": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 0,
+            "nullable": true
+          },
+          "scope": {
+            "$ref": "#/components/schemas/KnownPersonScope"
+          },
+          "familyMemberId": {
+            "type": "string",
+            "nullable": true
+          },
+          "initials": {
+            "type": "string",
+            "maxLength": 8,
+            "minLength": 0
+          },
+          "avatarSelection": {
+            "$ref": "#/components/schemas/AvatarSelectionDto"
+          },
+          "createdUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedUtc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "KnownPersonRelationshipType": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "Friend",
+          "FamilyFriend",
+          "Grandparent",
+          "Uncle",
+          "Aunt",
+          "Cousin",
+          "Teacher",
+          "Coach",
+          "Babysitter",
+          "Classmate",
+          "Neighbour",
+          "Other"
+        ],
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11
+        ]
+      },
+      "KnownPersonScope": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "Shared",
+          "PrivateToMember"
+        ],
+        "enum": [
+          0,
+          1
+        ]
+      },
+      "CreateKnownPersonRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 0
+          },
+          "nickname": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 0,
+            "nullable": true
+          },
+          "relationshipType": {
+            "$ref": "#/components/schemas/KnownPersonRelationshipType"
+          },
+          "customRelationshipLabel": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 0,
+            "nullable": true
+          },
+          "scope": {
+            "$ref": "#/components/schemas/KnownPersonScope"
+          },
+          "familyMemberId": {
+            "type": "string",
+            "nullable": true
+          },
+          "initials": {
+            "type": "string",
+            "maxLength": 8,
+            "minLength": 0,
+            "nullable": true
+          },
+          "avatarSelection": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/AvatarSelectionDto"
+              }
+            ]
+          }
+        }
+      },
+      "UpdateKnownPersonRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 0
+          },
+          "nickname": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 0,
+            "nullable": true
+          },
+          "relationshipType": {
+            "$ref": "#/components/schemas/KnownPersonRelationshipType"
+          },
+          "customRelationshipLabel": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 0,
+            "nullable": true
+          },
+          "scope": {
+            "$ref": "#/components/schemas/KnownPersonScope"
+          },
+          "familyMemberId": {
+            "type": "string",
+            "nullable": true
+          },
+          "initials": {
+            "type": "string",
+            "maxLength": 8,
+            "minLength": 0,
+            "nullable": true
           },
           "avatarSelection": {
             "nullable": true,
