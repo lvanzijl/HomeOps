@@ -1,3 +1,4 @@
+using HomeOps.Api.Lists;
 using HomeOps.Contracts.Events;
 
 namespace HomeOps.Api.CalendarEvents;
@@ -54,8 +55,11 @@ public static class EventSeriesNormalizer
             eventSeries.IsAllDay,
             eventSeries.CreatedUtc,
             eventSeries.UpdatedUtc,
-            ToRecurrenceRuleDto(eventSeries.RecurrenceRule ?? ToLegacyCompatibilityRule(eventSeries)));
+            ToRecurrenceRuleDto(eventSeries.RecurrenceRule ?? ToLegacyCompatibilityRule(eventSeries)),
+            DecorativeAvatar: DecorativeAvatar(eventSeries.DecorativeAvatarReferenceType, eventSeries.DecorativeAvatarReferenceId));
     }
+
+    private static HomeOps.Api.Lists.DecorativeAvatarReferenceDto? DecorativeAvatar(HomeOps.Api.Lists.DecorativeAvatarReferenceType? type, string? id) => type is null || string.IsNullOrWhiteSpace(id) ? null : new HomeOps.Api.Lists.DecorativeAvatarReferenceDto(type, id);
 
     private static EventRecurrenceRule? ToLegacyCompatibilityRule(EventSeries eventSeries) => eventSeries.RecurrenceType switch
     {

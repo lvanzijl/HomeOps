@@ -25,6 +25,11 @@ export interface EventSource {
   canDisplayEvents?: boolean;
 }
 
+export interface DecorativeAvatarReference {
+  referenceType: 'familyMember' | 'knownPerson';
+  referenceId: string;
+}
+
 export interface NormalizedEvent {
   id: string;
   eventSeriesId?: string;
@@ -40,6 +45,7 @@ export interface NormalizedEvent {
   occurrenceKey?: string;
   isRecurring?: boolean;
   isException?: boolean;
+  decorativeAvatar?: DecorativeAvatarReference | null;
   recurrence?: {
     isRecurring: boolean;
     frequency?: string;

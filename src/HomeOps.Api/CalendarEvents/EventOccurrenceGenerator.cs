@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using HomeOps.Api.Lists;
 
 namespace HomeOps.Api.CalendarEvents;
 
@@ -343,8 +344,16 @@ public static class EventOccurrenceGenerator
             location,
             key.Serialize(),
             rule is not null,
-            isModified);
+            isModified,
+            ToDecorativeAvatar(series.DecorativeAvatarReferenceType, series.DecorativeAvatarReferenceId));
     }
+
+    private static HomeOps.Contracts.Events.DecorativeAvatarReferenceDto? ToDecorativeAvatar(DecorativeAvatarReferenceType? type, string? id) => type switch
+    {
+        DecorativeAvatarReferenceType.FamilyMember when !string.IsNullOrWhiteSpace(id) => new HomeOps.Contracts.Events.DecorativeAvatarReferenceDto(HomeOps.Contracts.Events.DecorativeAvatarReferenceType.FamilyMember, id),
+        DecorativeAvatarReferenceType.KnownPerson when !string.IsNullOrWhiteSpace(id) => new HomeOps.Contracts.Events.DecorativeAvatarReferenceDto(HomeOps.Contracts.Events.DecorativeAvatarReferenceType.KnownPerson, id),
+        _ => null,
+    };
 
     private static bool OverlapsWindow(EventOccurrence occurrence, DateOnly startsOn, DateOnly endsOn, string timeZoneId)
     {

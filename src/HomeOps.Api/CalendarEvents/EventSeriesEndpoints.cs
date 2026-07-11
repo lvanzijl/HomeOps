@@ -1,4 +1,5 @@
 using HomeOps.Api.Data;
+using HomeOps.Api.DecorativeAvatars;
 using HomeOps.Api.Households;
 using HomeOps.Contracts.Events;
 using Microsoft.EntityFrameworkCore;
@@ -66,6 +67,11 @@ public static class EventSeriesEndpoints
         {
             var validationErrors = ValidateEvent(request.Title, request.StartUtc, request.EndUtc);
             var recurrenceRule = MapRecurrenceRule(request.RecurrenceRule, request.StartUtc, validationErrors);
+            var avatarValidation = await DecorativeAvatarReferenceValidation.Validate(dbContext, request.DecorativeAvatar, cancellationToken);
+            if (!avatarValidation.IsValid)
+            {
+                validationErrors[nameof(CreateEventSeriesRequest.DecorativeAvatar)] = [avatarValidation.Error!];
+            }
             if (validationErrors.Count > 0)
             {
                 return Results.ValidationProblem(validationErrors);
@@ -95,6 +101,8 @@ public static class EventSeriesEndpoints
                 now);
             eventSeries.RecurrenceType = RecurrenceType.None;
             eventSeries.RecurrenceRule = recurrenceRule;
+            eventSeries.DecorativeAvatarReferenceType = avatarValidation.ReferenceType;
+            eventSeries.DecorativeAvatarReferenceId = avatarValidation.ReferenceId;
 
             dbContext.EventSeries.Add(eventSeries);
             await dbContext.SaveChangesAsync(cancellationToken);
@@ -106,6 +114,11 @@ public static class EventSeriesEndpoints
         {
             var validationErrors = ValidateEvent(request.Title, request.StartUtc, request.EndUtc);
             var recurrenceRule = MapRecurrenceRule(request.RecurrenceRule, request.StartUtc, validationErrors);
+            var avatarValidation = await DecorativeAvatarReferenceValidation.Validate(dbContext, request.DecorativeAvatar, cancellationToken);
+            if (!avatarValidation.IsValid)
+            {
+                validationErrors[nameof(UpdateEventSeriesRequest.DecorativeAvatar)] = [avatarValidation.Error!];
+            }
             if (validationErrors.Count > 0)
             {
                 return Results.ValidationProblem(validationErrors);
@@ -131,6 +144,8 @@ public static class EventSeriesEndpoints
                 DateTimeOffset.UtcNow);
             eventSeries.RecurrenceType = RecurrenceType.None;
             eventSeries.RecurrenceRule = recurrenceRule;
+            eventSeries.DecorativeAvatarReferenceType = avatarValidation.ReferenceType;
+            eventSeries.DecorativeAvatarReferenceId = avatarValidation.ReferenceId;
             await dbContext.SaveChangesAsync(cancellationToken);
 
             return Results.Ok(EventSeriesNormalizer.ToDto(eventSeries));
@@ -458,6 +473,8 @@ public static class EventSeriesEndpoints
         newSeries.ImportedAtUtc = original.ImportedAtUtc;
         newSeries.LastImportedUtc = original.LastImportedUtc;
         newSeries.LastSeenSyncAttemptUtc = original.LastSeenSyncAttemptUtc;
+        newSeries.DecorativeAvatarReferenceType = original.DecorativeAvatarReferenceType;
+        newSeries.DecorativeAvatarReferenceId = original.DecorativeAvatarReferenceId;
 
         EndSeriesBefore(original, splitKey);
         RemoveExceptionsOnOrAfter(original, splitKey, dbContext);

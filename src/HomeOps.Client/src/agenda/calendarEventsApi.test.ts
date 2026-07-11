@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   RecurrenceRuleDto,
+  DecorativeAvatarReferenceDto,
+  DecorativeAvatarReferenceType,
   EventSourceDto,
   EventSourceHealthStatus,
   EventSourcePollInterval,
@@ -52,6 +54,7 @@ const eventSeriesDto = new EventSeriesDto({
   eventSourceId: 'manual-source',
   title: 'Created Event',
   location: 'Pool',
+  decorativeAvatar: new DecorativeAvatarReferenceDto({ referenceType: DecorativeAvatarReferenceType.FamilyMember, referenceId: 'riley' }),
   startUtc: new Date('2026-06-22T09:00:00Z'),
   endUtc: new Date('2026-06-22T10:00:00Z'),
   isAllDay: false,
@@ -89,14 +92,15 @@ describe('EventSeries API mapping', () => {
       deleteEvent: vi.fn().mockResolvedValue(undefined),
     } as never;
 
-    const created = await createCalendarAgendaEvent({ title: 'Created Event', startsAt: '2026-06-22T09:00', endsAt: '2026-06-22T10:00', allDay: false }, client);
+    const created = await createCalendarAgendaEvent({ title: 'Created Event', startsAt: '2026-06-22T09:00', endsAt: '2026-06-22T10:00', allDay: false, decorativeAvatar: { referenceType: 'knownPerson', referenceId: 'known-1' } }, client);
     const updated = await updateCalendarAgendaEvent('created', { title: 'Updated Event', startsAt: '2026-06-22T09:00', endsAt: '2026-06-22T10:00', allDay: false }, client);
     await deleteCalendarAgendaEvent('created', client);
 
     expect((client as { createEvent: ReturnType<typeof vi.fn> }).createEvent).toHaveBeenCalledTimes(1);
+    expect((client as { createEvent: ReturnType<typeof vi.fn> }).createEvent.mock.calls[0][0].decorativeAvatar).toMatchObject({ referenceType: DecorativeAvatarReferenceType.KnownPerson, referenceId: 'known-1' });
     expect((client as { updateEvent: ReturnType<typeof vi.fn> }).updateEvent).toHaveBeenCalledWith('created', expect.objectContaining({ title: 'Updated Event' }));
     expect((client as { deleteEvent: ReturnType<typeof vi.fn> }).deleteEvent).toHaveBeenCalledWith('created');
-    expect(created).toMatchObject({ id: 'created', sourceId: 'manual-source', editable: true });
+    expect(created).toMatchObject({ id: 'created', sourceId: 'manual-source', editable: true, decorativeAvatar: { referenceType: 'familyMember', referenceId: 'riley' } });
     expect(updated.title).toBe('Updated Event');
   });
 
@@ -108,6 +112,7 @@ describe('EventSeries API mapping', () => {
       startsAt: '2026-06-22T09:00:00.000Z',
       editable: true,
       location: 'Pool',
+      decorativeAvatar: { referenceType: 'familyMember', referenceId: 'riley' },
       isRecurring: true,
     });
   });
@@ -128,6 +133,7 @@ describe('EventSeries API mapping', () => {
       title: 'Moved Event',
       description: 'Bring towel',
       location: 'Pool',
+      decorativeAvatar: { referenceType: 'familyMember', referenceId: 'riley' },
       startsAt: '2026-06-29T10:00',
       endsAt: '2026-06-29T11:00',
       allDay: false,
@@ -143,10 +149,12 @@ describe('EventSeries API mapping', () => {
     await deleteCalendarAgendaFutureOccurrences('created', '2026-06-29T09:00:00', client);
 
     expect(details.recurrenceRule).toMatchObject({ frequency: 'Weekly', interval: 1 });
+    expect(details.decorativeAvatar).toEqual({ referenceType: 'familyMember', referenceId: 'riley' });
     expect(details.exceptions[0]).toMatchObject({ occurrenceKey: '2026-06-29T09:00:00', title: 'Moved Event' });
     expect((client as { skipEventOccurrence: ReturnType<typeof vi.fn> }).skipEventOccurrence).toHaveBeenCalled();
     expect((client as { modifyEventOccurrence: ReturnType<typeof vi.fn> }).modifyEventOccurrence).toHaveBeenCalled();
     expect((client as { splitEventSeriesFromOccurrence: ReturnType<typeof vi.fn> }).splitEventSeriesFromOccurrence).toHaveBeenCalled();
+    expect((client as { splitEventSeriesFromOccurrence: ReturnType<typeof vi.fn> }).splitEventSeriesFromOccurrence.mock.results[0]).toBeDefined();
     expect((client as { deleteEventOccurrence: ReturnType<typeof vi.fn> }).deleteEventOccurrence).toHaveBeenCalledWith('created', '2026-06-29T09:00:00');
     expect((client as { deleteEventOccurrencesFromOccurrence: ReturnType<typeof vi.fn> }).deleteEventOccurrencesFromOccurrence).toHaveBeenCalledWith('created', '2026-06-29T09:00:00');
   });

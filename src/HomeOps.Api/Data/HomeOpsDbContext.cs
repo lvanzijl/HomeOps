@@ -159,11 +159,16 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
 
         modelBuilder.Entity<EventSeries>(entity =>
         {
-            entity.ToTable("EventSeries");
+            entity.ToTable("EventSeries", table =>
+            {
+                table.HasCheckConstraint("CK_EventSeries_DecorativeAvatar_NullablePair", "(\"DecorativeAvatarReferenceType\" IS NULL AND \"DecorativeAvatarReferenceId\" IS NULL) OR (\"DecorativeAvatarReferenceType\" IS NOT NULL AND \"DecorativeAvatarReferenceId\" IS NOT NULL)");
+            });
             entity.HasKey(eventSeries => eventSeries.Id);
             entity.Property(eventSeries => eventSeries.Title).HasMaxLength(240).IsRequired();
             entity.Property(eventSeries => eventSeries.Description).HasMaxLength(1000);
             entity.Property(eventSeries => eventSeries.Location).HasMaxLength(500);
+            entity.Property(eventSeries => eventSeries.DecorativeAvatarReferenceType).HasConversion<string>().HasMaxLength(32);
+            entity.Property(eventSeries => eventSeries.DecorativeAvatarReferenceId).HasMaxLength(120);
             entity.Property(eventSeries => eventSeries.ProviderEventId).HasMaxLength(512);
             entity.Property(eventSeries => eventSeries.ProviderInstanceId).HasMaxLength(512);
             entity.Property(eventSeries => eventSeries.ProviderRevision).HasMaxLength(512);
@@ -203,6 +208,7 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
                 .IsUnique()
                 .HasFilter("\"ProviderEventId\" IS NOT NULL");
             entity.HasIndex(eventSeries => new { eventSeries.EventSourceId, eventSeries.LastSeenSyncAttemptUtc });
+            entity.HasIndex(eventSeries => new { eventSeries.DecorativeAvatarReferenceType, eventSeries.DecorativeAvatarReferenceId });
         });
 
         modelBuilder.Entity<EventSourceConfiguration>(entity =>

@@ -290,6 +290,75 @@ public sealed class EventSeriesApiTests
         Assert.DoesNotContain(events, candidate => candidate.Title == "Disabled file event");
     }
 
+
+    [Fact]
+    public async Task CreateAndUpdateEventPersistsDecorativeAvatarReference()
+    {
+        await using var factory = new HomeOpsWebApplicationFactory();
+        var client = factory.CreateClient();
+        var start = new DateTimeOffset(2026, 8, 1, 9, 0, 0, TimeSpan.Zero);
+        var create = new CreateEventSeriesRequest(
+            "Zwemles",
+            null,
+            null,
+            start,
+            start.AddHours(1),
+            false,
+            DecorativeAvatar: new HomeOps.Api.Lists.DecorativeAvatarReferenceDto(HomeOps.Api.Lists.DecorativeAvatarReferenceType.FamilyMember, "riley"));
+
+        var createResponse = await client.PostAsJsonAsync("/api/events", create);
+
+        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+        var created = await createResponse.Content.ReadFromJsonAsync<EventSeriesDto>();
+        Assert.NotNull(created);
+        Assert.Equal(HomeOps.Api.Lists.DecorativeAvatarReferenceType.FamilyMember, created.DecorativeAvatar?.ReferenceType);
+        Assert.Equal("riley", created.DecorativeAvatar?.ReferenceId);
+
+        var update = new UpdateEventSeriesRequest(
+            "Zwemles update",
+            null,
+            null,
+            start,
+            start.AddHours(1),
+            false,
+            DecorativeAvatar: null);
+        var updateResponse = await client.PutAsJsonAsync($"/api/events/{created.Id}", update);
+
+        Assert.Equal(HttpStatusCode.OK, updateResponse.StatusCode);
+        var updated = await updateResponse.Content.ReadFromJsonAsync<EventSeriesDto>();
+        Assert.NotNull(updated);
+        Assert.Null(updated.DecorativeAvatar);
+    }
+
+    [Fact]
+    public async Task RecurringOccurrencesExposeSeriesDecorativeAvatar()
+    {
+        await using var factory = new HomeOpsWebApplicationFactory();
+        var client = factory.CreateClient();
+        var start = DateTimeOffset.UtcNow.Date.AddDays(2).AddHours(9);
+        var create = new CreateEventSeriesRequest(
+            "Oma bellen",
+            null,
+            null,
+            start,
+            start.AddHours(1),
+            false,
+            new RecurrenceRuleDto("Daily", 1, "AfterCount", Count: 2),
+            new HomeOps.Api.Lists.DecorativeAvatarReferenceDto(HomeOps.Api.Lists.DecorativeAvatarReferenceType.FamilyMember, "riley"));
+
+        var createResponse = await client.PostAsJsonAsync("/api/events", create);
+        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+
+        var events = await client.GetFromJsonAsync<NormalizedEvent[]>("/api/events");
+
+        Assert.NotNull(events);
+        Assert.Contains(events, candidate =>
+            candidate.Title == "Oma bellen" &&
+            candidate.DecorativeAvatar?.ReferenceType == HomeOps.Contracts.Events.DecorativeAvatarReferenceType.FamilyMember &&
+            candidate.DecorativeAvatar.ReferenceId == "riley" &&
+            candidate.IsRecurring);
+    }
+
     private static HomeOps.Api.CalendarEvents.EventSource CreateSource(string name, string sourceType, bool enabled, bool writable, HomeOps.Api.CalendarEvents.EventSourceHealthStatus healthStatus, DateTimeOffset now) => new()
     {
         Id = Guid.NewGuid(),
