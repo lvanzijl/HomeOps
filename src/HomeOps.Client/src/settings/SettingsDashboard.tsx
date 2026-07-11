@@ -619,7 +619,7 @@ export function SettingsDashboard({ widgetInstances, members = [], onCalendarSou
             Details bekijken
           </button>
           <button onClick={() => setActiveSurface("people")} type="button">
-            People beheren
+            Bekenden beheren
           </button>
           {hasAdditionalSettings ? (
             <button onClick={() => setActiveSurface("settings")} type="button">
@@ -722,9 +722,9 @@ export function SettingsDashboard({ widgetInstances, members = [], onCalendarSou
 
       {activeSurface === "people" ? (
         <SettingsSurfaceDialog
-          description="Beheer People als gedeelde of gezinslid-specifieke contacten."
+          description="Beheer gedeelde bekenden en bekenden per gezinslid."
           onClose={closeSurface}
-          title="People"
+          title="Bekenden"
         >
           <PeopleManagement members={members} />
         </SettingsSurfaceDialog>

@@ -151,6 +151,7 @@ describe("FamilyMemberPage", () => {
     }));
     vi.mocked(updateKnownPerson).mockImplementation(async (input) => input);
     vi.mocked(deleteKnownPerson).mockResolvedValue(undefined);
+    vi.spyOn(window, "confirm").mockReturnValue(true);
     vi.mocked(loadTasks).mockResolvedValue([
       {
         id: "task-1",
@@ -309,7 +310,7 @@ describe("FamilyMemberPage", () => {
     ).toBeGreaterThan(0);
   });
 
-  it("integrates member-scoped People with friends-first groups, search, CRUD, avatars, and bounded layout", async () => {
+  it("integrates member-scoped bekenden with friends-first groups, search, CRUD, avatars, and bounded layout", async () => {
     const user = userEvent.setup();
     render(
       <FamilyMemberPage
@@ -326,13 +327,13 @@ describe("FamilyMemberPage", () => {
       familyMemberId: "riley",
     });
     expect(screen.queryByText("Jordan Friend")).toBeNull();
-    const peopleSection = screen.getByLabelText("People");
+    const peopleSection = screen.getByLabelText("Bekenden");
     expect(peopleSection.className).toContain("member-people-card");
     const headings = within(peopleSection)
       .getAllByRole("heading")
       .map((heading) => heading.textContent);
-    expect(headings.indexOf("Friends")).toBeLessThan(
-      headings.indexOf("Teachers"),
+    expect(headings.indexOf("Vrienden")).toBeLessThan(
+      headings.indexOf("Leerkrachten"),
     );
     expect(headings).toContain("Helpers");
     expect(
@@ -351,24 +352,30 @@ describe("FamilyMemberPage", () => {
     );
 
     await user.click(
-      within(peopleSection).getByRole("button", { name: "Add person" }),
+      within(peopleSection).getByRole("button", { name: "Bekende toevoegen" }),
     );
-    expect(screen.getByTestId("known-person-form")).not.toBeNull();
+    const createDialog = screen.getByRole("dialog", {
+      name: "Bekende toevoegen",
+    });
+    expect(
+      within(createDialog).getByTestId("known-person-form"),
+    ).not.toBeNull();
     expect(screen.queryByText("Scope")).toBeNull();
-    expect(screen.queryByText("FamilyMember")).toBeNull();
-    await user.type(screen.getByLabelText("DisplayName"), "Nina");
-    await user.selectOptions(
-      screen.getByLabelText("RelationshipType"),
-      "classmate",
+    expect(screen.queryByText("Gezinslid")).toBeNull();
+    await user.type(screen.getByLabelText("Naam"), "Nina");
+    await user.selectOptions(screen.getByLabelText("Relatie"), "classmate");
+    await user.click(
+      within(screen.getByTestId("known-person-form")).getByRole("button", {
+        name: "Avatar bewerken",
+      }),
     );
-    await user.click(screen.getByRole("button", { name: "Avatar edit" }));
     expect(
       screen.getByRole("dialog", { name: "Avatar van Nina bewerken" }),
     ).not.toBeNull();
     await user.click(
       screen.getByRole("button", { name: "Avatarbewerker sluiten" }),
     );
-    await user.click(screen.getByRole("button", { name: "Save" }));
+    await user.click(screen.getByRole("button", { name: "Opslaan" }));
     await waitFor(() =>
       expect(createKnownPerson).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -382,9 +389,9 @@ describe("FamilyMemberPage", () => {
     await user.click(
       within(peopleSection).getByRole("button", { name: /Mila/ }),
     );
-    await user.clear(screen.getByLabelText("Nickname"));
-    await user.type(screen.getByLabelText("Nickname"), "Beste maat");
-    await user.click(screen.getByRole("button", { name: "Save" }));
+    await user.clear(screen.getByLabelText("Bijnaam"));
+    await user.type(screen.getByLabelText("Bijnaam"), "Beste maat");
+    await user.click(screen.getByRole("button", { name: "Opslaan" }));
     await waitFor(() =>
       expect(updateKnownPerson).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -399,13 +406,13 @@ describe("FamilyMemberPage", () => {
     await user.click(
       within(peopleSection).getByRole("button", { name: /Mila/ }),
     );
-    await user.click(screen.getByRole("button", { name: "Delete" }));
+    await user.click(screen.getByRole("button", { name: "Verwijderen" }));
     await waitFor(() =>
       expect(deleteKnownPerson).toHaveBeenCalledWith("person-friend"),
     );
   });
 
-  it("shows member People loading, empty, and error states", async () => {
+  it("shows member bekenden loading, empty, and error states", async () => {
     vi.mocked(listKnownPeople).mockReturnValue(new Promise(() => undefined));
     const { unmount } = render(
       <FamilyMemberPage
@@ -415,7 +422,7 @@ describe("FamilyMemberPage", () => {
         onRemove={vi.fn()}
       />,
     );
-    expect(screen.getByText("People laden…")).not.toBeNull();
+    expect(screen.getByText("Bekenden laden…")).not.toBeNull();
     unmount();
 
     vi.mocked(listKnownPeople).mockResolvedValue([]);
@@ -428,7 +435,7 @@ describe("FamilyMemberPage", () => {
       />,
     );
     expect(
-      await screen.findByText("Nog geen People toegevoegd."),
+      await screen.findByText("Nog geen bekenden toegevoegd."),
     ).not.toBeNull();
     cleanup();
 
