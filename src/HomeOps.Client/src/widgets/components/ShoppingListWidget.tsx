@@ -5,6 +5,7 @@ import { groupShoppingItemsByPreferredStore } from '../../shopping/shoppingGroup
 import { getActiveShoppingListItems, getCompletedShoppingListItems, getDeletedShoppingListItems, upsertShoppingListItem } from '../../shopping/shoppingListState';
 import type { WidgetRenderProps } from '../WidgetRenderer';
 import { DecorativeAvatarBadge, type DecorativeAvatarIdentity } from '../../avatarContacts/DecorativeAvatar';
+import { buildDecorativeAvatarSuggestionCandidates, rankDecorativeAvatarSuggestions } from '../../avatarContacts/decorativeAvatarSuggestions';
 import { loadFamilyMembers } from '../../home/familyMembersApi';
 import type { FamilyMember } from '../../home/familyMembers';
 import { listKnownPeople } from '../../knownPeople/knownPeopleApi';
@@ -538,7 +539,7 @@ function ListSurface({ apiClient, familyMembers, knownPeople, list, listFallback
           value={newItemLabel}
         />
       </label>
-      <DecorativeAvatarPicker familyMembers={familyMembers} knownPeople={knownPeople} onChange={setNewItemAvatar} value={newItemAvatar} label="Decoratieve avatar voor nieuwe boodschap" />
+      <DecorativeAvatarPicker familyMembers={familyMembers} knownPeople={knownPeople} suggestionText={newItemLabel} onChange={setNewItemAvatar} value={newItemAvatar} label="Decoratieve avatar voor nieuwe boodschap" />
       <button disabled={!list.listId} type="submit">Toevoegen</button>
     </form>
   );
@@ -694,7 +695,7 @@ function ShoppingListRow({ familyMembers, item, knownPeople, onAvatarChange, onR
         {onAvatarChange ? (
           <details className="shopping-item-options">
             <summary>Avatar</summary>
-            <DecorativeAvatarPicker familyMembers={familyMembers} knownPeople={knownPeople} onChange={(value) => onAvatarChange(item.id, value)} value={item.decorativeAvatar ?? null} label={`Decoratieve avatar voor ${item.label}`} />
+            <DecorativeAvatarPicker familyMembers={familyMembers} knownPeople={knownPeople} suggestionText={item.label} onChange={(value) => onAvatarChange(item.id, value)} value={item.decorativeAvatar ?? null} label={`Decoratieve avatar voor ${item.label}`} />
           </details>
         ) : null}
         {onStoreChange ? (
@@ -724,16 +725,25 @@ interface DecorativeAvatarPickerProps {
   knownPeople: readonly KnownPerson[];
   label: string;
   value: ShoppingDecorativeAvatarReference | null;
+  suggestionText: string;
   onChange(value: ShoppingDecorativeAvatarReference | null): void;
 }
 
-function DecorativeAvatarPicker({ familyMembers, knownPeople, label, onChange, value }: DecorativeAvatarPickerProps) {
+function DecorativeAvatarPicker({ familyMembers, knownPeople, label, onChange, suggestionText, value }: DecorativeAvatarPickerProps) {
   const selected = value ? `${value.referenceType}:${value.referenceId}` : '';
+  const suggestions = rankDecorativeAvatarSuggestions(suggestionText, buildDecorativeAvatarSuggestionCandidates(familyMembers, knownPeople));
   return (
     <label className="shopping-avatar-picker">
       <span className="visually-hidden">{label}</span>
       <select aria-label={label} onChange={(event) => onChange(parseDecorativeAvatarPickerValue(event.target.value))} value={selected}>
         <option value="">Geen avatar</option>
+        {suggestions.length > 0 ? (
+          <optgroup label="Suggested">
+            {suggestions.map((suggestion) => (
+              <option key={`suggested:${suggestion.candidate.reference.referenceType}:${suggestion.candidate.reference.referenceId}`} value={`${suggestion.candidate.reference.referenceType}:${suggestion.candidate.reference.referenceId}`}>{suggestion.candidate.displayName}</option>
+            ))}
+          </optgroup>
+        ) : null}
         <optgroup label="Family Members">
           {familyMembers.map((member) => <option key={member.id} value={`familyMember:${member.id}`}>{member.name}</option>)}
         </optgroup>

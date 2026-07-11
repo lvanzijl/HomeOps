@@ -106,6 +106,38 @@ describe('ShoppingListWidget API-backed behavior', () => {
     expect(listsApi.updateShoppingListItemDecorativeAvatar).toHaveBeenCalledWith(apiClient, 'shopping-list-id', 'bread', null);
   });
 
+
+  it('shows deterministic Suggested entries in the manual decorative avatar picker without attaching automatically', async () => {
+    const user = userEvent.setup();
+    const listsApi = await mockedListsApi();
+    render(<ShoppingListWidget {...widgetProps} />);
+    await screen.findAllByText('Bread');
+
+    await user.click(screen.getAllByText('Avatar')[0]);
+    const avatarSelect = screen.getAllByLabelText('Decoratieve avatar voor Bread').find((element) => element.tagName === 'SELECT')!;
+    expect(within(avatarSelect).queryByRole('group', { name: 'Suggested' })).toBeNull();
+    expect(listsApi.updateShoppingListItemDecorativeAvatar).not.toHaveBeenCalled();
+
+    vi.mocked(listsApi.loadShoppingPageLists).mockResolvedValueOnce({
+      shoppingList: {
+        listId: 'shopping-list-id',
+        name: 'Shopping',
+        items: [{ id: 'grandma-gift', label: 'Grandma gift', completed: false, deleted: false, preferredStore: null }],
+      },
+      otherLists: [],
+    });
+    cleanup();
+    render(<ShoppingListWidget {...widgetProps} />);
+    await screen.findByText('Grandma gift');
+    await user.click(screen.getByText('Avatar'));
+    const suggestedSelect = screen.getAllByLabelText('Decoratieve avatar voor Grandma gift').find((element) => element.tagName === 'SELECT')!;
+
+    expect(within(suggestedSelect).getByRole('group', { name: 'Suggested' })).not.toBeNull();
+    expect(within(suggestedSelect).getAllByRole('option', { name: 'Grandma' }).length).toBeGreaterThan(0);
+    expect(listsApi.updateShoppingListItemDecorativeAvatar).not.toHaveBeenCalled();
+  });
+
+
   it('toggles and removes items through the API-backed list service', async () => {
     const user = userEvent.setup();
     const listsApi = await mockedListsApi();
