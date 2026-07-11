@@ -1,3 +1,5 @@
+using HomeOps.Api.Lists;
+
 namespace HomeOps.Api.CalendarEvents;
 
 public sealed class EventSeries
@@ -15,6 +17,8 @@ public sealed class EventSeries
     public TimeOnly? EndTime { get; set; }
     public RecurrenceType RecurrenceType { get; set; } = RecurrenceType.None;
     public EventRecurrenceRule? RecurrenceRule { get; set; }
+    public DecorativeAvatarReferenceType? DecorativeAvatarReferenceType { get; set; }
+    public string? DecorativeAvatarReferenceId { get; set; }
     public string? ProviderEventId { get; set; }
     public string? ProviderInstanceId { get; set; }
     public string? ProviderRevision { get; set; }

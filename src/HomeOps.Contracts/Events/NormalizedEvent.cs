@@ -18,6 +18,7 @@ namespace HomeOps.Contracts.Events;
 /// <param name="IsRecurring">Whether this occurrence belongs to a recurring series.</param>
 /// <param name="IsException">Whether this occurrence reflects an exception override.</param>
 /// <param name="Recurrence">Optional recurrence summary for recurring occurrences.</param>
+/// <param name="DecorativeAvatar">Optional local decorative avatar presentation reference.</param>
 public sealed record NormalizedEvent(
     string Id,
     string EventSeriesId,
@@ -33,4 +34,8 @@ public sealed record NormalizedEvent(
     string? OccurrenceKey = null,
     bool IsRecurring = false,
     bool IsException = false,
-    RecurrenceSummaryDto? Recurrence = null);
+    RecurrenceSummaryDto? Recurrence = null,
+    DecorativeAvatarReferenceDto? DecorativeAvatar = null);
+
+public enum DecorativeAvatarReferenceType { FamilyMember, KnownPerson }
+public sealed record DecorativeAvatarReferenceDto(DecorativeAvatarReferenceType? ReferenceType, string? ReferenceId);

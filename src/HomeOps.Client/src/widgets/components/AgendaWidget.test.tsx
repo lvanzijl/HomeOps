@@ -35,6 +35,16 @@ vi.mock("../../agenda/calendarEventsApi", () => ({
 vi.mock("../../agenda/agendaWeatherApi", () => ({
   loadAgendaWeather: vi.fn(),
 }));
+vi.mock("../../home/familyMembersApi", () => ({
+  loadFamilyMembers: vi.fn(async () => [
+    { id: "riley", name: "Riley", displayColor: "#bbf7d0", initials: "R", memberKind: "child", dateOfBirth: "2018-04-12" },
+  ]),
+}));
+vi.mock("../../knownPeople/knownPeopleApi", () => ({
+  listKnownPeople: vi.fn(async () => [
+    { id: "known-1", displayName: "Oma", relationshipType: "grandparent", scope: "shared", initials: "O", avatarSelection: { schemaVersion: "v1", selections: {} } },
+  ]),
+}));
 
 async function mockedCalendarEventsApi() {
   return await import("../../agenda/calendarEventsApi");
@@ -468,6 +478,69 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     expect(screen.getByRole("button", { name: "Terug naar planning" })).not.toBeNull();
     await returnToPlanning(user);
     expect(screen.getByLabelText("Planningoverzicht")).not.toBeNull();
+  });
+
+
+  it("renders decorative avatars for imported read-only and recurring events", async () => {
+    const user = setupUser();
+    const importedEvent: NormalizedEvent = {
+      id: "imported-birthday",
+      eventSeriesId: "imported-birthday",
+      sourceId: calendarSource.id,
+      title: "Oma verjaardag",
+      startsAt: "2026-06-28T10:00:00.000Z",
+      endsAt: "2026-06-28T11:00:00.000Z",
+      allDay: false,
+      editable: false,
+      providerEventId: "provider-oma",
+      decorativeAvatar: { referenceType: "familyMember", referenceId: "riley" },
+    };
+    const calendarEventsApi = await mockedCalendarEventsApi();
+    vi.mocked(calendarEventsApi.loadCalendarAgendaData).mockResolvedValue({
+      sources: [calendarSource],
+      events: [importedEvent, recurringSwimEvent],
+    });
+
+    render(<AgendaWidget {...widgetProps} />);
+
+    expect(await screen.findByText("Oma verjaardag")).not.toBeNull();
+    await user.click(screen.getByText("Oma verjaardag").closest("button")!);
+    expect(screen.queryByRole("button", { name: "Bewerken" })).toBeNull();
+
+    await openMonthView(user);
+    await screen.findByRole("button", { name: /18 juni 2026, 1 gebeurtenis/ });
+    await user.click(screen.getByRole("button", { name: /18 juni 2026, 1 gebeurtenis/ }));
+    expect(screen.getByText("Zwemles")).not.toBeNull();
+  });
+
+  it("clears a decorative avatar through the manual picker when editing", async () => {
+    const user = setupUser();
+    const calendarEventsApi = await mockedCalendarEventsApi();
+    const decoratedDentist: NormalizedEvent = {
+      ...dentistEvent,
+      decorativeAvatar: { referenceType: "familyMember", referenceId: "riley" },
+    };
+    vi.mocked(calendarEventsApi.loadCalendarAgendaData).mockResolvedValue({
+      sources: [calendarSource],
+      events: [decoratedDentist],
+    });
+
+    render(<AgendaWidget {...widgetProps} />);
+    await selectDentistDay(user);
+    await user.click(screen.getByText("Dentist Appointment").closest("button")!);
+    await user.click(
+      within(screen.getByText("Dentist Appointment").closest("li")!).getByRole("button", {
+        name: "Bewerken",
+      }),
+    );
+    await reachDetailsStep(user);
+    await user.selectOptions(screen.getByLabelText("Decoratieve avatar voor afspraak"), "");
+    await user.click(screen.getByRole("button", { name: "Afspraak opslaan" }));
+
+    expect(calendarEventsApi.updateCalendarAgendaEvent).toHaveBeenCalledWith(
+      "dentist",
+      expect.objectContaining({ decorativeAvatar: null }),
+    );
   });
 
   it("creates, updates, and deletes calendar events through the API-backed widget UI", async () => {
@@ -965,7 +1038,7 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     try {
       vi.setSystemTime(new Date("2026-06-17T00:00:00.000Z"));
       const calendarEventsApi = await mockedCalendarEventsApi();
-      vi.mocked(calendarEventsApi.loadCalendarAgendaData).mockResolvedValueOnce({
+      vi.mocked(calendarEventsApi.loadCalendarAgendaData).mockResolvedValue({
         sources: [calendarSource],
         events: [
           {
@@ -979,7 +1052,7 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
           },
         ],
       });
-      vi.mocked((await mockedAgendaWeatherApi()).loadAgendaWeather).mockResolvedValueOnce(
+      vi.mocked((await mockedAgendaWeatherApi()).loadAgendaWeather).mockResolvedValue(
         new AgendaWeatherProjection({
           slots: [
             new AgendaWeatherSlotProjection({

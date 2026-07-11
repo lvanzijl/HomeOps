@@ -1,6 +1,8 @@
 import {
   CreateEventSeriesRequest,
   EventSourceDto,
+  DecorativeAvatarReferenceDto,
+  DecorativeAvatarReferenceType,
   EventSourceHealthStatus,
   EventSourceType as ApiEventSourceType,
   EventSeriesDto,
@@ -16,6 +18,7 @@ import type {
   EventSource,
   EventSourceType,
   NormalizedEvent,
+  DecorativeAvatarReference,
 } from "../events/eventSourceModel";
 
 export interface CalendarAgendaData {
@@ -60,6 +63,7 @@ export interface EventSeriesInput {
   endsAt?: string;
   allDay: boolean;
   recurrenceRule?: EventRecurrenceRuleInput | null;
+  decorativeAvatar?: DecorativeAvatarReference | null;
 }
 
 export interface CalendarEventException {
@@ -85,6 +89,7 @@ export interface CalendarEventSeriesDetails {
   allDay: boolean;
   recurrenceRule?: EventRecurrenceRuleInput;
   exceptions: CalendarEventException[];
+  decorativeAvatar?: DecorativeAvatarReference | null;
 }
 
 const apiBaseUrl = import.meta.env.VITE_HOMEOPS_API_BASE_URL ?? "";
@@ -267,6 +272,7 @@ export function toAgendaEvent(event: ApiNormalizedEvent): NormalizedEvent {
     occurrenceKey: event.occurrenceKey,
     isRecurring: event.isRecurring ?? false,
     isException: event.isException ?? false,
+    decorativeAvatar: toDecorativeAvatarReference(event.decorativeAvatar),
     recurrence: event.recurrence
       ? {
           isRecurring: event.recurrence.isRecurring ?? false,
@@ -293,6 +299,7 @@ export function toAgendaEventFromEventSeries(
     description: event.description,
     location: event.location,
     isRecurring: Boolean(event.recurrenceRule),
+    decorativeAvatar: toDecorativeAvatarReference(event.decorativeAvatar),
     recurrence: event.recurrenceRule
       ? {
           isRecurring: true,
@@ -319,6 +326,7 @@ export function toCalendarEventSeriesDetails(
     recurrenceRule: event.recurrenceRule
       ? toRecurrenceRuleInput(event.recurrenceRule)
       : undefined,
+    decorativeAvatar: toDecorativeAvatarReference(event.decorativeAvatar),
     exceptions:
       event.exceptions?.map((exception) => ({
         eventSeriesId: requireString(
@@ -349,7 +357,23 @@ function toEventSeriesRequest(input: EventSeriesInput) {
     endUtc: input.endsAt ? new Date(input.endsAt) : undefined,
     isAllDay: input.allDay,
     recurrenceRule: toRecurrenceRuleDto(input.recurrenceRule),
+    decorativeAvatar: toDecorativeAvatarDto(input.decorativeAvatar),
   };
+}
+
+function toDecorativeAvatarReference(reference: { referenceType?: unknown; referenceId?: string } | undefined): DecorativeAvatarReference | null {
+  if (!reference || reference.referenceType === undefined || !reference.referenceId) return null;
+  const normalizedType = typeof reference.referenceType === 'number' ? reference.referenceType : String(reference.referenceType).toLowerCase();
+  const referenceType = normalizedType === 0 || normalizedType === 'familymember' ? 'familyMember' : 'knownPerson';
+  return { referenceType, referenceId: reference.referenceId };
+}
+
+function toDecorativeAvatarDto(reference: DecorativeAvatarReference | null | undefined): DecorativeAvatarReferenceDto | undefined {
+  if (!reference) return undefined;
+  return new DecorativeAvatarReferenceDto({
+    referenceType: reference.referenceType === 'familyMember' ? DecorativeAvatarReferenceType.FamilyMember : DecorativeAvatarReferenceType.KnownPerson,
+    referenceId: reference.referenceId,
+  });
 }
 
 function toRecurrenceRuleDto(

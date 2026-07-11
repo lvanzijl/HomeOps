@@ -16,7 +16,8 @@ public sealed record EventOccurrence(
     string? Location = null,
     string? OccurrenceKey = null,
     bool IsRecurring = false,
-    bool IsException = false)
+    bool IsException = false,
+    HomeOps.Contracts.Events.DecorativeAvatarReferenceDto? DecorativeAvatar = null)
 {
     public NormalizedEvent ToNormalizedEvent() => new(
         Id.ToString(),
@@ -33,5 +34,6 @@ public sealed record EventOccurrence(
         OccurrenceKey: OccurrenceKey,
         IsRecurring: IsRecurring,
         IsException: IsException,
-        Recurrence: IsRecurring ? new RecurrenceSummaryDto(true) : null);
+        Recurrence: IsRecurring ? new RecurrenceSummaryDto(true) : null,
+        DecorativeAvatar: DecorativeAvatar);
 }

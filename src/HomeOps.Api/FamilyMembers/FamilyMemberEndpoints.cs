@@ -115,6 +115,15 @@ public static class FamilyMemberEndpoints
                     series.DecorativeAvatarReferenceId = null;
                     series.UpdatedUtc = member.UpdatedUtc;
                 }
+                var decoratedEventSeries = await dbContext.EventSeries
+                    .Where(series => series.DecorativeAvatarReferenceType == Lists.DecorativeAvatarReferenceType.FamilyMember && series.DecorativeAvatarReferenceId == memberId)
+                    .ToListAsync(cancellationToken);
+                foreach (var series in decoratedEventSeries)
+                {
+                    series.DecorativeAvatarReferenceType = null;
+                    series.DecorativeAvatarReferenceId = null;
+                    series.UpdatedUtc = member.UpdatedUtc;
+                }
                 await dbContext.SaveChangesAsync(cancellationToken);
             }
             return Results.NoContent();

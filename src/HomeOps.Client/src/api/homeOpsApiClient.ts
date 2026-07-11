@@ -6348,6 +6348,7 @@ export class NormalizedEvent implements INormalizedEvent {
     isRecurring?: boolean;
     isException?: boolean;
     recurrence?: RecurrenceSummaryDto | undefined;
+    decorativeAvatar?: DecorativeAvatarReferenceDto2 | undefined;
 
     constructor(data?: INormalizedEvent) {
         if (data) {
@@ -6375,6 +6376,7 @@ export class NormalizedEvent implements INormalizedEvent {
             this.isRecurring = _data["isRecurring"];
             this.isException = _data["isException"];
             this.recurrence = _data["recurrence"] ? RecurrenceSummaryDto.fromJS(_data["recurrence"]) : undefined as any;
+            this.decorativeAvatar = _data["decorativeAvatar"] ? DecorativeAvatarReferenceDto2.fromJS(_data["decorativeAvatar"]) : undefined as any;
         }
     }
 
@@ -6402,6 +6404,7 @@ export class NormalizedEvent implements INormalizedEvent {
         data["isRecurring"] = this.isRecurring;
         data["isException"] = this.isException;
         data["recurrence"] = this.recurrence ? this.recurrence.toJSON() : undefined as any;
+        data["decorativeAvatar"] = this.decorativeAvatar ? this.decorativeAvatar.toJSON() : undefined as any;
         return data;
     }
 }
@@ -6422,6 +6425,7 @@ export interface INormalizedEvent {
     isRecurring?: boolean;
     isException?: boolean;
     recurrence?: RecurrenceSummaryDto | undefined;
+    decorativeAvatar?: DecorativeAvatarReferenceDto2 | undefined;
 }
 
 export class RecurrenceSummaryDto implements IRecurrenceSummaryDto {
@@ -6472,6 +6476,51 @@ export interface IRecurrenceSummaryDto {
     endMode?: string | undefined;
 }
 
+export class DecorativeAvatarReferenceDto2 implements IDecorativeAvatarReferenceDto2 {
+    referenceType?: DecorativeAvatarReferenceType2 | undefined;
+    referenceId?: string | undefined;
+
+    constructor(data?: IDecorativeAvatarReferenceDto2) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.referenceType = _data["referenceType"];
+            this.referenceId = _data["referenceId"];
+        }
+    }
+
+    static fromJS(data: any): DecorativeAvatarReferenceDto2 {
+        data = typeof data === 'object' ? data : {};
+        let result = new DecorativeAvatarReferenceDto2();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["referenceType"] = this.referenceType;
+        data["referenceId"] = this.referenceId;
+        return data;
+    }
+}
+
+export interface IDecorativeAvatarReferenceDto2 {
+    referenceType?: DecorativeAvatarReferenceType2 | undefined;
+    referenceId?: string | undefined;
+}
+
+export enum DecorativeAvatarReferenceType2 {
+    FamilyMember = 0,
+    KnownPerson = 1,
+}
+
 export class EventSeriesDto implements IEventSeriesDto {
     id?: string;
     eventSourceId?: string;
@@ -6485,6 +6534,7 @@ export class EventSeriesDto implements IEventSeriesDto {
     updatedUtc?: Date;
     recurrenceRule?: RecurrenceRuleDto | undefined;
     exceptions?: EventExceptionDto[] | undefined;
+    decorativeAvatar?: DecorativeAvatarReferenceDto | undefined;
 
     constructor(data?: IEventSeriesDto) {
         if (data) {
@@ -6513,6 +6563,7 @@ export class EventSeriesDto implements IEventSeriesDto {
                 for (let item of _data["exceptions"])
                     this.exceptions!.push(EventExceptionDto.fromJS(item));
             }
+            this.decorativeAvatar = _data["decorativeAvatar"] ? DecorativeAvatarReferenceDto.fromJS(_data["decorativeAvatar"]) : undefined as any;
         }
     }
 
@@ -6541,6 +6592,7 @@ export class EventSeriesDto implements IEventSeriesDto {
             for (let item of this.exceptions)
                 data["exceptions"].push(item ? item.toJSON() : undefined as any);
         }
+        data["decorativeAvatar"] = this.decorativeAvatar ? this.decorativeAvatar.toJSON() : undefined as any;
         return data;
     }
 }
@@ -6558,6 +6610,7 @@ export interface IEventSeriesDto {
     updatedUtc?: Date;
     recurrenceRule?: RecurrenceRuleDto | undefined;
     exceptions?: EventExceptionDto[] | undefined;
+    decorativeAvatar?: DecorativeAvatarReferenceDto | undefined;
 }
 
 export class RecurrenceRuleDto implements IRecurrenceRuleDto {
@@ -6712,6 +6765,7 @@ export class CreateEventSeriesRequest implements ICreateEventSeriesRequest {
     endUtc?: Date | undefined;
     isAllDay?: boolean;
     recurrenceRule?: RecurrenceRuleDto | undefined;
+    decorativeAvatar?: DecorativeAvatarReferenceDto | undefined;
 
     constructor(data?: ICreateEventSeriesRequest) {
         if (data) {
@@ -6731,6 +6785,7 @@ export class CreateEventSeriesRequest implements ICreateEventSeriesRequest {
             this.endUtc = _data["endUtc"] ? new Date(_data["endUtc"].toString()) : undefined as any;
             this.isAllDay = _data["isAllDay"];
             this.recurrenceRule = _data["recurrenceRule"] ? RecurrenceRuleDto.fromJS(_data["recurrenceRule"]) : undefined as any;
+            this.decorativeAvatar = _data["decorativeAvatar"] ? DecorativeAvatarReferenceDto.fromJS(_data["decorativeAvatar"]) : undefined as any;
         }
     }
 
@@ -6750,6 +6805,7 @@ export class CreateEventSeriesRequest implements ICreateEventSeriesRequest {
         data["endUtc"] = this.endUtc ? this.endUtc.toISOString() : undefined as any;
         data["isAllDay"] = this.isAllDay;
         data["recurrenceRule"] = this.recurrenceRule ? this.recurrenceRule.toJSON() : undefined as any;
+        data["decorativeAvatar"] = this.decorativeAvatar ? this.decorativeAvatar.toJSON() : undefined as any;
         return data;
     }
 }
@@ -6762,6 +6818,7 @@ export interface ICreateEventSeriesRequest {
     endUtc?: Date | undefined;
     isAllDay?: boolean;
     recurrenceRule?: RecurrenceRuleDto | undefined;
+    decorativeAvatar?: DecorativeAvatarReferenceDto | undefined;
 }
 
 export class UpdateEventSeriesRequest implements IUpdateEventSeriesRequest {
@@ -6772,6 +6829,7 @@ export class UpdateEventSeriesRequest implements IUpdateEventSeriesRequest {
     endUtc?: Date | undefined;
     isAllDay?: boolean;
     recurrenceRule?: RecurrenceRuleDto | undefined;
+    decorativeAvatar?: DecorativeAvatarReferenceDto | undefined;
 
     constructor(data?: IUpdateEventSeriesRequest) {
         if (data) {
@@ -6791,6 +6849,7 @@ export class UpdateEventSeriesRequest implements IUpdateEventSeriesRequest {
             this.endUtc = _data["endUtc"] ? new Date(_data["endUtc"].toString()) : undefined as any;
             this.isAllDay = _data["isAllDay"];
             this.recurrenceRule = _data["recurrenceRule"] ? RecurrenceRuleDto.fromJS(_data["recurrenceRule"]) : undefined as any;
+            this.decorativeAvatar = _data["decorativeAvatar"] ? DecorativeAvatarReferenceDto.fromJS(_data["decorativeAvatar"]) : undefined as any;
         }
     }
 
@@ -6810,6 +6869,7 @@ export class UpdateEventSeriesRequest implements IUpdateEventSeriesRequest {
         data["endUtc"] = this.endUtc ? this.endUtc.toISOString() : undefined as any;
         data["isAllDay"] = this.isAllDay;
         data["recurrenceRule"] = this.recurrenceRule ? this.recurrenceRule.toJSON() : undefined as any;
+        data["decorativeAvatar"] = this.decorativeAvatar ? this.decorativeAvatar.toJSON() : undefined as any;
         return data;
     }
 }
@@ -6822,6 +6882,7 @@ export interface IUpdateEventSeriesRequest {
     endUtc?: Date | undefined;
     isAllDay?: boolean;
     recurrenceRule?: RecurrenceRuleDto | undefined;
+    decorativeAvatar?: DecorativeAvatarReferenceDto | undefined;
 }
 
 export class OccurrenceTargetRequest implements IOccurrenceTargetRequest {

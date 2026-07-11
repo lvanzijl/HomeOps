@@ -4488,6 +4488,14 @@
                 "$ref": "#/components/schemas/RecurrenceSummaryDto"
               }
             ]
+          },
+          "decorativeAvatar": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/DecorativeAvatarReferenceDto2"
+              }
+            ]
           }
         }
       },
@@ -4512,6 +4520,36 @@
             "nullable": true
           }
         }
+      },
+      "DecorativeAvatarReferenceDto2": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "referenceType": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/DecorativeAvatarReferenceType2"
+              }
+            ]
+          },
+          "referenceId": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "DecorativeAvatarReferenceType2": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "FamilyMember",
+          "KnownPerson"
+        ],
+        "enum": [
+          0,
+          1
+        ]
       },
       "EventSeriesDto": {
         "type": "object",
@@ -4570,6 +4608,14 @@
             "items": {
               "$ref": "#/components/schemas/EventExceptionDto"
             }
+          },
+          "decorativeAvatar": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/DecorativeAvatarReferenceDto"
+              }
+            ]
           }
         }
       },
@@ -4697,6 +4743,14 @@
                 "$ref": "#/components/schemas/RecurrenceRuleDto"
               }
             ]
+          },
+          "decorativeAvatar": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/DecorativeAvatarReferenceDto"
+              }
+            ]
           }
         }
       },
@@ -4732,6 +4786,14 @@
             "oneOf": [
               {
                 "$ref": "#/components/schemas/RecurrenceRuleDto"
+              }
+            ]
+          },
+          "decorativeAvatar": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/DecorativeAvatarReferenceDto"
               }
             ]
           }

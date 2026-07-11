@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
   filterEventsBySource,
   formatEventTime,
@@ -25,6 +25,12 @@ import {
   type EventSeriesInput,
 } from "../../agenda/calendarEventsApi";
 import { useAgendaLayerSettings } from "../../agenda/layerSettings";
+import { DecorativeAvatarBadge } from "../../avatarContacts/DecorativeAvatar";
+import { DecorativeAvatarPicker, resolveDecorativeAvatar, type DecorativeAvatarReference } from "../../avatarContacts/DecorativeAvatarPicker";
+import { loadFamilyMembers } from "../../home/familyMembersApi";
+import type { FamilyMember } from "../../home/familyMembers";
+import { listKnownPeople } from "../../knownPeople/knownPeopleApi";
+import type { KnownPerson } from "../../knownPeople/knownPeople";
 import type { AgendaWeatherSlotProjection } from "../../api/homeOpsApiClient";
 import type {
   EventSource,
@@ -62,6 +68,7 @@ type EventFormState = {
   recurrenceMonthlyDayOfMonth: string;
   recurrenceYearlyMonth: string;
   recurrenceYearlyDayOfMonth: string;
+  decorativeAvatar: DecorativeAvatarReference | null;
 };
 
 type RecurringSaveScope = "single" | "future" | "series";
@@ -95,8 +102,11 @@ function createEmptyForm(date = todayIsoDate()): EventFormState {
     recurrenceMonthlyDayOfMonth: `${new Date(`${date}T12:00:00`).getDate()}`,
     recurrenceYearlyMonth: `${new Date(`${date}T12:00:00`).getMonth() + 1}`,
     recurrenceYearlyDayOfMonth: `${new Date(`${date}T12:00:00`).getDate()}`,
+    decorativeAvatar: null,
   };
 }
+
+const AgendaDecorativeAvatarContext = createContext<{ familyMembers: readonly FamilyMember[]; knownPeople: readonly KnownPerson[] }>({ familyMembers: [], knownPeople: [] });
 
 export function AgendaWidget({ instance }: WidgetRenderProps) {
   const visualReviewNow = useVisualReviewNow();
@@ -107,6 +117,8 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
     useState<AgendaWorkspaceMode>("planning");
   const [calendarEvents, setCalendarEvents] = useState<NormalizedEvent[]>([]);
   const [calendarSources, setCalendarSources] = useState<EventSource[]>([]);
+  const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
+  const [knownPeople, setKnownPeople] = useState<KnownPerson[]>([]);
   const [agendaWeatherSlots, setAgendaWeatherSlots] = useState<
     AgendaWeatherSlotProjection[]
   >([]);
@@ -201,6 +213,7 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
 
   const eventSources = useMemo(() => [...calendarSources], [calendarSources]);
   const events = useMemo(() => [...calendarEvents], [calendarEvents]);
+  const decorativeAvatarContacts = useMemo(() => ({ familyMembers, knownPeople }), [familyMembers, knownPeople]);
   const { settings, setSourceEnabled } = useAgendaLayerSettings(eventSources);
 
   const selectedSources = settings.months.enabledSourceIds;
@@ -312,6 +325,7 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
       recurrenceMonthlyDayOfMonth: `${new Date(event.startsAt).getDate()}`,
       recurrenceYearlyMonth: `${new Date(event.startsAt).getMonth() + 1}`,
       recurrenceYearlyDayOfMonth: `${new Date(event.startsAt).getDate()}`,
+      decorativeAvatar: event.decorativeAvatar ?? null,
     });
 
     if (event.isRecurring && event.eventSeriesId) {
@@ -492,6 +506,7 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
   }
 
   return (
+    <AgendaDecorativeAvatarContext.Provider value={decorativeAvatarContacts}>
     <article className="widget-card agenda-widget" aria-label={instance.title}>
       {showAgendaHeader ? (
         <div className="agenda-header">
@@ -591,6 +606,8 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
             <EventConversationForm
               editingEvent={editingEvent}
               editingEventSeries={editingEventSeries}
+              familyMembers={familyMembers}
+              knownPeople={knownPeople}
               form={form}
               isEditing={editingEventId !== null}
               isLoadingEventSeries={isLoadingEventSeries}
@@ -753,12 +770,15 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
         )}
       </div>
     </article>
+    </AgendaDecorativeAvatarContext.Provider>
   );
 }
 
 function EventConversationForm({
   editingEvent,
   editingEventSeries,
+  familyMembers,
+  knownPeople,
   form,
   isEditing,
   isLoadingEventSeries,
@@ -774,6 +794,8 @@ function EventConversationForm({
 }: {
   editingEvent: NormalizedEvent | null;
   editingEventSeries: CalendarEventSeriesDetails | null;
+  familyMembers: readonly FamilyMember[];
+  knownPeople: readonly KnownPerson[];
   form: EventFormState;
   isEditing: boolean;
   isLoadingEventSeries: boolean;
@@ -971,6 +993,14 @@ function EventConversationForm({
                 placeholder="Locatie"
               />
             </label>
+            <DecorativeAvatarPicker
+              familyMembers={familyMembers}
+              knownPeople={knownPeople}
+              suggestionText={form.title}
+              onChange={(value) => onChange({ ...form, decorativeAvatar: value })}
+              value={form.decorativeAvatar}
+              label="Decoratieve avatar voor afspraak"
+            />
             <section className="agenda-recurrence-section" aria-label="Herhalen">
               <label className="task-conversation-question compact">
                 <span>Herhalen</span>
@@ -1766,6 +1796,7 @@ function PlanningEventRow({
                 <FamilyBoardIcon name={visual.icon} size="small" />
               </span>
             ) : null}
+            <AgendaEventDecorativeAvatar event={event} />
             <strong>{event.title}</strong>
           </span>
           <span className="agenda-planning-event-detail">{detail}</span>
@@ -1794,6 +1825,16 @@ function PlanningEventRow({
         </span>
       ) : null}
     </li>
+  );
+}
+
+function AgendaEventDecorativeAvatar({ event }: { event: ReturnType<typeof hydrateAgendaEvents>[number] }) {
+  const { familyMembers, knownPeople } = useContext(AgendaDecorativeAvatarContext);
+  return (
+    <DecorativeAvatarBadge
+      identity={resolveDecorativeAvatar(event.decorativeAvatar, familyMembers, knownPeople)}
+      label={`Decoratieve avatar voor ${event.title}`}
+    />
   );
 }
 
@@ -2252,6 +2293,7 @@ function toEventSeriesInput(form: EventFormState): EventSeriesInput {
     endsAt: form.endsAt ? toApiDateValue(form.endsAt, form.allDay) : undefined,
     allDay: form.allDay,
     recurrenceRule,
+    decorativeAvatar: form.decorativeAvatar,
   };
 }
 
