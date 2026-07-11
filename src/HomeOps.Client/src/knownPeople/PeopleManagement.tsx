@@ -42,7 +42,7 @@ export function PeopleManagement({
     try {
       setPeople(await listKnownPeople());
     } catch {
-      setError("People konden niet worden geladen. Probeer het opnieuw.");
+      setError("Bekenden konden niet worden geladen. Probeer het opnieuw.");
     } finally {
       setIsLoading(false);
     }
@@ -108,14 +108,14 @@ export function PeopleManagement({
   }
 
   return (
-    <section className="people-management" aria-label="People management">
+    <section className="people-management" aria-label="Bekenden beheren">
       <header className="people-management-header">
         <div>
-          <p className="widget-type">People</p>
-          <h3>People beheren</h3>
+          <p className="widget-type">Bekenden</p>
+          <h3>Bekenden beheren</h3>
           <p>
-            Beheer gedeelde People en privépersonen per gezinslid, zonder
-            koppeling met taken, boodschappen of agenda.
+            Beheer gedeelde bekenden en bekenden per gezinslid, zonder koppeling
+            met taken, boodschappen of agenda.
           </p>
         </div>
         <button
@@ -126,12 +126,12 @@ export function PeopleManagement({
           }
           type="button"
         >
-          Add person
+          Bekende toevoegen
         </button>
       </header>
 
-      <section className="people-family-summary" aria-label="Family Members">
-        <h4>Family Members</h4>
+      <section className="people-family-summary" aria-label="Gezinsleden">
+        <h4>Gezinsleden</h4>
         <div className="people-family-list">
           {members.map((member) => (
             <span key={member.id}>{member.name}</span>
@@ -140,7 +140,7 @@ export function PeopleManagement({
       </section>
 
       <label className="people-search-field">
-        <span>Search</span>
+        <span>Zoeken</span>
         <input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
@@ -154,17 +154,17 @@ export function PeopleManagement({
         </p>
       ) : null}
       {isLoading ? (
-        <p className="people-state">People laden…</p>
+        <p className="people-state">Bekenden laden…</p>
       ) : people.length === 0 ? (
-        <p className="people-state">Nog geen People toegevoegd.</p>
+        <p className="people-state">Nog geen bekenden toegevoegd.</p>
       ) : visiblePeople.length === 0 ? (
         <p className="people-state">
-          Geen People gevonden voor deze zoekopdracht.
+          Geen bekenden gevonden voor deze zoekopdracht.
         </p>
       ) : (
         <div className="people-sections">
           <PeopleScopeSection
-            title="Shared People"
+            title="Gedeelde bekenden"
             people={sharedPeople}
             onEdit={(person) => setDraft(person)}
           />
@@ -180,7 +180,12 @@ export function PeopleManagement({
       )}
 
       {draft ? (
-        <div className="people-dialog-backdrop" role="presentation">
+        <div
+          className="people-dialog-backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="known-person-form-title"
+        >
           <KnownPersonForm
             draft={draft}
             members={members}

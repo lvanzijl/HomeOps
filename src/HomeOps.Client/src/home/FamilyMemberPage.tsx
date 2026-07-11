@@ -379,7 +379,7 @@ function MemberPeopleSection({ member }: { member: FamilyMember }) {
       .catch(() => {
         if (!ignore) {
           setStatus("error");
-          setError("People konden niet worden geladen.");
+          setError("Bekenden konden niet worden geladen.");
         }
       });
     return () => {
@@ -428,10 +428,10 @@ function MemberPeopleSection({ member }: { member: FamilyMember }) {
   }
 
   return (
-    <article className="member-people-card" aria-label="People">
+    <article className="member-people-card" aria-label="Bekenden">
       <header className="member-people-header">
         <div>
-          <p className="eyebrow">People</p>
+          <p className="eyebrow">Bekenden</p>
           <h3>Vrienden en bekenden</h3>
         </div>
         <button
@@ -441,11 +441,11 @@ function MemberPeopleSection({ member }: { member: FamilyMember }) {
             setDraft(createEmptyKnownPersonDraft("privateToMember", member.id))
           }
         >
-          Add person
+          Bekende toevoegen
         </button>
       </header>
       <label className="member-people-search">
-        <span>Search</span>
+        <span>Zoeken</span>
         <input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
@@ -458,14 +458,14 @@ function MemberPeopleSection({ member }: { member: FamilyMember }) {
         </p>
       ) : null}
       {status === "loading" ? (
-        <p className="people-state">People laden…</p>
+        <p className="people-state">Bekenden laden…</p>
       ) : null}
       {status === "ready" && people.length === 0 ? (
-        <p className="people-state">Nog geen People toegevoegd.</p>
+        <p className="people-state">Nog geen bekenden toegevoegd.</p>
       ) : null}
       {status === "ready" && people.length > 0 && visiblePeople.length === 0 ? (
         <p className="people-state">
-          Geen People gevonden voor deze zoekopdracht.
+          Geen bekenden gevonden voor deze zoekopdracht.
         </p>
       ) : null}
       {status === "ready" && groups.length > 0 ? (
@@ -497,7 +497,12 @@ function MemberPeopleSection({ member }: { member: FamilyMember }) {
         </div>
       ) : null}
       {draft ? (
-        <div className="people-dialog-backdrop" role="presentation">
+        <div
+          className="people-dialog-backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="known-person-form-title"
+        >
           <KnownPersonForm
             draft={draft}
             members={[member]}

@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { defaultAvatarSelection } from "../avatarCatalog/avatarCatalogAdapter";
 import type { FamilyMember } from "../home/familyMembers";
 import type {
@@ -42,7 +42,13 @@ export function KnownPersonForm({
   onDelete,
 }: KnownPersonFormProps) {
   const [isAvatarEditorOpen, setIsAvatarEditorOpen] = useState(false);
+  const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const normalizedDraft = normalizeDraftForScope(draft, scopeMode);
+  const titleId = "known-person-form-title";
+
+  useEffect(() => {
+    closeButtonRef.current?.focus();
+  }, []);
 
   function submit(event: FormEvent) {
     event.preventDefault();
@@ -57,13 +63,15 @@ export function KnownPersonForm({
   return (
     <form
       data-testid="known-person-form"
-      aria-label={draft.id ? "Edit person" : "Create person"}
+      aria-labelledby={titleId}
       className="people-dialog"
       onSubmit={submit}
     >
       <header>
-        <h3>{draft.id ? "Edit person" : "Create person"}</h3>
-        <button onClick={close} type="button">
+        <h3 id={titleId}>
+          {draft.id ? "Bekende bewerken" : "Bekende toevoegen"}
+        </h3>
+        <button ref={closeButtonRef} onClick={close} type="button">
           Sluiten
         </button>
       </header>
@@ -73,7 +81,7 @@ export function KnownPersonForm({
         </p>
       ) : null}
       <label>
-        <span>DisplayName</span>
+        <span>Naam</span>
         <input
           required
           maxLength={160}
@@ -88,7 +96,7 @@ export function KnownPersonForm({
         />
       </label>
       <label>
-        <span>Nickname</span>
+        <span>Bijnaam</span>
         <input
           maxLength={80}
           value={draft.nickname ?? ""}
@@ -98,7 +106,7 @@ export function KnownPersonForm({
         />
       </label>
       <label>
-        <span>RelationshipType</span>
+        <span>Relatie</span>
         <select
           value={draft.relationshipType}
           onChange={(event) =>
@@ -117,7 +125,7 @@ export function KnownPersonForm({
         </select>
       </label>
       <label>
-        <span>CustomRelationshipLabel</span>
+        <span>Eigen relatielabel</span>
         <input
           maxLength={80}
           value={draft.customRelationshipLabel ?? ""}
@@ -128,7 +136,7 @@ export function KnownPersonForm({
       </label>
       {scopeMode.kind === "editable" ? (
         <fieldset>
-          <legend>Scope</legend>
+          <legend>Zichtbaarheid</legend>
           <label>
             <input
               checked={draft.scope === "shared"}
@@ -138,7 +146,7 @@ export function KnownPersonForm({
               }
               type="radio"
             />{" "}
-            Shared
+            Gedeeld
           </label>
           <label>
             <input
@@ -154,13 +162,13 @@ export function KnownPersonForm({
               }
               type="radio"
             />{" "}
-            PrivateToMember
+            Bij gezinslid
           </label>
         </fieldset>
       ) : null}
       {scopeMode.kind === "editable" && draft.scope === "privateToMember" ? (
         <label>
-          <span>FamilyMember</span>
+          <span>Gezinslid</span>
           <select
             required
             value={draft.familyMemberId ?? ""}
@@ -182,21 +190,29 @@ export function KnownPersonForm({
       <section className="people-avatar-field">
         <KnownPersonAvatar person={draftToPerson(normalizedDraft)} />
         <button onClick={() => setIsAvatarEditorOpen(true)} type="button">
-          Avatar edit
+          Avatar bewerken
         </button>
       </section>
       <div className="people-dialog-actions">
         {draft.id && onDelete ? (
           <button
             disabled={saveState !== "idle"}
-            onClick={() => onDelete(draft.id!)}
+            onClick={() => {
+              if (
+                window.confirm(
+                  "Weet je zeker dat je deze bekende wilt verwijderen?",
+                )
+              ) {
+                onDelete(draft.id!);
+              }
+            }}
             type="button"
           >
-            Delete
+            Verwijderen
           </button>
         ) : null}
         <button disabled={saveState !== "idle"} type="submit">
-          {saveState === "saving" ? "Opslaan…" : "Save"}
+          {saveState === "saving" ? "Opslaan…" : "Opslaan"}
         </button>
       </div>
       {isAvatarEditorOpen ? (

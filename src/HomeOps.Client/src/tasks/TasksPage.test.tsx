@@ -45,7 +45,10 @@ const knownPeople: KnownPerson[] = [
     scope: "shared",
     familyMemberId: null,
     initials: "G",
-    avatarSelection: { schemaVersion: "avatar-catalog-v1", selections: {} as never },
+    avatarSelection: {
+      schemaVersion: "avatar-catalog-v1",
+      selections: {} as never,
+    },
   },
 ];
 
@@ -76,7 +79,9 @@ describe("TasksPage empty state", () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     const api = await tasksApi();
-    vi.mocked((await knownPeopleApi()).listKnownPeople).mockResolvedValue(knownPeople);
+    vi.mocked((await knownPeopleApi()).listKnownPeople).mockResolvedValue(
+      knownPeople,
+    );
     vi.mocked(api.loadTasks).mockResolvedValue([]);
     vi.mocked(api.loadTaskTemplates).mockResolvedValue([]);
   });
@@ -102,7 +107,9 @@ describe("TasksPage hierarchy compaction", () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     const api = await tasksApi();
-    vi.mocked((await knownPeopleApi()).listKnownPeople).mockResolvedValue(knownPeople);
+    vi.mocked((await knownPeopleApi()).listKnownPeople).mockResolvedValue(
+      knownPeople,
+    );
     vi.mocked(api.loadTasks).mockResolvedValue([
       task({
         id: "overdue",
@@ -165,9 +172,15 @@ describe("TasksPage hierarchy compaction", () => {
     expect(screen.queryByText("Paint garage")).toBeNull();
     const lunchCard = screen.getByText("Pack lunches").closest("li")!;
     expect(within(lunchCard).getByText("Herhaalt wekelijks")).not.toBeNull();
-    expect(within(lunchCard).queryByRole("button", { name: "Morgen" })).toBeNull();
-    expect(within(lunchCard).getByRole("button", { name: "Routine verwijderen" })).not.toBeNull();
-    await user.click(screen.getByRole("button", { name: /Week plannen \(1\)/ }));
+    expect(
+      within(lunchCard).queryByRole("button", { name: "Morgen" }),
+    ).toBeNull();
+    expect(
+      within(lunchCard).getByRole("button", { name: "Routine verwijderen" }),
+    ).not.toBeNull();
+    await user.click(
+      screen.getByRole("button", { name: /Week plannen \(1\)/ }),
+    );
     expect(await screen.findByText("Fix hallway hook")).not.toBeNull();
     await user.click(screen.getByRole("button", { name: /Ooit/ }));
     expect(await screen.findByText("Paint garage")).not.toBeNull();
@@ -178,7 +191,9 @@ describe("TasksPage hierarchy compaction", () => {
     vi.setSystemTime(new Date("2026-06-20T08:00:00Z"));
     const user = userEvent.setup();
     const api = await tasksApi();
-    vi.mocked((await knownPeopleApi()).listKnownPeople).mockResolvedValue(knownPeople);
+    vi.mocked((await knownPeopleApi()).listKnownPeople).mockResolvedValue(
+      knownPeople,
+    );
     vi.mocked(api.loadTasks).mockResolvedValue([
       task({ id: "today", title: "Pack lunches", dueDate: "2026-06-20" }),
       task({ id: "tomorrow", title: "Prep swim bag", dueDate: "2026-06-21" }),
@@ -196,7 +211,9 @@ describe("TasksPage hierarchy compaction", () => {
         name: /Morgen/,
       }),
     );
-    expect(await screen.findByRole("dialog", { name: "Planning" })).not.toBeNull();
+    expect(
+      await screen.findByRole("dialog", { name: "Planning" }),
+    ).not.toBeNull();
     expect(screen.getByText("Prep swim bag")).not.toBeNull();
     expect(screen.queryByText("Book dentist")).toBeNull();
 
@@ -204,21 +221,43 @@ describe("TasksPage hierarchy compaction", () => {
     expect(await screen.findByText("Book dentist")).not.toBeNull();
   });
 
-
   it("moves normal and overdue tasks to Morgen without changing recurring tasks", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     vi.setSystemTime(new Date("2026-06-20T08:00:00Z"));
     const user = userEvent.setup();
     const api = await tasksApi();
-    vi.mocked((await knownPeopleApi()).listKnownPeople).mockResolvedValue(knownPeople);
+    vi.mocked((await knownPeopleApi()).listKnownPeople).mockResolvedValue(
+      knownPeople,
+    );
     vi.mocked(api.loadTasks).mockResolvedValue([
       task({ id: "normal", title: "Empty dishwasher", dueDate: "2026-06-20" }),
-      task({ id: "overdue", title: "Return library books", dueDate: "2026-06-19" }),
-      task({ id: "recurring", title: "Pack lunches", dueDate: "2026-06-20", recurrenceFrequency: "Weekly", recurringTaskSeriesId: "series-lunches" }),
-      task({ id: "already-tomorrow", title: "Bring gym bag", dueDate: "2026-06-21" }),
+      task({
+        id: "overdue",
+        title: "Return library books",
+        dueDate: "2026-06-19",
+      }),
+      task({
+        id: "recurring",
+        title: "Pack lunches",
+        dueDate: "2026-06-20",
+        recurrenceFrequency: "Weekly",
+        recurringTaskSeriesId: "series-lunches",
+      }),
+      task({
+        id: "already-tomorrow",
+        title: "Bring gym bag",
+        dueDate: "2026-06-21",
+      }),
     ]);
     vi.mocked(api.updateTask).mockImplementation(async (taskId, input) =>
-      task({ id: taskId, title: input.title, dueDate: input.dueDate ?? null, ownershipKind: input.ownershipKind ?? "Unassigned", familyMemberId: input.familyMemberId ?? null, recurrenceFrequency: input.recurrenceFrequency ?? "None" }),
+      task({
+        id: taskId,
+        title: input.title,
+        dueDate: input.dueDate ?? null,
+        ownershipKind: input.ownershipKind ?? "Unassigned",
+        familyMemberId: input.familyMemberId ?? null,
+        recurrenceFrequency: input.recurrenceFrequency ?? "None",
+      }),
     );
 
     render(<TasksPage members={familyMembers} />);
@@ -235,10 +274,18 @@ describe("TasksPage hierarchy compaction", () => {
       searchRoot = await screen.findByRole("dialog", { name: "Planning" });
     }
 
-    const normalCard = within(searchRoot).getByText("Empty dishwasher").closest("li")!;
-    const overdueCard = within(searchRoot).getByText("Return library books").closest("li")!;
-    await user.click(within(normalCard).getByRole("button", { name: "Morgen" }));
-    await user.click(within(overdueCard).getByRole("button", { name: "Morgen" }));
+    const normalCard = within(searchRoot)
+      .getByText("Empty dishwasher")
+      .closest("li")!;
+    const overdueCard = within(searchRoot)
+      .getByText("Return library books")
+      .closest("li")!;
+    await user.click(
+      within(normalCard).getByRole("button", { name: "Morgen" }),
+    );
+    await user.click(
+      within(overdueCard).getByRole("button", { name: "Morgen" }),
+    );
 
     expect(vi.mocked(api.updateTask)).toHaveBeenCalledWith("normal", {
       title: "Empty dishwasher",
@@ -254,7 +301,12 @@ describe("TasksPage hierarchy compaction", () => {
       familyMemberId: null,
       recurrenceFrequency: "None",
     });
-    expect(within(screen.getByText("Pack lunches").closest("li")!).queryByRole("button", { name: "Morgen" })).toBeNull();
+    expect(
+      within(screen.getByText("Pack lunches").closest("li")!).queryByRole(
+        "button",
+        { name: "Morgen" },
+      ),
+    ).toBeNull();
     expect(vi.mocked(api.updateTask)).toHaveBeenCalledTimes(2);
   });
 
@@ -263,14 +315,18 @@ describe("TasksPage hierarchy compaction", () => {
     vi.setSystemTime(new Date("2026-06-20T08:00:00Z"));
     const user = userEvent.setup();
     const api = await tasksApi();
-    vi.mocked((await knownPeopleApi()).listKnownPeople).mockResolvedValue(knownPeople);
+    vi.mocked((await knownPeopleApi()).listKnownPeople).mockResolvedValue(
+      knownPeople,
+    );
     vi.mocked(api.createTask).mockResolvedValue(
       task({ id: "new", title: "Water plants" }),
     );
     render(<TasksPage members={familyMembers} />);
 
     await screen.findByText("Return library books");
-    await user.click(screen.getByRole("button", { name: "Gezinstaak toevoegen" }));
+    await user.click(
+      screen.getByRole("button", { name: "Gezinstaak toevoegen" }),
+    );
 
     const dialog = screen.getByRole("dialog", { name: "Gezinstaak toevoegen" });
     expect(within(dialog).getByText("Wat moet er gebeuren?")).not.toBeNull();
@@ -292,7 +348,9 @@ describe("TasksPage hierarchy compaction", () => {
     );
 
     await user.click(within(dialog).getByRole("button", { name: "Verder" }));
-    expect(within(dialog).getByText("Wanneer moet dit gebeuren?")).not.toBeNull();
+    expect(
+      within(dialog).getByText("Wanneer moet dit gebeuren?"),
+    ).not.toBeNull();
     await user.click(within(dialog).getByRole("button", { name: "Morgen" }));
 
     await user.click(within(dialog).getByRole("button", { name: "Verder" }));
@@ -317,7 +375,9 @@ describe("TasksPage hierarchy compaction", () => {
   it("preserves task editing and closes the dialog with Escape", async () => {
     const user = userEvent.setup();
     const api = await tasksApi();
-    vi.mocked((await knownPeopleApi()).listKnownPeople).mockResolvedValue(knownPeople);
+    vi.mocked((await knownPeopleApi()).listKnownPeople).mockResolvedValue(
+      knownPeople,
+    );
     vi.mocked(api.updateTask).mockResolvedValue(
       task({ id: "overdue", title: "Return library bags" }),
     );
@@ -348,7 +408,9 @@ describe("TasksPage hierarchy compaction", () => {
     await user.click(within(dialog).getByRole("button", { name: "Verder" }));
     await user.click(within(dialog).getByRole("button", { name: "Ooit" }));
     await user.click(within(dialog).getByRole("button", { name: "Verder" }));
-    await user.click(within(dialog).getByRole("button", { name: "Taak opslaan" }));
+    await user.click(
+      within(dialog).getByRole("button", { name: "Taak opslaan" }),
+    );
 
     expect(vi.mocked(api.updateTask)).toHaveBeenCalledWith("overdue", {
       title: "Return library bags",
@@ -358,7 +420,9 @@ describe("TasksPage hierarchy compaction", () => {
       recurrenceFrequency: "None",
     });
 
-    await user.click(screen.getByRole("button", { name: "Gezinstaak toevoegen" }));
+    await user.click(
+      screen.getByRole("button", { name: "Gezinstaak toevoegen" }),
+    );
     expect(
       screen.getByRole("dialog", { name: "Gezinstaak toevoegen" }),
     ).not.toBeNull();
@@ -368,27 +432,50 @@ describe("TasksPage hierarchy compaction", () => {
     ).toBeNull();
   });
 
-
   it("sends decorative avatar fields when creating a recurring task", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     vi.setSystemTime(new Date("2026-06-20T08:00:00Z"));
     const user = userEvent.setup();
     const api = await tasksApi();
-    vi.mocked(api.createTask).mockResolvedValue(task({ id: "new", title: "Grandma gift", recurrenceFrequency: "Weekly", decorativeAvatar: { referenceType: "knownPerson", referenceId: "known-1" } }));
+    vi.mocked(api.createTask).mockResolvedValue(
+      task({
+        id: "new",
+        title: "Grandma gift",
+        recurrenceFrequency: "Weekly",
+        decorativeAvatar: {
+          referenceType: "knownPerson",
+          referenceId: "known-1",
+        },
+      }),
+    );
     render(<TasksPage members={familyMembers} />);
 
     await screen.findByText("Return library books");
-    await user.click(screen.getByRole("button", { name: "Gezinstaak toevoegen" }));
+    await user.click(
+      screen.getByRole("button", { name: "Gezinstaak toevoegen" }),
+    );
     const dialog = screen.getByRole("dialog", { name: "Gezinstaak toevoegen" });
-    await user.type(within(dialog).getByLabelText("Wat moet er gebeuren?"), "Grandma gift");
+    await user.type(
+      within(dialog).getByLabelText("Wat moet er gebeuren?"),
+      "Grandma gift",
+    );
     await user.click(within(dialog).getByRole("button", { name: "Verder" }));
     await user.click(within(dialog).getByRole("button", { name: "Verder" }));
     await user.click(within(dialog).getByRole("button", { name: "Verder" }));
-    await user.selectOptions(within(dialog).getByLabelText("Herhaling"), "Weekly");
-    const avatarSelect = within(dialog).getByLabelText("Decoratieve avatar voor taak");
-    expect(within(avatarSelect).getByRole("group", { name: "Suggested" })).not.toBeNull();
+    await user.selectOptions(
+      within(dialog).getByLabelText("Herhaling"),
+      "Weekly",
+    );
+    const avatarSelect = within(dialog).getByLabelText(
+      "Decoratieve avatar voor taak",
+    );
+    expect(
+      within(avatarSelect).getByRole("group", { name: "Voorgesteld" }),
+    ).not.toBeNull();
     await user.selectOptions(avatarSelect, "knownPerson:known-1");
-    await user.click(within(dialog).getByRole("button", { name: "Taak maken" }));
+    await user.click(
+      within(dialog).getByRole("button", { name: "Taak maken" }),
+    );
 
     expect(vi.mocked(api.createTask)).toHaveBeenCalledWith({
       title: "Grandma gift",
@@ -396,7 +483,10 @@ describe("TasksPage hierarchy compaction", () => {
       ownershipKind: "Unassigned",
       familyMemberId: null,
       recurrenceFrequency: "Weekly",
-      decorativeAvatar: { referenceType: "knownPerson", referenceId: "known-1" },
+      decorativeAvatar: {
+        referenceType: "knownPerson",
+        referenceId: "known-1",
+      },
     });
   });
 
@@ -404,39 +494,72 @@ describe("TasksPage hierarchy compaction", () => {
     const user = userEvent.setup();
     const api = await tasksApi();
     vi.mocked(api.loadTasks).mockResolvedValue([
-      task({ id: "recurring-decorated", title: "Grandma gift", dueDate: "2026-06-20", recurrenceFrequency: "Weekly", recurringTaskSeriesId: "series-1", ownershipKind: "FamilyMember", familyMemberId: "alex", decorativeAvatar: { referenceType: "knownPerson", referenceId: "known-1" } }),
+      task({
+        id: "recurring-decorated",
+        title: "Grandma gift",
+        dueDate: "2026-06-20",
+        recurrenceFrequency: "Weekly",
+        recurringTaskSeriesId: "series-1",
+        ownershipKind: "FamilyMember",
+        familyMemberId: "alex",
+        decorativeAvatar: {
+          referenceType: "knownPerson",
+          referenceId: "known-1",
+        },
+      }),
     ]);
-    vi.mocked(api.updateTask).mockResolvedValue(task({ id: "recurring-decorated", title: "Grandma gift", ownershipKind: "FamilyMember", familyMemberId: "alex", recurrenceFrequency: "Weekly", recurringTaskSeriesId: "series-1", decorativeAvatar: null }));
+    vi.mocked(api.updateTask).mockResolvedValue(
+      task({
+        id: "recurring-decorated",
+        title: "Grandma gift",
+        ownershipKind: "FamilyMember",
+        familyMemberId: "alex",
+        recurrenceFrequency: "Weekly",
+        recurringTaskSeriesId: "series-1",
+        decorativeAvatar: null,
+      }),
+    );
     render(<TasksPage members={familyMembers} />);
 
     const card = (await screen.findByText("Grandma gift")).closest("li")!;
-    expect(within(card).getByLabelText("Decoratieve avatar voor Grandma gift")).not.toBeNull();
+    expect(
+      within(card).getByLabelText("Decoratieve avatar voor Grandma gift"),
+    ).not.toBeNull();
     expect(within(card).getByText("Alex")).not.toBeNull();
     await user.click(within(card).getByRole("button", { name: "Aanpassen" }));
     const dialog = screen.getByRole("dialog", { name: "Taak aanpassen" });
     await user.click(within(dialog).getByRole("button", { name: "Verder" }));
     await user.click(within(dialog).getByRole("button", { name: "Verder" }));
     await user.click(within(dialog).getByRole("button", { name: "Verder" }));
-    await user.selectOptions(within(dialog).getByLabelText("Decoratieve avatar voor taak"), "");
-    await user.click(within(dialog).getByRole("button", { name: "Taak opslaan" }));
+    await user.selectOptions(
+      within(dialog).getByLabelText("Decoratieve avatar voor taak"),
+      "",
+    );
+    await user.click(
+      within(dialog).getByRole("button", { name: "Taak opslaan" }),
+    );
 
-    expect(vi.mocked(api.updateTask)).toHaveBeenCalledWith("recurring-decorated", {
-      title: "Grandma gift",
-      dueDate: "2026-06-20",
-      ownershipKind: "FamilyMember",
-      familyMemberId: "alex",
-      recurrenceFrequency: "Weekly",
-      decorativeAvatar: null,
-    });
+    expect(vi.mocked(api.updateTask)).toHaveBeenCalledWith(
+      "recurring-decorated",
+      {
+        title: "Grandma gift",
+        dueDate: "2026-06-20",
+        ownershipKind: "FamilyMember",
+        familyMemberId: "alex",
+        recurrenceFrequency: "Weekly",
+        decorativeAvatar: null,
+      },
+    );
   });
-
 });
 
 describe("TasksPage templates", () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     const api = await tasksApi();
-    vi.mocked((await knownPeopleApi()).listKnownPeople).mockResolvedValue(knownPeople);
+    vi.mocked((await knownPeopleApi()).listKnownPeople).mockResolvedValue(
+      knownPeople,
+    );
     vi.mocked(api.loadTasks).mockResolvedValue([]);
     vi.mocked(api.loadTaskTemplates).mockResolvedValue([
       {
@@ -464,7 +587,9 @@ describe("TasksPage templates", () => {
   it("keeps templates secondary while preserving template access", async () => {
     const user = userEvent.setup();
     const api = await tasksApi();
-    vi.mocked((await knownPeopleApi()).listKnownPeople).mockResolvedValue(knownPeople);
+    vi.mocked((await knownPeopleApi()).listKnownPeople).mockResolvedValue(
+      knownPeople,
+    );
     render(<TasksPage members={familyMembers} />);
 
     await screen.findByText("Voeg de eerste helpende taak toe");
@@ -479,7 +604,9 @@ describe("TasksPage templates", () => {
   it("keeps Weekly Reset secondary while preserving review actions", async () => {
     const user = userEvent.setup();
     const api = await tasksApi();
-    vi.mocked((await knownPeopleApi()).listKnownPeople).mockResolvedValue(knownPeople);
+    vi.mocked((await knownPeopleApi()).listKnownPeople).mockResolvedValue(
+      knownPeople,
+    );
     vi.mocked(api.loadTasks).mockResolvedValue([
       task({
         id: "review",
@@ -495,10 +622,10 @@ describe("TasksPage templates", () => {
 
     expect(await screen.findByText("Planning")).not.toBeNull();
     expect(screen.queryByText("Fix hallway hook")).toBeNull();
-    await user.click(screen.getByRole("button", { name: /Week plannen \(1\)/ }));
     await user.click(
-      screen.getByRole("button", { name: "Deze week houden" }),
+      screen.getByRole("button", { name: /Week plannen \(1\)/ }),
     );
+    await user.click(screen.getByRole("button", { name: "Deze week houden" }));
 
     expect(vi.mocked(api.keepTaskActive)).toHaveBeenCalledWith("review");
   });

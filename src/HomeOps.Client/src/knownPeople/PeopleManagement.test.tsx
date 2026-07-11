@@ -96,30 +96,33 @@ beforeEach(() => {
   }));
   updateKnownPerson.mockImplementation(async (input) => input);
   deleteKnownPerson.mockResolvedValue(undefined);
+  vi.spyOn(window, "confirm").mockReturnValue(true);
 });
 afterEach(() => cleanup());
 
 describe("PeopleManagement", () => {
   it("shows loading, family summary, shared and private relationship groups", async () => {
     renderPeople();
-    expect(screen.getByText("People laden…")).not.toBeNull();
+    expect(screen.getByText("Bekenden laden…")).not.toBeNull();
     expect(
-      await screen.findByRole("heading", { name: "Family Members" }),
+      await screen.findByRole("heading", { name: "Gezinsleden" }),
     ).not.toBeNull();
     expect(
-      within(screen.getByLabelText("Family Members")).getByText("Thomas"),
+      within(screen.getByLabelText("Gezinsleden")).getByText("Thomas"),
     ).not.toBeNull();
     expect(
-      screen.getByRole("heading", { name: "Shared People" }),
+      screen.getByRole("heading", { name: "Gedeelde bekenden" }),
     ).not.toBeNull();
-    expect(screen.getByRole("heading", { name: "Family" })).not.toBeNull();
-    expect(screen.getByRole("heading", { name: "Teachers" })).not.toBeNull();
-    expect(screen.getByRole("heading", { name: "Friends" })).not.toBeNull();
+    expect(screen.getByRole("heading", { name: "Familie" })).not.toBeNull();
+    expect(
+      screen.getByRole("heading", { name: "Leerkrachten" }),
+    ).not.toBeNull();
+    expect(screen.getByRole("heading", { name: "Vrienden" })).not.toBeNull();
   });
   it("shows empty and error states", async () => {
     renderPeople([]);
     expect(
-      await screen.findByText("Nog geen People toegevoegd."),
+      await screen.findByText("Nog geen bekenden toegevoegd."),
     ).not.toBeNull();
     cleanup();
     listKnownPeople.mockRejectedValue(new Error("nope"));
@@ -145,26 +148,34 @@ describe("PeopleManagement", () => {
     await userEvent.clear(search);
     await userEvent.type(search, "teacher");
     expect(
-      screen.getByText("Geen People gevonden voor deze zoekopdracht."),
+      screen.getByText("Geen bekenden gevonden voor deze zoekopdracht."),
     ).not.toBeNull();
   });
   it("creates, edits, deletes, switches scope and toggles FamilyMember selector visibility", async () => {
     const user = userEvent.setup();
     renderPeople();
     await screen.findByText("Oma Els");
-    await user.click(screen.getByRole("button", { name: "Add person" }));
-    expect(screen.getByTestId("known-person-form")).not.toBeNull();
-    expect(screen.queryByText("FamilyMember")).toBeNull();
-    await user.click(screen.getByLabelText("PrivateToMember"));
-    expect(screen.getByText("FamilyMember")).not.toBeNull();
-    await user.click(screen.getByLabelText("Shared"));
-    expect(screen.queryByText("FamilyMember")).toBeNull();
-    await user.type(screen.getByLabelText("DisplayName"), "Coach Bas");
-    await user.selectOptions(
-      screen.getByLabelText("RelationshipType"),
-      "coach",
+    await user.click(screen.getByRole("button", { name: "Bekende toevoegen" }));
+    const createDialog = screen.getByRole("dialog", {
+      name: "Bekende toevoegen",
+    });
+    expect(
+      within(createDialog).getByTestId("known-person-form"),
+    ).not.toBeNull();
+    expect(document.activeElement).toBe(
+      within(createDialog).getByRole("button", { name: "Sluiten" }),
     );
-    await user.click(screen.getByRole("button", { name: "Save" }));
+    expect(screen.queryByText("Gezinslid")).toBeNull();
+    await user.click(screen.getByLabelText("Bij gezinslid"));
+    expect(screen.getByText("Gezinslid")).not.toBeNull();
+    await user.click(screen.getByLabelText("Gedeeld"));
+    expect(screen.queryByText("Gezinslid")).toBeNull();
+    expect(
+      screen.queryByTestId("known-person-form")?.getAttribute("role"),
+    ).toBeNull();
+    await user.type(screen.getByLabelText("Naam"), "Coach Bas");
+    await user.selectOptions(screen.getByLabelText("Relatie"), "coach");
+    await user.click(screen.getByRole("button", { name: "Opslaan" }));
     await waitFor(() =>
       expect(createKnownPerson).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -175,16 +186,16 @@ describe("PeopleManagement", () => {
       ),
     );
     await user.click(screen.getByRole("button", { name: /Oma Els/ }));
-    await user.clear(screen.getByLabelText("Nickname"));
-    await user.type(screen.getByLabelText("Nickname"), "Lieve oma");
-    await user.click(screen.getByRole("button", { name: "Save" }));
+    await user.clear(screen.getByLabelText("Bijnaam"));
+    await user.type(screen.getByLabelText("Bijnaam"), "Lieve oma");
+    await user.click(screen.getByRole("button", { name: "Opslaan" }));
     await waitFor(() =>
       expect(updateKnownPerson).toHaveBeenCalledWith(
         expect.objectContaining({ id: "shared-1", nickname: "Lieve oma" }),
       ),
     );
     await user.click(screen.getByRole("button", { name: /Oma Els/ }));
-    await user.click(screen.getByRole("button", { name: "Delete" }));
+    await user.click(screen.getByRole("button", { name: "Verwijderen" }));
     await waitFor(() =>
       expect(deleteKnownPerson).toHaveBeenCalledWith("shared-1"),
     );
@@ -193,7 +204,7 @@ describe("PeopleManagement", () => {
     const user = userEvent.setup();
     renderPeople();
     await user.click(await screen.findByRole("button", { name: /Oma Els/ }));
-    await user.click(screen.getByRole("button", { name: "Avatar edit" }));
+    await user.click(screen.getByRole("button", { name: "Avatar bewerken" }));
     expect(
       within(
         screen.getByRole("dialog", { name: /Avatar van Oma Els bewerken/ }),
