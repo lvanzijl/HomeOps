@@ -87,6 +87,15 @@ public static class KnownPersonEndpoints
             person.IsDeleted = true;
             person.DeletedUtc = DateTimeOffset.UtcNow;
             person.UpdatedUtc = person.DeletedUtc.Value;
+            var decoratedItems = await dbContext.ListItems
+                .Where(item => item.DecorativeAvatarReferenceType == Lists.DecorativeAvatarReferenceType.KnownPerson && item.DecorativeAvatarReferenceId == knownPersonId.ToString())
+                .ToListAsync(cancellationToken);
+            foreach (var item in decoratedItems)
+            {
+                item.DecorativeAvatarReferenceType = null;
+                item.DecorativeAvatarReferenceId = null;
+                item.UpdatedUtc = person.UpdatedUtc;
+            }
             await dbContext.SaveChangesAsync(cancellationToken);
             return Results.NoContent();
         }).WithName("DeleteKnownPerson").Produces(StatusCodes.Status204NoContent).Produces(StatusCodes.Status404NotFound);

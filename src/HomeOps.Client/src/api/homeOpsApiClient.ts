@@ -790,6 +790,58 @@ export class HomeOpsApiClient {
         return Promise.resolve<ListItemDto>(null as any);
     }
 
+    updateListItemDecorativeAvatar(listId: string, itemId: string, request: UpdateListItemDecorativeAvatarRequest): Promise<ListItemDto> {
+        let url_ = this.baseUrl + "/api/lists/{listId}/items/{itemId}/decorative-avatar";
+        if (listId === undefined || listId === null)
+            throw new globalThis.Error("The parameter 'listId' must be defined.");
+        url_ = url_.replace("{listId}", encodeURIComponent("" + listId));
+        if (itemId === undefined || itemId === null)
+            throw new globalThis.Error("The parameter 'itemId' must be defined.");
+        url_ = url_.replace("{itemId}", encodeURIComponent("" + itemId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateListItemDecorativeAvatar(_response);
+        });
+    }
+
+    protected processUpdateListItemDecorativeAvatar(response: Response): Promise<ListItemDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ListItemDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ListItemDto>(null as any);
+    }
+
     getShoppingItemStoreSuggestions(text: string): Promise<ShoppingItemSuggestionDto> {
         let url_ = this.baseUrl + "/api/lists/shopping/suggestions?";
         if (text === undefined || text === null)
@@ -4258,6 +4310,7 @@ export class ListItemDto implements IListItemDto {
     isDeleted?: boolean;
     deletedUtc?: Date | undefined;
     preferredStore?: string | undefined;
+    decorativeAvatar?: DecorativeAvatarReferenceDto | undefined;
     storeSuggestions?: ShoppingStoreSuggestionDto[];
     createdUtc?: Date;
     updatedUtc?: Date;
@@ -4281,6 +4334,7 @@ export class ListItemDto implements IListItemDto {
             this.isDeleted = _data["isDeleted"];
             this.deletedUtc = _data["deletedUtc"] ? new Date(_data["deletedUtc"].toString()) : undefined as any;
             this.preferredStore = _data["preferredStore"];
+            this.decorativeAvatar = _data["decorativeAvatar"] ? DecorativeAvatarReferenceDto.fromJS(_data["decorativeAvatar"]) : undefined as any;
             if (Array.isArray(_data["storeSuggestions"])) {
                 this.storeSuggestions = [] as any;
                 for (let item of _data["storeSuggestions"])
@@ -4308,6 +4362,7 @@ export class ListItemDto implements IListItemDto {
         data["isDeleted"] = this.isDeleted;
         data["deletedUtc"] = this.deletedUtc ? this.deletedUtc.toISOString() : undefined as any;
         data["preferredStore"] = this.preferredStore;
+        data["decorativeAvatar"] = this.decorativeAvatar ? this.decorativeAvatar.toJSON() : undefined as any;
         if (Array.isArray(this.storeSuggestions)) {
             data["storeSuggestions"] = [];
             for (let item of this.storeSuggestions)
@@ -4328,9 +4383,55 @@ export interface IListItemDto {
     isDeleted?: boolean;
     deletedUtc?: Date | undefined;
     preferredStore?: string | undefined;
+    decorativeAvatar?: DecorativeAvatarReferenceDto | undefined;
     storeSuggestions?: ShoppingStoreSuggestionDto[];
     createdUtc?: Date;
     updatedUtc?: Date;
+}
+
+export class DecorativeAvatarReferenceDto implements IDecorativeAvatarReferenceDto {
+    referenceType?: DecorativeAvatarReferenceType | undefined;
+    referenceId?: string | undefined;
+
+    constructor(data?: IDecorativeAvatarReferenceDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.referenceType = _data["referenceType"];
+            this.referenceId = _data["referenceId"];
+        }
+    }
+
+    static fromJS(data: any): DecorativeAvatarReferenceDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new DecorativeAvatarReferenceDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["referenceType"] = this.referenceType;
+        data["referenceId"] = this.referenceId;
+        return data;
+    }
+}
+
+export interface IDecorativeAvatarReferenceDto {
+    referenceType?: DecorativeAvatarReferenceType | undefined;
+    referenceId?: string | undefined;
+}
+
+export enum DecorativeAvatarReferenceType {
+    FamilyMember = 0,
+    KnownPerson = 1,
 }
 
 export class ShoppingStoreSuggestionDto implements IShoppingStoreSuggestionDto {
@@ -4447,6 +4548,7 @@ export interface IRenameListRequest {
 
 export class AddListItemRequest implements IAddListItemRequest {
     text?: string;
+    decorativeAvatar?: DecorativeAvatarReferenceDto | undefined;
 
     constructor(data?: IAddListItemRequest) {
         if (data) {
@@ -4460,6 +4562,7 @@ export class AddListItemRequest implements IAddListItemRequest {
     init(_data?: any) {
         if (_data) {
             this.text = _data["text"];
+            this.decorativeAvatar = _data["decorativeAvatar"] ? DecorativeAvatarReferenceDto.fromJS(_data["decorativeAvatar"]) : undefined as any;
         }
     }
 
@@ -4473,12 +4576,14 @@ export class AddListItemRequest implements IAddListItemRequest {
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
         data["text"] = this.text;
+        data["decorativeAvatar"] = this.decorativeAvatar ? this.decorativeAvatar.toJSON() : undefined as any;
         return data;
     }
 }
 
 export interface IAddListItemRequest {
     text?: string;
+    decorativeAvatar?: DecorativeAvatarReferenceDto | undefined;
 }
 
 export class UpdateListItemStoreRequest implements IUpdateListItemStoreRequest {
@@ -4515,6 +4620,42 @@ export class UpdateListItemStoreRequest implements IUpdateListItemStoreRequest {
 
 export interface IUpdateListItemStoreRequest {
     preferredStore?: string | undefined;
+}
+
+export class UpdateListItemDecorativeAvatarRequest implements IUpdateListItemDecorativeAvatarRequest {
+    decorativeAvatar?: DecorativeAvatarReferenceDto | undefined;
+
+    constructor(data?: IUpdateListItemDecorativeAvatarRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.decorativeAvatar = _data["decorativeAvatar"] ? DecorativeAvatarReferenceDto.fromJS(_data["decorativeAvatar"]) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): UpdateListItemDecorativeAvatarRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpdateListItemDecorativeAvatarRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["decorativeAvatar"] = this.decorativeAvatar ? this.decorativeAvatar.toJSON() : undefined as any;
+        return data;
+    }
+}
+
+export interface IUpdateListItemDecorativeAvatarRequest {
+    decorativeAvatar?: DecorativeAvatarReferenceDto | undefined;
 }
 
 export class ShoppingItemSuggestionDto implements IShoppingItemSuggestionDto {

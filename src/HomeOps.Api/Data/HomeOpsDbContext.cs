@@ -86,7 +86,10 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
 
         modelBuilder.Entity<ListItem>(entity =>
         {
-            entity.ToTable("ListItems");
+            entity.ToTable("ListItems", table =>
+            {
+                table.HasCheckConstraint("CK_ListItems_DecorativeAvatar_NullablePair", "(\"DecorativeAvatarReferenceType\" IS NULL AND \"DecorativeAvatarReferenceId\" IS NULL) OR (\"DecorativeAvatarReferenceType\" IS NOT NULL AND \"DecorativeAvatarReferenceId\" IS NOT NULL)");
+            });
             entity.HasKey(item => item.Id);
             entity.Property(item => item.Text).HasMaxLength(240).IsRequired();
             entity.Property(item => item.IsCompleted).IsRequired();
@@ -94,6 +97,8 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             entity.Property(item => item.IsDeleted).IsRequired();
             entity.Property(item => item.DeletedUtc);
             entity.Property(item => item.PreferredStore).HasMaxLength(120);
+            entity.Property(item => item.DecorativeAvatarReferenceType).HasConversion<string>().HasMaxLength(32);
+            entity.Property(item => item.DecorativeAvatarReferenceId).HasMaxLength(120);
             entity.Property(item => item.CreatedUtc).IsRequired();
             entity.Property(item => item.UpdatedUtc).IsRequired();
             entity.HasOne(item => item.List)
@@ -101,6 +106,7 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
                 .HasForeignKey(item => item.ListId)
                 .OnDelete(DeleteBehavior.Cascade);
             entity.HasIndex(item => new { item.ListId, item.IsDeleted, item.IsCompleted, item.CreatedUtc });
+            entity.HasIndex(item => new { item.DecorativeAvatarReferenceType, item.DecorativeAvatarReferenceId });
         });
 
 

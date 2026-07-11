@@ -1,3 +1,7 @@
+export type ShoppingDecorativeAvatarReference =
+  | { referenceType: 'familyMember'; referenceId: string }
+  | { referenceType: 'knownPerson'; referenceId: string };
+
 export interface ShoppingListItem {
   id: string;
   label: string;
@@ -6,6 +10,7 @@ export interface ShoppingListItem {
   deleted?: boolean;
   deletedUtc?: Date | null;
   preferredStore?: string | null;
+  decorativeAvatar?: ShoppingDecorativeAvatarReference | null;
   storeSuggestions?: readonly ShoppingStoreSuggestion[];
 }
 

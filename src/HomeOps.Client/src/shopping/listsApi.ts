@@ -1,5 +1,5 @@
-import { AddListItemRequest, CreateListRequest, HomeOpsApiClient, ListDto, ListItemDto, RenameListRequest, UpdateListItemStoreRequest } from '../api/homeOpsApiClient';
-import type { ShoppingListItem, ShoppingListState } from './shoppingListModel';
+import { AddListItemRequest, CreateListRequest, DecorativeAvatarReferenceDto, DecorativeAvatarReferenceType, HomeOpsApiClient, ListDto, ListItemDto, RenameListRequest, UpdateListItemDecorativeAvatarRequest, UpdateListItemStoreRequest } from '../api/homeOpsApiClient';
+import type { ShoppingDecorativeAvatarReference, ShoppingListItem, ShoppingListState } from './shoppingListModel';
 
 export const shoppingListName = 'Shopping';
 const localizedShoppingListNames = new Set(['shopping', 'boodschappen']);
@@ -42,14 +42,14 @@ export async function createShoppingList(client: HomeOpsApiClient): Promise<Shop
   return toShoppingListState(created);
 }
 
-export async function addShoppingListItem(client: HomeOpsApiClient, listId: string, label: string): Promise<ShoppingListItem | null> {
+export async function addShoppingListItem(client: HomeOpsApiClient, listId: string, label: string, decorativeAvatar: ShoppingDecorativeAvatarReference | null = null): Promise<ShoppingListItem | null> {
   const trimmedLabel = label.trim();
 
   if (!trimmedLabel) {
     return null;
   }
 
-  const item = await client.addListItem(listId, new AddListItemRequest({ text: trimmedLabel }));
+  const item = await client.addListItem(listId, new AddListItemRequest({ text: trimmedLabel, decorativeAvatar: toApiDecorativeAvatar(decorativeAvatar) }));
   return toShoppingListItem(item);
 }
 
@@ -75,6 +75,10 @@ export async function deleteShoppingList(client: HomeOpsApiClient, listId: strin
 
 export async function updateShoppingListItemStore(client: HomeOpsApiClient, listId: string, itemId: string, preferredStore: string | null): Promise<ShoppingListItem> {
   return toShoppingListItem(await client.updateListItemStore(listId, itemId, new UpdateListItemStoreRequest({ preferredStore: preferredStore ?? undefined })));
+}
+
+export async function updateShoppingListItemDecorativeAvatar(client: HomeOpsApiClient, listId: string, itemId: string, decorativeAvatar: ShoppingDecorativeAvatarReference | null): Promise<ShoppingListItem> {
+  return toShoppingListItem(await client.updateListItemDecorativeAvatar(listId, itemId, new UpdateListItemDecorativeAvatarRequest({ decorativeAvatar: toApiDecorativeAvatar(decorativeAvatar) })));
 }
 
 export async function removeShoppingListItem(client: HomeOpsApiClient, listId: string, itemId: string): Promise<ShoppingListItem> {
@@ -106,10 +110,27 @@ function toShoppingListItem(item: ListItemDto): ShoppingListItem {
     deleted: item.isDeleted ?? false,
     deletedUtc: item.deletedUtc ?? null,
     preferredStore: item.preferredStore ?? null,
+    ...(fromApiDecorativeAvatar(item.decorativeAvatar) ? { decorativeAvatar: fromApiDecorativeAvatar(item.decorativeAvatar) } : {}),
     storeSuggestions: (item.storeSuggestions ?? [])
       .filter((suggestion) => Boolean(suggestion.store))
       .map((suggestion) => ({ store: suggestion.store!, purchaseCount: suggestion.purchaseCount ?? 0 })),
   };
+}
+
+function fromApiDecorativeAvatar(reference: DecorativeAvatarReferenceDto | undefined): ShoppingDecorativeAvatarReference | null {
+  if (!reference?.referenceId || reference.referenceType === undefined) return null;
+  return {
+    referenceType: reference.referenceType === DecorativeAvatarReferenceType.KnownPerson ? 'knownPerson' : 'familyMember',
+    referenceId: reference.referenceId,
+  };
+}
+
+function toApiDecorativeAvatar(reference: ShoppingDecorativeAvatarReference | null): DecorativeAvatarReferenceDto | undefined {
+  if (!reference) return undefined;
+  return new DecorativeAvatarReferenceDto({
+    referenceType: reference.referenceType === 'knownPerson' ? DecorativeAvatarReferenceType.KnownPerson : DecorativeAvatarReferenceType.FamilyMember,
+    referenceId: reference.referenceId,
+  });
 }
 
 function requireValue(value: string | undefined, label: string): string {

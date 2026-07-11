@@ -34,3 +34,6 @@ test-results/
 
 # TypeScript
 *.tsbuildinfo
+
+# Repository-local dotnet tools cache
+.dotnet-tools/

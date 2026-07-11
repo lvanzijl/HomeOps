@@ -675,6 +675,66 @@
         }
       }
     },
+    "/api/lists/{listId}/items/{itemId}/decorative-avatar": {
+      "patch": {
+        "tags": [
+          "Lists"
+        ],
+        "operationId": "UpdateListItemDecorativeAvatar",
+        "parameters": [
+          {
+            "name": "listId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 2
+          }
+        ],
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateListItemDecorativeAvatarRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 3
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListItemDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": ""
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
     "/api/lists/shopping/suggestions": {
       "get": {
         "tags": [
@@ -3309,6 +3369,14 @@
             "type": "string",
             "nullable": true
           },
+          "decorativeAvatar": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/DecorativeAvatarReferenceDto"
+              }
+            ]
+          },
           "storeSuggestions": {
             "type": "array",
             "items": {
@@ -3324,6 +3392,36 @@
             "format": "date-time"
           }
         }
+      },
+      "DecorativeAvatarReferenceDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "referenceType": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/DecorativeAvatarReferenceType"
+              }
+            ]
+          },
+          "referenceId": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "DecorativeAvatarReferenceType": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "FamilyMember",
+          "KnownPerson"
+        ],
+        "enum": [
+          0,
+          1
+        ]
       },
       "ShoppingStoreSuggestionDto": {
         "type": "object",
@@ -3362,6 +3460,14 @@
         "properties": {
           "text": {
             "type": "string"
+          },
+          "decorativeAvatar": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/DecorativeAvatarReferenceDto"
+              }
+            ]
           }
         }
       },
@@ -3372,6 +3478,20 @@
           "preferredStore": {
             "type": "string",
             "nullable": true
+          }
+        }
+      },
+      "UpdateListItemDecorativeAvatarRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "decorativeAvatar": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/DecorativeAvatarReferenceDto"
+              }
+            ]
           }
         }
       },
