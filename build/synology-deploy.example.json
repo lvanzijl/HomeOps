@@ -1,0 +1,7 @@
+{
+  "SynologySharePath": "\\\\your-nas\\docker\\familyboard",
+  "SynologySshHost": "familyboard-nas",
+  "SynologyProjectPath": "/volume1/docker/familyboard",
+  "SynologyImageRepository": "familyboard-app",
+  "SynologyImageTag": "dev"
+}

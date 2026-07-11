@@ -818,3 +818,7 @@ Avatar Catalog Backend Foundation adds the first backend-only catalog slice for 
 ## Progress Log
 
 - 2026-07-10: Avatar Clothing V3 catalog artwork slice added eight additional dual-color garments on the existing Clothing V2 architecture, with renderer/catalog tests and report/SVG deliverables.
+
+## Deployment Tooling Slice — 2026-07-11
+- Added initial Synology Container Manager deployment workflow for early FamilyBoard/HomeOps builds: local build/test, linux/amd64 SDK container archive generation, safe SMB copy, optional SSH deploy, Synology Compose, and rollback-aware documentation.
+- The slice intentionally does not introduce a container registry, cloud deployment, reverse proxy/TLS, Kubernetes, unattended updates, frontend hosting redesign, or application behavior changes.
