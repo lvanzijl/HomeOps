@@ -97,6 +97,24 @@ public static class FamilyMemberEndpoints
                     item.DecorativeAvatarReferenceId = null;
                     item.UpdatedUtc = member.UpdatedUtc;
                 }
+                var decoratedTasks = await dbContext.HouseholdTasks
+                    .Where(task => task.DecorativeAvatarReferenceType == Lists.DecorativeAvatarReferenceType.FamilyMember && task.DecorativeAvatarReferenceId == memberId)
+                    .ToListAsync(cancellationToken);
+                foreach (var task in decoratedTasks)
+                {
+                    task.DecorativeAvatarReferenceType = null;
+                    task.DecorativeAvatarReferenceId = null;
+                    task.UpdatedUtc = member.UpdatedUtc;
+                }
+                var decoratedSeries = await dbContext.RecurringTaskSeries
+                    .Where(series => series.DecorativeAvatarReferenceType == Lists.DecorativeAvatarReferenceType.FamilyMember && series.DecorativeAvatarReferenceId == memberId)
+                    .ToListAsync(cancellationToken);
+                foreach (var series in decoratedSeries)
+                {
+                    series.DecorativeAvatarReferenceType = null;
+                    series.DecorativeAvatarReferenceId = null;
+                    series.UpdatedUtc = member.UpdatedUtc;
+                }
                 await dbContext.SaveChangesAsync(cancellationToken);
             }
             return Results.NoContent();

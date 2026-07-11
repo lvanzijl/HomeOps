@@ -1,4 +1,5 @@
 using HomeOps.Api.Households;
+using HomeOps.Api.Lists;
 
 namespace HomeOps.Api.Tasks;
 
@@ -14,6 +15,8 @@ public sealed class HouseholdTask
     public Guid? RecurringTaskSeriesId { get; set; }
     public RecurringTaskSeries? RecurringTaskSeries { get; set; }
     public TaskRecurrenceFrequency RecurrenceFrequency { get; set; } = TaskRecurrenceFrequency.None;
+    public DecorativeAvatarReferenceType? DecorativeAvatarReferenceType { get; set; }
+    public string? DecorativeAvatarReferenceId { get; set; }
     public bool IsCompleted { get; set; }
     public bool IsExpired { get; set; }
     public NoDateTaskReviewState NoDateReviewState { get; set; } = NoDateTaskReviewState.Active;

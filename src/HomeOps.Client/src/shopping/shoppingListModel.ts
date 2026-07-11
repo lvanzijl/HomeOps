@@ -1,6 +1,6 @@
-export type ShoppingDecorativeAvatarReference =
-  | { referenceType: 'familyMember'; referenceId: string }
-  | { referenceType: 'knownPerson'; referenceId: string };
+import type { DecorativeAvatarReference } from '../avatarContacts/DecorativeAvatarPicker';
+
+export type ShoppingDecorativeAvatarReference = DecorativeAvatarReference;
 
 export interface ShoppingListItem {
   id: string;

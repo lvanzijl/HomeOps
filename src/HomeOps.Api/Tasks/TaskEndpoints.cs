@@ -1,4 +1,6 @@
 using HomeOps.Api.Data;
+using HomeOps.Api.DecorativeAvatars;
+using HomeOps.Api.Lists;
 using HomeOps.Api.Households;
 using HomeOps.Api.Motivation;
 using Microsoft.EntityFrameworkCore;
@@ -33,10 +35,14 @@ public static class TaskEndpoints
         {
             var validation = await ValidateTaskInput(request.Title, request.OwnershipKind, request.FamilyMemberId, dbContext, cancellationToken);
             if (validation.Error is not null) return Results.BadRequest(new { error = validation.Error });
+            var avatarValidation = await DecorativeAvatarReferenceValidation.Validate(dbContext, request.DecorativeAvatar, cancellationToken);
+            if (!avatarValidation.IsValid) return Results.BadRequest(new { error = avatarValidation.Error });
             var frequency = request.RecurrenceFrequency ?? TaskRecurrenceFrequency.None;
             if (frequency == TaskRecurrenceFrequency.None)
             {
                 var task = CreateTask(validation.Title, request.DueDate, validation.OwnershipKind, validation.FamilyMemberId, null, DateTimeOffset.UtcNow);
+                task.DecorativeAvatarReferenceType = avatarValidation.ReferenceType;
+                task.DecorativeAvatarReferenceId = avatarValidation.ReferenceId;
                 dbContext.HouseholdTasks.Add(task);
                 await dbContext.SaveChangesAsync(cancellationToken);
                 return Results.Created($"/api/tasks/{task.Id}", ToDto(task));
@@ -47,7 +53,9 @@ public static class TaskEndpoints
             var series = new RecurringTaskSeries
             {
                 Id = Guid.NewGuid(), HouseholdId = SeedHousehold.Id, Title = validation.Title, StartDate = startDate, Frequency = frequency,
-                OwnershipKind = validation.OwnershipKind, FamilyMemberId = validation.FamilyMemberId, CreatedUtc = now, UpdatedUtc = now,
+                OwnershipKind = validation.OwnershipKind, FamilyMemberId = validation.FamilyMemberId,
+                DecorativeAvatarReferenceType = avatarValidation.ReferenceType, DecorativeAvatarReferenceId = avatarValidation.ReferenceId,
+                CreatedUtc = now, UpdatedUtc = now,
             };
             dbContext.RecurringTaskSeries.Add(series);
             await GenerateOccurrencesForSeries(dbContext, series, DateOnly.FromDateTime(DateTime.UtcNow), cancellationToken);
@@ -62,11 +70,13 @@ public static class TaskEndpoints
             if (task is null) return Results.NotFound();
             var validation = await ValidateTaskInput(request.Title, request.OwnershipKind, request.FamilyMemberId, dbContext, cancellationToken);
             if (validation.Error is not null) return Results.BadRequest(new { error = validation.Error });
+            var avatarValidation = await DecorativeAvatarReferenceValidation.Validate(dbContext, request.DecorativeAvatar, cancellationToken);
+            if (!avatarValidation.IsValid) return Results.BadRequest(new { error = avatarValidation.Error });
             var frequency = request.RecurrenceFrequency ?? TaskRecurrenceFrequency.None;
             var now = DateTimeOffset.UtcNow;
             if (frequency == TaskRecurrenceFrequency.None)
             {
-                task.Title = validation.Title; task.DueDate = request.DueDate; task.OwnershipKind = validation.OwnershipKind; task.FamilyMemberId = validation.FamilyMemberId; task.RecurringTaskSeriesId = null; task.RecurrenceFrequency = TaskRecurrenceFrequency.None; task.UpdatedUtc = now;
+                task.Title = validation.Title; task.DueDate = request.DueDate; task.OwnershipKind = validation.OwnershipKind; task.FamilyMemberId = validation.FamilyMemberId; task.DecorativeAvatarReferenceType = avatarValidation.ReferenceType; task.DecorativeAvatarReferenceId = avatarValidation.ReferenceId; task.RecurringTaskSeriesId = null; task.RecurrenceFrequency = TaskRecurrenceFrequency.None; task.UpdatedUtc = now;
             }
             else
             {
@@ -76,7 +86,8 @@ public static class TaskEndpoints
                     series = new RecurringTaskSeries { Id = Guid.NewGuid(), HouseholdId = SeedHousehold.Id, CreatedUtc = now };
                     dbContext.RecurringTaskSeries.Add(series);
                 }
-                series.Title = validation.Title; series.StartDate = request.DueDate ?? task.DueDate ?? DateOnly.FromDateTime(DateTime.UtcNow); series.Frequency = frequency; series.OwnershipKind = validation.OwnershipKind; series.FamilyMemberId = validation.FamilyMemberId; series.IsDeleted = false; series.UpdatedUtc = now;
+                series.Title = validation.Title; series.StartDate = request.DueDate ?? task.DueDate ?? DateOnly.FromDateTime(DateTime.UtcNow); series.Frequency = frequency; series.OwnershipKind = validation.OwnershipKind; series.FamilyMemberId = validation.FamilyMemberId; series.DecorativeAvatarReferenceType = avatarValidation.ReferenceType; series.DecorativeAvatarReferenceId = avatarValidation.ReferenceId; series.IsDeleted = false; series.UpdatedUtc = now;
+                task.DecorativeAvatarReferenceType = avatarValidation.ReferenceType; task.DecorativeAvatarReferenceId = avatarValidation.ReferenceId;
                 var pending = await dbContext.HouseholdTasks.Where(t => t.RecurringTaskSeriesId == series.Id && !t.IsCompleted).ToListAsync(cancellationToken);
                 dbContext.HouseholdTasks.RemoveRange(pending);
                 await GenerateOccurrencesForSeries(dbContext, series, DateOnly.FromDateTime(DateTime.UtcNow), cancellationToken);
@@ -177,6 +188,8 @@ public static class TaskEndpoints
             if (existing.Contains(due)) continue;
             var task = CreateTask(series.Title, due, series.OwnershipKind, series.FamilyMemberId, series.Id, DateTimeOffset.UtcNow);
             task.RecurrenceFrequency = series.Frequency;
+            task.DecorativeAvatarReferenceType = series.DecorativeAvatarReferenceType;
+            task.DecorativeAvatarReferenceId = series.DecorativeAvatarReferenceId;
             dbContext.HouseholdTasks.Add(task);
         }
         await ExpireOlderIncompleteOccurrences(dbContext, series.Id, today, cancellationToken);
@@ -252,5 +265,10 @@ public static class TaskEndpoints
     }
 
     private static int ClampProgress(int progress, int targetCount) => Math.Min(Math.Max(progress, 0), targetCount);
-    private static HouseholdTaskDto ToDto(HouseholdTask task) => new(task.Id, task.Title, task.DueDate, task.OwnershipKind, task.FamilyMemberId, task.IsCompleted, task.CompletedUtc, task.CreatedUtc, task.UpdatedUtc, task.RecurringTaskSeriesId, task.RecurrenceFrequency, task.NoDateReviewState, task.NoDateLastReviewedUtc, task.ArchivedUtc);
+    private static HouseholdTaskDto ToDto(HouseholdTask task) => new(task.Id, task.Title, task.DueDate, task.OwnershipKind, task.FamilyMemberId, task.IsCompleted, task.CompletedUtc, task.CreatedUtc, task.UpdatedUtc, task.RecurringTaskSeriesId, task.RecurrenceFrequency, task.NoDateReviewState, task.NoDateLastReviewedUtc, task.ArchivedUtc, ToDecorativeAvatarDto(task));
+
+    private static DecorativeAvatarReferenceDto? ToDecorativeAvatarDto(HouseholdTask task) =>
+        task.DecorativeAvatarReferenceType is null || string.IsNullOrWhiteSpace(task.DecorativeAvatarReferenceId)
+            ? null
+            : new DecorativeAvatarReferenceDto(task.DecorativeAvatarReferenceType.Value, task.DecorativeAvatarReferenceId);
 }

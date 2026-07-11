@@ -5255,6 +5255,14 @@
             "type": "string",
             "format": "date-time",
             "nullable": true
+          },
+          "decorativeAvatar": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/DecorativeAvatarReferenceDto"
+              }
+            ]
           }
         }
       },
@@ -5337,6 +5345,14 @@
                 "$ref": "#/components/schemas/TaskRecurrenceFrequency"
               }
             ]
+          },
+          "decorativeAvatar": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/DecorativeAvatarReferenceDto"
+              }
+            ]
           }
         }
       },
@@ -5369,6 +5385,14 @@
             "oneOf": [
               {
                 "$ref": "#/components/schemas/TaskRecurrenceFrequency"
+              }
+            ]
+          },
+          "decorativeAvatar": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/DecorativeAvatarReferenceDto"
               }
             ]
           }

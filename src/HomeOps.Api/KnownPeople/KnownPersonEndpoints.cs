@@ -96,6 +96,24 @@ public static class KnownPersonEndpoints
                 item.DecorativeAvatarReferenceId = null;
                 item.UpdatedUtc = person.UpdatedUtc;
             }
+            var decoratedTasks = await dbContext.HouseholdTasks
+                .Where(task => task.DecorativeAvatarReferenceType == Lists.DecorativeAvatarReferenceType.KnownPerson && task.DecorativeAvatarReferenceId == knownPersonId.ToString())
+                .ToListAsync(cancellationToken);
+            foreach (var task in decoratedTasks)
+            {
+                task.DecorativeAvatarReferenceType = null;
+                task.DecorativeAvatarReferenceId = null;
+                task.UpdatedUtc = person.UpdatedUtc;
+            }
+            var decoratedSeries = await dbContext.RecurringTaskSeries
+                .Where(series => series.DecorativeAvatarReferenceType == Lists.DecorativeAvatarReferenceType.KnownPerson && series.DecorativeAvatarReferenceId == knownPersonId.ToString())
+                .ToListAsync(cancellationToken);
+            foreach (var series in decoratedSeries)
+            {
+                series.DecorativeAvatarReferenceType = null;
+                series.DecorativeAvatarReferenceId = null;
+                series.UpdatedUtc = person.UpdatedUtc;
+            }
             await dbContext.SaveChangesAsync(cancellationToken);
             return Results.NoContent();
         }).WithName("DeleteKnownPerson").Produces(StatusCodes.Status204NoContent).Produces(StatusCodes.Status404NotFound);

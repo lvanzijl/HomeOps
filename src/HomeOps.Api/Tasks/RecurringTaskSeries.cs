@@ -1,4 +1,5 @@
 using HomeOps.Api.Households;
+using HomeOps.Api.Lists;
 
 namespace HomeOps.Api.Tasks;
 
@@ -12,6 +13,8 @@ public sealed class RecurringTaskSeries
     public TaskRecurrenceFrequency Frequency { get; set; } = TaskRecurrenceFrequency.None;
     public TaskOwnershipKind OwnershipKind { get; set; } = TaskOwnershipKind.Unassigned;
     public string? FamilyMemberId { get; set; }
+    public DecorativeAvatarReferenceType? DecorativeAvatarReferenceType { get; set; }
+    public string? DecorativeAvatarReferenceId { get; set; }
     public bool IsDeleted { get; set; }
     public DateTimeOffset CreatedUtc { get; set; }
     public DateTimeOffset UpdatedUtc { get; set; }
