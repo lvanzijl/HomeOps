@@ -12,11 +12,20 @@ vi.mock('../../shopping/listsApi', () => ({
   addShoppingListItem: vi.fn(),
   toggleShoppingListItem: vi.fn(),
   updateShoppingListItemStore: vi.fn(),
+  updateShoppingListItemDecorativeAvatar: vi.fn(),
   removeShoppingListItem: vi.fn(),
   undoShoppingListItem: vi.fn(),
   renameShoppingList: vi.fn(),
   archiveShoppingList: vi.fn(),
   deleteShoppingList: vi.fn(),
+}));
+
+vi.mock('../../home/familyMembersApi', () => ({
+  loadFamilyMembers: vi.fn(async () => [{ id: 'riley', name: 'Riley', displayColor: '#bbf7d0', initials: 'R', memberKind: 'child', avatarSelection: undefined }]),
+}));
+
+vi.mock('../../knownPeople/knownPeopleApi', () => ({
+  listKnownPeople: vi.fn(async () => [{ id: 'known-1', displayName: 'Grandma', relationshipType: 'grandparent', scope: 'shared', initials: 'G', avatarSelection: { schemaVersion: 'avatar-catalog-v1', selections: {} } }]),
 }));
 
 async function mockedListsApi() {
@@ -53,6 +62,7 @@ describe('ShoppingListWidget API-backed behavior', () => {
     vi.mocked(listsApi.addShoppingListItem).mockResolvedValue({ id: 'apples', label: 'Apples', completed: false, deleted: false, preferredStore: null });
     vi.mocked(listsApi.toggleShoppingListItem).mockResolvedValue({ id: 'bread', label: 'Bread', completed: true, deleted: false, preferredStore: 'Supermarket' });
     vi.mocked(listsApi.updateShoppingListItemStore).mockResolvedValue({ id: 'coffee', label: 'Coffee', completed: true, deleted: false, preferredStore: 'Drugstore' });
+    vi.mocked(listsApi.updateShoppingListItemDecorativeAvatar).mockResolvedValue({ id: 'bread', label: 'Bread', completed: false, deleted: false, preferredStore: 'Supermarket', decorativeAvatar: { referenceType: 'knownPerson', referenceId: 'known-1' } });
     vi.mocked(listsApi.removeShoppingListItem).mockResolvedValue({ id: 'bread', label: 'Bread', completed: true, deleted: true, preferredStore: 'Supermarket' });
     vi.mocked(listsApi.undoShoppingListItem).mockResolvedValue({ id: 'bread', label: 'Bread', completed: false, deleted: false, preferredStore: 'Supermarket', storeSuggestions: [{ store: 'Supermarket', purchaseCount: 4 }, { store: 'Corner Shop', purchaseCount: 1 }] });
   });
@@ -77,6 +87,23 @@ describe('ShoppingListWidget API-backed behavior', () => {
     await user.click(within(quickAddForm).getByRole('button', { name: 'Toevoegen' }));
     expect(listsApi.addShoppingListItem).toHaveBeenCalledWith(apiClient, 'shopping-list-id', 'Apples');
     expect((await screen.findAllByText('Apples')).length).toBeGreaterThan(0);
+  });
+
+
+  it('allows manual decorative avatar selection and clearing', async () => {
+    const user = userEvent.setup();
+    const listsApi = await mockedListsApi();
+    render(<ShoppingListWidget {...widgetProps} />);
+    await screen.findAllByText('Bread');
+
+    await user.click(screen.getAllByText('Avatar')[0]);
+    const avatarSelect = screen.getAllByLabelText('Decoratieve avatar voor Bread').find((element) => element.tagName === 'SELECT')!;
+    await user.selectOptions(avatarSelect, 'knownPerson:known-1');
+
+    expect(listsApi.updateShoppingListItemDecorativeAvatar).toHaveBeenCalledWith(apiClient, 'shopping-list-id', 'bread', { referenceType: 'knownPerson', referenceId: 'known-1' });
+
+    await user.selectOptions(avatarSelect, '');
+    expect(listsApi.updateShoppingListItemDecorativeAvatar).toHaveBeenCalledWith(apiClient, 'shopping-list-id', 'bread', null);
   });
 
   it('toggles and removes items through the API-backed list service', async () => {

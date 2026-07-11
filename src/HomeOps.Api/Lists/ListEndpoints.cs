@@ -1,4 +1,5 @@
 using HomeOps.Api.Data;
+using HomeOps.Api.DecorativeAvatars;
 using HomeOps.Api.Households;
 using Microsoft.EntityFrameworkCore;
 
@@ -127,6 +128,12 @@ public static class ListEndpoints
                 return Results.NotFound();
             }
 
+            var avatarValidation = await DecorativeAvatarReferenceValidation.Validate(dbContext, request.DecorativeAvatar, cancellationToken);
+            if (!avatarValidation.IsValid)
+            {
+                return Results.BadRequest(new { error = avatarValidation.Error });
+            }
+
             var now = DateTimeOffset.UtcNow;
             var item = new ListItem
             {
@@ -135,6 +142,8 @@ public static class ListEndpoints
                 Text = trimmedText,
                 IsCompleted = false,
                 IsDeleted = false,
+                DecorativeAvatarReferenceType = avatarValidation.ReferenceType,
+                DecorativeAvatarReferenceId = avatarValidation.ReferenceId,
                 CreatedUtc = now,
                 UpdatedUtc = now,
             };
@@ -168,6 +177,31 @@ public static class ListEndpoints
             await dbContext.SaveChangesAsync(cancellationToken);
             return Results.Ok(await ToDto(dbContext, item, cancellationToken));
         }).WithName("UpdateListItemStore").Produces<ListItemDto>().Produces(StatusCodes.Status404NotFound);
+
+
+        group.MapPatch("/{listId:guid}/items/{itemId:guid}/decorative-avatar", async (Guid listId, Guid itemId, UpdateListItemDecorativeAvatarRequest request, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        {
+            var item = await dbContext.ListItems
+                .Include(listItem => listItem.List)
+                .FirstOrDefaultAsync(listItem => listItem.Id == itemId && listItem.ListId == listId && listItem.List!.HouseholdId == SeedHousehold.Id, cancellationToken);
+
+            if (item is null)
+            {
+                return Results.NotFound();
+            }
+
+            var validation = await DecorativeAvatarReferenceValidation.Validate(dbContext, request.DecorativeAvatar, cancellationToken);
+            if (!validation.IsValid)
+            {
+                return Results.BadRequest(new { error = validation.Error });
+            }
+
+            item.DecorativeAvatarReferenceType = validation.ReferenceType;
+            item.DecorativeAvatarReferenceId = validation.ReferenceId;
+            item.UpdatedUtc = DateTimeOffset.UtcNow;
+            await dbContext.SaveChangesAsync(cancellationToken);
+            return Results.Ok(await ToDto(dbContext, item, cancellationToken));
+        }).WithName("UpdateListItemDecorativeAvatar").Produces<ListItemDto>().Produces(StatusCodes.Status400BadRequest).Produces(StatusCodes.Status404NotFound);
 
         group.MapGet("/shopping/suggestions", async (string text, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
         {
@@ -271,7 +305,12 @@ public static class ListEndpoints
     }
 
     private static async Task<ListItemDto> ToDto(HomeOpsDbContext dbContext, ListItem item, CancellationToken cancellationToken) =>
-        new(item.Id, item.ListId, item.Text, item.IsCompleted, item.CompletedUtc, item.IsDeleted, item.DeletedUtc, item.PreferredStore, await LoadStoreSuggestions(dbContext, NormalizeItemText(item.Text), cancellationToken), item.CreatedUtc, item.UpdatedUtc);
+        new(item.Id, item.ListId, item.Text, item.IsCompleted, item.CompletedUtc, item.IsDeleted, item.DeletedUtc, item.PreferredStore, ToDecorativeAvatarDto(item), await LoadStoreSuggestions(dbContext, NormalizeItemText(item.Text), cancellationToken), item.CreatedUtc, item.UpdatedUtc);
+
+    private static DecorativeAvatarReferenceDto? ToDecorativeAvatarDto(ListItem item) =>
+        item.DecorativeAvatarReferenceType is null || string.IsNullOrWhiteSpace(item.DecorativeAvatarReferenceId)
+            ? null
+            : new DecorativeAvatarReferenceDto(item.DecorativeAvatarReferenceType.Value, item.DecorativeAvatarReferenceId);
 
     private static async Task<IReadOnlyCollection<ShoppingStoreSuggestionDto>> LoadStoreSuggestions(HomeOpsDbContext dbContext, string normalizedText, CancellationToken cancellationToken) =>
         await dbContext.ShoppingPurchaseHistories

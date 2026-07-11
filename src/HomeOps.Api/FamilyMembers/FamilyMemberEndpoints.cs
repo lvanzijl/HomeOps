@@ -88,6 +88,15 @@ public static class FamilyMemberEndpoints
                 member.IsDeleted = true;
                 member.DeletedUtc = DateTimeOffset.UtcNow;
                 member.UpdatedUtc = member.DeletedUtc.Value;
+                var decoratedItems = await dbContext.ListItems
+                    .Where(item => item.DecorativeAvatarReferenceType == Lists.DecorativeAvatarReferenceType.FamilyMember && item.DecorativeAvatarReferenceId == memberId)
+                    .ToListAsync(cancellationToken);
+                foreach (var item in decoratedItems)
+                {
+                    item.DecorativeAvatarReferenceType = null;
+                    item.DecorativeAvatarReferenceId = null;
+                    item.UpdatedUtc = member.UpdatedUtc;
+                }
                 await dbContext.SaveChangesAsync(cancellationToken);
             }
             return Results.NoContent();

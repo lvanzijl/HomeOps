@@ -1,9 +1,14 @@
 import { type ReactNode, FormEvent, useEffect, useId, useMemo, useState } from 'react';
-import { addShoppingListItem, archiveShoppingList, createListsApiClient, createShoppingList, deleteShoppingList, loadShoppingPageLists, removeShoppingListItem, renameShoppingList, toggleShoppingListItem, undoShoppingListItem, updateShoppingListItemStore } from '../../shopping/listsApi';
-import type { ShoppingListItem, ShoppingListState } from '../../shopping/shoppingListModel';
+import { addShoppingListItem, archiveShoppingList, createListsApiClient, createShoppingList, deleteShoppingList, loadShoppingPageLists, removeShoppingListItem, renameShoppingList, toggleShoppingListItem, undoShoppingListItem, updateShoppingListItemDecorativeAvatar, updateShoppingListItemStore } from '../../shopping/listsApi';
+import type { ShoppingDecorativeAvatarReference, ShoppingListItem, ShoppingListState } from '../../shopping/shoppingListModel';
 import { groupShoppingItemsByPreferredStore } from '../../shopping/shoppingGrouping';
 import { getActiveShoppingListItems, getCompletedShoppingListItems, getDeletedShoppingListItems, upsertShoppingListItem } from '../../shopping/shoppingListState';
 import type { WidgetRenderProps } from '../WidgetRenderer';
+import { DecorativeAvatarBadge, type DecorativeAvatarIdentity } from '../../avatarContacts/DecorativeAvatar';
+import { loadFamilyMembers } from '../../home/familyMembersApi';
+import type { FamilyMember } from '../../home/familyMembers';
+import { listKnownPeople } from '../../knownPeople/knownPeopleApi';
+import type { KnownPerson } from '../../knownPeople/knownPeople';
 
 type ShoppingPanelKind = 'completed' | 'deleted' | 'otherLists' | 'manage';
 
@@ -20,6 +25,8 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
   const [isCreatingList, setIsCreatingList] = useState(false);
   const [activePanel, setActivePanel] = useState<ShoppingPanelKind | null>(null);
   const [selectedOtherListId, setSelectedOtherListId] = useState<string | null>(null);
+  const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
+  const [knownPeople, setKnownPeople] = useState<KnownPerson[]>([]);
 
   useEffect(() => {
     let ignoreResult = false;
@@ -51,6 +58,24 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
       ignoreResult = true;
     };
   }, [apiClient]);
+
+  useEffect(() => {
+    let ignoreResult = false;
+    Promise.all([loadFamilyMembers(), listKnownPeople()])
+      .then(([members, people]) => {
+        if (!ignoreResult) {
+          setFamilyMembers([...members]);
+          setKnownPeople([...people]);
+        }
+      })
+      .catch(() => {
+        if (!ignoreResult) {
+          setFamilyMembers([]);
+          setKnownPeople([]);
+        }
+      });
+    return () => { ignoreResult = true; };
+  }, []);
 
   useEffect(() => {
     if (!activePanel) {
@@ -155,6 +180,8 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
           onClearList={clearList}
           onError={setError}
           onReplaceList={replaceList}
+          familyMembers={familyMembers}
+          knownPeople={knownPeople}
           onUpdateItems={updateListItems}
           primary
           primaryMode="quickAdd"
@@ -182,6 +209,8 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
             onClearList={clearList}
             onError={setError}
             onReplaceList={replaceList}
+            familyMembers={familyMembers}
+            knownPeople={knownPeople}
             onUpdateItems={updateListItems}
             primary
             primaryMode="active"
@@ -230,6 +259,8 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
               onClearList={clearList}
               onError={setError}
               onReplaceList={replaceList}
+              familyMembers={familyMembers}
+              knownPeople={knownPeople}
               onUpdateItems={updateListItems}
               primary
               primaryMode="completed"
@@ -243,6 +274,8 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
               onClearList={clearList}
               onError={setError}
               onReplaceList={replaceList}
+              familyMembers={familyMembers}
+              knownPeople={knownPeople}
               onUpdateItems={updateListItems}
               primary
               primaryMode="deleted"
@@ -256,6 +289,8 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
               onClearList={clearList}
               onError={setError}
               onReplaceList={replaceList}
+              familyMembers={familyMembers}
+              knownPeople={knownPeople}
               onUpdateItems={updateListItems}
               primary
               primaryMode="manage"
@@ -291,6 +326,8 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
                         onClearList={clearList}
                         onError={setError}
                         onReplaceList={replaceList}
+                        familyMembers={familyMembers}
+                        knownPeople={knownPeople}
                         onUpdateItems={updateListItems}
                       />
                     </div>
@@ -366,14 +403,17 @@ interface ListSurfaceProps {
   onClearList(listId: string | null): void;
   onError(message: string): void;
   onReplaceList(list: ShoppingListState): void;
+  familyMembers: readonly FamilyMember[];
+  knownPeople: readonly KnownPerson[];
   onUpdateItems(listId: string | null, updater: (items: readonly ShoppingListItem[]) => readonly ShoppingListItem[]): void;
   primary?: boolean;
   primaryMode?: 'all' | 'quickAdd' | 'active' | 'completed' | 'deleted' | 'manage';
 }
 
-function ListSurface({ apiClient, list, listFallbackName, onClearList, onError, onReplaceList, onUpdateItems, primary = false, primaryMode = 'all' }: ListSurfaceProps) {
+function ListSurface({ apiClient, familyMembers, knownPeople, list, listFallbackName, onClearList, onError, onReplaceList, onUpdateItems, primary = false, primaryMode = 'all' }: ListSurfaceProps) {
   const [newItemLabel, setNewItemLabel] = useState('');
   const [listName, setListName] = useState(list.name ?? listFallbackName);
+  const [newItemAvatar, setNewItemAvatar] = useState<ShoppingDecorativeAvatarReference | null>(null);
 
   useEffect(() => setListName(list.name ?? listFallbackName), [list.name, listFallbackName]);
 
@@ -386,11 +426,14 @@ function ListSurface({ apiClient, list, listFallbackName, onClearList, onError, 
     if (!list.listId) return;
 
     try {
-      const createdItem = await addShoppingListItem(apiClient, list.listId, newItemLabel);
+      const createdItem = newItemAvatar
+        ? await addShoppingListItem(apiClient, list.listId, newItemLabel, newItemAvatar)
+        : await addShoppingListItem(apiClient, list.listId, newItemLabel);
       if (createdItem) {
         onUpdateItems(list.listId, (current) => upsertShoppingListItem(current, createdItem));
       }
       setNewItemLabel('');
+      setNewItemAvatar(null);
     } catch {
       onError('Boodschap kon niet worden toegevoegd.');
     }
@@ -403,6 +446,16 @@ function ListSurface({ apiClient, list, listFallbackName, onClearList, onError, 
       onUpdateItems(list.listId, (current) => upsertShoppingListItem(current, updatedItem));
     } catch {
       onError('Boodschap kon niet worden bijgewerkt.');
+    }
+  }
+
+  async function updateItemAvatar(itemId: string, decorativeAvatar: ShoppingDecorativeAvatarReference | null) {
+    if (!list.listId) return;
+    try {
+      const updatedItem = await updateShoppingListItemDecorativeAvatar(apiClient, list.listId, itemId, decorativeAvatar);
+      onUpdateItems(list.listId, (current) => upsertShoppingListItem(current, updatedItem));
+    } catch {
+      onError('Avatar kon niet worden bijgewerkt.');
     }
   }
 
@@ -485,6 +538,7 @@ function ListSurface({ apiClient, list, listFallbackName, onClearList, onError, 
           value={newItemLabel}
         />
       </label>
+      <DecorativeAvatarPicker familyMembers={familyMembers} knownPeople={knownPeople} onChange={setNewItemAvatar} value={newItemAvatar} label="Decoratieve avatar voor nieuwe boodschap" />
       <button disabled={!list.listId} type="submit">Toevoegen</button>
     </form>
   );
@@ -496,7 +550,7 @@ function ListSurface({ apiClient, list, listFallbackName, onClearList, onError, 
   if (primary && primaryMode === 'active') {
     return (
       <div className="shopping-primary-list shopping-active-store-workspace" aria-label={`${listLabel} per winkel`}>
-        <ShoppingListSection className="shopping-section-primary" emptyLabel="Geen open boodschappen." items={activeItems} onRemove={removeItem} onStoreChange={updateItemStore} onToggle={toggleItem} title="Actieve lijst per winkel" />
+        <ShoppingListSection className="shopping-section-primary" emptyLabel="Geen open boodschappen." items={activeItems} familyMembers={familyMembers} knownPeople={knownPeople} onAvatarChange={updateItemAvatar} onRemove={removeItem} onStoreChange={updateItemStore} onToggle={toggleItem} title="Actieve lijst per winkel" />
       </div>
     );
   }
@@ -504,7 +558,7 @@ function ListSurface({ apiClient, list, listFallbackName, onClearList, onError, 
   if (primary && primaryMode === 'completed') {
     return (
       <div className="shopping-primary-list shopping-context-list" aria-label={`${listLabel} afgevinkt`}>
-        <ShoppingListSection emptyLabel="Nog niets afgevinkt." items={completedItems} onRemove={removeItem} onStoreChange={updateItemStore} onToggle={toggleItem} onUndo={undoItem} title="Afgevinkt" />
+        <ShoppingListSection emptyLabel="Nog niets afgevinkt." items={completedItems} familyMembers={familyMembers} knownPeople={knownPeople} onAvatarChange={updateItemAvatar} onRemove={removeItem} onStoreChange={updateItemStore} onToggle={toggleItem} onUndo={undoItem} title="Afgevinkt" />
       </div>
     );
   }
@@ -512,7 +566,7 @@ function ListSurface({ apiClient, list, listFallbackName, onClearList, onError, 
   if (primary && primaryMode === 'deleted') {
     return (
       <div className="shopping-primary-list shopping-context-list" aria-label={`${listLabel} herstel`}>
-        <ShoppingListSection emptyLabel="Niets recent verwijderd." items={deletedItems} onRemove={removeItem} onStoreChange={updateItemStore} onToggle={toggleItem} onUndo={undoItem} title="Recent verwijderd" />
+        <ShoppingListSection emptyLabel="Niets recent verwijderd." items={deletedItems} familyMembers={familyMembers} knownPeople={knownPeople} onAvatarChange={updateItemAvatar} onRemove={removeItem} onStoreChange={updateItemStore} onToggle={toggleItem} onUndo={undoItem} title="Recent verwijderd" />
       </div>
     );
   }
@@ -543,8 +597,8 @@ function ListSurface({ apiClient, list, listFallbackName, onClearList, onError, 
   return (
     <div className={primary ? 'shopping-primary-list' : 'other-list-surface'} aria-label={listLabel}>
       {quickAddForm}
-      <ShoppingListSection className={primary ? 'shopping-section-primary' : undefined} emptyLabel="Geen open boodschappen." items={activeItems} onRemove={removeItem} onStoreChange={primary ? updateItemStore : undefined} onToggle={toggleItem} title="Per winkel" />
-      <ShoppingListSection emptyLabel="Nog niets afgevinkt." items={completedItems} onRemove={removeItem} onStoreChange={primary ? updateItemStore : undefined} onToggle={toggleItem} onUndo={undoItem} title="Afgevinkt" />
+      <ShoppingListSection className={primary ? 'shopping-section-primary' : undefined} emptyLabel="Geen open boodschappen." items={activeItems} familyMembers={familyMembers} knownPeople={knownPeople} onAvatarChange={primary ? updateItemAvatar : undefined} onRemove={removeItem} onStoreChange={primary ? updateItemStore : undefined} onToggle={toggleItem} title="Per winkel" />
+      <ShoppingListSection emptyLabel="Nog niets afgevinkt." items={completedItems} familyMembers={familyMembers} knownPeople={knownPeople} onAvatarChange={primary ? updateItemAvatar : undefined} onRemove={removeItem} onStoreChange={primary ? updateItemStore : undefined} onToggle={toggleItem} onUndo={undoItem} title="Afgevinkt" />
       <section className="shopping-section shopping-management-section">
         <h4>Lijst beheren</h4>
         <div className="shopping-section-body">
@@ -561,7 +615,7 @@ function ListSurface({ apiClient, list, listFallbackName, onClearList, onError, 
           </form>
         </div>
       </section>
-      <ShoppingListSection emptyLabel="Niets recent verwijderd." items={deletedItems} onRemove={removeItem} onStoreChange={primary ? updateItemStore : undefined} onToggle={toggleItem} onUndo={undoItem} title="Recent verwijderd" />
+      <ShoppingListSection emptyLabel="Niets recent verwijderd." items={deletedItems} familyMembers={familyMembers} knownPeople={knownPeople} onAvatarChange={primary ? updateItemAvatar : undefined} onRemove={removeItem} onStoreChange={primary ? updateItemStore : undefined} onToggle={toggleItem} onUndo={undoItem} title="Recent verwijderd" />
     </div>
   );
 }
@@ -570,6 +624,9 @@ interface ShoppingListSectionProps {
   className?: string;
   emptyLabel: string;
   items: readonly ShoppingListItem[];
+  familyMembers: readonly FamilyMember[];
+  knownPeople: readonly KnownPerson[];
+  onAvatarChange?(itemId: string, decorativeAvatar: ShoppingDecorativeAvatarReference | null): void;
   onRemove(itemId: string): void;
   onStoreChange?(itemId: string, preferredStore: string | null): void;
   onToggle(itemId: string): void;
@@ -577,7 +634,7 @@ interface ShoppingListSectionProps {
   title: string;
 }
 
-function ShoppingListSection({ className, emptyLabel, items, onRemove, onStoreChange, onToggle, onUndo, title }: ShoppingListSectionProps) {
+function ShoppingListSection({ className, emptyLabel, familyMembers, items, knownPeople, onAvatarChange, onRemove, onStoreChange, onToggle, onUndo, title }: ShoppingListSectionProps) {
   return (
     <section className={`shopping-section${className ? ` ${className}` : ''}`}>
       <h4>{title}</h4>
@@ -601,7 +658,7 @@ function ShoppingListSection({ className, emptyLabel, items, onRemove, onStoreCh
                 )}
                 <ul className="shopping-list">
                   {group.items.map((item) => (
-                    <ShoppingListRow item={item} key={item.id} onRemove={onRemove} onStoreChange={onStoreChange} onToggle={onToggle} onUndo={onUndo} />
+                    <ShoppingListRow familyMembers={familyMembers} item={item} key={item.id} knownPeople={knownPeople} onAvatarChange={onAvatarChange} onRemove={onRemove} onStoreChange={onStoreChange} onToggle={onToggle} onUndo={onUndo} />
                   ))}
                 </ul>
               </div>
@@ -614,22 +671,32 @@ function ShoppingListSection({ className, emptyLabel, items, onRemove, onStoreCh
 }
 
 interface ShoppingListRowProps {
+  familyMembers: readonly FamilyMember[];
   item: ShoppingListItem;
+  knownPeople: readonly KnownPerson[];
+  onAvatarChange?(itemId: string, decorativeAvatar: ShoppingDecorativeAvatarReference | null): void;
   onRemove(itemId: string): void;
   onStoreChange?(itemId: string, preferredStore: string | null): void;
   onToggle(itemId: string): void;
   onUndo?(itemId: string): void;
 }
 
-function ShoppingListRow({ item, onRemove, onStoreChange, onToggle, onUndo }: ShoppingListRowProps) {
+function ShoppingListRow({ familyMembers, item, knownPeople, onAvatarChange, onRemove, onStoreChange, onToggle, onUndo }: ShoppingListRowProps) {
   return (
     <li className={`shopping-item${item.deleted ? ' shopping-item-deleted' : ''}`}>
       <label>
         <input checked={item.completed} onChange={() => onToggle(item.id)} type="checkbox" />
+        <DecorativeAvatarBadge identity={resolveDecorativeAvatar(item.decorativeAvatar, familyMembers, knownPeople)} label={`Decoratieve avatar voor ${item.label}`} />
         <span title={item.label}>{item.label}</span>
         {item.deleted ? <small>Verwijderd</small> : null}
       </label>
       <div className="shopping-item-actions">
+        {onAvatarChange ? (
+          <details className="shopping-item-options">
+            <summary>Avatar</summary>
+            <DecorativeAvatarPicker familyMembers={familyMembers} knownPeople={knownPeople} onChange={(value) => onAvatarChange(item.id, value)} value={item.decorativeAvatar ?? null} label={`Decoratieve avatar voor ${item.label}`} />
+          </details>
+        ) : null}
         {onStoreChange ? (
           <details className="shopping-item-options">
             <summary>Winkel</summary>
@@ -649,4 +716,51 @@ function ShoppingListRow({ item, onRemove, onStoreChange, onToggle, onUndo }: Sh
       </div>
     </li>
   );
+}
+
+
+interface DecorativeAvatarPickerProps {
+  familyMembers: readonly FamilyMember[];
+  knownPeople: readonly KnownPerson[];
+  label: string;
+  value: ShoppingDecorativeAvatarReference | null;
+  onChange(value: ShoppingDecorativeAvatarReference | null): void;
+}
+
+function DecorativeAvatarPicker({ familyMembers, knownPeople, label, onChange, value }: DecorativeAvatarPickerProps) {
+  const selected = value ? `${value.referenceType}:${value.referenceId}` : '';
+  return (
+    <label className="shopping-avatar-picker">
+      <span className="visually-hidden">{label}</span>
+      <select aria-label={label} onChange={(event) => onChange(parseDecorativeAvatarPickerValue(event.target.value))} value={selected}>
+        <option value="">Geen avatar</option>
+        <optgroup label="Family Members">
+          {familyMembers.map((member) => <option key={member.id} value={`familyMember:${member.id}`}>{member.name}</option>)}
+        </optgroup>
+        <optgroup label="Shared People">
+          {knownPeople.filter((person) => person.scope === 'shared').map((person) => <option key={person.id} value={`knownPerson:${person.id}`}>{person.displayName}</option>)}
+        </optgroup>
+        <optgroup label="Private People">
+          {knownPeople.filter((person) => person.scope === 'privateToMember').map((person) => <option key={person.id} value={`knownPerson:${person.id}`}>{person.displayName}</option>)}
+        </optgroup>
+      </select>
+    </label>
+  );
+}
+
+function parseDecorativeAvatarPickerValue(value: string): ShoppingDecorativeAvatarReference | null {
+  if (!value) return null;
+  const [referenceType, referenceId] = value.split(':');
+  if ((referenceType !== 'familyMember' && referenceType !== 'knownPerson') || !referenceId) return null;
+  return { referenceType, referenceId };
+}
+
+function resolveDecorativeAvatar(reference: ShoppingDecorativeAvatarReference | null | undefined, familyMembers: readonly FamilyMember[], knownPeople: readonly KnownPerson[]): DecorativeAvatarIdentity | null {
+  if (!reference) return null;
+  if (reference.referenceType === 'familyMember') {
+    const member = familyMembers.find((candidate) => candidate.id === reference.referenceId);
+    return member ? { kind: 'familyMember', member } : null;
+  }
+  const person = knownPeople.find((candidate) => candidate.id === reference.referenceId);
+  return person ? { kind: 'knownPerson', person } : null;
 }
