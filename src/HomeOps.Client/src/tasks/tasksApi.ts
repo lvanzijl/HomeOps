@@ -32,6 +32,7 @@ export async function createTask(input: CreateTaskInput): Promise<HouseholdTask 
       ownershipKind: input.ownershipKind ?? 'Unassigned',
       familyMemberId: input.familyMemberId || null,
       recurrenceFrequency: input.recurrenceFrequency ?? 'None',
+      decorativeAvatar: input.decorativeAvatar ?? null,
     }),
   }));
 }
@@ -56,6 +57,7 @@ export async function updateTask(taskId: string, input: CreateTaskInput): Promis
       ownershipKind: input.ownershipKind ?? 'Unassigned',
       familyMemberId: input.familyMemberId || null,
       recurrenceFrequency: input.recurrenceFrequency ?? 'None',
+      decorativeAvatar: input.decorativeAvatar ?? null,
     }),
   }));
 }

@@ -1,6 +1,10 @@
+import type { DecorativeAvatarReference } from '../avatarContacts/DecorativeAvatarPicker';
+
 export type TaskOwnershipKind = 'Unassigned' | 'FamilyMember' | 'SharedHousehold';
 export type TaskRecurrenceFrequency = 'None' | 'Daily' | 'Weekly' | 'Monthly';
 export type NoDateTaskReviewState = 'Active' | 'NeedsReview' | 'Someday' | 'Completed' | 'Archived';
+
+export type TaskDecorativeAvatarReference = DecorativeAvatarReference;
 
 export interface HouseholdTask {
   id: string;
@@ -17,6 +21,7 @@ export interface HouseholdTask {
   noDateReviewState?: NoDateTaskReviewState;
   noDateLastReviewedUtc?: string | null;
   archivedUtc?: string | null;
+  decorativeAvatar?: TaskDecorativeAvatarReference | null;
 }
 
 export interface CreateTaskInput {
@@ -28,6 +33,7 @@ export interface CreateTaskInput {
   noDateReviewState?: NoDateTaskReviewState;
   noDateLastReviewedUtc?: string | null;
   archivedUtc?: string | null;
+  decorativeAvatar?: TaskDecorativeAvatarReference | null;
 }
 
 export type TaskTimeGroupId = 'today' | 'tomorrow' | 'thisWeek' | 'nextWeek' | 'later' | 'completedRecently';

@@ -245,3 +245,210 @@ public sealed class NoDateTaskLifecycleApiTests(HomeOpsWebApplicationFactory fac
         await dbContext.SaveChangesAsync();
     }
 }
+
+public sealed class TaskDecorativeAvatarApiTests(HomeOpsWebApplicationFactory factory) : IClassFixture<HomeOpsWebApplicationFactory>
+{
+    private readonly HttpClient _client = factory.CreateClient();
+    private readonly HomeOpsWebApplicationFactory _factory = factory;
+
+    [Fact]
+    public async Task CreateUpdateAndClearTaskDecorativeAvatarIndependentlyFromAssignment()
+    {
+        var known = await CreateKnownPerson($"Grandma Task {Guid.NewGuid()}");
+        var create = await _client.PostAsJsonAsync("/api/tasks", new CreateHouseholdTaskRequest(
+            "Buy birthday present",
+            DateOnly.FromDateTime(DateTime.UtcNow),
+            TaskOwnershipKind.FamilyMember,
+            "riley",
+            TaskRecurrenceFrequency.None,
+            new HomeOps.Api.Lists.DecorativeAvatarReferenceDto(HomeOps.Api.Lists.DecorativeAvatarReferenceType.KnownPerson, known.Id.ToString())));
+
+        Assert.Equal(HttpStatusCode.Created, create.StatusCode);
+        var created = (await create.Content.ReadFromJsonAsync<HouseholdTaskDto>())!;
+        Assert.Equal("riley", created.FamilyMemberId);
+        Assert.Equal(TaskOwnershipKind.FamilyMember, created.OwnershipKind);
+        Assert.Equal(HomeOps.Api.Lists.DecorativeAvatarReferenceType.KnownPerson, created.DecorativeAvatar?.ReferenceType);
+        Assert.Equal(known.Id.ToString(), created.DecorativeAvatar?.ReferenceId);
+
+        var update = await _client.PutAsJsonAsync($"/api/tasks/{created.Id}", new UpdateHouseholdTaskRequest(
+            created.Title,
+            created.DueDate,
+            created.OwnershipKind,
+            created.FamilyMemberId,
+            TaskRecurrenceFrequency.None,
+            new HomeOps.Api.Lists.DecorativeAvatarReferenceDto(HomeOps.Api.Lists.DecorativeAvatarReferenceType.FamilyMember, "alex")));
+        update.EnsureSuccessStatusCode();
+        var updated = (await update.Content.ReadFromJsonAsync<HouseholdTaskDto>())!;
+        Assert.Equal("riley", updated.FamilyMemberId);
+        Assert.Equal("alex", updated.DecorativeAvatar?.ReferenceId);
+
+        var clear = await _client.PutAsJsonAsync($"/api/tasks/{created.Id}", new UpdateHouseholdTaskRequest(created.Title, created.DueDate, created.OwnershipKind, created.FamilyMemberId, TaskRecurrenceFrequency.None, null));
+        clear.EnsureSuccessStatusCode();
+        var cleared = (await clear.Content.ReadFromJsonAsync<HouseholdTaskDto>())!;
+        Assert.Equal("riley", cleared.FamilyMemberId);
+        Assert.Null(cleared.DecorativeAvatar);
+    }
+
+    [Fact]
+    public async Task TaskDecorativeAvatarRejectsInvalidNullablePair()
+    {
+        var response = await _client.PostAsJsonAsync("/api/tasks", new { title = "Bad pair", ownershipKind = "Unassigned", familyMemberId = (string?)null, recurrenceFrequency = "None", decorativeAvatar = new { referenceType = "FamilyMember" } });
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task DeletingKnownPersonClearsTaskDecorativeAvatarOnly()
+    {
+        var known = await CreateKnownPerson($"Delete Task Decoration {Guid.NewGuid()}");
+        var create = await _client.PostAsJsonAsync("/api/tasks", new CreateHouseholdTaskRequest("Decorated task", null, TaskOwnershipKind.FamilyMember, "riley", TaskRecurrenceFrequency.None, new HomeOps.Api.Lists.DecorativeAvatarReferenceDto(HomeOps.Api.Lists.DecorativeAvatarReferenceType.KnownPerson, known.Id.ToString())));
+        var created = (await create.Content.ReadFromJsonAsync<HouseholdTaskDto>())!;
+        var recurring = await CreateRecurringTask($"Decorated recurring {Guid.NewGuid()}", TaskRecurrenceFrequency.Weekly, new HomeOps.Api.Lists.DecorativeAvatarReferenceDto(HomeOps.Api.Lists.DecorativeAvatarReferenceType.KnownPerson, known.Id.ToString()));
+
+        var delete = await _client.DeleteAsync($"/api/known-people/{known.Id}");
+        delete.EnsureSuccessStatusCode();
+        var tasks = await _client.GetFromJsonAsync<IReadOnlyCollection<HouseholdTaskDto>>("/api/tasks");
+        var reloaded = tasks!.Single(task => task.Id == created.Id);
+
+        using var scope = _factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<HomeOps.Api.Data.HomeOpsDbContext>();
+        var series = await dbContext.RecurringTaskSeries.FindAsync(recurring.RecurringTaskSeriesId);
+
+        Assert.Equal("Decorated task", reloaded.Title);
+        Assert.Equal("riley", reloaded.FamilyMemberId);
+        Assert.Null(reloaded.DecorativeAvatar);
+        Assert.Null(series!.DecorativeAvatarReferenceType);
+        Assert.Null(series.DecorativeAvatarReferenceId);
+    }
+
+
+
+    [Fact]
+    public async Task CreateRecurringSeriesCanOmitDecorativeAvatar()
+    {
+        var created = await CreateRecurringTask($"No decoration recurrence {Guid.NewGuid()}", TaskRecurrenceFrequency.Weekly, null);
+        Assert.NotNull(created.RecurringTaskSeriesId);
+        Assert.Null(created.DecorativeAvatar);
+    }
+
+    [Fact]
+    public async Task CreateRecurringSeriesWithFamilyMemberDecorativeAvatarPropagatesToGeneratedOccurrences()
+    {
+        var created = await CreateRecurringTask($"Riley recurring decoration {Guid.NewGuid()}", TaskRecurrenceFrequency.Weekly, new HomeOps.Api.Lists.DecorativeAvatarReferenceDto(HomeOps.Api.Lists.DecorativeAvatarReferenceType.FamilyMember, "riley"));
+
+        var tasks = await _client.GetFromJsonAsync<IReadOnlyCollection<HouseholdTaskDto>>("/api/tasks");
+        var seriesTasks = tasks!.Where(task => task.RecurringTaskSeriesId == created.RecurringTaskSeriesId).ToList();
+
+        Assert.NotNull(created.RecurringTaskSeriesId);
+        Assert.True(seriesTasks.Count >= 2);
+        Assert.All(seriesTasks, task =>
+        {
+            Assert.Equal(TaskRecurrenceFrequency.Weekly, task.RecurrenceFrequency);
+            Assert.Equal(HomeOps.Api.Lists.DecorativeAvatarReferenceType.FamilyMember, task.DecorativeAvatar?.ReferenceType);
+            Assert.Equal("riley", task.DecorativeAvatar?.ReferenceId);
+        });
+    }
+
+    [Fact]
+    public async Task CreateRecurringSeriesWithKnownPersonDecorativeAvatarPersistsSeriesReference()
+    {
+        var known = await CreateKnownPerson($"Recurring Grandma {Guid.NewGuid()}");
+        var created = await CreateRecurringTask($"Known recurring decoration {Guid.NewGuid()}", TaskRecurrenceFrequency.Weekly, new HomeOps.Api.Lists.DecorativeAvatarReferenceDto(HomeOps.Api.Lists.DecorativeAvatarReferenceType.KnownPerson, known.Id.ToString()));
+
+        using var scope = _factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<HomeOps.Api.Data.HomeOpsDbContext>();
+        var series = await dbContext.RecurringTaskSeries.FindAsync(created.RecurringTaskSeriesId);
+
+        Assert.Equal(HomeOps.Api.Lists.DecorativeAvatarReferenceType.KnownPerson, series!.DecorativeAvatarReferenceType);
+        Assert.Equal(known.Id.ToString(), series.DecorativeAvatarReferenceId);
+    }
+
+    [Fact]
+    public async Task UpdatingRecurringSeriesChangesAndClearsDecorationForRegeneratedOccurrences()
+    {
+        var known = await CreateKnownPerson($"Series Update Grandma {Guid.NewGuid()}");
+        var created = await CreateRecurringTask($"Update recurring decoration {Guid.NewGuid()}", TaskRecurrenceFrequency.Weekly, new HomeOps.Api.Lists.DecorativeAvatarReferenceDto(HomeOps.Api.Lists.DecorativeAvatarReferenceType.KnownPerson, known.Id.ToString()));
+
+        var update = await _client.PutAsJsonAsync($"/api/tasks/{created.Id}", new UpdateHouseholdTaskRequest(created.Title, created.DueDate, created.OwnershipKind, created.FamilyMemberId, TaskRecurrenceFrequency.Weekly, new HomeOps.Api.Lists.DecorativeAvatarReferenceDto(HomeOps.Api.Lists.DecorativeAvatarReferenceType.FamilyMember, "alex")));
+        update.EnsureSuccessStatusCode();
+        var afterUpdate = await _client.GetFromJsonAsync<IReadOnlyCollection<HouseholdTaskDto>>("/api/tasks");
+        var updatedSeriesTasks = afterUpdate!.Where(task => task.RecurringTaskSeriesId == created.RecurringTaskSeriesId).ToList();
+        Assert.All(updatedSeriesTasks, task => Assert.Equal("alex", task.DecorativeAvatar?.ReferenceId));
+        Assert.All(updatedSeriesTasks, task => Assert.Equal(TaskRecurrenceFrequency.Weekly, task.RecurrenceFrequency));
+
+        var first = updatedSeriesTasks.OrderBy(task => task.DueDate).First();
+        var clear = await _client.PutAsJsonAsync($"/api/tasks/{first.Id}", new UpdateHouseholdTaskRequest(first.Title, first.DueDate, first.OwnershipKind, first.FamilyMemberId, TaskRecurrenceFrequency.Weekly, null));
+        clear.EnsureSuccessStatusCode();
+        var afterClear = await _client.GetFromJsonAsync<IReadOnlyCollection<HouseholdTaskDto>>("/api/tasks");
+        var clearedSeriesTasks = afterClear!.Where(task => task.RecurringTaskSeriesId == created.RecurringTaskSeriesId).ToList();
+
+        Assert.All(clearedSeriesTasks, task => Assert.Null(task.DecorativeAvatar));
+        Assert.All(clearedSeriesTasks, task => Assert.Equal(TaskRecurrenceFrequency.Weekly, task.RecurrenceFrequency));
+    }
+
+    [Fact]
+    public async Task RecurringDecorativeAvatarRejectsInvalidReferences()
+    {
+        var known = await CreateKnownPerson($"Recurring Mismatch {Guid.NewGuid()}");
+        await AssertBadRequest(_client.PostAsJsonAsync("/api/tasks", new CreateHouseholdTaskRequest("Recurring missing member", DateOnly.FromDateTime(DateTime.UtcNow), TaskOwnershipKind.Unassigned, null, TaskRecurrenceFrequency.Weekly, new HomeOps.Api.Lists.DecorativeAvatarReferenceDto(HomeOps.Api.Lists.DecorativeAvatarReferenceType.FamilyMember, "missing-member"))));
+        await AssertBadRequest(_client.PostAsJsonAsync("/api/tasks", new CreateHouseholdTaskRequest("Recurring mismatch", DateOnly.FromDateTime(DateTime.UtcNow), TaskOwnershipKind.Unassigned, null, TaskRecurrenceFrequency.Weekly, new HomeOps.Api.Lists.DecorativeAvatarReferenceDto(HomeOps.Api.Lists.DecorativeAvatarReferenceType.FamilyMember, known.Id.ToString()))));
+        await AssertBadRequest(_client.PostAsJsonAsync("/api/tasks", new { title = "Recurring bad pair", dueDate = DateOnly.FromDateTime(DateTime.UtcNow), ownershipKind = "Unassigned", recurrenceFrequency = "Weekly", decorativeAvatar = new { referenceType = "FamilyMember" } }));
+    }
+
+    [Fact]
+    public async Task DeletingFamilyMemberClearsOneOffTaskAndRecurringSeriesDecorativeReferencesOnly()
+    {
+        var decorativeMember = await CreateFamilyMember($"Decorative Temp {Guid.NewGuid():N}");
+        var oneOff = await CreateOneOffTask($"One-off family delete {Guid.NewGuid()}", TaskOwnershipKind.FamilyMember, "alex", new HomeOps.Api.Lists.DecorativeAvatarReferenceDto(HomeOps.Api.Lists.DecorativeAvatarReferenceType.FamilyMember, decorativeMember.Id));
+        var recurring = await CreateRecurringTask($"Recurring family delete {Guid.NewGuid()}", TaskRecurrenceFrequency.Weekly, new HomeOps.Api.Lists.DecorativeAvatarReferenceDto(HomeOps.Api.Lists.DecorativeAvatarReferenceType.FamilyMember, decorativeMember.Id));
+
+        var delete = await _client.DeleteAsync($"/api/family-members/{decorativeMember.Id}");
+        delete.EnsureSuccessStatusCode();
+        var tasks = await _client.GetFromJsonAsync<IReadOnlyCollection<HouseholdTaskDto>>("/api/tasks");
+        var reloadedOneOff = tasks!.Single(task => task.Id == oneOff.Id);
+
+        using var scope = _factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<HomeOps.Api.Data.HomeOpsDbContext>();
+        var series = await dbContext.RecurringTaskSeries.FindAsync(recurring.RecurringTaskSeriesId);
+
+        Assert.Equal("alex", reloadedOneOff.FamilyMemberId);
+        Assert.Null(reloadedOneOff.DecorativeAvatar);
+        Assert.Null(series!.DecorativeAvatarReferenceType);
+        Assert.Null(series.DecorativeAvatarReferenceId);
+        Assert.Equal(TaskRecurrenceFrequency.Weekly, series.Frequency);
+    }
+
+    private async Task<HouseholdTaskDto> CreateOneOffTask(string title, TaskOwnershipKind ownershipKind, string? familyMemberId, HomeOps.Api.Lists.DecorativeAvatarReferenceDto? decorativeAvatar)
+    {
+        var response = await _client.PostAsJsonAsync("/api/tasks", new CreateHouseholdTaskRequest(title, DateOnly.FromDateTime(DateTime.UtcNow), ownershipKind, familyMemberId, TaskRecurrenceFrequency.None, decorativeAvatar));
+        response.EnsureSuccessStatusCode();
+        return (await response.Content.ReadFromJsonAsync<HouseholdTaskDto>())!;
+    }
+
+    private async Task<HouseholdTaskDto> CreateRecurringTask(string title, TaskRecurrenceFrequency frequency, HomeOps.Api.Lists.DecorativeAvatarReferenceDto? decorativeAvatar)
+    {
+        var response = await _client.PostAsJsonAsync("/api/tasks", new CreateHouseholdTaskRequest(title, DateOnly.FromDateTime(DateTime.UtcNow), TaskOwnershipKind.Unassigned, null, frequency, decorativeAvatar));
+        response.EnsureSuccessStatusCode();
+        return (await response.Content.ReadFromJsonAsync<HouseholdTaskDto>())!;
+    }
+
+    private static async Task AssertBadRequest(Task<HttpResponseMessage> request)
+    {
+        var response = await request;
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+
+    private async Task<HomeOps.Api.FamilyMembers.FamilyMemberDto> CreateFamilyMember(string name)
+    {
+        var response = await _client.PostAsJsonAsync("/api/family-members", new HomeOps.Api.FamilyMembers.CreateFamilyMemberRequest(name, HomeOps.Api.FamilyMembers.FamilyMemberKind.Adult, null, "#fef3c7", "DT", null, null));
+        response.EnsureSuccessStatusCode();
+        return (await response.Content.ReadFromJsonAsync<HomeOps.Api.FamilyMembers.FamilyMemberDto>())!;
+    }
+
+    private async Task<HomeOps.Api.KnownPeople.KnownPersonDto> CreateKnownPerson(string name)
+    {
+        var response = await _client.PostAsJsonAsync("/api/known-people", new HomeOps.Api.KnownPeople.CreateKnownPersonRequest(name, null, HomeOps.Api.KnownPeople.KnownPersonRelationshipType.Grandparent, null, HomeOps.Api.KnownPeople.KnownPersonScope.Shared, null, null, null));
+        response.EnsureSuccessStatusCode();
+        return (await response.Content.ReadFromJsonAsync<HomeOps.Api.KnownPeople.KnownPersonDto>())!;
+    }
+}

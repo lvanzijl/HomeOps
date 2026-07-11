@@ -3,6 +3,7 @@ using System;
 using HomeOps.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace HomeOps.Api.Migrations
 {
     [DbContext(typeof(HomeOpsDbContext))]
-    partial class HomeOpsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260711064618_AddTaskDecorativeAvatars")]
+    partial class AddTaskDecorativeAvatars
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1192,14 +1195,6 @@ namespace HomeOps.Api.Migrations
                     b.Property<DateTimeOffset>("CreatedUtc")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("DecorativeAvatarReferenceId")
-                        .HasMaxLength(120)
-                        .HasColumnType("character varying(120)");
-
-                    b.Property<string>("DecorativeAvatarReferenceType")
-                        .HasMaxLength(32)
-                        .HasColumnType("character varying(32)");
-
                     b.Property<string>("FamilyMemberId")
                         .HasMaxLength(120)
                         .HasColumnType("character varying(120)");
@@ -1235,14 +1230,9 @@ namespace HomeOps.Api.Migrations
 
                     b.HasIndex("FamilyMemberId");
 
-                    b.HasIndex("DecorativeAvatarReferenceType", "DecorativeAvatarReferenceId");
-
                     b.HasIndex("HouseholdId", "IsDeleted", "StartDate");
 
-                    b.ToTable("RecurringTaskSeries", null, t =>
-                        {
-                            t.HasCheckConstraint("CK_RecurringTaskSeries_DecorativeAvatar_NullablePair", "(\"DecorativeAvatarReferenceType\" IS NULL AND \"DecorativeAvatarReferenceId\" IS NULL) OR (\"DecorativeAvatarReferenceType\" IS NOT NULL AND \"DecorativeAvatarReferenceId\" IS NOT NULL)");
-                        });
+                    b.ToTable("RecurringTaskSeries", (string)null);
                 });
 
             modelBuilder.Entity("HomeOps.Api.Tasks.TaskTemplate", b =>

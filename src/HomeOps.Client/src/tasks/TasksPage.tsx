@@ -20,11 +20,16 @@ import {
   updateTaskTemplate,
 } from "./tasksApi";
 import { groupTasksByTime } from "./taskGrouping";
+import { DecorativeAvatarBadge } from "../avatarContacts/DecorativeAvatar";
+import { listKnownPeople } from "../knownPeople/knownPeopleApi";
+import type { KnownPerson } from "../knownPeople/knownPeople";
+import { DecorativeAvatarPicker, resolveDecorativeAvatar } from "../avatarContacts/DecorativeAvatarPicker";
 import { useVisualReviewNow } from "../visualReviewTime";
 import type {
   HouseholdTask,
   TaskOwnershipKind,
   TaskRecurrenceFrequency,
+  TaskDecorativeAvatarReference,
   TaskTimeGroup,
   TaskTemplate,
 } from "./tasksModel";
@@ -59,6 +64,8 @@ export function TasksPage({
   const [familyMemberId, setFamilyMemberId] = useState(members[0]?.id ?? "");
   const [recurrenceFrequency, setRecurrenceFrequency] =
     useState<TaskRecurrenceFrequency>("None");
+  const [decorativeAvatar, setDecorativeAvatar] = useState<TaskDecorativeAvatarReference | null>(null);
+  const [knownPeople, setKnownPeople] = useState<readonly KnownPerson[]>([]);
   const [editingTask, setEditingTask] = useState<HouseholdTask | null>(null);
   const [isTaskFormOpen, setIsTaskFormOpen] = useState(false);
   const [taskDialogQuestion, setTaskDialogQuestion] =
@@ -267,6 +274,7 @@ export function TasksPage({
     setDueDate("");
     setOwnership("Unassigned");
     setRecurrenceFrequency("None");
+    setDecorativeAvatar(null);
     setEditingTask(null);
     setIsTaskFormOpen(false);
     setTaskDialogQuestion("title");
@@ -279,6 +287,7 @@ export function TasksPage({
     setOwnership("Unassigned");
     setFamilyMemberId(members[0]?.id ?? "");
     setRecurrenceFrequency("None");
+    setDecorativeAvatar(null);
     setTaskDialogQuestion("title");
     setIsTaskFormOpen(true);
   }
@@ -289,6 +298,7 @@ export function TasksPage({
       try {
         setTasks(await loadTasks());
         setTemplates(await loadTaskTemplates());
+        setKnownPeople(await listKnownPeople());
       } catch {
         if (!ignore) setError("Taken konden niet worden geladen.");
       } finally {
@@ -310,6 +320,7 @@ export function TasksPage({
         ownershipKind: ownership,
         familyMemberId: ownership === "FamilyMember" ? familyMemberId : null,
         recurrenceFrequency,
+        ...(decorativeAvatar || editingTask?.decorativeAvatar ? { decorativeAvatar } : {}),
       };
       const saved = editingTask
         ? await saveTask(editingTask.id, payload)
@@ -394,6 +405,7 @@ export function TasksPage({
         ownershipKind: task.ownershipKind,
         familyMemberId: task.familyMemberId,
         recurrenceFrequency: task.recurrenceFrequency ?? "None",
+        ...(task.decorativeAvatar ? { decorativeAvatar: task.decorativeAvatar } : {}),
       })
         .then(async () => setTasks(await loadTasks()))
         .catch(() => setError("Datum kon niet worden opgeslagen."));
@@ -406,6 +418,7 @@ export function TasksPage({
     setOwnership(task.ownershipKind);
     setFamilyMemberId(task.familyMemberId ?? members[0]?.id ?? "");
     setRecurrenceFrequency(task.recurrenceFrequency ?? "None");
+    setDecorativeAvatar(task.decorativeAvatar ?? null);
     setTaskDialogQuestion("title");
     setIsTaskFormOpen(true);
   }
@@ -463,6 +476,7 @@ export function TasksPage({
         ownershipKind: task.ownershipKind,
         familyMemberId: task.familyMemberId,
         recurrenceFrequency: task.recurrenceFrequency ?? "None",
+        ...(task.decorativeAvatar ? { decorativeAvatar: task.decorativeAvatar } : {}),
       });
       setTasks((current) =>
         current.map((item) => (item.id === updated.id ? updated : item)),
@@ -521,6 +535,7 @@ export function TasksPage({
           countOverride={todayGroup.tasks.length}
           density="primary"
           group={todayGroup}
+          knownPeople={knownPeople}
           members={members}
           tasks={isLoading ? [] : visibleTodayTasks}
           todayDate={todayDate}
@@ -770,6 +785,7 @@ export function TasksPage({
                         <option value="Monthly">Maandelijks</option>
                       </select>
                     </label>
+                    <DecorativeAvatarPicker familyMembers={members} knownPeople={knownPeople} suggestionText={title} onChange={setDecorativeAvatar} value={decorativeAvatar} label="Decoratieve avatar voor taak" />
                     <p className="task-dialog-summary">
                       {taskSummary(
                         title,
@@ -854,6 +870,7 @@ export function TasksPage({
             <PlanningDetailPanel
               activeSection={activePanel.section}
               laterGroup={laterGroup}
+              knownPeople={knownPeople}
               members={members}
               thisWeekGroup={thisWeekGroup}
               todayDate={todayDate}
@@ -874,6 +891,7 @@ export function TasksPage({
             <TaskGroup
               density="primary"
               group={todayGroup}
+              knownPeople={knownPeople}
               members={members}
               tasks={todayGroup.tasks}
               todayDate={todayDate}
@@ -891,6 +909,7 @@ export function TasksPage({
             <TaskGroup
               density="compact"
               group={completedTaskGroup}
+              knownPeople={knownPeople}
               members={members}
               tasks={completedTaskGroup.tasks}
               todayDate={todayDate}
@@ -1158,6 +1177,7 @@ function PlanningSummaryPanel({
 function PlanningDetailPanel({
   activeSection,
   laterGroup,
+  knownPeople,
   members,
   thisWeekGroup,
   todayDate,
@@ -1173,6 +1193,7 @@ function PlanningDetailPanel({
 }: {
   activeSection: PlanningSection;
   laterGroup: TaskTimeGroup;
+  knownPeople: readonly KnownPerson[];
   members: readonly FamilyMember[];
   thisWeekGroup: TaskTimeGroup;
   todayDate: Date;
@@ -1231,6 +1252,7 @@ function PlanningDetailPanel({
       <TaskGroup
         density={activeSection === "later" ? "compact" : "planning"}
         group={activeGroup}
+        knownPeople={knownPeople}
         members={members}
         tasks={activeGroup.tasks}
         todayDate={todayDate}
@@ -1317,6 +1339,7 @@ function TaskGroup({
   emptyState,
   footerAction,
   group,
+  knownPeople,
   members,
   scrollable = false,
   tasks,
@@ -1334,6 +1357,7 @@ function TaskGroup({
   emptyState?: ReactNode;
   footerAction?: ReactNode;
   group: import("./tasksModel").TaskTimeGroup;
+  knownPeople: readonly KnownPerson[];
   members: readonly FamilyMember[];
   scrollable?: boolean;
   tasks: readonly HouseholdTask[];
@@ -1372,6 +1396,7 @@ function TaskGroup({
               density={density}
               groupId={group.id}
               key={task.id}
+              knownPeople={knownPeople}
               members={members}
               task={task}
               todayDate={todayDate}
@@ -1394,6 +1419,7 @@ function TaskGroup({
 function TaskCard({
   density,
   groupId,
+  knownPeople,
   members,
   task,
   todayDate,
@@ -1407,6 +1433,7 @@ function TaskCard({
 }: {
   density: "primary" | "planning" | "compact";
   groupId: string;
+  knownPeople: readonly KnownPerson[];
   members: readonly FamilyMember[];
   task: HouseholdTask;
   todayDate: Date;
@@ -1441,6 +1468,7 @@ function TaskCard({
       aria-selected={isSelected}
     >
       <div className="task-card-visual" aria-hidden="true">
+        <DecorativeAvatarBadge identity={resolveDecorativeAvatar(task.decorativeAvatar, members, knownPeople)} label={`Decoratieve avatar voor ${task.title}`} />
         <TaskCardIcon
           variant={
             task.isCompleted ? "completed" : isRecurring ? "recurring" : groupId

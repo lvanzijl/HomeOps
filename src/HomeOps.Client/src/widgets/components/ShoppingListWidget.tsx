@@ -4,8 +4,8 @@ import type { ShoppingDecorativeAvatarReference, ShoppingListItem, ShoppingListS
 import { groupShoppingItemsByPreferredStore } from '../../shopping/shoppingGrouping';
 import { getActiveShoppingListItems, getCompletedShoppingListItems, getDeletedShoppingListItems, upsertShoppingListItem } from '../../shopping/shoppingListState';
 import type { WidgetRenderProps } from '../WidgetRenderer';
-import { DecorativeAvatarBadge, type DecorativeAvatarIdentity } from '../../avatarContacts/DecorativeAvatar';
-import { buildDecorativeAvatarSuggestionCandidates, rankDecorativeAvatarSuggestions } from '../../avatarContacts/decorativeAvatarSuggestions';
+import { DecorativeAvatarBadge } from '../../avatarContacts/DecorativeAvatar';
+import { DecorativeAvatarPicker, resolveDecorativeAvatar } from '../../avatarContacts/DecorativeAvatarPicker';
 import { loadFamilyMembers } from '../../home/familyMembersApi';
 import type { FamilyMember } from '../../home/familyMembers';
 import { listKnownPeople } from '../../knownPeople/knownPeopleApi';
@@ -717,60 +717,4 @@ function ShoppingListRow({ familyMembers, item, knownPeople, onAvatarChange, onR
       </div>
     </li>
   );
-}
-
-
-interface DecorativeAvatarPickerProps {
-  familyMembers: readonly FamilyMember[];
-  knownPeople: readonly KnownPerson[];
-  label: string;
-  value: ShoppingDecorativeAvatarReference | null;
-  suggestionText: string;
-  onChange(value: ShoppingDecorativeAvatarReference | null): void;
-}
-
-function DecorativeAvatarPicker({ familyMembers, knownPeople, label, onChange, suggestionText, value }: DecorativeAvatarPickerProps) {
-  const selected = value ? `${value.referenceType}:${value.referenceId}` : '';
-  const suggestions = rankDecorativeAvatarSuggestions(suggestionText, buildDecorativeAvatarSuggestionCandidates(familyMembers, knownPeople));
-  return (
-    <label className="shopping-avatar-picker">
-      <span className="visually-hidden">{label}</span>
-      <select aria-label={label} onChange={(event) => onChange(parseDecorativeAvatarPickerValue(event.target.value))} value={selected}>
-        <option value="">Geen avatar</option>
-        {suggestions.length > 0 ? (
-          <optgroup label="Suggested">
-            {suggestions.map((suggestion) => (
-              <option key={`suggested:${suggestion.candidate.reference.referenceType}:${suggestion.candidate.reference.referenceId}`} value={`${suggestion.candidate.reference.referenceType}:${suggestion.candidate.reference.referenceId}`}>{suggestion.candidate.displayName}</option>
-            ))}
-          </optgroup>
-        ) : null}
-        <optgroup label="Family Members">
-          {familyMembers.map((member) => <option key={member.id} value={`familyMember:${member.id}`}>{member.name}</option>)}
-        </optgroup>
-        <optgroup label="Shared People">
-          {knownPeople.filter((person) => person.scope === 'shared').map((person) => <option key={person.id} value={`knownPerson:${person.id}`}>{person.displayName}</option>)}
-        </optgroup>
-        <optgroup label="Private People">
-          {knownPeople.filter((person) => person.scope === 'privateToMember').map((person) => <option key={person.id} value={`knownPerson:${person.id}`}>{person.displayName}</option>)}
-        </optgroup>
-      </select>
-    </label>
-  );
-}
-
-function parseDecorativeAvatarPickerValue(value: string): ShoppingDecorativeAvatarReference | null {
-  if (!value) return null;
-  const [referenceType, referenceId] = value.split(':');
-  if ((referenceType !== 'familyMember' && referenceType !== 'knownPerson') || !referenceId) return null;
-  return { referenceType, referenceId };
-}
-
-function resolveDecorativeAvatar(reference: ShoppingDecorativeAvatarReference | null | undefined, familyMembers: readonly FamilyMember[], knownPeople: readonly KnownPerson[]): DecorativeAvatarIdentity | null {
-  if (!reference) return null;
-  if (reference.referenceType === 'familyMember') {
-    const member = familyMembers.find((candidate) => candidate.id === reference.referenceId);
-    return member ? { kind: 'familyMember', member } : null;
-  }
-  const person = knownPeople.find((candidate) => candidate.id === reference.referenceId);
-  return person ? { kind: 'knownPerson', person } : null;
 }

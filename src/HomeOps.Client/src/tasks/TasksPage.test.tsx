@@ -4,6 +4,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { familyMembers } from "../home/familyMembers";
 import { TasksPage } from "./TasksPage";
 import type { HouseholdTask } from "./tasksModel";
+import type { KnownPerson } from "../knownPeople/knownPeople";
+
+vi.mock("../knownPeople/knownPeopleApi", () => ({
+  listKnownPeople: vi.fn(),
+}));
 
 vi.mock("./tasksApi", () => ({
   loadTasks: vi.fn(),
@@ -25,6 +30,24 @@ vi.mock("./tasksApi", () => ({
 async function tasksApi() {
   return await import("./tasksApi");
 }
+
+async function knownPeopleApi() {
+  return await import("../knownPeople/knownPeopleApi");
+}
+
+const knownPeople: KnownPerson[] = [
+  {
+    id: "known-1",
+    displayName: "Grandma",
+    nickname: null,
+    relationshipType: "grandparent",
+    customRelationshipLabel: null,
+    scope: "shared",
+    familyMemberId: null,
+    initials: "G",
+    avatarSelection: { schemaVersion: "avatar-catalog-v1", selections: {} as never },
+  },
+];
 
 function task(overrides: Partial<HouseholdTask>): HouseholdTask {
   return {
@@ -53,6 +76,7 @@ describe("TasksPage empty state", () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     const api = await tasksApi();
+    vi.mocked((await knownPeopleApi()).listKnownPeople).mockResolvedValue(knownPeople);
     vi.mocked(api.loadTasks).mockResolvedValue([]);
     vi.mocked(api.loadTaskTemplates).mockResolvedValue([]);
   });
@@ -78,6 +102,7 @@ describe("TasksPage hierarchy compaction", () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     const api = await tasksApi();
+    vi.mocked((await knownPeopleApi()).listKnownPeople).mockResolvedValue(knownPeople);
     vi.mocked(api.loadTasks).mockResolvedValue([
       task({
         id: "overdue",
@@ -153,6 +178,7 @@ describe("TasksPage hierarchy compaction", () => {
     vi.setSystemTime(new Date("2026-06-20T08:00:00Z"));
     const user = userEvent.setup();
     const api = await tasksApi();
+    vi.mocked((await knownPeopleApi()).listKnownPeople).mockResolvedValue(knownPeople);
     vi.mocked(api.loadTasks).mockResolvedValue([
       task({ id: "today", title: "Pack lunches", dueDate: "2026-06-20" }),
       task({ id: "tomorrow", title: "Prep swim bag", dueDate: "2026-06-21" }),
@@ -184,6 +210,7 @@ describe("TasksPage hierarchy compaction", () => {
     vi.setSystemTime(new Date("2026-06-20T08:00:00Z"));
     const user = userEvent.setup();
     const api = await tasksApi();
+    vi.mocked((await knownPeopleApi()).listKnownPeople).mockResolvedValue(knownPeople);
     vi.mocked(api.loadTasks).mockResolvedValue([
       task({ id: "normal", title: "Empty dishwasher", dueDate: "2026-06-20" }),
       task({ id: "overdue", title: "Return library books", dueDate: "2026-06-19" }),
@@ -236,6 +263,7 @@ describe("TasksPage hierarchy compaction", () => {
     vi.setSystemTime(new Date("2026-06-20T08:00:00Z"));
     const user = userEvent.setup();
     const api = await tasksApi();
+    vi.mocked((await knownPeopleApi()).listKnownPeople).mockResolvedValue(knownPeople);
     vi.mocked(api.createTask).mockResolvedValue(
       task({ id: "new", title: "Water plants" }),
     );
@@ -289,6 +317,7 @@ describe("TasksPage hierarchy compaction", () => {
   it("preserves task editing and closes the dialog with Escape", async () => {
     const user = userEvent.setup();
     const api = await tasksApi();
+    vi.mocked((await knownPeopleApi()).listKnownPeople).mockResolvedValue(knownPeople);
     vi.mocked(api.updateTask).mockResolvedValue(
       task({ id: "overdue", title: "Return library bags" }),
     );
@@ -338,12 +367,76 @@ describe("TasksPage hierarchy compaction", () => {
       screen.queryByRole("dialog", { name: "Gezinstaak toevoegen" }),
     ).toBeNull();
   });
+
+
+  it("sends decorative avatar fields when creating a recurring task", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    vi.setSystemTime(new Date("2026-06-20T08:00:00Z"));
+    const user = userEvent.setup();
+    const api = await tasksApi();
+    vi.mocked(api.createTask).mockResolvedValue(task({ id: "new", title: "Grandma gift", recurrenceFrequency: "Weekly", decorativeAvatar: { referenceType: "knownPerson", referenceId: "known-1" } }));
+    render(<TasksPage members={familyMembers} />);
+
+    await screen.findByText("Return library books");
+    await user.click(screen.getByRole("button", { name: "Gezinstaak toevoegen" }));
+    const dialog = screen.getByRole("dialog", { name: "Gezinstaak toevoegen" });
+    await user.type(within(dialog).getByLabelText("Wat moet er gebeuren?"), "Grandma gift");
+    await user.click(within(dialog).getByRole("button", { name: "Verder" }));
+    await user.click(within(dialog).getByRole("button", { name: "Verder" }));
+    await user.click(within(dialog).getByRole("button", { name: "Verder" }));
+    await user.selectOptions(within(dialog).getByLabelText("Herhaling"), "Weekly");
+    const avatarSelect = within(dialog).getByLabelText("Decoratieve avatar voor taak");
+    expect(within(avatarSelect).getByRole("group", { name: "Suggested" })).not.toBeNull();
+    await user.selectOptions(avatarSelect, "knownPerson:known-1");
+    await user.click(within(dialog).getByRole("button", { name: "Taak maken" }));
+
+    expect(vi.mocked(api.createTask)).toHaveBeenCalledWith({
+      title: "Grandma gift",
+      dueDate: "2026-06-20",
+      ownershipKind: "Unassigned",
+      familyMemberId: null,
+      recurrenceFrequency: "Weekly",
+      decorativeAvatar: { referenceType: "knownPerson", referenceId: "known-1" },
+    });
+  });
+
+  it("renders inherited decorative avatars and sends clears while assignment stays unchanged", async () => {
+    const user = userEvent.setup();
+    const api = await tasksApi();
+    vi.mocked(api.loadTasks).mockResolvedValue([
+      task({ id: "recurring-decorated", title: "Grandma gift", dueDate: "2026-06-20", recurrenceFrequency: "Weekly", recurringTaskSeriesId: "series-1", ownershipKind: "FamilyMember", familyMemberId: "alex", decorativeAvatar: { referenceType: "knownPerson", referenceId: "known-1" } }),
+    ]);
+    vi.mocked(api.updateTask).mockResolvedValue(task({ id: "recurring-decorated", title: "Grandma gift", ownershipKind: "FamilyMember", familyMemberId: "alex", recurrenceFrequency: "Weekly", recurringTaskSeriesId: "series-1", decorativeAvatar: null }));
+    render(<TasksPage members={familyMembers} />);
+
+    const card = (await screen.findByText("Grandma gift")).closest("li")!;
+    expect(within(card).getByLabelText("Decoratieve avatar voor Grandma gift")).not.toBeNull();
+    expect(within(card).getByText("Alex")).not.toBeNull();
+    await user.click(within(card).getByRole("button", { name: "Aanpassen" }));
+    const dialog = screen.getByRole("dialog", { name: "Taak aanpassen" });
+    await user.click(within(dialog).getByRole("button", { name: "Verder" }));
+    await user.click(within(dialog).getByRole("button", { name: "Verder" }));
+    await user.click(within(dialog).getByRole("button", { name: "Verder" }));
+    await user.selectOptions(within(dialog).getByLabelText("Decoratieve avatar voor taak"), "");
+    await user.click(within(dialog).getByRole("button", { name: "Taak opslaan" }));
+
+    expect(vi.mocked(api.updateTask)).toHaveBeenCalledWith("recurring-decorated", {
+      title: "Grandma gift",
+      dueDate: "2026-06-20",
+      ownershipKind: "FamilyMember",
+      familyMemberId: "alex",
+      recurrenceFrequency: "Weekly",
+      decorativeAvatar: null,
+    });
+  });
+
 });
 
 describe("TasksPage templates", () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     const api = await tasksApi();
+    vi.mocked((await knownPeopleApi()).listKnownPeople).mockResolvedValue(knownPeople);
     vi.mocked(api.loadTasks).mockResolvedValue([]);
     vi.mocked(api.loadTaskTemplates).mockResolvedValue([
       {
@@ -371,6 +464,7 @@ describe("TasksPage templates", () => {
   it("keeps templates secondary while preserving template access", async () => {
     const user = userEvent.setup();
     const api = await tasksApi();
+    vi.mocked((await knownPeopleApi()).listKnownPeople).mockResolvedValue(knownPeople);
     render(<TasksPage members={familyMembers} />);
 
     await screen.findByText("Voeg de eerste helpende taak toe");
@@ -385,6 +479,7 @@ describe("TasksPage templates", () => {
   it("keeps Weekly Reset secondary while preserving review actions", async () => {
     const user = userEvent.setup();
     const api = await tasksApi();
+    vi.mocked((await knownPeopleApi()).listKnownPeople).mockResolvedValue(knownPeople);
     vi.mocked(api.loadTasks).mockResolvedValue([
       task({
         id: "review",

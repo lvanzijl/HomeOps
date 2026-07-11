@@ -7568,6 +7568,7 @@ export class HouseholdTaskDto implements IHouseholdTaskDto {
     noDateReviewState?: NoDateTaskReviewState;
     noDateLastReviewedUtc?: Date | undefined;
     archivedUtc?: Date | undefined;
+    decorativeAvatar?: DecorativeAvatarReferenceDto | undefined;
 
     constructor(data?: IHouseholdTaskDto) {
         if (data) {
@@ -7594,6 +7595,7 @@ export class HouseholdTaskDto implements IHouseholdTaskDto {
             this.noDateReviewState = _data["noDateReviewState"];
             this.noDateLastReviewedUtc = _data["noDateLastReviewedUtc"] ? new Date(_data["noDateLastReviewedUtc"].toString()) : undefined as any;
             this.archivedUtc = _data["archivedUtc"] ? new Date(_data["archivedUtc"].toString()) : undefined as any;
+            this.decorativeAvatar = _data["decorativeAvatar"] ? DecorativeAvatarReferenceDto.fromJS(_data["decorativeAvatar"]) : undefined as any;
         }
     }
 
@@ -7620,6 +7622,7 @@ export class HouseholdTaskDto implements IHouseholdTaskDto {
         data["noDateReviewState"] = this.noDateReviewState;
         data["noDateLastReviewedUtc"] = this.noDateLastReviewedUtc ? this.noDateLastReviewedUtc.toISOString() : undefined as any;
         data["archivedUtc"] = this.archivedUtc ? this.archivedUtc.toISOString() : undefined as any;
+        data["decorativeAvatar"] = this.decorativeAvatar ? this.decorativeAvatar.toJSON() : undefined as any;
         return data;
     }
 }
@@ -7639,6 +7642,7 @@ export interface IHouseholdTaskDto {
     noDateReviewState?: NoDateTaskReviewState;
     noDateLastReviewedUtc?: Date | undefined;
     archivedUtc?: Date | undefined;
+    decorativeAvatar?: DecorativeAvatarReferenceDto | undefined;
 }
 
 export enum TaskOwnershipKind {
@@ -7668,6 +7672,7 @@ export class CreateHouseholdTaskRequest implements ICreateHouseholdTaskRequest {
     ownershipKind?: TaskOwnershipKind | undefined;
     familyMemberId?: string | undefined;
     recurrenceFrequency?: TaskRecurrenceFrequency | undefined;
+    decorativeAvatar?: DecorativeAvatarReferenceDto | undefined;
 
     constructor(data?: ICreateHouseholdTaskRequest) {
         if (data) {
@@ -7685,6 +7690,7 @@ export class CreateHouseholdTaskRequest implements ICreateHouseholdTaskRequest {
             this.ownershipKind = _data["ownershipKind"];
             this.familyMemberId = _data["familyMemberId"];
             this.recurrenceFrequency = _data["recurrenceFrequency"];
+            this.decorativeAvatar = _data["decorativeAvatar"] ? DecorativeAvatarReferenceDto.fromJS(_data["decorativeAvatar"]) : undefined as any;
         }
     }
 
@@ -7702,6 +7708,7 @@ export class CreateHouseholdTaskRequest implements ICreateHouseholdTaskRequest {
         data["ownershipKind"] = this.ownershipKind;
         data["familyMemberId"] = this.familyMemberId;
         data["recurrenceFrequency"] = this.recurrenceFrequency;
+        data["decorativeAvatar"] = this.decorativeAvatar ? this.decorativeAvatar.toJSON() : undefined as any;
         return data;
     }
 }
@@ -7712,6 +7719,7 @@ export interface ICreateHouseholdTaskRequest {
     ownershipKind?: TaskOwnershipKind | undefined;
     familyMemberId?: string | undefined;
     recurrenceFrequency?: TaskRecurrenceFrequency | undefined;
+    decorativeAvatar?: DecorativeAvatarReferenceDto | undefined;
 }
 
 export class UpdateHouseholdTaskRequest implements IUpdateHouseholdTaskRequest {
@@ -7720,6 +7728,7 @@ export class UpdateHouseholdTaskRequest implements IUpdateHouseholdTaskRequest {
     ownershipKind?: TaskOwnershipKind | undefined;
     familyMemberId?: string | undefined;
     recurrenceFrequency?: TaskRecurrenceFrequency | undefined;
+    decorativeAvatar?: DecorativeAvatarReferenceDto | undefined;
 
     constructor(data?: IUpdateHouseholdTaskRequest) {
         if (data) {
@@ -7737,6 +7746,7 @@ export class UpdateHouseholdTaskRequest implements IUpdateHouseholdTaskRequest {
             this.ownershipKind = _data["ownershipKind"];
             this.familyMemberId = _data["familyMemberId"];
             this.recurrenceFrequency = _data["recurrenceFrequency"];
+            this.decorativeAvatar = _data["decorativeAvatar"] ? DecorativeAvatarReferenceDto.fromJS(_data["decorativeAvatar"]) : undefined as any;
         }
     }
 
@@ -7754,6 +7764,7 @@ export class UpdateHouseholdTaskRequest implements IUpdateHouseholdTaskRequest {
         data["ownershipKind"] = this.ownershipKind;
         data["familyMemberId"] = this.familyMemberId;
         data["recurrenceFrequency"] = this.recurrenceFrequency;
+        data["decorativeAvatar"] = this.decorativeAvatar ? this.decorativeAvatar.toJSON() : undefined as any;
         return data;
     }
 }
@@ -7764,6 +7775,7 @@ export interface IUpdateHouseholdTaskRequest {
     ownershipKind?: TaskOwnershipKind | undefined;
     familyMemberId?: string | undefined;
     recurrenceFrequency?: TaskRecurrenceFrequency | undefined;
+    decorativeAvatar?: DecorativeAvatarReferenceDto | undefined;
 }
 
 export class ReviewNoDateTaskRequest implements IReviewNoDateTaskRequest {

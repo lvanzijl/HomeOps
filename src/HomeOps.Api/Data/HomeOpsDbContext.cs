@@ -352,13 +352,18 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
 
         modelBuilder.Entity<RecurringTaskSeries>(entity =>
         {
-            entity.ToTable("RecurringTaskSeries");
+            entity.ToTable("RecurringTaskSeries", table =>
+            {
+                table.HasCheckConstraint("CK_RecurringTaskSeries_DecorativeAvatar_NullablePair", "(\"DecorativeAvatarReferenceType\" IS NULL AND \"DecorativeAvatarReferenceId\" IS NULL) OR (\"DecorativeAvatarReferenceType\" IS NOT NULL AND \"DecorativeAvatarReferenceId\" IS NOT NULL)");
+            });
             entity.HasKey(series => series.Id);
             entity.Property(series => series.Title).HasMaxLength(240).IsRequired();
             entity.Property(series => series.StartDate).HasColumnType("date").IsRequired();
             entity.Property(series => series.Frequency).HasConversion<string>().HasMaxLength(16).IsRequired();
             entity.Property(series => series.OwnershipKind).HasConversion<string>().HasMaxLength(32).IsRequired();
             entity.Property(series => series.FamilyMemberId).HasMaxLength(120);
+            entity.Property(series => series.DecorativeAvatarReferenceType).HasConversion<string>().HasMaxLength(32);
+            entity.Property(series => series.DecorativeAvatarReferenceId).HasMaxLength(120);
             entity.Property(series => series.IsDeleted).IsRequired();
             entity.Property(series => series.CreatedUtc).IsRequired();
             entity.Property(series => series.UpdatedUtc).IsRequired();
@@ -371,6 +376,7 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
                 .HasForeignKey(series => series.FamilyMemberId)
                 .OnDelete(DeleteBehavior.Restrict);
             entity.HasIndex(series => new { series.HouseholdId, series.IsDeleted, series.StartDate });
+            entity.HasIndex(series => new { series.DecorativeAvatarReferenceType, series.DecorativeAvatarReferenceId });
         });
 
 
@@ -414,7 +420,10 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
 
         modelBuilder.Entity<HouseholdTask>(entity =>
         {
-            entity.ToTable("HouseholdTasks");
+            entity.ToTable("HouseholdTasks", table =>
+            {
+                table.HasCheckConstraint("CK_HouseholdTasks_DecorativeAvatar_NullablePair", "(\"DecorativeAvatarReferenceType\" IS NULL AND \"DecorativeAvatarReferenceId\" IS NULL) OR (\"DecorativeAvatarReferenceType\" IS NOT NULL AND \"DecorativeAvatarReferenceId\" IS NOT NULL)");
+            });
             entity.HasKey(task => task.Id);
             entity.Property(task => task.Title).HasMaxLength(240).IsRequired();
             entity.Property(task => task.DueDate).HasColumnType("date");
@@ -427,6 +436,8 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             entity.Property(task => task.ArchivedUtc);
             entity.Property(task => task.RecurringTaskSeriesId);
             entity.Property(task => task.RecurrenceFrequency).HasConversion<string>().HasMaxLength(16).IsRequired();
+            entity.Property(task => task.DecorativeAvatarReferenceType).HasConversion<string>().HasMaxLength(32);
+            entity.Property(task => task.DecorativeAvatarReferenceId).HasMaxLength(120);
             entity.Property(task => task.CreatedUtc).IsRequired();
             entity.Property(task => task.UpdatedUtc).IsRequired();
             entity.HasOne(task => task.Household)
@@ -444,6 +455,7 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             entity.HasIndex(task => new { task.HouseholdId, task.NoDateReviewState, task.DueDate, task.CreatedUtc });
             entity.HasIndex(task => new { task.HouseholdId, task.IsCompleted, task.IsExpired, task.DueDate });
             entity.HasIndex(task => new { task.RecurringTaskSeriesId, task.DueDate }).IsUnique();
+            entity.HasIndex(task => new { task.DecorativeAvatarReferenceType, task.DecorativeAvatarReferenceId });
         });
 
         modelBuilder.Entity<MotivationFamilyGoal>(entity =>
