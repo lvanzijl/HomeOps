@@ -1,0 +1,32 @@
+name: ${COMPOSE_PROJECT_NAME:-familyboard}
+
+services:
+  app:
+    image: ${FAMILYBOARD_IMAGE_REPOSITORY:-familyboard-app}:${FAMILYBOARD_IMAGE_TAG:-dev}
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${FAMILYBOARD_ASPNETCORE_ENVIRONMENT:-Production}
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__HomeOps: Host=postgres;Port=5432;Database=${FAMILYBOARD_DB_NAME:-homeops};Username=${FAMILYBOARD_DB_USER:-homeops};Password=${FAMILYBOARD_DB_PASSWORD:?Set FAMILYBOARD_DB_PASSWORD in .env}
+      CalendarPortability__PreRestoreSnapshotDirectory: ${FAMILYBOARD_CALENDAR_SNAPSHOT_PATH:-/app/data/calendar-restore-snapshots}
+    ports:
+      - "${FAMILYBOARD_HOST_PORT:-8080}:8080"
+    volumes:
+      - ${FAMILYBOARD_APP_DATA_PATH:-/volume1/docker/familyboard/data/app}:/app/data
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${FAMILYBOARD_DB_NAME:-homeops}
+      POSTGRES_USER: ${FAMILYBOARD_DB_USER:-homeops}
+      POSTGRES_PASSWORD: ${FAMILYBOARD_DB_PASSWORD:?Set FAMILYBOARD_DB_PASSWORD in .env}
+    volumes:
+      - ${FAMILYBOARD_POSTGRES_DATA_PATH:-/volume1/docker/familyboard/data/postgres}:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5

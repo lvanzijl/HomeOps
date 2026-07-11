@@ -37,3 +37,18 @@ test-results/
 
 # Repository-local dotnet tools cache
 .dotnet-tools/
+
+# Synology local deployment settings and generated container archives
+build/synology-deploy.local.json
+artifacts/
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+*.img
+*.qcow2
+*.vhd
+*.vhdx
+*.sqlite
+*.db
+*.uploading

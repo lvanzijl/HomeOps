@@ -910,3 +910,8 @@ Showcase Sample C and Showcase Sample D exposed that the wide head variant's ear
 - Refactored the FamilyMember avatar editor into a thin adapter over a reusable AvatarSelection-only editor while preserving FamilyMember labels, save behavior, renderer path, and legacy Avatar V2 config translation.
 - Added frontend KnownPerson models, generated-client-backed KnownPerson API mapping, and a non-navigated KnownPerson avatar editor wrapper for future People surfaces.
 - Validated backend restore/build, frontend build, focused avatar/KnownPerson tests, focused Agenda rerun after a transient full-suite failure, final full frontend tests, and NSwag generation with no generated diff.
+
+## Synology Container Manager Deployment Workflow — 2026-07-11
+- Added a no-registry deployment-tooling slice for Synology DS918+ / Container Manager that publishes the `HomeOps.Api` ASP.NET Core deployable as a linux/amd64 `familyboard-app` container archive, copies it safely to an SMB share, and optionally invokes Synology `deploy.sh` over SSH.
+- Added Synology Compose, `.env.example`, and deployment documentation using PostgreSQL as a separate Compose service with bind-mounted application and database data under `/volume1/docker/familyboard`.
+- Preserved application behavior, domain logic, APIs, persistence semantics, frontend behavior, migrations, and production configuration semantics except for container-publishing metadata required to create the archive.
