@@ -2194,6 +2194,745 @@ export class HomeOpsApiClient {
         return Promise.resolve<void>(null as any);
     }
 
+    getFloors(includeArchived: boolean | null | undefined): Promise<FloorDto[]> {
+        let url_ = this.baseUrl + "/api/floors?";
+        if (includeArchived !== undefined && includeArchived !== null)
+            url_ += "includeArchived=" + encodeURIComponent("" + includeArchived) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetFloors(_response);
+        });
+    }
+
+    protected processGetFloors(response: Response): Promise<FloorDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(FloorDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FloorDto[]>(null as any);
+    }
+
+    createFloor(req: CreateFloorRequest): Promise<FloorDto> {
+        let url_ = this.baseUrl + "/api/floors";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(req);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCreateFloor(_response);
+        });
+    }
+
+    protected processCreateFloor(response: Response): Promise<FloorDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 201) {
+            return response.text().then((_responseText) => {
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result201 = FloorDto.fromJS(resultData201);
+            return result201;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FloorDto>(null as any);
+    }
+
+    getFloor(floorId: string): Promise<FloorDto> {
+        let url_ = this.baseUrl + "/api/floors/{floorId}";
+        if (floorId === undefined || floorId === null)
+            throw new globalThis.Error("The parameter 'floorId' must be defined.");
+        url_ = url_.replace("{floorId}", encodeURIComponent("" + floorId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetFloor(_response);
+        });
+    }
+
+    protected processGetFloor(response: Response): Promise<FloorDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = FloorDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FloorDto>(null as any);
+    }
+
+    updateFloor(floorId: string, req: UpdateFloorRequest): Promise<FloorDto> {
+        let url_ = this.baseUrl + "/api/floors/{floorId}";
+        if (floorId === undefined || floorId === null)
+            throw new globalThis.Error("The parameter 'floorId' must be defined.");
+        url_ = url_.replace("{floorId}", encodeURIComponent("" + floorId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(req);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateFloor(_response);
+        });
+    }
+
+    protected processUpdateFloor(response: Response): Promise<FloorDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = FloorDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FloorDto>(null as any);
+    }
+
+    deleteFloor(floorId: string): Promise<void> {
+        let url_ = this.baseUrl + "/api/floors/{floorId}";
+        if (floorId === undefined || floorId === null)
+            throw new globalThis.Error("The parameter 'floorId' must be defined.");
+        url_ = url_.replace("{floorId}", encodeURIComponent("" + floorId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDeleteFloor(_response);
+        });
+    }
+
+    protected processDeleteFloor(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    reorderFloors(req: ReorderFloorsRequest): Promise<void> {
+        let url_ = this.baseUrl + "/api/floors/reorder";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(req);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processReorderFloors(_response);
+        });
+    }
+
+    protected processReorderFloors(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    archiveFloor(floorId: string): Promise<void> {
+        let url_ = this.baseUrl + "/api/floors/{floorId}/archive";
+        if (floorId === undefined || floorId === null)
+            throw new globalThis.Error("The parameter 'floorId' must be defined.");
+        url_ = url_.replace("{floorId}", encodeURIComponent("" + floorId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processArchiveFloor(_response);
+        });
+    }
+
+    protected processArchiveFloor(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    restoreFloor(floorId: string): Promise<FloorDto> {
+        let url_ = this.baseUrl + "/api/floors/{floorId}/restore";
+        if (floorId === undefined || floorId === null)
+            throw new globalThis.Error("The parameter 'floorId' must be defined.");
+        url_ = url_.replace("{floorId}", encodeURIComponent("" + floorId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRestoreFloor(_response);
+        });
+    }
+
+    protected processRestoreFloor(response: Response): Promise<FloorDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = FloorDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FloorDto>(null as any);
+    }
+
+    getFloorRooms(floorId: string, includeArchived: boolean | null | undefined): Promise<RoomDto[]> {
+        let url_ = this.baseUrl + "/api/floors/{floorId}/rooms?";
+        if (floorId === undefined || floorId === null)
+            throw new globalThis.Error("The parameter 'floorId' must be defined.");
+        url_ = url_.replace("{floorId}", encodeURIComponent("" + floorId));
+        if (includeArchived !== undefined && includeArchived !== null)
+            url_ += "includeArchived=" + encodeURIComponent("" + includeArchived) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetFloorRooms(_response);
+        });
+    }
+
+    protected processGetFloorRooms(response: Response): Promise<RoomDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(RoomDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<RoomDto[]>(null as any);
+    }
+
+    createRoom(floorId: string, req: CreateRoomRequest): Promise<RoomDto> {
+        let url_ = this.baseUrl + "/api/floors/{floorId}/rooms";
+        if (floorId === undefined || floorId === null)
+            throw new globalThis.Error("The parameter 'floorId' must be defined.");
+        url_ = url_.replace("{floorId}", encodeURIComponent("" + floorId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(req);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCreateRoom(_response);
+        });
+    }
+
+    protected processCreateRoom(response: Response): Promise<RoomDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 201) {
+            return response.text().then((_responseText) => {
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result201 = RoomDto.fromJS(resultData201);
+            return result201;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<RoomDto>(null as any);
+    }
+
+    getRoom(roomId: string): Promise<RoomDto> {
+        let url_ = this.baseUrl + "/api/rooms/{roomId}";
+        if (roomId === undefined || roomId === null)
+            throw new globalThis.Error("The parameter 'roomId' must be defined.");
+        url_ = url_.replace("{roomId}", encodeURIComponent("" + roomId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetRoom(_response);
+        });
+    }
+
+    protected processGetRoom(response: Response): Promise<RoomDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = RoomDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<RoomDto>(null as any);
+    }
+
+    updateRoom(roomId: string, req: UpdateRoomRequest): Promise<RoomDto> {
+        let url_ = this.baseUrl + "/api/rooms/{roomId}";
+        if (roomId === undefined || roomId === null)
+            throw new globalThis.Error("The parameter 'roomId' must be defined.");
+        url_ = url_.replace("{roomId}", encodeURIComponent("" + roomId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(req);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateRoom(_response);
+        });
+    }
+
+    protected processUpdateRoom(response: Response): Promise<RoomDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = RoomDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<RoomDto>(null as any);
+    }
+
+    deleteRoom(roomId: string): Promise<void> {
+        let url_ = this.baseUrl + "/api/rooms/{roomId}";
+        if (roomId === undefined || roomId === null)
+            throw new globalThis.Error("The parameter 'roomId' must be defined.");
+        url_ = url_.replace("{roomId}", encodeURIComponent("" + roomId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDeleteRoom(_response);
+        });
+    }
+
+    protected processDeleteRoom(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    reorderRooms(req: ReorderRoomsRequest): Promise<void> {
+        let url_ = this.baseUrl + "/api/rooms/reorder";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(req);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processReorderRooms(_response);
+        });
+    }
+
+    protected processReorderRooms(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    moveRoom(roomId: string, req: MoveRoomRequest): Promise<RoomDto> {
+        let url_ = this.baseUrl + "/api/rooms/{roomId}/move";
+        if (roomId === undefined || roomId === null)
+            throw new globalThis.Error("The parameter 'roomId' must be defined.");
+        url_ = url_.replace("{roomId}", encodeURIComponent("" + roomId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(req);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processMoveRoom(_response);
+        });
+    }
+
+    protected processMoveRoom(response: Response): Promise<RoomDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = RoomDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<RoomDto>(null as any);
+    }
+
+    archiveRoom(roomId: string): Promise<void> {
+        let url_ = this.baseUrl + "/api/rooms/{roomId}/archive";
+        if (roomId === undefined || roomId === null)
+            throw new globalThis.Error("The parameter 'roomId' must be defined.");
+        url_ = url_.replace("{roomId}", encodeURIComponent("" + roomId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processArchiveRoom(_response);
+        });
+    }
+
+    protected processArchiveRoom(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    restoreRoom(roomId: string): Promise<RoomDto> {
+        let url_ = this.baseUrl + "/api/rooms/{roomId}/restore";
+        if (roomId === undefined || roomId === null)
+            throw new globalThis.Error("The parameter 'roomId' must be defined.");
+        url_ = url_.replace("{roomId}", encodeURIComponent("" + roomId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRestoreRoom(_response);
+        });
+    }
+
+    protected processRestoreRoom(response: Response): Promise<RoomDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = RoomDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<RoomDto>(null as any);
+    }
+
     getKnownPeople(scope: KnownPersonScope | null | undefined, familyMemberId: string | null | undefined): Promise<KnownPersonDto[]> {
         let url_ = this.baseUrl + "/api/known-people?";
         if (scope !== undefined && scope !== null)
@@ -5695,6 +6434,8 @@ export class CalendarExportPayload implements ICalendarExportPayload {
     recurrence?: CalendarExportRecurrenceSection;
     exceptions?: CalendarExportEventException[];
     metadata?: { [key: string]: string; };
+    floors?: CalendarExportFloor[] | undefined;
+    rooms?: CalendarExportRoom[] | undefined;
 
     constructor(data?: ICalendarExportPayload) {
         if (data) {
@@ -5730,6 +6471,16 @@ export class CalendarExportPayload implements ICalendarExportPayload {
                     if (_data["metadata"].hasOwnProperty(key))
                         (this.metadata as any)![key] = _data["metadata"][key];
                 }
+            }
+            if (Array.isArray(_data["floors"])) {
+                this.floors = [] as any;
+                for (let item of _data["floors"])
+                    this.floors!.push(CalendarExportFloor.fromJS(item));
+            }
+            if (Array.isArray(_data["rooms"])) {
+                this.rooms = [] as any;
+                for (let item of _data["rooms"])
+                    this.rooms!.push(CalendarExportRoom.fromJS(item));
             }
         }
     }
@@ -5767,6 +6518,16 @@ export class CalendarExportPayload implements ICalendarExportPayload {
                     (data["metadata"] as any)[key] = (this.metadata as any)[key];
             }
         }
+        if (Array.isArray(this.floors)) {
+            data["floors"] = [];
+            for (let item of this.floors)
+                data["floors"].push(item ? item.toJSON() : undefined as any);
+        }
+        if (Array.isArray(this.rooms)) {
+            data["rooms"] = [];
+            for (let item of this.rooms)
+                data["rooms"].push(item ? item.toJSON() : undefined as any);
+        }
         return data;
     }
 }
@@ -5778,6 +6539,8 @@ export interface ICalendarExportPayload {
     recurrence?: CalendarExportRecurrenceSection;
     exceptions?: CalendarExportEventException[];
     metadata?: { [key: string]: string; };
+    floors?: CalendarExportFloor[] | undefined;
+    rooms?: CalendarExportRoom[] | undefined;
 }
 
 export class CalendarExportEventSource implements ICalendarExportEventSource {
@@ -6330,6 +7093,146 @@ export interface ICalendarExportEventException {
     detachedProviderRevision?: string | undefined;
     detachedContentFingerprint?: string | undefined;
     rawDetachedRecurrenceMetadata?: string | undefined;
+}
+
+export class CalendarExportFloor implements ICalendarExportFloor {
+    id?: string;
+    name?: string;
+    sortOrder?: number;
+    isEnabled?: boolean;
+    isArchived?: boolean;
+    archivedUtc?: Date | undefined;
+    createdUtc?: Date;
+    updatedUtc?: Date;
+
+    constructor(data?: ICalendarExportFloor) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.name = _data["name"];
+            this.sortOrder = _data["sortOrder"];
+            this.isEnabled = _data["isEnabled"];
+            this.isArchived = _data["isArchived"];
+            this.archivedUtc = _data["archivedUtc"] ? new Date(_data["archivedUtc"].toString()) : undefined as any;
+            this.createdUtc = _data["createdUtc"] ? new Date(_data["createdUtc"].toString()) : undefined as any;
+            this.updatedUtc = _data["updatedUtc"] ? new Date(_data["updatedUtc"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): CalendarExportFloor {
+        data = typeof data === 'object' ? data : {};
+        let result = new CalendarExportFloor();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["name"] = this.name;
+        data["sortOrder"] = this.sortOrder;
+        data["isEnabled"] = this.isEnabled;
+        data["isArchived"] = this.isArchived;
+        data["archivedUtc"] = this.archivedUtc ? this.archivedUtc.toISOString() : undefined as any;
+        data["createdUtc"] = this.createdUtc ? this.createdUtc.toISOString() : undefined as any;
+        data["updatedUtc"] = this.updatedUtc ? this.updatedUtc.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface ICalendarExportFloor {
+    id?: string;
+    name?: string;
+    sortOrder?: number;
+    isEnabled?: boolean;
+    isArchived?: boolean;
+    archivedUtc?: Date | undefined;
+    createdUtc?: Date;
+    updatedUtc?: Date;
+}
+
+export class CalendarExportRoom implements ICalendarExportRoom {
+    id?: string;
+    floorId?: string;
+    name?: string;
+    roomType?: string;
+    sortOrder?: number;
+    familyMemberId?: string | undefined;
+    isEnabled?: boolean;
+    isArchived?: boolean;
+    archivedUtc?: Date | undefined;
+    createdUtc?: Date;
+    updatedUtc?: Date;
+
+    constructor(data?: ICalendarExportRoom) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.floorId = _data["floorId"];
+            this.name = _data["name"];
+            this.roomType = _data["roomType"];
+            this.sortOrder = _data["sortOrder"];
+            this.familyMemberId = _data["familyMemberId"];
+            this.isEnabled = _data["isEnabled"];
+            this.isArchived = _data["isArchived"];
+            this.archivedUtc = _data["archivedUtc"] ? new Date(_data["archivedUtc"].toString()) : undefined as any;
+            this.createdUtc = _data["createdUtc"] ? new Date(_data["createdUtc"].toString()) : undefined as any;
+            this.updatedUtc = _data["updatedUtc"] ? new Date(_data["updatedUtc"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): CalendarExportRoom {
+        data = typeof data === 'object' ? data : {};
+        let result = new CalendarExportRoom();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["floorId"] = this.floorId;
+        data["name"] = this.name;
+        data["roomType"] = this.roomType;
+        data["sortOrder"] = this.sortOrder;
+        data["familyMemberId"] = this.familyMemberId;
+        data["isEnabled"] = this.isEnabled;
+        data["isArchived"] = this.isArchived;
+        data["archivedUtc"] = this.archivedUtc ? this.archivedUtc.toISOString() : undefined as any;
+        data["createdUtc"] = this.createdUtc ? this.createdUtc.toISOString() : undefined as any;
+        data["updatedUtc"] = this.updatedUtc ? this.updatedUtc.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface ICalendarExportRoom {
+    id?: string;
+    floorId?: string;
+    name?: string;
+    roomType?: string;
+    sortOrder?: number;
+    familyMemberId?: string | undefined;
+    isEnabled?: boolean;
+    isArchived?: boolean;
+    archivedUtc?: Date | undefined;
+    createdUtc?: Date;
+    updatedUtc?: Date;
 }
 
 export class NormalizedEvent implements INormalizedEvent {
@@ -7344,6 +8247,501 @@ export interface IUpdateFamilyMemberRequest {
     dateOfBirth?: Date | undefined;
     avatarV2Config?: AvatarV2ConfigDto | undefined;
     avatarSelection?: AvatarSelectionDto | undefined;
+}
+
+export class FloorDto implements IFloorDto {
+    id?: string;
+    name?: string;
+    sortOrder?: number;
+    isEnabled?: boolean;
+    isArchived?: boolean;
+    archivedUtc?: Date | undefined;
+    createdUtc?: Date;
+    updatedUtc?: Date;
+    activeRoomCount?: number;
+
+    constructor(data?: IFloorDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.name = _data["name"];
+            this.sortOrder = _data["sortOrder"];
+            this.isEnabled = _data["isEnabled"];
+            this.isArchived = _data["isArchived"];
+            this.archivedUtc = _data["archivedUtc"] ? new Date(_data["archivedUtc"].toString()) : undefined as any;
+            this.createdUtc = _data["createdUtc"] ? new Date(_data["createdUtc"].toString()) : undefined as any;
+            this.updatedUtc = _data["updatedUtc"] ? new Date(_data["updatedUtc"].toString()) : undefined as any;
+            this.activeRoomCount = _data["activeRoomCount"];
+        }
+    }
+
+    static fromJS(data: any): FloorDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new FloorDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["name"] = this.name;
+        data["sortOrder"] = this.sortOrder;
+        data["isEnabled"] = this.isEnabled;
+        data["isArchived"] = this.isArchived;
+        data["archivedUtc"] = this.archivedUtc ? this.archivedUtc.toISOString() : undefined as any;
+        data["createdUtc"] = this.createdUtc ? this.createdUtc.toISOString() : undefined as any;
+        data["updatedUtc"] = this.updatedUtc ? this.updatedUtc.toISOString() : undefined as any;
+        data["activeRoomCount"] = this.activeRoomCount;
+        return data;
+    }
+}
+
+export interface IFloorDto {
+    id?: string;
+    name?: string;
+    sortOrder?: number;
+    isEnabled?: boolean;
+    isArchived?: boolean;
+    archivedUtc?: Date | undefined;
+    createdUtc?: Date;
+    updatedUtc?: Date;
+    activeRoomCount?: number;
+}
+
+export class CreateFloorRequest implements ICreateFloorRequest {
+    name?: string;
+
+    constructor(data?: ICreateFloorRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.name = _data["name"];
+        }
+    }
+
+    static fromJS(data: any): CreateFloorRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreateFloorRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["name"] = this.name;
+        return data;
+    }
+}
+
+export interface ICreateFloorRequest {
+    name?: string;
+}
+
+export class UpdateFloorRequest implements IUpdateFloorRequest {
+    name?: string;
+    isEnabled?: boolean | undefined;
+
+    constructor(data?: IUpdateFloorRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.name = _data["name"];
+            this.isEnabled = _data["isEnabled"];
+        }
+    }
+
+    static fromJS(data: any): UpdateFloorRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpdateFloorRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["name"] = this.name;
+        data["isEnabled"] = this.isEnabled;
+        return data;
+    }
+}
+
+export interface IUpdateFloorRequest {
+    name?: string;
+    isEnabled?: boolean | undefined;
+}
+
+export class ReorderFloorsRequest implements IReorderFloorsRequest {
+    floorIds?: string[];
+
+    constructor(data?: IReorderFloorsRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            if (Array.isArray(_data["floorIds"])) {
+                this.floorIds = [] as any;
+                for (let item of _data["floorIds"])
+                    this.floorIds!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): ReorderFloorsRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new ReorderFloorsRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        if (Array.isArray(this.floorIds)) {
+            data["floorIds"] = [];
+            for (let item of this.floorIds)
+                data["floorIds"].push(item);
+        }
+        return data;
+    }
+}
+
+export interface IReorderFloorsRequest {
+    floorIds?: string[];
+}
+
+export class RoomDto implements IRoomDto {
+    id?: string;
+    floorId?: string;
+    name?: string;
+    roomType?: RoomType;
+    sortOrder?: number;
+    familyMember?: RoomFamilyMemberDto | undefined;
+    isEnabled?: boolean;
+    isArchived?: boolean;
+    archivedUtc?: Date | undefined;
+    createdUtc?: Date;
+    updatedUtc?: Date;
+
+    constructor(data?: IRoomDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.floorId = _data["floorId"];
+            this.name = _data["name"];
+            this.roomType = _data["roomType"];
+            this.sortOrder = _data["sortOrder"];
+            this.familyMember = _data["familyMember"] ? RoomFamilyMemberDto.fromJS(_data["familyMember"]) : undefined as any;
+            this.isEnabled = _data["isEnabled"];
+            this.isArchived = _data["isArchived"];
+            this.archivedUtc = _data["archivedUtc"] ? new Date(_data["archivedUtc"].toString()) : undefined as any;
+            this.createdUtc = _data["createdUtc"] ? new Date(_data["createdUtc"].toString()) : undefined as any;
+            this.updatedUtc = _data["updatedUtc"] ? new Date(_data["updatedUtc"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): RoomDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new RoomDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["floorId"] = this.floorId;
+        data["name"] = this.name;
+        data["roomType"] = this.roomType;
+        data["sortOrder"] = this.sortOrder;
+        data["familyMember"] = this.familyMember ? this.familyMember.toJSON() : undefined as any;
+        data["isEnabled"] = this.isEnabled;
+        data["isArchived"] = this.isArchived;
+        data["archivedUtc"] = this.archivedUtc ? this.archivedUtc.toISOString() : undefined as any;
+        data["createdUtc"] = this.createdUtc ? this.createdUtc.toISOString() : undefined as any;
+        data["updatedUtc"] = this.updatedUtc ? this.updatedUtc.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface IRoomDto {
+    id?: string;
+    floorId?: string;
+    name?: string;
+    roomType?: RoomType;
+    sortOrder?: number;
+    familyMember?: RoomFamilyMemberDto | undefined;
+    isEnabled?: boolean;
+    isArchived?: boolean;
+    archivedUtc?: Date | undefined;
+    createdUtc?: Date;
+    updatedUtc?: Date;
+}
+
+export enum RoomType {
+    Bedroom = 0,
+    Bathroom = 1,
+    LivingRoom = 2,
+    Kitchen = 3,
+    Hall = 4,
+    Office = 5,
+    LaundryRoom = 6,
+    Storage = 7,
+    Landing = 8,
+    Toilet = 9,
+    UtilityRoom = 10,
+    Other = 11,
+}
+
+export class RoomFamilyMemberDto implements IRoomFamilyMemberDto {
+    id?: string;
+    name?: string;
+
+    constructor(data?: IRoomFamilyMemberDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.name = _data["name"];
+        }
+    }
+
+    static fromJS(data: any): RoomFamilyMemberDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new RoomFamilyMemberDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["name"] = this.name;
+        return data;
+    }
+}
+
+export interface IRoomFamilyMemberDto {
+    id?: string;
+    name?: string;
+}
+
+export class CreateRoomRequest implements ICreateRoomRequest {
+    name?: string;
+    roomType?: RoomType;
+    familyMemberId?: string | undefined;
+
+    constructor(data?: ICreateRoomRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.name = _data["name"];
+            this.roomType = _data["roomType"];
+            this.familyMemberId = _data["familyMemberId"];
+        }
+    }
+
+    static fromJS(data: any): CreateRoomRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreateRoomRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["name"] = this.name;
+        data["roomType"] = this.roomType;
+        data["familyMemberId"] = this.familyMemberId;
+        return data;
+    }
+}
+
+export interface ICreateRoomRequest {
+    name?: string;
+    roomType?: RoomType;
+    familyMemberId?: string | undefined;
+}
+
+export class UpdateRoomRequest implements IUpdateRoomRequest {
+    name?: string;
+    roomType?: RoomType;
+    familyMemberId?: string | undefined;
+    isEnabled?: boolean | undefined;
+
+    constructor(data?: IUpdateRoomRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.name = _data["name"];
+            this.roomType = _data["roomType"];
+            this.familyMemberId = _data["familyMemberId"];
+            this.isEnabled = _data["isEnabled"];
+        }
+    }
+
+    static fromJS(data: any): UpdateRoomRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpdateRoomRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["name"] = this.name;
+        data["roomType"] = this.roomType;
+        data["familyMemberId"] = this.familyMemberId;
+        data["isEnabled"] = this.isEnabled;
+        return data;
+    }
+}
+
+export interface IUpdateRoomRequest {
+    name?: string;
+    roomType?: RoomType;
+    familyMemberId?: string | undefined;
+    isEnabled?: boolean | undefined;
+}
+
+export class ReorderRoomsRequest implements IReorderRoomsRequest {
+    floorId?: string;
+    roomIds?: string[];
+
+    constructor(data?: IReorderRoomsRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.floorId = _data["floorId"];
+            if (Array.isArray(_data["roomIds"])) {
+                this.roomIds = [] as any;
+                for (let item of _data["roomIds"])
+                    this.roomIds!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): ReorderRoomsRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new ReorderRoomsRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["floorId"] = this.floorId;
+        if (Array.isArray(this.roomIds)) {
+            data["roomIds"] = [];
+            for (let item of this.roomIds)
+                data["roomIds"].push(item);
+        }
+        return data;
+    }
+}
+
+export interface IReorderRoomsRequest {
+    floorId?: string;
+    roomIds?: string[];
+}
+
+export class MoveRoomRequest implements IMoveRoomRequest {
+    destinationFloorId?: string;
+
+    constructor(data?: IMoveRoomRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.destinationFloorId = _data["destinationFloorId"];
+        }
+    }
+
+    static fromJS(data: any): MoveRoomRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new MoveRoomRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["destinationFloorId"] = this.destinationFloorId;
+        return data;
+    }
+}
+
+export interface IMoveRoomRequest {
+    destinationFloorId?: string;
 }
 
 export class KnownPersonDto implements IKnownPersonDto {

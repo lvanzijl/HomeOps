@@ -924,3 +924,11 @@ Showcase Sample C and Showcase Sample D exposed that the wide head variant's ear
 ## House Brain Research — 2026-07-12
 - Added a product-definition research report for the provider-neutral FamilyBoard House Brain, challenging the prior Home Automation page reports and reframing the work around household reasoning rather than UI, Home Assistant, entities, or automation controls.
 - Defined the House Brain as a household situation interpreter with reasoning domains, cross-domain intelligence, memory, uncertainty, explainability, decision levels, and a deliberate silence philosophy; no code, UI, screenshots, API, persistence, or integration changes were made.
+
+## Woning Climate Floor Plans Slice 1 — 2026-07-12
+- Added backend-only FamilyBoard-owned Floor and Room foundation with household ownership, exact active-name validation, deterministic ordering, archive/restore lifecycle, safe Floor delete/archive behavior, Room move behavior, optional FamilyMember association, persistence migration, OpenAPI contracts, focused API tests, and incremental portability fields.
+- Explicitly excluded floor-plan assets, polygons, overlays, climate configuration, Home Assistant/Evohome mappings, Stories, frontend usage, screenshots, and binary assets.
+
+## Floor/Room Portability Hardening — 2026-07-12
+- Hardened Woning Climate Floor Plans Slice 1 backup/restore validation for duplicate identities, ambiguous names, missing Floor references, invalid RoomType values, invalid FamilyMember references, invalid lifecycle/archive combinations, invalid ordering, rollback safety, legacy absent collections, and explicit empty collection replacement.
+- Preserved backend-only scope: no assets, overlays, polygons, climate configuration, Home Assistant mappings, Stories, endpoints, runtime UI, screenshots, or binary assets were added.

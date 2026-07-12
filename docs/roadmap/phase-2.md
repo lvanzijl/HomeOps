@@ -822,3 +822,10 @@ Avatar Catalog Backend Foundation adds the first backend-only catalog slice for 
 ## Deployment Tooling Slice — 2026-07-11
 - Added initial Synology Container Manager deployment workflow for early FamilyBoard/HomeOps builds: local build/test, linux/amd64 SDK container archive generation, safe SMB copy, optional SSH deploy, Synology Compose, and rollback-aware documentation.
 - The slice intentionally does not introduce a container registry, cloud deployment, reverse proxy/TLS, Kubernetes, unattended updates, frontend hosting redesign, or application behavior changes.
+
+### Woning Climate Floor Plans Slice 1 — Completed 2026-07-12
+- Backend-only canonical Floor and Room foundation is complete: household-owned identities, names, ordering, RoomType, optional FamilyMember association, lifecycle APIs, persistence, migration, OpenAPI regeneration, focused API tests, and initial backup/restore fields.
+- Floor-plan assets, overlays, polygons, climate configuration, Home Assistant/Evohome mappings, Stories, frontend UI, screenshots, and binary assets remain deferred to later slices.
+
+### Floor/Room Portability Hardening — Completed 2026-07-12
+- Follow-up hardened Floor/Room backup/restore semantics: full replacement when collections are present, legacy no-op for absent collections, explicit empty replacement, pre-mutation validation, relational transaction wrapping, and focused malformed-graph rollback tests.
