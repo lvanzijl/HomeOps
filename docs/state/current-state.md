@@ -915,3 +915,7 @@ Showcase Sample C and Showcase Sample D exposed that the wide head variant's ear
 - Added a no-registry deployment-tooling slice for Synology DS918+ / Container Manager that publishes the `HomeOps.Api` ASP.NET Core deployable as a linux/amd64 `familyboard-app` container archive, copies it safely to an SMB share, and optionally invokes Synology `deploy.sh` over SSH.
 - Added Synology Compose, `.env.example`, and deployment documentation using PostgreSQL as a separate Compose service with bind-mounted application and database data under `/volume1/docker/familyboard`.
 - Preserved application behavior, domain logic, APIs, persistence semantics, frontend behavior, migrations, and production configuration semantics except for container-publishing metadata required to create the archive.
+
+## House Brain Research — 2026-07-12
+- Added a product-definition research report for the provider-neutral FamilyBoard House Brain, challenging the prior Home Automation page reports and reframing the work around household reasoning rather than UI, Home Assistant, entities, or automation controls.
+- Defined the House Brain as a household situation interpreter with reasoning domains, cross-domain intelligence, memory, uncertainty, explainability, decision levels, and a deliberate silence philosophy; no code, UI, screenshots, API, persistence, or integration changes were made.
