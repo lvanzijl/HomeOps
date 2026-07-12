@@ -2546,6 +2546,115 @@
         }
       }
     },
+    "/api/rooms/{roomId}/climate-configuration": {
+      "get": {
+        "tags": [
+          "Rooms"
+        ],
+        "operationId": "GetRoomClimateConfiguration",
+        "parameters": [
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomClimateConfigurationDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Rooms"
+        ],
+        "operationId": "UpsertRoomClimateConfiguration",
+        "parameters": [
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "req",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpsertRoomClimateConfigurationRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomClimateConfigurationDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": ""
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Rooms"
+        ],
+        "operationId": "DeleteRoomClimateConfiguration",
+        "parameters": [
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
     "/api/known-people": {
       "get": {
         "tags": [
@@ -4712,6 +4821,13 @@
             "items": {
               "$ref": "#/components/schemas/CalendarExportRoom"
             }
+          },
+          "roomClimateConfigurations": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/CalendarExportRoomClimateConfiguration"
+            }
           }
         }
       },
@@ -5141,6 +5257,53 @@
             "type": "string",
             "format": "date-time",
             "nullable": true
+          },
+          "createdUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedUtc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CalendarExportRoomClimateConfiguration": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "roomId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "isClimateEnabled": {
+            "type": "boolean"
+          },
+          "isBedtimeRelevant": {
+            "type": "boolean"
+          },
+          "minimumPreferredTemperatureCelsius": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "maximumPreferredTemperatureCelsius": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "minimumPreferredRelativeHumidity": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "maximumPreferredRelativeHumidity": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "heatingPolicyIntent": {
+            "type": "string"
           },
           "createdUtc": {
             "type": "string",
@@ -6006,6 +6169,137 @@
           "destinationFloorId": {
             "type": "string",
             "format": "guid"
+          }
+        }
+      },
+      "RoomClimateConfigurationDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "roomId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "isConfigured": {
+            "type": "boolean"
+          },
+          "isClimateEnabled": {
+            "type": "boolean"
+          },
+          "isBedtimeRelevant": {
+            "type": "boolean"
+          },
+          "temperatureRange": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ClimateRangeDto"
+              }
+            ]
+          },
+          "humidityRange": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ClimateRangeDto"
+              }
+            ]
+          },
+          "heatingPolicyIntent": {
+            "$ref": "#/components/schemas/HeatingPolicyIntent"
+          },
+          "requiredSourceRoles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ClimateSourceRole"
+            }
+          },
+          "createdUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "updatedUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "ClimateRangeDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "minimum": {
+            "type": "number",
+            "format": "decimal"
+          },
+          "maximum": {
+            "type": "number",
+            "format": "decimal"
+          }
+        }
+      },
+      "HeatingPolicyIntent": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "None",
+          "ReadOnlyStatus",
+          "BoundedControl"
+        ],
+        "enum": [
+          0,
+          1,
+          2
+        ]
+      },
+      "ClimateSourceRole": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "ComfortTemperature",
+          "Humidity",
+          "HeatingControlTemperature",
+          "HeatingStatus",
+          "HeatingControl"
+        ],
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "UpsertRoomClimateConfigurationRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "isClimateEnabled": {
+            "type": "boolean"
+          },
+          "isBedtimeRelevant": {
+            "type": "boolean"
+          },
+          "temperatureRange": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ClimateRangeDto"
+              }
+            ]
+          },
+          "humidityRange": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ClimateRangeDto"
+              }
+            ]
+          },
+          "heatingPolicyIntent": {
+            "$ref": "#/components/schemas/HeatingPolicyIntent"
           }
         }
       },

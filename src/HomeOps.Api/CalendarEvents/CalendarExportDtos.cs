@@ -22,7 +22,8 @@ public sealed record CalendarExportPayload(
     IReadOnlyCollection<CalendarExportEventException> Exceptions,
     IReadOnlyDictionary<string, string> Metadata,
     IReadOnlyCollection<CalendarExportFloor>? Floors = null,
-    IReadOnlyCollection<CalendarExportRoom>? Rooms = null)
+    IReadOnlyCollection<CalendarExportRoom>? Rooms = null,
+    IReadOnlyCollection<CalendarExportRoomClimateConfiguration>? RoomClimateConfigurations = null)
 {
     public const int CurrentVersion = 1;
 }
@@ -116,3 +117,5 @@ public sealed record CalendarExportEventException(
 
 public sealed record CalendarExportFloor(Guid Id, string Name, int SortOrder, bool IsEnabled, bool IsArchived, DateTimeOffset? ArchivedUtc, DateTimeOffset CreatedUtc, DateTimeOffset UpdatedUtc);
 public sealed record CalendarExportRoom(Guid Id, Guid FloorId, string Name, string RoomType, int SortOrder, string? FamilyMemberId, bool IsEnabled, bool IsArchived, DateTimeOffset? ArchivedUtc, DateTimeOffset CreatedUtc, DateTimeOffset UpdatedUtc);
+
+public sealed record CalendarExportRoomClimateConfiguration(Guid RoomId, bool IsClimateEnabled, bool IsBedtimeRelevant, decimal? MinimumPreferredTemperatureCelsius, decimal? MaximumPreferredTemperatureCelsius, decimal? MinimumPreferredRelativeHumidity, decimal? MaximumPreferredRelativeHumidity, string HeatingPolicyIntent, DateTimeOffset CreatedUtc, DateTimeOffset UpdatedUtc);

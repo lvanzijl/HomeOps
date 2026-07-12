@@ -829,3 +829,6 @@ Avatar Catalog Backend Foundation adds the first backend-only catalog slice for 
 
 ### Floor/Room Portability Hardening — Completed 2026-07-12
 - Follow-up hardened Floor/Room backup/restore semantics: full replacement when collections are present, legacy no-op for absent collections, explicit empty replacement, pre-mutation validation, relational transaction wrapping, and focused malformed-graph rollback tests.
+
+### Completed Slice — Woning Climate Floor Plans Slice 2A Room Climate Configuration Foundation
+FamilyBoard-owned Room climate configuration is now a separate backend concept attached to canonical Rooms. The slice adds participation, bedtime relevance, optional temperature and humidity comfort policy, household-facing heating-policy intent, derived expected semantic source roles, API lifecycle, persistence migration, backup/restore inclusion, OpenAPI/NSwag regeneration, and focused backend coverage. Provider mappings, source identifiers, Home Assistant/Evohome concepts, readings, health/confidence, Stories, controls, floor-plan assets, polygons, overlays, and frontend UI remain deferred.

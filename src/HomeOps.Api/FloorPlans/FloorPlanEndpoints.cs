@@ -80,6 +80,9 @@ public static class FloorPlanEndpoints
         rooms.MapPost("/{roomId:guid}/move", MoveRoom).WithName("MoveRoom").Produces<RoomDto>().Produces(400).Produces(404);
         rooms.MapPost("/{roomId:guid}/archive", ArchiveRoom).WithName("ArchiveRoom").Produces(204).Produces(404);
         rooms.MapPost("/{roomId:guid}/restore", RestoreRoom).WithName("RestoreRoom").Produces<RoomDto>().Produces(400).Produces(404);
+        rooms.MapGet("/{roomId:guid}/climate-configuration", GetClimateConfiguration).WithName("GetRoomClimateConfiguration").Produces<RoomClimateConfigurationDto>().Produces(404);
+        rooms.MapPut("/{roomId:guid}/climate-configuration", UpsertClimateConfiguration).WithName("UpsertRoomClimateConfiguration").Produces<RoomClimateConfigurationDto>().Produces(400).Produces(404);
+        rooms.MapDelete("/{roomId:guid}/climate-configuration", DeleteClimateConfiguration).WithName("DeleteRoomClimateConfiguration").Produces(204).Produces(404);
         rooms.MapDelete("/{roomId:guid}", async (Guid roomId, HomeOpsDbContext db, CancellationToken ct) => { var room = await db.Rooms.FirstOrDefaultAsync(r => r.Id == roomId && r.HouseholdId == SeedHousehold.Id, ct); if (room is null) return Results.NotFound(); db.Rooms.Remove(room); await CompactRoomOrders(db, room.FloorId, ct); await db.SaveChangesAsync(ct); return Results.NoContent(); }).WithName("DeleteRoom").Produces(204).Produces(404);
     }
     private static async Task<IResult> ListRooms(Guid floorId, bool? includeArchived, HomeOpsDbContext db, CancellationToken ct)
@@ -126,6 +129,89 @@ public static class FloorPlanEndpoints
         if (await ActiveRoomNameExists(db, room.FloorId, room.Name, room.Id, ct)) return Bad("name", "Rename the conflicting active room before restoring this room.");
         room.IsArchived = false; room.IsEnabled = true; room.ArchivedUtc = null; room.SortOrder = await NextRoomOrder(db, room.FloorId, ct); room.UpdatedUtc = DateTimeOffset.UtcNow; await db.SaveChangesAsync(ct); return Results.Ok(ToRoomDto(room));
     }
+
+    private static async Task<IResult> GetClimateConfiguration(Guid roomId, HomeOpsDbContext db, CancellationToken ct)
+    {
+        var room = await db.Rooms.AsNoTracking().FirstOrDefaultAsync(r => r.Id == roomId && r.HouseholdId == SeedHousehold.Id, ct);
+        if (room is null) return Results.NotFound();
+        if (room.IsArchived || !room.IsEnabled) return Bad("roomId", "Climate configuration requires an active room.");
+        var config = await db.RoomClimateConfigurations.AsNoTracking().FirstOrDefaultAsync(c => c.RoomId == roomId && c.HouseholdId == SeedHousehold.Id, ct);
+        return Results.Ok(ToClimateDto(roomId, config));
+    }
+
+    private static async Task<IResult> UpsertClimateConfiguration(Guid roomId, UpsertRoomClimateConfigurationRequest req, HomeOpsDbContext db, CancellationToken ct)
+    {
+        var room = await db.Rooms.FirstOrDefaultAsync(r => r.Id == roomId && r.HouseholdId == SeedHousehold.Id, ct);
+        if (room is null) return Results.NotFound();
+        if (room.IsArchived || !room.IsEnabled) return Bad("roomId", "Climate configuration requires an active room.");
+        var validation = ValidateClimateRequest(req); if (validation is not null) return validation;
+        var now = DateTimeOffset.UtcNow;
+        var config = await db.RoomClimateConfigurations.FirstOrDefaultAsync(c => c.RoomId == roomId && c.HouseholdId == SeedHousehold.Id, ct);
+        if (config is null)
+        {
+            config = new RoomClimateConfiguration { RoomId = roomId, HouseholdId = SeedHousehold.Id, CreatedUtc = now };
+            db.RoomClimateConfigurations.Add(config);
+        }
+        config.IsClimateEnabled = req.IsClimateEnabled;
+        config.IsBedtimeRelevant = req.IsBedtimeRelevant;
+        config.MinimumPreferredTemperatureCelsius = req.TemperatureRange?.Minimum;
+        config.MaximumPreferredTemperatureCelsius = req.TemperatureRange?.Maximum;
+        config.MinimumPreferredRelativeHumidity = req.HumidityRange?.Minimum;
+        config.MaximumPreferredRelativeHumidity = req.HumidityRange?.Maximum;
+        config.HeatingPolicyIntent = req.HeatingPolicyIntent;
+        config.UpdatedUtc = now;
+        await db.SaveChangesAsync(ct);
+        return Results.Ok(ToClimateDto(roomId, config));
+    }
+
+    private static async Task<IResult> DeleteClimateConfiguration(Guid roomId, HomeOpsDbContext db, CancellationToken ct)
+    {
+        var room = await db.Rooms.AsNoTracking().FirstOrDefaultAsync(r => r.Id == roomId && r.HouseholdId == SeedHousehold.Id, ct);
+        if (room is null) return Results.NotFound();
+        var config = await db.RoomClimateConfigurations.FirstOrDefaultAsync(c => c.RoomId == roomId && c.HouseholdId == SeedHousehold.Id, ct);
+        if (config is null) return Results.NotFound();
+        db.RoomClimateConfigurations.Remove(config);
+        await db.SaveChangesAsync(ct);
+        return Results.NoContent();
+    }
+
+    private static IResult? ValidateClimateRequest(UpsertRoomClimateConfigurationRequest req)
+    {
+        if (req.IsBedtimeRelevant && !req.IsClimateEnabled) return Bad("isBedtimeRelevant", "Bedtime relevance requires climate to be enabled.");
+        if (req.HeatingPolicyIntent == HeatingPolicyIntent.BoundedControl && req.TemperatureRange is null) return Bad("heatingPolicyIntent", "Bounded heating control intent requires a temperature comfort policy.");
+        var temp = ValidateRange(req.TemperatureRange, -30m, 60m, "temperatureRange", "Temperature range"); if (temp is not null) return temp;
+        var humidity = ValidateRange(req.HumidityRange, 0m, 100m, "humidityRange", "Humidity range"); if (humidity is not null) return humidity;
+        return null;
+    }
+
+    private static IResult? ValidateRange(ClimateRangeDto? range, decimal min, decimal max, string field, string label)
+    {
+        if (range is null) return null;
+        if (range.Minimum < min || range.Maximum > max) return Bad(field, $"{label} values are outside the supported bounds.");
+        if (range.Minimum >= range.Maximum) return Bad(field, $"{label} minimum must be lower than maximum.");
+        return null;
+    }
+
+    public static IReadOnlyCollection<ClimateSourceRole> DeriveRequiredSourceRoles(RoomClimateConfiguration config)
+    {
+        var roles = new List<ClimateSourceRole>();
+        if (config.MinimumPreferredTemperatureCelsius is not null && config.MaximumPreferredTemperatureCelsius is not null) roles.Add(ClimateSourceRole.ComfortTemperature);
+        if (config.MinimumPreferredRelativeHumidity is not null && config.MaximumPreferredRelativeHumidity is not null) roles.Add(ClimateSourceRole.Humidity);
+        if (config.HeatingPolicyIntent is HeatingPolicyIntent.ReadOnlyStatus or HeatingPolicyIntent.BoundedControl)
+        {
+            roles.Add(ClimateSourceRole.HeatingStatus);
+            roles.Add(ClimateSourceRole.HeatingControlTemperature);
+        }
+        if (config.HeatingPolicyIntent == HeatingPolicyIntent.BoundedControl) roles.Add(ClimateSourceRole.HeatingControl);
+        return roles;
+    }
+
+    private static RoomClimateConfigurationDto ToClimateDto(Guid roomId, RoomClimateConfiguration? config) => config is null
+        ? new(roomId, false, false, false, null, null, HeatingPolicyIntent.None, [], null, null)
+        : new(roomId, true, config.IsClimateEnabled, config.IsBedtimeRelevant,
+            config.MinimumPreferredTemperatureCelsius is null || config.MaximumPreferredTemperatureCelsius is null ? null : new ClimateRangeDto(config.MinimumPreferredTemperatureCelsius.Value, config.MaximumPreferredTemperatureCelsius.Value),
+            config.MinimumPreferredRelativeHumidity is null || config.MaximumPreferredRelativeHumidity is null ? null : new ClimateRangeDto(config.MinimumPreferredRelativeHumidity.Value, config.MaximumPreferredRelativeHumidity.Value),
+            config.HeatingPolicyIntent, DeriveRequiredSourceRoles(config), config.CreatedUtc, config.UpdatedUtc);
     private static IQueryable<Room> RoomQuery(HomeOpsDbContext db) => db.Rooms.AsNoTracking().Include(r => r.FamilyMember);
     private static string? CleanName(string? name) { var c = name?.Trim(); return string.IsNullOrWhiteSpace(c) ? null : c; }
     private static async Task<bool> ActiveFloorNameExists(HomeOpsDbContext db, string name, Guid? excluding, CancellationToken ct) => await db.Floors.AnyAsync(f => f.HouseholdId == SeedHousehold.Id && !f.IsArchived && f.Id != excluding && f.Name == name, ct);

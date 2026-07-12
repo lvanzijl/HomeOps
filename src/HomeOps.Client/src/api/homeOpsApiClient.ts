@@ -2933,6 +2933,133 @@ export class HomeOpsApiClient {
         return Promise.resolve<RoomDto>(null as any);
     }
 
+    getRoomClimateConfiguration(roomId: string): Promise<RoomClimateConfigurationDto> {
+        let url_ = this.baseUrl + "/api/rooms/{roomId}/climate-configuration";
+        if (roomId === undefined || roomId === null)
+            throw new globalThis.Error("The parameter 'roomId' must be defined.");
+        url_ = url_.replace("{roomId}", encodeURIComponent("" + roomId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetRoomClimateConfiguration(_response);
+        });
+    }
+
+    protected processGetRoomClimateConfiguration(response: Response): Promise<RoomClimateConfigurationDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = RoomClimateConfigurationDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<RoomClimateConfigurationDto>(null as any);
+    }
+
+    upsertRoomClimateConfiguration(roomId: string, req: UpsertRoomClimateConfigurationRequest): Promise<RoomClimateConfigurationDto> {
+        let url_ = this.baseUrl + "/api/rooms/{roomId}/climate-configuration";
+        if (roomId === undefined || roomId === null)
+            throw new globalThis.Error("The parameter 'roomId' must be defined.");
+        url_ = url_.replace("{roomId}", encodeURIComponent("" + roomId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(req);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpsertRoomClimateConfiguration(_response);
+        });
+    }
+
+    protected processUpsertRoomClimateConfiguration(response: Response): Promise<RoomClimateConfigurationDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = RoomClimateConfigurationDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<RoomClimateConfigurationDto>(null as any);
+    }
+
+    deleteRoomClimateConfiguration(roomId: string): Promise<void> {
+        let url_ = this.baseUrl + "/api/rooms/{roomId}/climate-configuration";
+        if (roomId === undefined || roomId === null)
+            throw new globalThis.Error("The parameter 'roomId' must be defined.");
+        url_ = url_.replace("{roomId}", encodeURIComponent("" + roomId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDeleteRoomClimateConfiguration(_response);
+        });
+    }
+
+    protected processDeleteRoomClimateConfiguration(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
     getKnownPeople(scope: KnownPersonScope | null | undefined, familyMemberId: string | null | undefined): Promise<KnownPersonDto[]> {
         let url_ = this.baseUrl + "/api/known-people?";
         if (scope !== undefined && scope !== null)
@@ -6436,6 +6563,7 @@ export class CalendarExportPayload implements ICalendarExportPayload {
     metadata?: { [key: string]: string; };
     floors?: CalendarExportFloor[] | undefined;
     rooms?: CalendarExportRoom[] | undefined;
+    roomClimateConfigurations?: CalendarExportRoomClimateConfiguration[] | undefined;
 
     constructor(data?: ICalendarExportPayload) {
         if (data) {
@@ -6481,6 +6609,11 @@ export class CalendarExportPayload implements ICalendarExportPayload {
                 this.rooms = [] as any;
                 for (let item of _data["rooms"])
                     this.rooms!.push(CalendarExportRoom.fromJS(item));
+            }
+            if (Array.isArray(_data["roomClimateConfigurations"])) {
+                this.roomClimateConfigurations = [] as any;
+                for (let item of _data["roomClimateConfigurations"])
+                    this.roomClimateConfigurations!.push(CalendarExportRoomClimateConfiguration.fromJS(item));
             }
         }
     }
@@ -6528,6 +6661,11 @@ export class CalendarExportPayload implements ICalendarExportPayload {
             for (let item of this.rooms)
                 data["rooms"].push(item ? item.toJSON() : undefined as any);
         }
+        if (Array.isArray(this.roomClimateConfigurations)) {
+            data["roomClimateConfigurations"] = [];
+            for (let item of this.roomClimateConfigurations)
+                data["roomClimateConfigurations"].push(item ? item.toJSON() : undefined as any);
+        }
         return data;
     }
 }
@@ -6541,6 +6679,7 @@ export interface ICalendarExportPayload {
     metadata?: { [key: string]: string; };
     floors?: CalendarExportFloor[] | undefined;
     rooms?: CalendarExportRoom[] | undefined;
+    roomClimateConfigurations?: CalendarExportRoomClimateConfiguration[] | undefined;
 }
 
 export class CalendarExportEventSource implements ICalendarExportEventSource {
@@ -7231,6 +7370,78 @@ export interface ICalendarExportRoom {
     isEnabled?: boolean;
     isArchived?: boolean;
     archivedUtc?: Date | undefined;
+    createdUtc?: Date;
+    updatedUtc?: Date;
+}
+
+export class CalendarExportRoomClimateConfiguration implements ICalendarExportRoomClimateConfiguration {
+    roomId?: string;
+    isClimateEnabled?: boolean;
+    isBedtimeRelevant?: boolean;
+    minimumPreferredTemperatureCelsius?: number | undefined;
+    maximumPreferredTemperatureCelsius?: number | undefined;
+    minimumPreferredRelativeHumidity?: number | undefined;
+    maximumPreferredRelativeHumidity?: number | undefined;
+    heatingPolicyIntent?: string;
+    createdUtc?: Date;
+    updatedUtc?: Date;
+
+    constructor(data?: ICalendarExportRoomClimateConfiguration) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.roomId = _data["roomId"];
+            this.isClimateEnabled = _data["isClimateEnabled"];
+            this.isBedtimeRelevant = _data["isBedtimeRelevant"];
+            this.minimumPreferredTemperatureCelsius = _data["minimumPreferredTemperatureCelsius"];
+            this.maximumPreferredTemperatureCelsius = _data["maximumPreferredTemperatureCelsius"];
+            this.minimumPreferredRelativeHumidity = _data["minimumPreferredRelativeHumidity"];
+            this.maximumPreferredRelativeHumidity = _data["maximumPreferredRelativeHumidity"];
+            this.heatingPolicyIntent = _data["heatingPolicyIntent"];
+            this.createdUtc = _data["createdUtc"] ? new Date(_data["createdUtc"].toString()) : undefined as any;
+            this.updatedUtc = _data["updatedUtc"] ? new Date(_data["updatedUtc"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): CalendarExportRoomClimateConfiguration {
+        data = typeof data === 'object' ? data : {};
+        let result = new CalendarExportRoomClimateConfiguration();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["roomId"] = this.roomId;
+        data["isClimateEnabled"] = this.isClimateEnabled;
+        data["isBedtimeRelevant"] = this.isBedtimeRelevant;
+        data["minimumPreferredTemperatureCelsius"] = this.minimumPreferredTemperatureCelsius;
+        data["maximumPreferredTemperatureCelsius"] = this.maximumPreferredTemperatureCelsius;
+        data["minimumPreferredRelativeHumidity"] = this.minimumPreferredRelativeHumidity;
+        data["maximumPreferredRelativeHumidity"] = this.maximumPreferredRelativeHumidity;
+        data["heatingPolicyIntent"] = this.heatingPolicyIntent;
+        data["createdUtc"] = this.createdUtc ? this.createdUtc.toISOString() : undefined as any;
+        data["updatedUtc"] = this.updatedUtc ? this.updatedUtc.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface ICalendarExportRoomClimateConfiguration {
+    roomId?: string;
+    isClimateEnabled?: boolean;
+    isBedtimeRelevant?: boolean;
+    minimumPreferredTemperatureCelsius?: number | undefined;
+    maximumPreferredTemperatureCelsius?: number | undefined;
+    minimumPreferredRelativeHumidity?: number | undefined;
+    maximumPreferredRelativeHumidity?: number | undefined;
+    heatingPolicyIntent?: string;
     createdUtc?: Date;
     updatedUtc?: Date;
 }
@@ -8742,6 +8953,192 @@ export class MoveRoomRequest implements IMoveRoomRequest {
 
 export interface IMoveRoomRequest {
     destinationFloorId?: string;
+}
+
+export class RoomClimateConfigurationDto implements IRoomClimateConfigurationDto {
+    roomId?: string;
+    isConfigured?: boolean;
+    isClimateEnabled?: boolean;
+    isBedtimeRelevant?: boolean;
+    temperatureRange?: ClimateRangeDto | undefined;
+    humidityRange?: ClimateRangeDto | undefined;
+    heatingPolicyIntent?: HeatingPolicyIntent;
+    requiredSourceRoles?: ClimateSourceRole[];
+    createdUtc?: Date | undefined;
+    updatedUtc?: Date | undefined;
+
+    constructor(data?: IRoomClimateConfigurationDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.roomId = _data["roomId"];
+            this.isConfigured = _data["isConfigured"];
+            this.isClimateEnabled = _data["isClimateEnabled"];
+            this.isBedtimeRelevant = _data["isBedtimeRelevant"];
+            this.temperatureRange = _data["temperatureRange"] ? ClimateRangeDto.fromJS(_data["temperatureRange"]) : undefined as any;
+            this.humidityRange = _data["humidityRange"] ? ClimateRangeDto.fromJS(_data["humidityRange"]) : undefined as any;
+            this.heatingPolicyIntent = _data["heatingPolicyIntent"];
+            if (Array.isArray(_data["requiredSourceRoles"])) {
+                this.requiredSourceRoles = [] as any;
+                for (let item of _data["requiredSourceRoles"])
+                    this.requiredSourceRoles!.push(item);
+            }
+            this.createdUtc = _data["createdUtc"] ? new Date(_data["createdUtc"].toString()) : undefined as any;
+            this.updatedUtc = _data["updatedUtc"] ? new Date(_data["updatedUtc"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): RoomClimateConfigurationDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new RoomClimateConfigurationDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["roomId"] = this.roomId;
+        data["isConfigured"] = this.isConfigured;
+        data["isClimateEnabled"] = this.isClimateEnabled;
+        data["isBedtimeRelevant"] = this.isBedtimeRelevant;
+        data["temperatureRange"] = this.temperatureRange ? this.temperatureRange.toJSON() : undefined as any;
+        data["humidityRange"] = this.humidityRange ? this.humidityRange.toJSON() : undefined as any;
+        data["heatingPolicyIntent"] = this.heatingPolicyIntent;
+        if (Array.isArray(this.requiredSourceRoles)) {
+            data["requiredSourceRoles"] = [];
+            for (let item of this.requiredSourceRoles)
+                data["requiredSourceRoles"].push(item);
+        }
+        data["createdUtc"] = this.createdUtc ? this.createdUtc.toISOString() : undefined as any;
+        data["updatedUtc"] = this.updatedUtc ? this.updatedUtc.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface IRoomClimateConfigurationDto {
+    roomId?: string;
+    isConfigured?: boolean;
+    isClimateEnabled?: boolean;
+    isBedtimeRelevant?: boolean;
+    temperatureRange?: ClimateRangeDto | undefined;
+    humidityRange?: ClimateRangeDto | undefined;
+    heatingPolicyIntent?: HeatingPolicyIntent;
+    requiredSourceRoles?: ClimateSourceRole[];
+    createdUtc?: Date | undefined;
+    updatedUtc?: Date | undefined;
+}
+
+export class ClimateRangeDto implements IClimateRangeDto {
+    minimum?: number;
+    maximum?: number;
+
+    constructor(data?: IClimateRangeDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.minimum = _data["minimum"];
+            this.maximum = _data["maximum"];
+        }
+    }
+
+    static fromJS(data: any): ClimateRangeDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new ClimateRangeDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["minimum"] = this.minimum;
+        data["maximum"] = this.maximum;
+        return data;
+    }
+}
+
+export interface IClimateRangeDto {
+    minimum?: number;
+    maximum?: number;
+}
+
+export enum HeatingPolicyIntent {
+    None = 0,
+    ReadOnlyStatus = 1,
+    BoundedControl = 2,
+}
+
+export enum ClimateSourceRole {
+    ComfortTemperature = 0,
+    Humidity = 1,
+    HeatingControlTemperature = 2,
+    HeatingStatus = 3,
+    HeatingControl = 4,
+}
+
+export class UpsertRoomClimateConfigurationRequest implements IUpsertRoomClimateConfigurationRequest {
+    isClimateEnabled?: boolean;
+    isBedtimeRelevant?: boolean;
+    temperatureRange?: ClimateRangeDto | undefined;
+    humidityRange?: ClimateRangeDto | undefined;
+    heatingPolicyIntent?: HeatingPolicyIntent;
+
+    constructor(data?: IUpsertRoomClimateConfigurationRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.isClimateEnabled = _data["isClimateEnabled"];
+            this.isBedtimeRelevant = _data["isBedtimeRelevant"];
+            this.temperatureRange = _data["temperatureRange"] ? ClimateRangeDto.fromJS(_data["temperatureRange"]) : undefined as any;
+            this.humidityRange = _data["humidityRange"] ? ClimateRangeDto.fromJS(_data["humidityRange"]) : undefined as any;
+            this.heatingPolicyIntent = _data["heatingPolicyIntent"];
+        }
+    }
+
+    static fromJS(data: any): UpsertRoomClimateConfigurationRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpsertRoomClimateConfigurationRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["isClimateEnabled"] = this.isClimateEnabled;
+        data["isBedtimeRelevant"] = this.isBedtimeRelevant;
+        data["temperatureRange"] = this.temperatureRange ? this.temperatureRange.toJSON() : undefined as any;
+        data["humidityRange"] = this.humidityRange ? this.humidityRange.toJSON() : undefined as any;
+        data["heatingPolicyIntent"] = this.heatingPolicyIntent;
+        return data;
+    }
+}
+
+export interface IUpsertRoomClimateConfigurationRequest {
+    isClimateEnabled?: boolean;
+    isBedtimeRelevant?: boolean;
+    temperatureRange?: ClimateRangeDto | undefined;
+    humidityRange?: ClimateRangeDto | undefined;
+    heatingPolicyIntent?: HeatingPolicyIntent;
 }
 
 export class KnownPersonDto implements IKnownPersonDto {

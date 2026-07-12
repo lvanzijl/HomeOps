@@ -85,13 +85,18 @@ public static class CalendarPortabilityService
             .OrderBy(room => room.FloorId).ThenBy(room => room.SortOrder).ThenBy(room => room.Name)
             .Select(room => new CalendarExportRoom(room.Id, room.FloorId, room.Name, room.RoomType.ToString(), room.SortOrder, room.FamilyMemberId, room.IsEnabled, room.IsArchived, room.ArchivedUtc, room.CreatedUtc, room.UpdatedUtc))
             .ToListAsync(cancellationToken);
+        var climateConfigurations = await dbContext.RoomClimateConfigurations.AsNoTracking()
+            .Where(config => config.HouseholdId == SeedHousehold.Id)
+            .OrderBy(config => config.RoomId)
+            .Select(config => new CalendarExportRoomClimateConfiguration(config.RoomId, config.IsClimateEnabled, config.IsBedtimeRelevant, config.MinimumPreferredTemperatureCelsius, config.MaximumPreferredTemperatureCelsius, config.MinimumPreferredRelativeHumidity, config.MaximumPreferredRelativeHumidity, config.HeatingPolicyIntent.ToString(), config.CreatedUtc, config.UpdatedUtc))
+            .ToListAsync(cancellationToken);
 
         return new CalendarExportDocument(
             CalendarExportDocument.CurrentFormat,
             CalendarExportDocument.CurrentSchemaVersion,
             DateTimeOffset.UtcNow,
             new CalendarExportHousehold(household.Id, household.TimeZoneId),
-            new CalendarExportPayload(CalendarExportPayload.CurrentVersion, sources, series, new CalendarExportRecurrenceSection([]), exceptions, new Dictionary<string, string>(), floors, rooms),
+            new CalendarExportPayload(CalendarExportPayload.CurrentVersion, sources, series, new CalendarExportRecurrenceSection([]), exceptions, new Dictionary<string, string>(), floors, rooms, climateConfigurations),
             new Dictionary<string, string>());
     }
 
@@ -101,6 +106,14 @@ public static class CalendarPortabilityService
         if (validationErrors.Count == 0 && document is not null)
         {
             foreach (var error in await ValidateFloorRoomPayloadAsync(dbContext, document, cancellationToken))
+            {
+                validationErrors[error.Key] = error.Value;
+            }
+            foreach (var error in ValidateClimatePayload(document))
+            {
+                validationErrors[error.Key] = error.Value;
+            }
+            foreach (var error in await ValidateClimateRoomReferencesAsync(dbContext, document, cancellationToken))
             {
                 validationErrors[error.Key] = error.Value;
             }
@@ -185,6 +198,8 @@ public static class CalendarPortabilityService
         // Legacy backups without both collections leave the current Floor/Room graph unchanged.
         if (document.Calendar.Floors is not null && document.Calendar.Rooms is not null)
         {
+            var existingClimateConfigurations = await dbContext.RoomClimateConfigurations.Where(config => config.HouseholdId == SeedHousehold.Id).ToListAsync(cancellationToken);
+            dbContext.RoomClimateConfigurations.RemoveRange(existingClimateConfigurations);
             var existingRooms = await dbContext.Rooms.Where(room => room.HouseholdId == SeedHousehold.Id).ToListAsync(cancellationToken);
             dbContext.Rooms.RemoveRange(existingRooms);
             var existingFloors = await dbContext.Floors.Where(floor => floor.HouseholdId == SeedHousehold.Id).ToListAsync(cancellationToken);
@@ -199,6 +214,28 @@ public static class CalendarPortabilityService
             {
                 var familyMemberId = string.IsNullOrWhiteSpace(room.FamilyMemberId) ? null : room.FamilyMemberId.Trim();
                 return new Room { Id = room.Id, HouseholdId = SeedHousehold.Id, FloorId = room.FloorId, Name = room.Name.Trim(), RoomType = Enum.Parse<RoomType>(room.RoomType, true), SortOrder = room.SortOrder, FamilyMemberId = familyMemberId is not null && activeFamilyMemberIdSet.Contains(familyMemberId) ? familyMemberId : null, IsEnabled = room.IsEnabled, IsArchived = room.IsArchived, ArchivedUtc = room.ArchivedUtc, CreatedUtc = room.CreatedUtc, UpdatedUtc = room.UpdatedUtc };
+            }));
+            if (document.Calendar.RoomClimateConfigurations is not null)
+            {
+                dbContext.RoomClimateConfigurations.AddRange(document.Calendar.RoomClimateConfigurations.Select(config => new RoomClimateConfiguration
+                {
+                    RoomId = config.RoomId, HouseholdId = SeedHousehold.Id, IsClimateEnabled = config.IsClimateEnabled, IsBedtimeRelevant = config.IsBedtimeRelevant,
+                    MinimumPreferredTemperatureCelsius = config.MinimumPreferredTemperatureCelsius, MaximumPreferredTemperatureCelsius = config.MaximumPreferredTemperatureCelsius,
+                    MinimumPreferredRelativeHumidity = config.MinimumPreferredRelativeHumidity, MaximumPreferredRelativeHumidity = config.MaximumPreferredRelativeHumidity,
+                    HeatingPolicyIntent = Enum.Parse<HeatingPolicyIntent>(config.HeatingPolicyIntent, true), CreatedUtc = config.CreatedUtc, UpdatedUtc = config.UpdatedUtc
+                }));
+            }
+        }
+        else if (document.Calendar.RoomClimateConfigurations is not null)
+        {
+            var existingClimateConfigurations = await dbContext.RoomClimateConfigurations.Where(config => config.HouseholdId == SeedHousehold.Id).ToListAsync(cancellationToken);
+            dbContext.RoomClimateConfigurations.RemoveRange(existingClimateConfigurations);
+            dbContext.RoomClimateConfigurations.AddRange(document.Calendar.RoomClimateConfigurations.Select(config => new RoomClimateConfiguration
+            {
+                RoomId = config.RoomId, HouseholdId = SeedHousehold.Id, IsClimateEnabled = config.IsClimateEnabled, IsBedtimeRelevant = config.IsBedtimeRelevant,
+                MinimumPreferredTemperatureCelsius = config.MinimumPreferredTemperatureCelsius, MaximumPreferredTemperatureCelsius = config.MaximumPreferredTemperatureCelsius,
+                MinimumPreferredRelativeHumidity = config.MinimumPreferredRelativeHumidity, MaximumPreferredRelativeHumidity = config.MaximumPreferredRelativeHumidity,
+                HeatingPolicyIntent = Enum.Parse<HeatingPolicyIntent>(config.HeatingPolicyIntent, true), CreatedUtc = config.CreatedUtc, UpdatedUtc = config.UpdatedUtc
             }));
         }
 
@@ -509,6 +546,52 @@ public static class CalendarPortabilityService
         }
 
         return ToArrayDictionary(errors);
+    }
+
+
+
+    private static async Task<Dictionary<string, string[]>> ValidateClimateRoomReferencesAsync(HomeOpsDbContext dbContext, CalendarExportDocument document, CancellationToken cancellationToken)
+    {
+        var configs = document.Calendar.RoomClimateConfigurations;
+        if (configs is null || document.Calendar.Rooms is not null) return new Dictionary<string, string[]>();
+        var requestedRoomIds = configs.Select(config => config.RoomId).Distinct().ToList();
+        var existingRoomIds = await dbContext.Rooms.AsNoTracking()
+            .Where(room => room.HouseholdId == SeedHousehold.Id && requestedRoomIds.Contains(room.Id))
+            .Select(room => room.Id)
+            .ToListAsync(cancellationToken);
+        var existingRoomIdSet = existingRoomIds.ToHashSet();
+        return requestedRoomIds.Any(roomId => !existingRoomIdSet.Contains(roomId))
+            ? new Dictionary<string, string[]> { ["Calendar.RoomClimateConfigurations.RoomId"] = ["Every climate configuration must reference an existing Room."] }
+            : new Dictionary<string, string[]>();
+    }
+
+    private static Dictionary<string, string[]> ValidateClimatePayload(CalendarExportDocument document)
+    {
+        var errors = new Dictionary<string, List<string>>();
+        var configs = document.Calendar.RoomClimateConfigurations;
+        if (configs is null) return new Dictionary<string, string[]>();
+        if (configs.Any(config => config.RoomId == Guid.Empty)) AddError(errors, "Calendar.RoomClimateConfigurations.RoomId", "Room climate configuration RoomId values must be non-empty GUIDs.");
+        if (configs.GroupBy(config => config.RoomId).Any(group => group.Count() > 1)) AddError(errors, "Calendar.RoomClimateConfigurations.RoomId", "Only one climate configuration is allowed per Room.");
+        var roomIds = (document.Calendar.Rooms ?? []).Select(room => room.Id).ToHashSet();
+        if (roomIds.Count == 0) roomIds = configs.Select(config => config.RoomId).ToHashSet();
+        if (document.Calendar.Rooms is not null && configs.Any(config => !roomIds.Contains(config.RoomId))) AddError(errors, "Calendar.RoomClimateConfigurations.RoomId", "Every climate configuration must reference a restored Room.");
+        foreach (var config in configs)
+        {
+            if (!Enum.TryParse<HeatingPolicyIntent>(config.HeatingPolicyIntent, true, out var intent)) AddError(errors, "Calendar.RoomClimateConfigurations.HeatingPolicyIntent", "HeatingPolicyIntent must be supported.");
+            if (config.IsBedtimeRelevant && !config.IsClimateEnabled) AddError(errors, "Calendar.RoomClimateConfigurations.IsBedtimeRelevant", "Bedtime relevance requires climate to be enabled.");
+            ValidateExportRange(errors, config.MinimumPreferredTemperatureCelsius, config.MaximumPreferredTemperatureCelsius, -30m, 60m, "TemperatureRange");
+            ValidateExportRange(errors, config.MinimumPreferredRelativeHumidity, config.MaximumPreferredRelativeHumidity, 0m, 100m, "HumidityRange");
+            if (Enum.TryParse<HeatingPolicyIntent>(config.HeatingPolicyIntent, true, out intent) && intent == HeatingPolicyIntent.BoundedControl && (config.MinimumPreferredTemperatureCelsius is null || config.MaximumPreferredTemperatureCelsius is null)) AddError(errors, "Calendar.RoomClimateConfigurations.HeatingPolicyIntent", "Bounded heating control intent requires a temperature comfort policy.");
+        }
+        return ToArrayDictionary(errors);
+    }
+
+    private static void ValidateExportRange(Dictionary<string, List<string>> errors, decimal? minimum, decimal? maximum, decimal supportedMinimum, decimal supportedMaximum, string field)
+    {
+        if (minimum is null && maximum is null) return;
+        if (minimum is null || maximum is null) { AddError(errors, $"Calendar.RoomClimateConfigurations.{field}", $"{field} requires both minimum and maximum values."); return; }
+        if (minimum < supportedMinimum || maximum > supportedMaximum) AddError(errors, $"Calendar.RoomClimateConfigurations.{field}", $"{field} values are outside supported bounds.");
+        if (minimum >= maximum) AddError(errors, $"Calendar.RoomClimateConfigurations.{field}", $"{field} minimum must be lower than maximum.");
     }
 
     private static void AddError(Dictionary<string, List<string>> errors, string key, string message)
