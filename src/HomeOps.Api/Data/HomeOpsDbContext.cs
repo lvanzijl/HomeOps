@@ -39,6 +39,7 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
     public DbSet<HelpfulMoment> HelpfulMoments => Set<HelpfulMoment>();
     public DbSet<Floor> Floors => Set<Floor>();
     public DbSet<Room> Rooms => Set<Room>();
+    public DbSet<RoomClimateConfiguration> RoomClimateConfigurations => Set<RoomClimateConfiguration>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -82,6 +83,24 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             entity.HasIndex(room => new { room.FloorId, room.IsArchived, room.SortOrder });
             entity.HasIndex(room => new { room.FloorId, room.Name }).IsUnique().HasFilter("\"IsArchived\" = false");
             entity.HasIndex(room => new { room.HouseholdId, room.FamilyMemberId });
+        });
+
+        modelBuilder.Entity<RoomClimateConfiguration>(entity =>
+        {
+            entity.ToTable("RoomClimateConfigurations");
+            entity.HasKey(config => config.RoomId);
+            entity.Property(config => config.IsClimateEnabled).IsRequired();
+            entity.Property(config => config.IsBedtimeRelevant).IsRequired();
+            entity.Property(config => config.MinimumPreferredTemperatureCelsius).HasPrecision(5, 2);
+            entity.Property(config => config.MaximumPreferredTemperatureCelsius).HasPrecision(5, 2);
+            entity.Property(config => config.MinimumPreferredRelativeHumidity).HasPrecision(5, 2);
+            entity.Property(config => config.MaximumPreferredRelativeHumidity).HasPrecision(5, 2);
+            entity.Property(config => config.HeatingPolicyIntent).HasConversion<string>().HasMaxLength(40).IsRequired();
+            entity.Property(config => config.CreatedUtc).IsRequired();
+            entity.Property(config => config.UpdatedUtc).IsRequired();
+            entity.HasOne(config => config.Household).WithMany().HasForeignKey(config => config.HouseholdId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(config => config.Room).WithOne().HasForeignKey<RoomClimateConfiguration>(config => config.RoomId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasIndex(config => config.HouseholdId);
         });
 
         modelBuilder.Entity<AgendaLayerSetting>(entity =>
