@@ -5,6 +5,7 @@ using HomeOps.Api.Households;
 using HomeOps.Api.Lists;
 using HomeOps.Api.CalendarEvents;
 using HomeOps.Api.FamilyMembers;
+using HomeOps.Api.FloorPlans;
 using HomeOps.Api.KnownPeople;
 using HomeOps.Api.Motivation;
 using HomeOps.Api.WidgetLayouts;
@@ -36,11 +37,52 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
     public DbSet<MotivationFamilyGoal> MotivationFamilyGoals => Set<MotivationFamilyGoal>();
     public DbSet<MotivationIndividualGoal> MotivationIndividualGoals => Set<MotivationIndividualGoal>();
     public DbSet<HelpfulMoment> HelpfulMoments => Set<HelpfulMoment>();
+    public DbSet<Floor> Floors => Set<Floor>();
+    public DbSet<Room> Rooms => Set<Room>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
+
+
+
+        modelBuilder.Entity<Floor>(entity =>
+        {
+            entity.ToTable("Floors");
+            entity.HasKey(floor => floor.Id);
+            entity.Property(floor => floor.Name).HasMaxLength(160).IsRequired();
+            entity.Property(floor => floor.SortOrder).IsRequired();
+            entity.Property(floor => floor.IsEnabled).IsRequired();
+            entity.Property(floor => floor.IsArchived).IsRequired();
+            entity.Property(floor => floor.ArchivedUtc);
+            entity.Property(floor => floor.CreatedUtc).IsRequired();
+            entity.Property(floor => floor.UpdatedUtc).IsRequired();
+            entity.HasOne(floor => floor.Household).WithMany().HasForeignKey(floor => floor.HouseholdId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(floor => new { floor.HouseholdId, floor.IsArchived, floor.SortOrder });
+            entity.HasIndex(floor => new { floor.HouseholdId, floor.Name }).IsUnique().HasFilter("\"IsArchived\" = false");
+        });
+
+        modelBuilder.Entity<Room>(entity =>
+        {
+            entity.ToTable("Rooms");
+            entity.HasKey(room => room.Id);
+            entity.Property(room => room.Name).HasMaxLength(160).IsRequired();
+            entity.Property(room => room.RoomType).HasConversion<string>().HasMaxLength(32).IsRequired();
+            entity.Property(room => room.SortOrder).IsRequired();
+            entity.Property(room => room.FamilyMemberId).HasMaxLength(120);
+            entity.Property(room => room.IsEnabled).IsRequired();
+            entity.Property(room => room.IsArchived).IsRequired();
+            entity.Property(room => room.ArchivedUtc);
+            entity.Property(room => room.CreatedUtc).IsRequired();
+            entity.Property(room => room.UpdatedUtc).IsRequired();
+            entity.HasOne(room => room.Household).WithMany().HasForeignKey(room => room.HouseholdId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(room => room.Floor).WithMany(floor => floor.Rooms).HasForeignKey(room => room.FloorId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(room => room.FamilyMember).WithMany().HasForeignKey(room => room.FamilyMemberId).OnDelete(DeleteBehavior.SetNull);
+            entity.HasIndex(room => new { room.FloorId, room.IsArchived, room.SortOrder });
+            entity.HasIndex(room => new { room.FloorId, room.Name }).IsUnique().HasFilter("\"IsArchived\" = false");
+            entity.HasIndex(room => new { room.HouseholdId, room.FamilyMemberId });
+        });
 
         modelBuilder.Entity<AgendaLayerSetting>(entity =>
         {

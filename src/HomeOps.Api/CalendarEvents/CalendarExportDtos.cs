@@ -20,7 +20,9 @@ public sealed record CalendarExportPayload(
     IReadOnlyCollection<CalendarExportEventSeries> EventSeries,
     CalendarExportRecurrenceSection Recurrence,
     IReadOnlyCollection<CalendarExportEventException> Exceptions,
-    IReadOnlyDictionary<string, string> Metadata)
+    IReadOnlyDictionary<string, string> Metadata,
+    IReadOnlyCollection<CalendarExportFloor>? Floors = null,
+    IReadOnlyCollection<CalendarExportRoom>? Rooms = null)
 {
     public const int CurrentVersion = 1;
 }
@@ -110,3 +112,7 @@ public sealed record CalendarExportEventException(
     string? DetachedProviderRevision = null,
     string? DetachedContentFingerprint = null,
     string? RawDetachedRecurrenceMetadata = null);
+
+
+public sealed record CalendarExportFloor(Guid Id, string Name, int SortOrder, bool IsEnabled, bool IsArchived, DateTimeOffset? ArchivedUtc, DateTimeOffset CreatedUtc, DateTimeOffset UpdatedUtc);
+public sealed record CalendarExportRoom(Guid Id, Guid FloorId, string Name, string RoomType, int SortOrder, string? FamilyMemberId, bool IsEnabled, bool IsArchived, DateTimeOffset? ArchivedUtc, DateTimeOffset CreatedUtc, DateTimeOffset UpdatedUtc);

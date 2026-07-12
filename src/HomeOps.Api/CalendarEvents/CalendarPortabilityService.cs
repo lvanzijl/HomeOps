@@ -1,5 +1,6 @@
 using HomeOps.Api.Data;
 using HomeOps.Api.Households;
+using HomeOps.Api.FloorPlans;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 
@@ -74,18 +75,36 @@ public static class CalendarPortabilityService
             .Select(exception => new CalendarExportEventException(exception.Id, exception.EventSeriesId, exception.OccurrenceDate, (exception.IsSkipped ? EventExceptionType.Skipped : exception.ExceptionType).ToString(), exception.Title, exception.Description, exception.StartDate, exception.StartTime, exception.EndDate, exception.EndTime, (exception.OccurrenceKey == default ? OccurrenceKey.FromOriginalStart(exception.OccurrenceDate, exception.EventSeries!.StartTime) : exception.OccurrenceKey).Serialize(), exception.Location, exception.IsAllDay, exception.RawProviderRecurrenceId, exception.NormalizedProviderRecurrenceId, exception.DetachedProviderEventId, exception.DetachedProviderRevision, exception.DetachedContentFingerprint, exception.RawDetachedRecurrenceMetadata))
             .ToListAsync(cancellationToken);
 
+        var floors = await dbContext.Floors.AsNoTracking()
+            .Where(floor => floor.HouseholdId == SeedHousehold.Id)
+            .OrderBy(floor => floor.SortOrder).ThenBy(floor => floor.Name)
+            .Select(floor => new CalendarExportFloor(floor.Id, floor.Name, floor.SortOrder, floor.IsEnabled, floor.IsArchived, floor.ArchivedUtc, floor.CreatedUtc, floor.UpdatedUtc))
+            .ToListAsync(cancellationToken);
+        var rooms = await dbContext.Rooms.AsNoTracking()
+            .Where(room => room.HouseholdId == SeedHousehold.Id)
+            .OrderBy(room => room.FloorId).ThenBy(room => room.SortOrder).ThenBy(room => room.Name)
+            .Select(room => new CalendarExportRoom(room.Id, room.FloorId, room.Name, room.RoomType.ToString(), room.SortOrder, room.FamilyMemberId, room.IsEnabled, room.IsArchived, room.ArchivedUtc, room.CreatedUtc, room.UpdatedUtc))
+            .ToListAsync(cancellationToken);
+
         return new CalendarExportDocument(
             CalendarExportDocument.CurrentFormat,
             CalendarExportDocument.CurrentSchemaVersion,
             DateTimeOffset.UtcNow,
             new CalendarExportHousehold(household.Id, household.TimeZoneId),
-            new CalendarExportPayload(CalendarExportPayload.CurrentVersion, sources, series, new CalendarExportRecurrenceSection([]), exceptions, new Dictionary<string, string>()),
+            new CalendarExportPayload(CalendarExportPayload.CurrentVersion, sources, series, new CalendarExportRecurrenceSection([]), exceptions, new Dictionary<string, string>(), floors, rooms),
             new Dictionary<string, string>());
     }
 
     public static async Task<CalendarRestoreResult> RestoreAsync(HomeOpsDbContext dbContext, CalendarExportDocument? document, CancellationToken cancellationToken = default)
     {
         var validationErrors = Validate(document);
+        if (validationErrors.Count == 0 && document is not null)
+        {
+            foreach (var error in await ValidateFloorRoomPayloadAsync(dbContext, document, cancellationToken))
+            {
+                validationErrors[error.Key] = error.Value;
+            }
+        }
         if (validationErrors.Count > 0)
         {
             return new CalendarRestoreResult(false, validationErrors);
@@ -103,6 +122,8 @@ public static class CalendarPortabilityService
                 ["PreRestoreExport"] = [$"Restore was cancelled because the local pre-restore export snapshot could not be created: {exception.Message}"]
             });
         }
+
+        await using var transaction = dbContext.Database.IsRelational() ? await dbContext.Database.BeginTransactionAsync(cancellationToken) : null;
 
         var household = await dbContext.Households.SingleAsync(candidate => candidate.Id == SeedHousehold.Id, cancellationToken);
         if (!string.IsNullOrWhiteSpace(document!.Household.TimeZoneId) && IsValidTimeZone(document.Household.TimeZoneId))
@@ -160,6 +181,27 @@ public static class CalendarPortabilityService
             CreatedUtc = series.CreatedUtc,
             UpdatedUtc = series.UpdatedUtc,
         }));
+        // Floor/Room portability is full replacement when the section is present.
+        // Legacy backups without both collections leave the current Floor/Room graph unchanged.
+        if (document.Calendar.Floors is not null && document.Calendar.Rooms is not null)
+        {
+            var existingRooms = await dbContext.Rooms.Where(room => room.HouseholdId == SeedHousehold.Id).ToListAsync(cancellationToken);
+            dbContext.Rooms.RemoveRange(existingRooms);
+            var existingFloors = await dbContext.Floors.Where(floor => floor.HouseholdId == SeedHousehold.Id).ToListAsync(cancellationToken);
+            dbContext.Floors.RemoveRange(existingFloors);
+            var activeFamilyMemberIds = await dbContext.FamilyMembers.AsNoTracking()
+                .Where(member => member.HouseholdId == SeedHousehold.Id && !member.IsDeleted)
+                .Select(member => member.Id)
+                .ToListAsync(cancellationToken);
+            var activeFamilyMemberIdSet = activeFamilyMemberIds.ToHashSet(StringComparer.Ordinal);
+            dbContext.Floors.AddRange(document.Calendar.Floors.Select(floor => new Floor { Id = floor.Id, HouseholdId = SeedHousehold.Id, Name = floor.Name.Trim(), SortOrder = floor.SortOrder, IsEnabled = floor.IsEnabled, IsArchived = floor.IsArchived, ArchivedUtc = floor.ArchivedUtc, CreatedUtc = floor.CreatedUtc, UpdatedUtc = floor.UpdatedUtc }));
+            dbContext.Rooms.AddRange(document.Calendar.Rooms.Select(room =>
+            {
+                var familyMemberId = string.IsNullOrWhiteSpace(room.FamilyMemberId) ? null : room.FamilyMemberId.Trim();
+                return new Room { Id = room.Id, HouseholdId = SeedHousehold.Id, FloorId = room.FloorId, Name = room.Name.Trim(), RoomType = Enum.Parse<RoomType>(room.RoomType, true), SortOrder = room.SortOrder, FamilyMemberId = familyMemberId is not null && activeFamilyMemberIdSet.Contains(familyMemberId) ? familyMemberId : null, IsEnabled = room.IsEnabled, IsArchived = room.IsArchived, ArchivedUtc = room.ArchivedUtc, CreatedUtc = room.CreatedUtc, UpdatedUtc = room.UpdatedUtc };
+            }));
+        }
+
         dbContext.EventExceptions.AddRange(document.Calendar.Exceptions.Select(exception => new EventException
         {
             Id = exception.Id,
@@ -186,6 +228,7 @@ public static class CalendarPortabilityService
             UpdatedUtc = DateTimeOffset.UtcNow,
         }));
         await dbContext.SaveChangesAsync(cancellationToken);
+        if (transaction is not null) await transaction.CommitAsync(cancellationToken);
 
         return new CalendarRestoreResult(true, new Dictionary<string, string[]>());
     }
@@ -401,6 +444,94 @@ public static class CalendarPortabilityService
         var path = Path.Combine(PreRestoreSnapshotDirectory, $"calendar-pre-restore-{timestamp}.json");
         await using var stream = File.Create(path);
         await JsonSerializer.SerializeAsync(stream, snapshot, SnapshotJsonOptions, cancellationToken);
+    }
+
+
+    private static async Task<Dictionary<string, string[]>> ValidateFloorRoomPayloadAsync(HomeOpsDbContext dbContext, CalendarExportDocument document, CancellationToken cancellationToken)
+    {
+        var errors = new Dictionary<string, List<string>>(StringComparer.Ordinal);
+        var floors = document.Calendar.Floors;
+        var rooms = document.Calendar.Rooms;
+        if (floors is null && rooms is null) return new Dictionary<string, string[]>();
+        if (floors is null || rooms is null)
+        {
+            AddError(errors, "Calendar.FloorsRooms", "Floor and Room collections must be supplied together. Older backups may omit both collections.");
+            return ToArrayDictionary(errors);
+        }
+
+        if (floors.Any(floor => floor.Id == Guid.Empty)) AddError(errors, "Calendar.Floors.Id", "Floor identifiers must be non-empty GUIDs.");
+        if (rooms.Any(room => room.Id == Guid.Empty || room.FloorId == Guid.Empty)) AddError(errors, "Calendar.Rooms.Id", "Room and Floor references must be non-empty GUIDs.");
+        if (floors.GroupBy(floor => floor.Id).Any(group => group.Count() > 1)) AddError(errors, "Calendar.Floors.Id", "Floor identifiers must be unique within the backup.");
+        if (rooms.GroupBy(room => room.Id).Any(group => group.Count() > 1)) AddError(errors, "Calendar.Rooms.Id", "Room identifiers must be unique within the backup.");
+        if (floors.Any(floor => string.IsNullOrWhiteSpace(floor.Name))) AddError(errors, "Calendar.Floors.Name", "Floor names are required.");
+        if (rooms.Any(room => string.IsNullOrWhiteSpace(room.Name))) AddError(errors, "Calendar.Rooms.Name", "Room names are required.");
+        if (floors.Any(floor => floor.SortOrder < 0)) AddError(errors, "Calendar.Floors.SortOrder", "Floor sort orders must be zero or greater.");
+        if (rooms.Any(room => room.SortOrder < 0)) AddError(errors, "Calendar.Rooms.SortOrder", "Room sort orders must be zero or greater.");
+        if (floors.GroupBy(floor => floor.SortOrder).Any(group => group.Count() > 1)) AddError(errors, "Calendar.Floors.SortOrder", "Floor sort orders must be unique across restored Floors.");
+        if (!IsContiguous(floors.Select(floor => floor.SortOrder))) AddError(errors, "Calendar.Floors.SortOrder", "Floor sort orders must be contiguous starting at zero.");
+
+        var floorIds = floors.Select(floor => floor.Id).ToHashSet();
+        var floorById = floors.GroupBy(floor => floor.Id).Where(group => group.Count() == 1).ToDictionary(group => group.Key, group => group.Single());
+        if (rooms.Any(room => !floorIds.Contains(room.FloorId))) AddError(errors, "Calendar.Rooms.FloorId", "Every Room must reference a Floor owned by the same restore payload.");
+        if (floors.GroupBy(floor => floor.Name.Trim(), StringComparer.Ordinal).Any(group => group.Count() > 1)) AddError(errors, "Calendar.Floors.Name", "Floor names must be unique across active and archived restored Floors to avoid ambiguous restores.");
+        if (floors.Any(floor => floor.IsArchived && floor.ArchivedUtc is null)) AddError(errors, "Calendar.Floors.ArchiveState", "Archived Floors require an archive timestamp.");
+        if (floors.Any(floor => !floor.IsArchived && floor.ArchivedUtc is not null)) AddError(errors, "Calendar.Floors.ArchiveState", "Active Floors must not carry an archive timestamp.");
+        if (floors.Any(floor => floor.IsArchived && floor.IsEnabled)) AddError(errors, "Calendar.Floors.ArchiveState", "Archived Floors must not be enabled.");
+
+        foreach (var roomGroup in rooms.GroupBy(room => room.FloorId))
+        {
+            if (roomGroup.GroupBy(room => room.SortOrder).Any(group => group.Count() > 1)) AddError(errors, "Calendar.Rooms.SortOrder", "Room sort orders must be unique within each Floor.");
+            if (!IsContiguous(roomGroup.Select(room => room.SortOrder))) AddError(errors, "Calendar.Rooms.SortOrder", "Room sort orders must be contiguous within each Floor starting at zero.");
+            if (roomGroup.GroupBy(room => room.Name.Trim(), StringComparer.Ordinal).Any(group => group.Count() > 1)) AddError(errors, "Calendar.Rooms.Name", "Room names must be unique within a Floor across active and archived records to avoid ambiguous restores.");
+        }
+
+        foreach (var room in rooms)
+        {
+            if (!Enum.TryParse<RoomType>(room.RoomType, true, out _)) AddError(errors, "Calendar.Rooms.RoomType", "RoomType must be one of the supported RoomType values and is never silently mapped to Other.");
+            if (room.IsArchived && room.ArchivedUtc is null) AddError(errors, "Calendar.Rooms.ArchiveState", "Archived Rooms require an archive timestamp.");
+            if (!room.IsArchived && room.ArchivedUtc is not null) AddError(errors, "Calendar.Rooms.ArchiveState", "Active Rooms must not carry an archive timestamp.");
+            if (room.IsArchived && room.IsEnabled) AddError(errors, "Calendar.Rooms.ArchiveState", "Archived Rooms must not be enabled.");
+            if (floorById.TryGetValue(room.FloorId, out var floor) && (floor.IsArchived || !floor.IsEnabled) && !room.IsArchived) AddError(errors, "Calendar.Rooms.FloorState", "Active Rooms cannot be restored into archived or inactive Floors.");
+        }
+
+        var familyMemberIds = rooms.Select(room => room.FamilyMemberId?.Trim()).Where(id => !string.IsNullOrWhiteSpace(id)).Distinct(StringComparer.Ordinal).ToList();
+        if (familyMemberIds.Count > 0)
+        {
+            var validFamilyMemberIds = await dbContext.FamilyMembers.AsNoTracking()
+                .Where(member => member.HouseholdId == SeedHousehold.Id && !member.IsDeleted && familyMemberIds.Contains(member.Id))
+                .Select(member => member.Id)
+                .ToListAsync(cancellationToken);
+            var validFamilyMemberIdSet = validFamilyMemberIds.ToHashSet(StringComparer.Ordinal);
+            foreach (var missingId in familyMemberIds.Where(id => !validFamilyMemberIdSet.Contains(id!)))
+            {
+                AddError(errors, "Calendar.Rooms.FamilyMemberId", $"Room FamilyMember reference '{missingId}' must point to an active FamilyMember in the local household.");
+            }
+        }
+
+        return ToArrayDictionary(errors);
+    }
+
+    private static void AddError(Dictionary<string, List<string>> errors, string key, string message)
+    {
+        if (!errors.TryGetValue(key, out var messages))
+        {
+            messages = [];
+            errors[key] = messages;
+        }
+        messages.Add(message);
+    }
+
+    private static Dictionary<string, string[]> ToArrayDictionary(Dictionary<string, List<string>> errors) =>
+        errors.ToDictionary(pair => pair.Key, pair => pair.Value.ToArray(), StringComparer.Ordinal);
+
+    private static bool IsContiguous(IEnumerable<int> orders)
+    {
+        var ordered = orders.Order().ToArray();
+        for (var index = 0; index < ordered.Length; index++)
+        {
+            if (ordered[index] != index) return false;
+        }
+        return true;
     }
 
     private static Dictionary<string, string[]> Validate(CalendarExportDocument? document)

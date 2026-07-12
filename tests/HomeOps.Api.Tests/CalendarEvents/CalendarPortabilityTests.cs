@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using HomeOps.Api.CalendarEvents;
 using HomeOps.Api.Data;
 using HomeOps.Api.Households;
+using HomeOps.Api.FloorPlans;
 using HomeOps.Contracts.Events;
 using Microsoft.EntityFrameworkCore;
 using HomeOps.Api.Tests.Lists;
@@ -595,6 +596,147 @@ public sealed class CalendarPortabilityTests
         Assert.True(manualSource.IsEnabled);
     }
 
+
+    [Fact]
+    public async Task RestoreRejectsMalformedFloorRoomGraphWithoutChangingExistingRooms()
+    {
+        await using var dbContext = CreateDbContext("floor-room-malformed");
+        var existingFloor = AddFloor(dbContext, "Existing", 0);
+        AddRoom(dbContext, existingFloor.Id, "Existing room", RoomType.Office, 0);
+        await dbContext.SaveChangesAsync();
+        var before = await FloorRoomSnapshot(dbContext);
+        var export = await CalendarPortabilityService.ExportAsync(dbContext);
+        var floorId = Guid.Parse("aaaaaaaa-1111-1111-1111-111111111111");
+        var missingFloorId = Guid.Parse("bbbbbbbb-2222-2222-2222-222222222222");
+        var invalid = export with
+        {
+            Calendar = export.Calendar with
+            {
+                Floors = [FloorExport(floorId, "Restored", 0)],
+                Rooms = [RoomExport(Guid.Parse("cccccccc-3333-3333-3333-333333333333"), missingFloorId, "Missing floor", RoomType.Bedroom, 0)]
+            }
+        };
+
+        var result = await CalendarPortabilityService.RestoreAsync(dbContext, invalid);
+
+        Assert.False(result.Succeeded);
+        Assert.Contains("Calendar.Rooms.FloorId", result.ValidationErrors.Keys);
+        Assert.Equal(before, await FloorRoomSnapshot(dbContext));
+    }
+
+    [Fact]
+    public async Task RestoreRejectsDuplicateFloorAndRoomIdentitiesAndNames()
+    {
+        await using var dbContext = CreateDbContext("floor-room-duplicates");
+        var export = await CalendarPortabilityService.ExportAsync(dbContext);
+        var floorId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+        var roomId = Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
+        var invalid = export with
+        {
+            Calendar = export.Calendar with
+            {
+                Floors = [FloorExport(floorId, "Duplicate", 0), FloorExport(floorId, "Duplicate", 1)],
+                Rooms = [RoomExport(roomId, floorId, "Bedroom", RoomType.Bedroom, 0), RoomExport(roomId, floorId, "Bedroom", RoomType.Bathroom, 1)]
+            }
+        };
+
+        var result = await CalendarPortabilityService.RestoreAsync(dbContext, invalid);
+
+        Assert.False(result.Succeeded);
+        Assert.Contains("Calendar.Floors.Id", result.ValidationErrors.Keys);
+        Assert.Contains("Calendar.Rooms.Id", result.ValidationErrors.Keys);
+        Assert.Contains("Calendar.Floors.Name", result.ValidationErrors.Keys);
+        Assert.Contains("Calendar.Rooms.Name", result.ValidationErrors.Keys);
+    }
+
+    [Fact]
+    public async Task RestoreRejectsInvalidNamesRoomTypeFamilyMemberLifecycleAndOrdering()
+    {
+        await using var dbContext = CreateDbContext("floor-room-validation");
+        var export = await CalendarPortabilityService.ExportAsync(dbContext);
+        var floorId = Guid.Parse("aaaaaaaa-0000-0000-0000-000000000001");
+        var invalid = export with
+        {
+            Calendar = export.Calendar with
+            {
+                Floors = [FloorExport(floorId, " ", 2, isArchived: true, isEnabled: true, archivedUtc: SeedCalendarEvents.SeededUtc)],
+                Rooms =
+                [
+                    new CalendarExportRoom(Guid.Parse("bbbbbbbb-0000-0000-0000-000000000001"), floorId, " ", "NotAType", -1, "missing-member", true, false, null, SeedCalendarEvents.SeededUtc, SeedCalendarEvents.SeededUtc),
+                    RoomExport(Guid.Parse("bbbbbbbb-0000-0000-0000-000000000002"), floorId, "Other", RoomType.Other, -1)
+                ]
+            }
+        };
+
+        var result = await CalendarPortabilityService.RestoreAsync(dbContext, invalid);
+
+        Assert.False(result.Succeeded);
+        Assert.Contains("Calendar.Floors.Name", result.ValidationErrors.Keys);
+        Assert.Contains("Calendar.Floors.SortOrder", result.ValidationErrors.Keys);
+        Assert.Contains("Calendar.Floors.ArchiveState", result.ValidationErrors.Keys);
+        Assert.Contains("Calendar.Rooms.Name", result.ValidationErrors.Keys);
+        Assert.Contains("Calendar.Rooms.RoomType", result.ValidationErrors.Keys);
+        Assert.Contains("Calendar.Rooms.FamilyMemberId", result.ValidationErrors.Keys);
+        Assert.Contains("Calendar.Rooms.SortOrder", result.ValidationErrors.Keys);
+        Assert.Contains("Calendar.Rooms.FloorState", result.ValidationErrors.Keys);
+    }
+
+    [Fact]
+    public async Task RestoreAcceptsSameRoomNameOnDifferentFloorsAndPreservesOrderArchiveStateAndFamilyMember()
+    {
+        await using var dbContext = CreateDbContext("floor-room-success");
+        using var snapshotDirectory = UseSnapshotDirectory();
+        var export = await CalendarPortabilityService.ExportAsync(dbContext);
+        var activeFloor = Guid.Parse("aaaaaaaa-1000-0000-0000-000000000001");
+        var secondFloor = Guid.Parse("aaaaaaaa-1000-0000-0000-000000000002");
+        var archivedFloor = Guid.Parse("aaaaaaaa-1000-0000-0000-000000000003");
+        var restored = export with
+        {
+            Calendar = export.Calendar with
+            {
+                Floors = [FloorExport(activeFloor, "Active", 0), FloorExport(secondFloor, "Second", 1), FloorExport(archivedFloor, "Archived", 2, isArchived: true, isEnabled: false, archivedUtc: SeedCalendarEvents.SeededUtc)],
+                Rooms =
+                [
+                    RoomExport(Guid.Parse("bbbbbbbb-1000-0000-0000-000000000001"), activeFloor, "Bedroom", RoomType.Bedroom, 0, "alex"),
+                    RoomExport(Guid.Parse("bbbbbbbb-1000-0000-0000-000000000002"), secondFloor, "Bedroom", RoomType.Bedroom, 0),
+                    RoomExport(Guid.Parse("bbbbbbbb-1000-0000-0000-000000000003"), archivedFloor, "Archived room", RoomType.Storage, 0, null, isArchived: true, isEnabled: false, archivedUtc: SeedCalendarEvents.SeededUtc)
+                ]
+            }
+        };
+
+        var result = await CalendarPortabilityService.RestoreAsync(dbContext, restored);
+
+        Assert.True(result.Succeeded);
+        Assert.Equal(["Active", "Second", "Archived"], await dbContext.Floors.OrderBy(floor => floor.SortOrder).Select(floor => floor.Name).ToArrayAsync());
+        Assert.Equal("alex", await dbContext.Rooms.Where(room => room.Name == "Bedroom" && room.FloorId == activeFloor).Select(room => room.FamilyMemberId).SingleAsync());
+        Assert.True(await dbContext.Floors.Where(floor => floor.Id == archivedFloor).Select(floor => floor.IsArchived).SingleAsync());
+        Assert.True(await dbContext.Rooms.Where(room => room.Name == "Archived room").Select(room => room.IsArchived).SingleAsync());
+        Assert.Single(Directory.GetFiles(CalendarPortabilityService.PreRestoreSnapshotDirectory, "calendar-pre-restore-*.json"));
+    }
+
+    [Fact]
+    public async Task RestoreWithAbsentFloorRoomCollectionsPreservesExistingStateButEmptyCollectionsReplace()
+    {
+        await using var dbContext = CreateDbContext("floor-room-legacy");
+        var existingFloor = AddFloor(dbContext, "Keep", 0);
+        AddRoom(dbContext, existingFloor.Id, "Keep room", RoomType.Office, 0);
+        await dbContext.SaveChangesAsync();
+        var export = await CalendarPortabilityService.ExportAsync(dbContext);
+        var legacy = export with { Calendar = export.Calendar with { Floors = null, Rooms = null } };
+
+        var legacyResult = await CalendarPortabilityService.RestoreAsync(dbContext, legacy);
+
+        Assert.True(legacyResult.Succeeded);
+        Assert.Equal(["Keep"], await dbContext.Floors.Select(floor => floor.Name).ToArrayAsync());
+
+        var emptyReplacement = export with { Calendar = export.Calendar with { Floors = [], Rooms = [] } };
+        var emptyResult = await CalendarPortabilityService.RestoreAsync(dbContext, emptyReplacement);
+
+        Assert.True(emptyResult.Succeeded);
+        Assert.Empty(await dbContext.Floors.ToListAsync());
+        Assert.Empty(await dbContext.Rooms.ToListAsync());
+    }
+
     private static HomeOps.Api.CalendarEvents.EventSource AddFeedSource(HomeOpsDbContext dbContext, string name, bool enabled, DateTimeOffset now)
     {
         var source = new HomeOps.Api.CalendarEvents.EventSource
@@ -674,6 +816,54 @@ public sealed class CalendarPortabilityTests
         normalizedEvent.AllDay,
         normalizedEvent.Editable,
     };
+
+
+    private static Floor AddFloor(HomeOpsDbContext dbContext, string name, int sortOrder, bool isArchived = false)
+    {
+        var floor = new Floor
+        {
+            Id = Guid.NewGuid(),
+            HouseholdId = SeedHousehold.Id,
+            Name = name,
+            SortOrder = sortOrder,
+            IsEnabled = !isArchived,
+            IsArchived = isArchived,
+            ArchivedUtc = isArchived ? SeedCalendarEvents.SeededUtc : null,
+            CreatedUtc = SeedCalendarEvents.SeededUtc,
+            UpdatedUtc = SeedCalendarEvents.SeededUtc,
+        };
+        dbContext.Floors.Add(floor);
+        return floor;
+    }
+
+    private static Room AddRoom(HomeOpsDbContext dbContext, Guid floorId, string name, RoomType roomType, int sortOrder)
+    {
+        var room = new Room
+        {
+            Id = Guid.NewGuid(),
+            HouseholdId = SeedHousehold.Id,
+            FloorId = floorId,
+            Name = name,
+            RoomType = roomType,
+            SortOrder = sortOrder,
+            IsEnabled = true,
+            CreatedUtc = SeedCalendarEvents.SeededUtc,
+            UpdatedUtc = SeedCalendarEvents.SeededUtc,
+        };
+        dbContext.Rooms.Add(room);
+        return room;
+    }
+
+    private static CalendarExportFloor FloorExport(Guid id, string name, int sortOrder, bool isArchived = false, bool? isEnabled = null, DateTimeOffset? archivedUtc = null) =>
+        new(id, name, sortOrder, isEnabled ?? !isArchived, isArchived, archivedUtc, SeedCalendarEvents.SeededUtc, SeedCalendarEvents.SeededUtc);
+
+    private static CalendarExportRoom RoomExport(Guid id, Guid floorId, string name, RoomType roomType, int sortOrder, string? familyMemberId = null, bool isArchived = false, bool? isEnabled = null, DateTimeOffset? archivedUtc = null) =>
+        new(id, floorId, name, roomType.ToString(), sortOrder, familyMemberId, isEnabled ?? !isArchived, isArchived, archivedUtc, SeedCalendarEvents.SeededUtc, SeedCalendarEvents.SeededUtc);
+
+    private static async Task<string[]> FloorRoomSnapshot(HomeOpsDbContext dbContext) =>
+        await dbContext.Floors.OrderBy(floor => floor.Name).Select(floor => $"F:{floor.Name}:{floor.SortOrder}:{floor.IsArchived}")
+            .Concat(dbContext.Rooms.OrderBy(room => room.Name).Select(room => $"R:{room.Name}:{room.SortOrder}:{room.IsArchived}:{room.FamilyMemberId}"))
+            .ToArrayAsync();
 
     private static HomeOpsDbContext CreateDbContext(string? name = null)
     {
