@@ -40,6 +40,8 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
     public DbSet<Floor> Floors => Set<Floor>();
     public DbSet<Room> Rooms => Set<Room>();
     public DbSet<RoomClimateConfiguration> RoomClimateConfigurations => Set<RoomClimateConfiguration>();
+    public DbSet<ClimateProvider> ClimateProviders => Set<ClimateProvider>();
+    public DbSet<RoomClimateSourceMapping> RoomClimateSourceMappings => Set<RoomClimateSourceMapping>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -101,6 +103,57 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             entity.HasOne(config => config.Household).WithMany().HasForeignKey(config => config.HouseholdId).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne(config => config.Room).WithOne().HasForeignKey<RoomClimateConfiguration>(config => config.RoomId).OnDelete(DeleteBehavior.Cascade);
             entity.HasIndex(config => config.HouseholdId);
+        });
+
+
+
+        modelBuilder.Entity<ClimateProvider>(entity =>
+        {
+            entity.ToTable("ClimateProviders");
+            entity.HasKey(provider => provider.Id);
+            entity.Property(provider => provider.ProviderType).HasConversion<string>().HasMaxLength(40).IsRequired();
+            entity.Property(provider => provider.DisplayName).HasMaxLength(160).IsRequired();
+            entity.Property(provider => provider.IsEnabled).IsRequired();
+            entity.Property(provider => provider.IsArchived).IsRequired();
+            entity.Property(provider => provider.ArchivedUtc);
+            entity.Property(provider => provider.ExternalInstanceReference).HasMaxLength(240);
+            entity.Property(provider => provider.DiagnosticMetadata).HasMaxLength(2000);
+            entity.Property(provider => provider.CreatedUtc).IsRequired();
+            entity.Property(provider => provider.UpdatedUtc).IsRequired();
+            entity.HasOne(provider => provider.Household).WithMany().HasForeignKey(provider => provider.HouseholdId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(provider => new { provider.HouseholdId, provider.IsArchived, provider.DisplayName });
+            entity.HasIndex(provider => new { provider.HouseholdId, provider.DisplayName }).IsUnique().HasFilter("\"IsArchived\" = false");
+        });
+
+        modelBuilder.Entity<RoomClimateSourceMapping>(entity =>
+        {
+            entity.ToTable("RoomClimateSourceMappings");
+            entity.HasKey(mapping => mapping.Id);
+            entity.Property(mapping => mapping.SourceRole).HasConversion<string>().HasMaxLength(64).IsRequired();
+            entity.Property(mapping => mapping.ExternalSourceId).HasMaxLength(240).IsRequired();
+            entity.Property(mapping => mapping.ExternalDisplayName).HasMaxLength(240);
+            entity.Property(mapping => mapping.ExternalSourceKind).HasMaxLength(80);
+            entity.Property(mapping => mapping.ExternalAreaId).HasMaxLength(160);
+            entity.Property(mapping => mapping.ExternalAreaName).HasMaxLength(160);
+            entity.Property(mapping => mapping.ExternalDeviceId).HasMaxLength(160);
+            entity.Property(mapping => mapping.ExternalDeviceName).HasMaxLength(160);
+            entity.Property(mapping => mapping.Priority).IsRequired();
+            entity.Property(mapping => mapping.IsEnabled).IsRequired();
+            entity.Property(mapping => mapping.IsArchived).IsRequired();
+            entity.Property(mapping => mapping.ArchivedUtc);
+            entity.Property(mapping => mapping.Health).HasConversion<string>().HasMaxLength(40).IsRequired();
+            entity.Property(mapping => mapping.LastCheckedUtc);
+            entity.Property(mapping => mapping.LastSuccessfulUtc);
+            entity.Property(mapping => mapping.DiagnosticSummary).HasMaxLength(500);
+            entity.Property(mapping => mapping.CreatedUtc).IsRequired();
+            entity.Property(mapping => mapping.UpdatedUtc).IsRequired();
+            entity.HasOne(mapping => mapping.Household).WithMany().HasForeignKey(mapping => mapping.HouseholdId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(mapping => mapping.Room).WithMany().HasForeignKey(mapping => mapping.RoomId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(mapping => mapping.Provider).WithMany().HasForeignKey(mapping => mapping.ProviderId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(mapping => new { mapping.RoomId, mapping.SourceRole, mapping.IsArchived, mapping.Priority });
+            entity.HasIndex(mapping => new { mapping.ProviderId, mapping.ExternalSourceId });
+            entity.HasIndex(mapping => new { mapping.RoomId, mapping.SourceRole, mapping.ProviderId, mapping.ExternalSourceId }).IsUnique().HasFilter("\"IsArchived\" = false");
+            entity.HasIndex(mapping => new { mapping.RoomId, mapping.SourceRole, mapping.Priority }).IsUnique().HasFilter("\"IsArchived\" = false");
         });
 
         modelBuilder.Entity<AgendaLayerSetting>(entity =>

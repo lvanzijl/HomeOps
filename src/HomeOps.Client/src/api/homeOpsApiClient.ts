@@ -3060,6 +3060,701 @@ export class HomeOpsApiClient {
         return Promise.resolve<void>(null as any);
     }
 
+    getClimateProviders(includeArchived: boolean | null | undefined): Promise<ClimateProviderDto[]> {
+        let url_ = this.baseUrl + "/api/climate-providers?";
+        if (includeArchived !== undefined && includeArchived !== null)
+            url_ += "includeArchived=" + encodeURIComponent("" + includeArchived) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetClimateProviders(_response);
+        });
+    }
+
+    protected processGetClimateProviders(response: Response): Promise<ClimateProviderDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(ClimateProviderDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ClimateProviderDto[]>(null as any);
+    }
+
+    createClimateProvider(req: CreateClimateProviderRequest): Promise<ClimateProviderDto> {
+        let url_ = this.baseUrl + "/api/climate-providers";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(req);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCreateClimateProvider(_response);
+        });
+    }
+
+    protected processCreateClimateProvider(response: Response): Promise<ClimateProviderDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 201) {
+            return response.text().then((_responseText) => {
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result201 = ClimateProviderDto.fromJS(resultData201);
+            return result201;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ClimateProviderDto>(null as any);
+    }
+
+    getClimateProvider(providerId: string): Promise<ClimateProviderDto> {
+        let url_ = this.baseUrl + "/api/climate-providers/{providerId}";
+        if (providerId === undefined || providerId === null)
+            throw new globalThis.Error("The parameter 'providerId' must be defined.");
+        url_ = url_.replace("{providerId}", encodeURIComponent("" + providerId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetClimateProvider(_response);
+        });
+    }
+
+    protected processGetClimateProvider(response: Response): Promise<ClimateProviderDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ClimateProviderDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ClimateProviderDto>(null as any);
+    }
+
+    updateClimateProvider(providerId: string, req: UpdateClimateProviderRequest): Promise<ClimateProviderDto> {
+        let url_ = this.baseUrl + "/api/climate-providers/{providerId}";
+        if (providerId === undefined || providerId === null)
+            throw new globalThis.Error("The parameter 'providerId' must be defined.");
+        url_ = url_.replace("{providerId}", encodeURIComponent("" + providerId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(req);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateClimateProvider(_response);
+        });
+    }
+
+    protected processUpdateClimateProvider(response: Response): Promise<ClimateProviderDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ClimateProviderDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ClimateProviderDto>(null as any);
+    }
+
+    deleteClimateProvider(providerId: string): Promise<void> {
+        let url_ = this.baseUrl + "/api/climate-providers/{providerId}";
+        if (providerId === undefined || providerId === null)
+            throw new globalThis.Error("The parameter 'providerId' must be defined.");
+        url_ = url_.replace("{providerId}", encodeURIComponent("" + providerId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDeleteClimateProvider(_response);
+        });
+    }
+
+    protected processDeleteClimateProvider(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    archiveClimateProvider(providerId: string): Promise<void> {
+        let url_ = this.baseUrl + "/api/climate-providers/{providerId}/archive";
+        if (providerId === undefined || providerId === null)
+            throw new globalThis.Error("The parameter 'providerId' must be defined.");
+        url_ = url_.replace("{providerId}", encodeURIComponent("" + providerId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processArchiveClimateProvider(_response);
+        });
+    }
+
+    protected processArchiveClimateProvider(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    restoreClimateProvider(providerId: string): Promise<ClimateProviderDto> {
+        let url_ = this.baseUrl + "/api/climate-providers/{providerId}/restore";
+        if (providerId === undefined || providerId === null)
+            throw new globalThis.Error("The parameter 'providerId' must be defined.");
+        url_ = url_.replace("{providerId}", encodeURIComponent("" + providerId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRestoreClimateProvider(_response);
+        });
+    }
+
+    protected processRestoreClimateProvider(response: Response): Promise<ClimateProviderDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ClimateProviderDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ClimateProviderDto>(null as any);
+    }
+
+    getRoomClimateMappings(roomId: string, includeArchived: boolean | null | undefined): Promise<ClimateMappingDto[]> {
+        let url_ = this.baseUrl + "/api/rooms/{roomId}/climate-mappings?";
+        if (roomId === undefined || roomId === null)
+            throw new globalThis.Error("The parameter 'roomId' must be defined.");
+        url_ = url_.replace("{roomId}", encodeURIComponent("" + roomId));
+        if (includeArchived !== undefined && includeArchived !== null)
+            url_ += "includeArchived=" + encodeURIComponent("" + includeArchived) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetRoomClimateMappings(_response);
+        });
+    }
+
+    protected processGetRoomClimateMappings(response: Response): Promise<ClimateMappingDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(ClimateMappingDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ClimateMappingDto[]>(null as any);
+    }
+
+    createRoomClimateMapping(roomId: string, req: CreateClimateMappingRequest): Promise<ClimateMappingDto> {
+        let url_ = this.baseUrl + "/api/rooms/{roomId}/climate-mappings";
+        if (roomId === undefined || roomId === null)
+            throw new globalThis.Error("The parameter 'roomId' must be defined.");
+        url_ = url_.replace("{roomId}", encodeURIComponent("" + roomId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(req);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCreateRoomClimateMapping(_response);
+        });
+    }
+
+    protected processCreateRoomClimateMapping(response: Response): Promise<ClimateMappingDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 201) {
+            return response.text().then((_responseText) => {
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result201 = ClimateMappingDto.fromJS(resultData201);
+            return result201;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ClimateMappingDto>(null as any);
+    }
+
+    reorderRoomClimateMappings(roomId: string, role: string, req: ReorderClimateMappingsRequest): Promise<void> {
+        let url_ = this.baseUrl + "/api/rooms/{roomId}/climate-mappings/{role}/reorder";
+        if (roomId === undefined || roomId === null)
+            throw new globalThis.Error("The parameter 'roomId' must be defined.");
+        url_ = url_.replace("{roomId}", encodeURIComponent("" + roomId));
+        if (role === undefined || role === null)
+            throw new globalThis.Error("The parameter 'role' must be defined.");
+        url_ = url_.replace("{role}", encodeURIComponent("" + role));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(req);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processReorderRoomClimateMappings(_response);
+        });
+    }
+
+    protected processReorderRoomClimateMappings(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    getRoomClimateCapabilities(roomId: string): Promise<ClimateCapabilitySummaryDto> {
+        let url_ = this.baseUrl + "/api/rooms/{roomId}/climate-capabilities";
+        if (roomId === undefined || roomId === null)
+            throw new globalThis.Error("The parameter 'roomId' must be defined.");
+        url_ = url_.replace("{roomId}", encodeURIComponent("" + roomId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetRoomClimateCapabilities(_response);
+        });
+    }
+
+    protected processGetRoomClimateCapabilities(response: Response): Promise<ClimateCapabilitySummaryDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ClimateCapabilitySummaryDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ClimateCapabilitySummaryDto>(null as any);
+    }
+
+    getClimateMapping(mappingId: string): Promise<ClimateMappingDto> {
+        let url_ = this.baseUrl + "/api/climate-mappings/{mappingId}";
+        if (mappingId === undefined || mappingId === null)
+            throw new globalThis.Error("The parameter 'mappingId' must be defined.");
+        url_ = url_.replace("{mappingId}", encodeURIComponent("" + mappingId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetClimateMapping(_response);
+        });
+    }
+
+    protected processGetClimateMapping(response: Response): Promise<ClimateMappingDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ClimateMappingDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ClimateMappingDto>(null as any);
+    }
+
+    updateClimateMapping(mappingId: string, req: UpdateClimateMappingRequest): Promise<ClimateMappingDto> {
+        let url_ = this.baseUrl + "/api/climate-mappings/{mappingId}";
+        if (mappingId === undefined || mappingId === null)
+            throw new globalThis.Error("The parameter 'mappingId' must be defined.");
+        url_ = url_.replace("{mappingId}", encodeURIComponent("" + mappingId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(req);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateClimateMapping(_response);
+        });
+    }
+
+    protected processUpdateClimateMapping(response: Response): Promise<ClimateMappingDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ClimateMappingDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ClimateMappingDto>(null as any);
+    }
+
+    deleteClimateMapping(mappingId: string): Promise<void> {
+        let url_ = this.baseUrl + "/api/climate-mappings/{mappingId}";
+        if (mappingId === undefined || mappingId === null)
+            throw new globalThis.Error("The parameter 'mappingId' must be defined.");
+        url_ = url_.replace("{mappingId}", encodeURIComponent("" + mappingId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDeleteClimateMapping(_response);
+        });
+    }
+
+    protected processDeleteClimateMapping(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    archiveClimateMapping(mappingId: string): Promise<void> {
+        let url_ = this.baseUrl + "/api/climate-mappings/{mappingId}/archive";
+        if (mappingId === undefined || mappingId === null)
+            throw new globalThis.Error("The parameter 'mappingId' must be defined.");
+        url_ = url_.replace("{mappingId}", encodeURIComponent("" + mappingId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processArchiveClimateMapping(_response);
+        });
+    }
+
+    protected processArchiveClimateMapping(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    restoreClimateMapping(mappingId: string): Promise<ClimateMappingDto> {
+        let url_ = this.baseUrl + "/api/climate-mappings/{mappingId}/restore";
+        if (mappingId === undefined || mappingId === null)
+            throw new globalThis.Error("The parameter 'mappingId' must be defined.");
+        url_ = url_.replace("{mappingId}", encodeURIComponent("" + mappingId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRestoreClimateMapping(_response);
+        });
+    }
+
+    protected processRestoreClimateMapping(response: Response): Promise<ClimateMappingDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ClimateMappingDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ClimateMappingDto>(null as any);
+    }
+
     getKnownPeople(scope: KnownPersonScope | null | undefined, familyMemberId: string | null | undefined): Promise<KnownPersonDto[]> {
         let url_ = this.baseUrl + "/api/known-people?";
         if (scope !== undefined && scope !== null)
@@ -6564,6 +7259,8 @@ export class CalendarExportPayload implements ICalendarExportPayload {
     floors?: CalendarExportFloor[] | undefined;
     rooms?: CalendarExportRoom[] | undefined;
     roomClimateConfigurations?: CalendarExportRoomClimateConfiguration[] | undefined;
+    climateProviders?: CalendarExportClimateProvider[] | undefined;
+    roomClimateSourceMappings?: CalendarExportRoomClimateSourceMapping[] | undefined;
 
     constructor(data?: ICalendarExportPayload) {
         if (data) {
@@ -6614,6 +7311,16 @@ export class CalendarExportPayload implements ICalendarExportPayload {
                 this.roomClimateConfigurations = [] as any;
                 for (let item of _data["roomClimateConfigurations"])
                     this.roomClimateConfigurations!.push(CalendarExportRoomClimateConfiguration.fromJS(item));
+            }
+            if (Array.isArray(_data["climateProviders"])) {
+                this.climateProviders = [] as any;
+                for (let item of _data["climateProviders"])
+                    this.climateProviders!.push(CalendarExportClimateProvider.fromJS(item));
+            }
+            if (Array.isArray(_data["roomClimateSourceMappings"])) {
+                this.roomClimateSourceMappings = [] as any;
+                for (let item of _data["roomClimateSourceMappings"])
+                    this.roomClimateSourceMappings!.push(CalendarExportRoomClimateSourceMapping.fromJS(item));
             }
         }
     }
@@ -6666,6 +7373,16 @@ export class CalendarExportPayload implements ICalendarExportPayload {
             for (let item of this.roomClimateConfigurations)
                 data["roomClimateConfigurations"].push(item ? item.toJSON() : undefined as any);
         }
+        if (Array.isArray(this.climateProviders)) {
+            data["climateProviders"] = [];
+            for (let item of this.climateProviders)
+                data["climateProviders"].push(item ? item.toJSON() : undefined as any);
+        }
+        if (Array.isArray(this.roomClimateSourceMappings)) {
+            data["roomClimateSourceMappings"] = [];
+            for (let item of this.roomClimateSourceMappings)
+                data["roomClimateSourceMappings"].push(item ? item.toJSON() : undefined as any);
+        }
         return data;
     }
 }
@@ -6680,6 +7397,8 @@ export interface ICalendarExportPayload {
     floors?: CalendarExportFloor[] | undefined;
     rooms?: CalendarExportRoom[] | undefined;
     roomClimateConfigurations?: CalendarExportRoomClimateConfiguration[] | undefined;
+    climateProviders?: CalendarExportClimateProvider[] | undefined;
+    roomClimateSourceMappings?: CalendarExportRoomClimateSourceMapping[] | undefined;
 }
 
 export class CalendarExportEventSource implements ICalendarExportEventSource {
@@ -7442,6 +8161,194 @@ export interface ICalendarExportRoomClimateConfiguration {
     minimumPreferredRelativeHumidity?: number | undefined;
     maximumPreferredRelativeHumidity?: number | undefined;
     heatingPolicyIntent?: string;
+    createdUtc?: Date;
+    updatedUtc?: Date;
+}
+
+export class CalendarExportClimateProvider implements ICalendarExportClimateProvider {
+    id?: string;
+    displayName?: string;
+    providerType?: string;
+    isEnabled?: boolean;
+    isArchived?: boolean;
+    archivedUtc?: Date | undefined;
+    externalInstanceReference?: string | undefined;
+    diagnosticMetadata?: string | undefined;
+    createdUtc?: Date;
+    updatedUtc?: Date;
+
+    constructor(data?: ICalendarExportClimateProvider) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.displayName = _data["displayName"];
+            this.providerType = _data["providerType"];
+            this.isEnabled = _data["isEnabled"];
+            this.isArchived = _data["isArchived"];
+            this.archivedUtc = _data["archivedUtc"] ? new Date(_data["archivedUtc"].toString()) : undefined as any;
+            this.externalInstanceReference = _data["externalInstanceReference"];
+            this.diagnosticMetadata = _data["diagnosticMetadata"];
+            this.createdUtc = _data["createdUtc"] ? new Date(_data["createdUtc"].toString()) : undefined as any;
+            this.updatedUtc = _data["updatedUtc"] ? new Date(_data["updatedUtc"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): CalendarExportClimateProvider {
+        data = typeof data === 'object' ? data : {};
+        let result = new CalendarExportClimateProvider();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["displayName"] = this.displayName;
+        data["providerType"] = this.providerType;
+        data["isEnabled"] = this.isEnabled;
+        data["isArchived"] = this.isArchived;
+        data["archivedUtc"] = this.archivedUtc ? this.archivedUtc.toISOString() : undefined as any;
+        data["externalInstanceReference"] = this.externalInstanceReference;
+        data["diagnosticMetadata"] = this.diagnosticMetadata;
+        data["createdUtc"] = this.createdUtc ? this.createdUtc.toISOString() : undefined as any;
+        data["updatedUtc"] = this.updatedUtc ? this.updatedUtc.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface ICalendarExportClimateProvider {
+    id?: string;
+    displayName?: string;
+    providerType?: string;
+    isEnabled?: boolean;
+    isArchived?: boolean;
+    archivedUtc?: Date | undefined;
+    externalInstanceReference?: string | undefined;
+    diagnosticMetadata?: string | undefined;
+    createdUtc?: Date;
+    updatedUtc?: Date;
+}
+
+export class CalendarExportRoomClimateSourceMapping implements ICalendarExportRoomClimateSourceMapping {
+    id?: string;
+    roomId?: string;
+    providerId?: string;
+    sourceRole?: string;
+    externalSourceId?: string;
+    externalDisplayName?: string | undefined;
+    externalSourceKind?: string | undefined;
+    externalAreaId?: string | undefined;
+    externalAreaName?: string | undefined;
+    externalDeviceId?: string | undefined;
+    externalDeviceName?: string | undefined;
+    priority?: number;
+    isEnabled?: boolean;
+    isArchived?: boolean;
+    archivedUtc?: Date | undefined;
+    health?: string;
+    lastCheckedUtc?: Date | undefined;
+    lastSuccessfulUtc?: Date | undefined;
+    diagnosticSummary?: string | undefined;
+    createdUtc?: Date;
+    updatedUtc?: Date;
+
+    constructor(data?: ICalendarExportRoomClimateSourceMapping) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.roomId = _data["roomId"];
+            this.providerId = _data["providerId"];
+            this.sourceRole = _data["sourceRole"];
+            this.externalSourceId = _data["externalSourceId"];
+            this.externalDisplayName = _data["externalDisplayName"];
+            this.externalSourceKind = _data["externalSourceKind"];
+            this.externalAreaId = _data["externalAreaId"];
+            this.externalAreaName = _data["externalAreaName"];
+            this.externalDeviceId = _data["externalDeviceId"];
+            this.externalDeviceName = _data["externalDeviceName"];
+            this.priority = _data["priority"];
+            this.isEnabled = _data["isEnabled"];
+            this.isArchived = _data["isArchived"];
+            this.archivedUtc = _data["archivedUtc"] ? new Date(_data["archivedUtc"].toString()) : undefined as any;
+            this.health = _data["health"];
+            this.lastCheckedUtc = _data["lastCheckedUtc"] ? new Date(_data["lastCheckedUtc"].toString()) : undefined as any;
+            this.lastSuccessfulUtc = _data["lastSuccessfulUtc"] ? new Date(_data["lastSuccessfulUtc"].toString()) : undefined as any;
+            this.diagnosticSummary = _data["diagnosticSummary"];
+            this.createdUtc = _data["createdUtc"] ? new Date(_data["createdUtc"].toString()) : undefined as any;
+            this.updatedUtc = _data["updatedUtc"] ? new Date(_data["updatedUtc"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): CalendarExportRoomClimateSourceMapping {
+        data = typeof data === 'object' ? data : {};
+        let result = new CalendarExportRoomClimateSourceMapping();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["roomId"] = this.roomId;
+        data["providerId"] = this.providerId;
+        data["sourceRole"] = this.sourceRole;
+        data["externalSourceId"] = this.externalSourceId;
+        data["externalDisplayName"] = this.externalDisplayName;
+        data["externalSourceKind"] = this.externalSourceKind;
+        data["externalAreaId"] = this.externalAreaId;
+        data["externalAreaName"] = this.externalAreaName;
+        data["externalDeviceId"] = this.externalDeviceId;
+        data["externalDeviceName"] = this.externalDeviceName;
+        data["priority"] = this.priority;
+        data["isEnabled"] = this.isEnabled;
+        data["isArchived"] = this.isArchived;
+        data["archivedUtc"] = this.archivedUtc ? this.archivedUtc.toISOString() : undefined as any;
+        data["health"] = this.health;
+        data["lastCheckedUtc"] = this.lastCheckedUtc ? this.lastCheckedUtc.toISOString() : undefined as any;
+        data["lastSuccessfulUtc"] = this.lastSuccessfulUtc ? this.lastSuccessfulUtc.toISOString() : undefined as any;
+        data["diagnosticSummary"] = this.diagnosticSummary;
+        data["createdUtc"] = this.createdUtc ? this.createdUtc.toISOString() : undefined as any;
+        data["updatedUtc"] = this.updatedUtc ? this.updatedUtc.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface ICalendarExportRoomClimateSourceMapping {
+    id?: string;
+    roomId?: string;
+    providerId?: string;
+    sourceRole?: string;
+    externalSourceId?: string;
+    externalDisplayName?: string | undefined;
+    externalSourceKind?: string | undefined;
+    externalAreaId?: string | undefined;
+    externalAreaName?: string | undefined;
+    externalDeviceId?: string | undefined;
+    externalDeviceName?: string | undefined;
+    priority?: number;
+    isEnabled?: boolean;
+    isArchived?: boolean;
+    archivedUtc?: Date | undefined;
+    health?: string;
+    lastCheckedUtc?: Date | undefined;
+    lastSuccessfulUtc?: Date | undefined;
+    diagnosticSummary?: string | undefined;
     createdUtc?: Date;
     updatedUtc?: Date;
 }
@@ -9086,7 +9993,8 @@ export enum ClimateSourceRole {
     Humidity = 1,
     HeatingControlTemperature = 2,
     HeatingStatus = 3,
-    HeatingControl = 4,
+    HeatingTargetTemperature = 4,
+    HeatingControl = 5,
 }
 
 export class UpsertRoomClimateConfigurationRequest implements IUpsertRoomClimateConfigurationRequest {
@@ -9139,6 +10047,636 @@ export interface IUpsertRoomClimateConfigurationRequest {
     temperatureRange?: ClimateRangeDto | undefined;
     humidityRange?: ClimateRangeDto | undefined;
     heatingPolicyIntent?: HeatingPolicyIntent;
+}
+
+export class ClimateProviderDto implements IClimateProviderDto {
+    id?: string;
+    displayName?: string;
+    providerType?: ProviderType;
+    isEnabled?: boolean;
+    isArchived?: boolean;
+    archivedUtc?: Date | undefined;
+    externalInstanceReference?: string | undefined;
+    diagnosticMetadata?: string | undefined;
+    createdUtc?: Date;
+    updatedUtc?: Date;
+
+    constructor(data?: IClimateProviderDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.displayName = _data["displayName"];
+            this.providerType = _data["providerType"];
+            this.isEnabled = _data["isEnabled"];
+            this.isArchived = _data["isArchived"];
+            this.archivedUtc = _data["archivedUtc"] ? new Date(_data["archivedUtc"].toString()) : undefined as any;
+            this.externalInstanceReference = _data["externalInstanceReference"];
+            this.diagnosticMetadata = _data["diagnosticMetadata"];
+            this.createdUtc = _data["createdUtc"] ? new Date(_data["createdUtc"].toString()) : undefined as any;
+            this.updatedUtc = _data["updatedUtc"] ? new Date(_data["updatedUtc"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): ClimateProviderDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new ClimateProviderDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["displayName"] = this.displayName;
+        data["providerType"] = this.providerType;
+        data["isEnabled"] = this.isEnabled;
+        data["isArchived"] = this.isArchived;
+        data["archivedUtc"] = this.archivedUtc ? this.archivedUtc.toISOString() : undefined as any;
+        data["externalInstanceReference"] = this.externalInstanceReference;
+        data["diagnosticMetadata"] = this.diagnosticMetadata;
+        data["createdUtc"] = this.createdUtc ? this.createdUtc.toISOString() : undefined as any;
+        data["updatedUtc"] = this.updatedUtc ? this.updatedUtc.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface IClimateProviderDto {
+    id?: string;
+    displayName?: string;
+    providerType?: ProviderType;
+    isEnabled?: boolean;
+    isArchived?: boolean;
+    archivedUtc?: Date | undefined;
+    externalInstanceReference?: string | undefined;
+    diagnosticMetadata?: string | undefined;
+    createdUtc?: Date;
+    updatedUtc?: Date;
+}
+
+export enum ProviderType {
+    HomeAssistant = 0,
+    Other = 1,
+}
+
+export class CreateClimateProviderRequest implements ICreateClimateProviderRequest {
+    displayName?: string;
+    providerType?: ProviderType;
+    externalInstanceReference?: string | undefined;
+    diagnosticMetadata?: string | undefined;
+
+    constructor(data?: ICreateClimateProviderRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.displayName = _data["displayName"];
+            this.providerType = _data["providerType"];
+            this.externalInstanceReference = _data["externalInstanceReference"];
+            this.diagnosticMetadata = _data["diagnosticMetadata"];
+        }
+    }
+
+    static fromJS(data: any): CreateClimateProviderRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreateClimateProviderRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["displayName"] = this.displayName;
+        data["providerType"] = this.providerType;
+        data["externalInstanceReference"] = this.externalInstanceReference;
+        data["diagnosticMetadata"] = this.diagnosticMetadata;
+        return data;
+    }
+}
+
+export interface ICreateClimateProviderRequest {
+    displayName?: string;
+    providerType?: ProviderType;
+    externalInstanceReference?: string | undefined;
+    diagnosticMetadata?: string | undefined;
+}
+
+export class UpdateClimateProviderRequest implements IUpdateClimateProviderRequest {
+    displayName?: string;
+    isEnabled?: boolean | undefined;
+    externalInstanceReference?: string | undefined;
+    diagnosticMetadata?: string | undefined;
+
+    constructor(data?: IUpdateClimateProviderRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.displayName = _data["displayName"];
+            this.isEnabled = _data["isEnabled"];
+            this.externalInstanceReference = _data["externalInstanceReference"];
+            this.diagnosticMetadata = _data["diagnosticMetadata"];
+        }
+    }
+
+    static fromJS(data: any): UpdateClimateProviderRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpdateClimateProviderRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["displayName"] = this.displayName;
+        data["isEnabled"] = this.isEnabled;
+        data["externalInstanceReference"] = this.externalInstanceReference;
+        data["diagnosticMetadata"] = this.diagnosticMetadata;
+        return data;
+    }
+}
+
+export interface IUpdateClimateProviderRequest {
+    displayName?: string;
+    isEnabled?: boolean | undefined;
+    externalInstanceReference?: string | undefined;
+    diagnosticMetadata?: string | undefined;
+}
+
+export class ClimateMappingDto implements IClimateMappingDto {
+    id?: string;
+    roomId?: string;
+    providerId?: string;
+    sourceRole?: ClimateSourceRole;
+    source?: ExternalSourceReferenceDto;
+    priority?: number;
+    isEnabled?: boolean;
+    isArchived?: boolean;
+    archivedUtc?: Date | undefined;
+    health?: MappingHealth;
+    lastCheckedUtc?: Date | undefined;
+    lastSuccessfulUtc?: Date | undefined;
+    diagnosticSummary?: string | undefined;
+    isSharedSource?: boolean;
+    sharedRoomIds?: string[];
+    createdUtc?: Date;
+    updatedUtc?: Date;
+
+    constructor(data?: IClimateMappingDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.roomId = _data["roomId"];
+            this.providerId = _data["providerId"];
+            this.sourceRole = _data["sourceRole"];
+            this.source = _data["source"] ? ExternalSourceReferenceDto.fromJS(_data["source"]) : undefined as any;
+            this.priority = _data["priority"];
+            this.isEnabled = _data["isEnabled"];
+            this.isArchived = _data["isArchived"];
+            this.archivedUtc = _data["archivedUtc"] ? new Date(_data["archivedUtc"].toString()) : undefined as any;
+            this.health = _data["health"];
+            this.lastCheckedUtc = _data["lastCheckedUtc"] ? new Date(_data["lastCheckedUtc"].toString()) : undefined as any;
+            this.lastSuccessfulUtc = _data["lastSuccessfulUtc"] ? new Date(_data["lastSuccessfulUtc"].toString()) : undefined as any;
+            this.diagnosticSummary = _data["diagnosticSummary"];
+            this.isSharedSource = _data["isSharedSource"];
+            if (Array.isArray(_data["sharedRoomIds"])) {
+                this.sharedRoomIds = [] as any;
+                for (let item of _data["sharedRoomIds"])
+                    this.sharedRoomIds!.push(item);
+            }
+            this.createdUtc = _data["createdUtc"] ? new Date(_data["createdUtc"].toString()) : undefined as any;
+            this.updatedUtc = _data["updatedUtc"] ? new Date(_data["updatedUtc"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): ClimateMappingDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new ClimateMappingDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["roomId"] = this.roomId;
+        data["providerId"] = this.providerId;
+        data["sourceRole"] = this.sourceRole;
+        data["source"] = this.source ? this.source.toJSON() : undefined as any;
+        data["priority"] = this.priority;
+        data["isEnabled"] = this.isEnabled;
+        data["isArchived"] = this.isArchived;
+        data["archivedUtc"] = this.archivedUtc ? this.archivedUtc.toISOString() : undefined as any;
+        data["health"] = this.health;
+        data["lastCheckedUtc"] = this.lastCheckedUtc ? this.lastCheckedUtc.toISOString() : undefined as any;
+        data["lastSuccessfulUtc"] = this.lastSuccessfulUtc ? this.lastSuccessfulUtc.toISOString() : undefined as any;
+        data["diagnosticSummary"] = this.diagnosticSummary;
+        data["isSharedSource"] = this.isSharedSource;
+        if (Array.isArray(this.sharedRoomIds)) {
+            data["sharedRoomIds"] = [];
+            for (let item of this.sharedRoomIds)
+                data["sharedRoomIds"].push(item);
+        }
+        data["createdUtc"] = this.createdUtc ? this.createdUtc.toISOString() : undefined as any;
+        data["updatedUtc"] = this.updatedUtc ? this.updatedUtc.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface IClimateMappingDto {
+    id?: string;
+    roomId?: string;
+    providerId?: string;
+    sourceRole?: ClimateSourceRole;
+    source?: ExternalSourceReferenceDto;
+    priority?: number;
+    isEnabled?: boolean;
+    isArchived?: boolean;
+    archivedUtc?: Date | undefined;
+    health?: MappingHealth;
+    lastCheckedUtc?: Date | undefined;
+    lastSuccessfulUtc?: Date | undefined;
+    diagnosticSummary?: string | undefined;
+    isSharedSource?: boolean;
+    sharedRoomIds?: string[];
+    createdUtc?: Date;
+    updatedUtc?: Date;
+}
+
+export class ExternalSourceReferenceDto implements IExternalSourceReferenceDto {
+    externalSourceId?: string;
+    externalDisplayName?: string | undefined;
+    externalSourceKind?: string | undefined;
+    externalAreaId?: string | undefined;
+    externalAreaName?: string | undefined;
+    externalDeviceId?: string | undefined;
+    externalDeviceName?: string | undefined;
+
+    constructor(data?: IExternalSourceReferenceDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.externalSourceId = _data["externalSourceId"];
+            this.externalDisplayName = _data["externalDisplayName"];
+            this.externalSourceKind = _data["externalSourceKind"];
+            this.externalAreaId = _data["externalAreaId"];
+            this.externalAreaName = _data["externalAreaName"];
+            this.externalDeviceId = _data["externalDeviceId"];
+            this.externalDeviceName = _data["externalDeviceName"];
+        }
+    }
+
+    static fromJS(data: any): ExternalSourceReferenceDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new ExternalSourceReferenceDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["externalSourceId"] = this.externalSourceId;
+        data["externalDisplayName"] = this.externalDisplayName;
+        data["externalSourceKind"] = this.externalSourceKind;
+        data["externalAreaId"] = this.externalAreaId;
+        data["externalAreaName"] = this.externalAreaName;
+        data["externalDeviceId"] = this.externalDeviceId;
+        data["externalDeviceName"] = this.externalDeviceName;
+        return data;
+    }
+}
+
+export interface IExternalSourceReferenceDto {
+    externalSourceId?: string;
+    externalDisplayName?: string | undefined;
+    externalSourceKind?: string | undefined;
+    externalAreaId?: string | undefined;
+    externalAreaName?: string | undefined;
+    externalDeviceId?: string | undefined;
+    externalDeviceName?: string | undefined;
+}
+
+export enum MappingHealth {
+    Unverified = 0,
+    Healthy = 1,
+    Degraded = 2,
+    Unavailable = 3,
+    Missing = 4,
+    NeedsReview = 5,
+}
+
+export class CreateClimateMappingRequest implements ICreateClimateMappingRequest {
+    providerId?: string;
+    sourceRole?: ClimateSourceRole;
+    source?: ExternalSourceReferenceDto;
+    priority?: number | undefined;
+    isEnabled?: boolean;
+
+    constructor(data?: ICreateClimateMappingRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.providerId = _data["providerId"];
+            this.sourceRole = _data["sourceRole"];
+            this.source = _data["source"] ? ExternalSourceReferenceDto.fromJS(_data["source"]) : undefined as any;
+            this.priority = _data["priority"];
+            this.isEnabled = _data["isEnabled"];
+        }
+    }
+
+    static fromJS(data: any): CreateClimateMappingRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreateClimateMappingRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["providerId"] = this.providerId;
+        data["sourceRole"] = this.sourceRole;
+        data["source"] = this.source ? this.source.toJSON() : undefined as any;
+        data["priority"] = this.priority;
+        data["isEnabled"] = this.isEnabled;
+        return data;
+    }
+}
+
+export interface ICreateClimateMappingRequest {
+    providerId?: string;
+    sourceRole?: ClimateSourceRole;
+    source?: ExternalSourceReferenceDto;
+    priority?: number | undefined;
+    isEnabled?: boolean;
+}
+
+export class ReorderClimateMappingsRequest implements IReorderClimateMappingsRequest {
+    mappingIds?: string[];
+
+    constructor(data?: IReorderClimateMappingsRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            if (Array.isArray(_data["mappingIds"])) {
+                this.mappingIds = [] as any;
+                for (let item of _data["mappingIds"])
+                    this.mappingIds!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): ReorderClimateMappingsRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new ReorderClimateMappingsRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        if (Array.isArray(this.mappingIds)) {
+            data["mappingIds"] = [];
+            for (let item of this.mappingIds)
+                data["mappingIds"].push(item);
+        }
+        return data;
+    }
+}
+
+export interface IReorderClimateMappingsRequest {
+    mappingIds?: string[];
+}
+
+export class ClimateCapabilitySummaryDto implements IClimateCapabilitySummaryDto {
+    roomId?: string;
+    hasClimateConfiguration?: boolean;
+    isClimateEnabled?: boolean;
+    roles?: ClimateCapabilityRoleSummaryDto[];
+
+    constructor(data?: IClimateCapabilitySummaryDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.roomId = _data["roomId"];
+            this.hasClimateConfiguration = _data["hasClimateConfiguration"];
+            this.isClimateEnabled = _data["isClimateEnabled"];
+            if (Array.isArray(_data["roles"])) {
+                this.roles = [] as any;
+                for (let item of _data["roles"])
+                    this.roles!.push(ClimateCapabilityRoleSummaryDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): ClimateCapabilitySummaryDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new ClimateCapabilitySummaryDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["roomId"] = this.roomId;
+        data["hasClimateConfiguration"] = this.hasClimateConfiguration;
+        data["isClimateEnabled"] = this.isClimateEnabled;
+        if (Array.isArray(this.roles)) {
+            data["roles"] = [];
+            for (let item of this.roles)
+                data["roles"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IClimateCapabilitySummaryDto {
+    roomId?: string;
+    hasClimateConfiguration?: boolean;
+    isClimateEnabled?: boolean;
+    roles?: ClimateCapabilityRoleSummaryDto[];
+}
+
+export class ClimateCapabilityRoleSummaryDto implements IClimateCapabilityRoleSummaryDto {
+    role?: ClimateSourceRole;
+    isRequired?: boolean;
+    status?: string;
+    activeCandidateCount?: number;
+    totalCandidateCount?: number;
+    hasHealthyMapping?: boolean;
+    hasDegradedMapping?: boolean;
+    hasUnavailableOrMissingMapping?: boolean;
+    hasSharedSource?: boolean;
+    mappingIds?: string[];
+
+    constructor(data?: IClimateCapabilityRoleSummaryDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.role = _data["role"];
+            this.isRequired = _data["isRequired"];
+            this.status = _data["status"];
+            this.activeCandidateCount = _data["activeCandidateCount"];
+            this.totalCandidateCount = _data["totalCandidateCount"];
+            this.hasHealthyMapping = _data["hasHealthyMapping"];
+            this.hasDegradedMapping = _data["hasDegradedMapping"];
+            this.hasUnavailableOrMissingMapping = _data["hasUnavailableOrMissingMapping"];
+            this.hasSharedSource = _data["hasSharedSource"];
+            if (Array.isArray(_data["mappingIds"])) {
+                this.mappingIds = [] as any;
+                for (let item of _data["mappingIds"])
+                    this.mappingIds!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): ClimateCapabilityRoleSummaryDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new ClimateCapabilityRoleSummaryDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["role"] = this.role;
+        data["isRequired"] = this.isRequired;
+        data["status"] = this.status;
+        data["activeCandidateCount"] = this.activeCandidateCount;
+        data["totalCandidateCount"] = this.totalCandidateCount;
+        data["hasHealthyMapping"] = this.hasHealthyMapping;
+        data["hasDegradedMapping"] = this.hasDegradedMapping;
+        data["hasUnavailableOrMissingMapping"] = this.hasUnavailableOrMissingMapping;
+        data["hasSharedSource"] = this.hasSharedSource;
+        if (Array.isArray(this.mappingIds)) {
+            data["mappingIds"] = [];
+            for (let item of this.mappingIds)
+                data["mappingIds"].push(item);
+        }
+        return data;
+    }
+}
+
+export interface IClimateCapabilityRoleSummaryDto {
+    role?: ClimateSourceRole;
+    isRequired?: boolean;
+    status?: string;
+    activeCandidateCount?: number;
+    totalCandidateCount?: number;
+    hasHealthyMapping?: boolean;
+    hasDegradedMapping?: boolean;
+    hasUnavailableOrMissingMapping?: boolean;
+    hasSharedSource?: boolean;
+    mappingIds?: string[];
+}
+
+export class UpdateClimateMappingRequest implements IUpdateClimateMappingRequest {
+    source?: ExternalSourceReferenceDto | undefined;
+    priority?: number | undefined;
+    isEnabled?: boolean | undefined;
+    diagnosticSummary?: string | undefined;
+
+    constructor(data?: IUpdateClimateMappingRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.source = _data["source"] ? ExternalSourceReferenceDto.fromJS(_data["source"]) : undefined as any;
+            this.priority = _data["priority"];
+            this.isEnabled = _data["isEnabled"];
+            this.diagnosticSummary = _data["diagnosticSummary"];
+        }
+    }
+
+    static fromJS(data: any): UpdateClimateMappingRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpdateClimateMappingRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["source"] = this.source ? this.source.toJSON() : undefined as any;
+        data["priority"] = this.priority;
+        data["isEnabled"] = this.isEnabled;
+        data["diagnosticSummary"] = this.diagnosticSummary;
+        return data;
+    }
+}
+
+export interface IUpdateClimateMappingRequest {
+    source?: ExternalSourceReferenceDto | undefined;
+    priority?: number | undefined;
+    isEnabled?: boolean | undefined;
+    diagnosticSummary?: string | undefined;
 }
 
 export class KnownPersonDto implements IKnownPersonDto {

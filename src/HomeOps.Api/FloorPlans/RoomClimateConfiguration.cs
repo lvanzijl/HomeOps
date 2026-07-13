@@ -32,5 +32,6 @@ public enum ClimateSourceRole
     Humidity,
     HeatingControlTemperature,
     HeatingStatus,
+    HeatingTargetTemperature,
     HeatingControl
 }

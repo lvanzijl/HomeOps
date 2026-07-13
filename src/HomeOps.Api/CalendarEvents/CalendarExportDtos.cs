@@ -23,7 +23,9 @@ public sealed record CalendarExportPayload(
     IReadOnlyDictionary<string, string> Metadata,
     IReadOnlyCollection<CalendarExportFloor>? Floors = null,
     IReadOnlyCollection<CalendarExportRoom>? Rooms = null,
-    IReadOnlyCollection<CalendarExportRoomClimateConfiguration>? RoomClimateConfigurations = null)
+    IReadOnlyCollection<CalendarExportRoomClimateConfiguration>? RoomClimateConfigurations = null,
+    IReadOnlyCollection<CalendarExportClimateProvider>? ClimateProviders = null,
+    IReadOnlyCollection<CalendarExportRoomClimateSourceMapping>? RoomClimateSourceMappings = null)
 {
     public const int CurrentVersion = 1;
 }
@@ -119,3 +121,7 @@ public sealed record CalendarExportFloor(Guid Id, string Name, int SortOrder, bo
 public sealed record CalendarExportRoom(Guid Id, Guid FloorId, string Name, string RoomType, int SortOrder, string? FamilyMemberId, bool IsEnabled, bool IsArchived, DateTimeOffset? ArchivedUtc, DateTimeOffset CreatedUtc, DateTimeOffset UpdatedUtc);
 
 public sealed record CalendarExportRoomClimateConfiguration(Guid RoomId, bool IsClimateEnabled, bool IsBedtimeRelevant, decimal? MinimumPreferredTemperatureCelsius, decimal? MaximumPreferredTemperatureCelsius, decimal? MinimumPreferredRelativeHumidity, decimal? MaximumPreferredRelativeHumidity, string HeatingPolicyIntent, DateTimeOffset CreatedUtc, DateTimeOffset UpdatedUtc);
+
+
+public sealed record CalendarExportClimateProvider(Guid Id, string DisplayName, string ProviderType, bool IsEnabled, bool IsArchived, DateTimeOffset? ArchivedUtc, string? ExternalInstanceReference, string? DiagnosticMetadata, DateTimeOffset CreatedUtc, DateTimeOffset UpdatedUtc);
+public sealed record CalendarExportRoomClimateSourceMapping(Guid Id, Guid RoomId, Guid ProviderId, string SourceRole, string ExternalSourceId, string? ExternalDisplayName, string? ExternalSourceKind, string? ExternalAreaId, string? ExternalAreaName, string? ExternalDeviceId, string? ExternalDeviceName, int Priority, bool IsEnabled, bool IsArchived, DateTimeOffset? ArchivedUtc, string Health, DateTimeOffset? LastCheckedUtc, DateTimeOffset? LastSuccessfulUtc, string? DiagnosticSummary, DateTimeOffset CreatedUtc, DateTimeOffset UpdatedUtc);

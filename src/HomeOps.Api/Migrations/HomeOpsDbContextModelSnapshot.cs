@@ -555,6 +555,59 @@ namespace HomeOps.Api.Migrations
                         });
                 });
 
+            modelBuilder.Entity("HomeOps.Api.FloorPlans.ClimateProvider", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("ArchivedUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("CreatedUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DiagnosticMetadata")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("character varying(160)");
+
+                    b.Property<string>("ExternalInstanceReference")
+                        .HasMaxLength(240)
+                        .HasColumnType("character varying(240)");
+
+                    b.Property<Guid>("HouseholdId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsArchived")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("ProviderType")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<DateTimeOffset>("UpdatedUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HouseholdId", "DisplayName")
+                        .IsUnique()
+                        .HasFilter("\"IsArchived\" = false");
+
+                    b.HasIndex("HouseholdId", "IsArchived", "DisplayName");
+
+                    b.ToTable("ClimateProviders", (string)null);
+                });
+
             modelBuilder.Entity("HomeOps.Api.FloorPlans.Floor", b =>
                 {
                     b.Property<Guid>("Id")
@@ -703,6 +756,107 @@ namespace HomeOps.Api.Migrations
                     b.HasIndex("HouseholdId");
 
                     b.ToTable("RoomClimateConfigurations", (string)null);
+                });
+
+            modelBuilder.Entity("HomeOps.Api.FloorPlans.RoomClimateSourceMapping", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset?>("ArchivedUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("CreatedUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DiagnosticSummary")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("ExternalAreaId")
+                        .HasMaxLength(160)
+                        .HasColumnType("character varying(160)");
+
+                    b.Property<string>("ExternalAreaName")
+                        .HasMaxLength(160)
+                        .HasColumnType("character varying(160)");
+
+                    b.Property<string>("ExternalDeviceId")
+                        .HasMaxLength(160)
+                        .HasColumnType("character varying(160)");
+
+                    b.Property<string>("ExternalDeviceName")
+                        .HasMaxLength(160)
+                        .HasColumnType("character varying(160)");
+
+                    b.Property<string>("ExternalDisplayName")
+                        .HasMaxLength(240)
+                        .HasColumnType("character varying(240)");
+
+                    b.Property<string>("ExternalSourceId")
+                        .IsRequired()
+                        .HasMaxLength(240)
+                        .HasColumnType("character varying(240)");
+
+                    b.Property<string>("ExternalSourceKind")
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<string>("Health")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<Guid>("HouseholdId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsArchived")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTimeOffset?>("LastCheckedUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("LastSuccessfulUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("ProviderId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("RoomId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("SourceRole")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTimeOffset>("UpdatedUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HouseholdId");
+
+                    b.HasIndex("ProviderId", "ExternalSourceId");
+
+                    b.HasIndex("RoomId", "SourceRole", "Priority")
+                        .IsUnique()
+                        .HasFilter("\"IsArchived\" = false");
+
+                    b.HasIndex("RoomId", "SourceRole", "IsArchived", "Priority");
+
+                    b.HasIndex("RoomId", "SourceRole", "ProviderId", "ExternalSourceId")
+                        .IsUnique()
+                        .HasFilter("\"IsArchived\" = false");
+
+                    b.ToTable("RoomClimateSourceMappings", (string)null);
                 });
 
             modelBuilder.Entity("HomeOps.Api.Households.Household", b =>
@@ -2024,6 +2178,17 @@ namespace HomeOps.Api.Migrations
                     b.Navigation("Household");
                 });
 
+            modelBuilder.Entity("HomeOps.Api.FloorPlans.ClimateProvider", b =>
+                {
+                    b.HasOne("HomeOps.Api.Households.Household", "Household")
+                        .WithMany()
+                        .HasForeignKey("HouseholdId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Household");
+                });
+
             modelBuilder.Entity("HomeOps.Api.FloorPlans.Floor", b =>
                 {
                     b.HasOne("HomeOps.Api.Households.Household", "Household")
@@ -2076,6 +2241,33 @@ namespace HomeOps.Api.Migrations
                         .IsRequired();
 
                     b.Navigation("Household");
+
+                    b.Navigation("Room");
+                });
+
+            modelBuilder.Entity("HomeOps.Api.FloorPlans.RoomClimateSourceMapping", b =>
+                {
+                    b.HasOne("HomeOps.Api.Households.Household", "Household")
+                        .WithMany()
+                        .HasForeignKey("HouseholdId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("HomeOps.Api.FloorPlans.ClimateProvider", "Provider")
+                        .WithMany()
+                        .HasForeignKey("ProviderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("HomeOps.Api.FloorPlans.Room", "Room")
+                        .WithMany()
+                        .HasForeignKey("RoomId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Household");
+
+                    b.Navigation("Provider");
 
                     b.Navigation("Room");
                 });
