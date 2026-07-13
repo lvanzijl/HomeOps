@@ -2655,6 +2655,608 @@
         }
       }
     },
+    "/api/climate-providers": {
+      "get": {
+        "tags": [
+          "Climate Providers"
+        ],
+        "operationId": "GetClimateProviders",
+        "parameters": [
+          {
+            "name": "includeArchived",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "nullable": true
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ClimateProviderDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Climate Providers"
+        ],
+        "operationId": "CreateClimateProvider",
+        "requestBody": {
+          "x-name": "req",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateClimateProviderRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClimateProviderDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/climate-providers/{providerId}": {
+      "get": {
+        "tags": [
+          "Climate Providers"
+        ],
+        "operationId": "GetClimateProvider",
+        "parameters": [
+          {
+            "name": "providerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClimateProviderDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Climate Providers"
+        ],
+        "operationId": "UpdateClimateProvider",
+        "parameters": [
+          {
+            "name": "providerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "req",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateClimateProviderRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClimateProviderDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": ""
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Climate Providers"
+        ],
+        "operationId": "DeleteClimateProvider",
+        "parameters": [
+          {
+            "name": "providerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "400": {
+            "description": ""
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/climate-providers/{providerId}/archive": {
+      "post": {
+        "tags": [
+          "Climate Providers"
+        ],
+        "operationId": "ArchiveClimateProvider",
+        "parameters": [
+          {
+            "name": "providerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/climate-providers/{providerId}/restore": {
+      "post": {
+        "tags": [
+          "Climate Providers"
+        ],
+        "operationId": "RestoreClimateProvider",
+        "parameters": [
+          {
+            "name": "providerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClimateProviderDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": ""
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/rooms/{roomId}/climate-mappings": {
+      "get": {
+        "tags": [
+          "Room Climate Mappings"
+        ],
+        "operationId": "GetRoomClimateMappings",
+        "parameters": [
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "includeArchived",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "nullable": true
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ClimateMappingDto"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Room Climate Mappings"
+        ],
+        "operationId": "CreateRoomClimateMapping",
+        "parameters": [
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "req",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateClimateMappingRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClimateMappingDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": ""
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/rooms/{roomId}/climate-mappings/{role}/reorder": {
+      "post": {
+        "tags": [
+          "Room Climate Mappings"
+        ],
+        "operationId": "ReorderRoomClimateMappings",
+        "parameters": [
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "role",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 2
+          }
+        ],
+        "requestBody": {
+          "x-name": "req",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReorderClimateMappingsRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 3
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "400": {
+            "description": ""
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/rooms/{roomId}/climate-capabilities": {
+      "get": {
+        "tags": [
+          "Room Climate Mappings"
+        ],
+        "operationId": "GetRoomClimateCapabilities",
+        "parameters": [
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClimateCapabilitySummaryDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/climate-mappings/{mappingId}": {
+      "get": {
+        "tags": [
+          "Room Climate Mappings"
+        ],
+        "operationId": "GetClimateMapping",
+        "parameters": [
+          {
+            "name": "mappingId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClimateMappingDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Room Climate Mappings"
+        ],
+        "operationId": "UpdateClimateMapping",
+        "parameters": [
+          {
+            "name": "mappingId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "req",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateClimateMappingRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClimateMappingDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": ""
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Room Climate Mappings"
+        ],
+        "operationId": "DeleteClimateMapping",
+        "parameters": [
+          {
+            "name": "mappingId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/climate-mappings/{mappingId}/archive": {
+      "post": {
+        "tags": [
+          "Room Climate Mappings"
+        ],
+        "operationId": "ArchiveClimateMapping",
+        "parameters": [
+          {
+            "name": "mappingId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/climate-mappings/{mappingId}/restore": {
+      "post": {
+        "tags": [
+          "Room Climate Mappings"
+        ],
+        "operationId": "RestoreClimateMapping",
+        "parameters": [
+          {
+            "name": "mappingId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClimateMappingDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": ""
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
     "/api/known-people": {
       "get": {
         "tags": [
@@ -4828,6 +5430,20 @@
             "items": {
               "$ref": "#/components/schemas/CalendarExportRoomClimateConfiguration"
             }
+          },
+          "climateProviders": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/CalendarExportClimateProvider"
+            }
+          },
+          "roomClimateSourceMappings": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/CalendarExportRoomClimateSourceMapping"
+            }
           }
         }
       },
@@ -5304,6 +5920,137 @@
           },
           "heatingPolicyIntent": {
             "type": "string"
+          },
+          "createdUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedUtc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CalendarExportClimateProvider": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "providerType": {
+            "type": "string"
+          },
+          "isEnabled": {
+            "type": "boolean"
+          },
+          "isArchived": {
+            "type": "boolean"
+          },
+          "archivedUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "externalInstanceReference": {
+            "type": "string",
+            "nullable": true
+          },
+          "diagnosticMetadata": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedUtc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CalendarExportRoomClimateSourceMapping": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "roomId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "providerId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "sourceRole": {
+            "type": "string"
+          },
+          "externalSourceId": {
+            "type": "string"
+          },
+          "externalDisplayName": {
+            "type": "string",
+            "nullable": true
+          },
+          "externalSourceKind": {
+            "type": "string",
+            "nullable": true
+          },
+          "externalAreaId": {
+            "type": "string",
+            "nullable": true
+          },
+          "externalAreaName": {
+            "type": "string",
+            "nullable": true
+          },
+          "externalDeviceId": {
+            "type": "string",
+            "nullable": true
+          },
+          "externalDeviceName": {
+            "type": "string",
+            "nullable": true
+          },
+          "priority": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isEnabled": {
+            "type": "boolean"
+          },
+          "isArchived": {
+            "type": "boolean"
+          },
+          "archivedUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "health": {
+            "type": "string"
+          },
+          "lastCheckedUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "lastSuccessfulUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "diagnosticSummary": {
+            "type": "string",
+            "nullable": true
           },
           "createdUtc": {
             "type": "string",
@@ -6262,6 +7009,7 @@
           "Humidity",
           "HeatingControlTemperature",
           "HeatingStatus",
+          "HeatingTargetTemperature",
           "HeatingControl"
         ],
         "enum": [
@@ -6269,7 +7017,8 @@
           1,
           2,
           3,
-          4
+          4,
+          5
         ]
       },
       "UpsertRoomClimateConfigurationRequest": {
@@ -6300,6 +7049,357 @@
           },
           "heatingPolicyIntent": {
             "$ref": "#/components/schemas/HeatingPolicyIntent"
+          }
+        }
+      },
+      "ClimateProviderDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "providerType": {
+            "$ref": "#/components/schemas/ProviderType"
+          },
+          "isEnabled": {
+            "type": "boolean"
+          },
+          "isArchived": {
+            "type": "boolean"
+          },
+          "archivedUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "externalInstanceReference": {
+            "type": "string",
+            "nullable": true
+          },
+          "diagnosticMetadata": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedUtc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ProviderType": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "HomeAssistant",
+          "Other"
+        ],
+        "enum": [
+          0,
+          1
+        ]
+      },
+      "CreateClimateProviderRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "displayName": {
+            "type": "string"
+          },
+          "providerType": {
+            "$ref": "#/components/schemas/ProviderType"
+          },
+          "externalInstanceReference": {
+            "type": "string",
+            "nullable": true
+          },
+          "diagnosticMetadata": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "UpdateClimateProviderRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "displayName": {
+            "type": "string"
+          },
+          "isEnabled": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "externalInstanceReference": {
+            "type": "string",
+            "nullable": true
+          },
+          "diagnosticMetadata": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "ClimateMappingDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "roomId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "providerId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "sourceRole": {
+            "$ref": "#/components/schemas/ClimateSourceRole"
+          },
+          "source": {
+            "$ref": "#/components/schemas/ExternalSourceReferenceDto"
+          },
+          "priority": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isEnabled": {
+            "type": "boolean"
+          },
+          "isArchived": {
+            "type": "boolean"
+          },
+          "archivedUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "health": {
+            "$ref": "#/components/schemas/MappingHealth"
+          },
+          "lastCheckedUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "lastSuccessfulUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "diagnosticSummary": {
+            "type": "string",
+            "nullable": true
+          },
+          "isSharedSource": {
+            "type": "boolean"
+          },
+          "sharedRoomIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "guid"
+            }
+          },
+          "createdUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedUtc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ExternalSourceReferenceDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "externalSourceId": {
+            "type": "string"
+          },
+          "externalDisplayName": {
+            "type": "string",
+            "nullable": true
+          },
+          "externalSourceKind": {
+            "type": "string",
+            "nullable": true
+          },
+          "externalAreaId": {
+            "type": "string",
+            "nullable": true
+          },
+          "externalAreaName": {
+            "type": "string",
+            "nullable": true
+          },
+          "externalDeviceId": {
+            "type": "string",
+            "nullable": true
+          },
+          "externalDeviceName": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "MappingHealth": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "Unverified",
+          "Healthy",
+          "Degraded",
+          "Unavailable",
+          "Missing",
+          "NeedsReview"
+        ],
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      "CreateClimateMappingRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "providerId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "sourceRole": {
+            "$ref": "#/components/schemas/ClimateSourceRole"
+          },
+          "source": {
+            "$ref": "#/components/schemas/ExternalSourceReferenceDto"
+          },
+          "priority": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "isEnabled": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ReorderClimateMappingsRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "mappingIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        }
+      },
+      "ClimateCapabilitySummaryDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "roomId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "hasClimateConfiguration": {
+            "type": "boolean"
+          },
+          "isClimateEnabled": {
+            "type": "boolean"
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ClimateCapabilityRoleSummaryDto"
+            }
+          }
+        }
+      },
+      "ClimateCapabilityRoleSummaryDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "role": {
+            "$ref": "#/components/schemas/ClimateSourceRole"
+          },
+          "isRequired": {
+            "type": "boolean"
+          },
+          "status": {
+            "type": "string"
+          },
+          "activeCandidateCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalCandidateCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "hasHealthyMapping": {
+            "type": "boolean"
+          },
+          "hasDegradedMapping": {
+            "type": "boolean"
+          },
+          "hasUnavailableOrMissingMapping": {
+            "type": "boolean"
+          },
+          "hasSharedSource": {
+            "type": "boolean"
+          },
+          "mappingIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "guid"
+            }
+          }
+        }
+      },
+      "UpdateClimateMappingRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "source": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ExternalSourceReferenceDto"
+              }
+            ]
+          },
+          "priority": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "isEnabled": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "diagnosticSummary": {
+            "type": "string",
+            "nullable": true
           }
         }
       },

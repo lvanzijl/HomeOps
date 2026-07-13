@@ -90,13 +90,23 @@ public static class CalendarPortabilityService
             .OrderBy(config => config.RoomId)
             .Select(config => new CalendarExportRoomClimateConfiguration(config.RoomId, config.IsClimateEnabled, config.IsBedtimeRelevant, config.MinimumPreferredTemperatureCelsius, config.MaximumPreferredTemperatureCelsius, config.MinimumPreferredRelativeHumidity, config.MaximumPreferredRelativeHumidity, config.HeatingPolicyIntent.ToString(), config.CreatedUtc, config.UpdatedUtc))
             .ToListAsync(cancellationToken);
+        var climateProviders = await dbContext.ClimateProviders.AsNoTracking()
+            .Where(provider => provider.HouseholdId == SeedHousehold.Id)
+            .OrderBy(provider => provider.DisplayName)
+            .Select(provider => new CalendarExportClimateProvider(provider.Id, provider.DisplayName, provider.ProviderType.ToString(), provider.IsEnabled, provider.IsArchived, provider.ArchivedUtc, provider.ExternalInstanceReference, provider.DiagnosticMetadata, provider.CreatedUtc, provider.UpdatedUtc))
+            .ToListAsync(cancellationToken);
+        var climateMappings = await dbContext.RoomClimateSourceMappings.AsNoTracking()
+            .Where(mapping => mapping.HouseholdId == SeedHousehold.Id)
+            .OrderBy(mapping => mapping.RoomId).ThenBy(mapping => mapping.SourceRole).ThenBy(mapping => mapping.Priority)
+            .Select(mapping => new CalendarExportRoomClimateSourceMapping(mapping.Id, mapping.RoomId, mapping.ProviderId, mapping.SourceRole.ToString(), mapping.ExternalSourceId, mapping.ExternalDisplayName, mapping.ExternalSourceKind, mapping.ExternalAreaId, mapping.ExternalAreaName, mapping.ExternalDeviceId, mapping.ExternalDeviceName, mapping.Priority, mapping.IsEnabled, mapping.IsArchived, mapping.ArchivedUtc, mapping.Health.ToString(), mapping.LastCheckedUtc, mapping.LastSuccessfulUtc, mapping.DiagnosticSummary, mapping.CreatedUtc, mapping.UpdatedUtc))
+            .ToListAsync(cancellationToken);
 
         return new CalendarExportDocument(
             CalendarExportDocument.CurrentFormat,
             CalendarExportDocument.CurrentSchemaVersion,
             DateTimeOffset.UtcNow,
             new CalendarExportHousehold(household.Id, household.TimeZoneId),
-            new CalendarExportPayload(CalendarExportPayload.CurrentVersion, sources, series, new CalendarExportRecurrenceSection([]), exceptions, new Dictionary<string, string>(), floors, rooms, climateConfigurations),
+            new CalendarExportPayload(CalendarExportPayload.CurrentVersion, sources, series, new CalendarExportRecurrenceSection([]), exceptions, new Dictionary<string, string>(), floors, rooms, climateConfigurations, climateProviders, climateMappings),
             new Dictionary<string, string>());
     }
 
@@ -114,6 +124,10 @@ public static class CalendarPortabilityService
                 validationErrors[error.Key] = error.Value;
             }
             foreach (var error in await ValidateClimateRoomReferencesAsync(dbContext, document, cancellationToken))
+            {
+                validationErrors[error.Key] = error.Value;
+            }
+            foreach (var error in await ValidateClimateMappingPayloadAsync(dbContext, document, cancellationToken))
             {
                 validationErrors[error.Key] = error.Value;
             }
@@ -237,6 +251,25 @@ public static class CalendarPortabilityService
                 MinimumPreferredRelativeHumidity = config.MinimumPreferredRelativeHumidity, MaximumPreferredRelativeHumidity = config.MaximumPreferredRelativeHumidity,
                 HeatingPolicyIntent = Enum.Parse<HeatingPolicyIntent>(config.HeatingPolicyIntent, true), CreatedUtc = config.CreatedUtc, UpdatedUtc = config.UpdatedUtc
             }));
+        }
+
+        if (document.Calendar.ClimateProviders is not null)
+        {
+            var existingMappings = await dbContext.RoomClimateSourceMappings.Where(mapping => mapping.HouseholdId == SeedHousehold.Id).ToListAsync(cancellationToken);
+            dbContext.RoomClimateSourceMappings.RemoveRange(existingMappings);
+            var existingProviders = await dbContext.ClimateProviders.Where(provider => provider.HouseholdId == SeedHousehold.Id).ToListAsync(cancellationToken);
+            dbContext.ClimateProviders.RemoveRange(existingProviders);
+            dbContext.ClimateProviders.AddRange(document.Calendar.ClimateProviders.Select(provider => new ClimateProvider
+            {
+                Id = provider.Id, HouseholdId = SeedHousehold.Id, DisplayName = provider.DisplayName.Trim(), ProviderType = Enum.Parse<ProviderType>(provider.ProviderType, true), IsEnabled = provider.IsEnabled, IsArchived = provider.IsArchived, ArchivedUtc = provider.ArchivedUtc, ExternalInstanceReference = string.IsNullOrWhiteSpace(provider.ExternalInstanceReference) ? null : provider.ExternalInstanceReference.Trim(), DiagnosticMetadata = string.IsNullOrWhiteSpace(provider.DiagnosticMetadata) ? null : provider.DiagnosticMetadata.Trim(), CreatedUtc = provider.CreatedUtc, UpdatedUtc = provider.UpdatedUtc
+            }));
+            if (document.Calendar.RoomClimateSourceMappings is not null)
+            {
+                dbContext.RoomClimateSourceMappings.AddRange(document.Calendar.RoomClimateSourceMappings.Select(mapping => new RoomClimateSourceMapping
+                {
+                    Id = mapping.Id, HouseholdId = SeedHousehold.Id, RoomId = mapping.RoomId, ProviderId = mapping.ProviderId, SourceRole = Enum.Parse<ClimateSourceRole>(mapping.SourceRole, true), ExternalSourceId = mapping.ExternalSourceId.Trim(), ExternalDisplayName = string.IsNullOrWhiteSpace(mapping.ExternalDisplayName) ? null : mapping.ExternalDisplayName.Trim(), ExternalSourceKind = string.IsNullOrWhiteSpace(mapping.ExternalSourceKind) ? null : mapping.ExternalSourceKind.Trim(), ExternalAreaId = string.IsNullOrWhiteSpace(mapping.ExternalAreaId) ? null : mapping.ExternalAreaId.Trim(), ExternalAreaName = string.IsNullOrWhiteSpace(mapping.ExternalAreaName) ? null : mapping.ExternalAreaName.Trim(), ExternalDeviceId = string.IsNullOrWhiteSpace(mapping.ExternalDeviceId) ? null : mapping.ExternalDeviceId.Trim(), ExternalDeviceName = string.IsNullOrWhiteSpace(mapping.ExternalDeviceName) ? null : mapping.ExternalDeviceName.Trim(), Priority = mapping.Priority, IsEnabled = mapping.IsEnabled, IsArchived = mapping.IsArchived, ArchivedUtc = mapping.ArchivedUtc, Health = MappingHealth.Unverified, LastCheckedUtc = null, LastSuccessfulUtc = null, DiagnosticSummary = string.IsNullOrWhiteSpace(mapping.DiagnosticSummary) ? null : mapping.DiagnosticSummary.Trim(), CreatedUtc = mapping.CreatedUtc, UpdatedUtc = mapping.UpdatedUtc
+                }));
+            }
         }
 
         dbContext.EventExceptions.AddRange(document.Calendar.Exceptions.Select(exception => new EventException
@@ -549,6 +582,35 @@ public static class CalendarPortabilityService
     }
 
 
+
+
+    private static async Task<Dictionary<string, string[]>> ValidateClimateMappingPayloadAsync(HomeOpsDbContext dbContext, CalendarExportDocument document, CancellationToken cancellationToken)
+    {
+        var errors = new Dictionary<string, List<string>>(StringComparer.Ordinal);
+        var providers = document.Calendar.ClimateProviders;
+        var mappings = document.Calendar.RoomClimateSourceMappings;
+        if (providers is null && mappings is null) return new Dictionary<string, string[]>();
+        if (providers is null) { AddError(errors, "Calendar.ClimateProviders", "Climate providers are required when climate mappings are supplied."); return ToArrayDictionary(errors); }
+        if (providers.Any(provider => provider.Id == Guid.Empty || string.IsNullOrWhiteSpace(provider.DisplayName))) AddError(errors, "Calendar.ClimateProviders", "Climate providers require id and display name.");
+        if (providers.GroupBy(provider => provider.Id).Any(group => group.Count() > 1)) AddError(errors, "Calendar.ClimateProviders.Id", "Climate provider identifiers must be unique.");
+        if (providers.Any(provider => !Enum.TryParse<ProviderType>(provider.ProviderType, true, out _))) AddError(errors, "Calendar.ClimateProviders.ProviderType", "ProviderType must be supported.");
+        var providerIds = providers.Select(provider => provider.Id).ToHashSet();
+        var maps = mappings ?? [];
+        if (maps.Any(mapping => mapping.Id == Guid.Empty || mapping.RoomId == Guid.Empty || mapping.ProviderId == Guid.Empty || string.IsNullOrWhiteSpace(mapping.ExternalSourceId))) AddError(errors, "Calendar.RoomClimateSourceMappings", "Climate mappings require ids, Room, Provider, and external source references.");
+        if (maps.GroupBy(mapping => mapping.Id).Any(group => group.Count() > 1)) AddError(errors, "Calendar.RoomClimateSourceMappings.Id", "Climate mapping identifiers must be unique.");
+        if (maps.Any(mapping => !providerIds.Contains(mapping.ProviderId))) AddError(errors, "Calendar.RoomClimateSourceMappings.ProviderId", "Every climate mapping must reference a restored Provider.");
+        if (maps.Any(mapping => !Enum.TryParse<ClimateSourceRole>(mapping.SourceRole, true, out _))) AddError(errors, "Calendar.RoomClimateSourceMappings.SourceRole", "Climate source role must be supported.");
+        if (maps.Any(mapping => mapping.Priority < 0)) AddError(errors, "Calendar.RoomClimateSourceMappings.Priority", "Mapping priority must be zero or greater.");
+        if (maps.GroupBy(mapping => new { mapping.RoomId, mapping.SourceRole, mapping.ProviderId, Source = mapping.ExternalSourceId.Trim() }).Any(group => group.Count() > 1)) AddError(errors, "Calendar.RoomClimateSourceMappings.Duplicate", "Duplicate Room/role/provider/source mappings are not allowed.");
+        if (maps.Where(mapping => !mapping.IsArchived).GroupBy(mapping => new { mapping.RoomId, mapping.SourceRole, mapping.Priority }).Any(group => group.Count() > 1)) AddError(errors, "Calendar.RoomClimateSourceMappings.Priority", "Active mapping priorities must be unique within a Room and role.");
+        if (maps.Any(mapping => mapping.IsArchived && mapping.ArchivedUtc is null)) AddError(errors, "Calendar.RoomClimateSourceMappings.ArchiveState", "Archived mappings require an archive timestamp.");
+        if (maps.Any(mapping => !mapping.IsArchived && mapping.ArchivedUtc is not null)) AddError(errors, "Calendar.RoomClimateSourceMappings.ArchiveState", "Active mappings must not carry an archive timestamp.");
+        var roomIds = (document.Calendar.Rooms ?? await dbContext.Rooms.AsNoTracking().Where(room => room.HouseholdId == SeedHousehold.Id).Select(room => new CalendarExportRoom(room.Id, room.FloorId, room.Name, room.RoomType.ToString(), room.SortOrder, room.FamilyMemberId, room.IsEnabled, room.IsArchived, room.ArchivedUtc, room.CreatedUtc, room.UpdatedUtc)).ToListAsync(cancellationToken)).Select(room => room.Id).ToHashSet();
+        var climateRoomIds = (document.Calendar.RoomClimateConfigurations ?? await dbContext.RoomClimateConfigurations.AsNoTracking().Where(config => config.HouseholdId == SeedHousehold.Id).Select(config => new CalendarExportRoomClimateConfiguration(config.RoomId, config.IsClimateEnabled, config.IsBedtimeRelevant, config.MinimumPreferredTemperatureCelsius, config.MaximumPreferredTemperatureCelsius, config.MinimumPreferredRelativeHumidity, config.MaximumPreferredRelativeHumidity, config.HeatingPolicyIntent.ToString(), config.CreatedUtc, config.UpdatedUtc)).ToListAsync(cancellationToken)).Select(config => config.RoomId).ToHashSet();
+        if (maps.Any(mapping => !roomIds.Contains(mapping.RoomId))) AddError(errors, "Calendar.RoomClimateSourceMappings.RoomId", "Every climate mapping must reference an existing or restored Room.");
+        if (maps.Any(mapping => !climateRoomIds.Contains(mapping.RoomId))) AddError(errors, "Calendar.RoomClimateSourceMappings.RoomClimateConfiguration", "Every climate mapping Room must have a climate configuration.");
+        return ToArrayDictionary(errors);
+    }
 
     private static async Task<Dictionary<string, string[]>> ValidateClimateRoomReferencesAsync(HomeOpsDbContext dbContext, CalendarExportDocument document, CancellationToken cancellationToken)
     {

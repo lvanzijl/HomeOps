@@ -170,6 +170,7 @@ public static class FloorPlanEndpoints
         if (room is null) return Results.NotFound();
         var config = await db.RoomClimateConfigurations.FirstOrDefaultAsync(c => c.RoomId == roomId && c.HouseholdId == SeedHousehold.Id, ct);
         if (config is null) return Results.NotFound();
+        if (await db.RoomClimateSourceMappings.AnyAsync(m => m.RoomId == roomId && m.HouseholdId == SeedHousehold.Id, ct)) return Bad("roomId", "Climate configuration cannot be deleted while climate mappings exist.");
         db.RoomClimateConfigurations.Remove(config);
         await db.SaveChangesAsync(ct);
         return Results.NoContent();
@@ -201,6 +202,7 @@ public static class FloorPlanEndpoints
         {
             roles.Add(ClimateSourceRole.HeatingStatus);
             roles.Add(ClimateSourceRole.HeatingControlTemperature);
+            roles.Add(ClimateSourceRole.HeatingTargetTemperature);
         }
         if (config.HeatingPolicyIntent == HeatingPolicyIntent.BoundedControl) roles.Add(ClimateSourceRole.HeatingControl);
         return roles;
