@@ -44,6 +44,8 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
     public DbSet<RoomClimateSourceMapping> RoomClimateSourceMappings => Set<RoomClimateSourceMapping>();
     public DbSet<FloorPlanAsset> FloorPlanAssets => Set<FloorPlanAsset>();
     public DbSet<RoomOverlay> RoomOverlays => Set<RoomOverlay>();
+    public DbSet<FloorPlanReplacementReview> FloorPlanReplacementReviews => Set<FloorPlanReplacementReview>();
+    public DbSet<FloorPlanReplacementReviewItem> FloorPlanReplacementReviewItems => Set<FloorPlanReplacementReviewItem>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -207,6 +209,49 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             entity.HasIndex(overlay => new { overlay.RoomId, overlay.FloorPlanAssetId, overlay.State });
             entity.HasIndex(overlay => new { overlay.RoomId, overlay.FloorPlanAssetId }).IsUnique().HasFilter("\"State\" = 'Trusted'");
         });
+
+        modelBuilder.Entity<FloorPlanReplacementReview>(entity =>
+        {
+            entity.ToTable("FloorPlanReplacementReviews");
+            entity.HasKey(review => review.Id);
+            entity.Property(review => review.Status).HasConversion<string>().HasMaxLength(32).IsRequired();
+            entity.Property(review => review.SameCoordinateBasisDimensions).IsRequired();
+            entity.Property(review => review.SameAspectRatio).IsRequired();
+            entity.Property(review => review.SameDerivativeBasis).IsRequired();
+            entity.Property(review => review.ReuseCandidatesAvailable).IsRequired();
+            entity.Property(review => review.CreatedUtc).IsRequired();
+            entity.Property(review => review.UpdatedUtc).IsRequired();
+            entity.Property(review => review.CompletedUtc);
+            entity.Property(review => review.ActivatedUtc);
+            entity.Property(review => review.CancelledUtc);
+            entity.HasOne(review => review.Household).WithMany().HasForeignKey(review => review.HouseholdId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(review => review.Floor).WithMany().HasForeignKey(review => review.FloorId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(review => review.CurrentAsset).WithMany().HasForeignKey(review => review.CurrentAssetId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(review => review.ReplacementAsset).WithMany().HasForeignKey(review => review.ReplacementAssetId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(review => new { review.FloorId, review.Status });
+            entity.HasIndex(review => review.ReplacementAssetId);
+            entity.HasIndex(review => review.FloorId).IsUnique().HasFilter("\"Status\" IN ('Draft','InReview','ReadyToActivate')");
+        });
+
+        modelBuilder.Entity<FloorPlanReplacementReviewItem>(entity =>
+        {
+            entity.ToTable("FloorPlanReplacementReviewItems");
+            entity.HasKey(item => item.Id);
+            entity.Property(item => item.Disposition).HasConversion<string>().HasMaxLength(40).IsRequired();
+            entity.Property(item => item.LabelAnchorApproved).IsRequired();
+            entity.Property(item => item.FallbackReason).HasMaxLength(500);
+            entity.Property(item => item.CreatedUtc).IsRequired();
+            entity.Property(item => item.UpdatedUtc).IsRequired();
+            entity.HasOne(item => item.Household).WithMany().HasForeignKey(item => item.HouseholdId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(item => item.Floor).WithMany().HasForeignKey(item => item.FloorId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(item => item.Room).WithMany().HasForeignKey(item => item.RoomId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(item => item.Review).WithMany(review => review.Items).HasForeignKey(item => item.ReviewId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(item => item.ReuseCandidateOverlay).WithMany().HasForeignKey(item => item.ReuseCandidateOverlayId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(item => item.ReplacementOverlay).WithMany().HasForeignKey(item => item.ReplacementOverlayId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(item => new { item.ReviewId, item.RoomId }).IsUnique();
+            entity.HasIndex(item => new { item.FloorId, item.RoomId });
+        });
+
 
         modelBuilder.Entity<AgendaLayerSetting>(entity =>
         {

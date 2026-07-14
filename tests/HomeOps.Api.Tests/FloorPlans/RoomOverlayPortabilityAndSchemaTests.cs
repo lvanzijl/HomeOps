@@ -80,6 +80,61 @@ public sealed class RoomOverlayPortabilityAndSchemaTests
     }
 
     [Fact]
+    public async Task ExportRestorePreservesReplacementReviewItemsAndRejectsInvalidReviewGraphAtomically()
+    {
+        await using var source = CreateDbContext("replacement-review-export-source");
+        var (floor, room, asset) = SeedGraph(source);
+        var replacement = new FloorPlanAsset { Id = Guid.NewGuid(), HouseholdId = SeedHousehold.Id, FloorId = floor.Id, OriginalFilename = "replacement.svg", DetectedMediaType = "image/svg+xml", ContentHash = Guid.NewGuid().ToString("N"), SourceContentReference = "source", DerivativeContentReference = "derivative", CoordinateBasisWidth = 100, CoordinateBasisHeight = 100, AspectRatio = 1, State = FloorPlanAssetState.Validated, ReplacementOfAssetId = asset.Id, SourceAvailability = FloorPlanAssetAvailability.Available, DerivativeAvailability = FloorPlanAssetAvailability.Available, UploadedUtc = SeedCalendarEvents.SeededUtc, CreatedUtc = SeedCalendarEvents.SeededUtc, UpdatedUtc = SeedCalendarEvents.SeededUtc };
+        var reviewId = Guid.NewGuid();
+        source.FloorPlanAssets.Add(replacement);
+        source.FloorPlanReplacementReviews.Add(new FloorPlanReplacementReview { Id = reviewId, HouseholdId = SeedHousehold.Id, FloorId = floor.Id, CurrentAssetId = asset.Id, ReplacementAssetId = replacement.Id, Status = FloorPlanReplacementReviewStatus.InReview, SameCoordinateBasisDimensions = true, SameAspectRatio = true, SameDerivativeBasis = true, ReuseCandidatesAvailable = true, CreatedUtc = SeedCalendarEvents.SeededUtc, UpdatedUtc = SeedCalendarEvents.SeededUtc });
+        source.FloorPlanReplacementReviewItems.Add(new FloorPlanReplacementReviewItem { Id = Guid.NewGuid(), ReviewId = reviewId, HouseholdId = SeedHousehold.Id, FloorId = floor.Id, RoomId = room.Id, Disposition = RoomReplacementDisposition.BlockedFallback, CreatedUtc = SeedCalendarEvents.SeededUtc, UpdatedUtc = SeedCalendarEvents.SeededUtc });
+        await source.SaveChangesAsync();
+        var export = WithDerivative(await CalendarPortabilityService.ExportAsync(source));
+
+        await using var target = CreateDbContext("replacement-review-export-target");
+        UseSnapshotDirectory();
+        var restored = await CalendarPortabilityService.RestoreAsync(target, export);
+        Assert.True(restored.Succeeded, string.Join(';', restored.ValidationErrors.SelectMany(e => e.Value)));
+        Assert.Equal(FloorPlanReplacementReviewStatus.InReview, (await target.FloorPlanReplacementReviews.SingleAsync()).Status);
+        Assert.Equal(RoomReplacementDisposition.BlockedFallback, (await target.FloorPlanReplacementReviewItems.SingleAsync()).Disposition);
+
+        var invalid = export with { Calendar = export.Calendar with { FloorPlanReplacementReviewItems = export.Calendar.FloorPlanReplacementReviewItems!.Concat(export.Calendar.FloorPlanReplacementReviewItems!).ToList() } };
+        var beforeReviewCount = await target.FloorPlanReplacementReviews.CountAsync();
+        var failed = await CalendarPortabilityService.RestoreAsync(target, invalid);
+        Assert.False(failed.Succeeded);
+        Assert.Contains("Calendar.FloorPlanReplacementReviewItems.DuplicateRoom", failed.ValidationErrors.Keys);
+        Assert.Equal(beforeReviewCount, await target.FloorPlanReplacementReviews.CountAsync());
+    }
+
+    [Fact]
+    public async Task RestoreRejectsActivatedReviewWithInconsistentTrustedOverlayGraph()
+    {
+        await using var db = CreateDbContext("replacement-review-invalid-activated");
+        var (floor, room, oldAsset) = SeedGraph(db);
+        var replacement = new FloorPlanAsset { Id = Guid.NewGuid(), HouseholdId = SeedHousehold.Id, FloorId = floor.Id, OriginalFilename = "replacement.svg", DetectedMediaType = "image/svg+xml", ContentHash = Guid.NewGuid().ToString("N"), SourceContentReference = "source", DerivativeContentReference = "derivative", CoordinateBasisWidth = 100, CoordinateBasisHeight = 100, AspectRatio = 1, State = FloorPlanAssetState.Active, ReplacementOfAssetId = oldAsset.Id, SourceAvailability = FloorPlanAssetAvailability.Available, DerivativeAvailability = FloorPlanAssetAvailability.Available, UploadedUtc = SeedCalendarEvents.SeededUtc, CreatedUtc = SeedCalendarEvents.SeededUtc, UpdatedUtc = SeedCalendarEvents.SeededUtc };
+        oldAsset.State = FloorPlanAssetState.Replaced;
+        db.FloorPlanAssets.Add(replacement);
+        await db.SaveChangesAsync();
+        var export = WithDerivative(await CalendarPortabilityService.ExportAsync(db));
+        var reviewId = Guid.NewGuid();
+        var overlayId = Guid.NewGuid();
+        var invalid = export with
+        {
+            Calendar = export.Calendar with
+            {
+                RoomOverlays = [OverlayExport(overlayId, room.Id, floor.Id, replacement.Id, RoomOverlayState.Valid, Rect(.1m, .1m, .4m, .4m))],
+                FloorPlanReplacementReviews = [new CalendarExportFloorPlanReplacementReview(reviewId, floor.Id, oldAsset.Id, replacement.Id, FloorPlanReplacementReviewStatus.Activated.ToString(), true, true, true, true, replacement.Id, oldAsset.Id, SeedCalendarEvents.SeededUtc, SeedCalendarEvents.SeededUtc, SeedCalendarEvents.SeededUtc, SeedCalendarEvents.SeededUtc, null)],
+                FloorPlanReplacementReviewItems = [new CalendarExportFloorPlanReplacementReviewItem(Guid.NewGuid(), reviewId, floor.Id, room.Id, RoomReplacementDisposition.ApprovedReuse.ToString(), null, overlayId, true, null, SeedCalendarEvents.SeededUtc, SeedCalendarEvents.SeededUtc)]
+            }
+        };
+        UseSnapshotDirectory();
+        var failed = await CalendarPortabilityService.RestoreAsync(db, invalid);
+        Assert.False(failed.Succeeded);
+        Assert.Contains("Calendar.FloorPlanReplacementReviewItems.TrustedApprovedOverlay", failed.ValidationErrors.Keys);
+    }
+
+    [Fact]
     public void ModelContainsExpectedRoomOverlaySchemaShape()
     {
         using var db = CreateRelationalModelContext();
@@ -100,6 +155,27 @@ public sealed class RoomOverlayPortabilityAndSchemaTests
         Assert.Contains(entity.GetForeignKeys(), fk => fk.PrincipalEntityType.ClrType == typeof(FloorPlanAsset) && fk.DeleteBehavior == DeleteBehavior.Restrict);
         Assert.Contains(entity.GetForeignKeys(), fk => fk.PrincipalEntityType.ClrType == typeof(Floor) && fk.DeleteBehavior == DeleteBehavior.Restrict);
         Assert.Contains(entity.GetForeignKeys(), fk => fk.PrincipalEntityType.ClrType == typeof(Household) && fk.DeleteBehavior == DeleteBehavior.Restrict);
+    }
+
+    [Fact]
+    public void ModelContainsExpectedReplacementReviewSchemaShape()
+    {
+        using var db = CreateRelationalModelContext();
+        var review = db.Model.FindEntityType(typeof(FloorPlanReplacementReview))!;
+        Assert.Equal("FloorPlanReplacementReviews", review.GetTableName());
+        Assert.Equal("string", review.FindProperty(nameof(FloorPlanReplacementReview.Status))!.GetProviderClrType()?.Name.ToLowerInvariant() ?? "string");
+        var activeReviewIndex = review.GetIndexes().Single(i => i.Properties.Select(p => p.Name).SequenceEqual([nameof(FloorPlanReplacementReview.FloorId)]) && i.IsUnique);
+        Assert.Equal("\"Status\" IN ('Draft','InReview','ReadyToActivate')", activeReviewIndex.GetFilter());
+        Assert.Contains(review.GetForeignKeys(), fk => fk.PrincipalEntityType.ClrType == typeof(FloorPlanAsset) && fk.DeleteBehavior == DeleteBehavior.Restrict);
+        Assert.Contains(review.GetForeignKeys(), fk => fk.PrincipalEntityType.ClrType == typeof(Floor) && fk.DeleteBehavior == DeleteBehavior.Restrict);
+
+        var item = db.Model.FindEntityType(typeof(FloorPlanReplacementReviewItem))!;
+        Assert.Equal("FloorPlanReplacementReviewItems", item.GetTableName());
+        Assert.NotNull(item.FindIndex(item.FindProperties([nameof(FloorPlanReplacementReviewItem.FloorId), nameof(FloorPlanReplacementReviewItem.RoomId)])!));
+        var roomIndex = item.GetIndexes().Single(i => i.Properties.Select(p => p.Name).SequenceEqual([nameof(FloorPlanReplacementReviewItem.ReviewId), nameof(FloorPlanReplacementReviewItem.RoomId)]));
+        Assert.True(roomIndex.IsUnique);
+        Assert.Contains(item.GetForeignKeys(), fk => fk.PrincipalEntityType.ClrType == typeof(FloorPlanReplacementReview) && fk.DeleteBehavior == DeleteBehavior.Cascade);
+        Assert.Contains(item.GetForeignKeys(), fk => fk.PrincipalEntityType.ClrType == typeof(RoomOverlay) && fk.DeleteBehavior == DeleteBehavior.Restrict);
     }
 
     private static (Floor Floor, Room Room, FloorPlanAsset Asset) SeedGraph(HomeOpsDbContext db)

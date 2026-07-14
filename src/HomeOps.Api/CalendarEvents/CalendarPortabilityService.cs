@@ -124,12 +124,23 @@ public static class CalendarPortabilityService
             .Select(overlay => new CalendarExportRoomOverlay(overlay.Id, overlay.RoomId, overlay.FloorId, overlay.FloorPlanAssetId, overlay.State.ToString(), RoomOverlayEndpoints.Points(overlay), overlay.LabelAnchorX == null || overlay.LabelAnchorY == null ? null : new NormalizedPoint(overlay.LabelAnchorX.Value, overlay.LabelAnchorY.Value), overlay.ArchivedUtc, overlay.CreatedUtc, overlay.UpdatedUtc))
             .ToListAsync(cancellationToken);
 
+        var replacementReviews = await dbContext.FloorPlanReplacementReviews.AsNoTracking()
+            .Where(review => review.HouseholdId == SeedHousehold.Id)
+            .OrderBy(review => review.FloorId).ThenBy(review => review.CreatedUtc)
+            .Select(review => new CalendarExportFloorPlanReplacementReview(review.Id, review.FloorId, review.CurrentAssetId, review.ReplacementAssetId, review.Status.ToString(), review.SameCoordinateBasisDimensions, review.SameAspectRatio, review.SameDerivativeBasis, review.ReuseCandidatesAvailable, review.ActivatedAssetId, review.RollbackAssetId, review.CreatedUtc, review.UpdatedUtc, review.CompletedUtc, review.ActivatedUtc, review.CancelledUtc))
+            .ToListAsync(cancellationToken);
+        var replacementReviewItems = await dbContext.FloorPlanReplacementReviewItems.AsNoTracking()
+            .Where(item => item.HouseholdId == SeedHousehold.Id)
+            .OrderBy(item => item.ReviewId).ThenBy(item => item.RoomId)
+            .Select(item => new CalendarExportFloorPlanReplacementReviewItem(item.Id, item.ReviewId, item.FloorId, item.RoomId, item.Disposition.ToString(), item.ReuseCandidateOverlayId, item.ReplacementOverlayId, item.LabelAnchorApproved, item.FallbackReason, item.CreatedUtc, item.UpdatedUtc))
+            .ToListAsync(cancellationToken);
+
         return new CalendarExportDocument(
             CalendarExportDocument.CurrentFormat,
             CalendarExportDocument.CurrentSchemaVersion,
             DateTimeOffset.UtcNow,
             new CalendarExportHousehold(household.Id, household.TimeZoneId),
-            new CalendarExportPayload(CalendarExportPayload.CurrentVersion, sources, series, new CalendarExportRecurrenceSection([]), exceptions, new Dictionary<string, string>(), floors, rooms, climateConfigurations, climateProviders, climateMappings, floorPlanAssets, roomOverlays),
+            new CalendarExportPayload(CalendarExportPayload.CurrentVersion, sources, series, new CalendarExportRecurrenceSection([]), exceptions, new Dictionary<string, string>(), floors, rooms, climateConfigurations, climateProviders, climateMappings, floorPlanAssets, roomOverlays, replacementReviews, replacementReviewItems),
             new Dictionary<string, string>());
     }
 
@@ -159,6 +170,10 @@ public static class CalendarPortabilityService
                 validationErrors[error.Key] = error.Value;
             }
             foreach (var error in ValidateRoomOverlayPayload(document))
+            {
+                validationErrors[error.Key] = error.Value;
+            }
+            foreach (var error in ValidateFloorPlanReplacementReviewPayload(document))
             {
                 validationErrors[error.Key] = error.Value;
             }
@@ -250,6 +265,10 @@ public static class CalendarPortabilityService
         // Legacy backups without both collections leave the current Floor/Room graph unchanged.
         if (document.Calendar.Floors is not null && document.Calendar.Rooms is not null)
         {
+            var existingReviewItems = await dbContext.FloorPlanReplacementReviewItems.Where(item => item.HouseholdId == SeedHousehold.Id).ToListAsync(cancellationToken);
+            dbContext.FloorPlanReplacementReviewItems.RemoveRange(existingReviewItems);
+            var existingReviews = await dbContext.FloorPlanReplacementReviews.Where(review => review.HouseholdId == SeedHousehold.Id).ToListAsync(cancellationToken);
+            dbContext.FloorPlanReplacementReviews.RemoveRange(existingReviews);
             var existingOverlays = await dbContext.RoomOverlays.Where(overlay => overlay.HouseholdId == SeedHousehold.Id).ToListAsync(cancellationToken);
             dbContext.RoomOverlays.RemoveRange(existingOverlays);
             var existingAssets = await dbContext.FloorPlanAssets.Where(asset => asset.HouseholdId == SeedHousehold.Id).ToListAsync(cancellationToken);
@@ -290,9 +309,35 @@ public static class CalendarPortabilityService
             }
             if (document.Calendar.RoomOverlays is not null)
             {
-                dbContext.RoomOverlays.AddRange(document.Calendar.RoomOverlays.Select(overlay => new RoomOverlay
+                var activatedApprovedOverlayIds = (document.Calendar.FloorPlanReplacementReviews ?? [])
+                    .Where(review => string.Equals(review.Status, FloorPlanReplacementReviewStatus.Activated.ToString(), StringComparison.OrdinalIgnoreCase))
+                    .Join(document.Calendar.FloorPlanReplacementReviewItems ?? [], review => review.Id, item => item.ReviewId, (_, item) => item)
+                    .Where(item => string.Equals(item.Disposition, RoomReplacementDisposition.ApprovedReuse.ToString(), StringComparison.OrdinalIgnoreCase) && item.ReplacementOverlayId is not null)
+                    .Select(item => item.ReplacementOverlayId!.Value)
+                    .ToHashSet();
+                dbContext.RoomOverlays.AddRange(document.Calendar.RoomOverlays.Select(overlay =>
                 {
-                    Id = overlay.Id, HouseholdId = SeedHousehold.Id, RoomId = overlay.RoomId, FloorId = overlay.FloorId, FloorPlanAssetId = overlay.FloorPlanAssetId, State = Enum.Parse<RoomOverlayState>(overlay.State, true) == RoomOverlayState.Trusted ? RoomOverlayState.Valid : Enum.Parse<RoomOverlayState>(overlay.State, true), PolygonJson = JsonSerializer.Serialize(overlay.Polygon, SnapshotJsonOptions), LabelAnchorX = overlay.LabelAnchor?.X, LabelAnchorY = overlay.LabelAnchor?.Y, ArchivedUtc = overlay.ArchivedUtc, CreatedUtc = overlay.CreatedUtc, UpdatedUtc = overlay.UpdatedUtc
+                    var parsedState = Enum.Parse<RoomOverlayState>(overlay.State, true);
+                    var restoredState = parsedState == RoomOverlayState.Trusted && !activatedApprovedOverlayIds.Contains(overlay.Id) ? RoomOverlayState.Valid : parsedState;
+                    return new RoomOverlay
+                    {
+                        Id = overlay.Id, HouseholdId = SeedHousehold.Id, RoomId = overlay.RoomId, FloorId = overlay.FloorId, FloorPlanAssetId = overlay.FloorPlanAssetId, State = restoredState, PolygonJson = JsonSerializer.Serialize(overlay.Polygon, SnapshotJsonOptions), LabelAnchorX = overlay.LabelAnchor?.X, LabelAnchorY = overlay.LabelAnchor?.Y, ArchivedUtc = overlay.ArchivedUtc, CreatedUtc = overlay.CreatedUtc, UpdatedUtc = overlay.UpdatedUtc
+                    };
+                }));
+            }
+
+            if (document.Calendar.FloorPlanReplacementReviews is not null)
+            {
+                dbContext.FloorPlanReplacementReviews.AddRange(document.Calendar.FloorPlanReplacementReviews.Select(review => new FloorPlanReplacementReview
+                {
+                    Id = review.Id, HouseholdId = SeedHousehold.Id, FloorId = review.FloorId, CurrentAssetId = review.CurrentAssetId, ReplacementAssetId = review.ReplacementAssetId, Status = Enum.Parse<FloorPlanReplacementReviewStatus>(review.Status, true), SameCoordinateBasisDimensions = review.SameCoordinateBasisDimensions, SameAspectRatio = review.SameAspectRatio, SameDerivativeBasis = review.SameDerivativeBasis, ReuseCandidatesAvailable = review.ReuseCandidatesAvailable, ActivatedAssetId = review.ActivatedAssetId, RollbackAssetId = review.RollbackAssetId, CreatedUtc = review.CreatedUtc, UpdatedUtc = review.UpdatedUtc, CompletedUtc = review.CompletedUtc, ActivatedUtc = review.ActivatedUtc, CancelledUtc = review.CancelledUtc
+                }));
+            }
+            if (document.Calendar.FloorPlanReplacementReviewItems is not null)
+            {
+                dbContext.FloorPlanReplacementReviewItems.AddRange(document.Calendar.FloorPlanReplacementReviewItems.Select(item => new FloorPlanReplacementReviewItem
+                {
+                    Id = item.Id, ReviewId = item.ReviewId, HouseholdId = SeedHousehold.Id, FloorId = item.FloorId, RoomId = item.RoomId, Disposition = Enum.Parse<RoomReplacementDisposition>(item.Disposition, true), ReuseCandidateOverlayId = item.ReuseCandidateOverlayId, ReplacementOverlayId = item.ReplacementOverlayId, LabelAnchorApproved = item.LabelAnchorApproved, FallbackReason = item.FallbackReason, CreatedUtc = item.CreatedUtc, UpdatedUtc = item.UpdatedUtc
                 }));
             }
             if (document.Calendar.RoomClimateConfigurations is not null)
@@ -591,7 +636,7 @@ public static class CalendarPortabilityService
         if (overlays.GroupBy(o => o.Id).Any(g => g.Count() > 1)) AddError(errors, "Calendar.RoomOverlays.Id", "Room overlay identifiers must be unique.");
         var roomIds = document.Calendar.Rooms?.Select(r => r.Id).ToHashSet() ?? [];
         var floorIds = document.Calendar.Floors?.Select(f => f.Id).ToHashSet() ?? [];
-        var assetById = (document.Calendar.FloorPlanAssets ?? []).ToDictionary(a => a.Id);
+        var assetById = (document.Calendar.FloorPlanAssets ?? []).GroupBy(a => a.Id).Where(g => g.Count() == 1).ToDictionary(g => g.Key, g => g.Single());
         foreach (var o in overlays)
         {
             if (!Enum.TryParse<RoomOverlayState>(o.State, true, out var state)) AddError(errors, "Calendar.RoomOverlays.State", "Room overlay state is invalid.");
@@ -610,6 +655,49 @@ public static class CalendarPortabilityService
         for (var i = 0; i < trusted.Count; i++) for (var j = i + 1; j < trusted.Count; j++)
         {
             if (trusted[i].FloorPlanAssetId == trusted[j].FloorPlanAssetId && RoomOverlayGeometry.HasPositiveOverlap(trusted[i].Polygon, trusted[j].Polygon)) AddError(errors, "Calendar.RoomOverlays.Overlap", "Trusted restored overlays cannot overlap by positive area.");
+        }
+        return ToArrayDictionary(errors);
+    }
+
+    private static Dictionary<string, string[]> ValidateFloorPlanReplacementReviewPayload(CalendarExportDocument document)
+    {
+        var errors = new Dictionary<string, List<string>>(StringComparer.Ordinal);
+        var reviews = document.Calendar.FloorPlanReplacementReviews;
+        var items = document.Calendar.FloorPlanReplacementReviewItems;
+        if (reviews is null && items is null) return new Dictionary<string, string[]>();
+        reviews ??= [];
+        items ??= [];
+        var floorIds = document.Calendar.Floors?.Select(f => f.Id).ToHashSet() ?? [];
+        var roomById = document.Calendar.Rooms?.GroupBy(r => r.Id).Where(g => g.Count() == 1).ToDictionary(g => g.Key, g => g.Single()) ?? [];
+        var assetById = (document.Calendar.FloorPlanAssets ?? []).GroupBy(a => a.Id).Where(g => g.Count() == 1).ToDictionary(g => g.Key, g => g.Single());
+        var overlayById = (document.Calendar.RoomOverlays ?? []).GroupBy(o => o.Id).Where(g => g.Count() == 1).ToDictionary(g => g.Key, g => g.Single());
+        if (reviews.GroupBy(r => r.Id).Any(g => g.Count() > 1)) AddError(errors, "Calendar.FloorPlanReplacementReviews.Id", "Replacement review identifiers must be unique.");
+        foreach (var review in reviews)
+        {
+            if (!Enum.TryParse<FloorPlanReplacementReviewStatus>(review.Status, true, out var status)) AddError(errors, "Calendar.FloorPlanReplacementReviews.Status", "Replacement review status is invalid.");
+            if (!floorIds.Contains(review.FloorId)) AddError(errors, "Calendar.FloorPlanReplacementReviews.FloorId", "Replacement review Floor references must exist.");
+            if (!assetById.ContainsKey(review.CurrentAssetId) || !assetById.ContainsKey(review.ReplacementAssetId)) AddError(errors, "Calendar.FloorPlanReplacementReviews.AssetId", "Replacement review asset references must exist.");
+            if (status == FloorPlanReplacementReviewStatus.Activated && (review.ActivatedAssetId is null || review.RollbackAssetId is null)) AddError(errors, "Calendar.FloorPlanReplacementReviews.Rollback", "Activated replacement reviews require activation and rollback asset metadata.");
+        }
+        foreach (var group in reviews.Where(r => r.Status is "Draft" or "InReview" or "ReadyToActivate").GroupBy(r => r.FloorId)) if (group.Count() > 1) AddError(errors, "Calendar.FloorPlanReplacementReviews.Active", "Only one active replacement review per Floor may be restored.");
+        var reviewIds = reviews.Select(r => r.Id).ToHashSet();
+        foreach (var item in items)
+        {
+            if (!reviewIds.Contains(item.ReviewId)) AddError(errors, "Calendar.FloorPlanReplacementReviewItems.ReviewId", "Replacement review item must reference a restored review.");
+            if (!roomById.TryGetValue(item.RoomId, out var room) || room.FloorId != item.FloorId) AddError(errors, "Calendar.FloorPlanReplacementReviewItems.RoomId", "Replacement review item Room must exist on the item Floor.");
+            if (!Enum.TryParse<RoomReplacementDisposition>(item.Disposition, true, out var disposition)) AddError(errors, "Calendar.FloorPlanReplacementReviewItems.Disposition", "Replacement review item disposition is invalid.");
+            if (item.ReplacementOverlayId is Guid replacementOverlayId && !overlayById.ContainsKey(replacementOverlayId)) AddError(errors, "Calendar.FloorPlanReplacementReviewItems.ReplacementOverlayId", "Approved replacement overlay references must exist.");
+            if (disposition == RoomReplacementDisposition.ApprovedReuse && item.ReplacementOverlayId is null) AddError(errors, "Calendar.FloorPlanReplacementReviewItems.ApprovedOverlay", "Approved replacement review items require replacement overlay geometry.");
+        }
+        foreach (var group in items.GroupBy(i => new { i.ReviewId, i.RoomId })) if (group.Count() > 1) AddError(errors, "Calendar.FloorPlanReplacementReviewItems.DuplicateRoom", "Each review may contain only one item per Room.");
+        foreach (var review in reviews.Where(r => string.Equals(r.Status, FloorPlanReplacementReviewStatus.Activated.ToString(), StringComparison.OrdinalIgnoreCase)))
+        {
+            if (!assetById.TryGetValue(review.ActivatedAssetId ?? Guid.Empty, out var activated) || !string.Equals(activated.State, FloorPlanAssetState.Active.ToString(), StringComparison.OrdinalIgnoreCase)) AddError(errors, "Calendar.FloorPlanReplacementReviews.ActivatedGraph", "Activated reviews require the activated asset to be Active in the restore payload.");
+            if (!assetById.TryGetValue(review.RollbackAssetId ?? Guid.Empty, out var rollback) || !string.Equals(rollback.State, FloorPlanAssetState.Replaced.ToString(), StringComparison.OrdinalIgnoreCase)) AddError(errors, "Calendar.FloorPlanReplacementReviews.RollbackGraph", "Activated reviews require the rollback asset to be Replaced in the restore payload.");
+            foreach (var item in items.Where(i => i.ReviewId == review.Id && string.Equals(i.Disposition, RoomReplacementDisposition.ApprovedReuse.ToString(), StringComparison.OrdinalIgnoreCase)))
+            {
+                if (item.ReplacementOverlayId is not Guid overlayId || !overlayById.TryGetValue(overlayId, out var overlay) || !string.Equals(overlay.State, RoomOverlayState.Trusted.ToString(), StringComparison.OrdinalIgnoreCase)) AddError(errors, "Calendar.FloorPlanReplacementReviewItems.TrustedApprovedOverlay", "Activated review approved overlays must be Trusted in the restore payload.");
+            }
         }
         return ToArrayDictionary(errors);
     }
