@@ -25,7 +25,8 @@ public sealed record CalendarExportPayload(
     IReadOnlyCollection<CalendarExportRoom>? Rooms = null,
     IReadOnlyCollection<CalendarExportRoomClimateConfiguration>? RoomClimateConfigurations = null,
     IReadOnlyCollection<CalendarExportClimateProvider>? ClimateProviders = null,
-    IReadOnlyCollection<CalendarExportRoomClimateSourceMapping>? RoomClimateSourceMappings = null)
+    IReadOnlyCollection<CalendarExportRoomClimateSourceMapping>? RoomClimateSourceMappings = null,
+    IReadOnlyCollection<CalendarExportFloorPlanAsset>? FloorPlanAssets = null)
 {
     public const int CurrentVersion = 1;
 }
@@ -125,3 +126,5 @@ public sealed record CalendarExportRoomClimateConfiguration(Guid RoomId, bool Is
 
 public sealed record CalendarExportClimateProvider(Guid Id, string DisplayName, string ProviderType, bool IsEnabled, bool IsArchived, DateTimeOffset? ArchivedUtc, string? ExternalInstanceReference, string? DiagnosticMetadata, DateTimeOffset CreatedUtc, DateTimeOffset UpdatedUtc);
 public sealed record CalendarExportRoomClimateSourceMapping(Guid Id, Guid RoomId, Guid ProviderId, string SourceRole, string ExternalSourceId, string? ExternalDisplayName, string? ExternalSourceKind, string? ExternalAreaId, string? ExternalAreaName, string? ExternalDeviceId, string? ExternalDeviceName, int Priority, bool IsEnabled, bool IsArchived, DateTimeOffset? ArchivedUtc, string Health, DateTimeOffset? LastCheckedUtc, DateTimeOffset? LastSuccessfulUtc, string? DiagnosticSummary, DateTimeOffset CreatedUtc, DateTimeOffset UpdatedUtc);
+
+public sealed record CalendarExportFloorPlanAsset(Guid Id, Guid FloorId, string OriginalFilename, string DetectedMediaType, string ContentHash, string? SourceContentBase64, string? DerivativeContentBase64, string? DerivativeContentHash, int? SourceWidth, int? SourceHeight, decimal CoordinateBasisWidth, decimal CoordinateBasisHeight, decimal AspectRatio, string State, Guid? ReplacementOfAssetId, DateTimeOffset UploadedUtc, DateTimeOffset CreatedUtc, DateTimeOffset UpdatedUtc, string? ValidationSummary, string SourceAvailability, string DerivativeAvailability);

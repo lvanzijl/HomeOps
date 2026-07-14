@@ -42,6 +42,7 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
     public DbSet<RoomClimateConfiguration> RoomClimateConfigurations => Set<RoomClimateConfiguration>();
     public DbSet<ClimateProvider> ClimateProviders => Set<ClimateProvider>();
     public DbSet<RoomClimateSourceMapping> RoomClimateSourceMappings => Set<RoomClimateSourceMapping>();
+    public DbSet<FloorPlanAsset> FloorPlanAssets => Set<FloorPlanAsset>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -154,6 +155,35 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             entity.HasIndex(mapping => new { mapping.ProviderId, mapping.ExternalSourceId });
             entity.HasIndex(mapping => new { mapping.RoomId, mapping.SourceRole, mapping.ProviderId, mapping.ExternalSourceId }).IsUnique().HasFilter("\"IsArchived\" = false");
             entity.HasIndex(mapping => new { mapping.RoomId, mapping.SourceRole, mapping.Priority }).IsUnique().HasFilter("\"IsArchived\" = false");
+        });
+
+
+
+        modelBuilder.Entity<FloorPlanAsset>(entity =>
+        {
+            entity.ToTable("FloorPlanAssets");
+            entity.HasKey(asset => asset.Id);
+            entity.Property(asset => asset.OriginalFilename).HasMaxLength(160).IsRequired();
+            entity.Property(asset => asset.DetectedMediaType).HasMaxLength(80).IsRequired();
+            entity.Property(asset => asset.ContentHash).HasMaxLength(128).IsRequired();
+            entity.Property(asset => asset.SourceContentReference).HasMaxLength(500).IsRequired();
+            entity.Property(asset => asset.DerivativeContentReference).HasMaxLength(500).IsRequired();
+            entity.Property(asset => asset.CoordinateBasisWidth).HasPrecision(12, 2).IsRequired();
+            entity.Property(asset => asset.CoordinateBasisHeight).HasPrecision(12, 2).IsRequired();
+            entity.Property(asset => asset.AspectRatio).HasPrecision(12, 6).IsRequired();
+            entity.Property(asset => asset.State).HasConversion<string>().HasMaxLength(32).IsRequired();
+            entity.Property(asset => asset.ValidationSummary).HasMaxLength(1000);
+            entity.Property(asset => asset.SourceAvailability).HasConversion<string>().HasMaxLength(32).IsRequired();
+            entity.Property(asset => asset.DerivativeAvailability).HasConversion<string>().HasMaxLength(32).IsRequired();
+            entity.Property(asset => asset.UploadedUtc).IsRequired();
+            entity.Property(asset => asset.CreatedUtc).IsRequired();
+            entity.Property(asset => asset.UpdatedUtc).IsRequired();
+            entity.HasOne(asset => asset.Household).WithMany().HasForeignKey(asset => asset.HouseholdId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(asset => asset.Floor).WithMany().HasForeignKey(asset => asset.FloorId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(asset => asset.ReplacementOfAsset).WithMany().HasForeignKey(asset => asset.ReplacementOfAssetId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(asset => new { asset.FloorId, asset.State });
+            entity.HasIndex(asset => new { asset.HouseholdId, asset.ContentHash });
+            entity.HasIndex(asset => new { asset.FloorId, asset.State }).IsUnique().HasFilter("\"State\" = 'Active'");
         });
 
         modelBuilder.Entity<AgendaLayerSetting>(entity =>

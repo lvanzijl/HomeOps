@@ -12,12 +12,20 @@ public static class CalendarPortabilityService
     private static readonly string DefaultPreRestoreSnapshotDirectory = Path.Combine(AppContext.BaseDirectory, "calendar-restore-snapshots");
 
     public static string PreRestoreSnapshotDirectory { get; set; } = DefaultPreRestoreSnapshotDirectory;
+    public static FloorPlanAssetOptions FloorPlanAssetOptions { get; set; } = new();
 
     public static void ConfigurePreRestoreSnapshotDirectory(string? configuredDirectory)
     {
         PreRestoreSnapshotDirectory = string.IsNullOrWhiteSpace(configuredDirectory)
             ? DefaultPreRestoreSnapshotDirectory
             : configuredDirectory.Trim();
+    }
+
+    public static void ConfigureFloorPlanAssetStorage(string? storageRoot)
+    {
+        FloorPlanAssetOptions = string.IsNullOrWhiteSpace(storageRoot)
+            ? new FloorPlanAssetOptions()
+            : new FloorPlanAssetOptions { StorageRoot = storageRoot.Trim() };
     }
 
     public static async Task<CalendarExportDocument> ExportAsync(HomeOpsDbContext dbContext, CancellationToken cancellationToken = default)
@@ -101,12 +109,21 @@ public static class CalendarPortabilityService
             .Select(mapping => new CalendarExportRoomClimateSourceMapping(mapping.Id, mapping.RoomId, mapping.ProviderId, mapping.SourceRole.ToString(), mapping.ExternalSourceId, mapping.ExternalDisplayName, mapping.ExternalSourceKind, mapping.ExternalAreaId, mapping.ExternalAreaName, mapping.ExternalDeviceId, mapping.ExternalDeviceName, mapping.Priority, mapping.IsEnabled, mapping.IsArchived, mapping.ArchivedUtc, mapping.Health.ToString(), mapping.LastCheckedUtc, mapping.LastSuccessfulUtc, mapping.DiagnosticSummary, mapping.CreatedUtc, mapping.UpdatedUtc))
             .ToListAsync(cancellationToken);
 
+        var assetService = new FloorPlanAssetService(Microsoft.Extensions.Options.Options.Create(FloorPlanAssetOptions));
+        var floorPlanAssets = new List<CalendarExportFloorPlanAsset>();
+        foreach (var asset in await dbContext.FloorPlanAssets.AsNoTracking().Where(asset => asset.HouseholdId == SeedHousehold.Id).OrderBy(asset => asset.FloorId).ThenBy(asset => asset.CreatedUtc).ToListAsync(cancellationToken))
+        {
+            byte[]? derivative = null;
+            try { derivative = await assetService.ReadDerivativeAsync(asset, cancellationToken); } catch { }
+            floorPlanAssets.Add(new CalendarExportFloorPlanAsset(asset.Id, asset.FloorId, asset.OriginalFilename, asset.DetectedMediaType, asset.ContentHash, null, derivative is null ? null : Convert.ToBase64String(derivative), derivative is null ? null : Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(derivative)).ToLowerInvariant(), asset.SourceWidth, asset.SourceHeight, asset.CoordinateBasisWidth, asset.CoordinateBasisHeight, asset.AspectRatio, asset.State.ToString(), asset.ReplacementOfAssetId, asset.UploadedUtc, asset.CreatedUtc, asset.UpdatedUtc, asset.ValidationSummary, asset.SourceAvailability.ToString(), asset.DerivativeAvailability.ToString()));
+        }
+
         return new CalendarExportDocument(
             CalendarExportDocument.CurrentFormat,
             CalendarExportDocument.CurrentSchemaVersion,
             DateTimeOffset.UtcNow,
             new CalendarExportHousehold(household.Id, household.TimeZoneId),
-            new CalendarExportPayload(CalendarExportPayload.CurrentVersion, sources, series, new CalendarExportRecurrenceSection([]), exceptions, new Dictionary<string, string>(), floors, rooms, climateConfigurations, climateProviders, climateMappings),
+            new CalendarExportPayload(CalendarExportPayload.CurrentVersion, sources, series, new CalendarExportRecurrenceSection([]), exceptions, new Dictionary<string, string>(), floors, rooms, climateConfigurations, climateProviders, climateMappings, floorPlanAssets),
             new Dictionary<string, string>());
     }
 
@@ -131,10 +148,21 @@ public static class CalendarPortabilityService
             {
                 validationErrors[error.Key] = error.Value;
             }
+            foreach (var error in ValidateFloorPlanAssetGraph(document))
+            {
+                validationErrors[error.Key] = error.Value;
+            }
         }
         if (validationErrors.Count > 0)
         {
             return new CalendarRestoreResult(false, validationErrors);
+        }
+
+        var floorPlanAssetService = new FloorPlanAssetService(Microsoft.Extensions.Options.Options.Create(FloorPlanAssetOptions));
+        var stagedFloorPlanAssets = StageFloorPlanAssetContent(document!, floorPlanAssetService, out var contentErrors);
+        if (contentErrors.Count > 0)
+        {
+            return new CalendarRestoreResult(false, contentErrors);
         }
 
         try
@@ -212,23 +240,42 @@ public static class CalendarPortabilityService
         // Legacy backups without both collections leave the current Floor/Room graph unchanged.
         if (document.Calendar.Floors is not null && document.Calendar.Rooms is not null)
         {
+            var existingAssets = await dbContext.FloorPlanAssets.Where(asset => asset.HouseholdId == SeedHousehold.Id).ToListAsync(cancellationToken);
+            dbContext.FloorPlanAssets.RemoveRange(existingAssets);
+            await dbContext.SaveChangesAsync(cancellationToken);
             var existingClimateConfigurations = await dbContext.RoomClimateConfigurations.Where(config => config.HouseholdId == SeedHousehold.Id).ToListAsync(cancellationToken);
             dbContext.RoomClimateConfigurations.RemoveRange(existingClimateConfigurations);
             var existingRooms = await dbContext.Rooms.Where(room => room.HouseholdId == SeedHousehold.Id).ToListAsync(cancellationToken);
             dbContext.Rooms.RemoveRange(existingRooms);
             var existingFloors = await dbContext.Floors.Where(floor => floor.HouseholdId == SeedHousehold.Id).ToListAsync(cancellationToken);
             dbContext.Floors.RemoveRange(existingFloors);
+            await dbContext.SaveChangesAsync(cancellationToken);
+            dbContext.ChangeTracker.Clear();
             var activeFamilyMemberIds = await dbContext.FamilyMembers.AsNoTracking()
                 .Where(member => member.HouseholdId == SeedHousehold.Id && !member.IsDeleted)
                 .Select(member => member.Id)
                 .ToListAsync(cancellationToken);
             var activeFamilyMemberIdSet = activeFamilyMemberIds.ToHashSet(StringComparer.Ordinal);
+
             dbContext.Floors.AddRange(document.Calendar.Floors.Select(floor => new Floor { Id = floor.Id, HouseholdId = SeedHousehold.Id, Name = floor.Name.Trim(), SortOrder = floor.SortOrder, IsEnabled = floor.IsEnabled, IsArchived = floor.IsArchived, ArchivedUtc = floor.ArchivedUtc, CreatedUtc = floor.CreatedUtc, UpdatedUtc = floor.UpdatedUtc }));
             dbContext.Rooms.AddRange(document.Calendar.Rooms.Select(room =>
             {
                 var familyMemberId = string.IsNullOrWhiteSpace(room.FamilyMemberId) ? null : room.FamilyMemberId.Trim();
                 return new Room { Id = room.Id, HouseholdId = SeedHousehold.Id, FloorId = room.FloorId, Name = room.Name.Trim(), RoomType = Enum.Parse<RoomType>(room.RoomType, true), SortOrder = room.SortOrder, FamilyMemberId = familyMemberId is not null && activeFamilyMemberIdSet.Contains(familyMemberId) ? familyMemberId : null, IsEnabled = room.IsEnabled, IsArchived = room.IsArchived, ArchivedUtc = room.ArchivedUtc, CreatedUtc = room.CreatedUtc, UpdatedUtc = room.UpdatedUtc };
             }));
+            if (document.Calendar.FloorPlanAssets is not null)
+            {
+                foreach (var asset in document.Calendar.FloorPlanAssets)
+                {
+                    var staged = stagedFloorPlanAssets.GetValueOrDefault(asset.Id);
+                    var state = Enum.Parse<FloorPlanAssetState>(asset.State, true);
+                    if (staged is null && state == FloorPlanAssetState.Active) state = FloorPlanAssetState.Missing;
+                    var derivativeReference = staged is null
+                        ? floorPlanAssetService.DerivativeReference(SeedHousehold.Id, asset.Id, asset.DetectedMediaType)
+                        : await floorPlanAssetService.StoreRestoredDerivativeAsync(SeedHousehold.Id, asset.Id, staged.MediaType, staged.DerivativeBytes, cancellationToken);
+                    dbContext.FloorPlanAssets.Add(new FloorPlanAsset { Id = asset.Id, HouseholdId = SeedHousehold.Id, FloorId = asset.FloorId, OriginalFilename = asset.OriginalFilename.Trim(), DetectedMediaType = asset.DetectedMediaType, ContentHash = asset.ContentHash.Trim(), SourceContentReference = floorPlanAssetService.MissingSourceReference(SeedHousehold.Id, asset.Id), DerivativeContentReference = derivativeReference, SourceWidth = staged?.SourceWidth ?? asset.SourceWidth, SourceHeight = staged?.SourceHeight ?? asset.SourceHeight, CoordinateBasisWidth = staged?.BasisWidth ?? asset.CoordinateBasisWidth, CoordinateBasisHeight = staged?.BasisHeight ?? asset.CoordinateBasisHeight, AspectRatio = (staged?.BasisWidth ?? asset.CoordinateBasisWidth) / (staged?.BasisHeight ?? asset.CoordinateBasisHeight), State = state, ReplacementOfAssetId = asset.ReplacementOfAssetId, UploadedUtc = asset.UploadedUtc, CreatedUtc = asset.CreatedUtc, UpdatedUtc = asset.UpdatedUtc, ValidationSummary = staged?.Summary ?? asset.ValidationSummary, SourceAvailability = FloorPlanAssetAvailability.Missing, DerivativeAvailability = staged is null ? FloorPlanAssetAvailability.Missing : FloorPlanAssetAvailability.Available });
+                }
+            }
             if (document.Calendar.RoomClimateConfigurations is not null)
             {
                 dbContext.RoomClimateConfigurations.AddRange(document.Calendar.RoomClimateConfigurations.Select(config => new RoomClimateConfiguration
@@ -581,7 +628,81 @@ public static class CalendarPortabilityService
         return ToArrayDictionary(errors);
     }
 
+    private sealed record StagedFloorPlanAssetContent(string MediaType, byte[] DerivativeBytes, int? SourceWidth, int? SourceHeight, decimal BasisWidth, decimal BasisHeight, string Summary);
 
+    private static Dictionary<string, string[]> ValidateFloorPlanAssetGraph(CalendarExportDocument document)
+    {
+        var errors = new Dictionary<string, List<string>>(StringComparer.Ordinal);
+        var assets = document.Calendar.FloorPlanAssets;
+        if (assets is null) return new Dictionary<string, string[]>();
+        var floorIds = (document.Calendar.Floors ?? []).Select(floor => floor.Id).ToHashSet();
+        if (document.Calendar.Floors is null) return new Dictionary<string, string[]>();
+        if (assets.Any(asset => asset.Id == Guid.Empty || asset.FloorId == Guid.Empty)) AddError(errors, "Calendar.FloorPlanAssets.Id", "Floor-plan assets require non-empty asset and Floor identifiers.");
+        if (assets.GroupBy(asset => asset.Id).Any(group => group.Count() > 1)) AddError(errors, "Calendar.FloorPlanAssets.Id", "Floor-plan asset identifiers must be unique.");
+        if (assets.Any(asset => !floorIds.Contains(asset.FloorId))) AddError(errors, "Calendar.FloorPlanAssets.FloorId", "Every floor-plan asset must reference a restored Floor.");
+        if (assets.Any(asset => string.IsNullOrWhiteSpace(asset.OriginalFilename) || string.IsNullOrWhiteSpace(asset.DetectedMediaType) || string.IsNullOrWhiteSpace(asset.ContentHash))) AddError(errors, "Calendar.FloorPlanAssets.Required", "Floor-plan assets require filename, media type, and hash metadata.");
+        if (assets.Any(asset => !Enum.TryParse<FloorPlanAssetState>(asset.State, true, out _))) AddError(errors, "Calendar.FloorPlanAssets.State", "Floor-plan asset lifecycle state must be supported.");
+        if (assets.Any(asset => !Enum.TryParse<FloorPlanAssetAvailability>(asset.SourceAvailability, true, out _) || !Enum.TryParse<FloorPlanAssetAvailability>(asset.DerivativeAvailability, true, out _))) AddError(errors, "Calendar.FloorPlanAssets.Availability", "Floor-plan asset availability state must be supported.");
+        if (assets.Any(asset => asset.CoordinateBasisWidth <= 0 || asset.CoordinateBasisHeight <= 0 || asset.AspectRatio <= 0)) AddError(errors, "Calendar.FloorPlanAssets.Dimensions", "Floor-plan asset coordinate basis and aspect ratio must be positive.");
+        var ids = assets.Select(asset => asset.Id).ToHashSet();
+        if (assets.Any(asset => asset.ReplacementOfAssetId == asset.Id)) AddError(errors, "Calendar.FloorPlanAssets.Replacement", "Floor-plan assets cannot replace themselves.");
+        if (assets.Any(asset => asset.ReplacementOfAssetId is not null && !ids.Contains(asset.ReplacementOfAssetId.Value))) AddError(errors, "Calendar.FloorPlanAssets.Replacement", "Replacement references must point to a retained asset in the same restore payload.");
+        if (assets.GroupBy(asset => $"{asset.FloorId:N}:{asset.State}", StringComparer.OrdinalIgnoreCase).Any(group => group.Key.EndsWith(":" + FloorPlanAssetState.Active, StringComparison.OrdinalIgnoreCase) && group.Count() > 1)) AddError(errors, "Calendar.FloorPlanAssets.Active", "Only one Active floor-plan asset may be restored per Floor.");
+        foreach (var asset in assets)
+        {
+            if (HasReplacementCycle(asset, assets)) AddError(errors, "Calendar.FloorPlanAssets.Replacement", "Replacement relationships cannot form cycles.");
+        }
+        return ToArrayDictionary(errors);
+    }
+
+    private static bool HasReplacementCycle(CalendarExportFloorPlanAsset start, IReadOnlyCollection<CalendarExportFloorPlanAsset> assets)
+    {
+        var byId = assets.ToDictionary(asset => asset.Id);
+        var seen = new HashSet<Guid>();
+        var current = start;
+        while (current.ReplacementOfAssetId is Guid next)
+        {
+            if (!seen.Add(next)) return true;
+            if (!byId.TryGetValue(next, out current!)) return false;
+        }
+        return false;
+    }
+
+    private static Dictionary<Guid, StagedFloorPlanAssetContent> StageFloorPlanAssetContent(CalendarExportDocument document, FloorPlanAssetService floorPlanAssetService, out Dictionary<string, string[]> errors)
+    {
+        var staged = new Dictionary<Guid, StagedFloorPlanAssetContent>();
+        var errorLists = new Dictionary<string, List<string>>(StringComparer.Ordinal);
+        if (document.Calendar.FloorPlanAssets is null)
+        {
+            errors = new Dictionary<string, string[]>();
+            return staged;
+        }
+        foreach (var asset in document.Calendar.FloorPlanAssets)
+        {
+            if (string.IsNullOrWhiteSpace(asset.DerivativeContentBase64))
+            {
+                if (string.Equals(asset.State, FloorPlanAssetState.Active.ToString(), StringComparison.OrdinalIgnoreCase)) AddError(errorLists, "Calendar.FloorPlanAssets.Derivative", "Active floor-plan assets require restorable safe derivative content.");
+                continue;
+            }
+            byte[] bytes;
+            try { bytes = Convert.FromBase64String(asset.DerivativeContentBase64); }
+            catch { AddError(errorLists, "Calendar.FloorPlanAssets.Derivative", "Floor-plan derivative payload must be valid base64."); continue; }
+            try
+            {
+                var validated = floorPlanAssetService.ValidateDerivativeBytes(bytes, asset.OriginalFilename);
+                if (!string.Equals(validated.MediaType, asset.DetectedMediaType, StringComparison.OrdinalIgnoreCase)) AddError(errorLists, "Calendar.FloorPlanAssets.MediaType", "Floor-plan derivative media type must match metadata.");
+                if (!string.IsNullOrWhiteSpace(asset.DerivativeContentHash) && !string.Equals(validated.Hash, asset.DerivativeContentHash.Trim(), StringComparison.OrdinalIgnoreCase)) AddError(errorLists, "Calendar.FloorPlanAssets.Hash", "Floor-plan derivative hash does not match backup metadata.");
+                if (validated.BasisWidth != asset.CoordinateBasisWidth || validated.BasisHeight != asset.CoordinateBasisHeight) AddError(errorLists, "Calendar.FloorPlanAssets.Dimensions", "Floor-plan derivative dimensions do not match backup metadata.");
+                staged[asset.Id] = new StagedFloorPlanAssetContent(validated.MediaType, validated.DerivativeBytes, validated.SourceWidth, validated.SourceHeight, validated.BasisWidth, validated.BasisHeight, validated.Summary);
+            }
+            catch (InvalidOperationException)
+            {
+                AddError(errorLists, "Calendar.FloorPlanAssets.Derivative", "Floor-plan derivative content is invalid or unsafe.");
+            }
+        }
+        errors = ToArrayDictionary(errorLists);
+        return staged;
+    }
 
 
     private static async Task<Dictionary<string, string[]>> ValidateClimateMappingPayloadAsync(HomeOpsDbContext dbContext, CalendarExportDocument document, CancellationToken cancellationToken)
