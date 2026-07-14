@@ -24,6 +24,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 CalendarPortabilityService.ConfigurePreRestoreSnapshotDirectory(
     builder.Configuration["CalendarPortability:PreRestoreSnapshotDirectory"]);
+CalendarPortabilityService.ConfigureFloorPlanAssetStorage(
+    builder.Configuration["FloorPlanAssets:StorageRoot"]);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApiDocument();
@@ -47,6 +49,8 @@ builder.Services.AddSingleton<WeatherSnapshotCache>();
 builder.Services.AddSingleton<DepartureAdviceEngine>();
 builder.Services.AddSingleton<WeatherProjectionBuilder>();
 builder.Services.AddSingleton<WeatherApplicationService>();
+builder.Services.Configure<FloorPlanAssetOptions>(builder.Configuration.GetSection("FloorPlanAssets"));
+builder.Services.AddScoped<FloorPlanAssetService>();
 builder.Services.AddScoped<ClimateMappingValidationService>();
 builder.Services.AddHttpClient<IICalFeedImporter, ICalFeedImporter>();
 builder.Services.AddScoped<ICalFileContentStore, FileSystemICalFileContentStore>();
@@ -119,6 +123,7 @@ app.MapEventSourceManagementEndpoints();
 app.MapEventSeriesEndpoints();
 app.MapFamilyMemberEndpoints();
 app.MapFloorPlanEndpoints();
+app.MapFloorPlanAssetEndpoints();
 app.MapClimateProviderMappingEndpoints();
 app.MapKnownPersonEndpoints();
 app.MapOnboardingEndpoints();

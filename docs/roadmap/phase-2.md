@@ -832,3 +832,9 @@ Avatar Catalog Backend Foundation adds the first backend-only catalog slice for 
 
 ### Completed Slice — Woning Climate Floor Plans Slice 2A Room Climate Configuration Foundation
 FamilyBoard-owned Room climate configuration is now a separate backend concept attached to canonical Rooms. The slice adds participation, bedtime relevance, optional temperature and humidity comfort policy, household-facing heating-policy intent, derived expected semantic source roles, API lifecycle, persistence migration, backup/restore inclusion, OpenAPI/NSwag regeneration, and focused backend coverage. Provider mappings, source identifiers, Home Assistant/Evohome concepts, readings, health/confidence, Stories, controls, floor-plan assets, polygons, overlays, and frontend UI remain deferred.
+
+### Completed Slice — Woning Climate Floor Plans Floor-plan Asset Ingestion
+Backend-only FamilyBoard-owned floor-plan asset ingestion now supports validated SVG/PNG/JPG/JPEG uploads for canonical Floors, protected source references, safe derivative references, coordinate-basis metadata, explicit activation/replacement/rollback/archive/missing lifecycle, one-active-per-Floor persistence, derivative retrieval, and incremental backup/restore metadata. Polygons, overlays, label anchors, editor canvas, runtime floor-plan rendering, climate readings, Stories, Home Assistant work, and frontend upload flows remain deferred.
+
+### Completed Follow-up — Floor-plan Asset Ingestion Hardening
+The floor-plan asset ingestion foundation was hardened for merge with safe derivative backup/restore rehydration, pre-mutation graph/content validation, explicit SVG sanitizer rules, raster corruption/oversize checks, storage reference containment, lifecycle invariant coverage, and migration/idempotent-script verification. Overlay geometry, editor/runtime UI, climate readings, Stories, Home Assistant integration, raster transcoding/resizing, and retention/purge policy remain deferred.
