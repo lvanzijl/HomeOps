@@ -16,6 +16,379 @@
         }
       }
     },
+    "/api/floors/{floorId}/overlays": {
+      "get": {
+        "tags": [
+          "RoomOverlays"
+        ],
+        "operationId": "GetFloorRoomOverlays",
+        "parameters": [
+          {
+            "name": "floorId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "includeArchived",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "nullable": true
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "RoomOverlays"
+        ],
+        "operationId": "CreateRoomOverlay",
+        "parameters": [
+          {
+            "name": "floorId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "req",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRoomOverlayRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/rooms/{roomId}/overlay": {
+      "get": {
+        "tags": [
+          "RoomOverlays"
+        ],
+        "operationId": "GetRoomOverlays",
+        "parameters": [
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "includeArchived",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "nullable": true
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/room-overlays/{id}": {
+      "get": {
+        "tags": [
+          "RoomOverlays"
+        ],
+        "operationId": "GetRoomOverlay",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "RoomOverlays"
+        ],
+        "operationId": "DeleteRoomOverlay",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/room-overlays/{id}/geometry": {
+      "put": {
+        "tags": [
+          "RoomOverlays"
+        ],
+        "operationId": "UpdateRoomOverlayGeometry",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "req",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRoomOverlayGeometryRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/room-overlays/{id}/label-anchor": {
+      "put": {
+        "tags": [
+          "RoomOverlays"
+        ],
+        "operationId": "UpdateRoomOverlayLabelAnchor",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "req",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRoomOverlayLabelAnchorRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "RoomOverlays"
+        ],
+        "operationId": "ResetRoomOverlayLabelAnchor",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/room-overlays/{id}/trust": {
+      "post": {
+        "tags": [
+          "RoomOverlays"
+        ],
+        "operationId": "TrustRoomOverlay",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/room-overlays/{id}/needs-review": {
+      "post": {
+        "tags": [
+          "RoomOverlays"
+        ],
+        "operationId": "MarkRoomOverlayNeedsReview",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/room-overlays/{id}/archive": {
+      "post": {
+        "tags": [
+          "RoomOverlays"
+        ],
+        "operationId": "ArchiveRoomOverlay",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/room-overlays/{id}/restore": {
+      "post": {
+        "tags": [
+          "RoomOverlays"
+        ],
+        "operationId": "RestoreRoomOverlay",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/room-overlays/{id}/validation": {
+      "get": {
+        "tags": [
+          "RoomOverlays"
+        ],
+        "operationId": "GetRoomOverlayValidation",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
     "/api/motivation": {
       "get": {
         "operationId": "GetMotivationSnapshot",
@@ -2655,6 +3028,371 @@
         }
       }
     },
+    "/api/floors/{floorId}/floor-plan-assets": {
+      "get": {
+        "tags": [
+          "Floor Plan Assets"
+        ],
+        "operationId": "ListFloorPlanAssets",
+        "parameters": [
+          {
+            "name": "floorId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FloorPlanAssetDto"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Floor Plan Assets"
+        ],
+        "operationId": "UploadFloorPlanAsset",
+        "parameters": [
+          {
+            "name": "floorId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "nullable": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FloorPlanAssetUploadResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/floors/{floorId}/floor-plan-assets/active": {
+      "get": {
+        "tags": [
+          "Floor Plan Assets"
+        ],
+        "operationId": "GetActiveFloorPlanAsset",
+        "parameters": [
+          {
+            "name": "floorId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FloorPlanAssetDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/floors/{floorId}/floor-plan-assets/{assetId}/activate": {
+      "post": {
+        "tags": [
+          "Floor Plan Assets"
+        ],
+        "operationId": "ActivateFloorPlanAsset",
+        "parameters": [
+          {
+            "name": "floorId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "assetId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FloorPlanAssetDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/floors/{floorId}/floor-plan-assets/rollback": {
+      "post": {
+        "tags": [
+          "Floor Plan Assets"
+        ],
+        "operationId": "RollbackFloorPlanAsset",
+        "parameters": [
+          {
+            "name": "floorId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FloorPlanAssetDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/floor-plan-assets/{assetId}": {
+      "get": {
+        "tags": [
+          "Floor Plan Assets"
+        ],
+        "operationId": "GetFloorPlanAsset",
+        "parameters": [
+          {
+            "name": "assetId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FloorPlanAssetDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/floor-plan-assets/{assetId}/archive": {
+      "post": {
+        "tags": [
+          "Floor Plan Assets"
+        ],
+        "operationId": "ArchiveFloorPlanAsset",
+        "parameters": [
+          {
+            "name": "assetId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/floor-plan-assets/{assetId}/mark-missing": {
+      "post": {
+        "tags": [
+          "Floor Plan Assets"
+        ],
+        "operationId": "MarkFloorPlanAssetMissing",
+        "parameters": [
+          {
+            "name": "assetId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FloorPlanAssetDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/floor-plan-assets/{assetId}/derivative": {
+      "get": {
+        "tags": [
+          "Floor Plan Assets"
+        ],
+        "operationId": "GetFloorPlanAssetDerivative",
+        "parameters": [
+          {
+            "name": "assetId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
     "/api/climate-providers": {
       "get": {
         "tags": [
@@ -4321,6 +5059,102 @@
   },
   "components": {
     "schemas": {
+      "CreateRoomOverlayRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "roomId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "floorPlanAssetId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "polygon": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NormalizedPoint"
+            }
+          },
+          "labelAnchor": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/NormalizedPoint"
+              }
+            ]
+          },
+          "state": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/RoomOverlayState"
+              }
+            ]
+          }
+        }
+      },
+      "NormalizedPoint": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "x": {
+            "type": "number",
+            "format": "decimal"
+          },
+          "y": {
+            "type": "number",
+            "format": "decimal"
+          }
+        }
+      },
+      "RoomOverlayState": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "Draft",
+          "Valid",
+          "NeedsReview",
+          "Trusted",
+          "Invalid",
+          "Archived"
+        ],
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      "UpdateRoomOverlayGeometryRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "polygon": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NormalizedPoint"
+            }
+          }
+        }
+      },
+      "UpdateRoomOverlayLabelAnchorRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "labelAnchor": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/NormalizedPoint"
+              }
+            ]
+          }
+        }
+      },
       "MotivationSnapshotDto": {
         "type": "object",
         "additionalProperties": false,
@@ -5444,6 +6278,20 @@
             "items": {
               "$ref": "#/components/schemas/CalendarExportRoomClimateSourceMapping"
             }
+          },
+          "floorPlanAssets": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/CalendarExportFloorPlanAsset"
+            }
+          },
+          "roomOverlays": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/CalendarExportRoomOverlay"
+            }
           }
         }
       },
@@ -6050,6 +6898,145 @@
           },
           "diagnosticSummary": {
             "type": "string",
+            "nullable": true
+          },
+          "createdUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedUtc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CalendarExportFloorPlanAsset": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "floorId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "originalFilename": {
+            "type": "string"
+          },
+          "detectedMediaType": {
+            "type": "string"
+          },
+          "contentHash": {
+            "type": "string"
+          },
+          "sourceContentBase64": {
+            "type": "string",
+            "nullable": true
+          },
+          "derivativeContentBase64": {
+            "type": "string",
+            "nullable": true
+          },
+          "derivativeContentHash": {
+            "type": "string",
+            "nullable": true
+          },
+          "sourceWidth": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "sourceHeight": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "coordinateBasisWidth": {
+            "type": "number",
+            "format": "decimal"
+          },
+          "coordinateBasisHeight": {
+            "type": "number",
+            "format": "decimal"
+          },
+          "aspectRatio": {
+            "type": "number",
+            "format": "decimal"
+          },
+          "state": {
+            "type": "string"
+          },
+          "replacementOfAssetId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "uploadedUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "validationSummary": {
+            "type": "string",
+            "nullable": true
+          },
+          "sourceAvailability": {
+            "type": "string"
+          },
+          "derivativeAvailability": {
+            "type": "string"
+          }
+        }
+      },
+      "CalendarExportRoomOverlay": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "roomId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "floorId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "floorPlanAssetId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "state": {
+            "type": "string"
+          },
+          "polygon": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NormalizedPoint"
+            }
+          },
+          "labelAnchor": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/NormalizedPoint"
+              }
+            ]
+          },
+          "archivedUtc": {
+            "type": "string",
+            "format": "date-time",
             "nullable": true
           },
           "createdUtc": {
@@ -7049,6 +8036,130 @@
           },
           "heatingPolicyIntent": {
             "$ref": "#/components/schemas/HeatingPolicyIntent"
+          }
+        }
+      },
+      "FloorPlanAssetDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "floorId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "originalFilename": {
+            "type": "string"
+          },
+          "detectedMediaType": {
+            "type": "string"
+          },
+          "contentHash": {
+            "type": "string"
+          },
+          "sourceWidth": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "sourceHeight": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "coordinateBasisWidth": {
+            "type": "number",
+            "format": "decimal"
+          },
+          "coordinateBasisHeight": {
+            "type": "number",
+            "format": "decimal"
+          },
+          "aspectRatio": {
+            "type": "number",
+            "format": "decimal"
+          },
+          "state": {
+            "$ref": "#/components/schemas/FloorPlanAssetState"
+          },
+          "replacementOfAssetId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "uploadedUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "validationSummary": {
+            "type": "string",
+            "nullable": true
+          },
+          "sourceAvailability": {
+            "$ref": "#/components/schemas/FloorPlanAssetAvailability"
+          },
+          "derivativeAvailability": {
+            "$ref": "#/components/schemas/FloorPlanAssetAvailability"
+          },
+          "derivativeUrl": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "FloorPlanAssetState": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "Draft",
+          "Validated",
+          "Active",
+          "Replaced",
+          "Archived",
+          "Invalid",
+          "Missing"
+        ],
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ]
+      },
+      "FloorPlanAssetAvailability": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "Available",
+          "Missing",
+          "Corrupt"
+        ],
+        "enum": [
+          0,
+          1,
+          2
+        ]
+      },
+      "FloorPlanAssetUploadResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "asset": {
+            "$ref": "#/components/schemas/FloorPlanAssetDto"
           }
         }
       },

@@ -842,3 +842,6 @@ The floor-plan asset ingestion foundation was hardened for merge with safe deriv
 ### 2026-07-14 — Woning Climate Floor Plans slice 4
 - Completed frontend Settings management for Floors and Rooms: create, rename, reorder, move rooms, archive/restore/delete, RoomType labels, optional family member association, compact status summaries, and focused frontend tests.
 - Deferred canvas, upload/replacement, runtime climate rendering, Home Assistant mapping setup, Stories, and heating controls to later slices.
+
+### Completed Slice — Woning Climate Floor Plans Slice 5 Room Overlay Foundation
+Woning Climate Floor Plans Slice 5 adds the backend foundation for FamilyBoard-owned room overlays and manual label anchors. Overlays link canonical Rooms, Floors, Households, and floor-plan Asset contexts to ordered normalized polygon geometry with lifecycle/trust states. The backend now validates geometry, anchors, Room/Floor/Asset integrity, one Trusted overlay per Room/active asset, and positive-area overlap while allowing shared borders. Backup/restore includes overlays and anchors, and Room/Asset lifecycle changes downgrade unsafe Trusted overlays. Polygon editor frontend, runtime rendering, climate readings, Stories, heating controls, and Home Assistant integration remain deferred.

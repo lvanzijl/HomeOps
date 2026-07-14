@@ -949,3 +949,11 @@ Woning Climate Provider Mapping Hardening adds the explicit internal `ClimateMap
 ## 2026-07-14 — Woning floor/room Settings management
 - Added the frontend Settings `Woning` workspace for managing FamilyBoard floors and rooms without polygon editing, asset upload, runtime climate, or Home Assistant setup UI.
 - Added compact climate and floor-plan setup summaries and viewport-bounded management lists.
+
+## Woning Climate Floor Plans Slice 5 — Room Overlay Foundation — 2026-07-14
+- Added backend-only FamilyBoard-owned Room overlay and label-anchor foundation with normalized polygon geometry, lifecycle/trust states, explicit trust operation, geometry/anchor validation, Trusted overlap blocking with shared-edge allowance, Room/Asset lifecycle trust downgrades, EF migration, portability backup/restore section, and focused geometry tests.
+- Preserved scope exclusions: no polygon editor frontend, canvas, floor-plan runtime rendering, room labels in runtime, climate readings, Stories, heating controls, Home Assistant discovery/synchronization, screenshots, or binary assets.
+
+## Room Overlay Foundation Hardening — 2026-07-14
+- Hardened Woning Climate Floor Plans Slice 5 with focused lifecycle API, trust transition, Room/Asset downgrade, schema, portability, and atomicity tests; fixed concrete defects so only Valid overlays can be trusted, permanent Room delete explicitly removes owned overlays, full restore clears stale overlays before replacing Floor/Room/Asset data, and Trusted backup input restores as Valid.
+- No frontend UI, polygon editor, runtime rendering, climate readings, Stories, heating controls, Home Assistant integration, screenshots, or binary scope was added.

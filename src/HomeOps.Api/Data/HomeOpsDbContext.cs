@@ -43,6 +43,7 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
     public DbSet<ClimateProvider> ClimateProviders => Set<ClimateProvider>();
     public DbSet<RoomClimateSourceMapping> RoomClimateSourceMappings => Set<RoomClimateSourceMapping>();
     public DbSet<FloorPlanAsset> FloorPlanAssets => Set<FloorPlanAsset>();
+    public DbSet<RoomOverlay> RoomOverlays => Set<RoomOverlay>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -184,6 +185,27 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             entity.HasIndex(asset => new { asset.FloorId, asset.State });
             entity.HasIndex(asset => new { asset.HouseholdId, asset.ContentHash });
             entity.HasIndex(asset => new { asset.FloorId, asset.State }).IsUnique().HasFilter("\"State\" = 'Active'");
+        });
+
+
+        modelBuilder.Entity<RoomOverlay>(entity =>
+        {
+            entity.ToTable("RoomOverlays");
+            entity.HasKey(overlay => overlay.Id);
+            entity.Property(overlay => overlay.State).HasConversion<string>().HasMaxLength(32).IsRequired();
+            entity.Property(overlay => overlay.PolygonJson).HasColumnType("jsonb").IsRequired();
+            entity.Property(overlay => overlay.LabelAnchorX).HasPrecision(18, 12);
+            entity.Property(overlay => overlay.LabelAnchorY).HasPrecision(18, 12);
+            entity.Property(overlay => overlay.ArchivedUtc);
+            entity.Property(overlay => overlay.CreatedUtc).IsRequired();
+            entity.Property(overlay => overlay.UpdatedUtc).IsRequired();
+            entity.HasOne(overlay => overlay.Household).WithMany().HasForeignKey(overlay => overlay.HouseholdId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(overlay => overlay.Room).WithMany().HasForeignKey(overlay => overlay.RoomId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(overlay => overlay.Floor).WithMany().HasForeignKey(overlay => overlay.FloorId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(overlay => overlay.FloorPlanAsset).WithMany().HasForeignKey(overlay => overlay.FloorPlanAssetId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(overlay => new { overlay.FloorId, overlay.FloorPlanAssetId, overlay.State });
+            entity.HasIndex(overlay => new { overlay.RoomId, overlay.FloorPlanAssetId, overlay.State });
+            entity.HasIndex(overlay => new { overlay.RoomId, overlay.FloorPlanAssetId }).IsUnique().HasFilter("\"State\" = 'Trusted'");
         });
 
         modelBuilder.Entity<AgendaLayerSetting>(entity =>

@@ -124,6 +124,7 @@ app.MapEventSeriesEndpoints();
 app.MapFamilyMemberEndpoints();
 app.MapFloorPlanEndpoints();
 app.MapFloorPlanAssetEndpoints();
+app.MapRoomOverlayEndpoints();
 app.MapClimateProviderMappingEndpoints();
 app.MapKnownPersonEndpoints();
 app.MapOnboardingEndpoints();
