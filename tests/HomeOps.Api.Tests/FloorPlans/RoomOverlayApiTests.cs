@@ -181,8 +181,8 @@ public sealed class RoomOverlayApiTests(HomeOpsWebApplicationFactory factory) : 
         var assetOverlay = await CreateOverlay(assetCtx, Rect(0, 0, .4m, .4m));
         await Trust(assetOverlay.Id);
         var replacement = await UploadAssetAsync(assetCtx.FloorId);
-        Assert.Equal(HttpStatusCode.OK, (await _client.PostAsync($"/api/floors/{assetCtx.FloorId}/floor-plan-assets/{replacement}/activate", null)).StatusCode);
-        Assert.Equal(RoomOverlayState.NeedsReview, (await _client.GetFromJsonAsync<RoomOverlayDto>($"/api/room-overlays/{assetOverlay.Id}"))!.State);
+        Assert.Equal(HttpStatusCode.BadRequest, (await _client.PostAsync($"/api/floors/{assetCtx.FloorId}/floor-plan-assets/{replacement}/activate", null)).StatusCode);
+        Assert.Equal(RoomOverlayState.Trusted, (await _client.GetFromJsonAsync<RoomOverlayDto>($"/api/room-overlays/{assetOverlay.Id}"))!.State);
 
         var missingCtx = await SetupAsync("missing");
         var missingOverlay = await CreateOverlay(missingCtx, Rect(0, 0, .4m, .4m));

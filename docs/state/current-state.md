@@ -965,3 +965,13 @@ Woning Climate Provider Mapping Hardening adds the explicit internal `ClimateMap
 ## Room Overlay Contract Correction — 2026-07-14
 - Corrected Room Overlay endpoint OpenAPI response declarations so Floor/Room overlay lists and validation/status responses regenerate as typed contracts instead of `void`, then removed the Slice 6 frontend adapter workaround that normalized unknown runtime responses.
 - Preserved existing overlay editor UX and backend overlay behavior; no asset upload/replacement, runtime climate, readings, Stories, heating controls, Home Assistant UI, screenshots, or binary scope was added.
+
+
+## 2026-07-14 — Floor-plan replacement lifecycle slice 7
+
+Implemented backend floor-plan replacement review lifecycle foundations: Floor-scoped reviews, Room dispositions, reuse candidate approval, activation validation, atomic floor-level activation, rollback, API contracts, persistence, migration, and backup/restore payload support. Frontend replacement review UI and runtime rendering remain deferred.
+
+
+## 2026-07-14 — Floor-plan replacement lifecycle hardening
+
+Hardened Slice 7 backend replacement reviews with focused API, activation/rollback, direct activation boundary, portability, and schema coverage. Fixed concrete defects around cancellation after activation, direct replacement activation bypass, replacement overlay approval state, RedrawRequired readiness, and activated restore graph validation. No frontend or runtime climate scope was added.

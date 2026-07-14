@@ -30,13 +30,10 @@ public sealed class FloorPlanAssetApiTests(HomeOpsWebApplicationFactory factory)
         var activeBeforeReplacement = await _client.GetFromJsonAsync<FloorPlanAssetDto>($"/api/floors/{floor.Id}/floor-plan-assets/active");
         Assert.Equal(first.Id, activeBeforeReplacement!.Id);
 
-        var activatedReplacement = await PostAsset($"/api/floors/{floor.Id}/floor-plan-assets/{replacement.Id}/activate");
-        Assert.Equal(replacement.Id, activatedReplacement.Id);
-        Assert.Equal(FloorPlanAssetState.Active, activatedReplacement.State);
-
-        var rolledBack = await PostAsset($"/api/floors/{floor.Id}/floor-plan-assets/rollback");
-        Assert.Equal(first.Id, rolledBack.Id);
-        Assert.Equal(FloorPlanAssetState.Active, rolledBack.State);
+        var directReplacement = await _client.PostAsync($"/api/floors/{floor.Id}/floor-plan-assets/{replacement.Id}/activate", null);
+        Assert.Equal(HttpStatusCode.BadRequest, directReplacement.StatusCode);
+        activeBeforeReplacement = await _client.GetFromJsonAsync<FloorPlanAssetDto>($"/api/floors/{floor.Id}/floor-plan-assets/active");
+        Assert.Equal(first.Id, activeBeforeReplacement!.Id);
     }
 
     [Fact]

@@ -125,6 +125,7 @@ app.MapFamilyMemberEndpoints();
 app.MapFloorPlanEndpoints();
 app.MapFloorPlanAssetEndpoints();
 app.MapRoomOverlayEndpoints();
+app.MapFloorPlanReplacementReviewEndpoints();
 app.MapClimateProviderMappingEndpoints();
 app.MapKnownPersonEndpoints();
 app.MapOnboardingEndpoints();
