@@ -3562,6 +3562,769 @@
         }
       }
     },
+    "/api/floors/{floorId}/floor-plan-replacement-reviews": {
+      "post": {
+        "tags": [
+          "Floor Plan Replacement Reviews"
+        ],
+        "operationId": "StartFloorPlanReplacementReview",
+        "parameters": [
+          {
+            "name": "floorId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "req",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartFloorPlanReplacementReviewRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FloorPlanReplacementReviewDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Floor Plan Replacement Reviews"
+        ],
+        "operationId": "ListFloorPlanReplacementReviews",
+        "parameters": [
+          {
+            "name": "floorId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FloorPlanReplacementReviewDto"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/floors/{floorId}/floor-plan-replacement-reviews/active": {
+      "get": {
+        "tags": [
+          "Floor Plan Replacement Reviews"
+        ],
+        "operationId": "GetActiveFloorPlanReplacementReview",
+        "parameters": [
+          {
+            "name": "floorId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FloorPlanReplacementReviewDto"
+                }
+              }
+            }
+          },
+          "204": {
+            "description": ""
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/floors/{floorId}/floor-plan-replacement-reviews/{reviewId}": {
+      "get": {
+        "tags": [
+          "Floor Plan Replacement Reviews"
+        ],
+        "operationId": "GetFloorPlanReplacementReview",
+        "parameters": [
+          {
+            "name": "floorId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "reviewId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FloorPlanReplacementReviewDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/floors/{floorId}/floor-plan-replacement-reviews/{reviewId}/rooms": {
+      "get": {
+        "tags": [
+          "Floor Plan Replacement Reviews"
+        ],
+        "operationId": "GetFloorPlanReplacementReviewRooms",
+        "parameters": [
+          {
+            "name": "floorId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "reviewId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FloorPlanReplacementReviewItemDto"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/floors/{floorId}/floor-plan-replacement-reviews/{reviewId}/rooms/{roomId}/disposition": {
+      "put": {
+        "tags": [
+          "Floor Plan Replacement Reviews"
+        ],
+        "operationId": "UpdateFloorPlanReplacementRoomDisposition",
+        "parameters": [
+          {
+            "name": "floorId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "reviewId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 2
+          },
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 3
+          }
+        ],
+        "requestBody": {
+          "x-name": "req",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRoomReplacementDispositionRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 4
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FloorPlanReplacementReviewDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/floors/{floorId}/floor-plan-replacement-reviews/{reviewId}/rooms/{roomId}/approve-reuse": {
+      "post": {
+        "tags": [
+          "Floor Plan Replacement Reviews"
+        ],
+        "operationId": "ApproveFloorPlanReplacementReuse",
+        "parameters": [
+          {
+            "name": "floorId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "reviewId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 2
+          },
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 3
+          }
+        ],
+        "requestBody": {
+          "x-name": "req",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApproveReuseCandidateRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 4
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FloorPlanReplacementReviewDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReplacementReviewValidationResultDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/floors/{floorId}/floor-plan-replacement-reviews/{reviewId}/rooms/{roomId}/replacement-overlay": {
+      "post": {
+        "tags": [
+          "Floor Plan Replacement Reviews"
+        ],
+        "operationId": "AttachFloorPlanReplacementOverlay",
+        "parameters": [
+          {
+            "name": "floorId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "reviewId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 2
+          },
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 3
+          }
+        ],
+        "requestBody": {
+          "x-name": "req",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AttachReplacementOverlayRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 4
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FloorPlanReplacementReviewDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReplacementReviewValidationResultDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/floors/{floorId}/floor-plan-replacement-reviews/{reviewId}/rooms/{roomId}/reset": {
+      "post": {
+        "tags": [
+          "Floor Plan Replacement Reviews"
+        ],
+        "operationId": "ResetFloorPlanReplacementRoomReview",
+        "parameters": [
+          {
+            "name": "floorId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "reviewId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 2
+          },
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 3
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FloorPlanReplacementReviewDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/floors/{floorId}/floor-plan-replacement-reviews/{reviewId}/validation": {
+      "get": {
+        "tags": [
+          "Floor Plan Replacement Reviews"
+        ],
+        "operationId": "ValidateFloorPlanReplacementReview",
+        "parameters": [
+          {
+            "name": "floorId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "reviewId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReplacementReviewValidationResultDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/floors/{floorId}/floor-plan-replacement-reviews/{reviewId}/activate": {
+      "post": {
+        "tags": [
+          "Floor Plan Replacement Reviews"
+        ],
+        "operationId": "ActivateFloorPlanReplacementReview",
+        "parameters": [
+          {
+            "name": "floorId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "reviewId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FloorPlanReplacementReviewDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/floors/{floorId}/floor-plan-replacement-reviews/{reviewId}/cancel": {
+      "post": {
+        "tags": [
+          "Floor Plan Replacement Reviews"
+        ],
+        "operationId": "CancelFloorPlanReplacementReview",
+        "parameters": [
+          {
+            "name": "floorId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "reviewId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FloorPlanReplacementReviewDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/floors/{floorId}/floor-plan-replacement-reviews/{reviewId}/rollback": {
+      "get": {
+        "tags": [
+          "Floor Plan Replacement Reviews"
+        ],
+        "operationId": "GetFloorPlanReplacementRollbackAvailability",
+        "parameters": [
+          {
+            "name": "floorId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "reviewId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FloorPlanReplacementRollbackAvailabilityDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Floor Plan Replacement Reviews"
+        ],
+        "operationId": "RollbackFloorPlanReplacementReview",
+        "parameters": [
+          {
+            "name": "floorId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "reviewId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FloorPlanReplacementReviewDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
     "/api/climate-providers": {
       "get": {
         "tags": [
@@ -6561,6 +7324,20 @@
             "items": {
               "$ref": "#/components/schemas/CalendarExportRoomOverlay"
             }
+          },
+          "floorPlanReplacementReviews": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/CalendarExportFloorPlanReplacementReview"
+            }
+          },
+          "floorPlanReplacementReviewItems": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/CalendarExportFloorPlanReplacementReviewItem"
+            }
           }
         }
       },
@@ -7306,6 +8083,126 @@
           "archivedUtc": {
             "type": "string",
             "format": "date-time",
+            "nullable": true
+          },
+          "createdUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedUtc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CalendarExportFloorPlanReplacementReview": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "floorId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "currentAssetId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "replacementAssetId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "status": {
+            "type": "string"
+          },
+          "sameCoordinateBasisDimensions": {
+            "type": "boolean"
+          },
+          "sameAspectRatio": {
+            "type": "boolean"
+          },
+          "sameDerivativeBasis": {
+            "type": "boolean"
+          },
+          "reuseCandidatesAvailable": {
+            "type": "boolean"
+          },
+          "activatedAssetId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "rollbackAssetId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "createdUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completedUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "activatedUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "cancelledUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "CalendarExportFloorPlanReplacementReviewItem": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "reviewId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "floorId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "roomId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "disposition": {
+            "type": "string"
+          },
+          "reuseCandidateOverlayId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "replacementOverlayId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "labelAnchorApproved": {
+            "type": "boolean"
+          },
+          "fallbackReason": {
+            "type": "string",
             "nullable": true
           },
           "createdUtc": {
@@ -8429,6 +9326,289 @@
         "properties": {
           "asset": {
             "$ref": "#/components/schemas/FloorPlanAssetDto"
+          }
+        }
+      },
+      "FloorPlanReplacementReviewDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "householdId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "floorId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "currentAssetId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "replacementAssetId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "status": {
+            "$ref": "#/components/schemas/FloorPlanReplacementReviewStatus"
+          },
+          "compatibility": {
+            "$ref": "#/components/schemas/FloorPlanReplacementCompatibilityDto"
+          },
+          "rollbackAvailable": {
+            "type": "boolean"
+          },
+          "activatedAssetId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "rollbackAssetId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "createdUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completedUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "activatedUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "cancelledUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FloorPlanReplacementReviewItemDto"
+            }
+          }
+        }
+      },
+      "FloorPlanReplacementReviewStatus": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "Draft",
+          "InReview",
+          "ReadyToActivate",
+          "Activated",
+          "Cancelled",
+          "Invalid"
+        ],
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      "FloorPlanReplacementCompatibilityDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "sameCoordinateBasisDimensions": {
+            "type": "boolean"
+          },
+          "sameAspectRatio": {
+            "type": "boolean"
+          },
+          "sameDerivativeBasis": {
+            "type": "boolean"
+          },
+          "reuseCandidatesAvailable": {
+            "type": "boolean"
+          }
+        }
+      },
+      "FloorPlanReplacementReviewItemDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "reviewId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "roomId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "roomName": {
+            "type": "string"
+          },
+          "roomType": {
+            "$ref": "#/components/schemas/RoomType"
+          },
+          "disposition": {
+            "$ref": "#/components/schemas/RoomReplacementDisposition"
+          },
+          "reuseCandidateAvailable": {
+            "type": "boolean"
+          },
+          "reuseCandidateOverlayId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "replacementOverlayId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "labelAnchorApproved": {
+            "type": "boolean"
+          },
+          "fallbackReason": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedUtc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "RoomReplacementDisposition": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "PendingReview",
+          "ApprovedReuse",
+          "RedrawRequired",
+          "NotConfiguredYet",
+          "IntentionallyNotDrawn",
+          "BlockedFallback"
+        ],
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      "StartFloorPlanReplacementReviewRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "replacementAssetId": {
+            "type": "string",
+            "format": "guid"
+          }
+        }
+      },
+      "UpdateRoomReplacementDispositionRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "disposition": {
+            "$ref": "#/components/schemas/RoomReplacementDisposition"
+          },
+          "fallbackReason": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "ReplacementReviewValidationResultDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "reviewId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "isReady": {
+            "type": "boolean"
+          },
+          "blockers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoomOverlayValidationIssue"
+            }
+          }
+        }
+      },
+      "ApproveReuseCandidateRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "preserveLabelAnchor": {
+            "type": "boolean"
+          }
+        }
+      },
+      "AttachReplacementOverlayRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "overlayId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "approve": {
+            "type": "boolean"
+          },
+          "preserveLabelAnchor": {
+            "type": "boolean"
+          }
+        }
+      },
+      "FloorPlanReplacementRollbackAvailabilityDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "reviewId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "isAvailable": {
+            "type": "boolean"
+          },
+          "currentAssetId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "previousAssetId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "blockers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoomOverlayValidationIssue"
+            }
           }
         }
       },

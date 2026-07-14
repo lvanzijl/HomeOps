@@ -851,3 +851,7 @@ Woning Climate Floor Plans Slice 6 adds the frontend Settings-side polygon edito
 
 ### Follow-up — Woning Climate Floor Plans Slice 6 Room Overlay Contract Correction
 Room Overlay list and validation/status endpoints now declare concrete OpenAPI response schemas, regenerating typed TypeScript methods for overlay collections and validation results. The Settings overlay editor adapter now consumes the typed generated responses directly, with no product behavior or scope changes.
+
+
+### Completed Follow-up — Woning Climate Floor Plans Slice 8 Replacement Review Contracts
+Replacement review lifecycle endpoints are now discoverable through OpenAPI and the generated TypeScript client. The follow-up exposes typed review/detail, Room review item, compatibility, readiness, reuse approval, overlay attachment, activation, cancellation, and rollback availability/rollback contracts; adds generated-client contract verification; and keeps runtime behavior unchanged except for small read-only contract endpoints over accepted lifecycle state. The replacement review UI remains deferred to a rerun of Slice 8.

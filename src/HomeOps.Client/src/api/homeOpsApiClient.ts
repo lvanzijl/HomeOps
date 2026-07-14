@@ -4046,6 +4046,708 @@ export class HomeOpsApiClient {
         return Promise.resolve<void>(null as any);
     }
 
+    startFloorPlanReplacementReview(floorId: string, req: StartFloorPlanReplacementReviewRequest): Promise<FloorPlanReplacementReviewDto> {
+        let url_ = this.baseUrl + "/api/floors/{floorId}/floor-plan-replacement-reviews";
+        if (floorId === undefined || floorId === null)
+            throw new globalThis.Error("The parameter 'floorId' must be defined.");
+        url_ = url_.replace("{floorId}", encodeURIComponent("" + floorId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(req);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processStartFloorPlanReplacementReview(_response);
+        });
+    }
+
+    protected processStartFloorPlanReplacementReview(response: Response): Promise<FloorPlanReplacementReviewDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 201) {
+            return response.text().then((_responseText) => {
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result201 = FloorPlanReplacementReviewDto.fromJS(resultData201);
+            return result201;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = HttpValidationProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FloorPlanReplacementReviewDto>(null as any);
+    }
+
+    listFloorPlanReplacementReviews(floorId: string): Promise<FloorPlanReplacementReviewDto[]> {
+        let url_ = this.baseUrl + "/api/floors/{floorId}/floor-plan-replacement-reviews";
+        if (floorId === undefined || floorId === null)
+            throw new globalThis.Error("The parameter 'floorId' must be defined.");
+        url_ = url_.replace("{floorId}", encodeURIComponent("" + floorId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processListFloorPlanReplacementReviews(_response);
+        });
+    }
+
+    protected processListFloorPlanReplacementReviews(response: Response): Promise<FloorPlanReplacementReviewDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(FloorPlanReplacementReviewDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FloorPlanReplacementReviewDto[]>(null as any);
+    }
+
+    getActiveFloorPlanReplacementReview(floorId: string): Promise<FloorPlanReplacementReviewDto> {
+        let url_ = this.baseUrl + "/api/floors/{floorId}/floor-plan-replacement-reviews/active";
+        if (floorId === undefined || floorId === null)
+            throw new globalThis.Error("The parameter 'floorId' must be defined.");
+        url_ = url_.replace("{floorId}", encodeURIComponent("" + floorId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetActiveFloorPlanReplacementReview(_response);
+        });
+    }
+
+    protected processGetActiveFloorPlanReplacementReview(response: Response): Promise<FloorPlanReplacementReviewDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = FloorPlanReplacementReviewDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 204) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FloorPlanReplacementReviewDto>(null as any);
+    }
+
+    getFloorPlanReplacementReview(floorId: string, reviewId: string): Promise<FloorPlanReplacementReviewDto> {
+        let url_ = this.baseUrl + "/api/floors/{floorId}/floor-plan-replacement-reviews/{reviewId}";
+        if (floorId === undefined || floorId === null)
+            throw new globalThis.Error("The parameter 'floorId' must be defined.");
+        url_ = url_.replace("{floorId}", encodeURIComponent("" + floorId));
+        if (reviewId === undefined || reviewId === null)
+            throw new globalThis.Error("The parameter 'reviewId' must be defined.");
+        url_ = url_.replace("{reviewId}", encodeURIComponent("" + reviewId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetFloorPlanReplacementReview(_response);
+        });
+    }
+
+    protected processGetFloorPlanReplacementReview(response: Response): Promise<FloorPlanReplacementReviewDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = FloorPlanReplacementReviewDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FloorPlanReplacementReviewDto>(null as any);
+    }
+
+    getFloorPlanReplacementReviewRooms(floorId: string, reviewId: string): Promise<FloorPlanReplacementReviewItemDto[]> {
+        let url_ = this.baseUrl + "/api/floors/{floorId}/floor-plan-replacement-reviews/{reviewId}/rooms";
+        if (floorId === undefined || floorId === null)
+            throw new globalThis.Error("The parameter 'floorId' must be defined.");
+        url_ = url_.replace("{floorId}", encodeURIComponent("" + floorId));
+        if (reviewId === undefined || reviewId === null)
+            throw new globalThis.Error("The parameter 'reviewId' must be defined.");
+        url_ = url_.replace("{reviewId}", encodeURIComponent("" + reviewId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetFloorPlanReplacementReviewRooms(_response);
+        });
+    }
+
+    protected processGetFloorPlanReplacementReviewRooms(response: Response): Promise<FloorPlanReplacementReviewItemDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(FloorPlanReplacementReviewItemDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FloorPlanReplacementReviewItemDto[]>(null as any);
+    }
+
+    updateFloorPlanReplacementRoomDisposition(floorId: string, reviewId: string, roomId: string, req: UpdateRoomReplacementDispositionRequest): Promise<FloorPlanReplacementReviewDto> {
+        let url_ = this.baseUrl + "/api/floors/{floorId}/floor-plan-replacement-reviews/{reviewId}/rooms/{roomId}/disposition";
+        if (floorId === undefined || floorId === null)
+            throw new globalThis.Error("The parameter 'floorId' must be defined.");
+        url_ = url_.replace("{floorId}", encodeURIComponent("" + floorId));
+        if (reviewId === undefined || reviewId === null)
+            throw new globalThis.Error("The parameter 'reviewId' must be defined.");
+        url_ = url_.replace("{reviewId}", encodeURIComponent("" + reviewId));
+        if (roomId === undefined || roomId === null)
+            throw new globalThis.Error("The parameter 'roomId' must be defined.");
+        url_ = url_.replace("{roomId}", encodeURIComponent("" + roomId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(req);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateFloorPlanReplacementRoomDisposition(_response);
+        });
+    }
+
+    protected processUpdateFloorPlanReplacementRoomDisposition(response: Response): Promise<FloorPlanReplacementReviewDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = FloorPlanReplacementReviewDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = HttpValidationProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FloorPlanReplacementReviewDto>(null as any);
+    }
+
+    approveFloorPlanReplacementReuse(floorId: string, reviewId: string, roomId: string, req: ApproveReuseCandidateRequest): Promise<FloorPlanReplacementReviewDto> {
+        let url_ = this.baseUrl + "/api/floors/{floorId}/floor-plan-replacement-reviews/{reviewId}/rooms/{roomId}/approve-reuse";
+        if (floorId === undefined || floorId === null)
+            throw new globalThis.Error("The parameter 'floorId' must be defined.");
+        url_ = url_.replace("{floorId}", encodeURIComponent("" + floorId));
+        if (reviewId === undefined || reviewId === null)
+            throw new globalThis.Error("The parameter 'reviewId' must be defined.");
+        url_ = url_.replace("{reviewId}", encodeURIComponent("" + reviewId));
+        if (roomId === undefined || roomId === null)
+            throw new globalThis.Error("The parameter 'roomId' must be defined.");
+        url_ = url_.replace("{roomId}", encodeURIComponent("" + roomId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(req);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processApproveFloorPlanReplacementReuse(_response);
+        });
+    }
+
+    protected processApproveFloorPlanReplacementReuse(response: Response): Promise<FloorPlanReplacementReviewDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = FloorPlanReplacementReviewDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ReplacementReviewValidationResultDto.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FloorPlanReplacementReviewDto>(null as any);
+    }
+
+    attachFloorPlanReplacementOverlay(floorId: string, reviewId: string, roomId: string, req: AttachReplacementOverlayRequest): Promise<FloorPlanReplacementReviewDto> {
+        let url_ = this.baseUrl + "/api/floors/{floorId}/floor-plan-replacement-reviews/{reviewId}/rooms/{roomId}/replacement-overlay";
+        if (floorId === undefined || floorId === null)
+            throw new globalThis.Error("The parameter 'floorId' must be defined.");
+        url_ = url_.replace("{floorId}", encodeURIComponent("" + floorId));
+        if (reviewId === undefined || reviewId === null)
+            throw new globalThis.Error("The parameter 'reviewId' must be defined.");
+        url_ = url_.replace("{reviewId}", encodeURIComponent("" + reviewId));
+        if (roomId === undefined || roomId === null)
+            throw new globalThis.Error("The parameter 'roomId' must be defined.");
+        url_ = url_.replace("{roomId}", encodeURIComponent("" + roomId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(req);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processAttachFloorPlanReplacementOverlay(_response);
+        });
+    }
+
+    protected processAttachFloorPlanReplacementOverlay(response: Response): Promise<FloorPlanReplacementReviewDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = FloorPlanReplacementReviewDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = ReplacementReviewValidationResultDto.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FloorPlanReplacementReviewDto>(null as any);
+    }
+
+    resetFloorPlanReplacementRoomReview(floorId: string, reviewId: string, roomId: string): Promise<FloorPlanReplacementReviewDto> {
+        let url_ = this.baseUrl + "/api/floors/{floorId}/floor-plan-replacement-reviews/{reviewId}/rooms/{roomId}/reset";
+        if (floorId === undefined || floorId === null)
+            throw new globalThis.Error("The parameter 'floorId' must be defined.");
+        url_ = url_.replace("{floorId}", encodeURIComponent("" + floorId));
+        if (reviewId === undefined || reviewId === null)
+            throw new globalThis.Error("The parameter 'reviewId' must be defined.");
+        url_ = url_.replace("{reviewId}", encodeURIComponent("" + reviewId));
+        if (roomId === undefined || roomId === null)
+            throw new globalThis.Error("The parameter 'roomId' must be defined.");
+        url_ = url_.replace("{roomId}", encodeURIComponent("" + roomId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processResetFloorPlanReplacementRoomReview(_response);
+        });
+    }
+
+    protected processResetFloorPlanReplacementRoomReview(response: Response): Promise<FloorPlanReplacementReviewDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = FloorPlanReplacementReviewDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FloorPlanReplacementReviewDto>(null as any);
+    }
+
+    validateFloorPlanReplacementReview(floorId: string, reviewId: string): Promise<ReplacementReviewValidationResultDto> {
+        let url_ = this.baseUrl + "/api/floors/{floorId}/floor-plan-replacement-reviews/{reviewId}/validation";
+        if (floorId === undefined || floorId === null)
+            throw new globalThis.Error("The parameter 'floorId' must be defined.");
+        url_ = url_.replace("{floorId}", encodeURIComponent("" + floorId));
+        if (reviewId === undefined || reviewId === null)
+            throw new globalThis.Error("The parameter 'reviewId' must be defined.");
+        url_ = url_.replace("{reviewId}", encodeURIComponent("" + reviewId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processValidateFloorPlanReplacementReview(_response);
+        });
+    }
+
+    protected processValidateFloorPlanReplacementReview(response: Response): Promise<ReplacementReviewValidationResultDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ReplacementReviewValidationResultDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ReplacementReviewValidationResultDto>(null as any);
+    }
+
+    activateFloorPlanReplacementReview(floorId: string, reviewId: string): Promise<FloorPlanReplacementReviewDto> {
+        let url_ = this.baseUrl + "/api/floors/{floorId}/floor-plan-replacement-reviews/{reviewId}/activate";
+        if (floorId === undefined || floorId === null)
+            throw new globalThis.Error("The parameter 'floorId' must be defined.");
+        url_ = url_.replace("{floorId}", encodeURIComponent("" + floorId));
+        if (reviewId === undefined || reviewId === null)
+            throw new globalThis.Error("The parameter 'reviewId' must be defined.");
+        url_ = url_.replace("{reviewId}", encodeURIComponent("" + reviewId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processActivateFloorPlanReplacementReview(_response);
+        });
+    }
+
+    protected processActivateFloorPlanReplacementReview(response: Response): Promise<FloorPlanReplacementReviewDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = FloorPlanReplacementReviewDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = HttpValidationProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FloorPlanReplacementReviewDto>(null as any);
+    }
+
+    cancelFloorPlanReplacementReview(floorId: string, reviewId: string): Promise<FloorPlanReplacementReviewDto> {
+        let url_ = this.baseUrl + "/api/floors/{floorId}/floor-plan-replacement-reviews/{reviewId}/cancel";
+        if (floorId === undefined || floorId === null)
+            throw new globalThis.Error("The parameter 'floorId' must be defined.");
+        url_ = url_.replace("{floorId}", encodeURIComponent("" + floorId));
+        if (reviewId === undefined || reviewId === null)
+            throw new globalThis.Error("The parameter 'reviewId' must be defined.");
+        url_ = url_.replace("{reviewId}", encodeURIComponent("" + reviewId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCancelFloorPlanReplacementReview(_response);
+        });
+    }
+
+    protected processCancelFloorPlanReplacementReview(response: Response): Promise<FloorPlanReplacementReviewDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = FloorPlanReplacementReviewDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = HttpValidationProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FloorPlanReplacementReviewDto>(null as any);
+    }
+
+    getFloorPlanReplacementRollbackAvailability(floorId: string, reviewId: string): Promise<FloorPlanReplacementRollbackAvailabilityDto> {
+        let url_ = this.baseUrl + "/api/floors/{floorId}/floor-plan-replacement-reviews/{reviewId}/rollback";
+        if (floorId === undefined || floorId === null)
+            throw new globalThis.Error("The parameter 'floorId' must be defined.");
+        url_ = url_.replace("{floorId}", encodeURIComponent("" + floorId));
+        if (reviewId === undefined || reviewId === null)
+            throw new globalThis.Error("The parameter 'reviewId' must be defined.");
+        url_ = url_.replace("{reviewId}", encodeURIComponent("" + reviewId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetFloorPlanReplacementRollbackAvailability(_response);
+        });
+    }
+
+    protected processGetFloorPlanReplacementRollbackAvailability(response: Response): Promise<FloorPlanReplacementRollbackAvailabilityDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = FloorPlanReplacementRollbackAvailabilityDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FloorPlanReplacementRollbackAvailabilityDto>(null as any);
+    }
+
+    rollbackFloorPlanReplacementReview(floorId: string, reviewId: string): Promise<FloorPlanReplacementReviewDto> {
+        let url_ = this.baseUrl + "/api/floors/{floorId}/floor-plan-replacement-reviews/{reviewId}/rollback";
+        if (floorId === undefined || floorId === null)
+            throw new globalThis.Error("The parameter 'floorId' must be defined.");
+        url_ = url_.replace("{floorId}", encodeURIComponent("" + floorId));
+        if (reviewId === undefined || reviewId === null)
+            throw new globalThis.Error("The parameter 'reviewId' must be defined.");
+        url_ = url_.replace("{reviewId}", encodeURIComponent("" + reviewId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRollbackFloorPlanReplacementReview(_response);
+        });
+    }
+
+    protected processRollbackFloorPlanReplacementReview(response: Response): Promise<FloorPlanReplacementReviewDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = FloorPlanReplacementReviewDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = HttpValidationProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FloorPlanReplacementReviewDto>(null as any);
+    }
+
     getClimateProviders(includeArchived: boolean | null | undefined): Promise<ClimateProviderDto[]> {
         let url_ = this.baseUrl + "/api/climate-providers?";
         if (includeArchived !== undefined && includeArchived !== null)
@@ -8630,6 +9332,8 @@ export class CalendarExportPayload implements ICalendarExportPayload {
     roomClimateSourceMappings?: CalendarExportRoomClimateSourceMapping[] | undefined;
     floorPlanAssets?: CalendarExportFloorPlanAsset[] | undefined;
     roomOverlays?: CalendarExportRoomOverlay[] | undefined;
+    floorPlanReplacementReviews?: CalendarExportFloorPlanReplacementReview[] | undefined;
+    floorPlanReplacementReviewItems?: CalendarExportFloorPlanReplacementReviewItem[] | undefined;
 
     constructor(data?: ICalendarExportPayload) {
         if (data) {
@@ -8700,6 +9404,16 @@ export class CalendarExportPayload implements ICalendarExportPayload {
                 this.roomOverlays = [] as any;
                 for (let item of _data["roomOverlays"])
                     this.roomOverlays!.push(CalendarExportRoomOverlay.fromJS(item));
+            }
+            if (Array.isArray(_data["floorPlanReplacementReviews"])) {
+                this.floorPlanReplacementReviews = [] as any;
+                for (let item of _data["floorPlanReplacementReviews"])
+                    this.floorPlanReplacementReviews!.push(CalendarExportFloorPlanReplacementReview.fromJS(item));
+            }
+            if (Array.isArray(_data["floorPlanReplacementReviewItems"])) {
+                this.floorPlanReplacementReviewItems = [] as any;
+                for (let item of _data["floorPlanReplacementReviewItems"])
+                    this.floorPlanReplacementReviewItems!.push(CalendarExportFloorPlanReplacementReviewItem.fromJS(item));
             }
         }
     }
@@ -8772,6 +9486,16 @@ export class CalendarExportPayload implements ICalendarExportPayload {
             for (let item of this.roomOverlays)
                 data["roomOverlays"].push(item ? item.toJSON() : undefined as any);
         }
+        if (Array.isArray(this.floorPlanReplacementReviews)) {
+            data["floorPlanReplacementReviews"] = [];
+            for (let item of this.floorPlanReplacementReviews)
+                data["floorPlanReplacementReviews"].push(item ? item.toJSON() : undefined as any);
+        }
+        if (Array.isArray(this.floorPlanReplacementReviewItems)) {
+            data["floorPlanReplacementReviewItems"] = [];
+            for (let item of this.floorPlanReplacementReviewItems)
+                data["floorPlanReplacementReviewItems"].push(item ? item.toJSON() : undefined as any);
+        }
         return data;
     }
 }
@@ -8790,6 +9514,8 @@ export interface ICalendarExportPayload {
     roomClimateSourceMappings?: CalendarExportRoomClimateSourceMapping[] | undefined;
     floorPlanAssets?: CalendarExportFloorPlanAsset[] | undefined;
     roomOverlays?: CalendarExportRoomOverlay[] | undefined;
+    floorPlanReplacementReviews?: CalendarExportFloorPlanReplacementReview[] | undefined;
+    floorPlanReplacementReviewItems?: CalendarExportFloorPlanReplacementReviewItem[] | undefined;
 }
 
 export class CalendarExportEventSource implements ICalendarExportEventSource {
@@ -9936,6 +10662,178 @@ export interface ICalendarExportRoomOverlay {
     polygon?: NormalizedPoint[];
     labelAnchor?: NormalizedPoint | undefined;
     archivedUtc?: Date | undefined;
+    createdUtc?: Date;
+    updatedUtc?: Date;
+}
+
+export class CalendarExportFloorPlanReplacementReview implements ICalendarExportFloorPlanReplacementReview {
+    id?: string;
+    floorId?: string;
+    currentAssetId?: string;
+    replacementAssetId?: string;
+    status?: string;
+    sameCoordinateBasisDimensions?: boolean;
+    sameAspectRatio?: boolean;
+    sameDerivativeBasis?: boolean;
+    reuseCandidatesAvailable?: boolean;
+    activatedAssetId?: string | undefined;
+    rollbackAssetId?: string | undefined;
+    createdUtc?: Date;
+    updatedUtc?: Date;
+    completedUtc?: Date | undefined;
+    activatedUtc?: Date | undefined;
+    cancelledUtc?: Date | undefined;
+
+    constructor(data?: ICalendarExportFloorPlanReplacementReview) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.floorId = _data["floorId"];
+            this.currentAssetId = _data["currentAssetId"];
+            this.replacementAssetId = _data["replacementAssetId"];
+            this.status = _data["status"];
+            this.sameCoordinateBasisDimensions = _data["sameCoordinateBasisDimensions"];
+            this.sameAspectRatio = _data["sameAspectRatio"];
+            this.sameDerivativeBasis = _data["sameDerivativeBasis"];
+            this.reuseCandidatesAvailable = _data["reuseCandidatesAvailable"];
+            this.activatedAssetId = _data["activatedAssetId"];
+            this.rollbackAssetId = _data["rollbackAssetId"];
+            this.createdUtc = _data["createdUtc"] ? new Date(_data["createdUtc"].toString()) : undefined as any;
+            this.updatedUtc = _data["updatedUtc"] ? new Date(_data["updatedUtc"].toString()) : undefined as any;
+            this.completedUtc = _data["completedUtc"] ? new Date(_data["completedUtc"].toString()) : undefined as any;
+            this.activatedUtc = _data["activatedUtc"] ? new Date(_data["activatedUtc"].toString()) : undefined as any;
+            this.cancelledUtc = _data["cancelledUtc"] ? new Date(_data["cancelledUtc"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): CalendarExportFloorPlanReplacementReview {
+        data = typeof data === 'object' ? data : {};
+        let result = new CalendarExportFloorPlanReplacementReview();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["floorId"] = this.floorId;
+        data["currentAssetId"] = this.currentAssetId;
+        data["replacementAssetId"] = this.replacementAssetId;
+        data["status"] = this.status;
+        data["sameCoordinateBasisDimensions"] = this.sameCoordinateBasisDimensions;
+        data["sameAspectRatio"] = this.sameAspectRatio;
+        data["sameDerivativeBasis"] = this.sameDerivativeBasis;
+        data["reuseCandidatesAvailable"] = this.reuseCandidatesAvailable;
+        data["activatedAssetId"] = this.activatedAssetId;
+        data["rollbackAssetId"] = this.rollbackAssetId;
+        data["createdUtc"] = this.createdUtc ? this.createdUtc.toISOString() : undefined as any;
+        data["updatedUtc"] = this.updatedUtc ? this.updatedUtc.toISOString() : undefined as any;
+        data["completedUtc"] = this.completedUtc ? this.completedUtc.toISOString() : undefined as any;
+        data["activatedUtc"] = this.activatedUtc ? this.activatedUtc.toISOString() : undefined as any;
+        data["cancelledUtc"] = this.cancelledUtc ? this.cancelledUtc.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface ICalendarExportFloorPlanReplacementReview {
+    id?: string;
+    floorId?: string;
+    currentAssetId?: string;
+    replacementAssetId?: string;
+    status?: string;
+    sameCoordinateBasisDimensions?: boolean;
+    sameAspectRatio?: boolean;
+    sameDerivativeBasis?: boolean;
+    reuseCandidatesAvailable?: boolean;
+    activatedAssetId?: string | undefined;
+    rollbackAssetId?: string | undefined;
+    createdUtc?: Date;
+    updatedUtc?: Date;
+    completedUtc?: Date | undefined;
+    activatedUtc?: Date | undefined;
+    cancelledUtc?: Date | undefined;
+}
+
+export class CalendarExportFloorPlanReplacementReviewItem implements ICalendarExportFloorPlanReplacementReviewItem {
+    id?: string;
+    reviewId?: string;
+    floorId?: string;
+    roomId?: string;
+    disposition?: string;
+    reuseCandidateOverlayId?: string | undefined;
+    replacementOverlayId?: string | undefined;
+    labelAnchorApproved?: boolean;
+    fallbackReason?: string | undefined;
+    createdUtc?: Date;
+    updatedUtc?: Date;
+
+    constructor(data?: ICalendarExportFloorPlanReplacementReviewItem) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.reviewId = _data["reviewId"];
+            this.floorId = _data["floorId"];
+            this.roomId = _data["roomId"];
+            this.disposition = _data["disposition"];
+            this.reuseCandidateOverlayId = _data["reuseCandidateOverlayId"];
+            this.replacementOverlayId = _data["replacementOverlayId"];
+            this.labelAnchorApproved = _data["labelAnchorApproved"];
+            this.fallbackReason = _data["fallbackReason"];
+            this.createdUtc = _data["createdUtc"] ? new Date(_data["createdUtc"].toString()) : undefined as any;
+            this.updatedUtc = _data["updatedUtc"] ? new Date(_data["updatedUtc"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): CalendarExportFloorPlanReplacementReviewItem {
+        data = typeof data === 'object' ? data : {};
+        let result = new CalendarExportFloorPlanReplacementReviewItem();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["reviewId"] = this.reviewId;
+        data["floorId"] = this.floorId;
+        data["roomId"] = this.roomId;
+        data["disposition"] = this.disposition;
+        data["reuseCandidateOverlayId"] = this.reuseCandidateOverlayId;
+        data["replacementOverlayId"] = this.replacementOverlayId;
+        data["labelAnchorApproved"] = this.labelAnchorApproved;
+        data["fallbackReason"] = this.fallbackReason;
+        data["createdUtc"] = this.createdUtc ? this.createdUtc.toISOString() : undefined as any;
+        data["updatedUtc"] = this.updatedUtc ? this.updatedUtc.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface ICalendarExportFloorPlanReplacementReviewItem {
+    id?: string;
+    reviewId?: string;
+    floorId?: string;
+    roomId?: string;
+    disposition?: string;
+    reuseCandidateOverlayId?: string | undefined;
+    replacementOverlayId?: string | undefined;
+    labelAnchorApproved?: boolean;
+    fallbackReason?: string | undefined;
     createdUtc?: Date;
     updatedUtc?: Date;
 }
@@ -11794,6 +12692,528 @@ export class FloorPlanAssetUploadResult implements IFloorPlanAssetUploadResult {
 
 export interface IFloorPlanAssetUploadResult {
     asset?: FloorPlanAssetDto;
+}
+
+export class FloorPlanReplacementReviewDto implements IFloorPlanReplacementReviewDto {
+    id?: string;
+    householdId?: string;
+    floorId?: string;
+    currentAssetId?: string;
+    replacementAssetId?: string;
+    status?: FloorPlanReplacementReviewStatus;
+    compatibility?: FloorPlanReplacementCompatibilityDto;
+    rollbackAvailable?: boolean;
+    activatedAssetId?: string | undefined;
+    rollbackAssetId?: string | undefined;
+    createdUtc?: Date;
+    updatedUtc?: Date;
+    completedUtc?: Date | undefined;
+    activatedUtc?: Date | undefined;
+    cancelledUtc?: Date | undefined;
+    items?: FloorPlanReplacementReviewItemDto[];
+
+    constructor(data?: IFloorPlanReplacementReviewDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.householdId = _data["householdId"];
+            this.floorId = _data["floorId"];
+            this.currentAssetId = _data["currentAssetId"];
+            this.replacementAssetId = _data["replacementAssetId"];
+            this.status = _data["status"];
+            this.compatibility = _data["compatibility"] ? FloorPlanReplacementCompatibilityDto.fromJS(_data["compatibility"]) : undefined as any;
+            this.rollbackAvailable = _data["rollbackAvailable"];
+            this.activatedAssetId = _data["activatedAssetId"];
+            this.rollbackAssetId = _data["rollbackAssetId"];
+            this.createdUtc = _data["createdUtc"] ? new Date(_data["createdUtc"].toString()) : undefined as any;
+            this.updatedUtc = _data["updatedUtc"] ? new Date(_data["updatedUtc"].toString()) : undefined as any;
+            this.completedUtc = _data["completedUtc"] ? new Date(_data["completedUtc"].toString()) : undefined as any;
+            this.activatedUtc = _data["activatedUtc"] ? new Date(_data["activatedUtc"].toString()) : undefined as any;
+            this.cancelledUtc = _data["cancelledUtc"] ? new Date(_data["cancelledUtc"].toString()) : undefined as any;
+            if (Array.isArray(_data["items"])) {
+                this.items = [] as any;
+                for (let item of _data["items"])
+                    this.items!.push(FloorPlanReplacementReviewItemDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): FloorPlanReplacementReviewDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new FloorPlanReplacementReviewDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["householdId"] = this.householdId;
+        data["floorId"] = this.floorId;
+        data["currentAssetId"] = this.currentAssetId;
+        data["replacementAssetId"] = this.replacementAssetId;
+        data["status"] = this.status;
+        data["compatibility"] = this.compatibility ? this.compatibility.toJSON() : undefined as any;
+        data["rollbackAvailable"] = this.rollbackAvailable;
+        data["activatedAssetId"] = this.activatedAssetId;
+        data["rollbackAssetId"] = this.rollbackAssetId;
+        data["createdUtc"] = this.createdUtc ? this.createdUtc.toISOString() : undefined as any;
+        data["updatedUtc"] = this.updatedUtc ? this.updatedUtc.toISOString() : undefined as any;
+        data["completedUtc"] = this.completedUtc ? this.completedUtc.toISOString() : undefined as any;
+        data["activatedUtc"] = this.activatedUtc ? this.activatedUtc.toISOString() : undefined as any;
+        data["cancelledUtc"] = this.cancelledUtc ? this.cancelledUtc.toISOString() : undefined as any;
+        if (Array.isArray(this.items)) {
+            data["items"] = [];
+            for (let item of this.items)
+                data["items"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IFloorPlanReplacementReviewDto {
+    id?: string;
+    householdId?: string;
+    floorId?: string;
+    currentAssetId?: string;
+    replacementAssetId?: string;
+    status?: FloorPlanReplacementReviewStatus;
+    compatibility?: FloorPlanReplacementCompatibilityDto;
+    rollbackAvailable?: boolean;
+    activatedAssetId?: string | undefined;
+    rollbackAssetId?: string | undefined;
+    createdUtc?: Date;
+    updatedUtc?: Date;
+    completedUtc?: Date | undefined;
+    activatedUtc?: Date | undefined;
+    cancelledUtc?: Date | undefined;
+    items?: FloorPlanReplacementReviewItemDto[];
+}
+
+export enum FloorPlanReplacementReviewStatus {
+    Draft = 0,
+    InReview = 1,
+    ReadyToActivate = 2,
+    Activated = 3,
+    Cancelled = 4,
+    Invalid = 5,
+}
+
+export class FloorPlanReplacementCompatibilityDto implements IFloorPlanReplacementCompatibilityDto {
+    sameCoordinateBasisDimensions?: boolean;
+    sameAspectRatio?: boolean;
+    sameDerivativeBasis?: boolean;
+    reuseCandidatesAvailable?: boolean;
+
+    constructor(data?: IFloorPlanReplacementCompatibilityDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.sameCoordinateBasisDimensions = _data["sameCoordinateBasisDimensions"];
+            this.sameAspectRatio = _data["sameAspectRatio"];
+            this.sameDerivativeBasis = _data["sameDerivativeBasis"];
+            this.reuseCandidatesAvailable = _data["reuseCandidatesAvailable"];
+        }
+    }
+
+    static fromJS(data: any): FloorPlanReplacementCompatibilityDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new FloorPlanReplacementCompatibilityDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["sameCoordinateBasisDimensions"] = this.sameCoordinateBasisDimensions;
+        data["sameAspectRatio"] = this.sameAspectRatio;
+        data["sameDerivativeBasis"] = this.sameDerivativeBasis;
+        data["reuseCandidatesAvailable"] = this.reuseCandidatesAvailable;
+        return data;
+    }
+}
+
+export interface IFloorPlanReplacementCompatibilityDto {
+    sameCoordinateBasisDimensions?: boolean;
+    sameAspectRatio?: boolean;
+    sameDerivativeBasis?: boolean;
+    reuseCandidatesAvailable?: boolean;
+}
+
+export class FloorPlanReplacementReviewItemDto implements IFloorPlanReplacementReviewItemDto {
+    id?: string;
+    reviewId?: string;
+    roomId?: string;
+    roomName?: string;
+    roomType?: RoomType;
+    disposition?: RoomReplacementDisposition;
+    reuseCandidateAvailable?: boolean;
+    reuseCandidateOverlayId?: string | undefined;
+    replacementOverlayId?: string | undefined;
+    labelAnchorApproved?: boolean;
+    fallbackReason?: string | undefined;
+    createdUtc?: Date;
+    updatedUtc?: Date;
+
+    constructor(data?: IFloorPlanReplacementReviewItemDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.reviewId = _data["reviewId"];
+            this.roomId = _data["roomId"];
+            this.roomName = _data["roomName"];
+            this.roomType = _data["roomType"];
+            this.disposition = _data["disposition"];
+            this.reuseCandidateAvailable = _data["reuseCandidateAvailable"];
+            this.reuseCandidateOverlayId = _data["reuseCandidateOverlayId"];
+            this.replacementOverlayId = _data["replacementOverlayId"];
+            this.labelAnchorApproved = _data["labelAnchorApproved"];
+            this.fallbackReason = _data["fallbackReason"];
+            this.createdUtc = _data["createdUtc"] ? new Date(_data["createdUtc"].toString()) : undefined as any;
+            this.updatedUtc = _data["updatedUtc"] ? new Date(_data["updatedUtc"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): FloorPlanReplacementReviewItemDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new FloorPlanReplacementReviewItemDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["reviewId"] = this.reviewId;
+        data["roomId"] = this.roomId;
+        data["roomName"] = this.roomName;
+        data["roomType"] = this.roomType;
+        data["disposition"] = this.disposition;
+        data["reuseCandidateAvailable"] = this.reuseCandidateAvailable;
+        data["reuseCandidateOverlayId"] = this.reuseCandidateOverlayId;
+        data["replacementOverlayId"] = this.replacementOverlayId;
+        data["labelAnchorApproved"] = this.labelAnchorApproved;
+        data["fallbackReason"] = this.fallbackReason;
+        data["createdUtc"] = this.createdUtc ? this.createdUtc.toISOString() : undefined as any;
+        data["updatedUtc"] = this.updatedUtc ? this.updatedUtc.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface IFloorPlanReplacementReviewItemDto {
+    id?: string;
+    reviewId?: string;
+    roomId?: string;
+    roomName?: string;
+    roomType?: RoomType;
+    disposition?: RoomReplacementDisposition;
+    reuseCandidateAvailable?: boolean;
+    reuseCandidateOverlayId?: string | undefined;
+    replacementOverlayId?: string | undefined;
+    labelAnchorApproved?: boolean;
+    fallbackReason?: string | undefined;
+    createdUtc?: Date;
+    updatedUtc?: Date;
+}
+
+export enum RoomReplacementDisposition {
+    PendingReview = 0,
+    ApprovedReuse = 1,
+    RedrawRequired = 2,
+    NotConfiguredYet = 3,
+    IntentionallyNotDrawn = 4,
+    BlockedFallback = 5,
+}
+
+export class StartFloorPlanReplacementReviewRequest implements IStartFloorPlanReplacementReviewRequest {
+    replacementAssetId?: string;
+
+    constructor(data?: IStartFloorPlanReplacementReviewRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.replacementAssetId = _data["replacementAssetId"];
+        }
+    }
+
+    static fromJS(data: any): StartFloorPlanReplacementReviewRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new StartFloorPlanReplacementReviewRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["replacementAssetId"] = this.replacementAssetId;
+        return data;
+    }
+}
+
+export interface IStartFloorPlanReplacementReviewRequest {
+    replacementAssetId?: string;
+}
+
+export class UpdateRoomReplacementDispositionRequest implements IUpdateRoomReplacementDispositionRequest {
+    disposition?: RoomReplacementDisposition;
+    fallbackReason?: string | undefined;
+
+    constructor(data?: IUpdateRoomReplacementDispositionRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.disposition = _data["disposition"];
+            this.fallbackReason = _data["fallbackReason"];
+        }
+    }
+
+    static fromJS(data: any): UpdateRoomReplacementDispositionRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpdateRoomReplacementDispositionRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["disposition"] = this.disposition;
+        data["fallbackReason"] = this.fallbackReason;
+        return data;
+    }
+}
+
+export interface IUpdateRoomReplacementDispositionRequest {
+    disposition?: RoomReplacementDisposition;
+    fallbackReason?: string | undefined;
+}
+
+export class ReplacementReviewValidationResultDto implements IReplacementReviewValidationResultDto {
+    reviewId?: string;
+    isReady?: boolean;
+    blockers?: RoomOverlayValidationIssue[];
+
+    constructor(data?: IReplacementReviewValidationResultDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.reviewId = _data["reviewId"];
+            this.isReady = _data["isReady"];
+            if (Array.isArray(_data["blockers"])) {
+                this.blockers = [] as any;
+                for (let item of _data["blockers"])
+                    this.blockers!.push(RoomOverlayValidationIssue.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): ReplacementReviewValidationResultDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new ReplacementReviewValidationResultDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["reviewId"] = this.reviewId;
+        data["isReady"] = this.isReady;
+        if (Array.isArray(this.blockers)) {
+            data["blockers"] = [];
+            for (let item of this.blockers)
+                data["blockers"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IReplacementReviewValidationResultDto {
+    reviewId?: string;
+    isReady?: boolean;
+    blockers?: RoomOverlayValidationIssue[];
+}
+
+export class ApproveReuseCandidateRequest implements IApproveReuseCandidateRequest {
+    preserveLabelAnchor?: boolean;
+
+    constructor(data?: IApproveReuseCandidateRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.preserveLabelAnchor = _data["preserveLabelAnchor"];
+        }
+    }
+
+    static fromJS(data: any): ApproveReuseCandidateRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new ApproveReuseCandidateRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["preserveLabelAnchor"] = this.preserveLabelAnchor;
+        return data;
+    }
+}
+
+export interface IApproveReuseCandidateRequest {
+    preserveLabelAnchor?: boolean;
+}
+
+export class AttachReplacementOverlayRequest implements IAttachReplacementOverlayRequest {
+    overlayId?: string;
+    approve?: boolean;
+    preserveLabelAnchor?: boolean;
+
+    constructor(data?: IAttachReplacementOverlayRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.overlayId = _data["overlayId"];
+            this.approve = _data["approve"];
+            this.preserveLabelAnchor = _data["preserveLabelAnchor"];
+        }
+    }
+
+    static fromJS(data: any): AttachReplacementOverlayRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new AttachReplacementOverlayRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["overlayId"] = this.overlayId;
+        data["approve"] = this.approve;
+        data["preserveLabelAnchor"] = this.preserveLabelAnchor;
+        return data;
+    }
+}
+
+export interface IAttachReplacementOverlayRequest {
+    overlayId?: string;
+    approve?: boolean;
+    preserveLabelAnchor?: boolean;
+}
+
+export class FloorPlanReplacementRollbackAvailabilityDto implements IFloorPlanReplacementRollbackAvailabilityDto {
+    reviewId?: string;
+    isAvailable?: boolean;
+    currentAssetId?: string | undefined;
+    previousAssetId?: string | undefined;
+    blockers?: RoomOverlayValidationIssue[];
+
+    constructor(data?: IFloorPlanReplacementRollbackAvailabilityDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.reviewId = _data["reviewId"];
+            this.isAvailable = _data["isAvailable"];
+            this.currentAssetId = _data["currentAssetId"];
+            this.previousAssetId = _data["previousAssetId"];
+            if (Array.isArray(_data["blockers"])) {
+                this.blockers = [] as any;
+                for (let item of _data["blockers"])
+                    this.blockers!.push(RoomOverlayValidationIssue.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): FloorPlanReplacementRollbackAvailabilityDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new FloorPlanReplacementRollbackAvailabilityDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["reviewId"] = this.reviewId;
+        data["isAvailable"] = this.isAvailable;
+        data["currentAssetId"] = this.currentAssetId;
+        data["previousAssetId"] = this.previousAssetId;
+        if (Array.isArray(this.blockers)) {
+            data["blockers"] = [];
+            for (let item of this.blockers)
+                data["blockers"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IFloorPlanReplacementRollbackAvailabilityDto {
+    reviewId?: string;
+    isAvailable?: boolean;
+    currentAssetId?: string | undefined;
+    previousAssetId?: string | undefined;
+    blockers?: RoomOverlayValidationIssue[];
 }
 
 export class ClimateProviderDto implements IClimateProviderDto {
