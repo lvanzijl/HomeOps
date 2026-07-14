@@ -37,6 +37,7 @@ import { WidgetRenderer } from "../widgets/WidgetRenderer";
 import { getWidgetDefinition } from "../widgets/widgetCatalog";
 import type { WidgetInstance } from "../widgets/widgetModel";
 import { PeopleManagement } from "../knownPeople/PeopleManagement";
+import { WoningManagement } from "./WoningManagement";
 import type { FamilyMember } from "../home/familyMembers";
 
 interface MaintenanceStatus {
@@ -60,6 +61,7 @@ type SettingsSurface =
   | "editSource"
   | "deleteSource"
   | "people"
+  | "woning"
   | null;
 
 export function SettingsDashboard({ widgetInstances, members = [], onCalendarSourcesChanged }: SettingsDashboardProps) {
@@ -618,6 +620,9 @@ export function SettingsDashboard({ widgetInstances, members = [], onCalendarSou
           <button onClick={() => setActiveSurface("details")} type="button">
             Details bekijken
           </button>
+          <button onClick={() => setActiveSurface("woning")} type="button">
+            Woning
+          </button>
           <button onClick={() => setActiveSurface("people")} type="button">
             Bekenden beheren
           </button>
@@ -717,6 +722,16 @@ export function SettingsDashboard({ widgetInstances, members = [], onCalendarSou
               </button>
             </div>
           </div>
+        </SettingsSurfaceDialog>
+      ) : null}
+
+      {activeSurface === "woning" ? (
+        <SettingsSurfaceDialog
+          description="Beheer verdiepingen, kamers, volgorde en compacte klimaat- en plattegrondstatus."
+          onClose={closeSurface}
+          title="Woning"
+        >
+          <WoningManagement members={members} />
         </SettingsSurfaceDialog>
       ) : null}
 

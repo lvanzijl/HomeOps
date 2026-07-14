@@ -838,3 +838,7 @@ Backend-only FamilyBoard-owned floor-plan asset ingestion now supports validated
 
 ### Completed Follow-up — Floor-plan Asset Ingestion Hardening
 The floor-plan asset ingestion foundation was hardened for merge with safe derivative backup/restore rehydration, pre-mutation graph/content validation, explicit SVG sanitizer rules, raster corruption/oversize checks, storage reference containment, lifecycle invariant coverage, and migration/idempotent-script verification. Overlay geometry, editor/runtime UI, climate readings, Stories, Home Assistant integration, raster transcoding/resizing, and retention/purge policy remain deferred.
+
+### 2026-07-14 — Woning Climate Floor Plans slice 4
+- Completed frontend Settings management for Floors and Rooms: create, rename, reorder, move rooms, archive/restore/delete, RoomType labels, optional family member association, compact status summaries, and focused frontend tests.
+- Deferred canvas, upload/replacement, runtime climate rendering, Home Assistant mapping setup, Stories, and heating controls to later slices.

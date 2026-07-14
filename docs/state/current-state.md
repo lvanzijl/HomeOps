@@ -945,3 +945,7 @@ Woning Climate Provider Mapping Hardening adds the explicit internal `ClimateMap
 
 ## Woning Climate Floor Plans Floor-plan Asset Ingestion Hardening — 2026-07-13
 - Hardened the backend-only floor-plan asset ingestion foundation with derivative rehydration during backup/restore, asset graph validation, stricter SVG sanitization rules, raster truncation/oversize checks, storage reference containment safeguards, lifecycle/restore tests, and migration script verification. No polygons, overlays, frontend, runtime plan rendering, climate readings, Stories, or Home Assistant integration were introduced.
+
+## 2026-07-14 — Woning floor/room Settings management
+- Added the frontend Settings `Woning` workspace for managing FamilyBoard floors and rooms without polygon editing, asset upload, runtime climate, or Home Assistant setup UI.
+- Added compact climate and floor-plan setup summaries and viewport-bounded management lists.

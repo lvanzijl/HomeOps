@@ -10449,3 +10449,26 @@ button {
   min-width: 0;
   width: 100%;
 }
+
+
+.woning-workspace { display: flex; flex-direction: column; gap: 0.75rem; max-height: min(72vh, 760px); overflow: hidden; }
+.woning-header, .woning-panel-head { align-items: center; display: flex; justify-content: space-between; gap: 1rem; }
+.woning-header h3, .woning-panel-head h4 { margin: 0; }
+.woning-status { border-radius: 1rem; background: rgba(15, 23, 42, 0.06); padding: 0.75rem 1rem; }
+.woning-grid { display: grid; grid-template-columns: minmax(16rem, 0.8fr) minmax(24rem, 1.4fr); gap: 1rem; min-height: 0; overflow: hidden; }
+.woning-panel { border: 1px solid rgba(15, 23, 42, 0.12); border-radius: 1.25rem; padding: 1rem; min-height: 0; overflow: hidden; display: flex; flex-direction: column; gap: 0.75rem; }
+.woning-scroll-list { display: flex; flex-direction: column; gap: 0.65rem; min-height: 0; overflow-y: auto; padding-right: 0.25rem; }
+.woning-item { border: 1px solid rgba(15, 23, 42, 0.12); border-radius: 1rem; padding: 0.75rem; background: rgba(255, 255, 255, 0.82); }
+.woning-item.selected { border-color: rgba(37, 99, 235, 0.65); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12); }
+.woning-select { width: 100%; text-align: left; display: flex; justify-content: space-between; gap: 0.5rem; background: transparent; color: inherit; padding: 0; }
+.woning-room { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.75rem; align-items: start; }
+.woning-room h5, .woning-room p { margin: 0 0 0.25rem; }
+.woning-actions { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.6rem; }
+.woning-actions button, .woning-archived button { font-size: 0.82rem; padding: 0.42rem 0.55rem; }
+.woning-empty { border: 1px dashed rgba(15, 23, 42, 0.24); border-radius: 1rem; padding: 1rem; background: rgba(255,255,255,0.64); }
+.woning-summary-strip { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.woning-summary-strip span { border-radius: 999px; background: rgba(14, 116, 144, 0.12); color: #164e63; padding: 0.35rem 0.65rem; font-weight: 700; }
+.woning-archived { border-top: 1px solid rgba(15,23,42,0.12); padding-top: 0.75rem; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.woning-archived h5 { width: 100%; margin: 0; }
+.woning-dialog form { display: grid; gap: 0.85rem; }
+@media (max-width: 880px) { .woning-workspace { max-height: 78vh; } .woning-grid { grid-template-columns: 1fr; } .woning-room { grid-template-columns: 1fr; } }
