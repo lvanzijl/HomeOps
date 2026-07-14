@@ -26,7 +26,8 @@ public sealed record CalendarExportPayload(
     IReadOnlyCollection<CalendarExportRoomClimateConfiguration>? RoomClimateConfigurations = null,
     IReadOnlyCollection<CalendarExportClimateProvider>? ClimateProviders = null,
     IReadOnlyCollection<CalendarExportRoomClimateSourceMapping>? RoomClimateSourceMappings = null,
-    IReadOnlyCollection<CalendarExportFloorPlanAsset>? FloorPlanAssets = null)
+    IReadOnlyCollection<CalendarExportFloorPlanAsset>? FloorPlanAssets = null,
+    IReadOnlyCollection<CalendarExportRoomOverlay>? RoomOverlays = null)
 {
     public const int CurrentVersion = 1;
 }
@@ -128,3 +129,5 @@ public sealed record CalendarExportClimateProvider(Guid Id, string DisplayName, 
 public sealed record CalendarExportRoomClimateSourceMapping(Guid Id, Guid RoomId, Guid ProviderId, string SourceRole, string ExternalSourceId, string? ExternalDisplayName, string? ExternalSourceKind, string? ExternalAreaId, string? ExternalAreaName, string? ExternalDeviceId, string? ExternalDeviceName, int Priority, bool IsEnabled, bool IsArchived, DateTimeOffset? ArchivedUtc, string Health, DateTimeOffset? LastCheckedUtc, DateTimeOffset? LastSuccessfulUtc, string? DiagnosticSummary, DateTimeOffset CreatedUtc, DateTimeOffset UpdatedUtc);
 
 public sealed record CalendarExportFloorPlanAsset(Guid Id, Guid FloorId, string OriginalFilename, string DetectedMediaType, string ContentHash, string? SourceContentBase64, string? DerivativeContentBase64, string? DerivativeContentHash, int? SourceWidth, int? SourceHeight, decimal CoordinateBasisWidth, decimal CoordinateBasisHeight, decimal AspectRatio, string State, Guid? ReplacementOfAssetId, DateTimeOffset UploadedUtc, DateTimeOffset CreatedUtc, DateTimeOffset UpdatedUtc, string? ValidationSummary, string SourceAvailability, string DerivativeAvailability);
+
+public sealed record CalendarExportRoomOverlay(Guid Id, Guid RoomId, Guid FloorId, Guid FloorPlanAssetId, string State, IReadOnlyList<HomeOps.Api.FloorPlans.NormalizedPoint> Polygon, HomeOps.Api.FloorPlans.NormalizedPoint? LabelAnchor, DateTimeOffset? ArchivedUtc, DateTimeOffset CreatedUtc, DateTimeOffset UpdatedUtc);

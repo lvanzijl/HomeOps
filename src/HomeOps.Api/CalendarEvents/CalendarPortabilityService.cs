@@ -118,12 +118,18 @@ public static class CalendarPortabilityService
             floorPlanAssets.Add(new CalendarExportFloorPlanAsset(asset.Id, asset.FloorId, asset.OriginalFilename, asset.DetectedMediaType, asset.ContentHash, null, derivative is null ? null : Convert.ToBase64String(derivative), derivative is null ? null : Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(derivative)).ToLowerInvariant(), asset.SourceWidth, asset.SourceHeight, asset.CoordinateBasisWidth, asset.CoordinateBasisHeight, asset.AspectRatio, asset.State.ToString(), asset.ReplacementOfAssetId, asset.UploadedUtc, asset.CreatedUtc, asset.UpdatedUtc, asset.ValidationSummary, asset.SourceAvailability.ToString(), asset.DerivativeAvailability.ToString()));
         }
 
+        var roomOverlays = await dbContext.RoomOverlays.AsNoTracking()
+            .Where(overlay => overlay.HouseholdId == SeedHousehold.Id)
+            .OrderBy(overlay => overlay.FloorId).ThenBy(overlay => overlay.RoomId).ThenBy(overlay => overlay.CreatedUtc)
+            .Select(overlay => new CalendarExportRoomOverlay(overlay.Id, overlay.RoomId, overlay.FloorId, overlay.FloorPlanAssetId, overlay.State.ToString(), RoomOverlayEndpoints.Points(overlay), overlay.LabelAnchorX == null || overlay.LabelAnchorY == null ? null : new NormalizedPoint(overlay.LabelAnchorX.Value, overlay.LabelAnchorY.Value), overlay.ArchivedUtc, overlay.CreatedUtc, overlay.UpdatedUtc))
+            .ToListAsync(cancellationToken);
+
         return new CalendarExportDocument(
             CalendarExportDocument.CurrentFormat,
             CalendarExportDocument.CurrentSchemaVersion,
             DateTimeOffset.UtcNow,
             new CalendarExportHousehold(household.Id, household.TimeZoneId),
-            new CalendarExportPayload(CalendarExportPayload.CurrentVersion, sources, series, new CalendarExportRecurrenceSection([]), exceptions, new Dictionary<string, string>(), floors, rooms, climateConfigurations, climateProviders, climateMappings, floorPlanAssets),
+            new CalendarExportPayload(CalendarExportPayload.CurrentVersion, sources, series, new CalendarExportRecurrenceSection([]), exceptions, new Dictionary<string, string>(), floors, rooms, climateConfigurations, climateProviders, climateMappings, floorPlanAssets, roomOverlays),
             new Dictionary<string, string>());
     }
 
@@ -149,6 +155,10 @@ public static class CalendarPortabilityService
                 validationErrors[error.Key] = error.Value;
             }
             foreach (var error in ValidateFloorPlanAssetGraph(document))
+            {
+                validationErrors[error.Key] = error.Value;
+            }
+            foreach (var error in ValidateRoomOverlayPayload(document))
             {
                 validationErrors[error.Key] = error.Value;
             }
@@ -240,6 +250,8 @@ public static class CalendarPortabilityService
         // Legacy backups without both collections leave the current Floor/Room graph unchanged.
         if (document.Calendar.Floors is not null && document.Calendar.Rooms is not null)
         {
+            var existingOverlays = await dbContext.RoomOverlays.Where(overlay => overlay.HouseholdId == SeedHousehold.Id).ToListAsync(cancellationToken);
+            dbContext.RoomOverlays.RemoveRange(existingOverlays);
             var existingAssets = await dbContext.FloorPlanAssets.Where(asset => asset.HouseholdId == SeedHousehold.Id).ToListAsync(cancellationToken);
             dbContext.FloorPlanAssets.RemoveRange(existingAssets);
             await dbContext.SaveChangesAsync(cancellationToken);
@@ -275,6 +287,13 @@ public static class CalendarPortabilityService
                         : await floorPlanAssetService.StoreRestoredDerivativeAsync(SeedHousehold.Id, asset.Id, staged.MediaType, staged.DerivativeBytes, cancellationToken);
                     dbContext.FloorPlanAssets.Add(new FloorPlanAsset { Id = asset.Id, HouseholdId = SeedHousehold.Id, FloorId = asset.FloorId, OriginalFilename = asset.OriginalFilename.Trim(), DetectedMediaType = asset.DetectedMediaType, ContentHash = asset.ContentHash.Trim(), SourceContentReference = floorPlanAssetService.MissingSourceReference(SeedHousehold.Id, asset.Id), DerivativeContentReference = derivativeReference, SourceWidth = staged?.SourceWidth ?? asset.SourceWidth, SourceHeight = staged?.SourceHeight ?? asset.SourceHeight, CoordinateBasisWidth = staged?.BasisWidth ?? asset.CoordinateBasisWidth, CoordinateBasisHeight = staged?.BasisHeight ?? asset.CoordinateBasisHeight, AspectRatio = (staged?.BasisWidth ?? asset.CoordinateBasisWidth) / (staged?.BasisHeight ?? asset.CoordinateBasisHeight), State = state, ReplacementOfAssetId = asset.ReplacementOfAssetId, UploadedUtc = asset.UploadedUtc, CreatedUtc = asset.CreatedUtc, UpdatedUtc = asset.UpdatedUtc, ValidationSummary = staged?.Summary ?? asset.ValidationSummary, SourceAvailability = FloorPlanAssetAvailability.Missing, DerivativeAvailability = staged is null ? FloorPlanAssetAvailability.Missing : FloorPlanAssetAvailability.Available });
                 }
+            }
+            if (document.Calendar.RoomOverlays is not null)
+            {
+                dbContext.RoomOverlays.AddRange(document.Calendar.RoomOverlays.Select(overlay => new RoomOverlay
+                {
+                    Id = overlay.Id, HouseholdId = SeedHousehold.Id, RoomId = overlay.RoomId, FloorId = overlay.FloorId, FloorPlanAssetId = overlay.FloorPlanAssetId, State = Enum.Parse<RoomOverlayState>(overlay.State, true) == RoomOverlayState.Trusted ? RoomOverlayState.Valid : Enum.Parse<RoomOverlayState>(overlay.State, true), PolygonJson = JsonSerializer.Serialize(overlay.Polygon, SnapshotJsonOptions), LabelAnchorX = overlay.LabelAnchor?.X, LabelAnchorY = overlay.LabelAnchor?.Y, ArchivedUtc = overlay.ArchivedUtc, CreatedUtc = overlay.CreatedUtc, UpdatedUtc = overlay.UpdatedUtc
+                }));
             }
             if (document.Calendar.RoomClimateConfigurations is not null)
             {
@@ -563,6 +582,37 @@ public static class CalendarPortabilityService
         await JsonSerializer.SerializeAsync(stream, snapshot, SnapshotJsonOptions, cancellationToken);
     }
 
+
+    private static Dictionary<string, string[]> ValidateRoomOverlayPayload(CalendarExportDocument document)
+    {
+        var errors = new Dictionary<string, List<string>>(StringComparer.Ordinal);
+        var overlays = document.Calendar.RoomOverlays;
+        if (overlays is null) return new Dictionary<string, string[]>();
+        if (overlays.GroupBy(o => o.Id).Any(g => g.Count() > 1)) AddError(errors, "Calendar.RoomOverlays.Id", "Room overlay identifiers must be unique.");
+        var roomIds = document.Calendar.Rooms?.Select(r => r.Id).ToHashSet() ?? [];
+        var floorIds = document.Calendar.Floors?.Select(f => f.Id).ToHashSet() ?? [];
+        var assetById = (document.Calendar.FloorPlanAssets ?? []).ToDictionary(a => a.Id);
+        foreach (var o in overlays)
+        {
+            if (!Enum.TryParse<RoomOverlayState>(o.State, true, out var state)) AddError(errors, "Calendar.RoomOverlays.State", "Room overlay state is invalid.");
+            if (!roomIds.Contains(o.RoomId)) AddError(errors, "Calendar.RoomOverlays.RoomId", "Room overlay Room references must exist in the restore payload.");
+            if (!floorIds.Contains(o.FloorId)) AddError(errors, "Calendar.RoomOverlays.FloorId", "Room overlay Floor references must exist in the restore payload.");
+            if (!assetById.TryGetValue(o.FloorPlanAssetId, out var asset)) AddError(errors, "Calendar.RoomOverlays.FloorPlanAssetId", "Room overlay Asset references must exist in the restore payload.");
+            else if (asset.FloorId != o.FloorId) AddError(errors, "Calendar.RoomOverlays.AssetFloor", "Room overlay Asset must belong to the overlay Floor.");
+            foreach (var issue in RoomOverlayGeometry.Validate(o.Polygon, o.LabelAnchor)) AddError(errors, $"Calendar.RoomOverlays.{issue.Code}", issue.Message);
+            if (state == RoomOverlayState.Trusted && asset is not null && !string.Equals(asset.State, FloorPlanAssetState.Active.ToString(), StringComparison.OrdinalIgnoreCase)) AddError(errors, "Calendar.RoomOverlays.TrustedAsset", "Trusted overlays require an Active asset.");
+        }
+        foreach (var group in overlays.Where(o => string.Equals(o.State, RoomOverlayState.Trusted.ToString(), StringComparison.OrdinalIgnoreCase)).GroupBy(o => new { o.RoomId, o.FloorPlanAssetId }))
+        {
+            if (group.Count() > 1) AddError(errors, "Calendar.RoomOverlays.DuplicateTrusted", "Only one Trusted overlay per Room and asset may be restored.");
+        }
+        var trusted = overlays.Where(o => string.Equals(o.State, RoomOverlayState.Trusted.ToString(), StringComparison.OrdinalIgnoreCase)).ToList();
+        for (var i = 0; i < trusted.Count; i++) for (var j = i + 1; j < trusted.Count; j++)
+        {
+            if (trusted[i].FloorPlanAssetId == trusted[j].FloorPlanAssetId && RoomOverlayGeometry.HasPositiveOverlap(trusted[i].Polygon, trusted[j].Polygon)) AddError(errors, "Calendar.RoomOverlays.Overlap", "Trusted restored overlays cannot overlap by positive area.");
+        }
+        return ToArrayDictionary(errors);
+    }
 
     private static async Task<Dictionary<string, string[]>> ValidateFloorRoomPayloadAsync(HomeOpsDbContext dbContext, CalendarExportDocument document, CancellationToken cancellationToken)
     {

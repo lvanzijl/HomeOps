@@ -47,6 +47,451 @@ export class HomeOpsApiClient {
         return Promise.resolve<void>(null as any);
     }
 
+    getFloorRoomOverlays(floorId: string, includeArchived: boolean | null | undefined): Promise<void> {
+        let url_ = this.baseUrl + "/api/floors/{floorId}/overlays?";
+        if (floorId === undefined || floorId === null)
+            throw new globalThis.Error("The parameter 'floorId' must be defined.");
+        url_ = url_.replace("{floorId}", encodeURIComponent("" + floorId));
+        if (includeArchived !== undefined && includeArchived !== null)
+            url_ += "includeArchived=" + encodeURIComponent("" + includeArchived) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetFloorRoomOverlays(_response);
+        });
+    }
+
+    protected processGetFloorRoomOverlays(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    createRoomOverlay(floorId: string, req: CreateRoomOverlayRequest): Promise<void> {
+        let url_ = this.baseUrl + "/api/floors/{floorId}/overlays";
+        if (floorId === undefined || floorId === null)
+            throw new globalThis.Error("The parameter 'floorId' must be defined.");
+        url_ = url_.replace("{floorId}", encodeURIComponent("" + floorId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(req);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCreateRoomOverlay(_response);
+        });
+    }
+
+    protected processCreateRoomOverlay(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    getRoomOverlays(roomId: string, includeArchived: boolean | null | undefined): Promise<void> {
+        let url_ = this.baseUrl + "/api/rooms/{roomId}/overlay?";
+        if (roomId === undefined || roomId === null)
+            throw new globalThis.Error("The parameter 'roomId' must be defined.");
+        url_ = url_.replace("{roomId}", encodeURIComponent("" + roomId));
+        if (includeArchived !== undefined && includeArchived !== null)
+            url_ += "includeArchived=" + encodeURIComponent("" + includeArchived) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetRoomOverlays(_response);
+        });
+    }
+
+    protected processGetRoomOverlays(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    getRoomOverlay(id: string): Promise<void> {
+        let url_ = this.baseUrl + "/api/room-overlays/{id}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetRoomOverlay(_response);
+        });
+    }
+
+    protected processGetRoomOverlay(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    deleteRoomOverlay(id: string): Promise<void> {
+        let url_ = this.baseUrl + "/api/room-overlays/{id}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDeleteRoomOverlay(_response);
+        });
+    }
+
+    protected processDeleteRoomOverlay(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    updateRoomOverlayGeometry(id: string, req: UpdateRoomOverlayGeometryRequest): Promise<void> {
+        let url_ = this.baseUrl + "/api/room-overlays/{id}/geometry";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(req);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateRoomOverlayGeometry(_response);
+        });
+    }
+
+    protected processUpdateRoomOverlayGeometry(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    updateRoomOverlayLabelAnchor(id: string, req: UpdateRoomOverlayLabelAnchorRequest): Promise<void> {
+        let url_ = this.baseUrl + "/api/room-overlays/{id}/label-anchor";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(req);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateRoomOverlayLabelAnchor(_response);
+        });
+    }
+
+    protected processUpdateRoomOverlayLabelAnchor(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    resetRoomOverlayLabelAnchor(id: string): Promise<void> {
+        let url_ = this.baseUrl + "/api/room-overlays/{id}/label-anchor";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processResetRoomOverlayLabelAnchor(_response);
+        });
+    }
+
+    protected processResetRoomOverlayLabelAnchor(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    trustRoomOverlay(id: string): Promise<void> {
+        let url_ = this.baseUrl + "/api/room-overlays/{id}/trust";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processTrustRoomOverlay(_response);
+        });
+    }
+
+    protected processTrustRoomOverlay(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    markRoomOverlayNeedsReview(id: string): Promise<void> {
+        let url_ = this.baseUrl + "/api/room-overlays/{id}/needs-review";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processMarkRoomOverlayNeedsReview(_response);
+        });
+    }
+
+    protected processMarkRoomOverlayNeedsReview(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    archiveRoomOverlay(id: string): Promise<void> {
+        let url_ = this.baseUrl + "/api/room-overlays/{id}/archive";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processArchiveRoomOverlay(_response);
+        });
+    }
+
+    protected processArchiveRoomOverlay(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    restoreRoomOverlay(id: string): Promise<void> {
+        let url_ = this.baseUrl + "/api/room-overlays/{id}/restore";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRestoreRoomOverlay(_response);
+        });
+    }
+
+    protected processRestoreRoomOverlay(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    getRoomOverlayValidation(id: string): Promise<void> {
+        let url_ = this.baseUrl + "/api/room-overlays/{id}/validation";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetRoomOverlayValidation(_response);
+        });
+    }
+
+    protected processGetRoomOverlayValidation(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
     getMotivationSnapshot(): Promise<MotivationSnapshotDto> {
         let url_ = this.baseUrl + "/api/motivation";
         url_ = url_.replace(/[?&]$/, "");
@@ -3060,6 +3505,406 @@ export class HomeOpsApiClient {
         return Promise.resolve<void>(null as any);
     }
 
+    listFloorPlanAssets(floorId: string): Promise<FloorPlanAssetDto[]> {
+        let url_ = this.baseUrl + "/api/floors/{floorId}/floor-plan-assets";
+        if (floorId === undefined || floorId === null)
+            throw new globalThis.Error("The parameter 'floorId' must be defined.");
+        url_ = url_.replace("{floorId}", encodeURIComponent("" + floorId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processListFloorPlanAssets(_response);
+        });
+    }
+
+    protected processListFloorPlanAssets(response: Response): Promise<FloorPlanAssetDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(FloorPlanAssetDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FloorPlanAssetDto[]>(null as any);
+    }
+
+    uploadFloorPlanAsset(floorId: string, file: FileParameter | null | undefined): Promise<FloorPlanAssetUploadResult> {
+        let url_ = this.baseUrl + "/api/floors/{floorId}/floor-plan-assets";
+        if (floorId === undefined || floorId === null)
+            throw new globalThis.Error("The parameter 'floorId' must be defined.");
+        url_ = url_.replace("{floorId}", encodeURIComponent("" + floorId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = new FormData();
+        if (file !== null && file !== undefined)
+            content_.append("file", file.data, file.fileName ? file.fileName : "file");
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUploadFloorPlanAsset(_response);
+        });
+    }
+
+    protected processUploadFloorPlanAsset(response: Response): Promise<FloorPlanAssetUploadResult> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 201) {
+            return response.text().then((_responseText) => {
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result201 = FloorPlanAssetUploadResult.fromJS(resultData201);
+            return result201;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = HttpValidationProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FloorPlanAssetUploadResult>(null as any);
+    }
+
+    getActiveFloorPlanAsset(floorId: string): Promise<FloorPlanAssetDto> {
+        let url_ = this.baseUrl + "/api/floors/{floorId}/floor-plan-assets/active";
+        if (floorId === undefined || floorId === null)
+            throw new globalThis.Error("The parameter 'floorId' must be defined.");
+        url_ = url_.replace("{floorId}", encodeURIComponent("" + floorId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetActiveFloorPlanAsset(_response);
+        });
+    }
+
+    protected processGetActiveFloorPlanAsset(response: Response): Promise<FloorPlanAssetDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = FloorPlanAssetDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FloorPlanAssetDto>(null as any);
+    }
+
+    activateFloorPlanAsset(floorId: string, assetId: string): Promise<FloorPlanAssetDto> {
+        let url_ = this.baseUrl + "/api/floors/{floorId}/floor-plan-assets/{assetId}/activate";
+        if (floorId === undefined || floorId === null)
+            throw new globalThis.Error("The parameter 'floorId' must be defined.");
+        url_ = url_.replace("{floorId}", encodeURIComponent("" + floorId));
+        if (assetId === undefined || assetId === null)
+            throw new globalThis.Error("The parameter 'assetId' must be defined.");
+        url_ = url_.replace("{assetId}", encodeURIComponent("" + assetId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processActivateFloorPlanAsset(_response);
+        });
+    }
+
+    protected processActivateFloorPlanAsset(response: Response): Promise<FloorPlanAssetDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = FloorPlanAssetDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = HttpValidationProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FloorPlanAssetDto>(null as any);
+    }
+
+    rollbackFloorPlanAsset(floorId: string): Promise<FloorPlanAssetDto> {
+        let url_ = this.baseUrl + "/api/floors/{floorId}/floor-plan-assets/rollback";
+        if (floorId === undefined || floorId === null)
+            throw new globalThis.Error("The parameter 'floorId' must be defined.");
+        url_ = url_.replace("{floorId}", encodeURIComponent("" + floorId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRollbackFloorPlanAsset(_response);
+        });
+    }
+
+    protected processRollbackFloorPlanAsset(response: Response): Promise<FloorPlanAssetDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = FloorPlanAssetDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = HttpValidationProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FloorPlanAssetDto>(null as any);
+    }
+
+    getFloorPlanAsset(assetId: string): Promise<FloorPlanAssetDto> {
+        let url_ = this.baseUrl + "/api/floor-plan-assets/{assetId}";
+        if (assetId === undefined || assetId === null)
+            throw new globalThis.Error("The parameter 'assetId' must be defined.");
+        url_ = url_.replace("{assetId}", encodeURIComponent("" + assetId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetFloorPlanAsset(_response);
+        });
+    }
+
+    protected processGetFloorPlanAsset(response: Response): Promise<FloorPlanAssetDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = FloorPlanAssetDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FloorPlanAssetDto>(null as any);
+    }
+
+    archiveFloorPlanAsset(assetId: string): Promise<void> {
+        let url_ = this.baseUrl + "/api/floor-plan-assets/{assetId}/archive";
+        if (assetId === undefined || assetId === null)
+            throw new globalThis.Error("The parameter 'assetId' must be defined.");
+        url_ = url_.replace("{assetId}", encodeURIComponent("" + assetId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processArchiveFloorPlanAsset(_response);
+        });
+    }
+
+    protected processArchiveFloorPlanAsset(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = HttpValidationProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    markFloorPlanAssetMissing(assetId: string): Promise<FloorPlanAssetDto> {
+        let url_ = this.baseUrl + "/api/floor-plan-assets/{assetId}/mark-missing";
+        if (assetId === undefined || assetId === null)
+            throw new globalThis.Error("The parameter 'assetId' must be defined.");
+        url_ = url_.replace("{assetId}", encodeURIComponent("" + assetId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processMarkFloorPlanAssetMissing(_response);
+        });
+    }
+
+    protected processMarkFloorPlanAssetMissing(response: Response): Promise<FloorPlanAssetDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = FloorPlanAssetDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FloorPlanAssetDto>(null as any);
+    }
+
+    getFloorPlanAssetDerivative(assetId: string): Promise<void> {
+        let url_ = this.baseUrl + "/api/floor-plan-assets/{assetId}/derivative";
+        if (assetId === undefined || assetId === null)
+            throw new globalThis.Error("The parameter 'assetId' must be defined.");
+        url_ = url_.replace("{assetId}", encodeURIComponent("" + assetId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetFloorPlanAssetDerivative(_response);
+        });
+    }
+
+    protected processGetFloorPlanAssetDerivative(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
     getClimateProviders(includeArchived: boolean | null | undefined): Promise<ClimateProviderDto[]> {
         let url_ = this.baseUrl + "/api/climate-providers?";
         if (includeArchived !== undefined && includeArchived !== null)
@@ -5093,6 +5938,195 @@ export class HomeOpsApiClient {
         }
         return Promise.resolve<ApplyVisualReviewScenarioResponse>(null as any);
     }
+}
+
+export class CreateRoomOverlayRequest implements ICreateRoomOverlayRequest {
+    roomId?: string;
+    floorPlanAssetId?: string;
+    polygon?: NormalizedPoint[];
+    labelAnchor?: NormalizedPoint | undefined;
+    state?: RoomOverlayState | undefined;
+
+    constructor(data?: ICreateRoomOverlayRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.roomId = _data["roomId"];
+            this.floorPlanAssetId = _data["floorPlanAssetId"];
+            if (Array.isArray(_data["polygon"])) {
+                this.polygon = [] as any;
+                for (let item of _data["polygon"])
+                    this.polygon!.push(NormalizedPoint.fromJS(item));
+            }
+            this.labelAnchor = _data["labelAnchor"] ? NormalizedPoint.fromJS(_data["labelAnchor"]) : undefined as any;
+            this.state = _data["state"];
+        }
+    }
+
+    static fromJS(data: any): CreateRoomOverlayRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreateRoomOverlayRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["roomId"] = this.roomId;
+        data["floorPlanAssetId"] = this.floorPlanAssetId;
+        if (Array.isArray(this.polygon)) {
+            data["polygon"] = [];
+            for (let item of this.polygon)
+                data["polygon"].push(item ? item.toJSON() : undefined as any);
+        }
+        data["labelAnchor"] = this.labelAnchor ? this.labelAnchor.toJSON() : undefined as any;
+        data["state"] = this.state;
+        return data;
+    }
+}
+
+export interface ICreateRoomOverlayRequest {
+    roomId?: string;
+    floorPlanAssetId?: string;
+    polygon?: NormalizedPoint[];
+    labelAnchor?: NormalizedPoint | undefined;
+    state?: RoomOverlayState | undefined;
+}
+
+export class NormalizedPoint implements INormalizedPoint {
+    x?: number;
+    y?: number;
+
+    constructor(data?: INormalizedPoint) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.x = _data["x"];
+            this.y = _data["y"];
+        }
+    }
+
+    static fromJS(data: any): NormalizedPoint {
+        data = typeof data === 'object' ? data : {};
+        let result = new NormalizedPoint();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["x"] = this.x;
+        data["y"] = this.y;
+        return data;
+    }
+}
+
+export interface INormalizedPoint {
+    x?: number;
+    y?: number;
+}
+
+export enum RoomOverlayState {
+    Draft = 0,
+    Valid = 1,
+    NeedsReview = 2,
+    Trusted = 3,
+    Invalid = 4,
+    Archived = 5,
+}
+
+export class UpdateRoomOverlayGeometryRequest implements IUpdateRoomOverlayGeometryRequest {
+    polygon?: NormalizedPoint[];
+
+    constructor(data?: IUpdateRoomOverlayGeometryRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            if (Array.isArray(_data["polygon"])) {
+                this.polygon = [] as any;
+                for (let item of _data["polygon"])
+                    this.polygon!.push(NormalizedPoint.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): UpdateRoomOverlayGeometryRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpdateRoomOverlayGeometryRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        if (Array.isArray(this.polygon)) {
+            data["polygon"] = [];
+            for (let item of this.polygon)
+                data["polygon"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IUpdateRoomOverlayGeometryRequest {
+    polygon?: NormalizedPoint[];
+}
+
+export class UpdateRoomOverlayLabelAnchorRequest implements IUpdateRoomOverlayLabelAnchorRequest {
+    labelAnchor?: NormalizedPoint | undefined;
+
+    constructor(data?: IUpdateRoomOverlayLabelAnchorRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.labelAnchor = _data["labelAnchor"] ? NormalizedPoint.fromJS(_data["labelAnchor"]) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): UpdateRoomOverlayLabelAnchorRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpdateRoomOverlayLabelAnchorRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["labelAnchor"] = this.labelAnchor ? this.labelAnchor.toJSON() : undefined as any;
+        return data;
+    }
+}
+
+export interface IUpdateRoomOverlayLabelAnchorRequest {
+    labelAnchor?: NormalizedPoint | undefined;
 }
 
 export class MotivationSnapshotDto implements IMotivationSnapshotDto {
@@ -7261,6 +8295,8 @@ export class CalendarExportPayload implements ICalendarExportPayload {
     roomClimateConfigurations?: CalendarExportRoomClimateConfiguration[] | undefined;
     climateProviders?: CalendarExportClimateProvider[] | undefined;
     roomClimateSourceMappings?: CalendarExportRoomClimateSourceMapping[] | undefined;
+    floorPlanAssets?: CalendarExportFloorPlanAsset[] | undefined;
+    roomOverlays?: CalendarExportRoomOverlay[] | undefined;
 
     constructor(data?: ICalendarExportPayload) {
         if (data) {
@@ -7321,6 +8357,16 @@ export class CalendarExportPayload implements ICalendarExportPayload {
                 this.roomClimateSourceMappings = [] as any;
                 for (let item of _data["roomClimateSourceMappings"])
                     this.roomClimateSourceMappings!.push(CalendarExportRoomClimateSourceMapping.fromJS(item));
+            }
+            if (Array.isArray(_data["floorPlanAssets"])) {
+                this.floorPlanAssets = [] as any;
+                for (let item of _data["floorPlanAssets"])
+                    this.floorPlanAssets!.push(CalendarExportFloorPlanAsset.fromJS(item));
+            }
+            if (Array.isArray(_data["roomOverlays"])) {
+                this.roomOverlays = [] as any;
+                for (let item of _data["roomOverlays"])
+                    this.roomOverlays!.push(CalendarExportRoomOverlay.fromJS(item));
             }
         }
     }
@@ -7383,6 +8429,16 @@ export class CalendarExportPayload implements ICalendarExportPayload {
             for (let item of this.roomClimateSourceMappings)
                 data["roomClimateSourceMappings"].push(item ? item.toJSON() : undefined as any);
         }
+        if (Array.isArray(this.floorPlanAssets)) {
+            data["floorPlanAssets"] = [];
+            for (let item of this.floorPlanAssets)
+                data["floorPlanAssets"].push(item ? item.toJSON() : undefined as any);
+        }
+        if (Array.isArray(this.roomOverlays)) {
+            data["roomOverlays"] = [];
+            for (let item of this.roomOverlays)
+                data["roomOverlays"].push(item ? item.toJSON() : undefined as any);
+        }
         return data;
     }
 }
@@ -7399,6 +8455,8 @@ export interface ICalendarExportPayload {
     roomClimateConfigurations?: CalendarExportRoomClimateConfiguration[] | undefined;
     climateProviders?: CalendarExportClimateProvider[] | undefined;
     roomClimateSourceMappings?: CalendarExportRoomClimateSourceMapping[] | undefined;
+    floorPlanAssets?: CalendarExportFloorPlanAsset[] | undefined;
+    roomOverlays?: CalendarExportRoomOverlay[] | undefined;
 }
 
 export class CalendarExportEventSource implements ICalendarExportEventSource {
@@ -8349,6 +9407,202 @@ export interface ICalendarExportRoomClimateSourceMapping {
     lastCheckedUtc?: Date | undefined;
     lastSuccessfulUtc?: Date | undefined;
     diagnosticSummary?: string | undefined;
+    createdUtc?: Date;
+    updatedUtc?: Date;
+}
+
+export class CalendarExportFloorPlanAsset implements ICalendarExportFloorPlanAsset {
+    id?: string;
+    floorId?: string;
+    originalFilename?: string;
+    detectedMediaType?: string;
+    contentHash?: string;
+    sourceContentBase64?: string | undefined;
+    derivativeContentBase64?: string | undefined;
+    derivativeContentHash?: string | undefined;
+    sourceWidth?: number | undefined;
+    sourceHeight?: number | undefined;
+    coordinateBasisWidth?: number;
+    coordinateBasisHeight?: number;
+    aspectRatio?: number;
+    state?: string;
+    replacementOfAssetId?: string | undefined;
+    uploadedUtc?: Date;
+    createdUtc?: Date;
+    updatedUtc?: Date;
+    validationSummary?: string | undefined;
+    sourceAvailability?: string;
+    derivativeAvailability?: string;
+
+    constructor(data?: ICalendarExportFloorPlanAsset) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.floorId = _data["floorId"];
+            this.originalFilename = _data["originalFilename"];
+            this.detectedMediaType = _data["detectedMediaType"];
+            this.contentHash = _data["contentHash"];
+            this.sourceContentBase64 = _data["sourceContentBase64"];
+            this.derivativeContentBase64 = _data["derivativeContentBase64"];
+            this.derivativeContentHash = _data["derivativeContentHash"];
+            this.sourceWidth = _data["sourceWidth"];
+            this.sourceHeight = _data["sourceHeight"];
+            this.coordinateBasisWidth = _data["coordinateBasisWidth"];
+            this.coordinateBasisHeight = _data["coordinateBasisHeight"];
+            this.aspectRatio = _data["aspectRatio"];
+            this.state = _data["state"];
+            this.replacementOfAssetId = _data["replacementOfAssetId"];
+            this.uploadedUtc = _data["uploadedUtc"] ? new Date(_data["uploadedUtc"].toString()) : undefined as any;
+            this.createdUtc = _data["createdUtc"] ? new Date(_data["createdUtc"].toString()) : undefined as any;
+            this.updatedUtc = _data["updatedUtc"] ? new Date(_data["updatedUtc"].toString()) : undefined as any;
+            this.validationSummary = _data["validationSummary"];
+            this.sourceAvailability = _data["sourceAvailability"];
+            this.derivativeAvailability = _data["derivativeAvailability"];
+        }
+    }
+
+    static fromJS(data: any): CalendarExportFloorPlanAsset {
+        data = typeof data === 'object' ? data : {};
+        let result = new CalendarExportFloorPlanAsset();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["floorId"] = this.floorId;
+        data["originalFilename"] = this.originalFilename;
+        data["detectedMediaType"] = this.detectedMediaType;
+        data["contentHash"] = this.contentHash;
+        data["sourceContentBase64"] = this.sourceContentBase64;
+        data["derivativeContentBase64"] = this.derivativeContentBase64;
+        data["derivativeContentHash"] = this.derivativeContentHash;
+        data["sourceWidth"] = this.sourceWidth;
+        data["sourceHeight"] = this.sourceHeight;
+        data["coordinateBasisWidth"] = this.coordinateBasisWidth;
+        data["coordinateBasisHeight"] = this.coordinateBasisHeight;
+        data["aspectRatio"] = this.aspectRatio;
+        data["state"] = this.state;
+        data["replacementOfAssetId"] = this.replacementOfAssetId;
+        data["uploadedUtc"] = this.uploadedUtc ? this.uploadedUtc.toISOString() : undefined as any;
+        data["createdUtc"] = this.createdUtc ? this.createdUtc.toISOString() : undefined as any;
+        data["updatedUtc"] = this.updatedUtc ? this.updatedUtc.toISOString() : undefined as any;
+        data["validationSummary"] = this.validationSummary;
+        data["sourceAvailability"] = this.sourceAvailability;
+        data["derivativeAvailability"] = this.derivativeAvailability;
+        return data;
+    }
+}
+
+export interface ICalendarExportFloorPlanAsset {
+    id?: string;
+    floorId?: string;
+    originalFilename?: string;
+    detectedMediaType?: string;
+    contentHash?: string;
+    sourceContentBase64?: string | undefined;
+    derivativeContentBase64?: string | undefined;
+    derivativeContentHash?: string | undefined;
+    sourceWidth?: number | undefined;
+    sourceHeight?: number | undefined;
+    coordinateBasisWidth?: number;
+    coordinateBasisHeight?: number;
+    aspectRatio?: number;
+    state?: string;
+    replacementOfAssetId?: string | undefined;
+    uploadedUtc?: Date;
+    createdUtc?: Date;
+    updatedUtc?: Date;
+    validationSummary?: string | undefined;
+    sourceAvailability?: string;
+    derivativeAvailability?: string;
+}
+
+export class CalendarExportRoomOverlay implements ICalendarExportRoomOverlay {
+    id?: string;
+    roomId?: string;
+    floorId?: string;
+    floorPlanAssetId?: string;
+    state?: string;
+    polygon?: NormalizedPoint[];
+    labelAnchor?: NormalizedPoint | undefined;
+    archivedUtc?: Date | undefined;
+    createdUtc?: Date;
+    updatedUtc?: Date;
+
+    constructor(data?: ICalendarExportRoomOverlay) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.roomId = _data["roomId"];
+            this.floorId = _data["floorId"];
+            this.floorPlanAssetId = _data["floorPlanAssetId"];
+            this.state = _data["state"];
+            if (Array.isArray(_data["polygon"])) {
+                this.polygon = [] as any;
+                for (let item of _data["polygon"])
+                    this.polygon!.push(NormalizedPoint.fromJS(item));
+            }
+            this.labelAnchor = _data["labelAnchor"] ? NormalizedPoint.fromJS(_data["labelAnchor"]) : undefined as any;
+            this.archivedUtc = _data["archivedUtc"] ? new Date(_data["archivedUtc"].toString()) : undefined as any;
+            this.createdUtc = _data["createdUtc"] ? new Date(_data["createdUtc"].toString()) : undefined as any;
+            this.updatedUtc = _data["updatedUtc"] ? new Date(_data["updatedUtc"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): CalendarExportRoomOverlay {
+        data = typeof data === 'object' ? data : {};
+        let result = new CalendarExportRoomOverlay();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["roomId"] = this.roomId;
+        data["floorId"] = this.floorId;
+        data["floorPlanAssetId"] = this.floorPlanAssetId;
+        data["state"] = this.state;
+        if (Array.isArray(this.polygon)) {
+            data["polygon"] = [];
+            for (let item of this.polygon)
+                data["polygon"].push(item ? item.toJSON() : undefined as any);
+        }
+        data["labelAnchor"] = this.labelAnchor ? this.labelAnchor.toJSON() : undefined as any;
+        data["archivedUtc"] = this.archivedUtc ? this.archivedUtc.toISOString() : undefined as any;
+        data["createdUtc"] = this.createdUtc ? this.createdUtc.toISOString() : undefined as any;
+        data["updatedUtc"] = this.updatedUtc ? this.updatedUtc.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface ICalendarExportRoomOverlay {
+    id?: string;
+    roomId?: string;
+    floorId?: string;
+    floorPlanAssetId?: string;
+    state?: string;
+    polygon?: NormalizedPoint[];
+    labelAnchor?: NormalizedPoint | undefined;
+    archivedUtc?: Date | undefined;
     createdUtc?: Date;
     updatedUtc?: Date;
 }
@@ -10047,6 +11301,166 @@ export interface IUpsertRoomClimateConfigurationRequest {
     temperatureRange?: ClimateRangeDto | undefined;
     humidityRange?: ClimateRangeDto | undefined;
     heatingPolicyIntent?: HeatingPolicyIntent;
+}
+
+export class FloorPlanAssetDto implements IFloorPlanAssetDto {
+    id?: string;
+    floorId?: string;
+    originalFilename?: string;
+    detectedMediaType?: string;
+    contentHash?: string;
+    sourceWidth?: number | undefined;
+    sourceHeight?: number | undefined;
+    coordinateBasisWidth?: number;
+    coordinateBasisHeight?: number;
+    aspectRatio?: number;
+    state?: FloorPlanAssetState;
+    replacementOfAssetId?: string | undefined;
+    uploadedUtc?: Date;
+    createdUtc?: Date;
+    updatedUtc?: Date;
+    validationSummary?: string | undefined;
+    sourceAvailability?: FloorPlanAssetAvailability;
+    derivativeAvailability?: FloorPlanAssetAvailability;
+    derivativeUrl?: string | undefined;
+
+    constructor(data?: IFloorPlanAssetDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.floorId = _data["floorId"];
+            this.originalFilename = _data["originalFilename"];
+            this.detectedMediaType = _data["detectedMediaType"];
+            this.contentHash = _data["contentHash"];
+            this.sourceWidth = _data["sourceWidth"];
+            this.sourceHeight = _data["sourceHeight"];
+            this.coordinateBasisWidth = _data["coordinateBasisWidth"];
+            this.coordinateBasisHeight = _data["coordinateBasisHeight"];
+            this.aspectRatio = _data["aspectRatio"];
+            this.state = _data["state"];
+            this.replacementOfAssetId = _data["replacementOfAssetId"];
+            this.uploadedUtc = _data["uploadedUtc"] ? new Date(_data["uploadedUtc"].toString()) : undefined as any;
+            this.createdUtc = _data["createdUtc"] ? new Date(_data["createdUtc"].toString()) : undefined as any;
+            this.updatedUtc = _data["updatedUtc"] ? new Date(_data["updatedUtc"].toString()) : undefined as any;
+            this.validationSummary = _data["validationSummary"];
+            this.sourceAvailability = _data["sourceAvailability"];
+            this.derivativeAvailability = _data["derivativeAvailability"];
+            this.derivativeUrl = _data["derivativeUrl"];
+        }
+    }
+
+    static fromJS(data: any): FloorPlanAssetDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new FloorPlanAssetDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["floorId"] = this.floorId;
+        data["originalFilename"] = this.originalFilename;
+        data["detectedMediaType"] = this.detectedMediaType;
+        data["contentHash"] = this.contentHash;
+        data["sourceWidth"] = this.sourceWidth;
+        data["sourceHeight"] = this.sourceHeight;
+        data["coordinateBasisWidth"] = this.coordinateBasisWidth;
+        data["coordinateBasisHeight"] = this.coordinateBasisHeight;
+        data["aspectRatio"] = this.aspectRatio;
+        data["state"] = this.state;
+        data["replacementOfAssetId"] = this.replacementOfAssetId;
+        data["uploadedUtc"] = this.uploadedUtc ? this.uploadedUtc.toISOString() : undefined as any;
+        data["createdUtc"] = this.createdUtc ? this.createdUtc.toISOString() : undefined as any;
+        data["updatedUtc"] = this.updatedUtc ? this.updatedUtc.toISOString() : undefined as any;
+        data["validationSummary"] = this.validationSummary;
+        data["sourceAvailability"] = this.sourceAvailability;
+        data["derivativeAvailability"] = this.derivativeAvailability;
+        data["derivativeUrl"] = this.derivativeUrl;
+        return data;
+    }
+}
+
+export interface IFloorPlanAssetDto {
+    id?: string;
+    floorId?: string;
+    originalFilename?: string;
+    detectedMediaType?: string;
+    contentHash?: string;
+    sourceWidth?: number | undefined;
+    sourceHeight?: number | undefined;
+    coordinateBasisWidth?: number;
+    coordinateBasisHeight?: number;
+    aspectRatio?: number;
+    state?: FloorPlanAssetState;
+    replacementOfAssetId?: string | undefined;
+    uploadedUtc?: Date;
+    createdUtc?: Date;
+    updatedUtc?: Date;
+    validationSummary?: string | undefined;
+    sourceAvailability?: FloorPlanAssetAvailability;
+    derivativeAvailability?: FloorPlanAssetAvailability;
+    derivativeUrl?: string | undefined;
+}
+
+export enum FloorPlanAssetState {
+    Draft = 0,
+    Validated = 1,
+    Active = 2,
+    Replaced = 3,
+    Archived = 4,
+    Invalid = 5,
+    Missing = 6,
+}
+
+export enum FloorPlanAssetAvailability {
+    Available = 0,
+    Missing = 1,
+    Corrupt = 2,
+}
+
+export class FloorPlanAssetUploadResult implements IFloorPlanAssetUploadResult {
+    asset?: FloorPlanAssetDto;
+
+    constructor(data?: IFloorPlanAssetUploadResult) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.asset = _data["asset"] ? FloorPlanAssetDto.fromJS(_data["asset"]) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): FloorPlanAssetUploadResult {
+        data = typeof data === 'object' ? data : {};
+        let result = new FloorPlanAssetUploadResult();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["asset"] = this.asset ? this.asset.toJSON() : undefined as any;
+        return data;
+    }
+}
+
+export interface IFloorPlanAssetUploadResult {
+    asset?: FloorPlanAssetDto;
 }
 
 export class ClimateProviderDto implements IClimateProviderDto {
@@ -12739,6 +14153,11 @@ function formatDate(d: Date) {
     return d.getFullYear() + '-' + 
         (d.getMonth() < 9 ? ('0' + (d.getMonth()+1)) : (d.getMonth()+1)) + '-' +
         (d.getDate() < 10 ? ('0' + d.getDate()) : d.getDate());
+}
+
+export interface FileParameter {
+    data: any;
+    fileName: string;
 }
 
 export class ApiException extends Error {

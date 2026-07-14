@@ -1,0 +1,53 @@
+using System.Text.Json;
+using HomeOps.Api.Data;
+using HomeOps.Api.Households;
+using Microsoft.EntityFrameworkCore;
+
+namespace HomeOps.Api.FloorPlans;
+
+public static class RoomOverlayEndpoints
+{
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+    public static IEndpointRouteBuilder MapRoomOverlayEndpoints(this IEndpointRouteBuilder app)
+    {
+        app.MapGet("/api/floors/{floorId:guid}/overlays", async (Guid floorId, bool? includeArchived, HomeOpsDbContext db, CancellationToken ct) =>
+        {
+            if (!await db.Floors.AnyAsync(f => f.Id == floorId && f.HouseholdId == SeedHousehold.Id, ct)) return Results.NotFound();
+            var q = db.RoomOverlays.AsNoTracking().Where(o => o.HouseholdId == SeedHousehold.Id && o.FloorId == floorId);
+            if (includeArchived != true) q = q.Where(o => o.State != RoomOverlayState.Archived);
+            return Results.Ok((await q.OrderBy(o=>o.RoomId).ThenBy(o=>o.CreatedUtc).ToListAsync(ct)).Select(ToDto));
+        }).WithName("GetFloorRoomOverlays").WithTags("RoomOverlays");
+        app.MapGet("/api/rooms/{roomId:guid}/overlay", async (Guid roomId, bool? includeArchived, HomeOpsDbContext db, CancellationToken ct) =>
+        {
+            if (!await db.Rooms.AnyAsync(r => r.Id == roomId && r.HouseholdId == SeedHousehold.Id, ct)) return Results.NotFound();
+            var q = db.RoomOverlays.AsNoTracking().Where(o => o.HouseholdId == SeedHousehold.Id && o.RoomId == roomId);
+            if (includeArchived != true) q = q.Where(o => o.State != RoomOverlayState.Archived);
+            return Results.Ok((await q.OrderByDescending(o=>o.State==RoomOverlayState.Trusted).ThenByDescending(o=>o.UpdatedUtc).ToListAsync(ct)).Select(ToDto));
+        }).WithName("GetRoomOverlays").WithTags("RoomOverlays");
+        app.MapGet("/api/room-overlays/{id:guid}", async (Guid id, HomeOpsDbContext db, CancellationToken ct) => (await db.RoomOverlays.AsNoTracking().FirstOrDefaultAsync(o=>o.Id==id && o.HouseholdId==SeedHousehold.Id,ct)) is { } o ? Results.Ok(ToDto(o)) : Results.NotFound()).WithName("GetRoomOverlay").WithTags("RoomOverlays");
+        app.MapPost("/api/floors/{floorId:guid}/overlays", Create).WithName("CreateRoomOverlay").WithTags("RoomOverlays");
+        app.MapPut("/api/room-overlays/{id:guid}/geometry", UpdateGeometry).WithName("UpdateRoomOverlayGeometry").WithTags("RoomOverlays");
+        app.MapPut("/api/room-overlays/{id:guid}/label-anchor", UpdateAnchor).WithName("UpdateRoomOverlayLabelAnchor").WithTags("RoomOverlays");
+        app.MapDelete("/api/room-overlays/{id:guid}/label-anchor", async (Guid id, HomeOpsDbContext db, CancellationToken ct) => { var o=await Find(db,id,ct); if(o is null)return Results.NotFound(); o.LabelAnchorX=o.LabelAnchorY=null; o.UpdatedUtc=DateTimeOffset.UtcNow; await db.SaveChangesAsync(ct); return Results.Ok(ToDto(o)); }).WithName("ResetRoomOverlayLabelAnchor").WithTags("RoomOverlays");
+        app.MapPost("/api/room-overlays/{id:guid}/trust", Trust).WithName("TrustRoomOverlay").WithTags("RoomOverlays");
+        app.MapPost("/api/room-overlays/{id:guid}/needs-review", SetNeedsReview).WithName("MarkRoomOverlayNeedsReview").WithTags("RoomOverlays");
+        app.MapPost("/api/room-overlays/{id:guid}/archive", Archive).WithName("ArchiveRoomOverlay").WithTags("RoomOverlays");
+        app.MapPost("/api/room-overlays/{id:guid}/restore", Restore).WithName("RestoreRoomOverlay").WithTags("RoomOverlays");
+        app.MapDelete("/api/room-overlays/{id:guid}", async (Guid id, HomeOpsDbContext db, CancellationToken ct) => { var o=await Find(db,id,ct); if(o is null)return Results.NotFound(); db.RoomOverlays.Remove(o); await db.SaveChangesAsync(ct); return Results.NoContent(); }).WithName("DeleteRoomOverlay").WithTags("RoomOverlays");
+        app.MapGet("/api/room-overlays/{id:guid}/validation", async (Guid id, HomeOpsDbContext db, CancellationToken ct) => { var o=await Find(db,id,ct); if(o is null)return Results.NotFound(); return Results.Ok(await Validate(db,o,true,ct)); }).WithName("GetRoomOverlayValidation").WithTags("RoomOverlays");
+        return app;
+    }
+    private static async Task<IResult> Create(Guid floorId, CreateRoomOverlayRequest req, HomeOpsDbContext db, CancellationToken ct){ var now=DateTimeOffset.UtcNow; var o=new RoomOverlay{Id=Guid.NewGuid(),HouseholdId=SeedHousehold.Id,RoomId=req.RoomId,FloorId=floorId,FloorPlanAssetId=req.FloorPlanAssetId,PolygonJson=JsonSerializer.Serialize(req.Polygon,JsonOptions),LabelAnchorX=req.LabelAnchor?.X,LabelAnchorY=req.LabelAnchor?.Y,State=req.State==RoomOverlayState.Draft?RoomOverlayState.Draft:RoomOverlayState.Valid,CreatedUtc=now,UpdatedUtc=now}; var v=await Validate(db,o,false,ct); if(v.Blockers.Count>0)return Results.BadRequest(v); db.RoomOverlays.Add(o); await db.SaveChangesAsync(ct); return Results.Created($"/api/room-overlays/{o.Id}",ToDto(o)); }
+    private static async Task<IResult> UpdateGeometry(Guid id, UpdateRoomOverlayGeometryRequest req, HomeOpsDbContext db, CancellationToken ct){ var o=await Find(db,id,ct); if(o is null)return Results.NotFound(); o.PolygonJson=JsonSerializer.Serialize(req.Polygon,JsonOptions); if(o.State==RoomOverlayState.Trusted)o.State=RoomOverlayState.Valid; o.UpdatedUtc=DateTimeOffset.UtcNow; var v=await Validate(db,o,false,ct); if(v.Blockers.Count>0){o.State=RoomOverlayState.Invalid; return Results.BadRequest(v);} await db.SaveChangesAsync(ct); return Results.Ok(ToDto(o)); }
+    private static async Task<IResult> UpdateAnchor(Guid id, UpdateRoomOverlayLabelAnchorRequest req, HomeOpsDbContext db, CancellationToken ct){ var o=await Find(db,id,ct); if(o is null)return Results.NotFound(); o.LabelAnchorX=req.LabelAnchor?.X; o.LabelAnchorY=req.LabelAnchor?.Y; o.UpdatedUtc=DateTimeOffset.UtcNow; var v=await Validate(db,o,false,ct); if(v.Blockers.Count>0)return Results.BadRequest(v); await db.SaveChangesAsync(ct); return Results.Ok(ToDto(o)); }
+    private static async Task<IResult> Trust(Guid id, HomeOpsDbContext db, CancellationToken ct){ var o=await Find(db,id,ct); if(o is null)return Results.NotFound(); if(o.State != RoomOverlayState.Valid)return Results.BadRequest(new RoomOverlayValidationResultDto(o.Id, false, [new("InvalidStateForTrust", "Only Valid overlays can be marked Trusted.")], [])); var v=await Validate(db,o,true,ct); if(v.Blockers.Count>0)return Results.BadRequest(v); o.State=RoomOverlayState.Trusted; o.UpdatedUtc=DateTimeOffset.UtcNow; await db.SaveChangesAsync(ct); return Results.Ok(ToDto(o)); }
+    private static async Task<IResult> SetNeedsReview(Guid id, HomeOpsDbContext db, CancellationToken ct){ var o=await Find(db,id,ct); if(o is null)return Results.NotFound(); o.State=RoomOverlayState.NeedsReview; o.UpdatedUtc=DateTimeOffset.UtcNow; await db.SaveChangesAsync(ct); return Results.Ok(ToDto(o)); }
+    private static async Task<IResult> Archive(Guid id, HomeOpsDbContext db, CancellationToken ct){ var o=await Find(db,id,ct); if(o is null)return Results.NotFound(); o.State=RoomOverlayState.Archived; o.ArchivedUtc=DateTimeOffset.UtcNow; o.UpdatedUtc=o.ArchivedUtc.Value; await db.SaveChangesAsync(ct); return Results.NoContent(); }
+    private static async Task<IResult> Restore(Guid id, HomeOpsDbContext db, CancellationToken ct){ var o=await Find(db,id,ct); if(o is null)return Results.NotFound(); o.State=RoomOverlayState.Valid; o.ArchivedUtc=null; var v=await Validate(db,o,false,ct); if(v.Blockers.Count>0){o.State=RoomOverlayState.NeedsReview; return Results.BadRequest(v);} o.UpdatedUtc=DateTimeOffset.UtcNow; await db.SaveChangesAsync(ct); return Results.Ok(ToDto(o)); }
+    internal static async Task<RoomOverlayValidationResultDto> Validate(HomeOpsDbContext db, RoomOverlay o, bool trust, CancellationToken ct){ var blockers=RoomOverlayGeometry.Validate(Points(o), Anchor(o)); var warnings=new List<RoomOverlayValidationIssue>(); var room=await db.Rooms.AsNoTracking().FirstOrDefaultAsync(r=>r.Id==o.RoomId,ct); var floor=await db.Floors.AsNoTracking().FirstOrDefaultAsync(f=>f.Id==o.FloorId,ct); var asset=await db.FloorPlanAssets.AsNoTracking().FirstOrDefaultAsync(a=>a.Id==o.FloorPlanAssetId,ct); if(room is null) blockers.Add(new("MissingRoom","Overlay must reference an existing Room.")); else { if(room.HouseholdId!=o.HouseholdId) blockers.Add(new("CrossHousehold","Room belongs to another Household.")); if(room.IsArchived||!room.IsEnabled) blockers.Add(new("InactiveRoom","Overlay requires an active Room.")); if(room.FloorId!=o.FloorId) blockers.Add(new("RoomFloorMismatch","Room must belong to overlay Floor.")); } if(floor is null||floor.HouseholdId!=o.HouseholdId) blockers.Add(new("InvalidFloor","Overlay Floor is missing or cross-Household.")); if(asset is null) blockers.Add(new("MissingAsset","Overlay must reference an existing floor-plan asset.")); else { if(asset.HouseholdId!=o.HouseholdId) blockers.Add(new("CrossHouseholdAsset","Asset belongs to another Household.")); if(asset.FloorId!=o.FloorId) blockers.Add(new("AssetFloorMismatch","Asset must belong to overlay Floor.")); if(asset.State!=FloorPlanAssetState.Active || asset.DerivativeAvailability!=FloorPlanAssetAvailability.Available) blockers.Add(new("NonUsableAsset","Only Active usable floor-plan assets support trusted overlays.")); }
+        if(trust){ var pts=Points(o); var trusted=await db.RoomOverlays.AsNoTracking().Where(x=>x.HouseholdId==o.HouseholdId&&x.Id!=o.Id&&x.FloorPlanAssetId==o.FloorPlanAssetId&&x.State==RoomOverlayState.Trusted).ToListAsync(ct); foreach(var t in trusted){ if(t.RoomId==o.RoomId) blockers.Add(new("DuplicateTrustedRoomOverlay","Only one Trusted overlay per Room and active asset is allowed.",t.Id,t.RoomId)); if(RoomOverlayGeometry.HasPositiveOverlap(pts,Points(t))) blockers.Add(new("TrustedOverlayOverlap","Trusted overlays cannot overlap by positive area.",t.Id,t.RoomId)); }} if(Points(o).Count>150) warnings.Add(new("HighVertexCount","Polygon has a high vertex count.")); return new(o.Id, blockers.Count==0, blockers, warnings); }
+    private static Task<RoomOverlay?> Find(HomeOpsDbContext db, Guid id, CancellationToken ct)=>db.RoomOverlays.FirstOrDefaultAsync(o=>o.Id==id&&o.HouseholdId==SeedHousehold.Id,ct);
+    internal static IReadOnlyList<NormalizedPoint> Points(RoomOverlay o)=>JsonSerializer.Deserialize<List<NormalizedPoint>>(o.PolygonJson,JsonOptions)??[];
+    private static NormalizedPoint? Anchor(RoomOverlay o)=>o.LabelAnchorX is null||o.LabelAnchorY is null?null:new(o.LabelAnchorX.Value,o.LabelAnchorY.Value);
+    internal static RoomOverlayDto ToDto(RoomOverlay o)=>new(o.Id,o.RoomId,o.FloorId,o.FloorPlanAssetId,o.State,Points(o),Anchor(o),o.ArchivedUtc,o.CreatedUtc,o.UpdatedUtc);
+}
