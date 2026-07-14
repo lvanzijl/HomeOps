@@ -10472,3 +10472,29 @@ button {
 .woning-archived h5 { width: 100%; margin: 0; }
 .woning-dialog form { display: grid; gap: 0.85rem; }
 @media (max-width: 880px) { .woning-workspace { max-height: 78vh; } .woning-grid { grid-template-columns: 1fr; } .woning-room { grid-template-columns: 1fr; } }
+.woning-plan-action { border: 1px dashed rgba(14,116,144,.28); border-radius: 1rem; padding: .75rem; background: rgba(236,254,255,.55); }
+.overlay-editor { display: flex; flex-direction: column; gap: .75rem; max-height: min(76vh, 820px); overflow: hidden; }
+.overlay-editor-head { display:flex; align-items:center; justify-content:space-between; gap:1rem; }
+.overlay-editor-head h3,.overlay-editor-head p { margin:.15rem 0; }
+.overlay-layout { display:grid; grid-template-columns: minmax(15rem,.75fr) minmax(26rem,1.7fr) minmax(16rem,.85fr); gap:.75rem; min-height:0; overflow:hidden; }
+.overlay-side,.overlay-canvas-panel,.overlay-review { border:1px solid rgba(15,23,42,.12); border-radius:1.25rem; padding:.85rem; min-height:0; overflow:hidden; display:flex; flex-direction:column; gap:.65rem; background:rgba(255,255,255,.72); }
+.overlay-room-row { text-align:left; border:1px solid rgba(15,23,42,.12); border-radius:.9rem; background:white; color:inherit; padding:.7rem; display:grid; gap:.2rem; }
+.overlay-room-row.selected { border-color:#2563eb; box-shadow:0 0 0 3px rgba(37,99,235,.12); }
+.overlay-archived { border-top:1px solid rgba(15,23,42,.12); padding-top:.65rem; display:grid; gap:.45rem; max-height:7rem; overflow:auto; }
+.overlay-toolbar { display:flex; flex-wrap:wrap; gap:.35rem; }
+.overlay-toolbar button.active { background:#0f172a; color:white; }
+.floorplan-stage { position:relative; flex:1; min-height:22rem; overflow:hidden; border-radius:1rem; background:#e5e7eb; transform-origin:center; }
+.floorplan-stage img,.floorplan-stage svg { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; }
+.floorplan-stage svg { touch-action:none; }
+.overlay-poly { fill:rgba(14,165,233,.18); stroke:#0369a1; stroke-width:.006; vector-effect:non-scaling-stroke; cursor:pointer; }
+.overlay-poly.selected { fill:rgba(34,197,94,.24); stroke:#15803d; stroke-width:.008; }
+.overlay-poly.state-3 { fill:rgba(34,197,94,.16); stroke:#166534; }
+.overlay-handle { fill:white; stroke:#111827; stroke-width:.006; cursor:grab; }
+.overlay-handle.selected,.overlay-handle:focus { fill:#fef08a; outline:none; }
+.overlay-edge-insert { fill:#2563eb; stroke:white; stroke-width:.004; cursor:copy; }
+.overlay-label-anchor { fill:#f97316; stroke:white; stroke-width:.006; }
+.overlay-validation { display:grid; gap:.35rem; min-height:0; overflow:auto; }
+.overlay-validation p { margin:.15rem 0; }
+.overlay-unsaved { font-weight:800; color:#92400e; }
+@media (max-width: 980px) { .overlay-layout { grid-template-columns: 1fr; } .overlay-editor { max-height: 80vh; } .floorplan-stage { min-height: 18rem; } .overlay-handle { r: .026; } }
+@media (max-width: 640px) { .overlay-canvas-panel,.overlay-review { opacity:.68; pointer-events:none; } }
