@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { RoomType } from "../api/homeOpsApiClient";
+import { RoomType, type FloorPlanAssetDto } from "../api/homeOpsApiClient";
 import type { FamilyMember } from "../home/familyMembers";
 import {
   archiveFloor,
@@ -25,6 +25,8 @@ import {
   type Room,
   type RoomClimateConfiguration,
 } from "./woningApi";
+import { RoomOverlayEditor } from "./RoomOverlayEditor";
+import { isUsableActiveAsset, loadActiveFloorPlanAsset } from "./roomOverlayEditorApi";
 
 interface Props { members?: readonly FamilyMember[] }
 type Dialog = { kind: "floor"; floor?: Floor } | { kind: "room"; room?: Room } | { kind: "move"; room: Room } | { kind: "confirm"; action: string; title: string; body: string; run: () => Promise<void> } | null;
@@ -39,6 +41,8 @@ export function WoningManagement({ members = [] }: Props) {
   const [message, setMessage] = useState("Woninginstellingen laden…");
   const [error, setError] = useState<string | null>(null);
   const [dialog, setDialog] = useState<Dialog>(null);
+  const [assetsByFloor, setAssetsByFloor] = useState<Record<string, FloorPlanAssetDto | null>>({});
+  const [overlayEditorOpen, setOverlayEditorOpen] = useState(false);
 
   const activeFloors = floors.filter((floor) => !floor.isArchived).sort(byOrder);
   const archivedFloors = floors.filter((floor) => floor.isArchived).sort(byOrder);
@@ -46,6 +50,7 @@ export function WoningManagement({ members = [] }: Props) {
   const selectedRooms = selectedFloor?.id ? (roomsByFloor[selectedFloor.id] ?? []) : [];
   const activeRooms = selectedRooms.filter((room) => !room.isArchived).sort(byOrder);
   const archivedRooms = selectedRooms.filter((room) => room.isArchived).sort(byOrder);
+  const selectedAsset = selectedFloor?.id ? assetsByFloor[selectedFloor.id] : null;
 
   useEffect(() => { void reloadAll(); }, []);
 
@@ -62,6 +67,8 @@ export function WoningManagement({ members = [] }: Props) {
       const activeRoomIds = Object.values(nextRooms).flat().filter((room) => !room.isArchived && room.id).map((room) => room.id!);
       const configEntries = await Promise.all(activeRoomIds.map(async (id) => [id, await loadClimateConfiguration(id)] as const));
       setClimate(Object.fromEntries(configEntries));
+      const assetEntries = await Promise.all(loadedFloors.map(async (floor) => [floor.id ?? "", await loadActiveFloorPlanAsset(floor.id ?? "")] as const));
+      setAssetsByFloor(Object.fromEntries(assetEntries));
       setMessage("Woningoverzicht is bijgewerkt.");
     } catch (err) {
       setError(getFriendlyWoningError(err, "Verdiepingen laden lukt niet."));
@@ -85,12 +92,14 @@ export function WoningManagement({ members = [] }: Props) {
     await runAction(() => reorderRooms(selectedFloor.id!, ids), "Volgorde van kamers is opgeslagen.", "Kamers ordenen lukt niet.");
   }
 
+  if (overlayEditorOpen && selectedFloor) return <RoomOverlayEditor floor={selectedFloor} rooms={activeRooms} asset={selectedAsset ?? null} onClose={() => setOverlayEditorOpen(false)} onRefreshAsset={() => reloadAll(selectedFloor.id)} />;
+
   return <section className="woning-workspace" aria-label="Woning beheren">
     <header className="woning-header"><div><p className="widget-type">Woning</p><h3>Verdiepingen en kamers</h3><p>Beheer de FamilyBoard-verdiepingen en kamers los van plattegronden, klimaatmetingen en Home Assistant.</p></div><button onClick={() => setDialog({ kind: "floor" })}>Verdieping toevoegen</button></header>
     <div className="woning-status" role={error ? "alert" : "status"}>{error ?? (loading ? "Woninginstellingen laden…" : message)}</div>
     <div className="woning-grid">
       <aside className="woning-panel woning-floor-rail"><h4>Verdiepingen</h4>{loading ? <p>Verdiepingen laden…</p> : null}{!loading && activeFloors.length === 0 ? <div className="woning-empty"><p>Nog geen verdiepingen toegevoegd.</p><button onClick={() => setDialog({ kind: "floor" })}>Verdieping toevoegen</button></div> : null}<div className="woning-scroll-list" role="list">{activeFloors.map((floor, index) => <FloorCard key={floor.id} floor={floor} selected={selectedFloor?.id === floor.id} onSelect={() => setSelectedFloorId(floor.id ?? null)} onEdit={() => setDialog({ kind: "floor", floor })} onArchive={() => setDialog({ kind: "confirm", title: "Verdieping archiveren", action: "Archiveren", body: (floor.activeRoomCount ?? 0) > 0 ? "Deze verdieping kan nog niet worden gearchiveerd omdat er kamers in staan." : "De verdieping verdwijnt uit het actieve overzicht. Kamers worden niet stil verwijderd.", run: () => runAction(() => archiveFloor(floor.id ?? ""), "Verdieping is gearchiveerd.", "Deze verdieping kan nog niet worden gearchiveerd omdat er kamers in staan.") })} onDelete={() => setDialog({ kind: "confirm", title: "Verdieping verwijderen", action: "Verwijderen", body: "Verwijderen kan alleen als de backend dit toestaat. Kamers worden nooit stil verwijderd.", run: () => runAction(() => deleteFloor(floor.id ?? ""), "Verdieping is verwijderd.", "Verdieping verwijderen lukt niet; controleer of er nog kamers zijn.") })} onTop={() => shiftFloor(floor, 0)} onUp={() => shiftFloor(floor, index - 1)} onDown={() => shiftFloor(floor, index + 1)} onBottom={() => shiftFloor(floor, activeFloors.length - 1)} busy={busy} />)}</div>{archivedFloors.length ? <Archived title="Gearchiveerde verdiepingen">{archivedFloors.map((floor) => <button key={floor.id} onClick={() => runAction(() => restoreFloor(floor.id ?? "").then(() => undefined), "Verdieping is hersteld.", "Verdieping herstellen lukt niet.", floor.id)}>Herstellen: {floor.name}</button>)}</Archived> : null}</aside>
-      <main className="woning-panel woning-room-panel"><div className="woning-panel-head"><div><h4>{selectedFloor?.name ?? "Geen verdieping geselecteerd"}</h4><p>{setupStatus(activeRooms.length, assetStatus())}</p></div><button disabled={!selectedFloor} onClick={() => setDialog({ kind: "room" })}>Kamer toevoegen</button></div><div className="woning-summary-strip"><span>{assetStatus()}</span><span>{activeRooms.length ? "Bruikbaar" : "Niet gestart"}</span><span>Plattegronden beheren komt later</span></div>{selectedFloor && activeRooms.length === 0 ? <div className="woning-empty"><p>Nog geen kamers op deze verdieping.</p><button onClick={() => setDialog({ kind: "room" })}>Kamer toevoegen</button></div> : null}<div className="woning-scroll-list" role="list" aria-label="Kamers op geselecteerde verdieping">{activeRooms.map((room, index) => <RoomCard key={room.id} room={room} config={climate[room.id ?? ""]} onEdit={() => setDialog({ kind: "room", room })} onMove={() => setDialog({ kind: "move", room })} onArchive={() => setDialog({ kind: "confirm", title: "Kamer archiveren", action: "Archiveren", body: "De kamer verdwijnt uit de actieve lijst, maar blijft herstelbaar.", run: () => runAction(() => archiveRoom(room.id ?? ""), "Kamer is gearchiveerd.", "Kamer archiveren lukt niet.") })} onDelete={() => setDialog({ kind: "confirm", title: "Kamer verwijderen", action: "Verwijderen", body: "Verwijderen kan alleen als de backend dit toestaat. Gebruik archiveren als je de kamer later wilt herstellen.", run: () => runAction(() => deleteRoom(room.id ?? ""), "Kamer is verwijderd.", "Kamer verwijderen lukt niet.") })} onTop={() => shiftRoom(room, 0)} onUp={() => shiftRoom(room, index - 1)} onDown={() => shiftRoom(room, index + 1)} onBottom={() => shiftRoom(room, activeRooms.length - 1)} busy={busy} />)}</div>{archivedRooms.length ? <Archived title="Gearchiveerde kamers">{archivedRooms.map((room) => <button key={room.id} onClick={() => runAction(() => restoreRoom(room.id ?? "").then(() => undefined), "Kamer is hersteld.", "Kamer herstellen lukt niet.")}>Herstellen: {room.name}</button>)}</Archived> : null}</main>
+      <main className="woning-panel woning-room-panel"><div className="woning-panel-head"><div><h4>{selectedFloor?.name ?? "Geen verdieping geselecteerd"}</h4><p>{setupStatus(activeRooms.length, assetStatus(selectedAsset))}</p></div><button disabled={!selectedFloor} onClick={() => setDialog({ kind: "room" })}>Kamer toevoegen</button></div><div className="woning-summary-strip"><span>{assetStatus(selectedAsset)}</span><span>{activeRooms.length ? "Bruikbaar" : "Niet gestart"}</span><span>{isUsableActiveAsset(selectedAsset) ? "Actieve veilige plattegrond" : "Uploaden komt later"}</span></div><div className="woning-plan-action">{isUsableActiveAsset(selectedAsset) ? <button onClick={() => setOverlayEditorOpen(true)}>Kamergrenzen tekenen</button> : <p>Er is nog geen bruikbare plattegrond voor deze verdieping. Uploaden hoort bij een latere slice.</p>}</div>{selectedFloor && activeRooms.length === 0 ? <div className="woning-empty"><p>Nog geen kamers op deze verdieping.</p><button onClick={() => setDialog({ kind: "room" })}>Kamer toevoegen</button></div> : null}<div className="woning-scroll-list" role="list" aria-label="Kamers op geselecteerde verdieping">{activeRooms.map((room, index) => <RoomCard key={room.id} room={room} config={climate[room.id ?? ""]} onEdit={() => setDialog({ kind: "room", room })} onMove={() => setDialog({ kind: "move", room })} onArchive={() => setDialog({ kind: "confirm", title: "Kamer archiveren", action: "Archiveren", body: "De kamer verdwijnt uit de actieve lijst, maar blijft herstelbaar.", run: () => runAction(() => archiveRoom(room.id ?? ""), "Kamer is gearchiveerd.", "Kamer archiveren lukt niet.") })} onDelete={() => setDialog({ kind: "confirm", title: "Kamer verwijderen", action: "Verwijderen", body: "Verwijderen kan alleen als de backend dit toestaat. Gebruik archiveren als je de kamer later wilt herstellen.", run: () => runAction(() => deleteRoom(room.id ?? ""), "Kamer is verwijderd.", "Kamer verwijderen lukt niet.") })} onTop={() => shiftRoom(room, 0)} onUp={() => shiftRoom(room, index - 1)} onDown={() => shiftRoom(room, index + 1)} onBottom={() => shiftRoom(room, activeRooms.length - 1)} busy={busy} />)}</div>{archivedRooms.length ? <Archived title="Gearchiveerde kamers">{archivedRooms.map((room) => <button key={room.id} onClick={() => runAction(() => restoreRoom(room.id ?? "").then(() => undefined), "Kamer is hersteld.", "Kamer herstellen lukt niet.")}>Herstellen: {room.name}</button>)}</Archived> : null}</main>
     </div>
     {dialog?.kind === "floor" ? <FloorForm floor={dialog.floor} busy={busy} onCancel={() => setDialog(null)} onSave={(name: string) => runAction(() => dialog.floor ? updateFloor(dialog.floor, name).then(() => undefined) : createFloor(name).then(() => undefined), dialog.floor ? "Verdieping is bijgewerkt." : "Verdieping is toegevoegd.", "Verdieping opslaan lukt niet.")} /> : null}
     {dialog?.kind === "room" && selectedFloor ? <RoomForm room={dialog.room} members={members} busy={busy} onCancel={() => setDialog(null)} onSave={(name: string, type: RoomType, member?: string) => runAction(() => dialog.room ? updateRoom(dialog.room, name, type, member).then(() => undefined) : createRoom(selectedFloor.id ?? "", name, type, member).then(() => undefined), dialog.room ? "Kamer is bijgewerkt." : "Kamer is toegevoegd.", "Kamer opslaan lukt niet.")} /> : null}
@@ -111,5 +120,5 @@ function Archived({ title, children }: any) { return <section className="woning-
 function byOrder(a: { sortOrder?: number; name?: string }, b: { sortOrder?: number; name?: string }) { return (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || (a.name ?? "").localeCompare(b.name ?? "", "nl-NL"); }
 function moveId(ids: string[], id: string, target: number) { const next = ids.filter(Boolean).filter((x) => x !== id); next.splice(Math.max(0, Math.min(target, next.length)), 0, id); return next; }
 function climateStatus(config?: RoomClimateConfiguration | null) { if (!config?.isConfigured) return "Klimaat nog niet ingesteld"; if (!config.isClimateEnabled) return "Klimaat uitgeschakeld"; if (config.heatingPolicyIntent === 1) return "Verwarming alleen uitlezen"; if (config.heatingPolicyIntent === 2) return "Tijdelijke bediening gewenst"; if (config.isBedtimeRelevant) return "Bedtijd meegenomen"; return "Klimaat ingesteld"; }
-function assetStatus() { return "Nog geen plattegrond"; }
+function assetStatus(asset?: FloorPlanAssetDto | null) { if (isUsableActiveAsset(asset)) return "Actieve plattegrond"; if (asset) return "Plattegrond heeft aandacht nodig"; return "Nog geen plattegrond"; }
 function setupStatus(roomCount: number, plan: string) { if (!roomCount) return "Niet gestart"; return plan === "Nog geen plattegrond" ? "Bruikbaar zonder plattegrond" : "In uitvoering"; }

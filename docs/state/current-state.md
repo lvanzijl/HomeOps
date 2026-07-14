@@ -957,3 +957,11 @@ Woning Climate Provider Mapping Hardening adds the explicit internal `ClimateMap
 ## Room Overlay Foundation Hardening — 2026-07-14
 - Hardened Woning Climate Floor Plans Slice 5 with focused lifecycle API, trust transition, Room/Asset downgrade, schema, portability, and atomicity tests; fixed concrete defects so only Valid overlays can be trusted, permanent Room delete explicitly removes owned overlays, full restore clears stale overlays before replacing Floor/Room/Asset data, and Trusted backup input restores as Valid.
 - No frontend UI, polygon editor, runtime rendering, climate readings, Stories, heating controls, Home Assistant integration, screenshots, or binary scope was added.
+
+## Woning Climate Floor Plans Slice 6 — Room Overlay Editor — 2026-07-14
+- Added the frontend Settings-side polygon editor for active safe floor-plan assets with Room-linked drawing, explicit modes, bounded canvas/review/list workspace, draft/valid saves, lifecycle actions, manual label anchors, local validation guidance, backend save/trust error preservation, and phone editing limitation copy.
+- Preserved frontend-only slice boundaries: no asset upload/replacement review, runtime `Klimaat in huis`, climate readings, Stories, heating controls, provider mapping UI, Home Assistant setup, screenshots, or binary assets were introduced.
+
+## Room Overlay Contract Correction — 2026-07-14
+- Corrected Room Overlay endpoint OpenAPI response declarations so Floor/Room overlay lists and validation/status responses regenerate as typed contracts instead of `void`, then removed the Slice 6 frontend adapter workaround that normalized unknown runtime responses.
+- Preserved existing overlay editor UX and backend overlay behavior; no asset upload/replacement, runtime climate, readings, Stories, heating controls, Home Assistant UI, screenshots, or binary scope was added.

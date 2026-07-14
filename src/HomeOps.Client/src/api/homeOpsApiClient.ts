@@ -47,7 +47,7 @@ export class HomeOpsApiClient {
         return Promise.resolve<void>(null as any);
     }
 
-    getFloorRoomOverlays(floorId: string, includeArchived: boolean | null | undefined): Promise<void> {
+    getFloorRoomOverlays(floorId: string, includeArchived: boolean | null | undefined): Promise<RoomOverlayDto[]> {
         let url_ = this.baseUrl + "/api/floors/{floorId}/overlays?";
         if (floorId === undefined || floorId === null)
             throw new globalThis.Error("The parameter 'floorId' must be defined.");
@@ -59,6 +59,7 @@ export class HomeOpsApiClient {
         let options_: RequestInit = {
             method: "GET",
             headers: {
+                "Accept": "application/json"
             }
         };
 
@@ -67,22 +68,36 @@ export class HomeOpsApiClient {
         });
     }
 
-    protected processGetFloorRoomOverlays(response: Response): Promise<void> {
+    protected processGetFloorRoomOverlays(response: Response): Promise<RoomOverlayDto[]> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
-            return;
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(RoomOverlayDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<void>(null as any);
+        return Promise.resolve<RoomOverlayDto[]>(null as any);
     }
 
-    createRoomOverlay(floorId: string, req: CreateRoomOverlayRequest): Promise<void> {
+    createRoomOverlay(floorId: string, req: CreateRoomOverlayRequest): Promise<RoomOverlayDto> {
         let url_ = this.baseUrl + "/api/floors/{floorId}/overlays";
         if (floorId === undefined || floorId === null)
             throw new globalThis.Error("The parameter 'floorId' must be defined.");
@@ -96,6 +111,7 @@ export class HomeOpsApiClient {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
+                "Accept": "application/json"
             }
         };
 
@@ -104,22 +120,32 @@ export class HomeOpsApiClient {
         });
     }
 
-    protected processCreateRoomOverlay(response: Response): Promise<void> {
+    protected processCreateRoomOverlay(response: Response): Promise<RoomOverlayDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
+        if (status === 201) {
             return response.text().then((_responseText) => {
-            return;
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result201 = RoomOverlayDto.fromJS(resultData201);
+            return result201;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = RoomOverlayValidationResultDto.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<void>(null as any);
+        return Promise.resolve<RoomOverlayDto>(null as any);
     }
 
-    getRoomOverlays(roomId: string, includeArchived: boolean | null | undefined): Promise<void> {
+    getRoomOverlays(roomId: string, includeArchived: boolean | null | undefined): Promise<RoomOverlayDto[]> {
         let url_ = this.baseUrl + "/api/rooms/{roomId}/overlay?";
         if (roomId === undefined || roomId === null)
             throw new globalThis.Error("The parameter 'roomId' must be defined.");
@@ -131,6 +157,7 @@ export class HomeOpsApiClient {
         let options_: RequestInit = {
             method: "GET",
             headers: {
+                "Accept": "application/json"
             }
         };
 
@@ -139,22 +166,36 @@ export class HomeOpsApiClient {
         });
     }
 
-    protected processGetRoomOverlays(response: Response): Promise<void> {
+    protected processGetRoomOverlays(response: Response): Promise<RoomOverlayDto[]> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
-            return;
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(RoomOverlayDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<void>(null as any);
+        return Promise.resolve<RoomOverlayDto[]>(null as any);
     }
 
-    getRoomOverlay(id: string): Promise<void> {
+    getRoomOverlay(id: string): Promise<RoomOverlayDto> {
         let url_ = this.baseUrl + "/api/room-overlays/{id}";
         if (id === undefined || id === null)
             throw new globalThis.Error("The parameter 'id' must be defined.");
@@ -164,6 +205,7 @@ export class HomeOpsApiClient {
         let options_: RequestInit = {
             method: "GET",
             headers: {
+                "Accept": "application/json"
             }
         };
 
@@ -172,19 +214,26 @@ export class HomeOpsApiClient {
         });
     }
 
-    protected processGetRoomOverlay(response: Response): Promise<void> {
+    protected processGetRoomOverlay(response: Response): Promise<RoomOverlayDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
-            return;
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = RoomOverlayDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<void>(null as any);
+        return Promise.resolve<RoomOverlayDto>(null as any);
     }
 
     deleteRoomOverlay(id: string): Promise<void> {
@@ -208,9 +257,13 @@ export class HomeOpsApiClient {
     protected processDeleteRoomOverlay(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
+        if (status === 204) {
             return response.text().then((_responseText) => {
             return;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -220,7 +273,7 @@ export class HomeOpsApiClient {
         return Promise.resolve<void>(null as any);
     }
 
-    updateRoomOverlayGeometry(id: string, req: UpdateRoomOverlayGeometryRequest): Promise<void> {
+    updateRoomOverlayGeometry(id: string, req: UpdateRoomOverlayGeometryRequest): Promise<RoomOverlayDto> {
         let url_ = this.baseUrl + "/api/room-overlays/{id}/geometry";
         if (id === undefined || id === null)
             throw new globalThis.Error("The parameter 'id' must be defined.");
@@ -234,6 +287,7 @@ export class HomeOpsApiClient {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",
+                "Accept": "application/json"
             }
         };
 
@@ -242,22 +296,36 @@ export class HomeOpsApiClient {
         });
     }
 
-    protected processUpdateRoomOverlayGeometry(response: Response): Promise<void> {
+    protected processUpdateRoomOverlayGeometry(response: Response): Promise<RoomOverlayDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
-            return;
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = RoomOverlayDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = RoomOverlayValidationResultDto.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<void>(null as any);
+        return Promise.resolve<RoomOverlayDto>(null as any);
     }
 
-    updateRoomOverlayLabelAnchor(id: string, req: UpdateRoomOverlayLabelAnchorRequest): Promise<void> {
+    updateRoomOverlayLabelAnchor(id: string, req: UpdateRoomOverlayLabelAnchorRequest): Promise<RoomOverlayDto> {
         let url_ = this.baseUrl + "/api/room-overlays/{id}/label-anchor";
         if (id === undefined || id === null)
             throw new globalThis.Error("The parameter 'id' must be defined.");
@@ -271,6 +339,7 @@ export class HomeOpsApiClient {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",
+                "Accept": "application/json"
             }
         };
 
@@ -279,22 +348,36 @@ export class HomeOpsApiClient {
         });
     }
 
-    protected processUpdateRoomOverlayLabelAnchor(response: Response): Promise<void> {
+    protected processUpdateRoomOverlayLabelAnchor(response: Response): Promise<RoomOverlayDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
-            return;
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = RoomOverlayDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = RoomOverlayValidationResultDto.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<void>(null as any);
+        return Promise.resolve<RoomOverlayDto>(null as any);
     }
 
-    resetRoomOverlayLabelAnchor(id: string): Promise<void> {
+    resetRoomOverlayLabelAnchor(id: string): Promise<RoomOverlayDto> {
         let url_ = this.baseUrl + "/api/room-overlays/{id}/label-anchor";
         if (id === undefined || id === null)
             throw new globalThis.Error("The parameter 'id' must be defined.");
@@ -304,6 +387,7 @@ export class HomeOpsApiClient {
         let options_: RequestInit = {
             method: "DELETE",
             headers: {
+                "Accept": "application/json"
             }
         };
 
@@ -312,22 +396,29 @@ export class HomeOpsApiClient {
         });
     }
 
-    protected processResetRoomOverlayLabelAnchor(response: Response): Promise<void> {
+    protected processResetRoomOverlayLabelAnchor(response: Response): Promise<RoomOverlayDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
-            return;
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = RoomOverlayDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<void>(null as any);
+        return Promise.resolve<RoomOverlayDto>(null as any);
     }
 
-    trustRoomOverlay(id: string): Promise<void> {
+    trustRoomOverlay(id: string): Promise<RoomOverlayDto> {
         let url_ = this.baseUrl + "/api/room-overlays/{id}/trust";
         if (id === undefined || id === null)
             throw new globalThis.Error("The parameter 'id' must be defined.");
@@ -337,6 +428,7 @@ export class HomeOpsApiClient {
         let options_: RequestInit = {
             method: "POST",
             headers: {
+                "Accept": "application/json"
             }
         };
 
@@ -345,22 +437,36 @@ export class HomeOpsApiClient {
         });
     }
 
-    protected processTrustRoomOverlay(response: Response): Promise<void> {
+    protected processTrustRoomOverlay(response: Response): Promise<RoomOverlayDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
-            return;
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = RoomOverlayDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = RoomOverlayValidationResultDto.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<void>(null as any);
+        return Promise.resolve<RoomOverlayDto>(null as any);
     }
 
-    markRoomOverlayNeedsReview(id: string): Promise<void> {
+    markRoomOverlayNeedsReview(id: string): Promise<RoomOverlayDto> {
         let url_ = this.baseUrl + "/api/room-overlays/{id}/needs-review";
         if (id === undefined || id === null)
             throw new globalThis.Error("The parameter 'id' must be defined.");
@@ -370,6 +476,7 @@ export class HomeOpsApiClient {
         let options_: RequestInit = {
             method: "POST",
             headers: {
+                "Accept": "application/json"
             }
         };
 
@@ -378,19 +485,26 @@ export class HomeOpsApiClient {
         });
     }
 
-    protected processMarkRoomOverlayNeedsReview(response: Response): Promise<void> {
+    protected processMarkRoomOverlayNeedsReview(response: Response): Promise<RoomOverlayDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
-            return;
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = RoomOverlayDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<void>(null as any);
+        return Promise.resolve<RoomOverlayDto>(null as any);
     }
 
     archiveRoomOverlay(id: string): Promise<void> {
@@ -414,9 +528,13 @@ export class HomeOpsApiClient {
     protected processArchiveRoomOverlay(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
+        if (status === 204) {
             return response.text().then((_responseText) => {
             return;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -426,7 +544,7 @@ export class HomeOpsApiClient {
         return Promise.resolve<void>(null as any);
     }
 
-    restoreRoomOverlay(id: string): Promise<void> {
+    restoreRoomOverlay(id: string): Promise<RoomOverlayDto> {
         let url_ = this.baseUrl + "/api/room-overlays/{id}/restore";
         if (id === undefined || id === null)
             throw new globalThis.Error("The parameter 'id' must be defined.");
@@ -436,6 +554,7 @@ export class HomeOpsApiClient {
         let options_: RequestInit = {
             method: "POST",
             headers: {
+                "Accept": "application/json"
             }
         };
 
@@ -444,22 +563,36 @@ export class HomeOpsApiClient {
         });
     }
 
-    protected processRestoreRoomOverlay(response: Response): Promise<void> {
+    protected processRestoreRoomOverlay(response: Response): Promise<RoomOverlayDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
-            return;
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = RoomOverlayDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = RoomOverlayValidationResultDto.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<void>(null as any);
+        return Promise.resolve<RoomOverlayDto>(null as any);
     }
 
-    getRoomOverlayValidation(id: string): Promise<void> {
+    getRoomOverlayValidation(id: string): Promise<RoomOverlayValidationResultDto> {
         let url_ = this.baseUrl + "/api/room-overlays/{id}/validation";
         if (id === undefined || id === null)
             throw new globalThis.Error("The parameter 'id' must be defined.");
@@ -469,6 +602,7 @@ export class HomeOpsApiClient {
         let options_: RequestInit = {
             method: "GET",
             headers: {
+                "Accept": "application/json"
             }
         };
 
@@ -477,19 +611,26 @@ export class HomeOpsApiClient {
         });
     }
 
-    protected processGetRoomOverlayValidation(response: Response): Promise<void> {
+    protected processGetRoomOverlayValidation(response: Response): Promise<RoomOverlayValidationResultDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
-            return;
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = RoomOverlayValidationResultDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<void>(null as any);
+        return Promise.resolve<RoomOverlayValidationResultDto>(null as any);
     }
 
     getMotivationSnapshot(): Promise<MotivationSnapshotDto> {
@@ -5940,6 +6081,247 @@ export class HomeOpsApiClient {
     }
 }
 
+export class RoomOverlayDto implements IRoomOverlayDto {
+    id?: string;
+    roomId?: string;
+    floorId?: string;
+    floorPlanAssetId?: string;
+    state?: RoomOverlayState;
+    polygon?: NormalizedPoint[];
+    labelAnchor?: NormalizedPoint | undefined;
+    archivedUtc?: Date | undefined;
+    createdUtc?: Date;
+    updatedUtc?: Date;
+
+    constructor(data?: IRoomOverlayDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.roomId = _data["roomId"];
+            this.floorId = _data["floorId"];
+            this.floorPlanAssetId = _data["floorPlanAssetId"];
+            this.state = _data["state"];
+            if (Array.isArray(_data["polygon"])) {
+                this.polygon = [] as any;
+                for (let item of _data["polygon"])
+                    this.polygon!.push(NormalizedPoint.fromJS(item));
+            }
+            this.labelAnchor = _data["labelAnchor"] ? NormalizedPoint.fromJS(_data["labelAnchor"]) : undefined as any;
+            this.archivedUtc = _data["archivedUtc"] ? new Date(_data["archivedUtc"].toString()) : undefined as any;
+            this.createdUtc = _data["createdUtc"] ? new Date(_data["createdUtc"].toString()) : undefined as any;
+            this.updatedUtc = _data["updatedUtc"] ? new Date(_data["updatedUtc"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): RoomOverlayDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new RoomOverlayDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["roomId"] = this.roomId;
+        data["floorId"] = this.floorId;
+        data["floorPlanAssetId"] = this.floorPlanAssetId;
+        data["state"] = this.state;
+        if (Array.isArray(this.polygon)) {
+            data["polygon"] = [];
+            for (let item of this.polygon)
+                data["polygon"].push(item ? item.toJSON() : undefined as any);
+        }
+        data["labelAnchor"] = this.labelAnchor ? this.labelAnchor.toJSON() : undefined as any;
+        data["archivedUtc"] = this.archivedUtc ? this.archivedUtc.toISOString() : undefined as any;
+        data["createdUtc"] = this.createdUtc ? this.createdUtc.toISOString() : undefined as any;
+        data["updatedUtc"] = this.updatedUtc ? this.updatedUtc.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface IRoomOverlayDto {
+    id?: string;
+    roomId?: string;
+    floorId?: string;
+    floorPlanAssetId?: string;
+    state?: RoomOverlayState;
+    polygon?: NormalizedPoint[];
+    labelAnchor?: NormalizedPoint | undefined;
+    archivedUtc?: Date | undefined;
+    createdUtc?: Date;
+    updatedUtc?: Date;
+}
+
+export enum RoomOverlayState {
+    Draft = 0,
+    Valid = 1,
+    NeedsReview = 2,
+    Trusted = 3,
+    Invalid = 4,
+    Archived = 5,
+}
+
+export class NormalizedPoint implements INormalizedPoint {
+    x?: number;
+    y?: number;
+
+    constructor(data?: INormalizedPoint) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.x = _data["x"];
+            this.y = _data["y"];
+        }
+    }
+
+    static fromJS(data: any): NormalizedPoint {
+        data = typeof data === 'object' ? data : {};
+        let result = new NormalizedPoint();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["x"] = this.x;
+        data["y"] = this.y;
+        return data;
+    }
+}
+
+export interface INormalizedPoint {
+    x?: number;
+    y?: number;
+}
+
+export class RoomOverlayValidationResultDto implements IRoomOverlayValidationResultDto {
+    overlayId?: string | undefined;
+    isValid?: boolean;
+    blockers?: RoomOverlayValidationIssue[];
+    warnings?: RoomOverlayValidationIssue[];
+
+    constructor(data?: IRoomOverlayValidationResultDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.overlayId = _data["overlayId"];
+            this.isValid = _data["isValid"];
+            if (Array.isArray(_data["blockers"])) {
+                this.blockers = [] as any;
+                for (let item of _data["blockers"])
+                    this.blockers!.push(RoomOverlayValidationIssue.fromJS(item));
+            }
+            if (Array.isArray(_data["warnings"])) {
+                this.warnings = [] as any;
+                for (let item of _data["warnings"])
+                    this.warnings!.push(RoomOverlayValidationIssue.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): RoomOverlayValidationResultDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new RoomOverlayValidationResultDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["overlayId"] = this.overlayId;
+        data["isValid"] = this.isValid;
+        if (Array.isArray(this.blockers)) {
+            data["blockers"] = [];
+            for (let item of this.blockers)
+                data["blockers"].push(item ? item.toJSON() : undefined as any);
+        }
+        if (Array.isArray(this.warnings)) {
+            data["warnings"] = [];
+            for (let item of this.warnings)
+                data["warnings"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IRoomOverlayValidationResultDto {
+    overlayId?: string | undefined;
+    isValid?: boolean;
+    blockers?: RoomOverlayValidationIssue[];
+    warnings?: RoomOverlayValidationIssue[];
+}
+
+export class RoomOverlayValidationIssue implements IRoomOverlayValidationIssue {
+    code?: string;
+    message?: string;
+    conflictingOverlayId?: string | undefined;
+    conflictingRoomId?: string | undefined;
+
+    constructor(data?: IRoomOverlayValidationIssue) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.code = _data["code"];
+            this.message = _data["message"];
+            this.conflictingOverlayId = _data["conflictingOverlayId"];
+            this.conflictingRoomId = _data["conflictingRoomId"];
+        }
+    }
+
+    static fromJS(data: any): RoomOverlayValidationIssue {
+        data = typeof data === 'object' ? data : {};
+        let result = new RoomOverlayValidationIssue();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["code"] = this.code;
+        data["message"] = this.message;
+        data["conflictingOverlayId"] = this.conflictingOverlayId;
+        data["conflictingRoomId"] = this.conflictingRoomId;
+        return data;
+    }
+}
+
+export interface IRoomOverlayValidationIssue {
+    code?: string;
+    message?: string;
+    conflictingOverlayId?: string | undefined;
+    conflictingRoomId?: string | undefined;
+}
+
 export class CreateRoomOverlayRequest implements ICreateRoomOverlayRequest {
     roomId?: string;
     floorPlanAssetId?: string;
@@ -5998,55 +6380,6 @@ export interface ICreateRoomOverlayRequest {
     polygon?: NormalizedPoint[];
     labelAnchor?: NormalizedPoint | undefined;
     state?: RoomOverlayState | undefined;
-}
-
-export class NormalizedPoint implements INormalizedPoint {
-    x?: number;
-    y?: number;
-
-    constructor(data?: INormalizedPoint) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (this as any)[property] = (data as any)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            this.x = _data["x"];
-            this.y = _data["y"];
-        }
-    }
-
-    static fromJS(data: any): NormalizedPoint {
-        data = typeof data === 'object' ? data : {};
-        let result = new NormalizedPoint();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        data["x"] = this.x;
-        data["y"] = this.y;
-        return data;
-    }
-}
-
-export interface INormalizedPoint {
-    x?: number;
-    y?: number;
-}
-
-export enum RoomOverlayState {
-    Draft = 0,
-    Valid = 1,
-    NeedsReview = 2,
-    Trusted = 3,
-    Invalid = 4,
-    Archived = 5,
 }
 
 export class UpdateRoomOverlayGeometryRequest implements IUpdateRoomOverlayGeometryRequest {

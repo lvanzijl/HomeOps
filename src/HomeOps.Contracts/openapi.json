@@ -45,6 +45,19 @@
         ],
         "responses": {
           "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RoomOverlayDto"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
             "description": ""
           }
         }
@@ -79,8 +92,25 @@
           "x-position": 2
         },
         "responses": {
-          "200": {
-            "description": ""
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomOverlayDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomOverlayValidationResultDto"
+                }
+              }
+            }
           }
         }
       }
@@ -114,6 +144,19 @@
         ],
         "responses": {
           "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RoomOverlayDto"
+                  }
+                }
+              }
+            }
+          },
+          "404": {
             "description": ""
           }
         }
@@ -139,6 +182,16 @@
         ],
         "responses": {
           "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomOverlayDto"
+                }
+              }
+            }
+          },
+          "404": {
             "description": ""
           }
         }
@@ -161,7 +214,10 @@
           }
         ],
         "responses": {
-          "200": {
+          "204": {
+            "description": ""
+          },
+          "404": {
             "description": ""
           }
         }
@@ -199,6 +255,26 @@
         },
         "responses": {
           "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomOverlayDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomOverlayValidationResultDto"
+                }
+              }
+            }
+          },
+          "404": {
             "description": ""
           }
         }
@@ -236,6 +312,26 @@
         },
         "responses": {
           "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomOverlayDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomOverlayValidationResultDto"
+                }
+              }
+            }
+          },
+          "404": {
             "description": ""
           }
         }
@@ -259,6 +355,16 @@
         ],
         "responses": {
           "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomOverlayDto"
+                }
+              }
+            }
+          },
+          "404": {
             "description": ""
           }
         }
@@ -284,6 +390,26 @@
         ],
         "responses": {
           "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomOverlayDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomOverlayValidationResultDto"
+                }
+              }
+            }
+          },
+          "404": {
             "description": ""
           }
         }
@@ -309,6 +435,16 @@
         ],
         "responses": {
           "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomOverlayDto"
+                }
+              }
+            }
+          },
+          "404": {
             "description": ""
           }
         }
@@ -333,7 +469,10 @@
           }
         ],
         "responses": {
-          "200": {
+          "204": {
+            "description": ""
+          },
+          "404": {
             "description": ""
           }
         }
@@ -359,6 +498,26 @@
         ],
         "responses": {
           "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomOverlayDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomOverlayValidationResultDto"
+                }
+              }
+            }
+          },
+          "404": {
             "description": ""
           }
         }
@@ -384,6 +543,16 @@
         ],
         "responses": {
           "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomOverlayValidationResultDto"
+                }
+              }
+            }
+          },
+          "404": {
             "description": ""
           }
         }
@@ -5059,6 +5228,140 @@
   },
   "components": {
     "schemas": {
+      "RoomOverlayDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "roomId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "floorId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "floorPlanAssetId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "state": {
+            "$ref": "#/components/schemas/RoomOverlayState"
+          },
+          "polygon": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NormalizedPoint"
+            }
+          },
+          "labelAnchor": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/NormalizedPoint"
+              }
+            ]
+          },
+          "archivedUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "createdUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedUtc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "RoomOverlayState": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "Draft",
+          "Valid",
+          "NeedsReview",
+          "Trusted",
+          "Invalid",
+          "Archived"
+        ],
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      "NormalizedPoint": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "x": {
+            "type": "number",
+            "format": "decimal"
+          },
+          "y": {
+            "type": "number",
+            "format": "decimal"
+          }
+        }
+      },
+      "RoomOverlayValidationResultDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "overlayId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "isValid": {
+            "type": "boolean"
+          },
+          "blockers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoomOverlayValidationIssue"
+            }
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoomOverlayValidationIssue"
+            }
+          }
+        }
+      },
+      "RoomOverlayValidationIssue": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "conflictingOverlayId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "conflictingRoomId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          }
+        }
+      },
       "CreateRoomOverlayRequest": {
         "type": "object",
         "additionalProperties": false,
@@ -5094,40 +5397,6 @@
             ]
           }
         }
-      },
-      "NormalizedPoint": {
-        "type": "object",
-        "additionalProperties": false,
-        "properties": {
-          "x": {
-            "type": "number",
-            "format": "decimal"
-          },
-          "y": {
-            "type": "number",
-            "format": "decimal"
-          }
-        }
-      },
-      "RoomOverlayState": {
-        "type": "integer",
-        "description": "",
-        "x-enumNames": [
-          "Draft",
-          "Valid",
-          "NeedsReview",
-          "Trusted",
-          "Invalid",
-          "Archived"
-        ],
-        "enum": [
-          0,
-          1,
-          2,
-          3,
-          4,
-          5
-        ]
       },
       "UpdateRoomOverlayGeometryRequest": {
         "type": "object",
