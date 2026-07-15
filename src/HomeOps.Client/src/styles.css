@@ -10498,3 +10498,23 @@ button {
 .overlay-unsaved { font-weight:800; color:#92400e; }
 @media (max-width: 980px) { .overlay-layout { grid-template-columns: 1fr; } .overlay-editor { max-height: 80vh; } .floorplan-stage { min-height: 18rem; } .overlay-handle { r: .026; } }
 @media (max-width: 640px) { .overlay-canvas-panel,.overlay-review { opacity:.68; pointer-events:none; } }
+.replacement-card, .replacement-workspace { border: 1px solid rgba(14,116,144,.22); border-radius: 1rem; padding: .85rem; background: rgba(240,253,250,.62); min-height: 0; overflow: hidden; }
+.replacement-workspace { display: flex; flex-direction: column; gap: .75rem; max-height: min(68vh, 720px); }
+.replacement-head { display: flex; justify-content: space-between; gap: 1rem; align-items: start; }
+.replacement-head h4, .replacement-head p, .replacement-card h4 { margin: 0 0 .35rem; }
+.replacement-grid { display: grid; grid-template-columns: minmax(13rem,.75fr) minmax(22rem,1.45fr) minmax(14rem,.8fr); gap: .75rem; min-height: 0; overflow: hidden; }
+.replacement-list, .replacement-main, .replacement-readiness { min-height: 0; overflow: hidden; display: flex; flex-direction: column; gap: .65rem; }
+.replacement-list [role="tablist"], .replacement-plans { display: flex; gap: .5rem; }
+.replacement-list [role="tablist"] { flex-wrap: wrap; }
+.replacement-list [role="tab"][aria-selected="true"] { outline: 2px solid rgba(37,99,235,.55); }
+.replacement-room { text-align: left; border: 1px solid rgba(15,23,42,.13); border-radius: .85rem; background: rgba(255,255,255,.86); padding: .65rem; display: grid; gap: .2rem; color: inherit; }
+.replacement-room.selected { border-color: rgba(37,99,235,.7); box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+.replacement-plans { min-height: 14rem; overflow: hidden; }
+.replacement-plan { flex: 1 1 0; min-width: 0; margin: 0; border: 1px solid rgba(15,23,42,.12); border-radius: 1rem; background: rgba(255,255,255,.82); padding: .6rem; display: flex; flex-direction: column; gap: .45rem; }
+.replacement-plan figcaption { display: grid; gap: .15rem; font-size: .86rem; }
+.replacement-plan img { width: 100%; height: 12rem; object-fit: contain; background: white; border-radius: .65rem; }
+.replacement-detail, .replacement-readiness section { border: 1px solid rgba(15,23,42,.12); border-radius: 1rem; padding: .75rem; background: rgba(255,255,255,.78); overflow-y: auto; }
+.replacement-detail fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: .3rem; }
+.replacement-detail label { display: flex; gap: .4rem; align-items: center; }
+@media (max-width: 980px) { .replacement-grid { grid-template-columns: 1fr; } .replacement-workspace { max-height: 74vh; } .replacement-plans { flex-direction: column; } .replacement-plan img { height: 9rem; } }
+@media (max-width: 640px) { .replacement-workspace { max-height: 76vh; } .replacement-plans { display: none; } .replacement-detail fieldset label { align-items: flex-start; } }

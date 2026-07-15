@@ -1,0 +1,20 @@
+import { ApproveReuseCandidateRequest, AttachReplacementOverlayRequest, FloorPlanAssetAvailability, FloorPlanAssetState, HomeOpsApiClient, StartFloorPlanReplacementReviewRequest, UpdateRoomReplacementDispositionRequest, type FloorPlanAssetDto, type FloorPlanReplacementReviewDto, type RoomReplacementDisposition } from "../api/homeOpsApiClient";
+
+function client() { return new HomeOpsApiClient(); }
+export async function loadFloorPlanAssets(floorId: string) { return client().listFloorPlanAssets(floorId); }
+export function findValidatedReplacement(assets: readonly FloorPlanAssetDto[], active?: FloorPlanAssetDto | null) { return assets.find((asset) => asset.state === FloorPlanAssetState.Validated && asset.replacementOfAssetId === active?.id && asset.derivativeAvailability !== FloorPlanAssetAvailability.Missing && asset.derivativeAvailability !== FloorPlanAssetAvailability.Corrupt) ?? null; }
+export async function getActiveReplacementReview(floorId: string): Promise<FloorPlanReplacementReviewDto | null> { try { return await client().getActiveFloorPlanReplacementReview(floorId); } catch (error) { const status = typeof error === "object" && error && "status" in error ? Number((error as { status?: number }).status) : 0; if (status === 204 || status === 404) return null; throw error; } }
+export function listReplacementReviews(floorId: string) { return client().listFloorPlanReplacementReviews(floorId); }
+export function getReplacementReview(floorId: string, reviewId: string) { return client().getFloorPlanReplacementReview(floorId, reviewId); }
+export function getReplacementReviewRooms(floorId: string, reviewId: string) { return client().getFloorPlanReplacementReviewRooms(floorId, reviewId); }
+export function startReplacementReview(floorId: string, replacementAssetId: string) { return client().startFloorPlanReplacementReview(floorId, new StartFloorPlanReplacementReviewRequest({ replacementAssetId })); }
+export function updateReplacementRoomDisposition(floorId: string, reviewId: string, roomId: string, disposition: RoomReplacementDisposition, fallbackReason?: string) { return client().updateFloorPlanReplacementRoomDisposition(floorId, reviewId, roomId, new UpdateRoomReplacementDispositionRequest({ disposition, fallbackReason })); }
+export function approveReplacementReuse(floorId: string, reviewId: string, roomId: string, preserveLabelAnchor: boolean) { return client().approveFloorPlanReplacementReuse(floorId, reviewId, roomId, new ApproveReuseCandidateRequest({ preserveLabelAnchor })); }
+export function attachReplacementOverlay(floorId: string, reviewId: string, roomId: string, overlayId: string, preserveLabelAnchor: boolean) { return client().attachFloorPlanReplacementOverlay(floorId, reviewId, roomId, new AttachReplacementOverlayRequest({ overlayId, approve: true, preserveLabelAnchor })); }
+export function resetReplacementRoom(floorId: string, reviewId: string, roomId: string) { return client().resetFloorPlanReplacementRoomReview(floorId, reviewId, roomId); }
+export function validateReplacementReview(floorId: string, reviewId: string) { return client().validateFloorPlanReplacementReview(floorId, reviewId); }
+export function activateReplacementReview(floorId: string, reviewId: string) { return client().activateFloorPlanReplacementReview(floorId, reviewId); }
+export function cancelReplacementReview(floorId: string, reviewId: string) { return client().cancelFloorPlanReplacementReview(floorId, reviewId); }
+export function getReplacementRollbackAvailability(floorId: string, reviewId: string) { return client().getFloorPlanReplacementRollbackAvailability(floorId, reviewId); }
+export function rollbackReplacementReview(floorId: string, reviewId: string) { return client().rollbackFloorPlanReplacementReview(floorId, reviewId); }
+export function friendlyReviewError(error: unknown, fallback: string) { const status = typeof error === "object" && error && "status" in error ? Number((error as { status?: number }).status) : 0; if (status === 404 || status === 409) return "De beoordeling is intussen gewijzigd. Vernieuw de gegevens."; if (status === 400) return fallback; return fallback; }
