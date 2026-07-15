@@ -866,3 +866,8 @@ Settings > Woning now exposes a bounded replacement floor-plan review workflow f
 ### 2026-07-15 — Woning Climate Floor Plans Slice 9 hardening
 - Added focused backend hardening tests for normalized Room climate observations, freshness, spatial fallback, Floor/Household summaries, persistence metadata, and generated API contracts.
 - Kept runtime UI, comfort logic, controls, histories, weather, presence, Stories, and Home Assistant setup out of scope.
+
+
+### 2026-07-15 — Woning Climate Floor Plans Slice 10 Runtime `Klimaat in huis`
+- Completed the frontend-only read-only runtime climate deep-dive reachable from Woning. The workspace shows one Floor at a time, uses generated climate read-model contracts directly, renders only Trusted overlays on the Active safe derivative, preserves full Room-list fallback access, maps freshness/operating states to Dutch factual labels, and keeps the page viewport-bounded with responsive room-list-first phone behavior.
+- Explicitly excluded controls, schedules, Stories, comfort scoring, recommendations, histories, weather, presence, Home Assistant setup, screenshots, binary assets, generated-client edits, and handwritten API workarounds.

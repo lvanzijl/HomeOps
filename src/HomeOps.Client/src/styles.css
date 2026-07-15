@@ -10518,3 +10518,32 @@ button {
 .replacement-detail label { display: flex; gap: .4rem; align-items: center; }
 @media (max-width: 980px) { .replacement-grid { grid-template-columns: 1fr; } .replacement-workspace { max-height: 74vh; } .replacement-plans { flex-direction: column; } .replacement-plan img { height: 9rem; } }
 @media (max-width: 640px) { .replacement-workspace { max-height: 76vh; } .replacement-plans { display: none; } .replacement-detail fieldset label { align-items: flex-start; } }
+
+.woning-story-page, .climate-workspace { height: 100%; min-height: 0; display: flex; flex-direction: column; gap: 1rem; overflow: hidden; }
+.woning-climate-entry { border: 1px solid rgba(93, 64, 55, .18); border-radius: 1.25rem; padding: 1rem; background: rgba(255, 251, 246, .78); }
+.climate-summary-pills, .climate-floor-summary, .floor-tabs, .room-filters, .climate-header { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; }
+.climate-summary-pills span, .climate-floor-summary span { border-radius: 999px; background: rgba(120, 86, 62, .10); padding: .35rem .65rem; }
+.climate-header { justify-content: space-between; flex: 0 0 auto; }
+.climate-header h3 { margin: 0; }
+.floor-tabs { flex: 0 0 auto; overflow-x: auto; flex-wrap: nowrap; padding-bottom: .2rem; }
+.floor-tabs button, .room-filters button { border: 1px solid rgba(93,64,55,.18); background: rgba(255,255,255,.75); border-radius: 999px; padding: .45rem .75rem; }
+.floor-tabs button[aria-pressed="true"], .room-filters button[aria-pressed="true"], .room-row[aria-pressed="true"] { outline: 3px solid rgba(151, 108, 75, .35); background: #fff7ee; }
+.floor-tabs small { display: block; opacity: .75; }
+.climate-floor-summary { flex: 0 0 auto; font-size: .9rem; }
+.climate-grid { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: minmax(24rem, 1.4fr) minmax(18rem, .8fr) minmax(17rem, .7fr); gap: 1rem; overflow: hidden; }
+.climate-plan-panel, .climate-room-list, .room-detail { min-height: 0; overflow: auto; border: 1px solid rgba(93, 64, 55, .16); border-radius: 1.25rem; background: rgba(255,255,255,.74); padding: .8rem; }
+.climate-legend { display: flex; gap: .5rem; flex-wrap: wrap; font-size: .85rem; margin-bottom: .5rem; }
+.climate-plan { position: relative; max-height: 100%; aspect-ratio: 16 / 10; border-radius: 1rem; overflow: hidden; background: #f7efe7; }
+.climate-plan img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.climate-overlay { position: absolute; inset: 0; border: 0; background: rgba(238, 182, 112, .23); cursor: pointer; color: #37261d; }
+.climate-overlay.selected { background: rgba(96, 151, 126, .34); }
+.climate-overlay span { position: absolute; transform: translate(-50%, -50%); background: rgba(255,255,255,.86); border-radius: .7rem; padding: .25rem .4rem; font-size: .78rem; line-height: 1.15; box-shadow: 0 4px 16px rgba(60,40,25,.14); }
+.climate-room-list { display: flex; flex-direction: column; gap: .6rem; }
+.room-filters { flex: 0 0 auto; }
+.room-row { text-align: left; display: grid; gap: .2rem; border: 1px solid rgba(93,64,55,.13); border-radius: 1rem; padding: .7rem; background: rgba(255,251,246,.8); }
+.room-detail dl { display: grid; grid-template-columns: max-content 1fr; gap: .45rem .8rem; }
+.room-detail dt { font-weight: 700; }
+.empty-state { border: 1px dashed rgba(93,64,55,.22); border-radius: 1rem; padding: 1rem; }
+@media (max-width: 980px) { .climate-grid { grid-template-columns: 1fr; grid-template-rows: minmax(16rem, 1fr) minmax(12rem, .8fr) minmax(10rem, .7fr); } }
+@media (max-width: 640px) { .climate-plan-panel { order: 2; max-height: 12rem; } .climate-room-list { order: 1; } .room-detail { order: 3; } .climate-grid { gap: .6rem; } }
+@media (prefers-reduced-motion: reduce) { .climate-overlay, .room-row { transition: none; } }
