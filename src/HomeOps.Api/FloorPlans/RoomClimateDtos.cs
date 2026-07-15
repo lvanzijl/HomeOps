@@ -20,3 +20,24 @@ public sealed record RoomClimateConfigurationDto(
     IReadOnlyCollection<ClimateSourceRole> RequiredSourceRoles,
     DateTimeOffset? CreatedUtc,
     DateTimeOffset? UpdatedUtc);
+
+public sealed record SubmitRoomClimateObservationRequest(
+    Guid SourceMappingId,
+    DateTimeOffset ObservedUtc,
+    DateTimeOffset? ReceivedUtc = null,
+    decimal? TemperatureCelsius = null,
+    decimal? RelativeHumidity = null,
+    decimal? TargetTemperatureCelsius = null,
+    RoomClimateOperatingState OperatingState = RoomClimateOperatingState.Unknown,
+    bool IsProviderAvailable = true,
+    string? SourceReference = null,
+    string? StatusDetail = null);
+
+public sealed record SubmitRoomClimateObservationResponse(RoomClimateObservationStatus Status, RoomClimateObservationDto? Observation);
+public sealed record RoomClimateObservationDto(Guid Id, Guid RoomId, Guid SourceMappingId, Guid ProviderId, DateTimeOffset ObservedUtc, DateTimeOffset ReceivedUtc, decimal? TemperatureCelsius, decimal? RelativeHumidity, decimal? TargetTemperatureCelsius, RoomClimateOperatingState OperatingState, bool IsProviderAvailable, string? SourceReference, string? StatusDetail, DateTimeOffset CreatedUtc, DateTimeOffset UpdatedUtc);
+public sealed record RoomClimateConfigurationSummaryDto(bool IsConfigured, bool IsClimateEnabled, ClimateRangeDto? TemperatureRange, ClimateRangeDto? HumidityRange, HeatingPolicyIntent HeatingPolicyIntent, IReadOnlyCollection<ClimateSourceRole> RequiredSourceRoles);
+public sealed record RoomClimateStateDto(Guid RoomId, string RoomName, Guid FloorId, string FloorName, RoomType RoomType, RoomClimateConfigurationSummaryDto Configuration, RoomClimateObservationDto? CurrentObservation, RoomClimateOperatingState OperatingState, RoomClimateFreshness Freshness, DateTimeOffset? ObservedUtc, DateTimeOffset? ReceivedUtc, bool IsProviderAvailable, IReadOnlyCollection<string> Issues, RoomClimateSpatialDisplayStatus SpatialDisplayStatus, Guid? ActiveFloorPlanAssetId, Guid? TrustedOverlayId);
+public sealed record FloorClimateCountsDto(int FreshRooms, int AgingRooms, int StaleRooms, int UnavailableRooms, int TrustedOverlayRooms, int FallbackRooms);
+public sealed record FloorClimateStateDto(Guid FloorId, string FloorName, FloorPlanAssetDto? ActiveAsset, IReadOnlyCollection<RoomClimateStateDto> Rooms, FloorClimateCountsDto Counts, DateTimeOffset? ObservedSummaryUtc, RoomClimateFreshness OverallAvailability);
+public sealed record HouseholdClimateSummaryDto(Guid HouseholdId, IReadOnlyCollection<FloorClimateSummaryDto> Floors);
+public sealed record FloorClimateSummaryDto(Guid FloorId, string FloorName, FloorClimateCountsDto Counts, DateTimeOffset? ObservedSummaryUtc, RoomClimateFreshness OverallAvailability);

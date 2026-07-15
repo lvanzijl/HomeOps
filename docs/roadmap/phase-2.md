@@ -858,3 +858,11 @@ Replacement review lifecycle endpoints are now discoverable through OpenAPI and 
 
 ## Completed Slice — Woning Climate Floor Plans Slice 8 Replacement Review UI
 Settings > Woning now exposes a bounded replacement floor-plan review workflow for validated replacement assets: administrators can start or resume reviews, compare current and new safe derivatives, assign backend-owned room dispositions, approve reuse candidates, redraw replacement geometry through the existing Room Overlay Editor, validate readiness via the backend, activate review-scoped replacements, cancel in-progress reviews, and execute review-scoped rollback where available. The slice intentionally excludes runtime Klimaat in huis, readings, Stories, heating controls, provider mapping UI, Home Assistant setup, image registration, automatic geometry transformation, visual diffing, screenshots, binary assets, handwritten networking, generated-client edits, and unrelated product scope.
+
+### 2026-07-15 — Woning Climate Floor Plans Slice 9
+- Completed backend Room Climate Read Model foundation for future `Klimaat in huis` runtime view.
+- Added normalized current observations, freshness policy, spatial fallback status, Floor summaries, OpenAPI, and generated TypeScript client contracts.
+
+### 2026-07-15 — Woning Climate Floor Plans Slice 9 hardening
+- Added focused backend hardening tests for normalized Room climate observations, freshness, spatial fallback, Floor/Household summaries, persistence metadata, and generated API contracts.
+- Kept runtime UI, comfort logic, controls, histories, weather, presence, Stories, and Home Assistant setup out of scope.

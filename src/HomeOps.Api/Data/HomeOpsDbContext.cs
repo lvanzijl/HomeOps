@@ -46,6 +46,7 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
     public DbSet<RoomOverlay> RoomOverlays => Set<RoomOverlay>();
     public DbSet<FloorPlanReplacementReview> FloorPlanReplacementReviews => Set<FloorPlanReplacementReview>();
     public DbSet<FloorPlanReplacementReviewItem> FloorPlanReplacementReviewItems => Set<FloorPlanReplacementReviewItem>();
+    public DbSet<RoomClimateObservation> RoomClimateObservations => Set<RoomClimateObservation>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -161,6 +162,31 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
         });
 
 
+
+
+        modelBuilder.Entity<RoomClimateObservation>(entity =>
+        {
+            entity.ToTable("RoomClimateObservations");
+            entity.HasKey(observation => observation.Id);
+            entity.Property(observation => observation.TemperatureCelsius).HasPrecision(5, 2);
+            entity.Property(observation => observation.RelativeHumidity).HasPrecision(5, 2);
+            entity.Property(observation => observation.TargetTemperatureCelsius).HasPrecision(5, 2);
+            entity.Property(observation => observation.OperatingState).HasConversion<string>().HasMaxLength(32).IsRequired();
+            entity.Property(observation => observation.IsProviderAvailable).IsRequired();
+            entity.Property(observation => observation.SourceReference).HasMaxLength(240);
+            entity.Property(observation => observation.StatusDetail).HasMaxLength(500);
+            entity.Property(observation => observation.ObservedUtc).IsRequired();
+            entity.Property(observation => observation.ReceivedUtc).IsRequired();
+            entity.Property(observation => observation.CreatedUtc).IsRequired();
+            entity.Property(observation => observation.UpdatedUtc).IsRequired();
+            entity.HasOne(observation => observation.Household).WithMany().HasForeignKey(observation => observation.HouseholdId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(observation => observation.Room).WithMany().HasForeignKey(observation => observation.RoomId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(observation => observation.SourceMapping).WithMany().HasForeignKey(observation => observation.SourceMappingId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(observation => observation.Provider).WithMany().HasForeignKey(observation => observation.ProviderId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(observation => new { observation.HouseholdId, observation.RoomId });
+            entity.HasIndex(observation => new { observation.HouseholdId, observation.ReceivedUtc });
+            entity.HasIndex(observation => new { observation.RoomId, observation.SourceMappingId }).IsUnique();
+        });
 
         modelBuilder.Entity<FloorPlanAsset>(entity =>
         {
