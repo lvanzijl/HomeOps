@@ -633,6 +633,47 @@ export class HomeOpsApiClient {
         return Promise.resolve<RoomOverlayValidationResultDto>(null as any);
     }
 
+    getHouseholdClimateSummary(householdId: string): Promise<HouseholdClimateSummaryDto> {
+        let url_ = this.baseUrl + "/api/households/{householdId}/climate-summary";
+        if (householdId === undefined || householdId === null)
+            throw new globalThis.Error("The parameter 'householdId' must be defined.");
+        url_ = url_.replace("{householdId}", encodeURIComponent("" + householdId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetHouseholdClimateSummary(_response);
+        });
+    }
+
+    protected processGetHouseholdClimateSummary(response: Response): Promise<HouseholdClimateSummaryDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = HouseholdClimateSummaryDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<HouseholdClimateSummaryDto>(null as any);
+    }
+
     getMotivationSnapshot(): Promise<MotivationSnapshotDto> {
         let url_ = this.baseUrl + "/api/motivation";
         url_ = url_.replace(/[?&]$/, "");
@@ -5443,6 +5484,140 @@ export class HomeOpsApiClient {
         return Promise.resolve<ClimateMappingDto>(null as any);
     }
 
+    getRoomClimateState(roomId: string): Promise<RoomClimateStateDto> {
+        let url_ = this.baseUrl + "/api/rooms/{roomId}/climate-state";
+        if (roomId === undefined || roomId === null)
+            throw new globalThis.Error("The parameter 'roomId' must be defined.");
+        url_ = url_.replace("{roomId}", encodeURIComponent("" + roomId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetRoomClimateState(_response);
+        });
+    }
+
+    protected processGetRoomClimateState(response: Response): Promise<RoomClimateStateDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = RoomClimateStateDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<RoomClimateStateDto>(null as any);
+    }
+
+    submitRoomClimateObservation(roomId: string, request: SubmitRoomClimateObservationRequest): Promise<SubmitRoomClimateObservationResponse> {
+        let url_ = this.baseUrl + "/api/rooms/{roomId}/climate-observations/current";
+        if (roomId === undefined || roomId === null)
+            throw new globalThis.Error("The parameter 'roomId' must be defined.");
+        url_ = url_.replace("{roomId}", encodeURIComponent("" + roomId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processSubmitRoomClimateObservation(_response);
+        });
+    }
+
+    protected processSubmitRoomClimateObservation(response: Response): Promise<SubmitRoomClimateObservationResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = SubmitRoomClimateObservationResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = HttpValidationProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<SubmitRoomClimateObservationResponse>(null as any);
+    }
+
+    getFloorClimateState(floorId: string): Promise<FloorClimateStateDto> {
+        let url_ = this.baseUrl + "/api/floors/{floorId}/climate-state";
+        if (floorId === undefined || floorId === null)
+            throw new globalThis.Error("The parameter 'floorId' must be defined.");
+        url_ = url_.replace("{floorId}", encodeURIComponent("" + floorId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetFloorClimateState(_response);
+        });
+    }
+
+    protected processGetFloorClimateState(response: Response): Promise<FloorClimateStateDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = FloorClimateStateDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FloorClimateStateDto>(null as any);
+    }
+
     getKnownPeople(scope: KnownPersonScope | null | undefined, familyMemberId: string | null | undefined): Promise<KnownPersonDto[]> {
         let url_ = this.baseUrl + "/api/known-people?";
         if (scope !== undefined && scope !== null)
@@ -7162,6 +7337,169 @@ export class UpdateRoomOverlayLabelAnchorRequest implements IUpdateRoomOverlayLa
 
 export interface IUpdateRoomOverlayLabelAnchorRequest {
     labelAnchor?: NormalizedPoint | undefined;
+}
+
+export class HouseholdClimateSummaryDto implements IHouseholdClimateSummaryDto {
+    householdId?: string;
+    floors?: FloorClimateSummaryDto[];
+
+    constructor(data?: IHouseholdClimateSummaryDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.householdId = _data["householdId"];
+            if (Array.isArray(_data["floors"])) {
+                this.floors = [] as any;
+                for (let item of _data["floors"])
+                    this.floors!.push(FloorClimateSummaryDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): HouseholdClimateSummaryDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new HouseholdClimateSummaryDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["householdId"] = this.householdId;
+        if (Array.isArray(this.floors)) {
+            data["floors"] = [];
+            for (let item of this.floors)
+                data["floors"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IHouseholdClimateSummaryDto {
+    householdId?: string;
+    floors?: FloorClimateSummaryDto[];
+}
+
+export class FloorClimateSummaryDto implements IFloorClimateSummaryDto {
+    floorId?: string;
+    floorName?: string;
+    counts?: FloorClimateCountsDto;
+    observedSummaryUtc?: Date | undefined;
+    overallAvailability?: RoomClimateFreshness;
+
+    constructor(data?: IFloorClimateSummaryDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.floorId = _data["floorId"];
+            this.floorName = _data["floorName"];
+            this.counts = _data["counts"] ? FloorClimateCountsDto.fromJS(_data["counts"]) : undefined as any;
+            this.observedSummaryUtc = _data["observedSummaryUtc"] ? new Date(_data["observedSummaryUtc"].toString()) : undefined as any;
+            this.overallAvailability = _data["overallAvailability"];
+        }
+    }
+
+    static fromJS(data: any): FloorClimateSummaryDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new FloorClimateSummaryDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["floorId"] = this.floorId;
+        data["floorName"] = this.floorName;
+        data["counts"] = this.counts ? this.counts.toJSON() : undefined as any;
+        data["observedSummaryUtc"] = this.observedSummaryUtc ? this.observedSummaryUtc.toISOString() : undefined as any;
+        data["overallAvailability"] = this.overallAvailability;
+        return data;
+    }
+}
+
+export interface IFloorClimateSummaryDto {
+    floorId?: string;
+    floorName?: string;
+    counts?: FloorClimateCountsDto;
+    observedSummaryUtc?: Date | undefined;
+    overallAvailability?: RoomClimateFreshness;
+}
+
+export class FloorClimateCountsDto implements IFloorClimateCountsDto {
+    freshRooms?: number;
+    agingRooms?: number;
+    staleRooms?: number;
+    unavailableRooms?: number;
+    trustedOverlayRooms?: number;
+    fallbackRooms?: number;
+
+    constructor(data?: IFloorClimateCountsDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.freshRooms = _data["freshRooms"];
+            this.agingRooms = _data["agingRooms"];
+            this.staleRooms = _data["staleRooms"];
+            this.unavailableRooms = _data["unavailableRooms"];
+            this.trustedOverlayRooms = _data["trustedOverlayRooms"];
+            this.fallbackRooms = _data["fallbackRooms"];
+        }
+    }
+
+    static fromJS(data: any): FloorClimateCountsDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new FloorClimateCountsDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["freshRooms"] = this.freshRooms;
+        data["agingRooms"] = this.agingRooms;
+        data["staleRooms"] = this.staleRooms;
+        data["unavailableRooms"] = this.unavailableRooms;
+        data["trustedOverlayRooms"] = this.trustedOverlayRooms;
+        data["fallbackRooms"] = this.fallbackRooms;
+        return data;
+    }
+}
+
+export interface IFloorClimateCountsDto {
+    freshRooms?: number;
+    agingRooms?: number;
+    staleRooms?: number;
+    unavailableRooms?: number;
+    trustedOverlayRooms?: number;
+    fallbackRooms?: number;
+}
+
+export enum RoomClimateFreshness {
+    Fresh = 0,
+    Aging = 1,
+    Stale = 2,
+    Unavailable = 3,
 }
 
 export class MotivationSnapshotDto implements IMotivationSnapshotDto {
@@ -13844,6 +14182,467 @@ export interface IUpdateClimateMappingRequest {
     priority?: number | undefined;
     isEnabled?: boolean | undefined;
     diagnosticSummary?: string | undefined;
+}
+
+export class RoomClimateStateDto implements IRoomClimateStateDto {
+    roomId?: string;
+    roomName?: string;
+    floorId?: string;
+    floorName?: string;
+    roomType?: RoomType;
+    configuration?: RoomClimateConfigurationSummaryDto;
+    currentObservation?: RoomClimateObservationDto | undefined;
+    operatingState?: RoomClimateOperatingState;
+    freshness?: RoomClimateFreshness;
+    observedUtc?: Date | undefined;
+    receivedUtc?: Date | undefined;
+    isProviderAvailable?: boolean;
+    issues?: string[];
+    spatialDisplayStatus?: RoomClimateSpatialDisplayStatus;
+    activeFloorPlanAssetId?: string | undefined;
+    trustedOverlayId?: string | undefined;
+
+    constructor(data?: IRoomClimateStateDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.roomId = _data["roomId"];
+            this.roomName = _data["roomName"];
+            this.floorId = _data["floorId"];
+            this.floorName = _data["floorName"];
+            this.roomType = _data["roomType"];
+            this.configuration = _data["configuration"] ? RoomClimateConfigurationSummaryDto.fromJS(_data["configuration"]) : undefined as any;
+            this.currentObservation = _data["currentObservation"] ? RoomClimateObservationDto.fromJS(_data["currentObservation"]) : undefined as any;
+            this.operatingState = _data["operatingState"];
+            this.freshness = _data["freshness"];
+            this.observedUtc = _data["observedUtc"] ? new Date(_data["observedUtc"].toString()) : undefined as any;
+            this.receivedUtc = _data["receivedUtc"] ? new Date(_data["receivedUtc"].toString()) : undefined as any;
+            this.isProviderAvailable = _data["isProviderAvailable"];
+            if (Array.isArray(_data["issues"])) {
+                this.issues = [] as any;
+                for (let item of _data["issues"])
+                    this.issues!.push(item);
+            }
+            this.spatialDisplayStatus = _data["spatialDisplayStatus"];
+            this.activeFloorPlanAssetId = _data["activeFloorPlanAssetId"];
+            this.trustedOverlayId = _data["trustedOverlayId"];
+        }
+    }
+
+    static fromJS(data: any): RoomClimateStateDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new RoomClimateStateDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["roomId"] = this.roomId;
+        data["roomName"] = this.roomName;
+        data["floorId"] = this.floorId;
+        data["floorName"] = this.floorName;
+        data["roomType"] = this.roomType;
+        data["configuration"] = this.configuration ? this.configuration.toJSON() : undefined as any;
+        data["currentObservation"] = this.currentObservation ? this.currentObservation.toJSON() : undefined as any;
+        data["operatingState"] = this.operatingState;
+        data["freshness"] = this.freshness;
+        data["observedUtc"] = this.observedUtc ? this.observedUtc.toISOString() : undefined as any;
+        data["receivedUtc"] = this.receivedUtc ? this.receivedUtc.toISOString() : undefined as any;
+        data["isProviderAvailable"] = this.isProviderAvailable;
+        if (Array.isArray(this.issues)) {
+            data["issues"] = [];
+            for (let item of this.issues)
+                data["issues"].push(item);
+        }
+        data["spatialDisplayStatus"] = this.spatialDisplayStatus;
+        data["activeFloorPlanAssetId"] = this.activeFloorPlanAssetId;
+        data["trustedOverlayId"] = this.trustedOverlayId;
+        return data;
+    }
+}
+
+export interface IRoomClimateStateDto {
+    roomId?: string;
+    roomName?: string;
+    floorId?: string;
+    floorName?: string;
+    roomType?: RoomType;
+    configuration?: RoomClimateConfigurationSummaryDto;
+    currentObservation?: RoomClimateObservationDto | undefined;
+    operatingState?: RoomClimateOperatingState;
+    freshness?: RoomClimateFreshness;
+    observedUtc?: Date | undefined;
+    receivedUtc?: Date | undefined;
+    isProviderAvailable?: boolean;
+    issues?: string[];
+    spatialDisplayStatus?: RoomClimateSpatialDisplayStatus;
+    activeFloorPlanAssetId?: string | undefined;
+    trustedOverlayId?: string | undefined;
+}
+
+export class RoomClimateConfigurationSummaryDto implements IRoomClimateConfigurationSummaryDto {
+    isConfigured?: boolean;
+    isClimateEnabled?: boolean;
+    temperatureRange?: ClimateRangeDto | undefined;
+    humidityRange?: ClimateRangeDto | undefined;
+    heatingPolicyIntent?: HeatingPolicyIntent;
+    requiredSourceRoles?: ClimateSourceRole[];
+
+    constructor(data?: IRoomClimateConfigurationSummaryDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.isConfigured = _data["isConfigured"];
+            this.isClimateEnabled = _data["isClimateEnabled"];
+            this.temperatureRange = _data["temperatureRange"] ? ClimateRangeDto.fromJS(_data["temperatureRange"]) : undefined as any;
+            this.humidityRange = _data["humidityRange"] ? ClimateRangeDto.fromJS(_data["humidityRange"]) : undefined as any;
+            this.heatingPolicyIntent = _data["heatingPolicyIntent"];
+            if (Array.isArray(_data["requiredSourceRoles"])) {
+                this.requiredSourceRoles = [] as any;
+                for (let item of _data["requiredSourceRoles"])
+                    this.requiredSourceRoles!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): RoomClimateConfigurationSummaryDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new RoomClimateConfigurationSummaryDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["isConfigured"] = this.isConfigured;
+        data["isClimateEnabled"] = this.isClimateEnabled;
+        data["temperatureRange"] = this.temperatureRange ? this.temperatureRange.toJSON() : undefined as any;
+        data["humidityRange"] = this.humidityRange ? this.humidityRange.toJSON() : undefined as any;
+        data["heatingPolicyIntent"] = this.heatingPolicyIntent;
+        if (Array.isArray(this.requiredSourceRoles)) {
+            data["requiredSourceRoles"] = [];
+            for (let item of this.requiredSourceRoles)
+                data["requiredSourceRoles"].push(item);
+        }
+        return data;
+    }
+}
+
+export interface IRoomClimateConfigurationSummaryDto {
+    isConfigured?: boolean;
+    isClimateEnabled?: boolean;
+    temperatureRange?: ClimateRangeDto | undefined;
+    humidityRange?: ClimateRangeDto | undefined;
+    heatingPolicyIntent?: HeatingPolicyIntent;
+    requiredSourceRoles?: ClimateSourceRole[];
+}
+
+export class RoomClimateObservationDto implements IRoomClimateObservationDto {
+    id?: string;
+    roomId?: string;
+    sourceMappingId?: string;
+    providerId?: string;
+    observedUtc?: Date;
+    receivedUtc?: Date;
+    temperatureCelsius?: number | undefined;
+    relativeHumidity?: number | undefined;
+    targetTemperatureCelsius?: number | undefined;
+    operatingState?: RoomClimateOperatingState;
+    isProviderAvailable?: boolean;
+    sourceReference?: string | undefined;
+    statusDetail?: string | undefined;
+    createdUtc?: Date;
+    updatedUtc?: Date;
+
+    constructor(data?: IRoomClimateObservationDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.roomId = _data["roomId"];
+            this.sourceMappingId = _data["sourceMappingId"];
+            this.providerId = _data["providerId"];
+            this.observedUtc = _data["observedUtc"] ? new Date(_data["observedUtc"].toString()) : undefined as any;
+            this.receivedUtc = _data["receivedUtc"] ? new Date(_data["receivedUtc"].toString()) : undefined as any;
+            this.temperatureCelsius = _data["temperatureCelsius"];
+            this.relativeHumidity = _data["relativeHumidity"];
+            this.targetTemperatureCelsius = _data["targetTemperatureCelsius"];
+            this.operatingState = _data["operatingState"];
+            this.isProviderAvailable = _data["isProviderAvailable"];
+            this.sourceReference = _data["sourceReference"];
+            this.statusDetail = _data["statusDetail"];
+            this.createdUtc = _data["createdUtc"] ? new Date(_data["createdUtc"].toString()) : undefined as any;
+            this.updatedUtc = _data["updatedUtc"] ? new Date(_data["updatedUtc"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): RoomClimateObservationDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new RoomClimateObservationDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["roomId"] = this.roomId;
+        data["sourceMappingId"] = this.sourceMappingId;
+        data["providerId"] = this.providerId;
+        data["observedUtc"] = this.observedUtc ? this.observedUtc.toISOString() : undefined as any;
+        data["receivedUtc"] = this.receivedUtc ? this.receivedUtc.toISOString() : undefined as any;
+        data["temperatureCelsius"] = this.temperatureCelsius;
+        data["relativeHumidity"] = this.relativeHumidity;
+        data["targetTemperatureCelsius"] = this.targetTemperatureCelsius;
+        data["operatingState"] = this.operatingState;
+        data["isProviderAvailable"] = this.isProviderAvailable;
+        data["sourceReference"] = this.sourceReference;
+        data["statusDetail"] = this.statusDetail;
+        data["createdUtc"] = this.createdUtc ? this.createdUtc.toISOString() : undefined as any;
+        data["updatedUtc"] = this.updatedUtc ? this.updatedUtc.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface IRoomClimateObservationDto {
+    id?: string;
+    roomId?: string;
+    sourceMappingId?: string;
+    providerId?: string;
+    observedUtc?: Date;
+    receivedUtc?: Date;
+    temperatureCelsius?: number | undefined;
+    relativeHumidity?: number | undefined;
+    targetTemperatureCelsius?: number | undefined;
+    operatingState?: RoomClimateOperatingState;
+    isProviderAvailable?: boolean;
+    sourceReference?: string | undefined;
+    statusDetail?: string | undefined;
+    createdUtc?: Date;
+    updatedUtc?: Date;
+}
+
+export enum RoomClimateOperatingState {
+    Unknown = 0,
+    Idle = 1,
+    Heating = 2,
+    Cooling = 3,
+    Unavailable = 4,
+}
+
+export enum RoomClimateSpatialDisplayStatus {
+    TrustedOverlayAvailable = 0,
+    RoomListFallback = 1,
+    IntentionallyNotDrawn = 2,
+    OverlayNeedsReview = 3,
+    NoActiveFloorPlan = 4,
+}
+
+export class SubmitRoomClimateObservationResponse implements ISubmitRoomClimateObservationResponse {
+    status?: RoomClimateObservationStatus;
+    observation?: RoomClimateObservationDto | undefined;
+
+    constructor(data?: ISubmitRoomClimateObservationResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.status = _data["status"];
+            this.observation = _data["observation"] ? RoomClimateObservationDto.fromJS(_data["observation"]) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): SubmitRoomClimateObservationResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new SubmitRoomClimateObservationResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["status"] = this.status;
+        data["observation"] = this.observation ? this.observation.toJSON() : undefined as any;
+        return data;
+    }
+}
+
+export interface ISubmitRoomClimateObservationResponse {
+    status?: RoomClimateObservationStatus;
+    observation?: RoomClimateObservationDto | undefined;
+}
+
+export enum RoomClimateObservationStatus {
+    Accepted = 0,
+    IgnoredOlderObservation = 1,
+}
+
+export class SubmitRoomClimateObservationRequest implements ISubmitRoomClimateObservationRequest {
+    sourceMappingId?: string;
+    observedUtc?: Date;
+    receivedUtc?: Date | undefined;
+    temperatureCelsius?: number | undefined;
+    relativeHumidity?: number | undefined;
+    targetTemperatureCelsius?: number | undefined;
+    operatingState?: RoomClimateOperatingState;
+    isProviderAvailable?: boolean;
+    sourceReference?: string | undefined;
+    statusDetail?: string | undefined;
+
+    constructor(data?: ISubmitRoomClimateObservationRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.sourceMappingId = _data["sourceMappingId"];
+            this.observedUtc = _data["observedUtc"] ? new Date(_data["observedUtc"].toString()) : undefined as any;
+            this.receivedUtc = _data["receivedUtc"] ? new Date(_data["receivedUtc"].toString()) : undefined as any;
+            this.temperatureCelsius = _data["temperatureCelsius"];
+            this.relativeHumidity = _data["relativeHumidity"];
+            this.targetTemperatureCelsius = _data["targetTemperatureCelsius"];
+            this.operatingState = _data["operatingState"];
+            this.isProviderAvailable = _data["isProviderAvailable"];
+            this.sourceReference = _data["sourceReference"];
+            this.statusDetail = _data["statusDetail"];
+        }
+    }
+
+    static fromJS(data: any): SubmitRoomClimateObservationRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new SubmitRoomClimateObservationRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["sourceMappingId"] = this.sourceMappingId;
+        data["observedUtc"] = this.observedUtc ? this.observedUtc.toISOString() : undefined as any;
+        data["receivedUtc"] = this.receivedUtc ? this.receivedUtc.toISOString() : undefined as any;
+        data["temperatureCelsius"] = this.temperatureCelsius;
+        data["relativeHumidity"] = this.relativeHumidity;
+        data["targetTemperatureCelsius"] = this.targetTemperatureCelsius;
+        data["operatingState"] = this.operatingState;
+        data["isProviderAvailable"] = this.isProviderAvailable;
+        data["sourceReference"] = this.sourceReference;
+        data["statusDetail"] = this.statusDetail;
+        return data;
+    }
+}
+
+export interface ISubmitRoomClimateObservationRequest {
+    sourceMappingId?: string;
+    observedUtc?: Date;
+    receivedUtc?: Date | undefined;
+    temperatureCelsius?: number | undefined;
+    relativeHumidity?: number | undefined;
+    targetTemperatureCelsius?: number | undefined;
+    operatingState?: RoomClimateOperatingState;
+    isProviderAvailable?: boolean;
+    sourceReference?: string | undefined;
+    statusDetail?: string | undefined;
+}
+
+export class FloorClimateStateDto implements IFloorClimateStateDto {
+    floorId?: string;
+    floorName?: string;
+    activeAsset?: FloorPlanAssetDto | undefined;
+    rooms?: RoomClimateStateDto[];
+    counts?: FloorClimateCountsDto;
+    observedSummaryUtc?: Date | undefined;
+    overallAvailability?: RoomClimateFreshness;
+
+    constructor(data?: IFloorClimateStateDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.floorId = _data["floorId"];
+            this.floorName = _data["floorName"];
+            this.activeAsset = _data["activeAsset"] ? FloorPlanAssetDto.fromJS(_data["activeAsset"]) : undefined as any;
+            if (Array.isArray(_data["rooms"])) {
+                this.rooms = [] as any;
+                for (let item of _data["rooms"])
+                    this.rooms!.push(RoomClimateStateDto.fromJS(item));
+            }
+            this.counts = _data["counts"] ? FloorClimateCountsDto.fromJS(_data["counts"]) : undefined as any;
+            this.observedSummaryUtc = _data["observedSummaryUtc"] ? new Date(_data["observedSummaryUtc"].toString()) : undefined as any;
+            this.overallAvailability = _data["overallAvailability"];
+        }
+    }
+
+    static fromJS(data: any): FloorClimateStateDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new FloorClimateStateDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["floorId"] = this.floorId;
+        data["floorName"] = this.floorName;
+        data["activeAsset"] = this.activeAsset ? this.activeAsset.toJSON() : undefined as any;
+        if (Array.isArray(this.rooms)) {
+            data["rooms"] = [];
+            for (let item of this.rooms)
+                data["rooms"].push(item ? item.toJSON() : undefined as any);
+        }
+        data["counts"] = this.counts ? this.counts.toJSON() : undefined as any;
+        data["observedSummaryUtc"] = this.observedSummaryUtc ? this.observedSummaryUtc.toISOString() : undefined as any;
+        data["overallAvailability"] = this.overallAvailability;
+        return data;
+    }
+}
+
+export interface IFloorClimateStateDto {
+    floorId?: string;
+    floorName?: string;
+    activeAsset?: FloorPlanAssetDto | undefined;
+    rooms?: RoomClimateStateDto[];
+    counts?: FloorClimateCountsDto;
+    observedSummaryUtc?: Date | undefined;
+    overallAvailability?: RoomClimateFreshness;
 }
 
 export class KnownPersonDto implements IKnownPersonDto {

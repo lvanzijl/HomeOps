@@ -980,3 +980,12 @@ Hardened Slice 7 backend replacement reviews with focused API, activation/rollba
 
 ## 2026-07-15 — Woning Climate Floor Plans Slice 8 replacement review UI
 - Implemented the Settings > Woning frontend replacement review workspace for discovering, starting, resuming, room-by-room dispositions, reuse approval, redraw via the existing Room Overlay Editor, backend-derived readiness, review-scoped activation, cancellation, and rollback. Generated replacement-review contracts are used directly; no handwritten API workaround, runtime Klimaat in huis, readings, Stories, heating controls, provider mapping, Home Assistant setup, image registration, screenshots, binary assets, or generated-client edits were added.
+
+## 2026-07-15 — Room Climate Read Model
+- Added backend normalized current Room climate observations for Woning Climate Floor Plans Slice 9.
+- Added Room/Floor/Household climate state read endpoints and generated API client contracts.
+- Current telemetry is treated as operational state and remains excluded from portability exports.
+
+## 2026-07-15 — Room Climate Read Model hardening
+- Added focused backend coverage for Slice 9 ingestion validation, newest-observation semantics, freshness boundaries, Room/Floor/Household read models, spatial fallback status, persistence metadata, generated contracts, and telemetry portability exclusion.
+- Hardened read-model household filtering and introduced a TimeProvider-backed clock seam for deterministic freshness tests without changing product scope.

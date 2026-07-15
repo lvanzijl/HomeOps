@@ -558,6 +558,41 @@
         }
       }
     },
+    "/api/households/{householdId}/climate-summary": {
+      "get": {
+        "tags": [
+          "Room Climate State"
+        ],
+        "operationId": "GetHouseholdClimateSummary",
+        "parameters": [
+          {
+            "name": "householdId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HouseholdClimateSummaryDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
     "/api/motivation": {
       "get": {
         "operationId": "GetMotivationSnapshot",
@@ -4927,6 +4962,133 @@
         }
       }
     },
+    "/api/rooms/{roomId}/climate-state": {
+      "get": {
+        "tags": [
+          "Room Climate State"
+        ],
+        "operationId": "GetRoomClimateState",
+        "parameters": [
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomClimateStateDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/rooms/{roomId}/climate-observations/current": {
+      "put": {
+        "tags": [
+          "Room Climate State"
+        ],
+        "operationId": "SubmitRoomClimateObservation",
+        "parameters": [
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitRoomClimateObservationRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmitRoomClimateObservationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/floors/{floorId}/climate-state": {
+      "get": {
+        "tags": [
+          "Room Climate State"
+        ],
+        "operationId": "GetFloorClimateState",
+        "parameters": [
+          {
+            "name": "floorId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FloorClimateStateDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
     "/api/known-people": {
       "get": {
         "tags": [
@@ -6186,6 +6348,92 @@
             ]
           }
         }
+      },
+      "HouseholdClimateSummaryDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "householdId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "floors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FloorClimateSummaryDto"
+            }
+          }
+        }
+      },
+      "FloorClimateSummaryDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "floorId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "floorName": {
+            "type": "string"
+          },
+          "counts": {
+            "$ref": "#/components/schemas/FloorClimateCountsDto"
+          },
+          "observedSummaryUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "overallAvailability": {
+            "$ref": "#/components/schemas/RoomClimateFreshness"
+          }
+        }
+      },
+      "FloorClimateCountsDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "freshRooms": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "agingRooms": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "staleRooms": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "unavailableRooms": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "trustedOverlayRooms": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "fallbackRooms": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "RoomClimateFreshness": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "Fresh",
+          "Aging",
+          "Stale",
+          "Unavailable"
+        ],
+        "enum": [
+          0,
+          1,
+          2,
+          3
+        ]
       },
       "MotivationSnapshotDto": {
         "type": "object",
@@ -9960,6 +10208,333 @@
           "diagnosticSummary": {
             "type": "string",
             "nullable": true
+          }
+        }
+      },
+      "RoomClimateStateDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "roomId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "roomName": {
+            "type": "string"
+          },
+          "floorId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "floorName": {
+            "type": "string"
+          },
+          "roomType": {
+            "$ref": "#/components/schemas/RoomType"
+          },
+          "configuration": {
+            "$ref": "#/components/schemas/RoomClimateConfigurationSummaryDto"
+          },
+          "currentObservation": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/RoomClimateObservationDto"
+              }
+            ]
+          },
+          "operatingState": {
+            "$ref": "#/components/schemas/RoomClimateOperatingState"
+          },
+          "freshness": {
+            "$ref": "#/components/schemas/RoomClimateFreshness"
+          },
+          "observedUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "receivedUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "isProviderAvailable": {
+            "type": "boolean"
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "spatialDisplayStatus": {
+            "$ref": "#/components/schemas/RoomClimateSpatialDisplayStatus"
+          },
+          "activeFloorPlanAssetId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "trustedOverlayId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          }
+        }
+      },
+      "RoomClimateConfigurationSummaryDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "isConfigured": {
+            "type": "boolean"
+          },
+          "isClimateEnabled": {
+            "type": "boolean"
+          },
+          "temperatureRange": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ClimateRangeDto"
+              }
+            ]
+          },
+          "humidityRange": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ClimateRangeDto"
+              }
+            ]
+          },
+          "heatingPolicyIntent": {
+            "$ref": "#/components/schemas/HeatingPolicyIntent"
+          },
+          "requiredSourceRoles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ClimateSourceRole"
+            }
+          }
+        }
+      },
+      "RoomClimateObservationDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "roomId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "sourceMappingId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "providerId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "observedUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "receivedUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "temperatureCelsius": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "relativeHumidity": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "targetTemperatureCelsius": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "operatingState": {
+            "$ref": "#/components/schemas/RoomClimateOperatingState"
+          },
+          "isProviderAvailable": {
+            "type": "boolean"
+          },
+          "sourceReference": {
+            "type": "string",
+            "nullable": true
+          },
+          "statusDetail": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedUtc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "RoomClimateOperatingState": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "Unknown",
+          "Idle",
+          "Heating",
+          "Cooling",
+          "Unavailable"
+        ],
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "RoomClimateSpatialDisplayStatus": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "TrustedOverlayAvailable",
+          "RoomListFallback",
+          "IntentionallyNotDrawn",
+          "OverlayNeedsReview",
+          "NoActiveFloorPlan"
+        ],
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "SubmitRoomClimateObservationResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/RoomClimateObservationStatus"
+          },
+          "observation": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/RoomClimateObservationDto"
+              }
+            ]
+          }
+        }
+      },
+      "RoomClimateObservationStatus": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "Accepted",
+          "IgnoredOlderObservation"
+        ],
+        "enum": [
+          0,
+          1
+        ]
+      },
+      "SubmitRoomClimateObservationRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "sourceMappingId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "observedUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "receivedUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "temperatureCelsius": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "relativeHumidity": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "targetTemperatureCelsius": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "operatingState": {
+            "$ref": "#/components/schemas/RoomClimateOperatingState"
+          },
+          "isProviderAvailable": {
+            "type": "boolean"
+          },
+          "sourceReference": {
+            "type": "string",
+            "nullable": true
+          },
+          "statusDetail": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "FloorClimateStateDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "floorId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "floorName": {
+            "type": "string"
+          },
+          "activeAsset": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/FloorPlanAssetDto"
+              }
+            ]
+          },
+          "rooms": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoomClimateStateDto"
+            }
+          },
+          "counts": {
+            "$ref": "#/components/schemas/FloorClimateCountsDto"
+          },
+          "observedSummaryUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "overallAvailability": {
+            "$ref": "#/components/schemas/RoomClimateFreshness"
           }
         }
       },
