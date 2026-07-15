@@ -5089,6 +5089,230 @@
         }
       }
     },
+    "/api/rooms/{roomId}/heating-control/capability": {
+      "get": {
+        "operationId": "GetRoomHeatingControlCapability",
+        "parameters": [
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomHeatingControlCapabilityDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/rooms/{roomId}/heating-control/temporary-warmer": {
+      "post": {
+        "operationId": "SubmitRoomHeatingTemporaryWarmer",
+        "parameters": [
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoomHeatingTemporaryCommandRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomHeatingCommandResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": ""
+          },
+          "404": {
+            "description": ""
+          },
+          "409": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/rooms/{roomId}/heating-control/temporary-cooler": {
+      "post": {
+        "operationId": "SubmitRoomHeatingTemporaryCooler",
+        "parameters": [
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoomHeatingTemporaryCommandRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomHeatingCommandResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": ""
+          },
+          "404": {
+            "description": ""
+          },
+          "409": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/rooms/{roomId}/heating-control/resume-schedule": {
+      "post": {
+        "operationId": "SubmitRoomHeatingResumeSchedule",
+        "parameters": [
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RoomHeatingResumeScheduleRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomHeatingCommandResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": ""
+          },
+          "404": {
+            "description": ""
+          },
+          "409": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/rooms/{roomId}/heating-control/commands/{commandId}": {
+      "get": {
+        "operationId": "GetRoomHeatingCommand",
+        "parameters": [
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "commandId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoomHeatingCommandDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
     "/api/known-people": {
       "get": {
         "tags": [
@@ -10535,6 +10759,316 @@
           },
           "overallAvailability": {
             "$ref": "#/components/schemas/RoomClimateFreshness"
+          }
+        }
+      },
+      "RoomHeatingControlCapabilityDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "roomId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "isControllable": {
+            "type": "boolean"
+          },
+          "supportedActions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoomHeatingCommandAction"
+            }
+          },
+          "targetRange": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ClimateRangeDto"
+              }
+            ]
+          },
+          "allowedDurationsMinutes": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "isProviderAvailable": {
+            "type": "boolean"
+          },
+          "blockers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RoomHeatingControlBlockerDto"
+            }
+          },
+          "isSharedZone": {
+            "type": "boolean"
+          },
+          "affectedRoomIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "guid"
+            }
+          },
+          "currentOverride": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/RoomHeatingCurrentOverrideDto"
+              }
+            ]
+          },
+          "latestCommand": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/RoomHeatingCommandSummaryDto"
+              }
+            ]
+          }
+        }
+      },
+      "RoomHeatingCommandAction": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "TemporaryWarmer",
+          "ResumeSchedule",
+          "TemporaryCooler"
+        ],
+        "enum": [
+          0,
+          1,
+          2
+        ]
+      },
+      "RoomHeatingControlBlockerDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "RoomHeatingCurrentOverrideDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "state": {
+            "type": "string"
+          },
+          "commandId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "action": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/RoomHeatingCommandAction"
+              }
+            ]
+          },
+          "requestedTargetTemperatureCelsius": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "confirmedTargetTemperatureCelsius": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "effectiveUntilUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "failureCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "failureMessage": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "RoomHeatingCommandSummaryDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "commandId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "action": {
+            "$ref": "#/components/schemas/RoomHeatingCommandAction"
+          },
+          "status": {
+            "$ref": "#/components/schemas/RoomHeatingCommandStatus"
+          },
+          "requestedUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedUtc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "RoomHeatingCommandStatus": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "Pending",
+          "Accepted",
+          "Succeeded",
+          "Failed",
+          "Superseded",
+          "Expired"
+        ],
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
+      },
+      "RoomHeatingCommandResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "command": {
+            "$ref": "#/components/schemas/RoomHeatingCommandDto"
+          },
+          "isProviderAvailable": {
+            "type": "boolean"
+          },
+          "currentOverride": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/RoomHeatingCurrentOverrideDto"
+              }
+            ]
+          }
+        }
+      },
+      "RoomHeatingCommandDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "commandId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "roomId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "action": {
+            "$ref": "#/components/schemas/RoomHeatingCommandAction"
+          },
+          "status": {
+            "$ref": "#/components/schemas/RoomHeatingCommandStatus"
+          },
+          "requestedTargetTemperatureCelsius": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "durationMinutes": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "effectiveUntilUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "confirmedTargetTemperatureCelsius": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "scheduleResumed": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "failureCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "failureMessage": {
+            "type": "string",
+            "nullable": true
+          },
+          "requestedUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "acceptedUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "completedUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "currentOverride": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/RoomHeatingCurrentOverrideDto"
+              }
+            ]
+          }
+        }
+      },
+      "RoomHeatingTemporaryCommandRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "targetTemperatureCelsius": {
+            "type": "number",
+            "format": "decimal"
+          },
+          "durationMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "RoomHeatingResumeScheduleRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "idempotencyKey": {
+            "type": "string",
+            "nullable": true
           }
         }
       },

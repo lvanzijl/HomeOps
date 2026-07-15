@@ -990,3 +990,13 @@ Hardened Slice 7 backend replacement reviews with focused API, activation/rollba
 ## 2026-07-15 — Room Climate Read Model hardening
 - Added focused backend coverage for Slice 9 ingestion validation, newest-observation semantics, freshness boundaries, Room/Floor/Household read models, spatial fallback status, persistence metadata, generated contracts, and telemetry portability exclusion.
 - Hardened read-model household filtering and introduced a TimeProvider-backed clock seam for deterministic freshness tests without changing product scope.
+
+## 2026-07-15 — Room Heating Control Foundation Slice 11A
+- Added backend room heating control command foundation with provider-neutral command records, capability API, command APIs, idempotency, and deterministic superseding.
+- Generated OpenAPI and TypeScript client contracts for future frontend controls.
+- No frontend controls, real Home Assistant execution, expiry scheduler, reconciliation worker, or portability command state were added.
+
+## 2026-07-15 — Room Heating Control Foundation hardening
+- Added focused Slice 11A hardening coverage for capability blockers/actions, warmer/cooler/resume command behavior, idempotency, superseding, derived override state, persistence constraints, portability exclusion, generated contracts, and no-mutation guarantees.
+- Fixed concrete foundation defects around current-observation capability requirements, warmer/cooler direction validation, and safe provider exception normalization.
+- No frontend controls, hosted expiry/reconciliation, real Home Assistant execution, or new product scope were added.

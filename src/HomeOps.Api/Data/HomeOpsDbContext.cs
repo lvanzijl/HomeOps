@@ -47,6 +47,7 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
     public DbSet<FloorPlanReplacementReview> FloorPlanReplacementReviews => Set<FloorPlanReplacementReview>();
     public DbSet<FloorPlanReplacementReviewItem> FloorPlanReplacementReviewItems => Set<FloorPlanReplacementReviewItem>();
     public DbSet<RoomClimateObservation> RoomClimateObservations => Set<RoomClimateObservation>();
+    public DbSet<RoomHeatingCommand> RoomHeatingCommands => Set<RoomHeatingCommand>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -186,6 +187,33 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             entity.HasIndex(observation => new { observation.HouseholdId, observation.RoomId });
             entity.HasIndex(observation => new { observation.HouseholdId, observation.ReceivedUtc });
             entity.HasIndex(observation => new { observation.RoomId, observation.SourceMappingId }).IsUnique();
+        });
+
+
+        modelBuilder.Entity<RoomHeatingCommand>(entity =>
+        {
+            entity.ToTable("RoomHeatingCommands");
+            entity.HasKey(command => command.Id);
+            entity.Property(command => command.Action).HasConversion<string>().HasMaxLength(40).IsRequired();
+            entity.Property(command => command.Status).HasConversion<string>().HasMaxLength(40).IsRequired();
+            entity.Property(command => command.RequestedTargetTemperatureCelsius).HasPrecision(5, 2);
+            entity.Property(command => command.ConfirmedTargetTemperatureCelsius).HasPrecision(5, 2);
+            entity.Property(command => command.IdempotencyKey).HasMaxLength(160).IsRequired();
+            entity.Property(command => command.RequestFingerprint).HasMaxLength(500).IsRequired();
+            entity.Property(command => command.ProviderCommandReference).HasMaxLength(240);
+            entity.Property(command => command.FailureCode).HasMaxLength(120);
+            entity.Property(command => command.FailureMessage).HasMaxLength(500);
+            entity.Property(command => command.RequestedUtc).IsRequired();
+            entity.Property(command => command.UpdatedUtc).IsRequired();
+            entity.HasOne(command => command.Household).WithMany().HasForeignKey(command => command.HouseholdId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(command => command.Room).WithMany().HasForeignKey(command => command.RoomId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(command => command.Provider).WithMany().HasForeignKey(command => command.ProviderId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(command => command.SourceMapping).WithMany().HasForeignKey(command => command.SourceMappingId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(command => command.SupersededByCommand).WithMany().HasForeignKey(command => command.SupersededByCommandId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(command => new { command.HouseholdId, command.RoomId, command.RequestedUtc });
+            entity.HasIndex(command => new { command.RoomId, command.Status, command.EffectiveUntilUtc });
+            entity.HasIndex(command => new { command.HouseholdId, command.RoomId, command.IdempotencyKey }).IsUnique();
+            entity.HasIndex(command => new { command.ProviderId, command.ProviderCommandReference });
         });
 
         modelBuilder.Entity<FloorPlanAsset>(entity =>
