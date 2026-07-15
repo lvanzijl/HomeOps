@@ -977,3 +977,6 @@ Implemented backend floor-plan replacement review lifecycle foundations: Floor-s
 ## 2026-07-14 — Floor-plan replacement lifecycle hardening
 
 Hardened Slice 7 backend replacement reviews with focused API, activation/rollback, direct activation boundary, portability, and schema coverage. Fixed concrete defects around cancellation after activation, direct replacement activation bypass, replacement overlay approval state, RedrawRequired readiness, and activated restore graph validation. No frontend or runtime climate scope was added.
+
+## 2026-07-15 — Woning Climate Floor Plans Slice 8 replacement review UI
+- Implemented the Settings > Woning frontend replacement review workspace for discovering, starting, resuming, room-by-room dispositions, reuse approval, redraw via the existing Room Overlay Editor, backend-derived readiness, review-scoped activation, cancellation, and rollback. Generated replacement-review contracts are used directly; no handwritten API workaround, runtime Klimaat in huis, readings, Stories, heating controls, provider mapping, Home Assistant setup, image registration, screenshots, binary assets, or generated-client edits were added.
