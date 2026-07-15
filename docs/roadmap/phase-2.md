@@ -871,3 +871,11 @@ Settings > Woning now exposes a bounded replacement floor-plan review workflow f
 ### 2026-07-15 — Woning Climate Floor Plans Slice 10 Runtime `Klimaat in huis`
 - Completed the frontend-only read-only runtime climate deep-dive reachable from Woning. The workspace shows one Floor at a time, uses generated climate read-model contracts directly, renders only Trusted overlays on the Active safe derivative, preserves full Room-list fallback access, maps freshness/operating states to Dutch factual labels, and keeps the page viewport-bounded with responsive room-list-first phone behavior.
 - Explicitly excluded controls, schedules, Stories, comfort scoring, recommendations, histories, weather, presence, Home Assistant setup, screenshots, binary assets, generated-client edits, and handwritten API workarounds.
+
+## 2026-07-15 Update — Woning Climate Floor Plans Slice 11A
+- Room Heating Control Foundation implemented backend command persistence, provider-neutral boundaries, capability/read APIs, command submission/status APIs, idempotency, superseding, OpenAPI contracts, and generated TypeScript client support.
+- Deferred expiry scheduling, hosted reconciliation, frontend controls, and real Home Assistant command execution to later slices.
+
+## 2026-07-15 Update — Woning Climate Floor Plans Slice 11A hardening
+- Added focused automated coverage for Room Heating Control Foundation capability, commands, provider outcomes, idempotency, superseding, persistence, portability, generated contracts, and atomicity/no-mutation guarantees.
+- Deferred hosted expiry, reconciliation, frontend controls, and real Home Assistant command execution to later slices.

@@ -5618,6 +5618,250 @@ export class HomeOpsApiClient {
         return Promise.resolve<FloorClimateStateDto>(null as any);
     }
 
+    getRoomHeatingControlCapability(roomId: string): Promise<RoomHeatingControlCapabilityDto> {
+        let url_ = this.baseUrl + "/api/rooms/{roomId}/heating-control/capability";
+        if (roomId === undefined || roomId === null)
+            throw new globalThis.Error("The parameter 'roomId' must be defined.");
+        url_ = url_.replace("{roomId}", encodeURIComponent("" + roomId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetRoomHeatingControlCapability(_response);
+        });
+    }
+
+    protected processGetRoomHeatingControlCapability(response: Response): Promise<RoomHeatingControlCapabilityDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = RoomHeatingControlCapabilityDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<RoomHeatingControlCapabilityDto>(null as any);
+    }
+
+    submitRoomHeatingTemporaryWarmer(roomId: string, request: RoomHeatingTemporaryCommandRequest): Promise<RoomHeatingCommandResponse> {
+        let url_ = this.baseUrl + "/api/rooms/{roomId}/heating-control/temporary-warmer";
+        if (roomId === undefined || roomId === null)
+            throw new globalThis.Error("The parameter 'roomId' must be defined.");
+        url_ = url_.replace("{roomId}", encodeURIComponent("" + roomId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processSubmitRoomHeatingTemporaryWarmer(_response);
+        });
+    }
+
+    protected processSubmitRoomHeatingTemporaryWarmer(response: Response): Promise<RoomHeatingCommandResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = RoomHeatingCommandResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<RoomHeatingCommandResponse>(null as any);
+    }
+
+    submitRoomHeatingTemporaryCooler(roomId: string, request: RoomHeatingTemporaryCommandRequest): Promise<RoomHeatingCommandResponse> {
+        let url_ = this.baseUrl + "/api/rooms/{roomId}/heating-control/temporary-cooler";
+        if (roomId === undefined || roomId === null)
+            throw new globalThis.Error("The parameter 'roomId' must be defined.");
+        url_ = url_.replace("{roomId}", encodeURIComponent("" + roomId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processSubmitRoomHeatingTemporaryCooler(_response);
+        });
+    }
+
+    protected processSubmitRoomHeatingTemporaryCooler(response: Response): Promise<RoomHeatingCommandResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = RoomHeatingCommandResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<RoomHeatingCommandResponse>(null as any);
+    }
+
+    submitRoomHeatingResumeSchedule(roomId: string, request: RoomHeatingResumeScheduleRequest): Promise<RoomHeatingCommandResponse> {
+        let url_ = this.baseUrl + "/api/rooms/{roomId}/heating-control/resume-schedule";
+        if (roomId === undefined || roomId === null)
+            throw new globalThis.Error("The parameter 'roomId' must be defined.");
+        url_ = url_.replace("{roomId}", encodeURIComponent("" + roomId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processSubmitRoomHeatingResumeSchedule(_response);
+        });
+    }
+
+    protected processSubmitRoomHeatingResumeSchedule(response: Response): Promise<RoomHeatingCommandResponse> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = RoomHeatingCommandResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<RoomHeatingCommandResponse>(null as any);
+    }
+
+    getRoomHeatingCommand(roomId: string, commandId: string): Promise<RoomHeatingCommandDto> {
+        let url_ = this.baseUrl + "/api/rooms/{roomId}/heating-control/commands/{commandId}";
+        if (roomId === undefined || roomId === null)
+            throw new globalThis.Error("The parameter 'roomId' must be defined.");
+        url_ = url_.replace("{roomId}", encodeURIComponent("" + roomId));
+        if (commandId === undefined || commandId === null)
+            throw new globalThis.Error("The parameter 'commandId' must be defined.");
+        url_ = url_.replace("{commandId}", encodeURIComponent("" + commandId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetRoomHeatingCommand(_response);
+        });
+    }
+
+    protected processGetRoomHeatingCommand(response: Response): Promise<RoomHeatingCommandDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = RoomHeatingCommandDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<RoomHeatingCommandDto>(null as any);
+    }
+
     getKnownPeople(scope: KnownPersonScope | null | undefined, familyMemberId: string | null | undefined): Promise<KnownPersonDto[]> {
         let url_ = this.baseUrl + "/api/known-people?";
         if (scope !== undefined && scope !== null)
@@ -14643,6 +14887,505 @@ export interface IFloorClimateStateDto {
     counts?: FloorClimateCountsDto;
     observedSummaryUtc?: Date | undefined;
     overallAvailability?: RoomClimateFreshness;
+}
+
+export class RoomHeatingControlCapabilityDto implements IRoomHeatingControlCapabilityDto {
+    roomId?: string;
+    isControllable?: boolean;
+    supportedActions?: RoomHeatingCommandAction[];
+    targetRange?: ClimateRangeDto | undefined;
+    allowedDurationsMinutes?: number[];
+    isProviderAvailable?: boolean;
+    blockers?: RoomHeatingControlBlockerDto[];
+    isSharedZone?: boolean;
+    affectedRoomIds?: string[];
+    currentOverride?: RoomHeatingCurrentOverrideDto | undefined;
+    latestCommand?: RoomHeatingCommandSummaryDto | undefined;
+
+    constructor(data?: IRoomHeatingControlCapabilityDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.roomId = _data["roomId"];
+            this.isControllable = _data["isControllable"];
+            if (Array.isArray(_data["supportedActions"])) {
+                this.supportedActions = [] as any;
+                for (let item of _data["supportedActions"])
+                    this.supportedActions!.push(item);
+            }
+            this.targetRange = _data["targetRange"] ? ClimateRangeDto.fromJS(_data["targetRange"]) : undefined as any;
+            if (Array.isArray(_data["allowedDurationsMinutes"])) {
+                this.allowedDurationsMinutes = [] as any;
+                for (let item of _data["allowedDurationsMinutes"])
+                    this.allowedDurationsMinutes!.push(item);
+            }
+            this.isProviderAvailable = _data["isProviderAvailable"];
+            if (Array.isArray(_data["blockers"])) {
+                this.blockers = [] as any;
+                for (let item of _data["blockers"])
+                    this.blockers!.push(RoomHeatingControlBlockerDto.fromJS(item));
+            }
+            this.isSharedZone = _data["isSharedZone"];
+            if (Array.isArray(_data["affectedRoomIds"])) {
+                this.affectedRoomIds = [] as any;
+                for (let item of _data["affectedRoomIds"])
+                    this.affectedRoomIds!.push(item);
+            }
+            this.currentOverride = _data["currentOverride"] ? RoomHeatingCurrentOverrideDto.fromJS(_data["currentOverride"]) : undefined as any;
+            this.latestCommand = _data["latestCommand"] ? RoomHeatingCommandSummaryDto.fromJS(_data["latestCommand"]) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): RoomHeatingControlCapabilityDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new RoomHeatingControlCapabilityDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["roomId"] = this.roomId;
+        data["isControllable"] = this.isControllable;
+        if (Array.isArray(this.supportedActions)) {
+            data["supportedActions"] = [];
+            for (let item of this.supportedActions)
+                data["supportedActions"].push(item);
+        }
+        data["targetRange"] = this.targetRange ? this.targetRange.toJSON() : undefined as any;
+        if (Array.isArray(this.allowedDurationsMinutes)) {
+            data["allowedDurationsMinutes"] = [];
+            for (let item of this.allowedDurationsMinutes)
+                data["allowedDurationsMinutes"].push(item);
+        }
+        data["isProviderAvailable"] = this.isProviderAvailable;
+        if (Array.isArray(this.blockers)) {
+            data["blockers"] = [];
+            for (let item of this.blockers)
+                data["blockers"].push(item ? item.toJSON() : undefined as any);
+        }
+        data["isSharedZone"] = this.isSharedZone;
+        if (Array.isArray(this.affectedRoomIds)) {
+            data["affectedRoomIds"] = [];
+            for (let item of this.affectedRoomIds)
+                data["affectedRoomIds"].push(item);
+        }
+        data["currentOverride"] = this.currentOverride ? this.currentOverride.toJSON() : undefined as any;
+        data["latestCommand"] = this.latestCommand ? this.latestCommand.toJSON() : undefined as any;
+        return data;
+    }
+}
+
+export interface IRoomHeatingControlCapabilityDto {
+    roomId?: string;
+    isControllable?: boolean;
+    supportedActions?: RoomHeatingCommandAction[];
+    targetRange?: ClimateRangeDto | undefined;
+    allowedDurationsMinutes?: number[];
+    isProviderAvailable?: boolean;
+    blockers?: RoomHeatingControlBlockerDto[];
+    isSharedZone?: boolean;
+    affectedRoomIds?: string[];
+    currentOverride?: RoomHeatingCurrentOverrideDto | undefined;
+    latestCommand?: RoomHeatingCommandSummaryDto | undefined;
+}
+
+export enum RoomHeatingCommandAction {
+    TemporaryWarmer = 0,
+    ResumeSchedule = 1,
+    TemporaryCooler = 2,
+}
+
+export class RoomHeatingControlBlockerDto implements IRoomHeatingControlBlockerDto {
+    code?: string;
+    message?: string;
+
+    constructor(data?: IRoomHeatingControlBlockerDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.code = _data["code"];
+            this.message = _data["message"];
+        }
+    }
+
+    static fromJS(data: any): RoomHeatingControlBlockerDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new RoomHeatingControlBlockerDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["code"] = this.code;
+        data["message"] = this.message;
+        return data;
+    }
+}
+
+export interface IRoomHeatingControlBlockerDto {
+    code?: string;
+    message?: string;
+}
+
+export class RoomHeatingCurrentOverrideDto implements IRoomHeatingCurrentOverrideDto {
+    state?: string;
+    commandId?: string | undefined;
+    action?: RoomHeatingCommandAction | undefined;
+    requestedTargetTemperatureCelsius?: number | undefined;
+    confirmedTargetTemperatureCelsius?: number | undefined;
+    effectiveUntilUtc?: Date | undefined;
+    failureCode?: string | undefined;
+    failureMessage?: string | undefined;
+
+    constructor(data?: IRoomHeatingCurrentOverrideDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.state = _data["state"];
+            this.commandId = _data["commandId"];
+            this.action = _data["action"];
+            this.requestedTargetTemperatureCelsius = _data["requestedTargetTemperatureCelsius"];
+            this.confirmedTargetTemperatureCelsius = _data["confirmedTargetTemperatureCelsius"];
+            this.effectiveUntilUtc = _data["effectiveUntilUtc"] ? new Date(_data["effectiveUntilUtc"].toString()) : undefined as any;
+            this.failureCode = _data["failureCode"];
+            this.failureMessage = _data["failureMessage"];
+        }
+    }
+
+    static fromJS(data: any): RoomHeatingCurrentOverrideDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new RoomHeatingCurrentOverrideDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["state"] = this.state;
+        data["commandId"] = this.commandId;
+        data["action"] = this.action;
+        data["requestedTargetTemperatureCelsius"] = this.requestedTargetTemperatureCelsius;
+        data["confirmedTargetTemperatureCelsius"] = this.confirmedTargetTemperatureCelsius;
+        data["effectiveUntilUtc"] = this.effectiveUntilUtc ? this.effectiveUntilUtc.toISOString() : undefined as any;
+        data["failureCode"] = this.failureCode;
+        data["failureMessage"] = this.failureMessage;
+        return data;
+    }
+}
+
+export interface IRoomHeatingCurrentOverrideDto {
+    state?: string;
+    commandId?: string | undefined;
+    action?: RoomHeatingCommandAction | undefined;
+    requestedTargetTemperatureCelsius?: number | undefined;
+    confirmedTargetTemperatureCelsius?: number | undefined;
+    effectiveUntilUtc?: Date | undefined;
+    failureCode?: string | undefined;
+    failureMessage?: string | undefined;
+}
+
+export class RoomHeatingCommandSummaryDto implements IRoomHeatingCommandSummaryDto {
+    commandId?: string;
+    action?: RoomHeatingCommandAction;
+    status?: RoomHeatingCommandStatus;
+    requestedUtc?: Date;
+    updatedUtc?: Date;
+
+    constructor(data?: IRoomHeatingCommandSummaryDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.commandId = _data["commandId"];
+            this.action = _data["action"];
+            this.status = _data["status"];
+            this.requestedUtc = _data["requestedUtc"] ? new Date(_data["requestedUtc"].toString()) : undefined as any;
+            this.updatedUtc = _data["updatedUtc"] ? new Date(_data["updatedUtc"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): RoomHeatingCommandSummaryDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new RoomHeatingCommandSummaryDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["commandId"] = this.commandId;
+        data["action"] = this.action;
+        data["status"] = this.status;
+        data["requestedUtc"] = this.requestedUtc ? this.requestedUtc.toISOString() : undefined as any;
+        data["updatedUtc"] = this.updatedUtc ? this.updatedUtc.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface IRoomHeatingCommandSummaryDto {
+    commandId?: string;
+    action?: RoomHeatingCommandAction;
+    status?: RoomHeatingCommandStatus;
+    requestedUtc?: Date;
+    updatedUtc?: Date;
+}
+
+export enum RoomHeatingCommandStatus {
+    Pending = 0,
+    Accepted = 1,
+    Succeeded = 2,
+    Failed = 3,
+    Superseded = 4,
+    Expired = 5,
+}
+
+export class RoomHeatingCommandResponse implements IRoomHeatingCommandResponse {
+    command?: RoomHeatingCommandDto;
+    isProviderAvailable?: boolean;
+    currentOverride?: RoomHeatingCurrentOverrideDto | undefined;
+
+    constructor(data?: IRoomHeatingCommandResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.command = _data["command"] ? RoomHeatingCommandDto.fromJS(_data["command"]) : undefined as any;
+            this.isProviderAvailable = _data["isProviderAvailable"];
+            this.currentOverride = _data["currentOverride"] ? RoomHeatingCurrentOverrideDto.fromJS(_data["currentOverride"]) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): RoomHeatingCommandResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new RoomHeatingCommandResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["command"] = this.command ? this.command.toJSON() : undefined as any;
+        data["isProviderAvailable"] = this.isProviderAvailable;
+        data["currentOverride"] = this.currentOverride ? this.currentOverride.toJSON() : undefined as any;
+        return data;
+    }
+}
+
+export interface IRoomHeatingCommandResponse {
+    command?: RoomHeatingCommandDto;
+    isProviderAvailable?: boolean;
+    currentOverride?: RoomHeatingCurrentOverrideDto | undefined;
+}
+
+export class RoomHeatingCommandDto implements IRoomHeatingCommandDto {
+    commandId?: string;
+    roomId?: string;
+    action?: RoomHeatingCommandAction;
+    status?: RoomHeatingCommandStatus;
+    requestedTargetTemperatureCelsius?: number | undefined;
+    durationMinutes?: number | undefined;
+    effectiveUntilUtc?: Date | undefined;
+    confirmedTargetTemperatureCelsius?: number | undefined;
+    scheduleResumed?: boolean | undefined;
+    failureCode?: string | undefined;
+    failureMessage?: string | undefined;
+    requestedUtc?: Date;
+    updatedUtc?: Date;
+    acceptedUtc?: Date | undefined;
+    completedUtc?: Date | undefined;
+    currentOverride?: RoomHeatingCurrentOverrideDto | undefined;
+
+    constructor(data?: IRoomHeatingCommandDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.commandId = _data["commandId"];
+            this.roomId = _data["roomId"];
+            this.action = _data["action"];
+            this.status = _data["status"];
+            this.requestedTargetTemperatureCelsius = _data["requestedTargetTemperatureCelsius"];
+            this.durationMinutes = _data["durationMinutes"];
+            this.effectiveUntilUtc = _data["effectiveUntilUtc"] ? new Date(_data["effectiveUntilUtc"].toString()) : undefined as any;
+            this.confirmedTargetTemperatureCelsius = _data["confirmedTargetTemperatureCelsius"];
+            this.scheduleResumed = _data["scheduleResumed"];
+            this.failureCode = _data["failureCode"];
+            this.failureMessage = _data["failureMessage"];
+            this.requestedUtc = _data["requestedUtc"] ? new Date(_data["requestedUtc"].toString()) : undefined as any;
+            this.updatedUtc = _data["updatedUtc"] ? new Date(_data["updatedUtc"].toString()) : undefined as any;
+            this.acceptedUtc = _data["acceptedUtc"] ? new Date(_data["acceptedUtc"].toString()) : undefined as any;
+            this.completedUtc = _data["completedUtc"] ? new Date(_data["completedUtc"].toString()) : undefined as any;
+            this.currentOverride = _data["currentOverride"] ? RoomHeatingCurrentOverrideDto.fromJS(_data["currentOverride"]) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): RoomHeatingCommandDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new RoomHeatingCommandDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["commandId"] = this.commandId;
+        data["roomId"] = this.roomId;
+        data["action"] = this.action;
+        data["status"] = this.status;
+        data["requestedTargetTemperatureCelsius"] = this.requestedTargetTemperatureCelsius;
+        data["durationMinutes"] = this.durationMinutes;
+        data["effectiveUntilUtc"] = this.effectiveUntilUtc ? this.effectiveUntilUtc.toISOString() : undefined as any;
+        data["confirmedTargetTemperatureCelsius"] = this.confirmedTargetTemperatureCelsius;
+        data["scheduleResumed"] = this.scheduleResumed;
+        data["failureCode"] = this.failureCode;
+        data["failureMessage"] = this.failureMessage;
+        data["requestedUtc"] = this.requestedUtc ? this.requestedUtc.toISOString() : undefined as any;
+        data["updatedUtc"] = this.updatedUtc ? this.updatedUtc.toISOString() : undefined as any;
+        data["acceptedUtc"] = this.acceptedUtc ? this.acceptedUtc.toISOString() : undefined as any;
+        data["completedUtc"] = this.completedUtc ? this.completedUtc.toISOString() : undefined as any;
+        data["currentOverride"] = this.currentOverride ? this.currentOverride.toJSON() : undefined as any;
+        return data;
+    }
+}
+
+export interface IRoomHeatingCommandDto {
+    commandId?: string;
+    roomId?: string;
+    action?: RoomHeatingCommandAction;
+    status?: RoomHeatingCommandStatus;
+    requestedTargetTemperatureCelsius?: number | undefined;
+    durationMinutes?: number | undefined;
+    effectiveUntilUtc?: Date | undefined;
+    confirmedTargetTemperatureCelsius?: number | undefined;
+    scheduleResumed?: boolean | undefined;
+    failureCode?: string | undefined;
+    failureMessage?: string | undefined;
+    requestedUtc?: Date;
+    updatedUtc?: Date;
+    acceptedUtc?: Date | undefined;
+    completedUtc?: Date | undefined;
+    currentOverride?: RoomHeatingCurrentOverrideDto | undefined;
+}
+
+export class RoomHeatingTemporaryCommandRequest implements IRoomHeatingTemporaryCommandRequest {
+    targetTemperatureCelsius?: number;
+    durationMinutes?: number;
+    idempotencyKey?: string | undefined;
+
+    constructor(data?: IRoomHeatingTemporaryCommandRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.targetTemperatureCelsius = _data["targetTemperatureCelsius"];
+            this.durationMinutes = _data["durationMinutes"];
+            this.idempotencyKey = _data["idempotencyKey"];
+        }
+    }
+
+    static fromJS(data: any): RoomHeatingTemporaryCommandRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new RoomHeatingTemporaryCommandRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["targetTemperatureCelsius"] = this.targetTemperatureCelsius;
+        data["durationMinutes"] = this.durationMinutes;
+        data["idempotencyKey"] = this.idempotencyKey;
+        return data;
+    }
+}
+
+export interface IRoomHeatingTemporaryCommandRequest {
+    targetTemperatureCelsius?: number;
+    durationMinutes?: number;
+    idempotencyKey?: string | undefined;
+}
+
+export class RoomHeatingResumeScheduleRequest implements IRoomHeatingResumeScheduleRequest {
+    idempotencyKey?: string | undefined;
+
+    constructor(data?: IRoomHeatingResumeScheduleRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.idempotencyKey = _data["idempotencyKey"];
+        }
+    }
+
+    static fromJS(data: any): RoomHeatingResumeScheduleRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new RoomHeatingResumeScheduleRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["idempotencyKey"] = this.idempotencyKey;
+        return data;
+    }
+}
+
+export interface IRoomHeatingResumeScheduleRequest {
+    idempotencyKey?: string | undefined;
 }
 
 export class KnownPersonDto implements IKnownPersonDto {
