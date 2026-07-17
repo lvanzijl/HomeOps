@@ -5450,6 +5450,99 @@
         }
       }
     },
+    "/api/climate-providers/{providerId}/home-assistant/resume-strategy": {
+      "get": {
+        "tags": [
+          "Home Assistant Resume Strategy"
+        ],
+        "operationId": "GetHomeAssistantResumeStrategy",
+        "parameters": [
+          {
+            "name": "providerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HomeAssistantResumeStrategyConfigurationDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Home Assistant Resume Strategy"
+        ],
+        "operationId": "UpdateHomeAssistantResumeStrategy",
+        "parameters": [
+          {
+            "name": "providerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateHomeAssistantResumeStrategyRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HomeAssistantResumeStrategyConfigurationDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          },
+          "409": {
+            "description": ""
+          }
+        }
+      }
+    },
     "/api/known-people": {
       "get": {
         "tags": [
@@ -8474,6 +8567,27 @@
           "updatedUtc": {
             "type": "string",
             "format": "date-time"
+          },
+          "homeAssistantResumeStrategyType": {
+            "type": "string",
+            "nullable": true
+          },
+          "homeAssistantResumeScriptEntityReference": {
+            "type": "string",
+            "nullable": true
+          },
+          "homeAssistantResumeClimateEntityReference": {
+            "type": "string",
+            "nullable": true
+          },
+          "homeAssistantResumePresetValue": {
+            "type": "string",
+            "nullable": true
+          },
+          "homeAssistantResumeStrategyUpdatedUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
           }
         }
       },
@@ -11415,6 +11529,83 @@
             "nullable": true
           },
           "diagnosticSummary": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "HomeAssistantResumeStrategyConfigurationDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "providerId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "strategyType": {
+            "$ref": "#/components/schemas/HomeAssistantResumeStrategyType"
+          },
+          "scriptEntityReference": {
+            "type": "string",
+            "nullable": true
+          },
+          "climateEntityReference": {
+            "type": "string",
+            "nullable": true
+          },
+          "presetValue": {
+            "type": "string",
+            "nullable": true
+          },
+          "isValid": {
+            "type": "boolean"
+          },
+          "blockers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "updatedUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "supportsResumeSchedule": {
+            "type": "boolean"
+          }
+        }
+      },
+      "HomeAssistantResumeStrategyType": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "None",
+          "Script",
+          "ClimatePreset"
+        ],
+        "enum": [
+          0,
+          1,
+          2
+        ]
+      },
+      "UpdateHomeAssistantResumeStrategyRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "strategyType": {
+            "$ref": "#/components/schemas/HomeAssistantResumeStrategyType"
+          },
+          "scriptEntityReference": {
+            "type": "string",
+            "nullable": true
+          },
+          "climateEntityReference": {
+            "type": "string",
+            "nullable": true
+          },
+          "presetValue": {
             "type": "string",
             "nullable": true
           }

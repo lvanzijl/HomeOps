@@ -14,6 +14,11 @@ public sealed class ClimateProvider
     public DateTimeOffset? ArchivedUtc { get; set; }
     public string? ExternalInstanceReference { get; set; }
     public string? DiagnosticMetadata { get; set; }
+    public HomeAssistantResumeStrategyType HomeAssistantResumeStrategyType { get; set; } = HomeAssistantResumeStrategyType.None;
+    public string? HomeAssistantResumeScriptEntityReference { get; set; }
+    public string? HomeAssistantResumeClimateEntityReference { get; set; }
+    public string? HomeAssistantResumePresetValue { get; set; }
+    public DateTimeOffset? HomeAssistantResumeStrategyUpdatedUtc { get; set; }
     public DateTimeOffset CreatedUtc { get; set; }
     public DateTimeOffset UpdatedUtc { get; set; }
 }

@@ -149,6 +149,7 @@ app.MapClimateProviderMappingEndpoints();
 app.MapRoomClimateReadModelEndpoints();
 app.MapRoomHeatingControlEndpoints();
 app.MapHomeAssistantClimateRefreshEndpoints();
+app.MapHomeAssistantResumeStrategyEndpoints();
 app.MapKnownPersonEndpoints();
 app.MapOnboardingEndpoints();
 app.MapTaskEndpoints();

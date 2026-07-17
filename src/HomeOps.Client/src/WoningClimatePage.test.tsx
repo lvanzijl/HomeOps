@@ -30,7 +30,7 @@ describe('Woning climate runtime', () => {
   it('loads heating capability, shows bounded warmer controls and hides unsupported cooler', async () => {
     render(<WoningClimatePage onBack={() => undefined} />);
     expect(await screen.findByText('Verwarming')).toBeTruthy();
-    expect(screen.getByText((_, element) => element?.textContent === '18.0°C tot 22.0°C')).toBeTruthy();
+    expect(await screen.findByText((_, element) => element?.textContent === '18.0°C tot 22.0°C')).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Tijdelijk warmer' })).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Tijdelijk koeler' })).toBeNull();
     expect(screen.getByText(/Deze instelling kan ook invloed hebben op Keuken/)).toBeTruthy();
@@ -88,5 +88,5 @@ describe('Woning climate runtime', () => {
     expect(screen.getByRole('button', { name: 'Tijdelijk warmer' }).hasAttribute('disabled')).toBe(true);
   });
 
-  it('supports no active plan fallback, refresh retry and unavailable detail copy', async () => { vi.mocked(api.loadFloorClimateState).mockResolvedValueOnce({ ...floor, activeAsset: undefined } as never); render(<WoningClimatePage onBack={() => undefined} />); expect(await screen.findByText('De plattegrond is niet beschikbaar; alle kamers staan hieronder.')).toBeTruthy(); await userEvent.click(screen.getAllByRole('button', { name: /Hal/ })[0]); expect(screen.getByLabelText('Geselecteerde kamer').textContent).toContain('De klimaatbron is niet beschikbaar.'); await userEvent.click(screen.getByRole('button', { name: 'Vernieuwen' })); await waitFor(() => expect(api.loadHouseholdClimateSummary).toHaveBeenCalledTimes(2)); });
+  it('supports no active plan fallback, refresh retry and unavailable detail copy', async () => { vi.mocked(api.loadFloorClimateState).mockResolvedValueOnce({ ...floor, activeAsset: undefined } as never); render(<WoningClimatePage onBack={() => undefined} />); expect(await screen.findByText('De plattegrond is niet beschikbaar; alle kamers staan hieronder.')).toBeTruthy(); await userEvent.click(await screen.findByRole('button', { name: /Hal/ })); expect(screen.getByLabelText('Geselecteerde kamer').textContent).toContain('De klimaatbron is niet beschikbaar.'); await userEvent.click(screen.getByRole('button', { name: 'Vernieuwen' })); await waitFor(() => expect(api.loadHouseholdClimateSummary).toHaveBeenCalledTimes(2)); });
 });

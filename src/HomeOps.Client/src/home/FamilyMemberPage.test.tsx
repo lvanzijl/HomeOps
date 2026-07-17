@@ -291,7 +291,7 @@ describe("FamilyMemberPage", () => {
     expect(screen.getByText("Hoe gaat het vandaag?")).not.toBeNull();
     expect(await screen.findByText("Vandaag")).not.toBeNull();
     expect(screen.getByText("Wat kan ik vandaag doen?")).not.toBeNull();
-    expect(screen.getByText("Pack school bag")).not.toBeNull();
+    expect(await screen.findByText("Pack school bag")).not.toBeNull();
     expect(screen.getByText("Clear the hallway shoes")).not.toBeNull();
     expect(screen.getByText("Put library book in backpack")).not.toBeNull();
     expect(screen.getByText("+1 meer klaar")).not.toBeNull();

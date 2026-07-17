@@ -90,7 +90,7 @@ public sealed class HomeAssistantClimateProvider(
         var entity = state.Entity!;
         var min = AttrDecimal(entity, "min_temp"); var max = AttrDecimal(entity, "max_temp"); var step = AttrDecimal(entity, "target_temp_step") ?? 0.5m;
         var supportsTarget = entity.EntityId.StartsWith("climate.", StringComparison.OrdinalIgnoreCase) && min is not null && max is not null && step > 0;
-        var supportsResume = ValidResume(mapping.Provider.DiagnosticMetadata);
+        var supportsResume = HomeAssistantResumeStrategyValidation.ToDto(mapping.Provider).SupportsResumeSchedule;
         return new(supportsTarget && entity.Available, SupportsTemporaryCooler: supportsTarget && entity.Available, MinimumTargetTemperatureCelsius: min, MaximumTargetTemperatureCelsius: max, BlockerCode: supportsTarget ? null : "InvalidControlEntity", BlockerMessage: supportsTarget ? null : "Control entity does not expose bounded target temperature attributes.", SupportsScheduleResume: supportsResume);
     }
 
@@ -107,10 +107,14 @@ public sealed class HomeAssistantClimateProvider(
     {
         var mapping = await LoadMapping(context.SourceMappingId, cancellationToken);
         if (mapping?.Provider?.ProviderType != ProviderType.HomeAssistant) return Unavailable("ProviderUnavailable", "Home Assistant provider is not configured.");
-        var strategy = ParseResume(mapping.Provider.DiagnosticMetadata);
-        if (strategy is null) return new(RoomHeatingProviderOutcome.Rejected, FailureCode: "ResumeUnsupported", FailureMessage: "No safe resume strategy is configured.");
-        var payload = strategy.Value.preset is null ? new Dictionary<string, object?> { ["entity_id"] = string.IsNullOrWhiteSpace(strategy.Value.entityId) ? mapping.ExternalSourceId : strategy.Value.entityId } : new Dictionary<string, object?> { ["entity_id"] = string.IsNullOrWhiteSpace(strategy.Value.entityId) ? mapping.ExternalSourceId : strategy.Value.entityId, ["preset_mode"] = strategy.Value.preset };
-        var call = await CallService(mapping.Provider, strategy.Value.domain, strategy.Value.service, payload, cancellationToken);
+        var strategy = HomeAssistantResumeStrategyValidation.ToDto(mapping.Provider);
+        if (!strategy.SupportsResumeSchedule) return new(RoomHeatingProviderOutcome.Rejected, FailureCode: "ResumeUnsupported", FailureMessage: "No safe resume strategy is configured.");
+        HaCallResult call = strategy.StrategyType switch
+        {
+            HomeAssistantResumeStrategyType.Script => await CallService(mapping.Provider, "script", "turn_on", new { entity_id = strategy.ScriptEntityReference }, cancellationToken),
+            HomeAssistantResumeStrategyType.ClimatePreset => await CallService(mapping.Provider, "climate", "set_preset_mode", new { entity_id = strategy.ClimateEntityReference, preset_mode = strategy.PresetValue }, cancellationToken),
+            _ => new(false, "ResumeUnsupported", "No safe resume strategy is configured.", false)
+        };
         return call.Success ? new(RoomHeatingProviderOutcome.Accepted, $"ha-resume:{context.CommandId:N}") : new(call.Unavailable ? RoomHeatingProviderOutcome.Unavailable : RoomHeatingProviderOutcome.Rejected, FailureCode: call.Code, FailureMessage: call.SafeMessage);
     }
 
@@ -212,19 +216,6 @@ public sealed class HomeAssistantClimateProvider(
     private static decimal? Decimal(string? s) => decimal.TryParse(s, NumberStyles.Number, CultureInfo.InvariantCulture, out var d) ? d : null;
 
     private async Task Mark(RoomClimateSourceMapping m, MappingHealth h, string code, string message, CancellationToken ct) { m.Health = h; m.LastCheckedUtc = clock.GetUtcNow(); m.DiagnosticSummary = $"{code}: {message}"[..Math.Min(500, $"{code}: {message}".Length)]; m.UpdatedUtc = clock.GetUtcNow(); await db.SaveChangesAsync(ct); }
-    private static bool ValidResume(string? metadata) => ParseResume(metadata) is not null;
-    private static (string domain, string service, string? entityId, string? preset)? ParseResume(string? metadata)
-    {
-        if (string.IsNullOrWhiteSpace(metadata)) return null;
-        if (!metadata.StartsWith("ha-resume:", StringComparison.OrdinalIgnoreCase)) return null;
-        var parts = metadata[10..].Split(':', StringSplitOptions.RemoveEmptyEntries);
-        if (parts.Length < 2) return null;
-        var key = parts[0] + "." + parts[1];
-        if (key.Equals("script.turn_on", StringComparison.OrdinalIgnoreCase)) return parts.Length > 2 ? (parts[0], parts[1], parts[2], null) : null;
-        if (key.Equals("climate.set_preset_mode", StringComparison.OrdinalIgnoreCase)) return parts.Length > 2 ? (parts[0], parts[1], parts.Length > 3 ? parts[3] : null, parts[2]) : null;
-        return null;
-    }
-
     private static readonly JsonSerializerOptions JsonOpts = new() { PropertyNameCaseInsensitive = true };
     private sealed record HaResult(bool Success, HaEntity? Entity, string Code, string SafeMessage, bool Unavailable) { public static HaResult Ok(HaEntity e) => new(true, e, "Healthy", "Healthy", false); public static HaResult Fail(string c, string m, bool u) => new(false, null, c, m, u); }
     private sealed record HaCallResult(bool Success, string? Code, string? SafeMessage, bool Unavailable);

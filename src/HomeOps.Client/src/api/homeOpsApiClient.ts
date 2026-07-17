@@ -6022,6 +6022,103 @@ export class HomeOpsApiClient {
         return Promise.resolve<HomeAssistantClimateRefreshDiagnosticsDto>(null as any);
     }
 
+    getHomeAssistantResumeStrategy(providerId: string): Promise<HomeAssistantResumeStrategyConfigurationDto> {
+        let url_ = this.baseUrl + "/api/climate-providers/{providerId}/home-assistant/resume-strategy";
+        if (providerId === undefined || providerId === null)
+            throw new globalThis.Error("The parameter 'providerId' must be defined.");
+        url_ = url_.replace("{providerId}", encodeURIComponent("" + providerId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetHomeAssistantResumeStrategy(_response);
+        });
+    }
+
+    protected processGetHomeAssistantResumeStrategy(response: Response): Promise<HomeAssistantResumeStrategyConfigurationDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = HomeAssistantResumeStrategyConfigurationDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<HomeAssistantResumeStrategyConfigurationDto>(null as any);
+    }
+
+    updateHomeAssistantResumeStrategy(providerId: string, request: UpdateHomeAssistantResumeStrategyRequest): Promise<HomeAssistantResumeStrategyConfigurationDto> {
+        let url_ = this.baseUrl + "/api/climate-providers/{providerId}/home-assistant/resume-strategy";
+        if (providerId === undefined || providerId === null)
+            throw new globalThis.Error("The parameter 'providerId' must be defined.");
+        url_ = url_.replace("{providerId}", encodeURIComponent("" + providerId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateHomeAssistantResumeStrategy(_response);
+        });
+    }
+
+    protected processUpdateHomeAssistantResumeStrategy(response: Response): Promise<HomeAssistantResumeStrategyConfigurationDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = HomeAssistantResumeStrategyConfigurationDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = HttpValidationProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<HomeAssistantResumeStrategyConfigurationDto>(null as any);
+    }
+
     getKnownPeople(scope: KnownPersonScope | null | undefined, familyMemberId: string | null | undefined): Promise<KnownPersonDto[]> {
         let url_ = this.baseUrl + "/api/known-people?";
         if (scope !== undefined && scope !== null)
@@ -11035,6 +11132,11 @@ export class CalendarExportClimateProvider implements ICalendarExportClimateProv
     diagnosticMetadata?: string | undefined;
     createdUtc?: Date;
     updatedUtc?: Date;
+    homeAssistantResumeStrategyType?: string | undefined;
+    homeAssistantResumeScriptEntityReference?: string | undefined;
+    homeAssistantResumeClimateEntityReference?: string | undefined;
+    homeAssistantResumePresetValue?: string | undefined;
+    homeAssistantResumeStrategyUpdatedUtc?: Date | undefined;
 
     constructor(data?: ICalendarExportClimateProvider) {
         if (data) {
@@ -11057,6 +11159,11 @@ export class CalendarExportClimateProvider implements ICalendarExportClimateProv
             this.diagnosticMetadata = _data["diagnosticMetadata"];
             this.createdUtc = _data["createdUtc"] ? new Date(_data["createdUtc"].toString()) : undefined as any;
             this.updatedUtc = _data["updatedUtc"] ? new Date(_data["updatedUtc"].toString()) : undefined as any;
+            this.homeAssistantResumeStrategyType = _data["homeAssistantResumeStrategyType"];
+            this.homeAssistantResumeScriptEntityReference = _data["homeAssistantResumeScriptEntityReference"];
+            this.homeAssistantResumeClimateEntityReference = _data["homeAssistantResumeClimateEntityReference"];
+            this.homeAssistantResumePresetValue = _data["homeAssistantResumePresetValue"];
+            this.homeAssistantResumeStrategyUpdatedUtc = _data["homeAssistantResumeStrategyUpdatedUtc"] ? new Date(_data["homeAssistantResumeStrategyUpdatedUtc"].toString()) : undefined as any;
         }
     }
 
@@ -11079,6 +11186,11 @@ export class CalendarExportClimateProvider implements ICalendarExportClimateProv
         data["diagnosticMetadata"] = this.diagnosticMetadata;
         data["createdUtc"] = this.createdUtc ? this.createdUtc.toISOString() : undefined as any;
         data["updatedUtc"] = this.updatedUtc ? this.updatedUtc.toISOString() : undefined as any;
+        data["homeAssistantResumeStrategyType"] = this.homeAssistantResumeStrategyType;
+        data["homeAssistantResumeScriptEntityReference"] = this.homeAssistantResumeScriptEntityReference;
+        data["homeAssistantResumeClimateEntityReference"] = this.homeAssistantResumeClimateEntityReference;
+        data["homeAssistantResumePresetValue"] = this.homeAssistantResumePresetValue;
+        data["homeAssistantResumeStrategyUpdatedUtc"] = this.homeAssistantResumeStrategyUpdatedUtc ? this.homeAssistantResumeStrategyUpdatedUtc.toISOString() : undefined as any;
         return data;
     }
 }
@@ -11094,6 +11206,11 @@ export interface ICalendarExportClimateProvider {
     diagnosticMetadata?: string | undefined;
     createdUtc?: Date;
     updatedUtc?: Date;
+    homeAssistantResumeStrategyType?: string | undefined;
+    homeAssistantResumeScriptEntityReference?: string | undefined;
+    homeAssistantResumeClimateEntityReference?: string | undefined;
+    homeAssistantResumePresetValue?: string | undefined;
+    homeAssistantResumeStrategyUpdatedUtc?: Date | undefined;
 }
 
 export class CalendarExportRoomClimateSourceMapping implements ICalendarExportRoomClimateSourceMapping {
@@ -15865,6 +15982,136 @@ export interface IHomeAssistantClimateMappingDiagnosticDto {
     lastCheckedUtc?: Date | undefined;
     lastSuccessfulUtc?: Date | undefined;
     diagnosticSummary?: string | undefined;
+}
+
+export class HomeAssistantResumeStrategyConfigurationDto implements IHomeAssistantResumeStrategyConfigurationDto {
+    providerId?: string;
+    strategyType?: HomeAssistantResumeStrategyType;
+    scriptEntityReference?: string | undefined;
+    climateEntityReference?: string | undefined;
+    presetValue?: string | undefined;
+    isValid?: boolean;
+    blockers?: string[];
+    updatedUtc?: Date | undefined;
+    supportsResumeSchedule?: boolean;
+
+    constructor(data?: IHomeAssistantResumeStrategyConfigurationDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.providerId = _data["providerId"];
+            this.strategyType = _data["strategyType"];
+            this.scriptEntityReference = _data["scriptEntityReference"];
+            this.climateEntityReference = _data["climateEntityReference"];
+            this.presetValue = _data["presetValue"];
+            this.isValid = _data["isValid"];
+            if (Array.isArray(_data["blockers"])) {
+                this.blockers = [] as any;
+                for (let item of _data["blockers"])
+                    this.blockers!.push(item);
+            }
+            this.updatedUtc = _data["updatedUtc"] ? new Date(_data["updatedUtc"].toString()) : undefined as any;
+            this.supportsResumeSchedule = _data["supportsResumeSchedule"];
+        }
+    }
+
+    static fromJS(data: any): HomeAssistantResumeStrategyConfigurationDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new HomeAssistantResumeStrategyConfigurationDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["providerId"] = this.providerId;
+        data["strategyType"] = this.strategyType;
+        data["scriptEntityReference"] = this.scriptEntityReference;
+        data["climateEntityReference"] = this.climateEntityReference;
+        data["presetValue"] = this.presetValue;
+        data["isValid"] = this.isValid;
+        if (Array.isArray(this.blockers)) {
+            data["blockers"] = [];
+            for (let item of this.blockers)
+                data["blockers"].push(item);
+        }
+        data["updatedUtc"] = this.updatedUtc ? this.updatedUtc.toISOString() : undefined as any;
+        data["supportsResumeSchedule"] = this.supportsResumeSchedule;
+        return data;
+    }
+}
+
+export interface IHomeAssistantResumeStrategyConfigurationDto {
+    providerId?: string;
+    strategyType?: HomeAssistantResumeStrategyType;
+    scriptEntityReference?: string | undefined;
+    climateEntityReference?: string | undefined;
+    presetValue?: string | undefined;
+    isValid?: boolean;
+    blockers?: string[];
+    updatedUtc?: Date | undefined;
+    supportsResumeSchedule?: boolean;
+}
+
+export enum HomeAssistantResumeStrategyType {
+    None = 0,
+    Script = 1,
+    ClimatePreset = 2,
+}
+
+export class UpdateHomeAssistantResumeStrategyRequest implements IUpdateHomeAssistantResumeStrategyRequest {
+    strategyType?: HomeAssistantResumeStrategyType;
+    scriptEntityReference?: string | undefined;
+    climateEntityReference?: string | undefined;
+    presetValue?: string | undefined;
+
+    constructor(data?: IUpdateHomeAssistantResumeStrategyRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.strategyType = _data["strategyType"];
+            this.scriptEntityReference = _data["scriptEntityReference"];
+            this.climateEntityReference = _data["climateEntityReference"];
+            this.presetValue = _data["presetValue"];
+        }
+    }
+
+    static fromJS(data: any): UpdateHomeAssistantResumeStrategyRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpdateHomeAssistantResumeStrategyRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["strategyType"] = this.strategyType;
+        data["scriptEntityReference"] = this.scriptEntityReference;
+        data["climateEntityReference"] = this.climateEntityReference;
+        data["presetValue"] = this.presetValue;
+        return data;
+    }
+}
+
+export interface IUpdateHomeAssistantResumeStrategyRequest {
+    strategyType?: HomeAssistantResumeStrategyType;
+    scriptEntityReference?: string | undefined;
+    climateEntityReference?: string | undefined;
+    presetValue?: string | undefined;
 }
 
 export class KnownPersonDto implements IKnownPersonDto {

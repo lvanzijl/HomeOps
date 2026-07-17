@@ -1014,3 +1014,12 @@ Hardened Slice 7 backend replacement reviews with focused API, activation/rollba
 - Fixed concrete relational defects around same-key unique-conflict recovery and SQLite-safe command/read-model DateTimeOffset query evaluation; no schema, frontend, real provider, generic lock, queue, or scheduler scope was added.
 
 - 2026-07-17: Implemented backend Home Assistant climate periodic refresh orchestration with provider-scoped overlap prevention, hosted scheduling outside Testing/VisualReview, safe manual diagnostics, and protected logging/portability boundaries. No frontend setup UI, discovery, generic scheduler/queue, or unrelated product scope was added.
+
+## 2026-07-17 — Home Assistant Climate Settings
+Settings > Woning now includes a Home Assistant climate setup and diagnostics section for safe provider metadata, credential guidance, connection verification, provider/room/mapping refresh actions, grouped mapping health, and safe diagnostics. The frontend uses generated contracts directly, adds no token entry/storage, no arbitrary service execution, no handwritten API workaround, and no unrelated Home Assistant runtime dashboard scope.
+
+## 2026-07-17 — Home Assistant Resume Strategy Contract Correction
+Home Assistant resume-schedule strategy configuration is now an explicit typed provider-owned model instead of hidden diagnostic metadata. Settings > Woning can configure None, script, or climate preset strategies through generated contracts, while the adapter executes only allow-listed resume behavior and no token, arbitrary service, JSON, or unrelated Home Assistant scope is introduced.
+
+## 2026-07-17 — Home Assistant Resume Strategy Frontend Test Stability
+Frontend full-suite instability after the typed Home Assistant resume-strategy follow-up was resolved by tightening asynchronous test waits in the affected Woning climate, agenda weather, and child dashboard tests. The full frontend suite is green across three consecutive normal runs plus a single-worker run; production frontend build succeeds.
