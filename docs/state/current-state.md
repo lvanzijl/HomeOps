@@ -1012,3 +1012,5 @@ Hardened Slice 7 backend replacement reviews with focused API, activation/rollba
 ## 2026-07-17 — Room Heating Control Concurrency Hardening
 - Added relational SQLite coverage for Room heating command races, idempotency conflicts, resume/override ordering, expiry/manual resume interactions, stale completion, and pending-timeout ordering.
 - Fixed concrete relational defects around same-key unique-conflict recovery and SQLite-safe command/read-model DateTimeOffset query evaluation; no schema, frontend, real provider, generic lock, queue, or scheduler scope was added.
+
+- 2026-07-17: Implemented backend Home Assistant climate periodic refresh orchestration with provider-scoped overlap prevention, hosted scheduling outside Testing/VisualReview, safe manual diagnostics, and protected logging/portability boundaries. No frontend setup UI, discovery, generic scheduler/queue, or unrelated product scope was added.

@@ -896,3 +896,7 @@ Settings > Woning now exposes a bounded replacement floor-plan review workflow f
 
 ## 2026-07-17 Update — Woning Climate Floor Plans Slice 12 Runtime Room Heating Controls
 - Added selected-Room runtime heating controls to `Klimaat in huis` using generated capability and command contracts directly. Warmer submits an explicit bounded target/duration, cooler appears only with generated support, and resume uses the generated schedule-resume command path. Command and override states remain factual and separate from observed climate readings. No schedule editor, provider setup, Home Assistant integration, Stories, screenshots, binary assets, or unrelated Woning scope was introduced.
+
+## 2026-07-17 Update — Woning Climate Floor Plans Slice 14
+- Implemented backend periodic Home Assistant climate refresh orchestration for enabled providers and active Room mappings, including provider-scoped overlap prevention, thin hosted scheduling, safe manual refresh/diagnostics endpoints, factual mapping health updates, and normalized observation ingestion through the accepted read-model seam.
+- Explicitly excluded frontend setup UI, provider discovery, OAuth, arbitrary service execution, generic scheduler/queue infrastructure, automation, screenshots, binary assets, and unrelated product scope.

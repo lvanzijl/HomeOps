@@ -56,8 +56,19 @@ builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<RoomClimateReadModelService>();
 builder.Services.AddScoped<RoomHeatingControlService>();
 builder.Services.AddScoped<RoomHeatingControlReconciliationService>();
-builder.Services.AddHttpClient("HomeAssistantClimate");
-builder.Services.AddScoped<IRoomHeatingControlProvider, HomeAssistantClimateProvider>();
+builder.Services.AddOptions<HomeAssistantClimateRefreshOptions>()
+    .Bind(builder.Configuration.GetSection("HomeAssistantClimateRefresh"))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+builder.Services.AddHttpClient("HomeAssistantClimate", client =>
+{
+    var seconds = builder.Configuration.GetValue<int?>("HomeAssistantClimateRefresh:ProviderRequestTimeoutSeconds") ?? 10;
+    client.Timeout = TimeSpan.FromSeconds(seconds);
+});
+builder.Services.AddScoped<HomeAssistantClimateProvider>();
+builder.Services.AddScoped<IRoomHeatingControlProvider>(sp => sp.GetRequiredService<HomeAssistantClimateProvider>());
+builder.Services.AddSingleton<HomeAssistantClimateRefreshCoordinator>();
+builder.Services.AddScoped<HomeAssistantClimateRefreshService>();
 builder.Services.AddHttpClient<IICalFeedImporter, ICalFeedImporter>();
 builder.Services.AddScoped<ICalFileContentStore, FileSystemICalFileContentStore>();
 builder.Services.AddScoped<IICalFileImporter, ICalFileImporter>();
@@ -68,6 +79,7 @@ if (!builder.Environment.IsEnvironment("Testing") && !builder.Environment.IsEnvi
 {
     builder.Services.AddHostedService<CalendarBackgroundSynchronizationHostedService>();
     builder.Services.AddHostedService<RoomHeatingControlReconciliationHostedService>();
+    builder.Services.AddHostedService<HomeAssistantClimateRefreshHostedService>();
 }
 if (builder.Environment.IsEnvironment("VisualReview"))
 {
@@ -136,6 +148,7 @@ app.MapFloorPlanReplacementReviewEndpoints();
 app.MapClimateProviderMappingEndpoints();
 app.MapRoomClimateReadModelEndpoints();
 app.MapRoomHeatingControlEndpoints();
+app.MapHomeAssistantClimateRefreshEndpoints();
 app.MapKnownPersonEndpoints();
 app.MapOnboardingEndpoints();
 app.MapTaskEndpoints();
