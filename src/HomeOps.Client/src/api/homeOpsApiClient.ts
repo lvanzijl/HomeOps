@@ -5862,6 +5862,166 @@ export class HomeOpsApiClient {
         return Promise.resolve<RoomHeatingCommandDto>(null as any);
     }
 
+    refreshHomeAssistantClimateProvider(providerId: string): Promise<HomeAssistantClimateRefreshSummary> {
+        let url_ = this.baseUrl + "/api/admin/home-assistant/climate/providers/{providerId}/refresh";
+        if (providerId === undefined || providerId === null)
+            throw new globalThis.Error("The parameter 'providerId' must be defined.");
+        url_ = url_.replace("{providerId}", encodeURIComponent("" + providerId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRefreshHomeAssistantClimateProvider(_response);
+        });
+    }
+
+    protected processRefreshHomeAssistantClimateProvider(response: Response): Promise<HomeAssistantClimateRefreshSummary> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = HomeAssistantClimateRefreshSummary.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<HomeAssistantClimateRefreshSummary>(null as any);
+    }
+
+    refreshHomeAssistantClimateRoom(roomId: string): Promise<HomeAssistantClimateRefreshSummary> {
+        let url_ = this.baseUrl + "/api/admin/home-assistant/climate/rooms/{roomId}/refresh";
+        if (roomId === undefined || roomId === null)
+            throw new globalThis.Error("The parameter 'roomId' must be defined.");
+        url_ = url_.replace("{roomId}", encodeURIComponent("" + roomId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRefreshHomeAssistantClimateRoom(_response);
+        });
+    }
+
+    protected processRefreshHomeAssistantClimateRoom(response: Response): Promise<HomeAssistantClimateRefreshSummary> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = HomeAssistantClimateRefreshSummary.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<HomeAssistantClimateRefreshSummary>(null as any);
+    }
+
+    refreshHomeAssistantClimateMapping(mappingId: string): Promise<HomeAssistantClimateRefreshSummary> {
+        let url_ = this.baseUrl + "/api/admin/home-assistant/climate/mappings/{mappingId}/refresh";
+        if (mappingId === undefined || mappingId === null)
+            throw new globalThis.Error("The parameter 'mappingId' must be defined.");
+        url_ = url_.replace("{mappingId}", encodeURIComponent("" + mappingId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRefreshHomeAssistantClimateMapping(_response);
+        });
+    }
+
+    protected processRefreshHomeAssistantClimateMapping(response: Response): Promise<HomeAssistantClimateRefreshSummary> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = HomeAssistantClimateRefreshSummary.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<HomeAssistantClimateRefreshSummary>(null as any);
+    }
+
+    getHomeAssistantClimateProviderDiagnostics(providerId: string): Promise<HomeAssistantClimateRefreshDiagnosticsDto> {
+        let url_ = this.baseUrl + "/api/admin/home-assistant/climate/providers/{providerId}/diagnostics";
+        if (providerId === undefined || providerId === null)
+            throw new globalThis.Error("The parameter 'providerId' must be defined.");
+        url_ = url_.replace("{providerId}", encodeURIComponent("" + providerId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetHomeAssistantClimateProviderDiagnostics(_response);
+        });
+    }
+
+    protected processGetHomeAssistantClimateProviderDiagnostics(response: Response): Promise<HomeAssistantClimateRefreshDiagnosticsDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = HomeAssistantClimateRefreshDiagnosticsDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<HomeAssistantClimateRefreshDiagnosticsDto>(null as any);
+    }
+
     getKnownPeople(scope: KnownPersonScope | null | undefined, familyMemberId: string | null | undefined): Promise<KnownPersonDto[]> {
         let url_ = this.baseUrl + "/api/known-people?";
         if (scope !== undefined && scope !== null)
@@ -15386,6 +15546,325 @@ export class RoomHeatingResumeScheduleRequest implements IRoomHeatingResumeSched
 
 export interface IRoomHeatingResumeScheduleRequest {
     idempotencyKey?: string | undefined;
+}
+
+export class HomeAssistantClimateRefreshSummary implements IHomeAssistantClimateRefreshSummary {
+    providerId?: string | undefined;
+    startedUtc?: Date;
+    completedUtc?: Date;
+    outcome?: HomeAssistantClimateRefreshOutcome;
+    roomsAttempted?: number;
+    roomsSucceeded?: number;
+    roomsFailed?: number;
+    mappingsAttempted?: number;
+    mappingsHealthy?: number;
+    mappingsMissing?: number;
+    mappingsUnavailable?: number;
+    mappingsNeedsReview?: number;
+    observationsAccepted?: number;
+    observationsIgnored?: number;
+    observationsFailed?: number;
+    wasCancelled?: boolean;
+    issues?: HomeAssistantClimateRefreshIssue[];
+
+    constructor(data?: IHomeAssistantClimateRefreshSummary) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.providerId = _data["providerId"];
+            this.startedUtc = _data["startedUtc"] ? new Date(_data["startedUtc"].toString()) : undefined as any;
+            this.completedUtc = _data["completedUtc"] ? new Date(_data["completedUtc"].toString()) : undefined as any;
+            this.outcome = _data["outcome"];
+            this.roomsAttempted = _data["roomsAttempted"];
+            this.roomsSucceeded = _data["roomsSucceeded"];
+            this.roomsFailed = _data["roomsFailed"];
+            this.mappingsAttempted = _data["mappingsAttempted"];
+            this.mappingsHealthy = _data["mappingsHealthy"];
+            this.mappingsMissing = _data["mappingsMissing"];
+            this.mappingsUnavailable = _data["mappingsUnavailable"];
+            this.mappingsNeedsReview = _data["mappingsNeedsReview"];
+            this.observationsAccepted = _data["observationsAccepted"];
+            this.observationsIgnored = _data["observationsIgnored"];
+            this.observationsFailed = _data["observationsFailed"];
+            this.wasCancelled = _data["wasCancelled"];
+            if (Array.isArray(_data["issues"])) {
+                this.issues = [] as any;
+                for (let item of _data["issues"])
+                    this.issues!.push(HomeAssistantClimateRefreshIssue.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): HomeAssistantClimateRefreshSummary {
+        data = typeof data === 'object' ? data : {};
+        let result = new HomeAssistantClimateRefreshSummary();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["providerId"] = this.providerId;
+        data["startedUtc"] = this.startedUtc ? this.startedUtc.toISOString() : undefined as any;
+        data["completedUtc"] = this.completedUtc ? this.completedUtc.toISOString() : undefined as any;
+        data["outcome"] = this.outcome;
+        data["roomsAttempted"] = this.roomsAttempted;
+        data["roomsSucceeded"] = this.roomsSucceeded;
+        data["roomsFailed"] = this.roomsFailed;
+        data["mappingsAttempted"] = this.mappingsAttempted;
+        data["mappingsHealthy"] = this.mappingsHealthy;
+        data["mappingsMissing"] = this.mappingsMissing;
+        data["mappingsUnavailable"] = this.mappingsUnavailable;
+        data["mappingsNeedsReview"] = this.mappingsNeedsReview;
+        data["observationsAccepted"] = this.observationsAccepted;
+        data["observationsIgnored"] = this.observationsIgnored;
+        data["observationsFailed"] = this.observationsFailed;
+        data["wasCancelled"] = this.wasCancelled;
+        if (Array.isArray(this.issues)) {
+            data["issues"] = [];
+            for (let item of this.issues)
+                data["issues"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IHomeAssistantClimateRefreshSummary {
+    providerId?: string | undefined;
+    startedUtc?: Date;
+    completedUtc?: Date;
+    outcome?: HomeAssistantClimateRefreshOutcome;
+    roomsAttempted?: number;
+    roomsSucceeded?: number;
+    roomsFailed?: number;
+    mappingsAttempted?: number;
+    mappingsHealthy?: number;
+    mappingsMissing?: number;
+    mappingsUnavailable?: number;
+    mappingsNeedsReview?: number;
+    observationsAccepted?: number;
+    observationsIgnored?: number;
+    observationsFailed?: number;
+    wasCancelled?: boolean;
+    issues?: HomeAssistantClimateRefreshIssue[];
+}
+
+export enum HomeAssistantClimateRefreshOutcome {
+    Healthy = 0,
+    AuthenticationFailure = 1,
+    ProviderUnavailable = 2,
+    InvalidConnectionConfiguration = 3,
+    PartialFailure = 4,
+    Unverified = 5,
+    Skipped = 6,
+    Cancelled = 7,
+}
+
+export class HomeAssistantClimateRefreshIssue implements IHomeAssistantClimateRefreshIssue {
+    scope?: string;
+    providerId?: string | undefined;
+    roomId?: string | undefined;
+    mappingId?: string | undefined;
+    code?: string;
+    message?: string;
+
+    constructor(data?: IHomeAssistantClimateRefreshIssue) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.scope = _data["scope"];
+            this.providerId = _data["providerId"];
+            this.roomId = _data["roomId"];
+            this.mappingId = _data["mappingId"];
+            this.code = _data["code"];
+            this.message = _data["message"];
+        }
+    }
+
+    static fromJS(data: any): HomeAssistantClimateRefreshIssue {
+        data = typeof data === 'object' ? data : {};
+        let result = new HomeAssistantClimateRefreshIssue();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["scope"] = this.scope;
+        data["providerId"] = this.providerId;
+        data["roomId"] = this.roomId;
+        data["mappingId"] = this.mappingId;
+        data["code"] = this.code;
+        data["message"] = this.message;
+        return data;
+    }
+}
+
+export interface IHomeAssistantClimateRefreshIssue {
+    scope?: string;
+    providerId?: string | undefined;
+    roomId?: string | undefined;
+    mappingId?: string | undefined;
+    code?: string;
+    message?: string;
+}
+
+export class HomeAssistantClimateRefreshDiagnosticsDto implements IHomeAssistantClimateRefreshDiagnosticsDto {
+    providerId?: string;
+    displayName?: string;
+    isEnabled?: boolean;
+    isArchived?: boolean;
+    outcome?: string;
+    diagnosticSummary?: string | undefined;
+    lastCheckedUtc?: Date | undefined;
+    lastSuccessfulUtc?: Date | undefined;
+    mappings?: HomeAssistantClimateMappingDiagnosticDto[];
+
+    constructor(data?: IHomeAssistantClimateRefreshDiagnosticsDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.providerId = _data["providerId"];
+            this.displayName = _data["displayName"];
+            this.isEnabled = _data["isEnabled"];
+            this.isArchived = _data["isArchived"];
+            this.outcome = _data["outcome"];
+            this.diagnosticSummary = _data["diagnosticSummary"];
+            this.lastCheckedUtc = _data["lastCheckedUtc"] ? new Date(_data["lastCheckedUtc"].toString()) : undefined as any;
+            this.lastSuccessfulUtc = _data["lastSuccessfulUtc"] ? new Date(_data["lastSuccessfulUtc"].toString()) : undefined as any;
+            if (Array.isArray(_data["mappings"])) {
+                this.mappings = [] as any;
+                for (let item of _data["mappings"])
+                    this.mappings!.push(HomeAssistantClimateMappingDiagnosticDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): HomeAssistantClimateRefreshDiagnosticsDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new HomeAssistantClimateRefreshDiagnosticsDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["providerId"] = this.providerId;
+        data["displayName"] = this.displayName;
+        data["isEnabled"] = this.isEnabled;
+        data["isArchived"] = this.isArchived;
+        data["outcome"] = this.outcome;
+        data["diagnosticSummary"] = this.diagnosticSummary;
+        data["lastCheckedUtc"] = this.lastCheckedUtc ? this.lastCheckedUtc.toISOString() : undefined as any;
+        data["lastSuccessfulUtc"] = this.lastSuccessfulUtc ? this.lastSuccessfulUtc.toISOString() : undefined as any;
+        if (Array.isArray(this.mappings)) {
+            data["mappings"] = [];
+            for (let item of this.mappings)
+                data["mappings"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IHomeAssistantClimateRefreshDiagnosticsDto {
+    providerId?: string;
+    displayName?: string;
+    isEnabled?: boolean;
+    isArchived?: boolean;
+    outcome?: string;
+    diagnosticSummary?: string | undefined;
+    lastCheckedUtc?: Date | undefined;
+    lastSuccessfulUtc?: Date | undefined;
+    mappings?: HomeAssistantClimateMappingDiagnosticDto[];
+}
+
+export class HomeAssistantClimateMappingDiagnosticDto implements IHomeAssistantClimateMappingDiagnosticDto {
+    mappingId?: string;
+    roomId?: string;
+    sourceRole?: string;
+    isEnabled?: boolean;
+    isArchived?: boolean;
+    health?: string;
+    lastCheckedUtc?: Date | undefined;
+    lastSuccessfulUtc?: Date | undefined;
+    diagnosticSummary?: string | undefined;
+
+    constructor(data?: IHomeAssistantClimateMappingDiagnosticDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.mappingId = _data["mappingId"];
+            this.roomId = _data["roomId"];
+            this.sourceRole = _data["sourceRole"];
+            this.isEnabled = _data["isEnabled"];
+            this.isArchived = _data["isArchived"];
+            this.health = _data["health"];
+            this.lastCheckedUtc = _data["lastCheckedUtc"] ? new Date(_data["lastCheckedUtc"].toString()) : undefined as any;
+            this.lastSuccessfulUtc = _data["lastSuccessfulUtc"] ? new Date(_data["lastSuccessfulUtc"].toString()) : undefined as any;
+            this.diagnosticSummary = _data["diagnosticSummary"];
+        }
+    }
+
+    static fromJS(data: any): HomeAssistantClimateMappingDiagnosticDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new HomeAssistantClimateMappingDiagnosticDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["mappingId"] = this.mappingId;
+        data["roomId"] = this.roomId;
+        data["sourceRole"] = this.sourceRole;
+        data["isEnabled"] = this.isEnabled;
+        data["isArchived"] = this.isArchived;
+        data["health"] = this.health;
+        data["lastCheckedUtc"] = this.lastCheckedUtc ? this.lastCheckedUtc.toISOString() : undefined as any;
+        data["lastSuccessfulUtc"] = this.lastSuccessfulUtc ? this.lastSuccessfulUtc.toISOString() : undefined as any;
+        data["diagnosticSummary"] = this.diagnosticSummary;
+        return data;
+    }
+}
+
+export interface IHomeAssistantClimateMappingDiagnosticDto {
+    mappingId?: string;
+    roomId?: string;
+    sourceRole?: string;
+    isEnabled?: boolean;
+    isArchived?: boolean;
+    health?: string;
+    lastCheckedUtc?: Date | undefined;
+    lastSuccessfulUtc?: Date | undefined;
+    diagnosticSummary?: string | undefined;
 }
 
 export class KnownPersonDto implements IKnownPersonDto {

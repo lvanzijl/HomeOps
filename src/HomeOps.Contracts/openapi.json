@@ -5313,6 +5313,143 @@
         }
       }
     },
+    "/api/admin/home-assistant/climate/providers/{providerId}/refresh": {
+      "post": {
+        "tags": [
+          "Home Assistant Climate Refresh"
+        ],
+        "operationId": "RefreshHomeAssistantClimateProvider",
+        "parameters": [
+          {
+            "name": "providerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HomeAssistantClimateRefreshSummary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/admin/home-assistant/climate/rooms/{roomId}/refresh": {
+      "post": {
+        "tags": [
+          "Home Assistant Climate Refresh"
+        ],
+        "operationId": "RefreshHomeAssistantClimateRoom",
+        "parameters": [
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HomeAssistantClimateRefreshSummary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/admin/home-assistant/climate/mappings/{mappingId}/refresh": {
+      "post": {
+        "tags": [
+          "Home Assistant Climate Refresh"
+        ],
+        "operationId": "RefreshHomeAssistantClimateMapping",
+        "parameters": [
+          {
+            "name": "mappingId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HomeAssistantClimateRefreshSummary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/admin/home-assistant/climate/providers/{providerId}/diagnostics": {
+      "get": {
+        "tags": [
+          "Home Assistant Climate Refresh"
+        ],
+        "operationId": "GetHomeAssistantClimateProviderDiagnostics",
+        "parameters": [
+          {
+            "name": "providerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HomeAssistantClimateRefreshDiagnosticsDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
     "/api/known-people": {
       "get": {
         "tags": [
@@ -11067,6 +11204,217 @@
         "additionalProperties": false,
         "properties": {
           "idempotencyKey": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "HomeAssistantClimateRefreshSummary": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "providerId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "startedUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completedUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "outcome": {
+            "$ref": "#/components/schemas/HomeAssistantClimateRefreshOutcome"
+          },
+          "roomsAttempted": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "roomsSucceeded": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "roomsFailed": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "mappingsAttempted": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "mappingsHealthy": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "mappingsMissing": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "mappingsUnavailable": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "mappingsNeedsReview": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "observationsAccepted": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "observationsIgnored": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "observationsFailed": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "wasCancelled": {
+            "type": "boolean"
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HomeAssistantClimateRefreshIssue"
+            }
+          }
+        }
+      },
+      "HomeAssistantClimateRefreshOutcome": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "Healthy",
+          "AuthenticationFailure",
+          "ProviderUnavailable",
+          "InvalidConnectionConfiguration",
+          "PartialFailure",
+          "Unverified",
+          "Skipped",
+          "Cancelled"
+        ],
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ]
+      },
+      "HomeAssistantClimateRefreshIssue": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "scope": {
+            "type": "string"
+          },
+          "providerId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "roomId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "mappingId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          },
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "HomeAssistantClimateRefreshDiagnosticsDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "providerId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "isEnabled": {
+            "type": "boolean"
+          },
+          "isArchived": {
+            "type": "boolean"
+          },
+          "outcome": {
+            "type": "string"
+          },
+          "diagnosticSummary": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastCheckedUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "lastSuccessfulUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "mappings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HomeAssistantClimateMappingDiagnosticDto"
+            }
+          }
+        }
+      },
+      "HomeAssistantClimateMappingDiagnosticDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "mappingId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "roomId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "sourceRole": {
+            "type": "string"
+          },
+          "isEnabled": {
+            "type": "boolean"
+          },
+          "isArchived": {
+            "type": "boolean"
+          },
+          "health": {
+            "type": "string"
+          },
+          "lastCheckedUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "lastSuccessfulUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "diagnosticSummary": {
             "type": "string",
             "nullable": true
           }

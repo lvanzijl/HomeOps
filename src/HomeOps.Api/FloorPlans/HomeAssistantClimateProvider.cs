@@ -48,11 +48,15 @@ public sealed class HomeAssistantClimateProvider(
         return new(mappings.Count, ok, failed);
     }
 
-    public async Task<HomeAssistantRefreshResult> RefreshRoomAsync(Guid roomId, Guid providerId, CancellationToken ct)
+    public Task<HomeAssistantRefreshResult> RefreshRoomAsync(Guid roomId, Guid providerId, CancellationToken ct) => RefreshRoomAsync(roomId, providerId, null, ct);
+
+    public async Task<HomeAssistantRefreshResult> RefreshRoomAsync(Guid roomId, Guid providerId, Guid? mappingId, CancellationToken ct)
     {
         var provider = await db.ClimateProviders.FirstOrDefaultAsync(p => p.Id == providerId, ct);
         if (provider is null || provider.ProviderType != ProviderType.HomeAssistant || !provider.IsEnabled || provider.IsArchived) return new(0, 0, 1);
-        var mappings = await db.RoomClimateSourceMappings.Include(m => m.Room).Where(m => m.RoomId == roomId && m.ProviderId == providerId && m.IsEnabled && !m.IsArchived).ToListAsync(ct);
+        var query = db.RoomClimateSourceMappings.Include(m => m.Room).Where(m => m.RoomId == roomId && m.ProviderId == providerId && m.IsEnabled && !m.IsArchived && m.Room != null && m.Room.IsEnabled && !m.Room.IsArchived);
+        if (mappingId is not null) query = query.Where(m => m.Id == mappingId.Value);
+        var mappings = await query.ToListAsync(ct);
         var submitted = 0; var failed = 0;
         foreach (var mapping in mappings)
         {
