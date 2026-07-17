@@ -55,6 +55,7 @@ builder.Services.AddScoped<ClimateMappingValidationService>();
 builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddScoped<RoomClimateReadModelService>();
 builder.Services.AddScoped<RoomHeatingControlService>();
+builder.Services.AddScoped<RoomHeatingControlReconciliationService>();
 builder.Services.AddScoped<IRoomHeatingControlProvider, UnavailableRoomHeatingControlProvider>();
 builder.Services.AddHttpClient<IICalFeedImporter, ICalFeedImporter>();
 builder.Services.AddScoped<ICalFileContentStore, FileSystemICalFileContentStore>();
@@ -65,6 +66,7 @@ builder.Services.AddSingleton<CalendarBackgroundSynchronizationRunner>();
 if (!builder.Environment.IsEnvironment("Testing") && !builder.Environment.IsEnvironment("VisualReview"))
 {
     builder.Services.AddHostedService<CalendarBackgroundSynchronizationHostedService>();
+    builder.Services.AddHostedService<RoomHeatingControlReconciliationHostedService>();
 }
 if (builder.Environment.IsEnvironment("VisualReview"))
 {
