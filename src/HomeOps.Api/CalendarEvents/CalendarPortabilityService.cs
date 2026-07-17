@@ -101,7 +101,7 @@ public static class CalendarPortabilityService
         var climateProviders = await dbContext.ClimateProviders.AsNoTracking()
             .Where(provider => provider.HouseholdId == SeedHousehold.Id)
             .OrderBy(provider => provider.DisplayName)
-            .Select(provider => new CalendarExportClimateProvider(provider.Id, provider.DisplayName, provider.ProviderType.ToString(), provider.IsEnabled, provider.IsArchived, provider.ArchivedUtc, provider.ExternalInstanceReference, provider.DiagnosticMetadata, provider.CreatedUtc, provider.UpdatedUtc))
+            .Select(provider => new CalendarExportClimateProvider(provider.Id, provider.DisplayName, provider.ProviderType.ToString(), provider.IsEnabled, provider.IsArchived, provider.ArchivedUtc, provider.ExternalInstanceReference, provider.DiagnosticMetadata, provider.CreatedUtc, provider.UpdatedUtc, provider.HomeAssistantResumeStrategyType.ToString(), provider.HomeAssistantResumeScriptEntityReference, provider.HomeAssistantResumeClimateEntityReference, provider.HomeAssistantResumePresetValue, provider.HomeAssistantResumeStrategyUpdatedUtc))
             .ToListAsync(cancellationToken);
         var climateMappings = await dbContext.RoomClimateSourceMappings.AsNoTracking()
             .Where(mapping => mapping.HouseholdId == SeedHousehold.Id)
@@ -372,7 +372,7 @@ public static class CalendarPortabilityService
             dbContext.ClimateProviders.RemoveRange(existingProviders);
             dbContext.ClimateProviders.AddRange(document.Calendar.ClimateProviders.Select(provider => new ClimateProvider
             {
-                Id = provider.Id, HouseholdId = SeedHousehold.Id, DisplayName = provider.DisplayName.Trim(), ProviderType = Enum.Parse<ProviderType>(provider.ProviderType, true), IsEnabled = provider.IsEnabled, IsArchived = provider.IsArchived, ArchivedUtc = provider.ArchivedUtc, ExternalInstanceReference = string.IsNullOrWhiteSpace(provider.ExternalInstanceReference) ? null : provider.ExternalInstanceReference.Trim(), DiagnosticMetadata = string.IsNullOrWhiteSpace(provider.DiagnosticMetadata) ? null : provider.DiagnosticMetadata.Trim(), CreatedUtc = provider.CreatedUtc, UpdatedUtc = provider.UpdatedUtc
+                Id = provider.Id, HouseholdId = SeedHousehold.Id, DisplayName = provider.DisplayName.Trim(), ProviderType = Enum.Parse<ProviderType>(provider.ProviderType, true), IsEnabled = provider.IsEnabled, IsArchived = provider.IsArchived, ArchivedUtc = provider.ArchivedUtc, ExternalInstanceReference = string.IsNullOrWhiteSpace(provider.ExternalInstanceReference) ? null : provider.ExternalInstanceReference.Trim(), DiagnosticMetadata = string.IsNullOrWhiteSpace(provider.DiagnosticMetadata) ? null : provider.DiagnosticMetadata.Trim(), CreatedUtc = provider.CreatedUtc, UpdatedUtc = provider.UpdatedUtc, HomeAssistantResumeStrategyType = ParseResumeStrategyType(provider.HomeAssistantResumeStrategyType), HomeAssistantResumeScriptEntityReference = string.IsNullOrWhiteSpace(provider.HomeAssistantResumeScriptEntityReference) ? null : provider.HomeAssistantResumeScriptEntityReference.Trim(), HomeAssistantResumeClimateEntityReference = string.IsNullOrWhiteSpace(provider.HomeAssistantResumeClimateEntityReference) ? null : provider.HomeAssistantResumeClimateEntityReference.Trim(), HomeAssistantResumePresetValue = string.IsNullOrWhiteSpace(provider.HomeAssistantResumePresetValue) ? null : provider.HomeAssistantResumePresetValue.Trim(), HomeAssistantResumeStrategyUpdatedUtc = provider.HomeAssistantResumeStrategyUpdatedUtc
             }));
             if (document.Calendar.RoomClimateSourceMappings is not null)
             {
@@ -414,6 +414,8 @@ public static class CalendarPortabilityService
         return new CalendarRestoreResult(true, new Dictionary<string, string[]>());
     }
 
+
+    private static HomeOps.Api.FloorPlans.HomeAssistantResumeStrategyType ParseResumeStrategyType(string? value) => Enum.TryParse<HomeOps.Api.FloorPlans.HomeAssistantResumeStrategyType>(value, true, out var parsed) ? parsed : HomeOps.Api.FloorPlans.HomeAssistantResumeStrategyType.None;
 
     private static CalendarExportRecurrence ToExportRecurrence(EventSeries series)
     {

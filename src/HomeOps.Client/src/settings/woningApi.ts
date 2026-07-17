@@ -1,18 +1,35 @@
 import {
+  ClimateSourceRole,
+  CreateClimateProviderRequest,
   CreateFloorRequest,
   CreateRoomRequest,
+  HomeAssistantResumeStrategyType,
   HomeOpsApiClient,
+  MappingHealth,
   MoveRoomRequest,
+  ProviderType,
   ReorderFloorsRequest,
   ReorderRoomsRequest,
   RoomType,
+  UpdateClimateProviderRequest,
+  UpdateHomeAssistantResumeStrategyRequest,
   UpdateFloorRequest,
   UpdateRoomRequest,
+  type ClimateMappingDto,
+  type ClimateProviderDto,
   type FloorDto,
+  type HomeAssistantClimateRefreshDiagnosticsDto,
+  type HomeAssistantClimateRefreshSummary,
+  type HomeAssistantResumeStrategyConfigurationDto,
   type RoomClimateConfigurationDto,
   type RoomDto,
 } from "../api/homeOpsApiClient";
 
+export type ClimateProvider = ClimateProviderDto;
+export type ClimateMapping = ClimateMappingDto;
+export type HomeAssistantDiagnostics = HomeAssistantClimateRefreshDiagnosticsDto;
+export type HomeAssistantRefreshSummary = HomeAssistantClimateRefreshSummary;
+export type HomeAssistantResumeStrategyConfiguration = HomeAssistantResumeStrategyConfigurationDto;
 export type Floor = FloorDto;
 export type Room = RoomDto;
 export type RoomClimateConfiguration = RoomClimateConfigurationDto;
@@ -36,6 +53,8 @@ export const roomTypeOptions = Object.values(RoomType)
   .filter((value): value is RoomType => typeof value === "number")
   .map((value) => ({ value, label: roomTypeLabels[value] }));
 
+export { ClimateSourceRole, HomeAssistantResumeStrategyType, MappingHealth, ProviderType };
+
 export function createWoningClient() {
   return new HomeOpsApiClient();
 }
@@ -46,6 +65,53 @@ export async function loadFloors() {
 
 export async function loadRooms(floorId: string) {
   return createWoningClient().getFloorRooms(floorId, true);
+}
+
+
+export async function loadClimateProviders() {
+  return createWoningClient().getClimateProviders(true);
+}
+
+export async function saveHomeAssistantProvider(provider: ClimateProvider | null, displayName: string, baseUrl: string, isEnabled: boolean) {
+  const trimmedName = displayName.trim();
+  const trimmedUrl = baseUrl.trim();
+  if (provider?.id) {
+    return createWoningClient().updateClimateProvider(provider.id, new UpdateClimateProviderRequest({ displayName: trimmedName, externalInstanceReference: trimmedUrl, isEnabled }));
+  }
+
+  return createWoningClient().createClimateProvider(new CreateClimateProviderRequest({ displayName: trimmedName, providerType: ProviderType.HomeAssistant, externalInstanceReference: trimmedUrl }));
+}
+
+export async function loadRoomClimateMappings(roomId: string) {
+  return createWoningClient().getRoomClimateMappings(roomId, true);
+}
+
+export async function refreshHomeAssistantProvider(providerId: string) {
+  return createWoningClient().refreshHomeAssistantClimateProvider(providerId);
+}
+
+export async function refreshHomeAssistantRoom(roomId: string) {
+  return createWoningClient().refreshHomeAssistantClimateRoom(roomId);
+}
+
+export async function refreshHomeAssistantMapping(mappingId: string) {
+  return createWoningClient().refreshHomeAssistantClimateMapping(mappingId);
+}
+
+export async function loadHomeAssistantDiagnostics(providerId: string) {
+  return createWoningClient().getHomeAssistantClimateProviderDiagnostics(providerId);
+}
+
+export async function loadHomeAssistantResumeStrategy(providerId: string) {
+  return createWoningClient().getHomeAssistantResumeStrategy(providerId);
+}
+
+export async function updateHomeAssistantResumeStrategy(providerId: string, request: UpdateHomeAssistantResumeStrategyRequest) {
+  return createWoningClient().updateHomeAssistantResumeStrategy(providerId, request);
+}
+
+export function createHomeAssistantResumeStrategyRequest(strategyType: HomeAssistantResumeStrategyType, scriptEntityReference?: string, climateEntityReference?: string, presetValue?: string) {
+  return new UpdateHomeAssistantResumeStrategyRequest({ strategyType, scriptEntityReference, climateEntityReference, presetValue });
 }
 
 export async function loadClimateConfiguration(roomId: string) {

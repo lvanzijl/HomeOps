@@ -900,3 +900,12 @@ Settings > Woning now exposes a bounded replacement floor-plan review workflow f
 ## 2026-07-17 Update — Woning Climate Floor Plans Slice 14
 - Implemented backend periodic Home Assistant climate refresh orchestration for enabled providers and active Room mappings, including provider-scoped overlap prevention, thin hosted scheduling, safe manual refresh/diagnostics endpoints, factual mapping health updates, and normalized observation ingestion through the accepted read-model seam.
 - Explicitly excluded frontend setup UI, provider discovery, OAuth, arbitrary service execution, generic scheduler/queue infrastructure, automation, screenshots, binary assets, and unrelated product scope.
+
+## 2026-07-17 Update — Woning Climate Floor Plans Slice 15
+- Implemented Settings-side Home Assistant climate setup and diagnostics workflow. Administrators can add/manage the safe provider display name, base URL, and enabled state where generated provider contracts support it; see token guidance without token entry/storage; verify and refresh provider, room, and mapping status; inspect grouped room climate mapping health and safe diagnostics; and navigate back to existing room climate context. Resume-strategy editing remains read-only because no typed public configuration contract exists. No OAuth, discovery, generic entity browser, arbitrary Home Assistant service execution, runtime dashboard, screenshots, binary assets, handwritten networking, or generated-client edits were added.
+
+## 2026-07-17 Update — Woning Climate Floor Plans Slice 15 Contract Correction
+- Corrected Home Assistant resume-schedule strategy configuration by adding typed backend contracts, explicit provider-owned persistence, OpenAPI/client generation, adapter allow-list execution, Settings-side strategy editing, portability coverage, and legacy metadata migration safeguards. The typed model is now authoritative; no token input/storage, arbitrary service execution, JSON editor, entity discovery, schedule editor, or unrelated Home Assistant product scope was added.
+
+## 2026-07-17 Update — Home Assistant Resume Strategy Test Stability
+Stabilized the frontend verification for the Home Assistant resume-strategy contract correction. The accepted product and contract implementation remains unchanged; the follow-up only corrected async test waits and documents that the full frontend suite now passes deterministically.

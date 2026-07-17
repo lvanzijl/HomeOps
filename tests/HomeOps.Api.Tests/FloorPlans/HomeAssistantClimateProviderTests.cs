@@ -160,7 +160,7 @@ public sealed class HomeAssistantClimateProviderTests
     public async Task HeatingCapabilityCommandsAndResumeUseSafeProviderNeutralLifecycle()
     {
         using var env = new EnvToken(Token);
-        await using var db = Db(); var fx = Seed(db, ClimateSourceRole.HeatingControl, externalId: "climate.room", metadata: "ha-resume:script:turn_on:script.resume");
+        await using var db = Db(); var fx = Seed(db, ClimateSourceRole.HeatingControl, externalId: "climate.room", resumeScript: "script.resume");
         db.RoomClimateObservations.Add(new RoomClimateObservation { Id = Guid.NewGuid(), HouseholdId = SeedHousehold.Id, RoomId = fx.Room.Id, ProviderId = fx.Provider.Id, SourceMappingId = fx.Mapping.Id, ObservedUtc = Now.AddMinutes(-1), ReceivedUtc = Now.AddMinutes(-1), TemperatureCelsius = 20, TargetTemperatureCelsius = 20, OperatingState = RoomClimateOperatingState.Idle, IsProviderAvailable = true, CreatedUtc = Now, UpdatedUtc = Now });
         await db.SaveChangesAsync();
         var handler = new QueueHandler(
@@ -200,6 +200,41 @@ public sealed class HomeAssistantClimateProviderTests
         Assert.Contains("script.resume", handler.Bodies.Last());
     }
 
+
+
+    [Fact]
+    public void ResumeStrategyValidationAllowsOnlyTypedSafeStrategies()
+    {
+        Assert.True(HomeAssistantResumeStrategyValidation.Validate(new(HomeAssistantResumeStrategyType.None)).Valid);
+        Assert.True(HomeAssistantResumeStrategyValidation.Validate(new(HomeAssistantResumeStrategyType.Script, ScriptEntityReference: "script.resume_schedule")).Valid);
+        Assert.False(HomeAssistantResumeStrategyValidation.Validate(new(HomeAssistantResumeStrategyType.Script, ScriptEntityReference: "light.resume")).Valid);
+        Assert.True(HomeAssistantResumeStrategyValidation.Validate(new(HomeAssistantResumeStrategyType.ClimatePreset, ClimateEntityReference: "climate.woonkamer", PresetValue: "schedule")).Valid);
+        Assert.False(HomeAssistantResumeStrategyValidation.Validate(new(HomeAssistantResumeStrategyType.ClimatePreset, ClimateEntityReference: "script.bad", PresetValue: "schedule")).Valid);
+        Assert.False(HomeAssistantResumeStrategyValidation.Validate(new(HomeAssistantResumeStrategyType.ClimatePreset, ClimateEntityReference: "climate.woonkamer", PresetValue: new string('x', 81))).Valid);
+        Assert.False(HomeAssistantResumeStrategyValidation.Validate(new(HomeAssistantResumeStrategyType.ClimatePreset, ClimateEntityReference: "climate.woonkamer", PresetValue: "bad\u0001")).Valid);
+    }
+
+    [Fact]
+    public async Task TypedResumeStrategyControlsCapabilityAndDispatchAllowList()
+    {
+        using var env = new EnvToken(Token);
+        await using var db = Db(); var none = Seed(db, ClimateSourceRole.HeatingControl, externalId: "climate.none"); var preset = Seed(db, ClimateSourceRole.HeatingControl, externalId: "climate.room", roomName: "Preset", resumeClimate: "climate.room", resumePreset: "schedule");
+        var handler = new QueueHandler(
+            _ => Json(HttpStatusCode.OK, Entity("climate.none", "heat", Attr(("temperature", "20"), ("current_temperature", "20"), ("temperature_unit", "°C"), ("min_temp", "18"), ("max_temp", "24")))),
+            _ => Json(HttpStatusCode.OK, Entity("climate.room", "heat", Attr(("temperature", "20"), ("current_temperature", "20"), ("temperature_unit", "°C"), ("min_temp", "18"), ("max_temp", "24")))),
+            _ => Json(HttpStatusCode.OK, "[]"));
+        var adapter = Provider(db, handler);
+        var noResume = await adapter.GetCapabilityAsync(new(SeedHousehold.Id, none.Room.Id, none.Provider.Id, none.Mapping.Id, "climate.none", Guid.NewGuid(), null, null, null), default);
+        var hasPreset = await adapter.GetCapabilityAsync(new(SeedHousehold.Id, preset.Room.Id, preset.Provider.Id, preset.Mapping.Id, "climate.room", Guid.NewGuid(), null, null, null), default);
+        Assert.False(noResume.SupportsScheduleResume);
+        Assert.True(hasPreset.SupportsScheduleResume);
+        var result = await adapter.ResumeScheduleAsync(new(SeedHousehold.Id, preset.Room.Id, preset.Provider.Id, preset.Mapping.Id, "climate.room", Guid.NewGuid(), null, null, null), default);
+        Assert.Equal(RoomHeatingProviderOutcome.Accepted, result.Outcome);
+        Assert.EndsWith("/api/services/climate/set_preset_mode", handler.Requests.Last().RequestUri!.ToString());
+        Assert.Contains("\"entity_id\":\"climate.room\"", handler.Bodies.Last());
+        Assert.Contains("\"preset_mode\":\"schedule\"", handler.Bodies.Last());
+    }
+
     [Fact]
     public async Task ReconciliationConfirmsAcceptedHomeAssistantCommandOnlyFromLaterMatchingObservation()
     {
@@ -220,7 +255,7 @@ public sealed class HomeAssistantClimateProviderTests
     public async Task PortabilityAndPersistenceExcludeSecretsAndOperationalProviderPayloads()
     {
         using var env = new EnvToken(Token);
-        await using var db = Db(); var fx = Seed(db, ClimateSourceRole.HeatingControl, metadata: "ha-resume:script:turn_on:script.resume");
+        await using var db = Db(); var fx = Seed(db, ClimateSourceRole.HeatingControl, resumeScript: "script.resume");
         db.RoomClimateObservations.Add(new RoomClimateObservation { Id = Guid.NewGuid(), HouseholdId = SeedHousehold.Id, RoomId = fx.Room.Id, ProviderId = fx.Provider.Id, SourceMappingId = fx.Mapping.Id, ObservedUtc = Now, ReceivedUtc = Now, IsProviderAvailable = true, OperatingState = RoomClimateOperatingState.Idle, CreatedUtc = Now, UpdatedUtc = Now, StatusDetail = "safe" });
         db.RoomHeatingCommands.Add(new RoomHeatingCommand { Id = Guid.NewGuid(), HouseholdId = SeedHousehold.Id, RoomId = fx.Room.Id, ProviderId = fx.Provider.Id, SourceMappingId = fx.Mapping.Id, Action = RoomHeatingCommandAction.TemporaryWarmer, Status = RoomHeatingCommandStatus.Accepted, RequestedUtc = Now, UpdatedUtc = Now, IdempotencyKey = "k", RequestFingerprint = "k", ProviderCommandReference = "ha:opaque" });
         await db.SaveChangesAsync();
@@ -228,7 +263,8 @@ public sealed class HomeAssistantClimateProviderTests
         var json = System.Text.Json.JsonSerializer.Serialize(export);
 
         Assert.Contains("http://ha.local:8123", json);
-        Assert.Contains("ha-resume:script:turn_on:script.resume", json);
+        Assert.Contains("HomeAssistantResumeScriptEntityReference", json);
+        Assert.Contains("script.resume", json);
         Assert.DoesNotContain(Token, json);
         Assert.DoesNotContain("Authorization", json);
         Assert.DoesNotContain("ha:opaque", json);
@@ -243,13 +279,13 @@ public sealed class HomeAssistantClimateProviderTests
 
     private static HomeOpsDbContext Db() => new(new DbContextOptionsBuilder<HomeOpsDbContext>().UseInMemoryDatabase($"ha-{Guid.NewGuid()}").Options);
 
-    private static Fixture Seed(HomeOpsDbContext db, ClimateSourceRole role, string baseUrl = "http://ha.local:8123/", string externalId = "sensor.room", string? metadata = null, string roomName = "Room")
+    private static Fixture Seed(HomeOpsDbContext db, ClimateSourceRole role, string baseUrl = "http://ha.local:8123/", string externalId = "sensor.room", string? metadata = null, string roomName = "Room", string? resumeScript = null, string? resumeClimate = null, string? resumePreset = null)
     {
         if (!db.Households.Any(h => h.Id == SeedHousehold.Id)) db.Households.Add(new Household { Id = SeedHousehold.Id, Name = "Home", TimeZoneId = "UTC", CreatedUtc = Now, UpdatedUtc = Now });
         var floor = new Floor { Id = Guid.NewGuid(), HouseholdId = SeedHousehold.Id, Name = "Floor", SortOrder = 0, CreatedUtc = Now, UpdatedUtc = Now };
         var room = new Room { Id = Guid.NewGuid(), HouseholdId = SeedHousehold.Id, FloorId = floor.Id, Name = roomName, RoomType = RoomType.LivingRoom, SortOrder = 0, IsEnabled = true, CreatedUtc = Now, UpdatedUtc = Now };
         var config = new RoomClimateConfiguration { RoomId = room.Id, HouseholdId = SeedHousehold.Id, IsClimateEnabled = true, MinimumPreferredTemperatureCelsius = 18, MaximumPreferredTemperatureCelsius = 22, MinimumPreferredRelativeHumidity = 35, MaximumPreferredRelativeHumidity = 65, HeatingPolicyIntent = HeatingPolicyIntent.BoundedControl, CreatedUtc = Now, UpdatedUtc = Now };
-        var provider = new ClimateProvider { Id = Guid.NewGuid(), HouseholdId = SeedHousehold.Id, ProviderType = ProviderType.HomeAssistant, DisplayName = "HA", ExternalInstanceReference = baseUrl, DiagnosticMetadata = metadata, IsEnabled = true, CreatedUtc = Now, UpdatedUtc = Now };
+        var provider = new ClimateProvider { Id = Guid.NewGuid(), HouseholdId = SeedHousehold.Id, ProviderType = ProviderType.HomeAssistant, DisplayName = "HA", ExternalInstanceReference = baseUrl, DiagnosticMetadata = metadata, IsEnabled = true, CreatedUtc = Now, UpdatedUtc = Now, HomeAssistantResumeStrategyType = resumeScript is not null ? HomeAssistantResumeStrategyType.Script : resumePreset is not null ? HomeAssistantResumeStrategyType.ClimatePreset : HomeAssistantResumeStrategyType.None, HomeAssistantResumeScriptEntityReference = resumeScript, HomeAssistantResumeClimateEntityReference = resumeClimate, HomeAssistantResumePresetValue = resumePreset, HomeAssistantResumeStrategyUpdatedUtc = resumeScript is not null || resumePreset is not null ? Now : null };
         var mapping = new RoomClimateSourceMapping { Id = Guid.NewGuid(), HouseholdId = SeedHousehold.Id, RoomId = room.Id, ProviderId = provider.Id, SourceRole = role, ExternalSourceId = externalId, Priority = 0, IsEnabled = true, Health = MappingHealth.Healthy, CreatedUtc = Now, UpdatedUtc = Now };
         db.AddRange(floor, room, config, provider, mapping); db.SaveChanges(); return new(floor, room, config, provider, mapping);
     }

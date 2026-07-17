@@ -124,6 +124,11 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             entity.Property(provider => provider.ArchivedUtc);
             entity.Property(provider => provider.ExternalInstanceReference).HasMaxLength(240);
             entity.Property(provider => provider.DiagnosticMetadata).HasMaxLength(2000);
+            entity.Property(provider => provider.HomeAssistantResumeStrategyType).HasConversion<string>().HasMaxLength(40).IsRequired();
+            entity.Property(provider => provider.HomeAssistantResumeScriptEntityReference).HasMaxLength(240);
+            entity.Property(provider => provider.HomeAssistantResumeClimateEntityReference).HasMaxLength(240);
+            entity.Property(provider => provider.HomeAssistantResumePresetValue).HasMaxLength(80);
+            entity.Property(provider => provider.HomeAssistantResumeStrategyUpdatedUtc);
             entity.Property(provider => provider.CreatedUtc).IsRequired();
             entity.Property(provider => provider.UpdatedUtc).IsRequired();
             entity.HasOne(provider => provider.Household).WithMany().HasForeignKey(provider => provider.HouseholdId).OnDelete(DeleteBehavior.Restrict);

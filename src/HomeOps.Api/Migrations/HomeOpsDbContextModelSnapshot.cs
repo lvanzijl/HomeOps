@@ -580,6 +580,26 @@ namespace HomeOps.Api.Migrations
                         .HasMaxLength(240)
                         .HasColumnType("character varying(240)");
 
+                    b.Property<string>("HomeAssistantResumeClimateEntityReference")
+                        .HasMaxLength(240)
+                        .HasColumnType("character varying(240)");
+
+                    b.Property<string>("HomeAssistantResumePresetValue")
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<string>("HomeAssistantResumeScriptEntityReference")
+                        .HasMaxLength(240)
+                        .HasColumnType("character varying(240)");
+
+                    b.Property<DateTimeOffset?>("HomeAssistantResumeStrategyUpdatedUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("HomeAssistantResumeStrategyType")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
                     b.Property<Guid>("HouseholdId")
                         .HasColumnType("uuid");
 
