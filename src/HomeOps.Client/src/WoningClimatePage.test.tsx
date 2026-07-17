@@ -90,3 +90,45 @@ describe('Woning climate runtime', () => {
 
   it('supports no active plan fallback, refresh retry and unavailable detail copy', async () => { vi.mocked(api.loadFloorClimateState).mockResolvedValueOnce({ ...floor, activeAsset: undefined } as never); render(<WoningClimatePage onBack={() => undefined} />); expect(await screen.findByText('De plattegrond is niet beschikbaar; alle kamers staan hieronder.')).toBeTruthy(); await userEvent.click(await screen.findByRole('button', { name: /Hal/ })); expect(screen.getByLabelText('Geselecteerde kamer').textContent).toContain('De klimaatbron is niet beschikbaar.'); await userEvent.click(screen.getByRole('button', { name: 'Vernieuwen' })); await waitFor(() => expect(api.loadHouseholdClimateSummary).toHaveBeenCalledTimes(2)); });
 });
+
+describe('Woning climate Story deep links', () => {
+  it('opens the requested floor and room, renders secondary Story context, and keeps live values authoritative', async () => {
+    render(<WoningClimatePage onBack={() => undefined} initialStoryContext={{ storyId: 's1', title: 'Keukenmeting is oud', explanation: 'Storywaarde 16.0°C mag niet leidend zijn.', floorId: 'f1', roomId: 'r2', contextCode: 'room-observation-stale', createdAt: new Date('2026-07-17T08:00:00Z') }} />);
+    const storyHeading = await screen.findByRole('heading', { name: 'Geen recente meting' });
+    await waitFor(() => expect(document.activeElement).toBe(storyHeading));
+    expect(screen.getByLabelText('Geselecteerde kamer').textContent).toContain('Keuken');
+    expect(screen.getByLabelText('Geselecteerde kamer').textContent).toContain('19.0°C');
+    expect(screen.getByLabelText('Geselecteerde kamer').textContent).not.toContain('16.0°C');
+    expect(screen.getByText('Storywaarde 16.0°C mag niet leidend zijn.')).toBeTruthy();
+    await userEvent.click(screen.getByRole('button', { name: 'Vernieuwen' }));
+    await waitFor(() => expect(api.loadHouseholdClimateSummary).toHaveBeenCalledTimes(2));
+    expect(screen.getByText('Storywaarde 16.0°C mag niet leidend zijn.')).toBeTruthy();
+  });
+
+  it('selects fallback rooms without overlay and dismisses context without leaving the selected room', async () => {
+    render(<WoningClimatePage onBack={() => undefined} initialStoryContext={{ title: 'Kamer niet op plattegrond', floorId: 'f1', roomId: 'r2', contextCode: 'floor-plan-fallback-required' }} />);
+    expect((await screen.findByLabelText('Geselecteerde kamer')).textContent).toContain('Keuken');
+    expect(screen.getByText('De plattegrond was niet bruikbaar; de kamer wordt in de kamerlijst getoond.')).toBeTruthy();
+    await userEvent.click(screen.getByRole('button', { name: 'Sluiten' }));
+    expect(screen.queryByRole('heading', { name: 'Niet op de plattegrond' })).toBeNull();
+    expect(screen.getByLabelText('Geselecteerde kamer').textContent).toContain('Keuken');
+  });
+
+  it('resolves a moved room from live floor data and reports stale target context safely', async () => {
+    const upstairs = { ...floor, floorId: 'f2', floorName: 'Boven', rooms: [{ ...floor.rooms[0], roomId: 'r-moved', roomName: 'Slaapkamer' }] };
+    vi.mocked(api.loadFloorClimateState).mockImplementation(async (floorId: string) => (floorId === 'f2' ? upstairs : floor) as never);
+    render(<WoningClimatePage onBack={() => undefined} initialStoryContext={{ title: 'Slaapkamer gewijzigd', floorId: 'f1', roomId: 'r-moved', contextCode: 'invalid-climate-context' }} />);
+    expect(await screen.findByRole('button', { name: /Boven/ })).toBeTruthy();
+    expect(screen.getByLabelText('Geselecteerde kamer').textContent).toContain('Slaapkamer');
+    expect(screen.getByRole('alert').textContent).toContain('Deze kamer is gewijzigd sinds dit aandachtspunt werd gemaakt. De huidige gegevens worden getoond.');
+  });
+
+  it('shows explicit settings escalation without automatic settings redirect', async () => {
+    const openSettings = vi.fn();
+    render(<WoningClimatePage onBack={() => undefined} onOpenClimateSettings={openSettings} initialStoryContext={{ title: 'Klimaatbron controleren', floorId: 'f1', roomId: 'r3', contextCode: 'provider-unavailable' }} />);
+    await screen.findByRole('button', { name: 'Klimaatinstellingen openen' });
+    expect(openSettings).not.toHaveBeenCalled();
+    await userEvent.click(screen.getByRole('button', { name: 'Klimaatinstellingen openen' }));
+    expect(openSettings).toHaveBeenCalledWith('r3');
+  });
+});

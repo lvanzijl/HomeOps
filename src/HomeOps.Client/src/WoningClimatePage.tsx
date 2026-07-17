@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from 'react';
 import {
   RoomClimateFreshness,
   RoomClimateOperatingState,
@@ -94,6 +94,35 @@ function safeBlocker(code?: string, message?: string) {
 }
 function newKey() { return globalThis.crypto?.randomUUID?.() ?? `heating-${Date.now()}-${Math.random().toString(36).slice(2)}`; }
 
+
+export type ClimateStoryContextCode = 'room-climate-unavailable' | 'room-observation-stale' | 'provider-unavailable' | 'room-heating' | 'temporary-override-active' | 'temporary-override-failed' | 'floor-plan-fallback-required' | 'room-overlay-review-required' | 'invalid-climate-context' | 'configuration-review';
+
+export type ClimateStoryDeepLink = {
+  storyId?: string;
+  title: string;
+  explanation?: string;
+  createdAt?: Date;
+  floorId?: string;
+  roomId?: string;
+  contextCode?: ClimateStoryContextCode;
+};
+
+const storyContextLabels: Record<ClimateStoryContextCode, { title: string; explanation: string; settings?: boolean }> = {
+  'room-climate-unavailable': { title: 'Geen recente meting', explanation: 'Deze kamer had geen recente klimaatmeting toen dit aandachtspunt werd gemaakt.' },
+  'room-observation-stale': { title: 'Geen recente meting', explanation: 'De laatste klimaatmeting was verouderd toen dit aandachtspunt werd gemaakt.' },
+  'provider-unavailable': { title: 'Klimaatbron niet beschikbaar', explanation: 'De klimaatbron was niet bereikbaar toen dit aandachtspunt werd gemaakt.', settings: true },
+  'room-heating': { title: 'Tijdelijke temperatuur actief', explanation: 'Deze kamer was bezig met verwarmen of koelen toen dit aandachtspunt werd gemaakt.' },
+  'temporary-override-active': { title: 'Tijdelijke temperatuur actief', explanation: 'Er was een tijdelijke temperatuur actief toen dit aandachtspunt werd gemaakt.' },
+  'temporary-override-failed': { title: 'Verwarmingsopdracht niet gelukt', explanation: 'Een verwarmingsopdracht was niet gelukt toen dit aandachtspunt werd gemaakt.', settings: true },
+  'floor-plan-fallback-required': { title: 'Niet op de plattegrond', explanation: 'De plattegrond was niet bruikbaar; de kamer wordt in de kamerlijst getoond.' },
+  'room-overlay-review-required': { title: 'Plattegrondgrens controleren', explanation: 'De plattegrondgrens moest opnieuw worden gecontroleerd.' },
+  'invalid-climate-context': { title: 'Koppeling controleren', explanation: 'Dit aandachtspunt verwijst naar klimaatcontext die niet volledig meer bestaat.' },
+  'configuration-review': { title: 'Koppeling controleren', explanation: 'De klimaatkoppeling moet gecontroleerd worden.', settings: true },
+};
+
+function storyLabel(code?: ClimateStoryContextCode) { return code ? storyContextLabels[code] : undefined; }
+function storyTime(value?: Date) { return value ? value.toLocaleString('nl-NL', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : undefined; }
+
 function roomIssue(room: RoomClimateStateDto) {
   if (!room.configuration?.isConfigured) return 'Deze kamer is nog niet gekoppeld aan een klimaatbron.';
   if (room.configuration?.isClimateEnabled === false) return 'Klimaatmeting staat uit voor deze kamer.';
@@ -102,7 +131,7 @@ function roomIssue(room: RoomClimateStateDto) {
   return room.issues?.[0];
 }
 
-export function WoningSummaryPage({ onOpenClimate }: { onOpenClimate: () => void }) {
+export function WoningSummaryPage({ onOpenClimate }: { onOpenClimate: (context?: ClimateStoryDeepLink) => void }) {
   const [summary, setSummary] = useState<FloorClimateSummaryDto[]>([]);
   const [status, setStatus] = useState('Klimaatoverzicht laden…');
   useEffect(() => { let ignore = false; loadHouseholdClimateSummary().then((s) => { if (!ignore) { setSummary(s.floors ?? []); setStatus('Klimaatoverzicht geladen.'); } }).catch(() => { if (!ignore) setStatus('Klimaatoverzicht niet beschikbaar.'); }); return () => { ignore = true; }; }, []);
@@ -111,11 +140,11 @@ export function WoningSummaryPage({ onOpenClimate }: { onOpenClimate: () => void
   const mostUnavailable = [...summary].sort((a, b) => (b.counts?.unavailableRooms ?? 0) - (a.counts?.unavailableRooms ?? 0))[0];
   return <article className="woning-story-page" aria-label="Huisstatus">
     <p className="widget-type">Woning</p><h3>Huisstatus</h3><p>Story-first overzicht voor wonen. Klimaatdetails blijven in een rustige verdiepingsweergave.</p>
-    <section className="woning-climate-entry"><h4>Klimaat in huis</h4><p role="status">{status}</p><div className="climate-summary-pills"><span>{unavailable} niet beschikbaar</span><span>{stale} verouderd</span><span>Meeste uitval: {mostUnavailable?.floorName ?? 'geen verdieping'}</span></div><button type="button" onClick={onOpenClimate}>Klimaat bekijken</button></section>
+    <section className="woning-climate-entry"><h4>Klimaat in huis</h4><p role="status">{status}</p><div className="climate-summary-pills"><span>{unavailable} niet beschikbaar</span><span>{stale} verouderd</span><span>Meeste uitval: {mostUnavailable?.floorName ?? 'geen verdieping'}</span></div><button type="button" onClick={() => onOpenClimate(unavailable > 0 || stale > 0 ? { title: 'Klimaat in huis vraagt aandacht', floorId: mostUnavailable?.floorId, contextCode: unavailable > 0 ? 'provider-unavailable' : 'room-observation-stale', explanation: unavailable > 0 ? 'Een klimaatbron was niet beschikbaar toen dit aandachtspunt werd gemaakt.' : 'Bekijk hieronder de huidige status.' } : undefined)}>Klimaat bekijken</button></section>
   </article>;
 }
 
-export function WoningClimatePage({ onBack }: { onBack: () => void }) {
+export function WoningClimatePage({ onBack, initialStoryContext, onOpenClimateSettings }: { onBack: () => void; initialStoryContext?: ClimateStoryDeepLink; onOpenClimateSettings?: (roomId?: string) => void }) {
   const client = useMemo(() => createWoningClimateClient(), []);
   const [floors, setFloors] = useState<FloorClimateSummaryDto[]>([]);
   const [selectedFloorId, setSelectedFloorId] = useState<string>();
@@ -129,27 +158,41 @@ export function WoningClimatePage({ onBack }: { onBack: () => void }) {
   const [capability, setCapability] = useState<RoomHeatingControlCapabilityDto>();
   const [capabilityLoading, setCapabilityLoading] = useState(false);
   const [capabilityError, setCapabilityError] = useState('');
+  const [storyContext, setStoryContext] = useState<ClimateStoryDeepLink | undefined>(initialStoryContext);
+  const [storyCollapsed, setStoryCollapsed] = useState(false);
+  const [storyNotice, setStoryNotice] = useState('');
+  const storyHeadingRef = useRef<HTMLHeadingElement | null>(null);
+  const storyDismissRef = useRef<HTMLButtonElement | null>(null);
 
-  const load = useCallback(async (preferredFloorId?: string) => {
+  const load = useCallback(async (preferredFloorId?: string, preferredRoomId?: string) => {
     setLoading(true); setError('');
     try {
       const summary = await loadHouseholdClimateSummary(client);
       const ordered = summary.floors ?? [];
       setFloors(ordered);
-      const floorId = preferredFloorId && ordered.some((f) => f.floorId === preferredFloorId) ? preferredFloorId : ordered[0]?.floorId;
+      let floorId = preferredFloorId && ordered.some((f) => f.floorId === preferredFloorId) ? preferredFloorId : ordered[0]?.floorId;
       setSelectedFloorId(floorId);
       if (floorId) {
-        const state = await loadFloorClimateState(floorId, client);
+        let state = await loadFloorClimateState(floorId, client);
+        const targetRoom = preferredRoomId ? state.rooms?.find((r) => r.roomId === preferredRoomId) : undefined;
+        if (preferredRoomId && !targetRoom) {
+          for (const candidate of ordered.filter((f) => f.floorId && f.floorId !== floorId)) {
+            const candidateState = await loadFloorClimateState(candidate.floorId ?? '', client);
+            if (candidateState.rooms?.some((r) => r.roomId === preferredRoomId)) { floorId = candidate.floorId; state = candidateState; setStoryNotice('Deze kamer is gewijzigd sinds dit aandachtspunt werd gemaakt. De huidige gegevens worden getoond.'); break; }
+          }
+        }
+        setSelectedFloorId(floorId);
         setFloorState(state);
-        setOverlays(await loadFloorRuntimeOverlays(floorId, client));
-        setSelectedRoomId((current) => current && state.rooms?.some((r) => r.roomId === current) ? current : state.rooms?.[0]?.roomId);
+        setOverlays(await loadFloorRuntimeOverlays(floorId!, client));
+        setSelectedRoomId((current) => preferredRoomId && state.rooms?.some((r) => r.roomId === preferredRoomId) ? preferredRoomId : current && state.rooms?.some((r) => r.roomId === current) ? current : state.rooms?.[0]?.roomId);
+        if (preferredRoomId && !state.rooms?.some((r) => r.roomId === preferredRoomId)) setStoryNotice('Deze kamer is gewijzigd sinds dit aandachtspunt werd gemaakt. De huidige gegevens worden getoond.');
       }
       setRefreshedAt(new Date());
     } catch { setError('Klimaatgegevens konden niet worden geladen.'); }
     finally { setLoading(false); }
   }, [client]);
-  useEffect(() => { void load(selectedFloorId); }, []);
-  async function selectFloor(floorId: string) { setSelectedFloorId(floorId); setSelectedRoomId(undefined); await load(floorId); }
+  useEffect(() => { void load(initialStoryContext?.floorId, initialStoryContext?.roomId).then(() => { if (initialStoryContext) storyHeadingRef.current?.focus(); }); }, []);
+  async function selectFloor(floorId: string) { setSelectedFloorId(floorId); setSelectedRoomId(undefined); setStoryCollapsed(true); await load(floorId); }
 
   const rooms = floorState?.rooms ?? [];
   const trustedOverlays = overlays.filter((o) => o.state === RoomOverlayState.Trusted && o.floorPlanAssetId === floorState?.activeAsset?.id && rooms.some((r) => r.trustedOverlayId === o.id && r.spatialDisplayStatus === RoomClimateSpatialDisplayStatus.TrustedOverlayAvailable));
@@ -164,8 +207,9 @@ export function WoningClimatePage({ onBack }: { onBack: () => void }) {
     <section className="floor-tabs" aria-label="Verdiepingen">{floors.map((f) => <button key={f.floorId} aria-pressed={f.floorId === selectedFloorId} onClick={() => f.floorId && selectFloor(f.floorId)}>{f.floorName}<small>{freshnessLabel(f.overallAvailability)}</small></button>)}</section>
     <section className="climate-floor-summary" aria-label="Samenvatting verdieping"><strong>{floorState?.floorName ?? 'Geen verdieping'}</strong><span>Actueel {floorState?.counts?.freshRooms ?? 0}</span><span>Wordt ouder {floorState?.counts?.agingRooms ?? 0}</span><span>Verouderd {floorState?.counts?.staleRooms ?? 0}</span><span>Niet beschikbaar {floorState?.counts?.unavailableRooms ?? 0}</span><span>Op plan {floorState?.counts?.trustedOverlayRooms ?? 0}</span><span>Fallback {floorState?.counts?.fallbackRooms ?? 0}</span><span>{floorState?.activeAsset?.derivativeUrl ? 'Actieve plattegrond beschikbaar' : 'Geen actieve plattegrond'}</span><span>{floorState?.observedSummaryUtc ? `Laatste meting ${time(floorState.observedSummaryUtc)}` : 'Geen recente meting beschikbaar'}</span>{refreshedAt ? <span role="status">Bijgewerkt om {time(refreshedAt)}</span> : null}</section>
     <main className="climate-grid">
-      <section className="climate-plan-panel" aria-label="Plattegrond klimaat"><div className="climate-legend"><span>Actueel</span><span>Wordt ouder</span><span>Verouderd</span><span>Niet beschikbaar</span></div>{floorState?.activeAsset?.derivativeUrl ? <div className="climate-plan"><img alt={`Plattegrond ${floorState.floorName ?? ''}`} src={floorState.activeAsset.derivativeUrl} />{trustedOverlays.map((o) => <Overlay key={o.id} overlay={o} room={rooms.find((r) => r.roomId === o.roomId)} selected={o.roomId === selectedRoom?.roomId} onSelect={() => setSelectedRoomId(o.roomId)} />)}</div> : <p className="empty-state">De plattegrond is niet beschikbaar; alle kamers staan hieronder.</p>}</section>
-      <section className="climate-room-list" aria-label="Kamerlijst"><div className="room-filters">{[['all','Alle kamers'],['fresh','Actueel'],['attention','Aandacht nodig'],['unavailable','Niet beschikbaar']].map(([id,label])=><button key={id} aria-pressed={filter===id} onClick={()=>setFilter(id)}>{label}</button>)}</div>{filteredRooms.map((r) => <button type="button" className="room-row" aria-pressed={r.roomId === selectedRoom?.roomId} key={r.roomId} onClick={() => setSelectedRoomId(r.roomId)}><strong>{r.roomName}</strong><span>{temp(r.currentObservation?.temperatureCelsius)} {humidity(r.currentObservation?.relativeHumidity) ?? ''}</span><span>Doel {temp(r.currentObservation?.targetTemperatureCelsius)}</span><span>{operatingLabel(r.operatingState)} · {freshnessLabel(r.freshness)}</span><small>{roomIssue(r) ?? spatialText(r.spatialDisplayStatus)}</small></button>)}</section>
+      <section className="climate-plan-panel" aria-label="Plattegrond klimaat"><div className="climate-legend"><span>Actueel</span><span>Wordt ouder</span><span>Verouderd</span><span>Niet beschikbaar</span></div>{floorState?.activeAsset?.derivativeUrl ? <div className="climate-plan"><img alt={`Plattegrond ${floorState.floorName ?? ''}`} src={floorState.activeAsset.derivativeUrl} />{trustedOverlays.map((o) => <Overlay key={o.id} overlay={o} room={rooms.find((r) => r.roomId === o.roomId)} selected={o.roomId === selectedRoom?.roomId} onSelect={() => { setSelectedRoomId(o.roomId); setStoryCollapsed(true); }} />)}</div> : <p className="empty-state">De plattegrond is niet beschikbaar; alle kamers staan hieronder.</p>}</section>
+      <section className="climate-room-list" aria-label="Kamerlijst"><div className="room-filters">{[['all','Alle kamers'],['fresh','Actueel'],['attention','Aandacht nodig'],['unavailable','Niet beschikbaar']].map(([id,label])=><button key={id} aria-pressed={filter===id} onClick={()=>setFilter(id)}>{label}</button>)}</div>{filteredRooms.map((r) => <button type="button" className="room-row" aria-pressed={r.roomId === selectedRoom?.roomId} key={r.roomId} onClick={() => { setSelectedRoomId(r.roomId); setStoryCollapsed(true); }}><strong>{r.roomName}</strong><span>{temp(r.currentObservation?.temperatureCelsius)} {humidity(r.currentObservation?.relativeHumidity) ?? ''}</span><span>Doel {temp(r.currentObservation?.targetTemperatureCelsius)}</span><span>{operatingLabel(r.operatingState)} · {freshnessLabel(r.freshness)}</span><small>{roomIssue(r) ?? spatialText(r.spatialDisplayStatus)}</small></button>)}</section>
+      {storyContext ? <StoryContextPanel context={storyContext} selectedRoom={selectedRoom} notice={storyNotice} collapsed={storyCollapsed} headingRef={storyHeadingRef} dismissRef={storyDismissRef} onToggle={() => setStoryCollapsed((v) => !v)} onDismiss={() => { setStoryContext(undefined); }} onOpenSettings={onOpenClimateSettings} /> : null}
       <RoomDetail room={selectedRoom} rooms={rooms} capability={capability} loading={capabilityLoading} error={capabilityError} onRetry={refreshSelectedCapability} onAfterCommand={async () => { await refreshSelectedCapability(); await load(selectedFloorId); }} client={client} />
     </main>
   </article>;
@@ -175,6 +219,17 @@ function Overlay({ overlay, room, selected, onSelect }: { overlay: RoomOverlayDt
   const points = overlay.polygon?.map((p) => `${(p.x ?? 0) * 100},${(p.y ?? 0) * 100}`).join(' ') ?? '';
   const anchor = overlay.labelAnchor ?? overlay.polygon?.[0];
   return <button type="button" className={`climate-overlay ${selected ? 'selected' : ''}`} style={{ clipPath: `polygon(${points.split(' ').map((p)=>{const [x,y]=p.split(','); return `${x}% ${y}%`;}).join(',')})` }} onClick={onSelect} aria-label={`${room?.roomName ?? 'Kamer'} ${temp(room?.currentObservation?.temperatureCelsius)} ${operatingLabel(room?.operatingState)} ${freshnessLabel(room?.freshness)}`}><span style={{ left: `${((anchor?.x ?? 0.5) * 100)}%`, top: `${((anchor?.y ?? 0.5) * 100)}%` }}>{room?.roomName}<br />{temp(room?.currentObservation?.temperatureCelsius)} · {operatingLabel(room?.operatingState)}<br />{freshnessLabel(room?.freshness)}</span></button>;
+}
+
+
+function StoryContextPanel({ context, selectedRoom, notice, collapsed, headingRef, dismissRef, onToggle, onDismiss, onOpenSettings }: { context: ClimateStoryDeepLink; selectedRoom?: RoomClimateStateDto; notice: string; collapsed: boolean; headingRef: RefObject<HTMLHeadingElement | null>; dismissRef: RefObject<HTMLButtonElement | null>; onToggle: () => void; onDismiss: () => void; onOpenSettings?: (roomId?: string) => void }) {
+  const mapped = storyLabel(context.contextCode);
+  const issueStillPresent = selectedRoom ? (context.contextCode === 'provider-unavailable' && selectedRoom.isProviderAvailable === false) || ((context.contextCode === 'room-climate-unavailable' || context.contextCode === 'room-observation-stale') && selectedRoom.freshness !== RoomClimateFreshness.Fresh) || (context.contextCode === 'room-overlay-review-required' && selectedRoom.spatialDisplayStatus === RoomClimateSpatialDisplayStatus.OverlayNeedsReview) || (context.contextCode === 'floor-plan-fallback-required' && selectedRoom.spatialDisplayStatus !== RoomClimateSpatialDisplayStatus.TrustedOverlayAvailable) : false;
+  const status = selectedRoom ? `${selectedRoom.roomName}: ${temp(selectedRoom.currentObservation?.temperatureCelsius)} · ${operatingLabel(selectedRoom.operatingState)} · ${freshnessLabel(selectedRoom.freshness)}` : 'Geen gekoppelde kamer gevonden. De huidige klimaatgegevens blijven beschikbaar.';
+  return <aside className="climate-story-context" aria-labelledby="climate-story-context-title">
+    <header><div><p className="widget-type">Aandachtspunt</p><h4 id="climate-story-context-title" ref={headingRef} tabIndex={-1}>{mapped?.title ?? context.title}</h4></div><div className="woning-actions"><button type="button" onClick={onToggle}>{collapsed ? 'Context tonen' : 'Context inklappen'}</button><button ref={dismissRef} type="button" onClick={onDismiss}>Sluiten</button></div></header>
+    {!collapsed ? <div className="climate-story-context__body"><p><strong>{context.title}</strong></p><p>{context.explanation ?? mapped?.explanation ?? 'Bekijk hieronder de huidige status.'}</p>{context.createdAt ? <p>Gemaakt op {storyTime(context.createdAt)}.</p> : null}{notice ? <p role="alert">{notice}</p> : null}<p role="status">Huidige status: {status}</p>{selectedRoom && !issueStillPresent ? <p role="status">Dit aandachtspunt lijkt inmiddels opgelost.</p> : null}<p>Bekijk hieronder de huidige status.</p>{mapped?.settings && onOpenSettings ? <button type="button" onClick={() => onOpenSettings(selectedRoom?.roomId ?? context.roomId)}>Klimaatinstellingen openen</button> : null}</div> : null}
+  </aside>;
 }
 
 function RoomDetail({ room, rooms, capability, loading, error, onRetry, onAfterCommand, client }: { room?: RoomClimateStateDto; rooms: RoomClimateStateDto[]; capability?: RoomHeatingControlCapabilityDto; loading: boolean; error: string; onRetry: () => Promise<void>; onAfterCommand: (response: RoomHeatingCommandResponse) => Promise<void>; client: ReturnType<typeof createWoningClimateClient> }) {
@@ -215,7 +270,7 @@ function OverrideSummary({ capability }: { capability: RoomHeatingControlCapabil
   return <div className="override-summary"><strong>{override.requestedTargetTemperatureCelsius !== undefined ? `Tijdelijk ingesteld op ${temp(override.requestedTargetTemperatureCelsius)}${override.effectiveUntilUtc ? ` tot ${time(override.effectiveUntilUtc)}` : ''}` : 'Tijdelijke instelling actief'}</strong>{override.requestedTargetTemperatureCelsius !== undefined ? <p>Doeltemperatuur aangevraagd: {temp(override.requestedTargetTemperatureCelsius)}</p> : null}{override.confirmedTargetTemperatureCelsius !== undefined ? <p>Bevestigde doeltemperatuur: {temp(override.confirmedTargetTemperatureCelsius)}</p> : null}<p>Status: {override.state ?? 'Onbekend'}</p>{override.state?.toLowerCase().includes('resume') ? <p>{override.state.toLowerCase().includes('failed') ? 'De tijdelijke instelling is verlopen, maar het schema kon nog niet worden hervat.' : 'Het normale schema wordt na afloop hervat.'}</p> : <p>Het normale schema wordt na afloop hervat.</p>}</div>;
 }
 
-function HeatingDialog({ action, room, capability, affectedNames, submitting, onClose, onSubmit, closeRef }: { action: RoomHeatingCommandAction; room: RoomClimateStateDto; capability: RoomHeatingControlCapabilityDto; affectedNames: string[]; submitting: boolean; onClose: () => void; onSubmit: (payload: { action: RoomHeatingCommandAction; target?: number; duration?: number }) => void; closeRef: React.RefObject<HTMLButtonElement | null> }) {
+function HeatingDialog({ action, room, capability, affectedNames, submitting, onClose, onSubmit, closeRef }: { action: RoomHeatingCommandAction; room: RoomClimateStateDto; capability: RoomHeatingControlCapabilityDto; affectedNames: string[]; submitting: boolean; onClose: () => void; onSubmit: (payload: { action: RoomHeatingCommandAction; target?: number; duration?: number }) => void; closeRef: RefObject<HTMLButtonElement | null> }) {
   const range = capability.targetRange;
   const durations = capability.allowedDurationsMinutes ?? [];
   const initial = Math.min(range?.maximum ?? 21, Math.max(range?.minimum ?? 15, room.currentObservation?.targetTemperatureCelsius ?? room.currentObservation?.temperatureCelsius ?? range?.minimum ?? 20));

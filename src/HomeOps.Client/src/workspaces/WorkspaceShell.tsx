@@ -11,7 +11,7 @@ import { createFamilyMember, loadFamilyMembers, removeFamilyMember, saveFamilyMe
 import { SettingsDashboard } from '../settings/SettingsDashboard';
 import { TasksPage } from '../tasks/TasksPage';
 import { WeeklyResetPage } from '../weeklyReset/WeeklyResetPage';
-import { WoningClimatePage, WoningSummaryPage } from '../WoningClimatePage';
+import { WoningClimatePage, WoningSummaryPage, type ClimateStoryDeepLink } from '../WoningClimatePage';
 import { FirstRunWizard } from '../FirstRunWizard';
 import { loadOnboardingStatus } from '../onboardingApi';
 import { DomainPlaceholderPage } from './DomainPlaceholderPage';
@@ -42,6 +42,7 @@ export function WorkspaceShell() {
   const [checkedOnboarding, setCheckedOnboarding] = useState(false);
   const [settingsNeedsAttention, setSettingsNeedsAttention] = useState(false);
   const [houseView, setHouseView] = useState<'summary' | 'climate'>('summary');
+  const [climateStoryContext, setClimateStoryContext] = useState<ClimateStoryDeepLink | undefined>();
 
   const activeWorkspace = useMemo(
     () => workspaceDefinitions.find((workspace) => workspace.id === activeWorkspaceId) ?? getInitialWorkspace(),
@@ -98,7 +99,7 @@ export function WorkspaceShell() {
   function navigateWorkspace(workspaceId: WorkspaceId) {
     setActiveFamilyMemberId(null);
     setActiveWorkspaceId(workspaceId);
-    if (workspaceId !== 'house') setHouseView('summary');
+    if (workspaceId !== 'house') { setHouseView('summary'); setClimateStoryContext(undefined); }
   }
 
   function updateFamilyMember(updated: FamilyMember) {
@@ -223,7 +224,7 @@ export function WorkspaceShell() {
           ) : activeWorkspace.id === 'weeklyReset' ? (
             <WeeklyResetPage />
           ) : activeWorkspace.id === 'house' ? (
-            houseView === 'climate' ? <WoningClimatePage onBack={() => setHouseView('summary')} /> : <WoningSummaryPage onOpenClimate={() => setHouseView('climate')} />
+            houseView === 'climate' ? <WoningClimatePage initialStoryContext={climateStoryContext} onBack={() => { setHouseView('summary'); setClimateStoryContext(undefined); }} onOpenClimateSettings={() => { setActiveWorkspaceId('settings'); setHouseView('summary'); }} /> : <WoningSummaryPage onOpenClimate={(context) => { setClimateStoryContext(context); setHouseView('climate'); }} />
           ) : activeWorkspace.id === 'media' ? (
             <DomainPlaceholderPage title="Media" purpose="Voor toekomstige mediaherinneringen en gezinscontext." />
           ) : activeWorkspace.id === 'gamification' ? (
