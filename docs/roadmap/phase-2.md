@@ -118,6 +118,12 @@ Frontend test maintenance refreshed stale test expectations and fixtures to matc
 
 # Phase 2 Roadmap
 
+## Completed Slice — FamilyBoard Woning Climate Floor Plans Slice 13 Home Assistant Provider Hardening
+The Slice 13 hardening follow-up adds focused backend tests for Home Assistant HTTP/authentication handling, safe token configuration, mapping validation, observation normalization, refresh isolation, provider/mapping health transitions, heating capability derivation, temporary target and resume command translation, reconciliation compatibility, and portability/security boundaries. It fixes concrete adapter defects discovered by those tests while preserving accepted provider-independent boundaries and excluding frontend setup UI, arbitrary Home Assistant service execution, hosted refresh scheduling, automation, screenshots, and binary assets.
+
+## Completed Slice — FamilyBoard Woning Climate Floor Plans Slice 13 Home Assistant Room Climate Provider
+Slice 13 adds the first backend Home Assistant room climate provider adapter behind the existing provider-independent climate and heating-control seams. It uses configured Room climate mappings, external token configuration, safe REST calls, normalized observations, role validation, mapping health updates, bounded temporary target dispatch, and an allow-listed resume strategy while intentionally avoiding frontend setup UI, arbitrary Home Assistant service execution, discovery, automation, presence, weather, energy, lighting, and unrelated product scope.
+
 ## Completed Slice — Calendar Recurrence V2 Manual Event APIs
 Calendar Recurrence V2 Manual Event APIs enables manual event create/update requests to carry optional RecurrenceRuleDto payloads. The slice maps DTOs into EventRecurrenceRule, validates frequency, interval, end mode, count, until date, weekly days, monthly day, yearly month/day, and invalid combinations through canonical domain validation, persists new manual recurring events with EventRecurrenceRule while keeping legacy RecurrenceType as compatibility-only state, and returns recurrence details from read APIs including legacy RecurrenceType compatibility. The slice intentionally adds no occurrence operations, restore/skip/modify APIs, this-and-future series splitting, iCalendar mapping, synchronization, backup/restore, frontend changes, screenshots, or binary artifacts.
 

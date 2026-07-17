@@ -192,6 +192,9 @@
 
 - 2026-07-08: Revised the Avatar Catalog Technical Architecture report to remove the initial runtime catalog API, simplify versioning to SchemaVersion, recommend immediate JSON AvatarSelection persistence, omit compatibility-rule and asset-pipeline infrastructure, add Catalog Providers, and strengthen the generic catalog-driven editor principle without production code changes.
 
+- 2026-07-17: Implemented FamilyBoard Woning Climate Floor Plans Slice 13 backend Home Assistant room climate provider adapter with internal REST client, safe external-token configuration, mapping validation, normalized room observations, bounded target dispatch, explicit resume strategy allow-listing, factual mapping health updates, and no frontend setup UI, arbitrary service execution, or unrelated product scope.
+- 2026-07-17: Hardened FamilyBoard Woning Climate Floor Plans Slice 13 with focused Home Assistant provider tests for HTTP/authentication safety, credential secrecy, mapping validation, observation normalization, refresh isolation, health transitions, heating capabilities, command translation, reconciliation compatibility, and portability boundaries while preserving the no-frontend-setup, no-arbitrary-service-execution, and no-hosted-refresh scope.
+
 ## Current Phase
 Phase 2 — Durable Household Core
 
