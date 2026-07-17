@@ -1000,3 +1000,11 @@ Hardened Slice 7 backend replacement reviews with focused API, activation/rollba
 - Added focused Slice 11A hardening coverage for capability blockers/actions, warmer/cooler/resume command behavior, idempotency, superseding, derived override state, persistence constraints, portability exclusion, generated contracts, and no-mutation guarantees.
 - Fixed concrete foundation defects around current-observation capability requirements, warmer/cooler direction validation, and safe provider exception normalization.
 - No frontend controls, hosted expiry/reconciliation, real Home Assistant execution, or new product scope were added.
+
+## 2026-07-15 — Room Heating Control Reconciliation Slice 11B
+- Added backend-only reconciliation for Room heating commands: deterministic expiry, pending timeout, automatic schedule resume when capability-supported, provider completion seam, observation target confirmation, stale completion protection, and a thin hosted scheduling hook.
+- Operational command/reconciliation state remains excluded from portability; no frontend controls, real provider integration, generic scheduler, schedule editor, Stories, weather, presence, or unrelated product scope was added.
+
+## 2026-07-17 — Room Heating Control Concurrency Hardening
+- Added relational SQLite coverage for Room heating command races, idempotency conflicts, resume/override ordering, expiry/manual resume interactions, stale completion, and pending-timeout ordering.
+- Fixed concrete relational defects around same-key unique-conflict recovery and SQLite-safe command/read-model DateTimeOffset query evaluation; no schema, frontend, real provider, generic lock, queue, or scheduler scope was added.

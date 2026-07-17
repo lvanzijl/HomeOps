@@ -37,7 +37,7 @@ public sealed class RoomHeatingCommand
     public string? FailureMessage { get; set; }
 }
 
-public sealed record RoomHeatingControlProviderCapability(bool IsAvailable, bool SupportsTemporaryCooler = false, decimal? MinimumTargetTemperatureCelsius = null, decimal? MaximumTargetTemperatureCelsius = null, string? BlockerCode = null, string? BlockerMessage = null);
+public sealed record RoomHeatingControlProviderCapability(bool IsAvailable, bool SupportsTemporaryCooler = false, decimal? MinimumTargetTemperatureCelsius = null, decimal? MaximumTargetTemperatureCelsius = null, string? BlockerCode = null, string? BlockerMessage = null, bool SupportsScheduleResume = true);
 public sealed record RoomHeatingProviderContext(Guid HouseholdId, Guid RoomId, Guid ProviderId, Guid SourceMappingId, string ExternalSourceId, Guid CommandId, decimal? RequestedTargetTemperatureCelsius, int? DurationMinutes, DateTimeOffset? EffectiveUntilUtc);
 public sealed record RoomHeatingProviderResult(RoomHeatingProviderOutcome Outcome, string? ProviderCommandReference = null, decimal? ConfirmedTargetTemperatureCelsius = null, bool? ScheduleResumed = null, bool Completed = false, string? FailureCode = null, string? FailureMessage = null);
 public interface IRoomHeatingControlProvider
@@ -52,3 +52,10 @@ internal sealed class UnavailableRoomHeatingControlProvider : IRoomHeatingContro
     public Task<RoomHeatingProviderResult> SubmitTemporaryTargetAsync(RoomHeatingProviderContext context, CancellationToken cancellationToken) => Task.FromResult(new RoomHeatingProviderResult(RoomHeatingProviderOutcome.Unavailable, FailureCode: "ProviderUnavailable", FailureMessage: "Heating control provider is unavailable."));
     public Task<RoomHeatingProviderResult> ResumeScheduleAsync(RoomHeatingProviderContext context, CancellationToken cancellationToken) => Task.FromResult(new RoomHeatingProviderResult(RoomHeatingProviderOutcome.Unavailable, FailureCode: "ProviderUnavailable", FailureMessage: "Heating control provider is unavailable."));
 }
+
+
+public enum RoomHeatingCompletionOutcome { Succeeded, Failed }
+public enum RoomHeatingCompletionResultKind { Applied, Ignored, Conflict }
+public sealed record RoomHeatingProviderCompletion(Guid? CommandId, string? ProviderCommandReference, Guid RoomId, Guid ProviderId, Guid SourceMappingId, RoomHeatingCompletionOutcome Outcome, DateTimeOffset CompletedUtc, decimal? ConfirmedTargetTemperatureCelsius = null, bool? ScheduleResumed = null, string? FailureCode = null, string? FailureMessage = null);
+public sealed record RoomHeatingCompletionResult(RoomHeatingCompletionResultKind Kind, string Code);
+public sealed record RoomHeatingReconciliationResult(int ExpiredCount, int PendingTimedOutCount, int ResumeCreatedCount, int ObservationsConfirmedCount);

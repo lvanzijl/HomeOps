@@ -8,11 +8,13 @@ public sealed class RoomClimateReadModelService
 {
     private readonly HomeOpsDbContext db;
     private readonly TimeProvider timeProvider;
+    private readonly RoomHeatingControlReconciliationService? reconciliationService;
 
-    public RoomClimateReadModelService(HomeOpsDbContext db, TimeProvider timeProvider)
+    public RoomClimateReadModelService(HomeOpsDbContext db, TimeProvider timeProvider, RoomHeatingControlReconciliationService? reconciliationService = null)
     {
         this.db = db;
         this.timeProvider = timeProvider;
+        this.reconciliationService = reconciliationService;
     }
     public static readonly TimeSpan AgingAfter = TimeSpan.FromMinutes(20);
     public static readonly TimeSpan StaleAfter = TimeSpan.FromHours(2);
@@ -41,6 +43,7 @@ public sealed class RoomClimateReadModelService
         current.ObservedUtc = req.ObservedUtc; current.ReceivedUtc = received; current.TemperatureCelsius = req.TemperatureCelsius; current.RelativeHumidity = req.RelativeHumidity; current.TargetTemperatureCelsius = req.TargetTemperatureCelsius; current.OperatingState = req.IsProviderAvailable ? req.OperatingState : RoomClimateOperatingState.Unavailable; current.IsProviderAvailable = req.IsProviderAvailable; current.SourceReference = Clean(req.SourceReference, 240); current.StatusDetail = Clean(req.StatusDetail, 500); current.UpdatedUtc = now;
         mapping.LastSuccessfulUtc = now; mapping.LastCheckedUtc = now; mapping.UpdatedUtc = now;
         await db.SaveChangesAsync(ct);
+        if (reconciliationService is not null) await reconciliationService.ReconcileAsync(now, ct);
         return (true, null, null, new(RoomClimateObservationStatus.Accepted, ToObservationDto(current)));
     }
 

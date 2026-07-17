@@ -879,3 +879,11 @@ Settings > Woning now exposes a bounded replacement floor-plan review workflow f
 ## 2026-07-15 Update — Woning Climate Floor Plans Slice 11A hardening
 - Added focused automated coverage for Room Heating Control Foundation capability, commands, provider outcomes, idempotency, superseding, persistence, portability, generated contracts, and atomicity/no-mutation guarantees.
 - Deferred hosted expiry, reconciliation, frontend controls, and real Home Assistant command execution to later slices.
+
+## 2026-07-15 Update — Woning Climate Floor Plans Slice 11B
+- Room Heating Control Reconciliation implemented backend expiry classification, safe one-shot automatic schedule resume when provider capability supports it, provider completion processing, observation-based deterministic confirmation, pending timeout policy, and hosted reconciliation scheduling.
+- Remaining future work: frontend controls, real Home Assistant/provider adapter, explicit schedule-state observation support, and deeper relational concurrency harnesses.
+
+## 2026-07-17 Update — Woning Climate Floor Plans Slice 11B hardening
+- Added relational command concurrency coverage for heating control reconciliation and fixed concrete idempotency/conflict and relational query defects discovered by those tests.
+- No product scope expansion, schema change, frontend controls, real provider adapter, generic lock, queue, or scheduler framework was introduced.
