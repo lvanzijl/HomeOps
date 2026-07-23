@@ -1,3 +1,6 @@
+### Completed Slice — Android PWA Installability
+Android PWA Installability makes the FamilyBoard frontend eligible for Chrome installation as a standalone Android app by adding the required web app manifest, an SVG app icon, start URL/scope metadata, install-related document metadata, and a service worker for the static app shell. Production deployment must serve the built app over HTTPS for Chrome to install it outside localhost. No page layout, backend, API, database, authentication, or domain feature behavior changed.
+
 ### Completed Slice — Avatar Contacts V1 Final Follow-up
 Avatar Contacts V1 final follow-up completes the production-readiness correction by replacing mixed Dutch/English People terminology with Dutch Bekenden wording across Settings, Bekenden management, member bekenden sections, dialogs, states, and decorative picker groups. It also moves KnownPerson form modal semantics from the reusable form to the actual modal wrappers, adds labelled dialogs and deterministic close-button focus, and preserves backend, API, persistence, decorative-avatar, ranking, Shopping, Tasks, and Agenda behavior.
 
