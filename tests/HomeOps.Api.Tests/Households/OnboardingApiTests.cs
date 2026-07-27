@@ -145,6 +145,48 @@ public sealed class OnboardingApiTests(HomeOpsWebApplicationFactory factory) : I
         Assert.False(status.RequiresOnboarding);
     }
 
+    [Fact]
+    public async Task SetupChecklistDismissalPersistsForTheHousehold()
+    {
+        DateTimeOffset? originalDismissal;
+        using (var setupScope = factory.Services.CreateScope())
+        {
+            var setupDb = setupScope.ServiceProvider.GetRequiredService<HomeOpsDbContext>();
+            var household = await setupDb.Households.FirstAsync(h => h.Id == SeedHousehold.Id);
+            originalDismissal = household.SetupChecklistDismissedUtc;
+            household.SetupChecklistDismissedUtc = null;
+            await setupDb.SaveChangesAsync();
+        }
+
+        try
+        {
+            var beforeDismissal = await _client.GetFromJsonAsync<OnboardingStatusDto>("/api/onboarding/status");
+            Assert.NotNull(beforeDismissal);
+            Assert.NotNull(beforeDismissal.SetupChecklist);
+            Assert.False(beforeDismissal.SetupChecklist.IsDismissed);
+            Assert.False(beforeDismissal.SetupChecklist.WeatherLocationConfigured);
+
+            var dismiss = await _client.PostAsync("/api/onboarding/setup-checklist/dismiss", null);
+            dismiss.EnsureSuccessStatusCode();
+            var dismissed = await dismiss.Content.ReadFromJsonAsync<SetupChecklistDto>();
+            Assert.NotNull(dismissed);
+            Assert.True(dismissed.IsDismissed);
+
+            var afterDismissal = await _client.GetFromJsonAsync<OnboardingStatusDto>("/api/onboarding/status");
+            Assert.NotNull(afterDismissal);
+            Assert.NotNull(afterDismissal.SetupChecklist);
+            Assert.True(afterDismissal.SetupChecklist.IsDismissed);
+        }
+        finally
+        {
+            using var restoreScope = factory.Services.CreateScope();
+            var restoreDb = restoreScope.ServiceProvider.GetRequiredService<HomeOpsDbContext>();
+            var household = await restoreDb.Households.FirstAsync(h => h.Id == SeedHousehold.Id);
+            household.SetupChecklistDismissedUtc = originalDismissal;
+            await restoreDb.SaveChangesAsync();
+        }
+    }
+
     private async Task ResetToIncompleteHousehold()
     {
         using var scope = factory.Services.CreateScope();

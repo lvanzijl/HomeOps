@@ -371,11 +371,11 @@ Use one household-wide access passphrase and server session. Do **not** turn Fam
 
 ## Phase 2 — Truthful first run and family persistence
 
-- [ ] **Phase status: In progress**
+- [x] **Phase status: Completed**
 
 **Priority:** P0/P1.  
 **Audit coverage:** BOOT-01, MEMBER-01, MEMBER-02, ONB-01, ONB-02, ONB-03, FAMILY-01, FAMILY-02, UX-01.  
-**Existing foundation:** household, onboarding, family-member CRUD, avatar catalog, and UI already exist. Slices 2.1–2.4 are implemented; central administration/restore and the optional setup checklist remain.
+**Implementation state:** Slices 2.1–2.6 are complete. Production bootstrap is separated from demo data; family-member avatar writes use the canonical contract; mutations expose failures; onboarding is atomic and fail-safe; central family administration supports removal and restore; and the optional post-onboarding setup checklist is household-persisted.
 
 ### Slice 2.1 — Canonical family-member avatar contract
 
@@ -544,9 +544,10 @@ Submit household setup and the reviewed member collection in one transactional c
 
 ### Slice 2.6 — First-run setup checklist
 
-- [ ] **Status: Not started**
-
+- [x] **Status: Completed**
 **Audit ID:** ONB-03
+
+**Implementation state:** onboarding completion now reveals a bounded, dismissible optional setup checklist whose dismissal is persisted per household. Its status is derived from durable list, non-system calendar-source, and active Home Assistant provider state; weather remains honestly unconfigured until `WEATHER-01`. Existing completed households are backfilled as dismissed so an upgrade cannot unexpectedly replay first-run UI. NSwag 14.7.1 output is generated and idempotent; backend passes 588/588, frontend passes 325/325, builds and EF model-drift validation pass, PostgreSQL migration tests pass 3/3, and all 6 browser outcomes pass, including dismissal persistence and zero document overflow at 1366×768.
 
 **Implementation steps**
 
@@ -1254,8 +1255,8 @@ Every audit finding must appear exactly once as the primary responsibility of a 
 | TEST-01 | Phase 0 | [x] Completed |
 | ONB-01 | 2.4 Atomic onboarding/review | [x] Completed |
 | ONB-02 | 2.4 Onboarding fail-safe | [x] Completed |
-| FAMILY-01 | 2.5 Family administration | [ ] Not started |
-| FAMILY-02 | 2.5 Family restore | [ ] Not started |
+| FAMILY-01 | 2.5 Family administration | [x] Completed |
+| FAMILY-02 | 2.5 Family restore | [x] Completed |
 | CAL-02 | 3.5 Calendar file upload | [ ] Not started |
 | SHOP-01 | 6.1 Create lists | [ ] Not started |
 | SHOP-03 | 6.1 Archive/restore lists | [ ] Not started |
@@ -1267,7 +1268,7 @@ Every audit finding must appear exactly once as the primary responsibility of a 
 | HOUSE-05 | 5.6 Provider lifecycle | [ ] Not started |
 | SETTINGS-01 | 7.4 Backup | [ ] Not started |
 | TIME-02 | 3.3 Action-time clock | [ ] Not started |
-| ONB-03 | 2.6 Setup checklist | [ ] Not started |
+| ONB-03 | 2.6 Setup checklist | [x] Completed |
 | SHOP-DATA-01 | 6.2 Unified shopping history | [ ] Not started |
 | SHOP-02 | 6.2 Item editing | [ ] Not started |
 | SHOP-04 | 6.1 Destructive shopping actions | [ ] Not started |
@@ -1279,7 +1280,7 @@ Every audit finding must appear exactly once as the primary responsibility of a 
 | WEATHER-01 | 5.7 Weather location | [ ] Not started |
 | SETTINGS-02 | 3.4 Time-zone setting | [ ] Not started |
 | SETTINGS-03 | 7.5 Settings placeholder | [ ] Not started |
-| SETTINGS-04 | 2.5 Family administration | [ ] Not started |
+| SETTINGS-04 | 2.5 Family administration | [x] Completed |
 | HOUSE-06 | 5.6 Credential guidance | [ ] Not started |
 | RESET-02 | 4.5 Persisted reset decisions | [ ] Not started |
 | RESET-03 | 4.5 Reset completion/history | [ ] Not started |

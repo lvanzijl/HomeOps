@@ -5846,6 +5846,26 @@
         }
       }
     },
+    "/api/onboarding/setup-checklist/dismiss": {
+      "post": {
+        "tags": [
+          "Onboarding"
+        ],
+        "operationId": "DismissSetupChecklist",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetupChecklistDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/onboarding/complete": {
       "post": {
         "tags": [
@@ -12000,6 +12020,35 @@
             "type": "boolean"
           },
           "requiresOnboarding": {
+            "type": "boolean"
+          },
+          "setupChecklist": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/SetupChecklistDto"
+              }
+            ]
+          }
+        }
+      },
+      "SetupChecklistDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "isDismissed": {
+            "type": "boolean"
+          },
+          "weatherLocationConfigured": {
+            "type": "boolean"
+          },
+          "firstListConfigured": {
+            "type": "boolean"
+          },
+          "calendarSourceConfigured": {
+            "type": "boolean"
+          },
+          "homeAssistantConfigured": {
             "type": "boolean"
           }
         }

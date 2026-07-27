@@ -8,6 +8,15 @@ export interface OnboardingStatus {
   onboardingCompleted: boolean;
   hasActiveFamilyMembers: boolean;
   requiresOnboarding: boolean;
+  setupChecklist: SetupChecklist | null;
+}
+
+export interface SetupChecklist {
+  isDismissed: boolean;
+  weatherLocationConfigured: boolean;
+  firstListConfigured: boolean;
+  calendarSourceConfigured: boolean;
+  homeAssistantConfigured: boolean;
 }
 
 const client = new HomeOpsApiClient(import.meta.env.VITE_HOMEOPS_API_BASE_URL ?? '');
@@ -18,6 +27,24 @@ export async function loadOnboardingStatus(): Promise<OnboardingStatus> {
     onboardingCompleted: status.onboardingCompleted ?? false,
     hasActiveFamilyMembers: status.hasActiveFamilyMembers ?? false,
     requiresOnboarding: status.requiresOnboarding ?? true,
+    setupChecklist: status.setupChecklist ? {
+      isDismissed: status.setupChecklist.isDismissed ?? false,
+      weatherLocationConfigured: status.setupChecklist.weatherLocationConfigured ?? false,
+      firstListConfigured: status.setupChecklist.firstListConfigured ?? false,
+      calendarSourceConfigured: status.setupChecklist.calendarSourceConfigured ?? false,
+      homeAssistantConfigured: status.setupChecklist.homeAssistantConfigured ?? false,
+    } : null,
+  };
+}
+
+export async function dismissSetupChecklist(): Promise<SetupChecklist> {
+  const checklist = await client.dismissSetupChecklist();
+  return {
+    isDismissed: checklist.isDismissed ?? false,
+    weatherLocationConfigured: checklist.weatherLocationConfigured ?? false,
+    firstListConfigured: checklist.firstListConfigured ?? false,
+    calendarSourceConfigured: checklist.calendarSourceConfigured ?? false,
+    homeAssistantConfigured: checklist.homeAssistantConfigured ?? false,
   };
 }
 
@@ -38,5 +65,12 @@ export async function completeOnboarding(input: { householdName: string; timeZon
     onboardingCompleted: status.onboardingCompleted ?? true,
     hasActiveFamilyMembers: status.hasActiveFamilyMembers ?? true,
     requiresOnboarding: status.requiresOnboarding ?? false,
+    setupChecklist: status.setupChecklist ? {
+      isDismissed: status.setupChecklist.isDismissed ?? false,
+      weatherLocationConfigured: status.setupChecklist.weatherLocationConfigured ?? false,
+      firstListConfigured: status.setupChecklist.firstListConfigured ?? false,
+      calendarSourceConfigured: status.setupChecklist.calendarSourceConfigured ?? false,
+      homeAssistantConfigured: status.setupChecklist.homeAssistantConfigured ?? false,
+    } : null,
   };
 }

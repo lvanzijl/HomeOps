@@ -1,3 +1,7 @@
+### Completed remediation slice — First-run setup checklist
+
+Phase 2 Slice 2.6 (`ONB-03`) adds a household-persisted, dismissible optional setup checklist after onboarding. It truthfully derives first-list, non-system calendar-source, and active Home Assistant provider state while leaving weather unconfigured until `WEATHER-01`; existing completed households are migrated as already dismissed. The bounded modal does not change document height. Generated contracts are idempotent, backend/frontend and build gates pass, PostgreSQL clean-install/upgrade coverage passes, and the browser flow proves dismissal survives refresh without page overflow at 1366×768.
+
 ### Completed remediation slice — Fail-safe, atomic onboarding
 Phase 2 Slice 2.4 resolves `ONB-01` and `ONB-02`: the wizard keeps household/member changes local until one validated completion request writes the reviewed member collection and onboarding state in a transaction. Review supports removal and returning to the relevant member step for corrections, completed-request retries are idempotent, and an unknown onboarding status fails closed behind a visible retry state. OpenAPI and the TypeScript client are regenerated. Focused and full backend/frontend suites, both builds, generation idempotency, model-drift validation, and the isolated browser/PostgreSQL completion-and-refresh path pass.
 

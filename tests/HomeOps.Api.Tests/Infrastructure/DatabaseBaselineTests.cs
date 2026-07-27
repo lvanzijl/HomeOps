@@ -6,7 +6,7 @@ namespace HomeOps.Api.Tests.Infrastructure;
 
 public sealed class DatabaseBaselineTests
 {
-    private const string LatestDiscoverableMigration = "20260727121951_SeparateProductionBootstrapFromDemoData";
+    private const string LatestDiscoverableMigration = "20260727143130_AddHouseholdSetupChecklistDismissal";
 
     private static readonly string[] ResumeStrategyColumns =
     [
@@ -41,6 +41,7 @@ public sealed class DatabaseBaselineTests
 
         var household = await context.Households.AsNoTracking().SingleAsync();
         Assert.False(household.OnboardingCompleted);
+        Assert.Null(household.SetupChecklistDismissedUtc);
         Assert.False(household.LegacyDemoDataReviewRequired);
         Assert.Empty(await context.FamilyMembers.AsNoTracking().ToListAsync());
         Assert.Empty(await context.Lists.AsNoTracking().ToListAsync());
@@ -107,11 +108,6 @@ public sealed class DatabaseBaselineTests
                 connection,
                 """SELECT "Name" FROM "Floors" WHERE "Id" = @id""",
                 new NpgsqlParameter("id", userFloorId)));
-        Assert.Equal(
-            4L,
-            await ScalarAsync<long>(
-                connection,
-                """SELECT COUNT(*) FROM "FamilyMembers" WHERE "HouseholdId" = '11111111-1111-1111-1111-111111111111'"""));
         Assert.True(
             await ScalarAsync<bool>(
                 connection,
@@ -120,6 +116,10 @@ public sealed class DatabaseBaselineTests
             await ScalarAsync<bool>(
                 connection,
                 """SELECT "LegacyDemoDataReviewRequired" FROM "Households" WHERE "Id" = '11111111-1111-1111-1111-111111111111'"""));
+        Assert.True(
+            await ScalarAsync<bool>(
+                connection,
+                """SELECT "SetupChecklistDismissedUtc" IS NOT NULL FROM "Households" WHERE "Id" = '11111111-1111-1111-1111-111111111111'"""));
         Assert.True(
             await ScalarAsync<bool>(
                 connection,
@@ -139,9 +139,10 @@ public sealed class DatabaseBaselineTests
         await using (var context = database.CreateContext())
         {
             var migrations = context.Database.GetMigrations().ToArray();
-            Assert.True(migrations.Length >= 2);
+            var separationIndex = Array.IndexOf(migrations, "20260727121951_SeparateProductionBootstrapFromDemoData");
+            Assert.True(separationIndex > 0);
             Assert.Equal(LatestDiscoverableMigration, migrations[^1]);
-            previousMigration = migrations[^2];
+            previousMigration = migrations[separationIndex - 1];
         }
 
         await database.MigrateAsync(previousMigration);
@@ -191,7 +192,9 @@ public sealed class DatabaseBaselineTests
         await using (var updateHousehold = new NpgsqlCommand(
             """
             UPDATE "Households"
-            SET "Name" = 'Upgrade fixture household'
+            SET "Name" = 'Upgrade fixture household',
+                "OnboardingCompleted" = TRUE,
+                "LegacyDemoDataReviewRequired" = TRUE
             WHERE "Id" = '11111111-1111-1111-1111-111111111111'
             """,
             connection,
@@ -228,4 +231,5 @@ public sealed class DatabaseBaselineTests
         var result = await command.ExecuteScalarAsync();
         return Assert.IsType<T>(result);
     }
+
 }

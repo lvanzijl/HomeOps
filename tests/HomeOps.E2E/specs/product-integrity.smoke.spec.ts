@@ -3,6 +3,7 @@ import { expect, test, type APIRequestContext, type Locator, type Page } from "@
 const taskTitle = "Zwemtas klaarzetten";
 
 test("fresh install completes atomically and stays completed after refresh", async ({ page }) => {
+  await page.setViewportSize({ width: 1366, height: 768 });
   await page.goto("/");
 
   await expect(page.getByRole("heading", { name: "Welkom bij FamilyBoard" })).toBeVisible();
@@ -20,9 +21,22 @@ test("fresh install completes atomically and stays completed after refresh", asy
   await page.getByRole("button", { name: "Afronden en Thuis openen" }).click();
   expect((await completionResponse).ok()).toBe(true);
   await expect(page.getByLabel("Dagelijkse gezinsplekken")).toBeVisible();
+  const checklist = page.getByRole("dialog", { name: "Volgende stappen voor je huishouden" });
+  await expect(checklist).toBeVisible();
+  await expect(checklist.getByText("Weerlocatie")).toBeVisible();
+  await expect(checklist.getByText("Woning en Home Assistant")).toBeVisible();
+  await expectNoDocumentScroll(page, "Setup checklist at 1366x768");
+
+  const dismissalResponse = page.waitForResponse((response) =>
+    response.request().method() === "POST"
+      && new URL(response.url()).pathname === "/api/onboarding/setup-checklist/dismiss");
+  await checklist.getByRole("button", { name: "Nu niet, naar Thuis" }).click();
+  expect((await dismissalResponse).ok()).toBe(true);
+  await expect(checklist).toHaveCount(0);
 
   await page.reload();
   await expect(page.getByRole("heading", { name: "Welkom bij FamilyBoard" })).toHaveCount(0);
+  await expect(page.getByRole("dialog", { name: "Volgende stappen voor je huishouden" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Alex gezinslidpagina openen" })).toBeVisible();
 });
 

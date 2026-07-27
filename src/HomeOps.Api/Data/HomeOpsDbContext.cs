@@ -332,6 +332,7 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             entity.Property(household => household.Name).HasMaxLength(120).IsRequired();
             entity.Property(household => household.TimeZoneId).HasMaxLength(80).IsRequired();
             entity.Property(household => household.OnboardingCompleted).IsRequired();
+            entity.Property(household => household.SetupChecklistDismissedUtc);
             entity.Property(household => household.LegacyDemoDataReviewRequired).IsRequired();
             entity.Property(household => household.CreatedUtc).IsRequired();
             entity.Property(household => household.UpdatedUtc).IsRequired();

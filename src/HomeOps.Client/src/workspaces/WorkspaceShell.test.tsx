@@ -26,7 +26,8 @@ vi.mock('../home/HomeDashboard', () => ({
 }));
 
 vi.mock('../onboardingApi', () => ({
-  loadOnboardingStatus: vi.fn(async () => ({ onboardingCompleted: true, hasActiveFamilyMembers: true, requiresOnboarding: false })),
+  loadOnboardingStatus: vi.fn(async () => ({ onboardingCompleted: true, hasActiveFamilyMembers: true, requiresOnboarding: false, setupChecklist: null })),
+  dismissSetupChecklist: vi.fn(async () => ({ isDismissed: true, weatherLocationConfigured: false, firstListConfigured: false, calendarSourceConfigured: false, homeAssistantConfigured: false })),
 }));
 
 vi.mock('../widgets/WidgetRenderer', () => ({
@@ -84,7 +85,7 @@ describe('WorkspaceShell API-backed layouts', () => {
     vi.mocked(familyMembersApi.createFamilyMember).mockImplementation(async (member) => ({ ...member, id: member.name.toLowerCase() }));
     vi.mocked(familyMembersApi.saveFamilyMember).mockImplementation(async (member) => member);
     vi.mocked(familyMembersApi.removeFamilyMember).mockResolvedValue(undefined);
-    vi.mocked(onboardingApi.loadOnboardingStatus).mockResolvedValue({ onboardingCompleted: true, hasActiveFamilyMembers: true, requiresOnboarding: false });
+    vi.mocked(onboardingApi.loadOnboardingStatus).mockResolvedValue({ onboardingCompleted: true, hasActiveFamilyMembers: true, requiresOnboarding: false, setupChecklist: null });
   });
 
   it('loads and renders widgets from the persisted active workspace layout', async () => {
@@ -107,6 +108,49 @@ describe('WorkspaceShell API-backed layouts', () => {
     expect(screen.queryByLabelText('Home dashboard')).toBeNull();
     await user.click(screen.getByRole('button', { name: 'Opnieuw proberen' }));
     expect(await screen.findByLabelText('Home dashboard')).not.toBeNull();
+  });
+
+  it('shows the optional setup checklist after onboarding and persists its dismissal', async () => {
+    const onboardingApi = await mockedOnboardingApi();
+    vi.mocked(onboardingApi.loadOnboardingStatus).mockResolvedValueOnce({
+      onboardingCompleted: true,
+      hasActiveFamilyMembers: true,
+      requiresOnboarding: false,
+      setupChecklist: { isDismissed: false, weatherLocationConfigured: false, firstListConfigured: true, calendarSourceConfigured: false, homeAssistantConfigured: false },
+    });
+    const user = userEvent.setup();
+
+    render(<WorkspaceShell />);
+
+    expect(await screen.findByRole('dialog', { name: 'Volgende stappen voor je huishouden' })).not.toBeNull();
+    expect(screen.getByText('Weerlocatie')).not.toBeNull();
+    expect(screen.getByText('Eerste lijst')).not.toBeNull();
+    expect(screen.getAllByText('Optioneel')).toHaveLength(3);
+    expect(screen.getByText('Ingesteld')).not.toBeNull();
+    await user.click(screen.getByRole('button', { name: 'Nu niet, naar Thuis' }));
+
+    await waitFor(() => expect(onboardingApi.dismissSetupChecklist).toHaveBeenCalledTimes(1));
+    expect(screen.queryByRole('dialog', { name: 'Volgende stappen voor je huishouden' })).toBeNull();
+  });
+
+  it('keeps the optional setup checklist open when dismissal fails', async () => {
+    const onboardingApi = await mockedOnboardingApi();
+    vi.mocked(onboardingApi.loadOnboardingStatus).mockResolvedValueOnce({
+      onboardingCompleted: true,
+      hasActiveFamilyMembers: true,
+      requiresOnboarding: false,
+      setupChecklist: { isDismissed: false, weatherLocationConfigured: false, firstListConfigured: false, calendarSourceConfigured: false, homeAssistantConfigured: false },
+    });
+    vi.mocked(onboardingApi.dismissSetupChecklist).mockRejectedValueOnce(new Error('HTTP 500'));
+    const user = userEvent.setup();
+
+    render(<WorkspaceShell />);
+
+    const dialog = await screen.findByRole('dialog', { name: 'Volgende stappen voor je huishouden' });
+    await user.click(within(dialog).getByRole('button', { name: 'Nu niet, naar Thuis' }));
+
+    expect((await within(dialog).findByRole('alert')).textContent).toContain('De checklist kon niet worden gesloten.');
+    expect(screen.getByRole('dialog', { name: 'Volgende stappen voor je huishouden' })).not.toBeNull();
   });
 
   it('does not render static demo members while the API member collection is loading', async () => {

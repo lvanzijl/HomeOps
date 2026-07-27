@@ -6494,6 +6494,40 @@ export class HomeOpsApiClient {
         return Promise.resolve<OnboardingStatusDto>(null as any);
     }
 
+    dismissSetupChecklist(): Promise<SetupChecklistDto> {
+        let url_ = this.baseUrl + "/api/onboarding/setup-checklist/dismiss";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDismissSetupChecklist(_response);
+        });
+    }
+
+    protected processDismissSetupChecklist(response: Response): Promise<SetupChecklistDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = SetupChecklistDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<SetupChecklistDto>(null as any);
+    }
+
     completeOnboarding(request: CompleteOnboardingRequest): Promise<OnboardingStatusDto> {
         let url_ = this.baseUrl + "/api/onboarding/complete";
         url_ = url_.replace(/[?&]$/, "");
@@ -16660,6 +16694,7 @@ export class OnboardingStatusDto implements IOnboardingStatusDto {
     onboardingCompleted?: boolean;
     hasActiveFamilyMembers?: boolean;
     requiresOnboarding?: boolean;
+    setupChecklist?: SetupChecklistDto | undefined;
 
     constructor(data?: IOnboardingStatusDto) {
         if (data) {
@@ -16675,6 +16710,7 @@ export class OnboardingStatusDto implements IOnboardingStatusDto {
             this.onboardingCompleted = _data["onboardingCompleted"];
             this.hasActiveFamilyMembers = _data["hasActiveFamilyMembers"];
             this.requiresOnboarding = _data["requiresOnboarding"];
+            this.setupChecklist = _data["setupChecklist"] ? SetupChecklistDto.fromJS(_data["setupChecklist"]) : undefined as any;
         }
     }
 
@@ -16690,6 +16726,7 @@ export class OnboardingStatusDto implements IOnboardingStatusDto {
         data["onboardingCompleted"] = this.onboardingCompleted;
         data["hasActiveFamilyMembers"] = this.hasActiveFamilyMembers;
         data["requiresOnboarding"] = this.requiresOnboarding;
+        data["setupChecklist"] = this.setupChecklist ? this.setupChecklist.toJSON() : undefined as any;
         return data;
     }
 }
@@ -16698,6 +16735,59 @@ export interface IOnboardingStatusDto {
     onboardingCompleted?: boolean;
     hasActiveFamilyMembers?: boolean;
     requiresOnboarding?: boolean;
+    setupChecklist?: SetupChecklistDto | undefined;
+}
+
+export class SetupChecklistDto implements ISetupChecklistDto {
+    isDismissed?: boolean;
+    weatherLocationConfigured?: boolean;
+    firstListConfigured?: boolean;
+    calendarSourceConfigured?: boolean;
+    homeAssistantConfigured?: boolean;
+
+    constructor(data?: ISetupChecklistDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.isDismissed = _data["isDismissed"];
+            this.weatherLocationConfigured = _data["weatherLocationConfigured"];
+            this.firstListConfigured = _data["firstListConfigured"];
+            this.calendarSourceConfigured = _data["calendarSourceConfigured"];
+            this.homeAssistantConfigured = _data["homeAssistantConfigured"];
+        }
+    }
+
+    static fromJS(data: any): SetupChecklistDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new SetupChecklistDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["isDismissed"] = this.isDismissed;
+        data["weatherLocationConfigured"] = this.weatherLocationConfigured;
+        data["firstListConfigured"] = this.firstListConfigured;
+        data["calendarSourceConfigured"] = this.calendarSourceConfigured;
+        data["homeAssistantConfigured"] = this.homeAssistantConfigured;
+        return data;
+    }
+}
+
+export interface ISetupChecklistDto {
+    isDismissed?: boolean;
+    weatherLocationConfigured?: boolean;
+    firstListConfigured?: boolean;
+    calendarSourceConfigured?: boolean;
+    homeAssistantConfigured?: boolean;
 }
 
 export class CompleteOnboardingRequest implements ICompleteOnboardingRequest {

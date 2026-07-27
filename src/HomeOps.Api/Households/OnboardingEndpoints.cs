@@ -1,6 +1,9 @@
 using HomeOps.Api.Data;
 using HomeOps.Api.AvatarCatalog;
+using HomeOps.Api.CalendarEvents;
 using HomeOps.Api.FamilyMembers;
+using HomeOps.Api.FloorPlans;
+using HomeOps.Api.Lists;
 using Microsoft.EntityFrameworkCore;
 
 namespace HomeOps.Api.Households;
@@ -15,8 +18,21 @@ public static class OnboardingEndpoints
         {
             var household = await dbContext.Households.AsNoTracking().FirstAsync(h => h.Id == SeedHousehold.Id, cancellationToken);
             var hasActiveMembers = await dbContext.FamilyMembers.AsNoTracking().AnyAsync(m => m.HouseholdId == SeedHousehold.Id && !m.IsDeleted, cancellationToken);
-            return Results.Ok(new OnboardingStatusDto(household.OnboardingCompleted, hasActiveMembers, !household.OnboardingCompleted));
+            return Results.Ok(new OnboardingStatusDto(household.OnboardingCompleted, hasActiveMembers, !household.OnboardingCompleted, await SetupChecklist(dbContext, household, cancellationToken)));
         }).WithName("GetOnboardingStatus").Produces<OnboardingStatusDto>();
+
+        group.MapPost("/setup-checklist/dismiss", async (HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        {
+            var household = await dbContext.Households.FirstAsync(h => h.Id == SeedHousehold.Id, cancellationToken);
+            if (household.SetupChecklistDismissedUtc is null)
+            {
+                household.SetupChecklistDismissedUtc = DateTimeOffset.UtcNow;
+                household.UpdatedUtc = household.SetupChecklistDismissedUtc.Value;
+                await dbContext.SaveChangesAsync(cancellationToken);
+            }
+
+            return Results.Ok(await SetupChecklist(dbContext, household, cancellationToken));
+        }).WithName("DismissSetupChecklist").Produces<SetupChecklistDto>();
 
         group.MapPost("/complete", async (CompleteOnboardingRequest request, HomeOpsDbContext dbContext, AvatarCatalogService avatarCatalog, CancellationToken cancellationToken) =>
         {
@@ -79,7 +95,20 @@ public static class OnboardingEndpoints
     private static async Task<OnboardingStatusDto> Status(HomeOpsDbContext dbContext, Household household, CancellationToken cancellationToken)
     {
         var hasActiveMembers = await dbContext.FamilyMembers.AsNoTracking().AnyAsync(m => m.HouseholdId == SeedHousehold.Id && !m.IsDeleted, cancellationToken);
-        return new OnboardingStatusDto(household.OnboardingCompleted, hasActiveMembers, !household.OnboardingCompleted);
+        return new OnboardingStatusDto(household.OnboardingCompleted, hasActiveMembers, !household.OnboardingCompleted, await SetupChecklist(dbContext, household, cancellationToken));
+    }
+
+    private static async Task<SetupChecklistDto> SetupChecklist(HomeOpsDbContext dbContext, Household household, CancellationToken cancellationToken)
+    {
+        var firstListConfigured = await dbContext.Lists.AsNoTracking()
+            .AnyAsync(list => list.HouseholdId == household.Id && !list.IsDeleted, cancellationToken);
+        var calendarSourceConfigured = await dbContext.EventSources.AsNoTracking()
+            .AnyAsync(source => source.HouseholdId == household.Id && source.IsEnabled && !(source.IsSystem && source.SourceType == EventSourceTypes.Manual), cancellationToken);
+        var homeAssistantConfigured = await dbContext.ClimateProviders.AsNoTracking()
+            .AnyAsync(provider => provider.HouseholdId == household.Id && provider.ProviderType == ProviderType.HomeAssistant && provider.IsEnabled && !provider.IsArchived, cancellationToken);
+
+        // Weather location remains deliberately deferred to WEATHER-01; it is not implied by process-wide defaults.
+        return new SetupChecklistDto(household.SetupChecklistDismissedUtc is not null, false, firstListConfigured, calendarSourceConfigured, homeAssistantConfigured);
     }
 
     private static Dictionary<string, string[]> Validate(CompleteOnboardingRequest request, AvatarCatalogService avatarCatalog, out List<AvatarSelection> avatarSelections)

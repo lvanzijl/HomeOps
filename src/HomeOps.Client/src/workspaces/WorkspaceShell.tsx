@@ -14,7 +14,7 @@ import { TasksPage } from '../tasks/TasksPage';
 import { WeeklyResetPage } from '../weeklyReset/WeeklyResetPage';
 import { WoningClimatePage, WoningSummaryPage, type ClimateStoryDeepLink } from '../WoningClimatePage';
 import { FirstRunWizard } from '../FirstRunWizard';
-import { loadOnboardingStatus } from '../onboardingApi';
+import { dismissSetupChecklist, loadOnboardingStatus, type SetupChecklist } from '../onboardingApi';
 import { DomainPlaceholderPage } from './DomainPlaceholderPage';
 import { getDomainColorClass } from './domainColors';
 import { getWidgetDefinition } from '../widgets/widgetCatalog';
@@ -40,6 +40,7 @@ export function WorkspaceShell() {
   const [isAddingMember, setIsAddingMember] = useState(false);
   const [widgetInstancesByWorkspace, setWidgetInstancesByWorkspace] = useState<Partial<Record<WorkspaceId, readonly WidgetInstance[]>>>({});
   const [requiresOnboarding, setRequiresOnboarding] = useState(false);
+  const [setupChecklist, setSetupChecklist] = useState<SetupChecklist | null>(null);
   const [checkedOnboarding, setCheckedOnboarding] = useState(false);
   const [onboardingStatusError, setOnboardingStatusError] = useState(false);
   const [settingsNeedsAttention, setSettingsNeedsAttention] = useState(false);
@@ -132,6 +133,7 @@ export function WorkspaceShell() {
     loadOnboardingStatus().then((status) => {
       if (!ignore) {
         setRequiresOnboarding(status.requiresOnboarding);
+        setSetupChecklist(status.setupChecklist);
         setCheckedOnboarding(true);
       }
     }).catch(() => {
@@ -156,7 +158,7 @@ export function WorkspaceShell() {
   }
 
   if (requiresOnboarding) {
-    return <FirstRunWizard initialMembers={members} onComplete={(updatedMembers) => { setMembers([...updatedMembers]); setRequiresOnboarding(false); setActiveWorkspaceId('home'); setActiveFamilyMemberId(null); }} />;
+    return <FirstRunWizard initialMembers={members} onComplete={(updatedMembers) => { setMembers([...updatedMembers]); setRequiresOnboarding(false); setActiveWorkspaceId('home'); setActiveFamilyMemberId(null); void loadOnboardingStatus().then((status) => setSetupChecklist(status.setupChecklist)); }} />;
   }
 
   const widgetInstances = activeWorkspace.id === 'agenda'
@@ -268,6 +270,7 @@ export function WorkspaceShell() {
         </div>
       </section>
       {isAddingMember ? <AddFamilyMemberDialog onCancel={() => setIsAddingMember(false)} onCreate={addFamilyMember} /> : null}
+      {setupChecklist && !setupChecklist.isDismissed ? <SetupChecklistDialog checklist={setupChecklist} onDismiss={async () => setSetupChecklist(await dismissSetupChecklist())} /> : null}
     </section>
   );
 }
@@ -297,4 +300,45 @@ function AddFamilyMemberDialog({ onCancel, onCreate }: { onCancel: () => void; o
     avatarSelection: defaultAvatarSelection,
   };
   return <div className="avatar-editor-backdrop" role="presentation"><section className="avatar-editor" role="dialog" aria-modal="true" aria-label="Gezinslid toevoegen"><header><div><p className="eyebrow">Gezin</p><h3>Gezinslid toevoegen</h3><p>Voeg iemand toe aan het gezinsbord zonder account aan te maken.</p></div><button type="button" className="icon-button" onClick={onCancel} disabled={isSaving} aria-label="Gezinslid toevoegen sluiten"><HomeOpsIcon name="close" /></button></header><FamilyMemberProfileForm errorMessage="Gezinslid kon niet worden toegevoegd. Probeer het opnieuw." initialMember={newMember} isNew onBusyChange={setIsSaving} onCancel={onCancel} onSave={async (member) => { const { id: _id, ...createdMember } = member; await onCreate(createdMember); onCancel(); }} /></section></div>;
+}
+
+function SetupChecklistDialog({ checklist, onDismiss }: { checklist: SetupChecklist; onDismiss: () => Promise<void> }) {
+  const [isDismissing, setIsDismissing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const items = [
+    { label: 'Weerlocatie', configured: checklist.weatherLocationConfigured, detail: 'Optioneel; je kunt dit later instellen.' },
+    { label: 'Eerste lijst', configured: checklist.firstListConfigured, detail: 'Maak een boodschappen- of paklijst wanneer dat helpt.' },
+    { label: 'Kalenderbron', configured: checklist.calendarSourceConfigured, detail: 'Koppel later een agenda als je die hier wilt zien.' },
+    { label: 'Woning en Home Assistant', configured: checklist.homeAssistantConfigured, detail: 'Optioneel voor huishoudelijke klimaat- en woninginformatie.' },
+  ];
+
+  async function dismiss() {
+    if (isDismissing) return;
+    setError(null);
+    setIsDismissing(true);
+    try {
+      await onDismiss();
+    } catch {
+      setError('De checklist kon niet worden gesloten. Probeer het opnieuw.');
+      setIsDismissing(false);
+    }
+  }
+
+  return <div className="setup-checklist-backdrop" role="presentation">
+    <section aria-describedby="setup-checklist-intro" aria-label="Volgende stappen voor je huishouden" aria-modal="true" className="setup-checklist-dialog" role="dialog">
+      <header>
+        <p className="eyebrow">Je gezin is ingesteld</p>
+        <h2>Wat wil je later toevoegen?</h2>
+        <p id="setup-checklist-intro">Alles hieronder is optioneel. Je kunt FamilyBoard nu gewoon gebruiken.</p>
+      </header>
+      <ul className="setup-checklist-items">
+        {items.map((item) => <li key={item.label}>
+          <div><strong>{item.label}</strong><p>{item.detail}</p></div>
+          <span className={item.configured ? 'setup-checklist-status configured' : 'setup-checklist-status'}>{item.configured ? 'Ingesteld' : 'Optioneel'}</span>
+        </li>)}
+      </ul>
+      {error ? <p className="form-error" role="alert">{error}</p> : null}
+      <footer><button autoFocus disabled={isDismissing} onClick={dismiss} type="button">{isDismissing ? 'Opslaan…' : 'Nu niet, naar Thuis'}</button></footer>
+    </section>
+  </div>;
 }

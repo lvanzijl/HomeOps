@@ -6,6 +6,7 @@ public sealed class Household
     public string Name { get; set; } = string.Empty;
     public string TimeZoneId { get; set; } = HouseholdTimeZone.DefaultTimeZoneId;
     public bool OnboardingCompleted { get; set; }
+    public DateTimeOffset? SetupChecklistDismissedUtc { get; set; }
     public bool LegacyDemoDataReviewRequired { get; set; }
     public DateTimeOffset CreatedUtc { get; set; }
     public DateTimeOffset UpdatedUtc { get; set; }

@@ -30,8 +30,8 @@ describe('FirstRunWizard', () => {
     vi.mocked(family.createFamilyMember).mockImplementation(async (member) => ({ ...member, id: member.name.toLowerCase() }));
     vi.mocked(family.loadFamilyMembers).mockResolvedValue([]);
     const onboarding = await onboardingApi();
-    vi.mocked(onboarding.completeOnboarding).mockResolvedValue({ onboardingCompleted: true, hasActiveFamilyMembers: true, requiresOnboarding: false });
-    vi.mocked(onboarding.loadOnboardingStatus).mockResolvedValue({ onboardingCompleted: false, hasActiveFamilyMembers: false, requiresOnboarding: true });
+    vi.mocked(onboarding.completeOnboarding).mockResolvedValue({ onboardingCompleted: true, hasActiveFamilyMembers: true, requiresOnboarding: false, setupChecklist: null });
+    vi.mocked(onboarding.loadOnboardingStatus).mockResolvedValue({ onboardingCompleted: false, hasActiveFamilyMembers: false, requiresOnboarding: true, setupChecklist: null });
   });
 
   it('walks through welcome, add adult, add child, review, and completion', async () => {
@@ -79,7 +79,7 @@ describe('FirstRunWizard', () => {
     expect(await screen.findByLabelText('Eerste installatie')).not.toBeNull();
     cleanup();
 
-    vi.mocked(onboarding.loadOnboardingStatus).mockResolvedValue({ onboardingCompleted: true, hasActiveFamilyMembers: true, requiresOnboarding: false });
+    vi.mocked(onboarding.loadOnboardingStatus).mockResolvedValue({ onboardingCompleted: true, hasActiveFamilyMembers: true, requiresOnboarding: false, setupChecklist: null });
     render(<WorkspaceShell />);
     await waitFor(() => expect(screen.queryByLabelText('Eerste installatie')).toBeNull());
     expect(await screen.findByLabelText('Home dashboard')).not.toBeNull();

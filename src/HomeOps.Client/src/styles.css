@@ -1316,6 +1316,93 @@ button {
   min-height: 0;
 }
 
+.setup-checklist-backdrop {
+  align-items: center;
+  background: color-mix(in srgb, var(--color-text-strong) 34%, transparent);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 1rem;
+  position: fixed;
+  z-index: 30;
+}
+
+.setup-checklist-dialog {
+  background: var(--surface-default);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-card);
+  box-shadow: var(--elevation-2);
+  box-sizing: border-box;
+  display: grid;
+  gap: 0.85rem;
+  max-height: min(34rem, calc(100dvh - 2rem));
+  max-width: 38rem;
+  overflow: auto;
+  padding: clamp(1rem, 2vw, 1.5rem);
+  width: min(100%, 38rem);
+}
+
+.setup-checklist-dialog h2,
+.setup-checklist-dialog p {
+  margin: 0;
+}
+
+.setup-checklist-dialog header,
+.setup-checklist-dialog footer {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.setup-checklist-dialog footer {
+  justify-items: end;
+}
+
+.setup-checklist-items {
+  display: grid;
+  gap: 0.45rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.setup-checklist-items li {
+  align-items: start;
+  background: var(--surface-subtle);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-control);
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+  padding: 0.7rem;
+}
+
+.setup-checklist-items li div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.setup-checklist-items li p {
+  color: var(--color-text-muted);
+  font-size: 0.88rem;
+}
+
+.setup-checklist-status {
+  background: var(--surface-default);
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+  color: var(--color-text-muted);
+  flex: 0 0 auto;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.2rem 0.45rem;
+}
+
+.setup-checklist-status.configured {
+  background: color-mix(in srgb, var(--color-brand-accent) 12%, var(--surface-default));
+  border-color: var(--color-brand-accent);
+  color: var(--color-brand-accent-strong);
+}
+
 .family-administration,
 .family-administration-list,
 .family-administration-form {
