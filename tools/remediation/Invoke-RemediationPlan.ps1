@@ -273,6 +273,30 @@ function Resolve-ExecutablePath {
     return $resolved.Source
 }
 
+function Invoke-ParentDotNetRestore {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$RepositoryRoot
+    )
+
+    $dotnet = Get-Command dotnet -CommandType Application -ErrorAction SilentlyContinue |
+        Select-Object -First 1
+    if (-not $dotnet) {
+        throw "The .NET CLI was not found on PATH."
+    }
+
+    Push-Location $RepositoryRoot
+    try {
+        & $dotnet.Source restore HomeOps.sln
+        if ($LASTEXITCODE -ne 0) {
+            throw "dotnet restore HomeOps.sln failed with exit code $LASTEXITCODE."
+        }
+    }
+    finally {
+        Pop-Location
+    }
+}
+
 function Get-CodexChildPathEntries {
     $entries = @()
     $nodeCommand = Get-Command node -CommandType Application -ErrorAction SilentlyContinue |
@@ -855,6 +879,9 @@ try {
         if ($slice.Status -eq "Blocked") {
             throw "Slice $($slice.Id) is Blocked. The orchestrator will not skip it."
         }
+
+        Write-Host "Running the .NET restore gate outside the child sandbox."
+        Invoke-ParentDotNetRestore -RepositoryRoot $repositoryRoot
 
         Set-SliceInProgress -ResolvedPlanPath $resolvedPlanPath -SliceId $slice.Id
         $planText = [System.IO.File]::ReadAllText($resolvedPlanPath)

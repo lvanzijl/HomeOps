@@ -23,6 +23,13 @@ Required workflow:
 9. If blocked, mark it Blocked and document the concrete blocker and required decision. If work simply fails or remains incomplete, leave it In progress.
 10. Do not create a commit, push, open a pull request, or start another slice. The parent PowerShell orchestrator owns sequencing and optional commits.
 
+Repository toolchain commands:
+
+- The orchestrator adds the bundled Node and pnpm directories to `PATH`.
+- The parent orchestrator successfully runs `dotnet restore HomeOps.sln` outside the child sandbox immediately before this run. Do not repeat restore unless this slice changes a project or package dependency file; use `--no-restore` for the normal build.
+- Generate contracts with `pnpm dlx nswag@14.7.1 run nswag.json`; do not substitute `npx` or unpinned `pnpm exec`.
+- Run NSwag a second time and verify that `src/HomeOps.Contracts/openapi.json` and `src/HomeOps.Client/src/api/homeOpsApiClient.ts` do not change.
+
 Your final response must conform exactly to the supplied JSON schema.
 Set `slice` to exactly `{{SLICE_ID}}`; return the ID only, without the title.
 
