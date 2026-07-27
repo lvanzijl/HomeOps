@@ -18,8 +18,10 @@ export function FirstRunWizard({ initialMembers, onComplete }: { initialMembers:
     try {
       const created = await createFamilyMember(member);
       setMembers((current) => [...current, created].sort((a, b) => a.name.localeCompare(b.name)));
+      return true;
     } catch {
       setError('Gezinslid toevoegen lukte niet. Probeer het opnieuw.');
+      return false;
     }
   }
 
@@ -56,20 +58,31 @@ function WelcomeStep({ onNext }: { onNext: () => void }) {
   return <section><h1>Welkom bij FamilyBoard</h1><p>FamilyBoard helpt het gezin overzicht te houden. Voeg nu je gezinsleden toe; alles kan later worden aangepast.</p><div className="wizard-actions"><button type="button" onClick={onNext}>Installatie starten</button></div></section>;
 }
 
-function MemberStep({ title, intro, kind, members, onAdd, onBack, onNext, nextDisabled = false }: { title: string; intro: string; kind: FamilyMember['memberKind']; members: readonly FamilyMember[]; onAdd: (member: Omit<FamilyMember, 'id'>) => Promise<void>; onBack: () => void; onNext: () => void; nextDisabled?: boolean }) {
+function MemberStep({ title, intro, kind, members, onAdd, onBack, onNext, nextDisabled = false }: { title: string; intro: string; kind: FamilyMember['memberKind']; members: readonly FamilyMember[]; onAdd: (member: Omit<FamilyMember, 'id'>) => Promise<boolean>; onBack: () => void; onNext: () => void; nextDisabled?: boolean }) {
   return <section><h1>{title}</h1><p>{intro}</p><MemberForm kind={kind} onAdd={onAdd} /> <MemberList members={members} emptyText={kind === 'adult' ? 'Nog geen volwassenen toegevoegd.' : 'Nog geen kinderen toegevoegd.'} /><div className="wizard-actions"><button type="button" onClick={onBack}>Terug</button><button type="button" onClick={onNext} disabled={nextDisabled}>{kind === 'adult' ? 'Doorgaan' : 'Gezin controleren'}</button></div></section>;
 }
 
-function MemberForm({ kind, onAdd }: { kind: FamilyMember['memberKind']; onAdd: (member: Omit<FamilyMember, 'id'>) => Promise<void> }) {
+function MemberForm({ kind, onAdd }: { kind: FamilyMember['memberKind']; onAdd: (member: Omit<FamilyMember, 'id'>) => Promise<boolean> }) {
   const [name, setName] = useState('');
   const [dateOfBirth, setDateOfBirth] = useState('');
+  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   async function submit(event: FormEvent) {
     event.preventDefault();
-    if (!name.trim() || (kind === 'child' && !dateOfBirth)) return;
-    await onAdd({ name: name.trim(), initials: buildInitials(name), memberKind: kind, dateOfBirth: kind === 'child' ? dateOfBirth : null, displayColor: kind === 'adult' ? '#c7d2fe' : '#bbf7d0', avatarSelection: defaultAvatarSelection });
-    setName(''); setDateOfBirth('');
+    if (saveState === 'saving' || !name.trim() || (kind === 'child' && !dateOfBirth)) return;
+    setSaveState('saving');
+    const wasCreated = await onAdd({ name: name.trim(), initials: buildInitials(name), memberKind: kind, dateOfBirth: kind === 'child' ? dateOfBirth : null, displayColor: kind === 'adult' ? '#c7d2fe' : '#bbf7d0', avatarSelection: defaultAvatarSelection });
+    if (wasCreated) {
+      setSaveState('saved');
+      setName('');
+      setDateOfBirth('');
+    } else {
+      setSaveState('error');
+    }
   }
-  return <form className="wizard-form" onSubmit={submit} aria-label={`${kind === 'adult' ? 'Volwassene' : 'Kind'} toevoegen`}><label>Naam<input value={name} onChange={(event) => setName(event.target.value)} required /></label>{kind === 'child' ? <label>Geboortedatum<input aria-label="Geboortedatum" type="date" value={dateOfBirth} onChange={(event) => setDateOfBirth(event.target.value)} required /></label> : null}<button type="submit">{kind === 'adult' ? 'Volwassene toevoegen' : 'Kind toevoegen'}</button></form>;
+  const clearResult = () => {
+    if (saveState !== 'saving') setSaveState('idle');
+  };
+  return <form className="wizard-form" onSubmit={submit} aria-label={`${kind === 'adult' ? 'Volwassene' : 'Kind'} toevoegen`}><label>Naam<input value={name} onChange={(event) => { setName(event.target.value); clearResult(); }} disabled={saveState === 'saving'} required /></label>{kind === 'child' ? <label>Geboortedatum<input aria-label="Geboortedatum" type="date" value={dateOfBirth} onChange={(event) => { setDateOfBirth(event.target.value); clearResult(); }} disabled={saveState === 'saving'} required /></label> : null}<button type="submit" disabled={saveState === 'saving'}>{saveState === 'saving' ? 'Toevoegen…' : saveState === 'error' ? 'Opnieuw toevoegen' : kind === 'adult' ? 'Volwassene toevoegen' : 'Kind toevoegen'}</button></form>;
 }
 
 function ReviewStep({ adults, children, onBack, onNext }: { adults: readonly FamilyMember[]; children: readonly FamilyMember[]; onBack: () => void; onNext: () => void }) {

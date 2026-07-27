@@ -249,65 +249,6 @@ namespace HomeOps.Api.Migrations
                         {
                             t.HasCheckConstraint("CK_EventSeries_DecorativeAvatar_NullablePair", "(\"DecorativeAvatarReferenceType\" IS NULL AND \"DecorativeAvatarReferenceId\" IS NULL) OR (\"DecorativeAvatarReferenceType\" IS NOT NULL AND \"DecorativeAvatarReferenceId\" IS NOT NULL)");
                         });
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("13131313-1313-1313-1313-131313131313"),
-                            CreatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            Description = "Routine check-up",
-                            EndDate = new DateOnly(2026, 6, 18),
-                            EndTime = new TimeOnly(10, 15, 0),
-                            EventSourceId = new Guid("12121212-1212-1212-1212-121212121212"),
-                            IsAllDay = false,
-                            RecurrenceType = "None",
-                            StartDate = new DateOnly(2026, 6, 18),
-                            StartTime = new TimeOnly(9, 30, 0),
-                            Title = "Dentist Appointment",
-                            UpdatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
-                        },
-                        new
-                        {
-                            Id = new Guid("14141414-1414-1414-1414-141414141414"),
-                            CreatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            Description = "School hall",
-                            EndDate = new DateOnly(2026, 6, 19),
-                            EndTime = new TimeOnly(20, 0, 0),
-                            EventSourceId = new Guid("12121212-1212-1212-1212-121212121212"),
-                            IsAllDay = false,
-                            RecurrenceType = "None",
-                            StartDate = new DateOnly(2026, 6, 19),
-                            StartTime = new TimeOnly(18, 30, 0),
-                            Title = "Parent Evening",
-                            UpdatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
-                        },
-                        new
-                        {
-                            Id = new Guid("15151515-1515-1515-1515-151515151515"),
-                            CreatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            Description = "Family trip",
-                            EndDate = new DateOnly(2026, 7, 19),
-                            EventSourceId = new Guid("12121212-1212-1212-1212-121212121212"),
-                            IsAllDay = true,
-                            RecurrenceType = "None",
-                            StartDate = new DateOnly(2026, 7, 12),
-                            Title = "Vacation",
-                            UpdatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
-                        },
-                        new
-                        {
-                            Id = new Guid("16161616-1616-1616-1616-161616161616"),
-                            CreatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            EndDate = new DateOnly(2026, 6, 21),
-                            EndTime = new TimeOnly(20, 10, 0),
-                            EventSourceId = new Guid("12121212-1212-1212-1212-121212121212"),
-                            IsAllDay = false,
-                            RecurrenceType = "None",
-                            StartDate = new DateOnly(2026, 6, 21),
-                            StartTime = new TimeOnly(20, 0, 0),
-                            Title = "Put Bins Outside",
-                            UpdatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
-                        });
                 });
 
             modelBuilder.Entity("HomeOps.Api.CalendarEvents.EventSource", b =>
@@ -501,58 +442,6 @@ namespace HomeOps.Api.Migrations
                     b.HasIndex("HouseholdId", "IsDeleted", "Name");
 
                     b.ToTable("FamilyMembers", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = "alex",
-                            CreatedUtc = new DateTimeOffset(new DateTime(2026, 6, 20, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            DisplayColor = "#f8c8dc",
-                            HouseholdId = new Guid("11111111-1111-1111-1111-111111111111"),
-                            Initials = "A",
-                            IsDeleted = false,
-                            MemberKind = "Adult",
-                            Name = "Alex",
-                            UpdatedUtc = new DateTimeOffset(new DateTime(2026, 6, 20, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
-                        },
-                        new
-                        {
-                            Id = "sam",
-                            CreatedUtc = new DateTimeOffset(new DateTime(2026, 6, 20, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            DisplayColor = "#c7d2fe",
-                            HouseholdId = new Guid("11111111-1111-1111-1111-111111111111"),
-                            Initials = "S",
-                            IsDeleted = false,
-                            MemberKind = "Adult",
-                            Name = "Sam",
-                            UpdatedUtc = new DateTimeOffset(new DateTime(2026, 6, 20, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
-                        },
-                        new
-                        {
-                            Id = "riley",
-                            CreatedUtc = new DateTimeOffset(new DateTime(2026, 6, 20, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            DateOfBirth = new DateOnly(2018, 4, 12),
-                            DisplayColor = "#bbf7d0",
-                            HouseholdId = new Guid("11111111-1111-1111-1111-111111111111"),
-                            Initials = "R",
-                            IsDeleted = false,
-                            MemberKind = "Child",
-                            Name = "Riley",
-                            UpdatedUtc = new DateTimeOffset(new DateTime(2026, 6, 20, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
-                        },
-                        new
-                        {
-                            Id = "jordan",
-                            CreatedUtc = new DateTimeOffset(new DateTime(2026, 6, 20, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            DateOfBirth = new DateOnly(2020, 9, 3),
-                            DisplayColor = "#fde68a",
-                            HouseholdId = new Guid("11111111-1111-1111-1111-111111111111"),
-                            Initials = "J",
-                            IsDeleted = false,
-                            MemberKind = "Child",
-                            Name = "Jordan",
-                            UpdatedUtc = new DateTimeOffset(new DateTime(2026, 6, 20, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
-                        });
                 });
 
             modelBuilder.Entity("HomeOps.Api.FloorPlans.ClimateProvider", b =>
@@ -592,13 +481,13 @@ namespace HomeOps.Api.Migrations
                         .HasMaxLength(240)
                         .HasColumnType("character varying(240)");
 
-                    b.Property<DateTimeOffset?>("HomeAssistantResumeStrategyUpdatedUtc")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<string>("HomeAssistantResumeStrategyType")
                         .IsRequired()
                         .HasMaxLength(40)
                         .HasColumnType("character varying(40)");
+
+                    b.Property<DateTimeOffset?>("HomeAssistantResumeStrategyUpdatedUtc")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("HouseholdId")
                         .HasColumnType("uuid");
@@ -1355,6 +1244,9 @@ namespace HomeOps.Api.Migrations
                     b.Property<DateTimeOffset>("CreatedUtc")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<bool>("LegacyDemoDataReviewRequired")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(120)
@@ -1380,8 +1272,9 @@ namespace HomeOps.Api.Migrations
                         {
                             Id = new Guid("11111111-1111-1111-1111-111111111111"),
                             CreatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            LegacyDemoDataReviewRequired = false,
                             Name = "Home",
-                            OnboardingCompleted = true,
+                            OnboardingCompleted = false,
                             TimeZoneId = "Europe/Amsterdam",
                             UpdatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
                         });
@@ -1500,28 +1393,6 @@ namespace HomeOps.Api.Migrations
                         .IsUnique();
 
                     b.ToTable("Lists", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("22222222-2222-2222-2222-222222222222"),
-                            CreatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            HouseholdId = new Guid("11111111-1111-1111-1111-111111111111"),
-                            IsArchived = false,
-                            IsDeleted = false,
-                            Name = "Shopping",
-                            UpdatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
-                        },
-                        new
-                        {
-                            Id = new Guid("33333333-3333-3333-3333-333333333333"),
-                            CreatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            HouseholdId = new Guid("11111111-1111-1111-1111-111111111111"),
-                            IsArchived = false,
-                            IsDeleted = false,
-                            Name = "Vacation Packing",
-                            UpdatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
-                        });
                 });
 
             modelBuilder.Entity("HomeOps.Api.Lists.ListItem", b =>
@@ -1577,68 +1448,6 @@ namespace HomeOps.Api.Migrations
                     b.ToTable("ListItems", null, t =>
                         {
                             t.HasCheckConstraint("CK_ListItems_DecorativeAvatar_NullablePair", "(\"DecorativeAvatarReferenceType\" IS NULL AND \"DecorativeAvatarReferenceId\" IS NULL) OR (\"DecorativeAvatarReferenceType\" IS NOT NULL AND \"DecorativeAvatarReferenceId\" IS NOT NULL)");
-                        });
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("44444444-4444-4444-4444-444444444444"),
-                            CreatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            IsCompleted = false,
-                            IsDeleted = false,
-                            ListId = new Guid("22222222-2222-2222-2222-222222222222"),
-                            Text = "Bread",
-                            UpdatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
-                        },
-                        new
-                        {
-                            Id = new Guid("55555555-5555-5555-5555-555555555555"),
-                            CreatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            IsCompleted = false,
-                            IsDeleted = false,
-                            ListId = new Guid("22222222-2222-2222-2222-222222222222"),
-                            Text = "Milk",
-                            UpdatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
-                        },
-                        new
-                        {
-                            Id = new Guid("66666666-6666-6666-6666-666666666666"),
-                            CreatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            IsCompleted = false,
-                            IsDeleted = false,
-                            ListId = new Guid("22222222-2222-2222-2222-222222222222"),
-                            Text = "Coffee",
-                            UpdatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
-                        },
-                        new
-                        {
-                            Id = new Guid("77777777-7777-7777-7777-777777777777"),
-                            CreatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            IsCompleted = false,
-                            IsDeleted = false,
-                            ListId = new Guid("33333333-3333-3333-3333-333333333333"),
-                            Text = "Passport",
-                            UpdatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
-                        },
-                        new
-                        {
-                            Id = new Guid("88888888-8888-8888-8888-888888888888"),
-                            CreatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            IsCompleted = false,
-                            IsDeleted = false,
-                            ListId = new Guid("33333333-3333-3333-3333-333333333333"),
-                            Text = "Chargers",
-                            UpdatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
-                        },
-                        new
-                        {
-                            Id = new Guid("99999999-9999-9999-9999-999999999999"),
-                            CreatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            IsCompleted = false,
-                            IsDeleted = false,
-                            ListId = new Guid("33333333-3333-3333-3333-333333333333"),
-                            Text = "Swimwear",
-                            UpdatedUtc = new DateTimeOffset(new DateTime(2026, 6, 19, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
                         });
                 });
 
@@ -1780,21 +1589,6 @@ namespace HomeOps.Api.Migrations
                     b.HasIndex("HouseholdId", "IsActive");
 
                     b.ToTable("MotivationFamilyGoals", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("8e7e795f-66cf-4c18-87cf-1d33d1b81f01"),
-                            CelebrationDescription = "Choose a board game and celebrate helping as a family.",
-                            CelebrationStatus = "Planned",
-                            CelebrationTitle = "Board game night together",
-                            CurrentProgress = 13,
-                            HouseholdId = new Guid("11111111-1111-1111-1111-111111111111"),
-                            IsActive = true,
-                            TargetCount = 20,
-                            Title = "Fill the family helper path",
-                            UnitLabel = "helpful actions"
-                        });
                 });
 
             modelBuilder.Entity("HomeOps.Api.Motivation.MotivationIndividualGoal", b =>
@@ -1848,56 +1642,6 @@ namespace HomeOps.Api.Migrations
                     b.HasIndex("HouseholdId", "FamilyMemberId", "IsActive");
 
                     b.ToTable("MotivationIndividualGoals", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("e62d5716-a82a-4412-aacf-df78febbe301"),
-                            CurrentProgress = 3,
-                            FamilyMemberId = "alex",
-                            HouseholdId = new Guid("11111111-1111-1111-1111-111111111111"),
-                            IsActive = true,
-                            TargetCount = 5,
-                            Title = "Finish morning routine",
-                            UnitLabel = "checkmarks",
-                            VisualKind = "checkmarks"
-                        },
-                        new
-                        {
-                            Id = new Guid("d4c0882d-bf9a-4d4e-b925-1146e203f102"),
-                            CurrentProgress = 2,
-                            FamilyMemberId = "sam",
-                            HouseholdId = new Guid("11111111-1111-1111-1111-111111111111"),
-                            IsActive = true,
-                            TargetCount = 3,
-                            Title = "Help with dinner",
-                            UnitLabel = "stars",
-                            VisualKind = "stars"
-                        },
-                        new
-                        {
-                            Id = new Guid("7f9ad1f4-5af7-47c8-bf0a-c8232c1c6403"),
-                            CurrentProgress = 2,
-                            FamilyMemberId = "riley",
-                            HouseholdId = new Guid("11111111-1111-1111-1111-111111111111"),
-                            IsActive = true,
-                            TargetCount = 4,
-                            Title = "Tidy bedroom corner",
-                            UnitLabel = "steps",
-                            VisualKind = "progress"
-                        },
-                        new
-                        {
-                            Id = new Guid("65489d30-8f51-4181-9fae-e61254f8a4dc"),
-                            CurrentProgress = 1,
-                            FamilyMemberId = "jordan",
-                            HouseholdId = new Guid("11111111-1111-1111-1111-111111111111"),
-                            IsActive = true,
-                            TargetCount = 3,
-                            Title = "Notice one helpful thing",
-                            UnitLabel = "stars",
-                            VisualKind = "stars"
-                        });
                 });
 
             modelBuilder.Entity("HomeOps.Api.Tasks.HouseholdTask", b =>

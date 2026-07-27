@@ -82,4 +82,20 @@ describe('FirstRunWizard', () => {
     await waitFor(() => expect(screen.queryByLabelText('Eerste installatie')).toBeNull());
     expect(await screen.findByLabelText('Home dashboard')).not.toBeNull();
   });
+
+  it('retains the member draft when creation fails', async () => {
+    const family = await familyApi();
+    vi.mocked(family.createFamilyMember).mockRejectedValueOnce(new Error('HTTP 500'));
+    const user = userEvent.setup();
+    render(<FirstRunWizard initialMembers={[]} onComplete={vi.fn()} />);
+
+    await user.click(screen.getByRole('button', { name: 'Installatie starten' }));
+    const name = screen.getByLabelText('Naam');
+    await user.type(name, 'Alex Draft');
+    await user.click(screen.getByRole('button', { name: 'Volwassene toevoegen' }));
+
+    expect((await screen.findByRole('alert')).textContent).toContain('Gezinslid toevoegen lukte niet.');
+    expect((name as HTMLInputElement).value).toBe('Alex Draft');
+    expect(screen.queryByText('Alex Draft', { selector: 'li strong' })).toBeNull();
+  });
 });

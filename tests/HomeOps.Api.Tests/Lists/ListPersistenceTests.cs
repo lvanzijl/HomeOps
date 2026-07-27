@@ -8,18 +8,17 @@ namespace HomeOps.Api.Tests.Lists;
 public sealed class ListPersistenceTests
 {
     [Fact]
-    public async Task DbContextSeedsSingleHouseholdAndDevelopmentLists()
+    public async Task FreshDbContextDoesNotSeedHouseholdLists()
     {
         await using var dbContext = CreateDbContext();
         await dbContext.Database.EnsureCreatedAsync();
 
         var household = await dbContext.Households.SingleAsync();
-        var lists = await dbContext.Lists.Include(list => list.Items).OrderBy(list => list.Name).ToListAsync();
+        var lists = await dbContext.Lists.Include(list => list.Items).ToListAsync();
 
         Assert.Equal(SeedHousehold.Id, household.Id);
-        Assert.Equal(["Shopping", "Vacation Packing"], lists.Select(list => list.Name).ToArray());
-        Assert.Equal(["Bread", "Coffee", "Milk"], lists.Single(list => list.Name == "Shopping").Items.Select(item => item.Text).Order().ToArray());
-        Assert.Equal(["Chargers", "Passport", "Swimwear"], lists.Single(list => list.Name == "Vacation Packing").Items.Select(item => item.Text).Order().ToArray());
+        Assert.False(household.OnboardingCompleted);
+        Assert.Empty(lists);
     }
 
     [Fact]

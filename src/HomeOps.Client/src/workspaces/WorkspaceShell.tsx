@@ -6,7 +6,7 @@ import { hasCalendarSourceAttention, loadCalendarSources } from '../calendarSour
 import { FamilyMemberPage } from '../home/FamilyMemberPage';
 import { HomeDashboard } from '../home/HomeDashboard';
 import { MotivationPage } from '../MotivationPage';
-import { familyMembers, type FamilyMember } from '../home/familyMembers';
+import type { FamilyMember } from '../home/familyMembers';
 import { createFamilyMember, loadFamilyMembers, removeFamilyMember, saveFamilyMember } from '../home/familyMembersApi';
 import { SettingsDashboard } from '../settings/SettingsDashboard';
 import { TasksPage } from '../tasks/TasksPage';
@@ -35,7 +35,7 @@ function getInitialWorkspace(): WorkspaceDefinition {
 export function WorkspaceShell() {
   const [activeWorkspaceId, setActiveWorkspaceId] = useState<WorkspaceId>(getInitialWorkspace().id);
   const [activeFamilyMemberId, setActiveFamilyMemberId] = useState<string | null>(null);
-  const [members, setMembers] = useState<FamilyMember[]>(() => [...familyMembers]);
+  const [members, setMembers] = useState<FamilyMember[]>([]);
   const [isAddingMember, setIsAddingMember] = useState(false);
   const [widgetInstancesByWorkspace, setWidgetInstancesByWorkspace] = useState<Partial<Record<WorkspaceId, readonly WidgetInstance[]>>>({});
   const [requiresOnboarding, setRequiresOnboarding] = useState(false);
@@ -102,26 +102,23 @@ export function WorkspaceShell() {
     if (workspaceId !== 'house') { setHouseView('summary'); setClimateStoryContext(undefined); }
   }
 
-  function updateFamilyMember(updated: FamilyMember) {
-    setMembers((current) => current.map((member) => member.id === updated.id ? updated : member));
-    void saveFamilyMember(updated).then((saved) => {
-      setMembers((current) => current.map((member) => member.id === saved.id ? saved : member));
-    }).catch(() => undefined);
+  async function updateFamilyMember(updated: FamilyMember) {
+    const saved = await saveFamilyMember(updated);
+    setMembers((current) => current.map((member) => member.id === saved.id ? saved : member));
+    return saved;
   }
 
-  function addFamilyMember(member: Omit<FamilyMember, 'id'>) {
-    void createFamilyMember(member).then((created) => {
-      setMembers((current) => [...current, created].sort((a, b) => a.name.localeCompare(b.name)));
-      setActiveFamilyMemberId(created.id);
-      setIsAddingMember(false);
-    }).catch(() => undefined);
+  async function addFamilyMember(member: Omit<FamilyMember, 'id'>) {
+    const created = await createFamilyMember(member);
+    setMembers((current) => [...current, created].sort((a, b) => a.name.localeCompare(b.name)));
+    setActiveFamilyMemberId(created.id);
+    return created;
   }
 
-  function deleteFamilyMember(member: FamilyMember) {
-    void removeFamilyMember(member.id).then(() => {
-      setMembers((current) => current.filter((item) => item.id !== member.id));
-      setActiveFamilyMemberId(null);
-    }).catch(() => undefined);
+  async function deleteFamilyMember(member: FamilyMember) {
+    await removeFamilyMember(member.id);
+    setMembers((current) => current.filter((item) => item.id !== member.id));
+    setActiveFamilyMemberId(null);
   }
 
   useEffect(() => {
@@ -273,17 +270,28 @@ function WorkspaceBackSlot({ isVisible, onBack }: { isVisible: boolean; onBack: 
   );
 }
 
-function AddFamilyMemberDialog({ onCancel, onCreate }: { onCancel: () => void; onCreate: (member: Omit<FamilyMember, 'id'>) => void }) {
+function AddFamilyMemberDialog({ onCancel, onCreate }: { onCancel: () => void; onCreate: (member: Omit<FamilyMember, 'id'>) => Promise<FamilyMember> }) {
   const [name, setName] = useState('');
   const [memberKind, setMemberKind] = useState<FamilyMember['memberKind']>('adult');
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [displayColor, setDisplayColor] = useState('#c7d2fe');
-  function submit(event: FormEvent) {
+  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  async function submit(event: FormEvent) {
     event.preventDefault();
-    if (!name.trim() || (memberKind === 'child' && !dateOfBirth)) return;
-    onCreate({ name: name.trim(), initials: buildInitials(name), memberKind, dateOfBirth: dateOfBirth || null, displayColor, avatarSelection: defaultAvatarSelection });
+    if (saveState === 'saving' || !name.trim() || (memberKind === 'child' && !dateOfBirth)) return;
+    setSaveState('saving');
+    try {
+      await onCreate({ name: name.trim(), initials: buildInitials(name), memberKind, dateOfBirth: dateOfBirth || null, displayColor, avatarSelection: defaultAvatarSelection });
+      setSaveState('saved');
+      onCancel();
+    } catch {
+      setSaveState('error');
+    }
   }
-  return <div className="avatar-editor-backdrop" role="presentation"><section className="avatar-editor" role="dialog" aria-modal="true" aria-label="Gezinslid toevoegen"><header><div><p className="eyebrow">Gezin</p><h3>Gezinslid toevoegen</h3><p>Voeg iemand toe aan het gezinsbord zonder account aan te maken.</p></div><button type="button" className="icon-button" onClick={onCancel} aria-label="Gezinslid toevoegen sluiten"><HomeOpsIcon name="close" /></button></header><form className="avatar-editor-grid" onSubmit={submit}><label>Naam<input value={name} onChange={(event) => setName(event.target.value)} required /></label><label>Gezinslidtype<select value={memberKind} onChange={(event) => setMemberKind(event.target.value as FamilyMember['memberKind'])}><option value="adult">Volwassene</option><option value="child">Kind</option></select></label><label>Geboortedatum<input type="date" value={dateOfBirth} onChange={(event) => setDateOfBirth(event.target.value)} aria-required={memberKind === 'child'} /></label><label>Weergavekleur<input type="color" value={displayColor} onChange={(event) => setDisplayColor(event.target.value)} /></label><div className="family-member-actions"><button type="submit">Gezinslid toevoegen</button><button type="button" onClick={onCancel}>Annuleren</button></div></form></section></div>;
+  const clearError = () => {
+    if (saveState === 'error') setSaveState('idle');
+  };
+  return <div className="avatar-editor-backdrop" role="presentation"><section className="avatar-editor" role="dialog" aria-modal="true" aria-label="Gezinslid toevoegen"><header><div><p className="eyebrow">Gezin</p><h3>Gezinslid toevoegen</h3><p>Voeg iemand toe aan het gezinsbord zonder account aan te maken.</p></div><button type="button" className="icon-button" onClick={onCancel} disabled={saveState === 'saving'} aria-label="Gezinslid toevoegen sluiten"><HomeOpsIcon name="close" /></button></header><form className="avatar-editor-grid" onSubmit={submit}><label>Naam<input value={name} onChange={(event) => { setName(event.target.value); clearError(); }} disabled={saveState === 'saving'} required /></label><label>Gezinslidtype<select value={memberKind} onChange={(event) => { setMemberKind(event.target.value as FamilyMember['memberKind']); clearError(); }} disabled={saveState === 'saving'}><option value="adult">Volwassene</option><option value="child">Kind</option></select></label><label>Geboortedatum<input type="date" value={dateOfBirth} onChange={(event) => { setDateOfBirth(event.target.value); clearError(); }} disabled={saveState === 'saving'} aria-required={memberKind === 'child'} /></label><label>Weergavekleur<input type="color" value={displayColor} onChange={(event) => { setDisplayColor(event.target.value); clearError(); }} disabled={saveState === 'saving'} /></label>{saveState === 'error' ? <p className="form-error" role="alert">Gezinslid kon niet worden toegevoegd. Probeer het opnieuw.</p> : null}<div className="family-member-actions"><button type="submit" disabled={saveState === 'saving'}>{saveState === 'saving' ? 'Toevoegen…' : saveState === 'error' ? 'Opnieuw toevoegen' : 'Gezinslid toevoegen'}</button><button type="button" onClick={onCancel} disabled={saveState === 'saving'}>Annuleren</button></div></form></section></div>;
 }
 
 function buildInitials(name: string) {

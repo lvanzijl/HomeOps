@@ -38,7 +38,7 @@ describe('familyMembersApi avatar contract cleanup', () => {
     const fetch = vi.fn(async (_url: string, options: RequestInit) => {
       const body = JSON.parse(options.body as string);
       expect(body.avatar).toBeUndefined();
-      expect(body.avatarV2Config).toEqual(avatarV2Config);
+      expect(body.avatarV2Config).toBeUndefined();
       expect(body.avatarSelection).toEqual(avatarSelection);
       return new Response(JSON.stringify(familyMemberResponse()), { status: 201, headers: { 'Content-Type': 'application/json' } });
     });
@@ -70,7 +70,7 @@ describe('familyMembersApi avatar contract cleanup', () => {
     const fetch = vi.fn(async (_url: string, options: RequestInit) => {
       const body = JSON.parse(options.body as string);
       expect(body.avatar).toBeUndefined();
-      expect(body.avatarV2Config).toEqual(avatarV2Config);
+      expect(body.avatarV2Config).toBeUndefined();
       expect(body.avatarSelection).toEqual(avatarSelection);
       return new Response(JSON.stringify(familyMemberResponse()), { status: 200, headers: { 'Content-Type': 'application/json' } });
     });

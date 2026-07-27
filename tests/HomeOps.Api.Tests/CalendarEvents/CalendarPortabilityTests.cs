@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using HomeOps.Api.CalendarEvents;
 using HomeOps.Api.Data;
 using HomeOps.Api.Households;
+using HomeOps.Api.VisualReviewFixtures;
 using HomeOps.Api.FloorPlans;
 using HomeOps.Contracts.Events;
 using Microsoft.EntityFrameworkCore;
@@ -873,6 +874,7 @@ public sealed class CalendarPortabilityTests
         var dbContext = new HomeOpsDbContext(options);
         dbContext.Database.EnsureDeleted();
         dbContext.Database.EnsureCreated();
+        LegacySeedTestFixture.ApplyAsync(dbContext).GetAwaiter().GetResult();
         return dbContext;
     }
 }

@@ -1,0 +1,131 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "slice": {
+      "type": "string",
+      "minLength": 1
+    },
+    "outcome": {
+      "type": "string",
+      "enum": [
+        "completed",
+        "blocked",
+        "failed"
+      ]
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1
+    },
+    "plan_status": {
+      "type": "string",
+      "enum": [
+        "In progress",
+        "Blocked",
+        "Completed"
+      ]
+    },
+    "validations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "command": {
+            "type": "string",
+            "minLength": 1
+          },
+          "passed": {
+            "type": "boolean"
+          },
+          "summary": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "command",
+          "passed",
+          "summary"
+        ]
+      }
+    },
+    "documents_updated": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "plan": {
+          "type": "boolean"
+        },
+        "current_state": {
+          "type": "boolean"
+        },
+        "phase_roadmap": {
+          "type": "boolean"
+        },
+        "implementation_report": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "plan",
+        "current_state",
+        "phase_roadmap",
+        "implementation_report"
+      ]
+    },
+    "scope_review": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "passed": {
+          "type": "boolean"
+        },
+        "unexpected_files": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "passed",
+        "unexpected_files",
+        "summary"
+      ]
+    },
+    "changed_files": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "blocker": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "slice",
+    "outcome",
+    "summary",
+    "plan_status",
+    "validations",
+    "documents_updated",
+    "scope_review",
+    "changed_files",
+    "blocker"
+  ]
+}

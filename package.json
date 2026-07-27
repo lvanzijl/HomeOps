@@ -4,6 +4,8 @@
   "version": "0.1.0",
   "scripts": {
     "dev": "powershell -NoProfile -ExecutionPolicy Bypass -File ./tools/dev/start-dev.ps1",
-    "dev:skip-postgres": "powershell -NoProfile -ExecutionPolicy Bypass -File ./tools/dev/start-dev.ps1 -SkipPostgres"
+    "dev:skip-postgres": "powershell -NoProfile -ExecutionPolicy Bypass -File ./tools/dev/start-dev.ps1 -SkipPostgres",
+    "test:e2e": "powershell -NoProfile -ExecutionPolicy Bypass -File ./tools/test/run-e2e.ps1",
+    "test:e2e:headed": "powershell -NoProfile -ExecutionPolicy Bypass -File ./tools/test/run-e2e.ps1 -Headed"
   }
 }

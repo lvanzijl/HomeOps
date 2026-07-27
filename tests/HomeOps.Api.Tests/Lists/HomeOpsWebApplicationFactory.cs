@@ -1,4 +1,5 @@
 using HomeOps.Api.Data;
+using HomeOps.Api.VisualReviewFixtures;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -24,6 +25,7 @@ public sealed class HomeOpsWebApplicationFactory : WebApplicationFactory<Program
             var dbContext = scope.ServiceProvider.GetRequiredService<HomeOpsDbContext>();
             dbContext.Database.EnsureDeleted();
             dbContext.Database.EnsureCreated();
+            LegacySeedTestFixture.ApplyAsync(dbContext).GetAwaiter().GetResult();
         });
     }
 }

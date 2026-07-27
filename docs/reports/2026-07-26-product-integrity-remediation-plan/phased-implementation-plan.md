@@ -1,7 +1,8 @@
 # HomeOps product-integrity remediation plan
 
 **Created:** 2026-07-26  
-**Overall implementation status:** [ ] **Not started**  
+**Overall implementation status:** [ ] **In progress**
+
 **Source audit:** [x] **Completed** — see [`product-integrity-working-list.md`](../2026-07-26-consolidated-product-integrity-audit/product-integrity-working-list.md)  
 **Target product phase:** Phase 2 — Durable Household Core  
 **Plan purpose:** provide an ordered, implementation-ready backlog for every confirmed audit finding.
@@ -25,9 +26,9 @@ Do not check a phase merely because one of its slices is complete. A phase is co
 
 | Done | Phase | Status | Existing implementation | Completion condition |
 | --- | --- | --- | --- | --- |
-| [ ] | **Phase 0 — Safety baseline and regression harness** | **Not started** | Backend/frontend unit suites and NSwag workflow exist; no repository browser E2E suite | Repeatable clean/upgrade DB, API-contract, and browser regression gates exist |
+| [x] | **Phase 0 — Safety baseline and regression harness** | **Completed** | Guarded PostgreSQL fixtures, real API contracts, and an isolated Playwright browser suite now exist | Repeatable clean/upgrade DB, API-contract, and browser regression gates exist |
 | [ ] | **Phase 1 — LAN and destructive-development safety** | **Not started** | LAN binding and visual-review fixtures exist, but are unsafe | Database is private, fixture resets are isolated, and household API access is protected |
-| [ ] | **Phase 2 — Truthful first run and family persistence** | **Not started** | Onboarding/member APIs and UI exist, but seed state and writes are broken | Fresh install onboards correctly; family changes survive refresh with honest error handling |
+| [ ] | **Phase 2 — Truthful first run and family persistence** | **In progress** | Avatar writes, mutation honesty, and production bootstrap are corrected; atomic onboarding and family restore remain | Fresh install onboards correctly; family changes survive refresh with honest error handling |
 | [ ] | **Phase 3 — Calendar and local-time correctness** | **Not started** | Rich Agenda CRUD/recurrence exists | Home and Agenda preserve household-local calendar intent in all supported time zones |
 | [ ] | **Phase 4 — Tasks and Weekly Reset completion** | **Not started** | Task APIs, routines, and Weekly Reset foundation exist | Core task controls are operable and every reset candidate can be resolved and completed |
 | [ ] | **Phase 5 — House, climate, and household settings** | **Not started** | Substantial backend and partial Settings foundation exist | Woning setup-to-runtime chain is reachable, healthy, configurable, and viewport-safe |
@@ -81,18 +82,19 @@ After NSwag generation, confirm there is no unexplained generated-client drift. 
 
 ### Required test environments
 
-Maintain four explicit runtime modes:
+Maintain five explicit runtime modes:
 
 | Environment | Database | Demo fixtures | Destructive fixture routes | Intended use |
 | --- | --- | --- | --- | --- |
 | `Development` | PostgreSQL | Off by default | Disabled | Normal household development |
 | `Testing` | isolated per test | Test-owned only | Test-host only | Backend/integration tests |
+| `E2E` | generated disposable PostgreSQL DB | Explicit scenario or clean migrated state | Enabled only here | Browser smoke tests |
 | `VisualReview` | isolated disposable DB | Explicit scenario | Enabled only here | Screenshot/marketing review |
 | `Production` | PostgreSQL | Never | Never | Deployed household |
 
 ## Phase 0 — Safety baseline and regression harness
 
-- [ ] **Phase status: Not started**
+- [x] **Phase status: Completed**
 
 **Priority:** prerequisite for all P0 fixes.  
 **Audit coverage:** TEST-01 and validation support for every other finding.  
@@ -100,7 +102,9 @@ Maintain four explicit runtime modes:
 
 ### Slice 0.1 — Database baseline and upgrade fixtures
 
-- [ ] **Status: Not started**
+- [x] **Status: Completed**
+
+**Implementation state:** the guarded PostgreSQL fixture, clean/upgrade baselines, one-command runner, and safety documentation are implemented. Focused migration validation passes 2/2, generated databases are cleaned up, and the full backend gate passes 575/575 after Slice 0.1A removed the Windows-only test blocker.
 
 **Goal:** make clean-install and existing-install behavior repeatable before changing seed data or migrations.
 
@@ -133,9 +137,32 @@ Maintain four explicit runtime modes:
 
 - A junior can run one documented test command and reproduce clean/upgrade paths without touching household data.
 
+### Slice 0.1A — Cross-platform Home Assistant test isolation
+
+- [x] **Status: Completed**
+
+**Implementation state:** the test fixture now treats differently-cased token names as aliases on Windows, preserves and restores any existing value, and uses the compatibility key to retain fallback coverage on case-sensitive operating systems. Focused Home Assistant validation passes 28/28 and the full backend suite passes 575/575.
+
+**Goal:** remove the Windows-only backend-suite blocker without changing Home Assistant product behavior.
+
+**Implementation steps**
+
+1. Make the Home Assistant credential test fixture treat differently-cased environment-variable names as aliases on Windows.
+2. Preserve and restore any pre-existing developer credential value.
+3. Keep the fallback configuration-key path covered on case-sensitive operating systems.
+4. Re-run the focused Home Assistant provider tests, PostgreSQL migration tests, and full backend suite.
+
+**Done when**
+
+- All `HomeAssistantClimateProviderTests` pass on Windows.
+- The full backend suite passes.
+- Slice 0.1 can be moved from blocked to completed.
+
 ### Slice 0.2 — Real API contract tests
 
-- [ ] **Status: Not started**
+- [x] **Status: Completed**
+
+**Implementation state:** four isolated real-endpoint contract tests now characterize frontend-shaped family-member create/update requests. They prove that the current dual-avatar payload receives HTTP 400 without persistence, while the canonical `avatarSelection`-only payload persists and round-trips through POST/PUT, the database, and GET. Slice 0.2A removed the unrelated frontend date-gate blocker. Focused contract tests pass 4/4, focused frontend adapter tests pass 2/2, the frontend suite passes 310/310, the backend suite passes 579/579, and both builds pass.
 
 **Goal:** catch frontend/backend request contradictions such as the family avatar payload.
 
@@ -158,9 +185,31 @@ Maintain four explicit runtime modes:
 
 - The current dual-avatar payload fails a regression test before Phase 2, and the corrected payload later passes against the actual endpoint.
 
+### Slice 0.2A — Frontend local-calendar test stability
+
+- [x] **Status: Completed**
+
+**Implementation state:** date-only Agenda arithmetic now uses UTC calendar fields instead of mixing local-midnight mutation with UTC serialization, so day addition is independent of the machine offset. The Home weather assertion now verifies the intended browser-local rendering contract without hard-coding a UTC display time. The two affected files pass 44/44, the frontend suite passes 310/310, the backend suite passes 579/579, and the frontend production build passes.
+
+**Goal:** remove the seven date-sensitive frontend gate failures blocking Slice 0.2 without expanding into the Phase 3 calendar remediation.
+
+**Implementation steps**
+
+1. Make date-only Agenda day addition independent of the machine's UTC offset.
+2. Keep weather-hour rendering in browser-local time and make its assertion timezone-independent.
+3. Re-run the two affected test files, full frontend suite/build, and backend gate.
+
+**Done when**
+
+- All affected Agenda and Home weather tests pass in Europe/Amsterdam.
+- The full frontend and backend gates pass.
+- Slice 0.2 can be moved from blocked to completed.
+
 ### Slice 0.3 — Browser E2E smoke suite
 
-- [ ] **Status: Not started**
+- [x] **Status: Completed**
+
+**Implementation state:** a pinned Playwright 1.62.0 project now runs five Chromium smoke scenarios through one root command. The runner creates a guarded `homeops_e2e_<guid>` PostgreSQL database, migrates it through the real API, starts API and Vite on test-only loopback ports, waits for health, and drops only the generated database in cleanup. Two remaining defect scenarios are recorded as expected failures (`TIME-01` and `TASK-UI-01`/`TASK-UI-02`), so an unexpected pass fails the baseline and signals that its later remediation test must be promoted. The `MEMBER-01` avatar persistence and `BOOT-01` first-run scenarios are now normal passing regressions after Slices 2.1 and 2.3. The primary-page viewport guard passes at 1440x900 and 1366x768. Failure-only screenshots/traces and browser output are ignored and absent from the changeset.
 
 **Goal:** detect hit-target, clipping, refresh-persistence, route, and viewport failures that jsdom cannot see.
 
@@ -197,14 +246,14 @@ Maintain four explicit runtime modes:
 
 ### Phase 0 exit criteria
 
-- [ ] Clean and upgrade database fixtures pass.
-- [ ] Real API contract test infrastructure passes.
-- [ ] Browser smoke suite runs against isolated data.
-- [ ] Test artifacts and caches are ignored and absent from the changeset.
+- [x] Clean and upgrade database fixtures pass.
+- [x] Real API contract test infrastructure passes.
+- [x] Browser smoke suite runs against isolated data.
+- [x] Test artifacts and caches are ignored and absent from the changeset.
 
 ## Phase 1 — LAN and destructive-development safety
 
-- [ ] **Phase status: Not started**
+- [ ] **Phase status: In progress**
 
 **Priority:** P0 / Critical. Complete before encouraging LAN use.  
 **Audit coverage:** SEC-01, SEC-02, FIXTURE-01.  
@@ -322,15 +371,17 @@ Use one household-wide access passphrase and server session. Do **not** turn Fam
 
 ## Phase 2 — Truthful first run and family persistence
 
-- [ ] **Phase status: Not started**
+- [ ] **Phase status: In progress**
 
 **Priority:** P0/P1.  
 **Audit coverage:** BOOT-01, MEMBER-01, MEMBER-02, ONB-01, ONB-02, ONB-03, FAMILY-01, FAMILY-02, UX-01.  
-**Existing foundation:** household, onboarding, family-member CRUD, avatar catalog, and UI already exist. The remediation is not implemented.
+**Existing foundation:** household, onboarding, family-member CRUD, avatar catalog, and UI already exist. Slices 2.1–2.3 are implemented; atomic onboarding, central administration/restore, and the optional setup checklist remain.
 
 ### Slice 2.1 — Canonical family-member avatar contract
 
-- [ ] **Status: Not started**
+- [x] **Status: Completed**
+
+**Implementation state:** current frontend create/update adapters now derive and send only canonical `avatarSelection`. The backend continues accepting a single legacy `avatarV2Config` for compatibility, rejects ambiguous mixed payloads, and continues maintaining its legacy storage projection; public DTOs and persistence are unchanged. Focused frontend serialization tests pass 2/2, real-endpoint contract tests pass 5/5, the avatar refresh E2E scenario is a normal pass, the full frontend suite passes 310/310, the full backend suite passes 580/580, and both builds pass.
 
 **Audit IDs:** MEMBER-01, TEST-01
 
@@ -358,7 +409,9 @@ Use one household-wide access passphrase and server session. Do **not** turn Fam
 
 ### Slice 2.2 — Honest asynchronous member mutations
 
-- [ ] **Status: Not started**
+- [x] **Status: Completed**
+
+**Implementation state:** family-member add, profile update, avatar update, and removal now await their API calls. Pending mutations disable duplicate submission and prevent their dialog from closing. Rejected requests retain the draft, expose an alert and retry action, and never update shell state or show success; onboarding member creation likewise retains its fields after failure. Successful profile and avatar updates are covered through the real browser/API/database path and survive refresh. Focused mutation tests pass 39/39, the frontend suite passes 317/317, the backend suite passes 580/580, both builds pass, and all five isolated browser outcomes pass with three unrelated known defects remaining as expected failures.
 
 **Audit IDs:** MEMBER-02, DATA-01
 
@@ -388,7 +441,9 @@ Use one household-wide access passphrase and server session. Do **not** turn Fam
 
 ### Slice 2.3 — Separate production bootstrap from demo data
 
-- [ ] **Status: Not started**
+- [x] **Status: Completed**
+
+**Implementation state:** production model bootstrap now creates only an incomplete household plus application-owned structural defaults. Family members, lists/items, motivation goals, and calendar events are no longer model-seeded, and the frontend no longer renders a static family fallback while the API is loading. The explicit `Demo` environment applies the localized `visual-full` fixture; legacy tests that require the historical English graph opt into a test-only fixture. Migration `20260727121951_SeparateProductionBootstrapFromDemoData` removes only the exact untouched legacy graph. Any legacy graph mixed with user data or changed avatar/profile state is preserved and marked with `LegacyDemoDataReviewRequired` for later administrator review. Fresh-install, exact-cleanup, mixed-data, and avatar-only upgrade regressions pass against PostgreSQL; VisualReview fixture regressions remain green.
 
 **Audit IDs:** BOOT-01, UX-01
 
@@ -503,11 +558,11 @@ Submit household setup and the reviewed member collection in one transactional c
 
 ### Phase 2 exit criteria
 
-- [ ] Clean install enters onboarding with no demo people.
+- [x] Clean install enters onboarding with no demo people.
 - [ ] Add/edit/avatar/remove/restore survive refresh.
-- [ ] Failed family mutations are visible and recoverable.
+- [x] Failed family mutations are visible and recoverable.
 - [ ] Onboarding is atomic and fail-safe.
-- [ ] Existing household upgrade is non-destructive.
+- [x] Existing household upgrade is non-destructive.
 
 ## Phase 3 — Calendar and local-time correctness
 
@@ -1179,9 +1234,9 @@ Every audit finding must appear exactly once as the primary responsibility of a 
 | SEC-01 | 1.3 Household access boundary | [ ] Not started |
 | SEC-02 | 1.2 PostgreSQL LAN isolation | [ ] Not started |
 | FIXTURE-01 | 1.1 Visual-review isolation | [ ] Not started |
-| BOOT-01 | 2.3 Production/demo bootstrap split | [ ] Not started |
-| MEMBER-01 | 2.1 Canonical avatar contract | [ ] Not started |
-| MEMBER-02 | 2.2 Honest member mutations | [ ] Not started |
+| BOOT-01 | 2.3 Production/demo bootstrap split | [x] Completed |
+| MEMBER-01 | 2.1 Canonical avatar contract | [x] Completed |
+| MEMBER-02 | 2.2 Honest member mutations | [x] Completed |
 | TIME-01 | 3.1–3.3 Calendar-field correction | [ ] Not started |
 | HOUSE-01 | 5.2 House navigation | [ ] Not started |
 | CLIMATE-01 | 5.3 Climate configuration UI | [ ] Not started |
@@ -1193,7 +1248,7 @@ Every audit finding must appear exactly once as the primary responsibility of a 
 | TASK-02 | 4.3 Routine creation | [ ] Not started |
 | TASK-03 | 4.3 Routine editing | [ ] Not started |
 | TASK-04 | 4.3 Routine archive/restore | [ ] Not started |
-| TEST-01 | Phase 0 | [ ] Not started |
+| TEST-01 | Phase 0 | [x] Completed |
 | ONB-01 | 2.4 Atomic onboarding/review | [ ] Not started |
 | ONB-02 | 2.4 Onboarding fail-safe | [ ] Not started |
 | FAMILY-01 | 2.5 Family administration | [ ] Not started |
@@ -1230,7 +1285,7 @@ Every audit finding must appear exactly once as the primary responsibility of a 
 | DATA-01 | 7.2 Shared error handling | [ ] Not started |
 | SEC-03 | 7.3 Destructive policy | [ ] Not started |
 | DEVICE-01 | 3.6 Device settings identity | [ ] Not started |
-| UX-01 | 2.3 Demo localization/boundary | [ ] Not started |
+| UX-01 | 2.3 Demo localization/boundary | [x] Completed |
 | UX-02 | 7.3 Lifecycle vocabulary | [ ] Not started |
 | HOME-02 | 7.7 Home interaction semantics | [ ] Not started |
 | NAV-03 | 8.1 Dormant workspaces | [ ] Not started |

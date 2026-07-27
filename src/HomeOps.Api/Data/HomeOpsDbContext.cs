@@ -332,6 +332,7 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             entity.Property(household => household.Name).HasMaxLength(120).IsRequired();
             entity.Property(household => household.TimeZoneId).HasMaxLength(80).IsRequired();
             entity.Property(household => household.OnboardingCompleted).IsRequired();
+            entity.Property(household => household.LegacyDemoDataReviewRequired).IsRequired();
             entity.Property(household => household.CreatedUtc).IsRequired();
             entity.Property(household => household.UpdatedUtc).IsRequired();
         });
@@ -829,10 +830,10 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             entity.HasIndex(placement => new { placement.WorkspaceLayoutId, placement.Position }).IsUnique();
         });
 
-        Seed(modelBuilder);
+        SeedStructuralDefaults(modelBuilder);
     }
 
-    private static void Seed(ModelBuilder modelBuilder)
+    private static void SeedStructuralDefaults(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Household>().HasData(new Household
         {
@@ -840,63 +841,10 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             Name = SeedHousehold.Name,
             CreatedUtc = SeedLists.SeededUtc,
             TimeZoneId = SeedHousehold.TimeZoneId,
-            OnboardingCompleted = true,
+            OnboardingCompleted = false,
+            LegacyDemoDataReviewRequired = false,
             UpdatedUtc = SeedLists.SeededUtc,
         });
-
-        modelBuilder.Entity<Lists.List>().HasData(
-            new Lists.List
-            {
-                Id = SeedLists.ShoppingListId,
-                Name = "Shopping",
-                CreatedUtc = SeedLists.SeededUtc,
-                UpdatedUtc = SeedLists.SeededUtc,
-                HouseholdId = SeedHousehold.Id,
-            },
-            new Lists.List
-            {
-                Id = SeedLists.VacationPackingListId,
-                Name = "Vacation Packing",
-                CreatedUtc = SeedLists.SeededUtc,
-                UpdatedUtc = SeedLists.SeededUtc,
-                HouseholdId = SeedHousehold.Id,
-            });
-
-        modelBuilder.Entity<ListItem>().HasData(
-            SeedItem(SeedLists.BreadItemId, SeedLists.ShoppingListId, "Bread"),
-            SeedItem(SeedLists.MilkItemId, SeedLists.ShoppingListId, "Milk"),
-            SeedItem(SeedLists.CoffeeItemId, SeedLists.ShoppingListId, "Coffee"),
-            SeedItem(SeedLists.PassportItemId, SeedLists.VacationPackingListId, "Passport"),
-            SeedItem(SeedLists.ChargersItemId, SeedLists.VacationPackingListId, "Chargers"),
-            SeedItem(SeedLists.SwimwearItemId, SeedLists.VacationPackingListId, "Swimwear"));
-
-        modelBuilder.Entity<FamilyMember>().HasData(
-            SeedFamilyMember("alex", "Alex", "#f8c8dc", "A", FamilyMemberKind.Adult, null),
-            SeedFamilyMember("sam", "Sam", "#c7d2fe", "S", FamilyMemberKind.Adult, null),
-            SeedFamilyMember("riley", "Riley", "#bbf7d0", "R", FamilyMemberKind.Child, new DateOnly(2018, 4, 12)),
-            SeedFamilyMember("jordan", "Jordan", "#fde68a", "J", FamilyMemberKind.Child, new DateOnly(2020, 9, 3)));
-
-        modelBuilder.Entity<MotivationFamilyGoal>().HasData(new MotivationFamilyGoal
-        {
-            Id = SeedMotivation.FamilyGoalId,
-            HouseholdId = SeedHousehold.Id,
-            Title = "Fill the family helper path",
-            TargetCount = 20,
-            CurrentProgress = 13,
-            UnitLabel = "helpful actions",
-            CelebrationTitle = "Board game night together",
-            CelebrationDescription = "Choose a board game and celebrate helping as a family.",
-            CelebrationStatus = FamilyCelebrationStatus.Planned,
-            IsActive = true,
-        });
-
-        modelBuilder.Entity<MotivationIndividualGoal>().HasData(
-            SeedIndividualMotivationGoal(SeedMotivation.AlexGoalId, "alex", "Finish morning routine", 5, 3, "checkmarks", "checkmarks"),
-            SeedIndividualMotivationGoal(SeedMotivation.SamGoalId, "sam", "Help with dinner", 3, 2, "stars", "stars"),
-            SeedIndividualMotivationGoal(SeedMotivation.RileyGoalId, "riley", "Tidy bedroom corner", 4, 2, "steps", "progress"),
-            SeedIndividualMotivationGoal(SeedMotivation.JordanGoalId, "jordan", "Notice one helpful thing", 3, 1, "stars", "stars"));
-
-
 
         var templateIds = new[]
         {
@@ -933,12 +881,6 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             UpdatedUtc = SeedCalendarEvents.SeededUtc,
         });
 
-        modelBuilder.Entity<EventSeries>().HasData(
-            SeedEventSeries(SeedCalendarEvents.DentistAppointmentId, "Dentist Appointment", "Routine check-up", new DateTimeOffset(2026, 6, 18, 9, 30, 0, TimeSpan.Zero), new DateTimeOffset(2026, 6, 18, 10, 15, 0, TimeSpan.Zero), false),
-            SeedEventSeries(SeedCalendarEvents.ParentEveningId, "Parent Evening", "School hall", new DateTimeOffset(2026, 6, 19, 18, 30, 0, TimeSpan.Zero), new DateTimeOffset(2026, 6, 19, 20, 0, 0, TimeSpan.Zero), false),
-            SeedEventSeries(SeedCalendarEvents.VacationId, "Vacation", "Family trip", new DateTimeOffset(2026, 7, 12, 0, 0, 0, TimeSpan.Zero), new DateTimeOffset(2026, 7, 19, 0, 0, 0, TimeSpan.Zero), true),
-            SeedEventSeries(SeedCalendarEvents.PutBinsOutsideId, "Put Bins Outside", null, new DateTimeOffset(2026, 6, 21, 20, 0, 0, TimeSpan.Zero), new DateTimeOffset(2026, 6, 21, 20, 10, 0, TimeSpan.Zero), false));
-
         modelBuilder.Entity<WorkspaceLayout>().HasData(
             SeedLayout(SeedWorkspaceLayouts.HomeLayoutId, "home"),
             SeedLayout(SeedWorkspaceLayouts.HouseLayoutId, "house"),
@@ -954,45 +896,6 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             SeedPlacement(SeedWorkspaceLayouts.SettingsPlaceholderPlacementId, SeedWorkspaceLayouts.SettingsLayoutId, "settings-placeholder", 0, "medium"));
     }
 
-    private static FamilyMember SeedFamilyMember(string id, string name, string displayColor, string initials, FamilyMemberKind memberKind, DateOnly? dateOfBirth) => new()
-    {
-        Id = id,
-        HouseholdId = SeedHousehold.Id,
-        Name = name,
-        DisplayColor = displayColor,
-        Initials = initials,
-        MemberKind = memberKind,
-        DateOfBirth = dateOfBirth,
-        IsDeleted = false,
-        CreatedUtc = SeedFamilyMembers.SeededUtc,
-        UpdatedUtc = SeedFamilyMembers.SeededUtc,
-    };
-
-    private static MotivationIndividualGoal SeedIndividualMotivationGoal(Guid id, string familyMemberId, string title, int targetCount, int currentProgress, string unitLabel, string visualKind) => new()
-    {
-        Id = id,
-        HouseholdId = SeedHousehold.Id,
-        FamilyMemberId = familyMemberId,
-        Title = title,
-        TargetCount = targetCount,
-        CurrentProgress = currentProgress,
-        UnitLabel = unitLabel,
-        VisualKind = visualKind,
-        IsActive = true,
-    };
-
-    private static ListItem SeedItem(Guid id, Guid listId, string text) => new()
-    {
-        Id = id,
-        ListId = listId,
-        Text = text,
-        IsCompleted = false,
-        CreatedUtc = SeedLists.SeededUtc,
-        UpdatedUtc = SeedLists.SeededUtc,
-    };
-
-
-
     private static TaskTemplate SeedTaskTemplate(Guid id, string name, string description) => new()
     {
         Id = id, HouseholdId = SeedHousehold.Id, Name = name, Description = description, IsArchived = false, CreatedUtc = SeedLists.SeededUtc, UpdatedUtc = SeedLists.SeededUtc,
@@ -1001,21 +904,6 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
     private static TaskTemplateItem SeedTaskTemplateItem(string id, Guid templateId, string title, int position) => new()
     {
         Id = Guid.Parse(id), TaskTemplateId = templateId, Title = title, OwnershipKind = TaskOwnershipKind.Unassigned, RecurrenceFrequency = TaskRecurrenceFrequency.None, Position = position,
-    };
-
-    private static EventSeries SeedEventSeries(Guid id, string title, string? description, DateTimeOffset startUtc, DateTimeOffset? endUtc, bool isAllDay) => new()
-    {
-        Id = id,
-        EventSourceId = SeedCalendarEvents.EventSourceId,
-        Title = title,
-        Description = description,
-        IsAllDay = isAllDay,
-        StartDate = DateOnly.FromDateTime(startUtc.UtcDateTime),
-        StartTime = isAllDay ? null : TimeOnly.FromDateTime(startUtc.UtcDateTime),
-        EndDate = DateOnly.FromDateTime((endUtc ?? startUtc).UtcDateTime),
-        EndTime = isAllDay ? null : TimeOnly.FromDateTime((endUtc ?? startUtc).UtcDateTime),
-        CreatedUtc = SeedCalendarEvents.SeededUtc,
-        UpdatedUtc = SeedCalendarEvents.SeededUtc,
     };
 
     private static WorkspaceLayout SeedLayout(Guid id, string workspaceKey) => new()

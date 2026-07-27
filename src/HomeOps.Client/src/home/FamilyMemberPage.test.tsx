@@ -603,7 +603,7 @@ describe("FamilyMemberPage", () => {
 
   it("edits member details and requires child date of birth", async () => {
     const user = userEvent.setup();
-    const onChange = vi.fn();
+    const onChange = vi.fn(async (member) => member);
     render(
       <FamilyMemberPage
         member={familyMembers[0]}
@@ -642,11 +642,106 @@ describe("FamilyMemberPage", () => {
         dateOfBirth: "2015-05-06",
       }),
     );
+    expect(
+      await within(dialog).findByText("Gegevens opgeslagen."),
+    ).not.toBeNull();
+  });
+
+  it("keeps the profile draft and offers retry when saving fails", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn().mockRejectedValue(new Error("HTTP 400"));
+    render(
+      <FamilyMemberPage
+        member={familyMembers[0]}
+        onBack={vi.fn()}
+        onChange={onChange}
+        onRemove={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Instellingen" }));
+    const dialog = screen.getByRole("dialog", {
+      name: "Instellingen voor Alex",
+    });
+    const name = within(dialog).getByLabelText("Name");
+    await user.clear(name);
+    await user.type(name, "Alex Draft");
+    await user.click(
+      within(dialog).getByRole("button", { name: "Gegevens opslaan" }),
+    );
+
+    expect(
+      (await within(dialog).findByRole("alert")).textContent,
+    ).toContain("Gegevens konden niet worden opgeslagen.");
+    expect(within(dialog).queryByText("Gegevens opgeslagen.")).toBeNull();
+    expect((name as HTMLInputElement).value).toBe("Alex Draft");
+    expect(
+      within(dialog).getByRole("button", { name: "Opnieuw opslaan" }),
+    ).not.toBeNull();
+
+    await user.click(
+      within(dialog).getByRole("button", {
+        name: "Instellingen voor Alex sluiten",
+      }),
+    );
+    await user.click(screen.getByRole("button", { name: "Instellingen" }));
+    const reopenedDialog = screen.getByRole("dialog", {
+      name: "Instellingen voor Alex",
+    });
+    expect(
+      (within(reopenedDialog).getByLabelText("Name") as HTMLInputElement).value,
+    ).toBe("Alex Draft");
+    expect(within(reopenedDialog).getByRole("alert").textContent).toContain(
+      "Gegevens konden niet worden opgeslagen.",
+    );
+  });
+
+  it("keeps member settings open and prevents duplicate profile saves while pending", async () => {
+    const user = userEvent.setup();
+    let resolveSave!: (member: (typeof familyMembers)[number]) => void;
+    const pendingSave = new Promise<(typeof familyMembers)[number]>((resolve) => {
+      resolveSave = resolve;
+    });
+    const onChange = vi.fn(() => pendingSave);
+    render(
+      <FamilyMemberPage
+        member={familyMembers[0]}
+        onBack={vi.fn()}
+        onChange={onChange}
+        onRemove={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Instellingen" }));
+    const dialog = screen.getByRole("dialog", {
+      name: "Instellingen voor Alex",
+    });
+    await user.click(
+      within(dialog).getByRole("button", { name: "Gegevens opslaan" }),
+    );
+
+    const pendingButton = within(dialog).getByRole("button", {
+      name: "Opslaan…",
+    });
+    expect((pendingButton as HTMLButtonElement).disabled).toBe(true);
+    expect(
+      (
+        within(dialog).getByRole("button", {
+          name: "Instellingen voor Alex sluiten",
+        }) as HTMLButtonElement
+      ).disabled,
+    ).toBe(true);
+    expect(onChange).toHaveBeenCalledOnce();
+
+    resolveSave(familyMembers[0]);
+    expect(
+      await within(dialog).findByText("Gegevens opgeslagen."),
+    ).not.toBeNull();
   });
 
   it("confirms removal before notifying the shell", async () => {
     const user = userEvent.setup();
-    const onRemove = vi.fn();
+    const onRemove = vi.fn(async () => undefined);
     vi.spyOn(window, "confirm").mockReturnValue(true);
     render(
       <FamilyMemberPage
@@ -667,6 +762,38 @@ describe("FamilyMemberPage", () => {
     expect(onRemove).toHaveBeenCalledWith(
       expect.objectContaining({ id: "alex" }),
     );
+  });
+
+  it("keeps member settings open and offers retry when removal fails", async () => {
+    const user = userEvent.setup();
+    const onRemove = vi.fn().mockRejectedValue(new Error("HTTP 500"));
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    render(
+      <FamilyMemberPage
+        member={familyMembers[0]}
+        onBack={vi.fn()}
+        onChange={vi.fn()}
+        onRemove={onRemove}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Instellingen" }));
+    const dialog = screen.getByRole("dialog", {
+      name: "Instellingen voor Alex",
+    });
+    await user.click(
+      within(dialog).getByRole("button", { name: "Gezinslid verwijderen" }),
+    );
+
+    expect(
+      (await within(dialog).findByRole("alert")).textContent,
+    ).toContain("Gezinslid kon niet worden verwijderd.");
+    expect(
+      within(dialog).getByRole("button", { name: "Opnieuw verwijderen" }),
+    ).not.toBeNull();
+    expect(
+      screen.getByRole("dialog", { name: "Instellingen voor Alex" }),
+    ).not.toBeNull();
   });
 
   it("owns avatar editing with the existing avatar editor workflow", async () => {

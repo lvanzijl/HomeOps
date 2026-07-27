@@ -1,6 +1,7 @@
 using HomeOps.Api.CalendarEvents;
 using HomeOps.Api.Data;
 using HomeOps.Api.Households;
+using HomeOps.Api.VisualReviewFixtures;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 
@@ -253,6 +254,7 @@ public sealed class CalendarSourcePersistenceFoundationTests
             await connection.OpenAsync();
             var context = CreateContext(connection);
             await context.Database.EnsureCreatedAsync();
+            await LegacySeedTestFixture.ApplyAsync(context);
             return new SqliteTestDatabase(connection, context);
         }
 

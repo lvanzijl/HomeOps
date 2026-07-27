@@ -47,11 +47,12 @@ interface FamilyMemberPageProps {
   member: FamilyMember;
   onAddFamilyMember?: () => void;
   onBack?: () => void;
-  onChange: (member: FamilyMember) => void;
-  onRemove: (member: FamilyMember) => void;
+  onChange: (member: FamilyMember) => Promise<FamilyMember>;
+  onRemove: (member: FamilyMember) => Promise<void>;
 }
 
 type FamilyMemberContextSurface = "goals" | "history" | "settings" | null;
+type MemberMutationState = "idle" | "saving" | "saved" | "error";
 
 export function FamilyMemberPage({
   member,
@@ -63,7 +64,11 @@ export function FamilyMemberPage({
   const [activeSurface, setActiveSurface] =
     useState<FamilyMemberContextSurface>(null);
   const [draft, setDraft] = useState(member);
-  const [status, setStatus] = useState<string | null>(null);
+  const [profileSaveState, setProfileSaveState] =
+    useState<MemberMutationState>("idle");
+  const [profileMessage, setProfileMessage] = useState<string | null>(null);
+  const [removeState, setRemoveState] =
+    useState<Exclude<MemberMutationState, "saved">>("idle");
   const [motivationStatus, setMotivationStatus] = useState<
     "loading" | "ready" | "error"
   >("loading");
@@ -76,9 +81,12 @@ export function FamilyMemberPage({
 
   useEffect(() => {
     setDraft(member);
-    setStatus(null);
+    setProfileSaveState("idle");
+    setProfileMessage(null);
+    setRemoveState("idle");
     setActiveSurface(null);
-  }, [member]);
+    setIsEditingAvatar(false);
+  }, [member.id]);
 
   useEffect(() => {
     let ignore = false;
@@ -116,29 +124,66 @@ export function FamilyMemberPage({
     };
   }, []);
 
-  function submit(event: FormEvent) {
+  async function submit(event: FormEvent) {
     event.preventDefault();
+    if (profileSaveState === "saving") return;
     if (draft.memberKind === "child" && !draft.dateOfBirth) {
-      setStatus("Geboortedatum is verplicht voor kinderen.");
+      setProfileSaveState("error");
+      setProfileMessage("Geboortedatum is verplicht voor kinderen.");
       return;
     }
-    onChange({
+    const nextMember = {
       ...draft,
       dateOfBirth:
         draft.memberKind === "adult"
           ? draft.dateOfBirth || null
           : draft.dateOfBirth,
-    });
-    setStatus("Gegevens opgeslagen.");
+    };
+    setProfileSaveState("saving");
+    setProfileMessage(null);
+    try {
+      const saved = await onChange(nextMember);
+      setDraft(saved);
+      setProfileSaveState("saved");
+      setProfileMessage("Gegevens opgeslagen.");
+    } catch {
+      setProfileSaveState("error");
+      setProfileMessage("Gegevens konden niet worden opgeslagen. Probeer het opnieuw.");
+    }
   }
 
-  function requestRemove() {
+  async function requestRemove() {
+    if (removeState === "saving") return;
     if (
       window.confirm(
         `${member.name} uit het gezin verwijderen? Bestaande taak- en motivatieverwijzingen blijven bewaard.`,
       )
-    )
-      onRemove(member);
+    ) {
+      setRemoveState("saving");
+      try {
+        await onRemove(member);
+      } catch {
+        setRemoveState("error");
+      }
+    }
+  }
+
+  function openSettings() {
+    if (profileSaveState !== "error") {
+      setDraft(member);
+      setProfileSaveState("idle");
+      setProfileMessage(null);
+    }
+    setRemoveState("idle");
+    setActiveSurface("settings");
+  }
+
+  function changeDraft(updated: FamilyMember) {
+    setDraft(updated);
+    if (profileSaveState !== "idle") {
+      setProfileSaveState("idle");
+      setProfileMessage(null);
+    }
   }
 
   const visualReviewNow = useVisualReviewNow();
@@ -270,7 +315,7 @@ export function FamilyMemberPage({
         <button
           className="family-member-rail-button"
           type="button"
-          onClick={() => setActiveSurface("settings")}
+          onClick={openSettings}
         >
           {member.memberKind === "child" ? "Ouderinstellingen" : "Instellingen"}
         </button>
@@ -325,12 +370,15 @@ export function FamilyMemberPage({
           eyebrow="Oudermodus"
           description="Werk profielgegevens en gezinsopties bij."
           onClose={() => setActiveSurface(null)}
+          isBusy={profileSaveState === "saving" || removeState === "saving"}
         >
           <ParentAdministration
             member={member}
             draft={draft}
-            setDraft={setDraft}
-            status={status}
+            setDraft={changeDraft}
+            profileSaveState={profileSaveState}
+            profileMessage={profileMessage}
+            removeState={removeState}
             submit={submit}
             requestRemove={requestRemove}
             onAddFamilyMember={onAddFamilyMember}
@@ -526,18 +574,22 @@ function FamilyMemberContextDialog({
   description,
   children,
   onClose,
+  isBusy = false,
 }: {
   eyebrow: string;
   title: string;
   description: string;
   children: ReactNode;
   onClose: () => void;
+  isBusy?: boolean;
 }) {
   return (
     <div
       className="avatar-editor-backdrop"
       role="presentation"
-      onClick={onClose}
+      onClick={() => {
+        if (!isBusy) onClose();
+      }}
     >
       <section
         className="motivation-dialog family-member-detail-dialog"
@@ -563,6 +615,7 @@ function FamilyMemberContextDialog({
             type="button"
             className="icon-button"
             onClick={onClose}
+            disabled={isBusy}
             aria-label={`${title} sluiten`}
           >
             <HomeOpsIcon name="close" />
@@ -578,7 +631,9 @@ function ParentAdministration({
   member,
   draft,
   setDraft,
-  status,
+  profileSaveState,
+  profileMessage,
+  removeState,
   submit,
   requestRemove,
   onAddFamilyMember,
@@ -586,9 +641,11 @@ function ParentAdministration({
   member: FamilyMember;
   draft: FamilyMember;
   setDraft: (member: FamilyMember) => void;
-  status: string | null;
-  submit: (event: FormEvent) => void;
-  requestRemove: () => void;
+  profileSaveState: MemberMutationState;
+  profileMessage: string | null;
+  removeState: Exclude<MemberMutationState, "saved">;
+  submit: (event: FormEvent) => Promise<void>;
+  requestRemove: () => Promise<void>;
   onAddFamilyMember?: () => void;
 }) {
   return (
@@ -622,6 +679,7 @@ function ParentAdministration({
               <input
                 type="color"
                 value={draft.displayColor}
+                disabled={profileSaveState === "saving"}
                 onChange={(event) =>
                   setDraft({ ...draft, displayColor: event.target.value })
                 }
@@ -641,6 +699,7 @@ function ParentAdministration({
                 Name
                 <input
                   value={draft.name}
+                  disabled={profileSaveState === "saving"}
                   onChange={(event) =>
                     setDraft({
                       ...draft,
@@ -655,6 +714,7 @@ function ParentAdministration({
                 Volwassene / kind
                 <select
                   value={draft.memberKind}
+                  disabled={profileSaveState === "saving"}
                   onChange={(event) =>
                     setDraft({
                       ...draft,
@@ -671,6 +731,7 @@ function ParentAdministration({
                 <input
                   type="date"
                   value={draft.dateOfBirth ?? ""}
+                  disabled={profileSaveState === "saving"}
                   onChange={(event) =>
                     setDraft({
                       ...draft,
@@ -681,9 +742,21 @@ function ParentAdministration({
                 />
               </label>
               <div className="family-member-actions parent-primary-actions">
-                <button type="submit">Gegevens opslaan</button>
+                <button type="submit" disabled={profileSaveState === "saving"}>
+                  {profileSaveState === "saving"
+                    ? "Opslaan…"
+                    : profileSaveState === "error"
+                      ? "Opnieuw opslaan"
+                      : "Gegevens opslaan"}
+                </button>
               </div>
-              {status ? <p role="status">{status}</p> : null}
+              {profileSaveState === "saving" ? (
+                <p role="status">Gegevens opslaan…</p>
+              ) : profileMessage ? (
+                <p role={profileSaveState === "error" ? "alert" : "status"}>
+                  {profileMessage}
+                </p>
+              ) : null}
             </div>
           </article>
         </div>
@@ -702,6 +775,7 @@ function ParentAdministration({
                 className="secondary-action compact-action"
                 type="button"
                 onClick={onAddFamilyMember}
+                disabled={profileSaveState === "saving" || removeState === "saving"}
               >
                 <HomeOpsIcon name="add" />
                 <span>Gezinslid toevoegen</span>
@@ -723,11 +797,21 @@ function ParentAdministration({
             <button
               className="danger-button compact-action"
               type="button"
-              onClick={requestRemove}
+              onClick={() => void requestRemove()}
+              disabled={profileSaveState === "saving" || removeState === "saving"}
             >
-              Gezinslid verwijderen
+              {removeState === "saving"
+                ? "Verwijderen…"
+                : removeState === "error"
+                  ? "Opnieuw verwijderen"
+                  : "Gezinslid verwijderen"}
             </button>
           </div>
+          {removeState === "error" ? (
+            <p className="form-error" role="alert">
+              Gezinslid kon niet worden verwijderd. Probeer het opnieuw.
+            </p>
+          ) : null}
         </article>
       </div>
     </section>

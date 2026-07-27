@@ -1,4 +1,4 @@
-import { cleanup, render, screen, within } from '@testing-library/react';
+import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createAvatarSelectionFixture } from '../avatarCatalog/avatarCatalogFixtures';
@@ -132,5 +132,27 @@ describe('FamilyAvatarEditor', () => {
     await user.keyboard('{Escape}');
 
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the avatar draft open and offers retry when saving fails', async () => {
+    const user = userEvent.setup();
+    const onChange = vi
+      .fn()
+      .mockRejectedValueOnce(new Error('HTTP 500'))
+      .mockResolvedValueOnce(member);
+    const onClose = vi.fn();
+    render(<FamilyAvatarEditor member={member} onChange={onChange} onClose={onClose} />);
+
+    await user.click(categoryButton('Accessoires')!);
+    await user.click(within(screen.getByLabelText('Avatarkeuzes voor Riley')).getByRole('button', { name: /Strik accessoire/i }));
+    await user.click(screen.getByRole('button', { name: 'Opslaan' }));
+
+    expect((await screen.findByRole('alert')).textContent).toContain('Avatar kon niet worden opgeslagen.');
+    expect(screen.getByRole('dialog', { name: 'Avatarbewerker voor Riley' })).not.toBeNull();
+    expect(onClose).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole('button', { name: 'Opnieuw opslaan' }));
+    await waitFor(() => expect(onClose).toHaveBeenCalledTimes(1));
+    expect(onChange).toHaveBeenCalledTimes(2);
   });
 });

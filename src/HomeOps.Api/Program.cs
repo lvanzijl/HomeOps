@@ -75,7 +75,9 @@ builder.Services.AddScoped<IICalFileImporter, ICalFileImporter>();
 builder.Services.AddScoped<CalendarSourceSynchronizationEngine>();
 builder.Services.AddScoped<ICalendarSourceRefreshDispatcher, CalendarSourceRefreshDispatcher>();
 builder.Services.AddSingleton<CalendarBackgroundSynchronizationRunner>();
-if (!builder.Environment.IsEnvironment("Testing") && !builder.Environment.IsEnvironment("VisualReview"))
+if (!builder.Environment.IsEnvironment("Testing") &&
+    !builder.Environment.IsEnvironment("VisualReview") &&
+    !builder.Environment.IsEnvironment("E2E"))
 {
     builder.Services.AddHostedService<CalendarBackgroundSynchronizationHostedService>();
     builder.Services.AddHostedService<RoomHeatingControlReconciliationHostedService>();
@@ -120,6 +122,13 @@ if (!app.Environment.IsEnvironment("Testing") && !app.Environment.IsEnvironment(
     using var scope = app.Services.CreateScope();
     var dbContext = scope.ServiceProvider.GetRequiredService<HomeOpsDbContext>();
     dbContext.Database.Migrate();
+    if (app.Environment.IsEnvironment("Demo") &&
+        !await dbContext.FamilyMembers.AnyAsync() &&
+        !await dbContext.Lists.AnyAsync() &&
+        !await dbContext.EventSeries.AnyAsync())
+    {
+        await VisualReviewFixtureService.ApplyScenario(dbContext, "visual-full", CancellationToken.None);
+    }
 }
 
 if (app.Environment.IsDevelopment())
@@ -158,7 +167,10 @@ app.MapMotivationEndpoints();
 app.MapHelpfulMomentEndpoints();
 app.MapWeeklyResetEndpoints();
 app.MapWeatherEndpoints();
-if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Testing") || app.Environment.IsEnvironment("VisualReview"))
+if (app.Environment.IsDevelopment() ||
+    app.Environment.IsEnvironment("Testing") ||
+    app.Environment.IsEnvironment("VisualReview") ||
+    app.Environment.IsEnvironment("E2E"))
 {
     app.MapVisualReviewFixtureEndpoints();
 }

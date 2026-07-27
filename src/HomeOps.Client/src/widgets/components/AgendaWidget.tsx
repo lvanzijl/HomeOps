@@ -2688,8 +2688,8 @@ function formatDutchLongDate(date: string): string {
 }
 
 function addDaysIso(date: string, days: number) {
-  const next = new Date(`${date}T00:00:00`);
-  next.setDate(next.getDate() + days);
+  const [year, month, day] = date.split("-").map(Number);
+  const next = new Date(Date.UTC(year, month - 1, day + days));
   return next.toISOString().slice(0, 10);
 }
 

@@ -17,10 +17,10 @@ vi.mock('../home/familyMembersApi', () => ({
 }));
 
 vi.mock('../home/HomeDashboard', () => ({
-  HomeDashboard: ({ onNavigate, onSelectFamilyMember }: { onNavigate: (destination: WorkspaceId) => void; onSelectFamilyMember: (memberId: string) => void }) => (
+  HomeDashboard: ({ members, onNavigate, onSelectFamilyMember }: { members: readonly { id: string; name: string }[]; onNavigate: (destination: WorkspaceId) => void; onSelectFamilyMember: (memberId: string) => void }) => (
     <section aria-label="Home dashboard">
       <button onClick={() => onNavigate('agenda')} type="button">Open Agenda</button>
-      <button onClick={() => onSelectFamilyMember('alex')} type="button">Open Alex</button>
+      {members.map((member) => <button key={member.id} onClick={() => onSelectFamilyMember(member.id)} type="button">Open {member.name}</button>)}
     </section>
   ),
 }));
@@ -47,6 +47,10 @@ async function mockedCalendarSourcesApi() {
   return await import('../calendarSources/calendarSourcesApi');
 }
 
+async function mockedFamilyMembersApi() {
+  return await import('../home/familyMembersApi');
+}
+
 afterEach(() => cleanup());
 
 describe('WorkspaceShell API-backed layouts', () => {
@@ -54,6 +58,7 @@ describe('WorkspaceShell API-backed layouts', () => {
     vi.clearAllMocks();
     const workspaceLayout = await mockedWorkspaceLayout();
     const calendarSourcesApi = await mockedCalendarSourcesApi();
+    const familyMembersApi = await mockedFamilyMembersApi();
     vi.mocked(workspaceLayout.loadWorkspaceLayout).mockImplementation(async (workspaceId) => ({
       source: 'api',
       widgetInstances: workspaceId === 'home'
@@ -64,6 +69,12 @@ describe('WorkspaceShell API-backed layouts', () => {
         : [{ id: `${workspaceId}-placeholder`, widgetDefinitionId: `${workspaceId}-placeholder`, title: `${workspaceId} placeholder`, settings: {} }],
     }));
     vi.mocked(calendarSourcesApi.loadCalendarSources).mockResolvedValue([]);
+    vi.mocked(familyMembersApi.loadFamilyMembers).mockResolvedValue([
+      { id: 'alex', name: 'Alex', displayColor: '#f8c8dc', initials: 'A', memberKind: 'adult', dateOfBirth: null },
+    ]);
+    vi.mocked(familyMembersApi.createFamilyMember).mockImplementation(async (member) => ({ ...member, id: member.name.toLowerCase() }));
+    vi.mocked(familyMembersApi.saveFamilyMember).mockImplementation(async (member) => member);
+    vi.mocked(familyMembersApi.removeFamilyMember).mockResolvedValue(undefined);
   });
 
   it('loads and renders widgets from the persisted active workspace layout', async () => {
@@ -74,6 +85,26 @@ describe('WorkspaceShell API-backed layouts', () => {
     expect(await screen.findByText('Open Agenda')).not.toBeNull();
     expect(screen.getByLabelText('Home dashboard')).not.toBeNull();
     expect(workspaceLayout.loadWorkspaceLayout).toHaveBeenCalledWith('home');
+  });
+
+  it('does not render static demo members while the API member collection is loading', async () => {
+    const familyMembersApi = await mockedFamilyMembersApi();
+    let resolveMembers!: (members: Awaited<ReturnType<typeof familyMembersApi.loadFamilyMembers>>) => void;
+    vi.mocked(familyMembersApi.loadFamilyMembers).mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveMembers = resolve;
+      }),
+    );
+
+    render(<WorkspaceShell />);
+
+    expect(await screen.findByText('Open Agenda')).not.toBeNull();
+    expect(screen.queryByRole('button', { name: 'Open Alex' })).toBeNull();
+
+    resolveMembers([
+      { id: 'alex', name: 'Alex', displayColor: '#f8c8dc', initials: 'A', memberKind: 'adult', dateOfBirth: null },
+    ]);
+    expect(await screen.findByRole('button', { name: 'Open Alex' })).not.toBeNull();
   });
 
   it('reserves a non-interactive back slot until a family member detail page needs it', async () => {
@@ -93,6 +124,45 @@ describe('WorkspaceShell API-backed layouts', () => {
 
     await user.click(backButton);
     expect(await screen.findByText('Open Agenda')).not.toBeNull();
+  });
+
+  it('shows a failed profile save without applying the optimistic draft', async () => {
+    const familyMembersApi = await mockedFamilyMembersApi();
+    vi.mocked(familyMembersApi.saveFamilyMember).mockRejectedValueOnce(new Error('HTTP 400'));
+    const user = userEvent.setup();
+    render(<WorkspaceShell />);
+
+    await user.click(await screen.findByRole('button', { name: 'Open Alex' }));
+    await user.click(screen.getByRole('button', { name: 'Instellingen' }));
+    const dialog = screen.getByRole('dialog', { name: 'Instellingen voor Alex' });
+    const name = within(dialog).getByLabelText('Name');
+    await user.clear(name);
+    await user.type(name, 'Alex Draft');
+    await user.click(within(dialog).getByRole('button', { name: 'Gegevens opslaan' }));
+
+    expect((await within(dialog).findByRole('alert')).textContent).toContain('Gegevens konden niet worden opgeslagen.');
+    expect(screen.queryByText('Gegevens opgeslagen.')).toBeNull();
+    expect(screen.getByRole('heading', { name: 'Alex', level: 1 })).not.toBeNull();
+    expect((name as HTMLInputElement).value).toBe('Alex Draft');
+  });
+
+  it('keeps the add-member dialog and draft available after creation fails', async () => {
+    const familyMembersApi = await mockedFamilyMembersApi();
+    vi.mocked(familyMembersApi.createFamilyMember).mockRejectedValueOnce(new Error('HTTP 500'));
+    const user = userEvent.setup();
+    render(<WorkspaceShell />);
+
+    await user.click(await screen.findByRole('button', { name: 'Open Alex' }));
+    await user.click(screen.getByRole('button', { name: 'Instellingen' }));
+    await user.click(screen.getByRole('button', { name: 'Gezinslid toevoegen' }));
+    const dialog = screen.getByRole('dialog', { name: 'Gezinslid toevoegen' });
+    const name = within(dialog).getByLabelText('Naam');
+    await user.type(name, 'Morgan Draft');
+    await user.click(within(dialog).getByRole('button', { name: 'Gezinslid toevoegen' }));
+
+    expect((await within(dialog).findByRole('alert')).textContent).toContain('Gezinslid kon niet worden toegevoegd.');
+    expect((name as HTMLInputElement).value).toBe('Morgan Draft');
+    expect(screen.getByRole('dialog', { name: 'Gezinslid toevoegen' })).not.toBeNull();
   });
 
   it('restricts primary navigation to daily household work', async () => {

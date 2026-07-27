@@ -8,7 +8,7 @@ namespace HomeOps.Api.Tests.CalendarEvents;
 public sealed class EventSeriesPersistenceTests
 {
     [Fact]
-    public async Task DbContextSeedsEventSeriesSourceAndEvents()
+    public async Task FreshDbContextSeedsOnlyTheStructuralManualSource()
     {
         await using var dbContext = CreateDbContext();
         await dbContext.Database.EnsureCreatedAsync();
@@ -18,7 +18,7 @@ public sealed class EventSeriesPersistenceTests
 
         Assert.Equal(SeedHousehold.Id, source.HouseholdId);
         Assert.True(source.IsWritable);
-        Assert.Equal(["Dentist Appointment", "Parent Evening", "Put Bins Outside", "Vacation"], events.Select(eventSeries => eventSeries.Title).Order().ToArray());
+        Assert.Empty(events);
     }
 
     [Fact]
@@ -26,7 +26,22 @@ public sealed class EventSeriesPersistenceTests
     {
         await using var dbContext = CreateDbContext();
         await dbContext.Database.EnsureCreatedAsync();
-        var eventSeries = await dbContext.EventSeries.SingleAsync(candidate => candidate.Id == SeedCalendarEvents.DentistAppointmentId);
+        var eventSeries = new EventSeries
+        {
+            Id = SeedCalendarEvents.DentistAppointmentId,
+            EventSourceId = SeedCalendarEvents.EventSourceId,
+            Title = "Dentist Appointment",
+            Description = "Routine check-up",
+            IsAllDay = false,
+            StartDate = new DateOnly(2026, 6, 18),
+            StartTime = new TimeOnly(9, 30),
+            EndDate = new DateOnly(2026, 6, 18),
+            EndTime = new TimeOnly(10, 15),
+            CreatedUtc = SeedCalendarEvents.SeededUtc,
+            UpdatedUtc = SeedCalendarEvents.SeededUtc,
+        };
+        dbContext.EventSeries.Add(eventSeries);
+        await dbContext.SaveChangesAsync();
 
         var normalized = EventSeriesNormalizer.ToNormalizedEvent(eventSeries);
 

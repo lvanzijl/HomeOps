@@ -69,8 +69,7 @@ public sealed class HomeAssistantClimateProviderTests
     [Fact]
     public async Task MissingAndFallbackTokenHandlingIsSafeAndDoesNotPersistCredentials()
     {
-        Environment.SetEnvironmentVariable("HomeAssistant__AccessToken", null);
-        Environment.SetEnvironmentVariable("HOMEASSISTANT__ACCESSTOKEN", null);
+        using var missingEnv = new EnvToken(null);
         await using var db = Db(); var fx = Seed(db, ClimateSourceRole.ComfortTemperature);
         var provider = Provider(db, new QueueHandler(_ => throw new InvalidOperationException("should not call")));
         var missing = await provider.ValidateMappingAsync(fx.Mapping.Id, default);
@@ -301,10 +300,39 @@ public sealed class HomeAssistantClimateProviderTests
     private sealed class Factory(HttpClient client) : IHttpClientFactory { public HttpClient CreateClient(string name) => client; }
     private sealed class EnvToken : IDisposable
     {
-        private readonly string? lower = Environment.GetEnvironmentVariable("HomeAssistant__AccessToken");
-        private readonly string? upper = Environment.GetEnvironmentVariable("HOMEASSISTANT__ACCESSTOKEN");
-        public EnvToken(string token, bool upperOnly = false) { Environment.SetEnvironmentVariable("HomeAssistant__AccessToken", upperOnly ? null : token); Environment.SetEnvironmentVariable("HOMEASSISTANT__ACCESSTOKEN", upperOnly ? token : null); }
-        public void Dispose() { Environment.SetEnvironmentVariable("HomeAssistant__AccessToken", lower); Environment.SetEnvironmentVariable("HOMEASSISTANT__ACCESSTOKEN", upper); }
+        private const string PreferredName = "HOMEASSISTANT__ACCESSTOKEN";
+        private const string CompatibilityName = "HomeAssistant__AccessToken";
+        private static readonly bool NamesAreCaseInsensitive = OperatingSystem.IsWindows();
+
+        private readonly string? preferred = Environment.GetEnvironmentVariable(PreferredName);
+        private readonly string? compatibility = NamesAreCaseInsensitive
+            ? null
+            : Environment.GetEnvironmentVariable(CompatibilityName);
+
+        public EnvToken(string? token)
+        {
+            Clear();
+            Environment.SetEnvironmentVariable(CompatibilityName, token);
+        }
+
+        public void Dispose()
+        {
+            Clear();
+            Environment.SetEnvironmentVariable(PreferredName, preferred);
+            if (!NamesAreCaseInsensitive)
+            {
+                Environment.SetEnvironmentVariable(CompatibilityName, compatibility);
+            }
+        }
+
+        private static void Clear()
+        {
+            Environment.SetEnvironmentVariable(PreferredName, null);
+            if (!NamesAreCaseInsensitive)
+            {
+                Environment.SetEnvironmentVariable(CompatibilityName, null);
+            }
+        }
     }
     private sealed class QueueHandler(params Func<HttpRequestMessage, HttpResponseMessage>[] responses) : HttpMessageHandler
     {

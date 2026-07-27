@@ -735,7 +735,11 @@ describe("HomeDashboard", () => {
     expect(within(dialog).getByRole("heading", { name: "Samenvatting vandaag" })).not.toBeNull();
     expect(within(dialog).getByText("Zacht begin van de dag.")).not.toBeNull();
     expect(within(dialog).getByRole("heading", { name: "Uurverwachting" })).not.toBeNull();
-    expect(within(dialog).getByText("8:00")).not.toBeNull();
+    const firstForecastHour = new Intl.DateTimeFormat("nl-NL", {
+      hour: "numeric",
+      minute: "2-digit",
+    }).format(new Date("2026-06-19T08:00:00.000Z"));
+    expect(within(dialog).getByText(firstForecastHour)).not.toBeNull();
     expect(within(dialog).getByRole("heading", { name: "Komende dagen" })).not.toBeNull();
     expect(within(dialog).getByText("Vrijdag")).not.toBeNull();
     expect(within(dialog).getByRole("heading", { name: "Details" })).not.toBeNull();

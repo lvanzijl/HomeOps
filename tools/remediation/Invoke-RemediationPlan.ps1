@@ -1,0 +1,916 @@
+[CmdletBinding()]
+param(
+    [string]$PlanPath = "docs/reports/2026-07-26-product-integrity-remediation-plan/phased-implementation-plan.md",
+    [string]$StartSlice,
+    [string]$EndSlice,
+    [ValidateRange(1, 100)]
+    [int]$MaxSlices = 1,
+    [switch]$Execute,
+    [switch]$CommitAfterSlice,
+    [switch]$AllowDirtyWorkingTree,
+    [string]$CodexCommand = "codex",
+    [ValidateSet("workspace-write", "read-only")]
+    [string]$Sandbox = "workspace-write",
+    [ValidateRange(1, 1440)]
+    [int]$TimeoutMinutes = 240,
+    [string]$Model,
+    [string]$RunDirectory = ".codex-runs",
+    [switch]$ShowPrompt
+)
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = "Stop"
+
+$script:Utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+$script:SlicePattern = '(?ms)^### Slice (?<id>[0-9]+(?:\.[0-9]+)?[A-Z]?)\s+[\u2013\u2014-]\s+(?<title>[^\r\n]+)\r?\n(?<body>.*?)(?=^### Slice |^## |\z)'
+$script:StatusPattern = '(?m)^- \[(?<done>[ xX])\] \*\*Status: (?<status>Not started|In progress|Blocked|Completed)\*\*\s*$'
+
+function Invoke-Git {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string[]]$Arguments,
+        [switch]$AllowFailure
+    )
+
+    $output = & git @Arguments 2>&1
+    $exitCode = $LASTEXITCODE
+    if (-not $AllowFailure -and $exitCode -ne 0) {
+        throw "git $($Arguments -join ' ') failed with exit code $exitCode.`n$($output -join [Environment]::NewLine)"
+    }
+
+    return [pscustomobject]@{
+        ExitCode = $exitCode
+        Output = @($output)
+    }
+}
+
+function Get-RepositoryRoot {
+    $result = Invoke-Git -Arguments @("rev-parse", "--show-toplevel")
+    return [System.IO.Path]::GetFullPath(($result.Output | Select-Object -First 1).Trim())
+}
+
+function Resolve-RepositoryPath {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$RepositoryRoot,
+        [Parameter(Mandatory = $true)]
+        [string]$Path
+    )
+
+    $candidate = if ([System.IO.Path]::IsPathRooted($Path)) {
+        [System.IO.Path]::GetFullPath($Path)
+    }
+    else {
+        [System.IO.Path]::GetFullPath((Join-Path $RepositoryRoot $Path))
+    }
+
+    $rootWithSeparator = $RepositoryRoot.TrimEnd(
+        [System.IO.Path]::DirectorySeparatorChar,
+        [System.IO.Path]::AltDirectorySeparatorChar
+    ) + [System.IO.Path]::DirectorySeparatorChar
+
+    if (-not $candidate.StartsWith($rootWithSeparator, [System.StringComparison]::OrdinalIgnoreCase)) {
+        throw "Path must remain inside the repository: $candidate"
+    }
+
+    return $candidate
+}
+
+function Get-RepositoryRelativePath {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$RepositoryRoot,
+        [Parameter(Mandatory = $true)]
+        [string]$Path
+    )
+
+    $resolvedPath = Resolve-RepositoryPath `
+        -RepositoryRoot $RepositoryRoot `
+        -Path $Path
+    $rootWithSeparator = $RepositoryRoot.TrimEnd(
+        [System.IO.Path]::DirectorySeparatorChar,
+        [System.IO.Path]::AltDirectorySeparatorChar
+    ) + [System.IO.Path]::DirectorySeparatorChar
+
+    return $resolvedPath.Substring($rootWithSeparator.Length).Replace("\", "/")
+}
+
+function Get-PlanSlices {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Text
+    )
+
+    $slices = @()
+    foreach ($match in [regex]::Matches($Text, $script:SlicePattern)) {
+        $raw = $match.Value
+        $statusMatch = [regex]::Match($raw, $script:StatusPattern)
+        if (-not $statusMatch.Success) {
+            throw "Slice $($match.Groups['id'].Value) has no recognized status line."
+        }
+
+        $slices += [pscustomobject]@{
+            Id = $match.Groups["id"].Value
+            Title = $match.Groups["title"].Value.Trim()
+            Status = $statusMatch.Groups["status"].Value
+            Done = $statusMatch.Groups["done"].Value -match "[xX]"
+            Index = $match.Index
+            Length = $match.Length
+            Raw = $raw
+        }
+    }
+
+    if ($slices.Count -eq 0) {
+        throw "No implementation slices were found in the plan."
+    }
+
+    return $slices
+}
+
+function Get-SliceIndex {
+    param(
+        [Parameter(Mandatory = $true)]
+        [object[]]$Slices,
+        [Parameter(Mandatory = $true)]
+        [string]$SliceId
+    )
+
+    for ($index = 0; $index -lt $Slices.Count; $index++) {
+        if ($Slices[$index].Id -eq $SliceId) {
+            return $index
+        }
+    }
+
+    throw "Slice '$SliceId' was not found in the plan."
+}
+
+function Select-InitialSliceIndex {
+    param(
+        [Parameter(Mandatory = $true)]
+        [object[]]$Slices,
+        [string]$RequestedStart
+    )
+
+    if ($RequestedStart) {
+        $requestedIndex = Get-SliceIndex -Slices $Slices -SliceId $RequestedStart
+        for ($index = $requestedIndex; $index -lt $Slices.Count; $index++) {
+            if ($Slices[$index].Status -ne "Completed") {
+                return $index
+            }
+        }
+
+        return -1
+    }
+
+    for ($index = 0; $index -lt $Slices.Count; $index++) {
+        if ($Slices[$index].Status -eq "In progress") {
+            return $index
+        }
+    }
+
+    for ($index = 0; $index -lt $Slices.Count; $index++) {
+        if ($Slices[$index].Status -eq "Not started") {
+            return $index
+        }
+    }
+
+    return -1
+}
+
+function Set-SliceInProgress {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$ResolvedPlanPath,
+        [Parameter(Mandatory = $true)]
+        [string]$SliceId
+    )
+
+    $text = [System.IO.File]::ReadAllText($ResolvedPlanPath)
+    $slices = @(Get-PlanSlices -Text $text)
+    $sliceIndex = Get-SliceIndex -Slices $slices -SliceId $SliceId
+    $slice = $slices[$sliceIndex]
+
+    if ($slice.Status -eq "Blocked") {
+        throw "Slice $SliceId is Blocked. Resolve and document the blocker before rerunning it."
+    }
+
+    if ($slice.Status -eq "Completed") {
+        throw "Slice $SliceId is already Completed."
+    }
+
+    if ($slice.Status -eq "In progress") {
+        return
+    }
+
+    $updatedRaw = [regex]::Replace(
+        $slice.Raw,
+        $script:StatusPattern,
+        '- [ ] **Status: In progress**',
+        1
+    )
+    $updatedText = $text.Substring(0, $slice.Index) +
+        $updatedRaw +
+        $text.Substring($slice.Index + $slice.Length)
+    [System.IO.File]::WriteAllText($ResolvedPlanPath, $updatedText, $script:Utf8NoBom)
+}
+
+function Expand-PromptTemplate {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Template,
+        [Parameter(Mandatory = $true)]
+        [hashtable]$Values
+    )
+
+    $expanded = $Template
+    foreach ($entry in $Values.GetEnumerator()) {
+        $expanded = $expanded.Replace("{{$($entry.Key)}}", [string]$entry.Value)
+    }
+
+    if ($expanded -match "\{\{[A-Z_]+\}\}") {
+        throw "The prompt template contains an unresolved placeholder: $($Matches[0])"
+    }
+
+    return $expanded
+}
+
+function ConvertTo-NativeArgument {
+    param(
+        [Parameter(Mandatory = $true)]
+        [AllowEmptyString()]
+        [string]$Value
+    )
+
+    if ($Value.Length -gt 0 -and $Value -notmatch '[\s"]') {
+        return $Value
+    }
+
+    $escaped = [regex]::Replace($Value, '(\\*)"', '$1$1\"')
+    $escaped = [regex]::Replace($escaped, '(\\+)$', '$1$1')
+    return '"' + $escaped + '"'
+}
+
+function Resolve-ExecutablePath {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Command
+    )
+
+    if ([System.IO.Path]::IsPathRooted($Command)) {
+        if (-not (Test-Path -LiteralPath $Command -PathType Leaf)) {
+            throw "Codex executable was not found: $Command"
+        }
+
+        return [System.IO.Path]::GetFullPath($Command)
+    }
+
+    $resolved = Get-Command $Command -CommandType Application -ErrorAction SilentlyContinue |
+        Select-Object -First 1
+    if (-not $resolved) {
+        throw "Codex CLI '$Command' was not found on PATH. Install or authenticate the CLI before execution."
+    }
+
+    return $resolved.Source
+}
+
+function Invoke-CodexSlice {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Executable,
+        [Parameter(Mandatory = $true)]
+        [string]$RepositoryRoot,
+        [Parameter(Mandatory = $true)]
+        [string]$Prompt,
+        [Parameter(Mandatory = $true)]
+        [string]$SchemaPath,
+        [Parameter(Mandatory = $true)]
+        [string]$ResultPath,
+        [Parameter(Mandatory = $true)]
+        [string]$EventsPath,
+        [Parameter(Mandatory = $true)]
+        [string]$ProgressPath,
+        [Parameter(Mandatory = $true)]
+        [string]$SandboxMode,
+        [Parameter(Mandatory = $true)]
+        [int]$Timeout,
+        [string]$RequestedModel
+    )
+
+    $arguments = @(
+        "--ask-for-approval",
+        "never",
+        "exec",
+        "--sandbox",
+        $SandboxMode,
+        "--json",
+        "--output-schema",
+        $SchemaPath,
+        "--output-last-message",
+        $ResultPath
+    )
+    if ($RequestedModel) {
+        $arguments += @("--model", $RequestedModel)
+    }
+    $arguments += "-"
+
+    $startInfo = New-Object System.Diagnostics.ProcessStartInfo
+    $startInfo.FileName = $Executable
+    $startInfo.Arguments = (($arguments | ForEach-Object {
+        ConvertTo-NativeArgument -Value $_
+    }) -join " ")
+    $startInfo.WorkingDirectory = $RepositoryRoot
+    $startInfo.UseShellExecute = $false
+    $startInfo.CreateNoWindow = $true
+    $startInfo.RedirectStandardInput = $true
+    $startInfo.RedirectStandardOutput = $true
+    $startInfo.RedirectStandardError = $true
+
+    $process = New-Object System.Diagnostics.Process
+    $process.StartInfo = $startInfo
+    $started = $false
+
+    try {
+        if (-not $process.Start()) {
+            throw "The Codex process did not start."
+        }
+        $started = $true
+
+        $stdoutTask = $process.StandardOutput.ReadToEndAsync()
+        $stderrTask = $process.StandardError.ReadToEndAsync()
+        $process.StandardInput.Write($Prompt)
+        $process.StandardInput.Close()
+
+        $exited = $process.WaitForExit($Timeout * 60 * 1000)
+        $timedOut = -not $exited
+        if (-not $exited) {
+            try {
+                $killTreeMethod = $process.GetType().GetMethod(
+                    "Kill",
+                    [System.Reflection.BindingFlags]::Public -bor [System.Reflection.BindingFlags]::Instance,
+                    $null,
+                    [Type[]]@([bool]),
+                    $null
+                )
+                if ($killTreeMethod) {
+                    $null = $killTreeMethod.Invoke($process, @($true))
+                }
+                else {
+                    $process.Kill()
+                }
+            }
+            finally {
+                $process.WaitForExit()
+            }
+        }
+
+        $process.WaitForExit()
+        $stdout = $stdoutTask.GetAwaiter().GetResult()
+        $stderr = $stderrTask.GetAwaiter().GetResult()
+        [System.IO.File]::WriteAllText($EventsPath, $stdout, $script:Utf8NoBom)
+        [System.IO.File]::WriteAllText($ProgressPath, $stderr, $script:Utf8NoBom)
+        if ($timedOut) {
+            throw "Codex exceeded the $Timeout minute timeout and was stopped. See $ProgressPath"
+        }
+
+        return [pscustomobject]@{
+            ExitCode = $process.ExitCode
+            Stdout = $stdout
+            Stderr = $stderr
+        }
+    }
+    catch {
+        if ($started) {
+            try {
+                if (-not $process.HasExited) {
+                    $process.Kill()
+                    $process.WaitForExit()
+                }
+            }
+            catch {
+                # Preserve the original execution failure.
+            }
+        }
+
+        throw
+    }
+    finally {
+        $process.Dispose()
+    }
+}
+
+function Test-CodexEventStream {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$JsonLines
+    )
+
+    $turnCompleted = $false
+    $failures = @()
+    $lineNumber = 0
+    foreach ($line in ($JsonLines -split "\r?\n")) {
+        $lineNumber++
+        if ([string]::IsNullOrWhiteSpace($line)) {
+            continue
+        }
+
+        try {
+            $event = $line | ConvertFrom-Json
+        }
+        catch {
+            $failures += "Line $lineNumber is not valid JSON."
+            continue
+        }
+
+        if ($event.type -eq "turn.completed") {
+            $turnCompleted = $true
+        }
+        elseif ($event.type -eq "turn.failed" -or $event.type -eq "error") {
+            $failures += "Codex emitted event '$($event.type)'."
+        }
+    }
+
+    if (-not $turnCompleted) {
+        $failures += "No turn.completed event was emitted."
+    }
+
+    return @($failures)
+}
+
+function Get-ChangedFiles {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$RepositoryRoot
+    )
+
+    $tracked = Invoke-Git -Arguments @(
+        "-C",
+        $RepositoryRoot,
+        "diff",
+        "--name-only",
+        "HEAD"
+    )
+    $untracked = Invoke-Git -Arguments @(
+        "-C",
+        $RepositoryRoot,
+        "ls-files",
+        "--others",
+        "--exclude-standard"
+    )
+    return @($tracked.Output + $untracked.Output |
+        Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
+        ForEach-Object { $_.Trim().Replace("\", "/") } |
+        Sort-Object -Unique)
+}
+
+function Test-CompletedResult {
+    param(
+        [Parameter(Mandatory = $true)]
+        [object]$Result,
+        [Parameter(Mandatory = $true)]
+        [string]$ExpectedSlice,
+        [Parameter(Mandatory = $true)]
+        [string]$RepositoryRoot,
+        [Parameter(Mandatory = $true)]
+        [string]$ResolvedPlanPath
+    )
+
+    $errors = @()
+    if ($Result.slice -ne $ExpectedSlice) {
+        $errors += "Result slice '$($Result.slice)' does not match '$ExpectedSlice'."
+    }
+    if ($Result.plan_status -ne "Completed") {
+        $errors += "The structured result does not report plan status Completed."
+    }
+    if (@($Result.validations).Count -eq 0) {
+        $errors += "The structured result contains no validation commands."
+    }
+    elseif (@($Result.validations | Where-Object { -not $_.passed }).Count -gt 0) {
+        $errors += "At least one reported validation failed."
+    }
+    if (-not $Result.documents_updated.plan) {
+        $errors += "The remediation plan was not reported as updated."
+    }
+    if (-not $Result.documents_updated.current_state) {
+        $errors += "docs/state/current-state.md was not reported as updated."
+    }
+    if (-not $Result.documents_updated.phase_roadmap) {
+        $errors += "docs/roadmap/phase-2.md was not reported as updated."
+    }
+    if (-not $Result.scope_review.passed) {
+        $errors += "The scope review did not pass."
+    }
+    if (@($Result.scope_review.unexpected_files).Count -gt 0) {
+        $errors += "The scope review contains unexpected files."
+    }
+    if ($Result.blocker) {
+        $errors += "A completed result must not contain a blocker."
+    }
+
+    $planText = [System.IO.File]::ReadAllText($ResolvedPlanPath)
+    $actualSlice = @(Get-PlanSlices -Text $planText) |
+        Where-Object { $_.Id -eq $ExpectedSlice } |
+        Select-Object -First 1
+    if (-not $actualSlice -or $actualSlice.Status -ne "Completed" -or -not $actualSlice.Done) {
+        $errors += "The plan does not mark Slice $ExpectedSlice as [x] Completed."
+    }
+
+    $changedFiles = @(Get-ChangedFiles -RepositoryRoot $RepositoryRoot)
+    $reportedFiles = @($Result.changed_files |
+        ForEach-Object { ([string]$_).Trim().Replace("\", "/") } |
+        Where-Object { $_ } |
+        Sort-Object -Unique)
+    foreach ($file in $changedFiles) {
+        if ($reportedFiles -notcontains $file) {
+            $errors += "Git contains a changed file omitted from the structured result: $file"
+        }
+    }
+    foreach ($file in $reportedFiles) {
+        if ($changedFiles -notcontains $file) {
+            $errors += "The structured result reports a file not present in Git changes: $file"
+        }
+    }
+
+    foreach ($requiredPath in @(
+        "docs/state/current-state.md",
+        "docs/roadmap/phase-2.md"
+    )) {
+        if ($changedFiles -notcontains $requiredPath) {
+            $errors += "$requiredPath is not present in the Git changeset."
+        }
+    }
+
+    $relativePlan = Get-RepositoryRelativePath `
+        -RepositoryRoot $RepositoryRoot `
+        -Path $ResolvedPlanPath
+    if ($changedFiles -notcontains $relativePlan) {
+        $errors += "The remediation plan is not present in the Git changeset."
+    }
+
+    $reportPath = $Result.documents_updated.implementation_report
+    if ([string]::IsNullOrWhiteSpace($reportPath)) {
+        $errors += "No implementation report path was returned."
+    }
+    else {
+        try {
+            $resolvedReport = Resolve-RepositoryPath `
+                -RepositoryRoot $RepositoryRoot `
+                -Path $reportPath
+            if (-not (Test-Path -LiteralPath $resolvedReport -PathType Leaf)) {
+                $errors += "The implementation report does not exist: $reportPath"
+            }
+            elseif ($changedFiles -notcontains $reportPath.Replace("\", "/")) {
+                $errors += "The implementation report is not present in the Git changeset."
+            }
+        }
+        catch {
+            $errors += $_.Exception.Message
+        }
+    }
+
+    $forbiddenPatterns = @(
+        '(^|/)\.dotnet-home/',
+        '(^|/)\.nuget/',
+        '(^|/)\.npm-cache/',
+        '(^|/)node_modules/',
+        '(^|/)test-results/',
+        '(^|/)playwright-report/',
+        '(^|/)blob-report/',
+        '(^|/)\.codex-runs/'
+    )
+    foreach ($file in $changedFiles) {
+        foreach ($pattern in $forbiddenPatterns) {
+            if ($file -match $pattern) {
+                $errors += "Generated or cache file remains in the changeset: $file"
+                break
+            }
+        }
+    }
+
+    return @($errors)
+}
+
+function Assert-BlockedResult {
+    param(
+        [Parameter(Mandatory = $true)]
+        [object]$Result,
+        [Parameter(Mandatory = $true)]
+        [string]$ExpectedSlice,
+        [Parameter(Mandatory = $true)]
+        [string]$ResolvedPlanPath
+    )
+
+    if ($Result.slice -ne $ExpectedSlice) {
+        throw "Blocked result slice '$($Result.slice)' does not match '$ExpectedSlice'."
+    }
+    if ($Result.plan_status -ne "Blocked" -or [string]::IsNullOrWhiteSpace($Result.blocker)) {
+        throw "A blocked result must report plan status Blocked and a concrete blocker."
+    }
+
+    $planText = [System.IO.File]::ReadAllText($ResolvedPlanPath)
+    $actualSlice = @(Get-PlanSlices -Text $planText) |
+        Where-Object { $_.Id -eq $ExpectedSlice } |
+        Select-Object -First 1
+    if (-not $actualSlice -or $actualSlice.Status -ne "Blocked") {
+        throw "The plan does not mark Slice $ExpectedSlice as Blocked."
+    }
+}
+
+function New-SliceCommit {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$RepositoryRoot,
+        [Parameter(Mandatory = $true)]
+        [object]$Slice
+    )
+
+    $null = Invoke-Git -Arguments @("-C", $RepositoryRoot, "add", "--all")
+    $message = "Complete remediation Slice $($Slice.Id) - $($Slice.Title)"
+    $null = Invoke-Git -Arguments @("-C", $RepositoryRoot, "commit", "-m", $message)
+
+    $remaining = Invoke-Git -Arguments @(
+        "-C",
+        $RepositoryRoot,
+        "status",
+        "--porcelain",
+        "--untracked-files=all"
+    )
+    if ($remaining.Output.Count -gt 0) {
+        throw "The worktree is not clean after committing Slice $($Slice.Id)."
+    }
+}
+
+$repositoryRoot = Get-RepositoryRoot
+$resolvedPlanPath = Resolve-RepositoryPath `
+    -RepositoryRoot $repositoryRoot `
+    -Path $PlanPath
+$templatePath = Resolve-RepositoryPath `
+    -RepositoryRoot $repositoryRoot `
+    -Path "tools/remediation/prompts/implement-slice.md"
+$schemaPath = Resolve-RepositoryPath `
+    -RepositoryRoot $repositoryRoot `
+    -Path "tools/remediation/slice-result.schema.json"
+$resolvedRunDirectory = Resolve-RepositoryPath `
+    -RepositoryRoot $repositoryRoot `
+    -Path $RunDirectory
+
+foreach ($requiredFile in @($resolvedPlanPath, $templatePath, $schemaPath)) {
+    if (-not (Test-Path -LiteralPath $requiredFile -PathType Leaf)) {
+        throw "Required file was not found: $requiredFile"
+    }
+}
+
+$planText = [System.IO.File]::ReadAllText($resolvedPlanPath)
+$slices = @(Get-PlanSlices -Text $planText)
+$requestedStartIndex = if ($StartSlice) {
+    Get-SliceIndex -Slices $slices -SliceId $StartSlice
+}
+else {
+    0
+}
+$endIndex = if ($EndSlice) {
+    Get-SliceIndex -Slices $slices -SliceId $EndSlice
+}
+else {
+    $slices.Count - 1
+}
+if ($endIndex -lt $requestedStartIndex) {
+    throw "End Slice $EndSlice occurs before Start Slice $StartSlice."
+}
+
+$currentIndex = Select-InitialSliceIndex -Slices $slices -RequestedStart $StartSlice
+if ($currentIndex -lt 0) {
+    Write-Host "No incomplete slice was found at or after the requested start."
+    exit 0
+}
+if ($endIndex -lt $currentIndex) {
+    Write-Host "No incomplete slice was found inside the requested range."
+    exit 0
+}
+
+$selected = $slices[$currentIndex]
+if ($selected.Status -eq "Blocked") {
+    throw "The next selected slice, $($selected.Id), is Blocked."
+}
+
+$template = [System.IO.File]::ReadAllText($templatePath)
+$relativePlanPath = Get-RepositoryRelativePath `
+    -RepositoryRoot $repositoryRoot `
+    -Path $resolvedPlanPath
+$previewPrompt = Expand-PromptTemplate -Template $template -Values @{
+    REPOSITORY_ROOT = $repositoryRoot
+    PLAN_PATH = $relativePlanPath
+    SLICE_ID = $selected.Id
+    SLICE_TITLE = $selected.Title
+    SLICE_TEXT = $selected.Raw
+}
+
+Write-Host "Selected Slice $($selected.Id) - $($selected.Title)"
+Write-Host "Current status: $($selected.Status)"
+Write-Host "Mode: $(if ($Execute) { 'execute' } else { 'dry run' })"
+Write-Host "Maximum slices: $MaxSlices"
+if ($EndSlice) {
+    Write-Host "End boundary: Slice $EndSlice"
+}
+if ($ShowPrompt) {
+    Write-Host ""
+    Write-Host $previewPrompt
+}
+
+if (-not $Execute) {
+    Write-Host ""
+    Write-Host "Dry run only. Add -Execute to invoke Codex."
+    exit 0
+}
+
+if ($MaxSlices -gt 1 -and -not $CommitAfterSlice) {
+    throw "Multi-slice execution requires -CommitAfterSlice so every new Codex run starts from a clean, auditable baseline."
+}
+if ($Sandbox -eq "read-only") {
+    throw "Execution cannot update the plan or implementation files with a read-only sandbox."
+}
+
+$initialStatus = Invoke-Git -Arguments @(
+    "-C",
+    $repositoryRoot,
+    "status",
+    "--porcelain",
+    "--untracked-files=all"
+)
+if ($initialStatus.Output.Count -gt 0 -and -not $AllowDirtyWorkingTree) {
+    throw @"
+The worktree is not clean. Commit or otherwise resolve the existing changes before unattended execution.
+Use -AllowDirtyWorkingTree only for a deliberate recovery run; multi-slice execution remains unsafe from a dirty baseline.
+"@
+}
+if ($initialStatus.Output.Count -gt 0 -and $MaxSlices -gt 1) {
+    throw "Multi-slice execution is not allowed from a dirty working tree, even with -AllowDirtyWorkingTree."
+}
+if ($initialStatus.Output.Count -gt 0 -and $CommitAfterSlice) {
+    throw "A dirty recovery run cannot use -CommitAfterSlice because that could commit pre-existing user changes."
+}
+
+$codexExecutable = Resolve-ExecutablePath -Command $CodexCommand
+[System.IO.Directory]::CreateDirectory($resolvedRunDirectory) | Out-Null
+$lockPath = Join-Path $resolvedRunDirectory "orchestrator.lock"
+$lockStream = $null
+$ownsLock = $false
+
+try {
+    try {
+        $lockStream = [System.IO.File]::Open(
+            $lockPath,
+            [System.IO.FileMode]::CreateNew,
+            [System.IO.FileAccess]::Write,
+            [System.IO.FileShare]::None
+        )
+        $ownsLock = $true
+        $lockWriter = New-Object System.IO.StreamWriter($lockStream, $script:Utf8NoBom)
+        $lockWriter.WriteLine("PID=$PID")
+        $lockWriter.WriteLine("Started=$([DateTimeOffset]::Now.ToString('o'))")
+        $lockWriter.Flush()
+    }
+    catch {
+        throw "Another remediation orchestrator may be running. Lock file: $lockPath"
+    }
+
+    $completedCount = 0
+    while ($completedCount -lt $MaxSlices -and $currentIndex -le $endIndex) {
+        $planText = [System.IO.File]::ReadAllText($resolvedPlanPath)
+        $slices = @(Get-PlanSlices -Text $planText)
+        $slice = $slices[$currentIndex]
+
+        if ($slice.Status -eq "Completed") {
+            $currentIndex++
+            continue
+        }
+        if ($slice.Status -eq "Blocked") {
+            throw "Slice $($slice.Id) is Blocked. The orchestrator will not skip it."
+        }
+
+        Set-SliceInProgress -ResolvedPlanPath $resolvedPlanPath -SliceId $slice.Id
+        $planText = [System.IO.File]::ReadAllText($resolvedPlanPath)
+        $slices = @(Get-PlanSlices -Text $planText)
+        $slice = $slices[$currentIndex]
+
+        $prompt = Expand-PromptTemplate -Template $template -Values @{
+            REPOSITORY_ROOT = $repositoryRoot
+            PLAN_PATH = $relativePlanPath
+            SLICE_ID = $slice.Id
+            SLICE_TITLE = $slice.Title
+            SLICE_TEXT = $slice.Raw
+        }
+
+        $timestamp = Get-Date -Format "yyyyMMdd-HHmmssfff"
+        $safeSlice = $slice.Id.Replace(".", "-")
+        $runName = "$timestamp-slice-$safeSlice"
+        $promptPath = Join-Path $resolvedRunDirectory "$runName-prompt.md"
+        $resultPath = Join-Path $resolvedRunDirectory "$runName-result.json"
+        $eventsPath = Join-Path $resolvedRunDirectory "$runName-events.jsonl"
+        $progressPath = Join-Path $resolvedRunDirectory "$runName-progress.log"
+        $manifestPath = Join-Path $resolvedRunDirectory "$runName-manifest.json"
+
+        [System.IO.File]::WriteAllText($promptPath, $prompt, $script:Utf8NoBom)
+        $head = Invoke-Git -Arguments @("-C", $repositoryRoot, "rev-parse", "HEAD")
+        [pscustomobject]@{
+            slice = $slice.Id
+            title = $slice.Title
+            started_at = [DateTimeOffset]::Now.ToString("o")
+            head = ($head.Output | Select-Object -First 1)
+            plan = $relativePlanPath
+            sandbox = $Sandbox
+            timeout_minutes = $TimeoutMinutes
+            model = if ($Model) { $Model } else { $null }
+        } | ConvertTo-Json -Depth 5 |
+            ForEach-Object {
+                [System.IO.File]::WriteAllText(
+                    $manifestPath,
+                    $_,
+                    $script:Utf8NoBom
+                )
+            }
+
+        Write-Host ""
+        Write-Host "Starting Codex for Slice $($slice.Id)."
+        Write-Host "Run log prefix: $runName"
+        $processResult = Invoke-CodexSlice `
+            -Executable $codexExecutable `
+            -RepositoryRoot $repositoryRoot `
+            -Prompt $prompt `
+            -SchemaPath $schemaPath `
+            -ResultPath $resultPath `
+            -EventsPath $eventsPath `
+            -ProgressPath $progressPath `
+            -SandboxMode $Sandbox `
+            -Timeout $TimeoutMinutes `
+            -RequestedModel $Model
+
+        if ($processResult.ExitCode -ne 0) {
+            throw "Codex exited with code $($processResult.ExitCode). See $progressPath"
+        }
+
+        $eventErrors = @(Test-CodexEventStream -JsonLines $processResult.Stdout)
+        if ($eventErrors.Count -gt 0) {
+            throw "Codex event validation failed:`n- $($eventErrors -join "`n- ")"
+        }
+        if (-not (Test-Path -LiteralPath $resultPath -PathType Leaf)) {
+            throw "Codex did not write its structured result: $resultPath"
+        }
+
+        try {
+            $result = [System.IO.File]::ReadAllText($resultPath) | ConvertFrom-Json
+        }
+        catch {
+            throw "Codex wrote an invalid structured result: $resultPath"
+        }
+
+        switch ($result.outcome) {
+            "completed" {
+                $completionErrors = @(Test-CompletedResult `
+                    -Result $result `
+                    -ExpectedSlice $slice.Id `
+                    -RepositoryRoot $repositoryRoot `
+                    -ResolvedPlanPath $resolvedPlanPath)
+                if ($completionErrors.Count -gt 0) {
+                    throw "Completion gate failed:`n- $($completionErrors -join "`n- ")"
+                }
+
+                Write-Host "Slice $($slice.Id) passed every orchestration gate."
+                $completedCount++
+                if ($CommitAfterSlice) {
+                    New-SliceCommit -RepositoryRoot $repositoryRoot -Slice $slice
+                    Write-Host "Committed Slice $($slice.Id)."
+                }
+            }
+            "blocked" {
+                Assert-BlockedResult `
+                    -Result $result `
+                    -ExpectedSlice $slice.Id `
+                    -ResolvedPlanPath $resolvedPlanPath
+                Write-Host "Slice $($slice.Id) is blocked: $($result.blocker)"
+                exit 2
+            }
+            "failed" {
+                throw "Codex reported Slice $($slice.Id) as failed: $($result.summary)"
+            }
+            default {
+                throw "Codex returned an unsupported outcome: $($result.outcome)"
+            }
+        }
+
+        if ($currentIndex -eq $endIndex) {
+            break
+        }
+        $currentIndex++
+    }
+
+    Write-Host ""
+    Write-Host "Orchestration finished after $completedCount completed slice(s)."
+}
+finally {
+    if ($lockStream) {
+        $lockStream.Dispose()
+    }
+    if ($ownsLock -and (Test-Path -LiteralPath $lockPath)) {
+        Remove-Item -LiteralPath $lockPath -Force
+    }
+}

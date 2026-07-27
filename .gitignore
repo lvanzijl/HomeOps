@@ -16,6 +16,7 @@ npm-debug.log*
 .home/
 .npm-cache/
 .codex-run/
+.codex-runs/
 .nuget/
 
 # Environment
@@ -24,6 +25,8 @@ npm-debug.log*
 # Local tool caches
 .playwright-browsers/
 test-results/
+playwright-report/
+blob-report/
 .dotnet-home/
 .nuget/
 .npm-cache/

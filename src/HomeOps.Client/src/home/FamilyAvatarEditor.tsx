@@ -5,7 +5,7 @@ import type { FamilyMember } from './familyMembers';
 
 interface FamilyAvatarEditorProps {
   member: FamilyMember;
-  onChange: (member: FamilyMember) => void;
+  onChange: (member: FamilyMember) => Promise<FamilyMember>;
   onClose: () => void;
 }
 
@@ -20,8 +20,9 @@ export function FamilyAvatarEditor({ member, onChange, onClose }: FamilyAvatarEd
       controlsLabel={`Avatarkeuzes voor ${member.name}`}
       currentSelection={persistedSelection}
       onCancel={onClose}
-      onSave={(selection) => {
-        onChange({
+      saveErrorMessage="Avatar kon niet worden opgeslagen. Probeer opnieuw."
+      onSave={async (selection) => {
+        await onChange({
           ...member,
           avatarSelection: selection,
           avatarV2Config: avatarSelectionToAvatarV2Configuration(selection),
