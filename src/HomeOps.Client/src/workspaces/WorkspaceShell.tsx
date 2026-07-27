@@ -1,9 +1,10 @@
 import { FamilyBoardIcon } from '../design';
 import { HomeOpsIcon } from '../icons/homeOpsIcons';
-import { useEffect, useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { defaultAvatarSelection } from '../avatarCatalog/avatarCatalogAdapter';
 import { hasCalendarSourceAttention, loadCalendarSources } from '../calendarSources/calendarSourcesApi';
 import { FamilyMemberPage } from '../home/FamilyMemberPage';
+import { FamilyMemberProfileForm } from '../home/FamilyMemberProfileForm';
 import { HomeDashboard } from '../home/HomeDashboard';
 import { MotivationPage } from '../MotivationPage';
 import type { FamilyMember } from '../home/familyMembers';
@@ -70,10 +71,12 @@ export function WorkspaceShell() {
   const activeWorkspaceIsPrimary = primaryWorkspaceDefinitions.some((workspace) => workspace.id === activeWorkspace.id);
   const activeWorkspaceIsAdministration = administrationWorkspaceDefinitions.some((workspace) => workspace.id === activeWorkspace.id);
   useEffect(() => {
-    let ignore = false;
-    loadFamilyMembers().then((loaded) => { if (!ignore) setMembers([...loaded]); }).catch(() => { if (!ignore) setMembers([]); });
-    return () => { ignore = true; };
+    void refreshFamilyMembers();
   }, []);
+
+  async function refreshFamilyMembers() {
+    try { setMembers([...(await loadFamilyMembers())]); } catch { setMembers([]); }
+  }
 
   useEffect(() => {
     let ignore = false;
@@ -241,6 +244,7 @@ export function WorkspaceShell() {
             <SettingsDashboard
               members={members}
               onCalendarSourcesChanged={(sources) => setSettingsNeedsAttention(hasCalendarSourceAttention(sources))}
+              onFamilyMembersChanged={refreshFamilyMembers}
               widgetInstances={widgetInstances}
             />
           ) : (
@@ -282,30 +286,15 @@ function WorkspaceBackSlot({ isVisible, onBack }: { isVisible: boolean; onBack: 
 }
 
 function AddFamilyMemberDialog({ onCancel, onCreate }: { onCancel: () => void; onCreate: (member: Omit<FamilyMember, 'id'>) => Promise<FamilyMember> }) {
-  const [name, setName] = useState('');
-  const [memberKind, setMemberKind] = useState<FamilyMember['memberKind']>('adult');
-  const [dateOfBirth, setDateOfBirth] = useState('');
-  const [displayColor, setDisplayColor] = useState('#c7d2fe');
-  const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
-  async function submit(event: FormEvent) {
-    event.preventDefault();
-    if (saveState === 'saving' || !name.trim() || (memberKind === 'child' && !dateOfBirth)) return;
-    setSaveState('saving');
-    try {
-      await onCreate({ name: name.trim(), initials: buildInitials(name), memberKind, dateOfBirth: dateOfBirth || null, displayColor, avatarSelection: defaultAvatarSelection });
-      setSaveState('saved');
-      onCancel();
-    } catch {
-      setSaveState('error');
-    }
-  }
-
-  const clearError = () => {
-    if (saveState === 'error') setSaveState('idle');
+  const [isSaving, setIsSaving] = useState(false);
+  const newMember: FamilyMember = {
+    id: "new",
+    name: "",
+    initials: "",
+    memberKind: "adult",
+    dateOfBirth: null,
+    displayColor: "#c7d2fe",
+    avatarSelection: defaultAvatarSelection,
   };
-  return <div className="avatar-editor-backdrop" role="presentation"><section className="avatar-editor" role="dialog" aria-modal="true" aria-label="Gezinslid toevoegen"><header><div><p className="eyebrow">Gezin</p><h3>Gezinslid toevoegen</h3><p>Voeg iemand toe aan het gezinsbord zonder account aan te maken.</p></div><button type="button" className="icon-button" onClick={onCancel} disabled={saveState === 'saving'} aria-label="Gezinslid toevoegen sluiten"><HomeOpsIcon name="close" /></button></header><form className="avatar-editor-grid" onSubmit={submit}><label>Naam<input value={name} onChange={(event) => { setName(event.target.value); clearError(); }} disabled={saveState === 'saving'} required /></label><label>Gezinslidtype<select value={memberKind} onChange={(event) => { setMemberKind(event.target.value as FamilyMember['memberKind']); clearError(); }} disabled={saveState === 'saving'}><option value="adult">Volwassene</option><option value="child">Kind</option></select></label><label>Geboortedatum<input type="date" value={dateOfBirth} onChange={(event) => { setDateOfBirth(event.target.value); clearError(); }} disabled={saveState === 'saving'} aria-required={memberKind === 'child'} /></label><label>Weergavekleur<input type="color" value={displayColor} onChange={(event) => { setDisplayColor(event.target.value); clearError(); }} disabled={saveState === 'saving'} /></label>{saveState === 'error' ? <p className="form-error" role="alert">Gezinslid kon niet worden toegevoegd. Probeer het opnieuw.</p> : null}<div className="family-member-actions"><button type="submit" disabled={saveState === 'saving'}>{saveState === 'saving' ? 'Toevoegen…' : saveState === 'error' ? 'Opnieuw toevoegen' : 'Gezinslid toevoegen'}</button><button type="button" onClick={onCancel} disabled={saveState === 'saving'}>Annuleren</button></div></form></section></div>;
-}
-
-function buildInitials(name: string) {
-  return name.trim().split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join('') || 'M';
+  return <div className="avatar-editor-backdrop" role="presentation"><section className="avatar-editor" role="dialog" aria-modal="true" aria-label="Gezinslid toevoegen"><header><div><p className="eyebrow">Gezin</p><h3>Gezinslid toevoegen</h3><p>Voeg iemand toe aan het gezinsbord zonder account aan te maken.</p></div><button type="button" className="icon-button" onClick={onCancel} disabled={isSaving} aria-label="Gezinslid toevoegen sluiten"><HomeOpsIcon name="close" /></button></header><FamilyMemberProfileForm errorMessage="Gezinslid kon niet worden toegevoegd. Probeer het opnieuw." initialMember={newMember} isNew onBusyChange={setIsSaving} onCancel={onCancel} onSave={async (member) => { const { id: _id, ...createdMember } = member; await onCreate(createdMember); onCancel(); }} /></section></div>;
 }

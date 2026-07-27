@@ -15,7 +15,7 @@ public static class OnboardingEndpoints
         {
             var household = await dbContext.Households.AsNoTracking().FirstAsync(h => h.Id == SeedHousehold.Id, cancellationToken);
             var hasActiveMembers = await dbContext.FamilyMembers.AsNoTracking().AnyAsync(m => m.HouseholdId == SeedHousehold.Id && !m.IsDeleted, cancellationToken);
-            return Results.Ok(new OnboardingStatusDto(household.OnboardingCompleted, hasActiveMembers, !household.OnboardingCompleted || !hasActiveMembers));
+            return Results.Ok(new OnboardingStatusDto(household.OnboardingCompleted, hasActiveMembers, !household.OnboardingCompleted));
         }).WithName("GetOnboardingStatus").Produces<OnboardingStatusDto>();
 
         group.MapPost("/complete", async (CompleteOnboardingRequest request, HomeOpsDbContext dbContext, AvatarCatalogService avatarCatalog, CancellationToken cancellationToken) =>
@@ -79,7 +79,7 @@ public static class OnboardingEndpoints
     private static async Task<OnboardingStatusDto> Status(HomeOpsDbContext dbContext, Household household, CancellationToken cancellationToken)
     {
         var hasActiveMembers = await dbContext.FamilyMembers.AsNoTracking().AnyAsync(m => m.HouseholdId == SeedHousehold.Id && !m.IsDeleted, cancellationToken);
-        return new OnboardingStatusDto(household.OnboardingCompleted, hasActiveMembers, !household.OnboardingCompleted || !hasActiveMembers);
+        return new OnboardingStatusDto(household.OnboardingCompleted, hasActiveMembers, !household.OnboardingCompleted);
     }
 
     private static Dictionary<string, string[]> Validate(CompleteOnboardingRequest request, AvatarCatalogService avatarCatalog, out List<AvatarSelection> avatarSelections)

@@ -943,3 +943,7 @@ Climate Stories now open the existing runtime `Klimaat in huis` workspace with a
 
 ## 2026-07-17 Update — Woning Climate Floor Plans Slice 17 Final Audit
 Slice 17 completed the final cross-slice Woning climate/floor-plan release audit. The accepted architecture and product scope remain unchanged: FamilyBoard owns Floors, Rooms, assets, overlays, and spatial trust; Home Assistant remains a bounded provider; runtime climate remains Story-first, one-Floor-at-a-time, factual, and fallback-capable. The hardening fixed concrete production frontend `any` leftovers in Settings Woning and the Room Overlay Editor, regenerated NSwag with no OpenAPI/generated-client diff, and completed the deferred full release-gate matrix locally and documented a Ready to merge/release recommendation.
+
+## Completed remediation slice - Central family administration and restore
+
+Phase 2 Slice 2.5 adds a bounded Settings `Gezinsleden` administration dialog that remains available with no active members. It reuses one failure-aware profile form for add/edit, shows preserved task, room, individual-goal, and private-known-person dependency counts before removal, and lists removed members separately. Restore rejects an active-name conflict rather than silently merging identities, and completed households with an empty roster no longer restart onboarding. NSwag 14.7.1 output is regenerated and idempotent; focused and full backend/frontend tests, restore/build/model-drift gates, and the disposable PostgreSQL/Chromium lifecycle plus viewport checks pass.

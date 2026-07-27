@@ -38,6 +38,7 @@ import { getWidgetDefinition } from "../widgets/widgetCatalog";
 import type { WidgetInstance } from "../widgets/widgetModel";
 import { PeopleManagement } from "../knownPeople/PeopleManagement";
 import { WoningManagement } from "./WoningManagement";
+import { FamilyAdministration } from "./FamilyAdministration";
 import type { FamilyMember } from "../home/familyMembers";
 
 interface MaintenanceStatus {
@@ -51,6 +52,7 @@ interface SettingsDashboardProps {
   widgetInstances: readonly WidgetInstance[];
   members?: readonly FamilyMember[];
   onCalendarSourcesChanged?(sources: readonly CalendarSource[]): void;
+  onFamilyMembersChanged?(): Promise<void>;
 }
 
 type SettingsSurface =
@@ -62,9 +64,10 @@ type SettingsSurface =
   | "deleteSource"
   | "people"
   | "woning"
+  | "family"
   | null;
 
-export function SettingsDashboard({ widgetInstances, members = [], onCalendarSourcesChanged }: SettingsDashboardProps) {
+export function SettingsDashboard({ widgetInstances, members = [], onCalendarSourcesChanged, onFamilyMembersChanged = async () => {} }: SettingsDashboardProps) {
   const [activeSurface, setActiveSurface] = useState<SettingsSurface>(null);
   const [selectedSourceId, setSelectedSourceId] = useState<string | null>(null);
   const [sourceForm, setSourceForm] = useState<CalendarSourceFormValues>(() => createCalendarSourceFormValues());
@@ -626,6 +629,9 @@ export function SettingsDashboard({ widgetInstances, members = [], onCalendarSou
           <button onClick={() => setActiveSurface("people")} type="button">
             Bekenden beheren
           </button>
+          <button onClick={() => setActiveSurface("family")} type="button">
+            Gezinsleden
+          </button>
           {hasAdditionalSettings ? (
             <button onClick={() => setActiveSurface("settings")} type="button">
               Gezinsinstellingen
@@ -732,6 +738,16 @@ export function SettingsDashboard({ widgetInstances, members = [], onCalendarSou
           title="Woning"
         >
           <WoningManagement members={members} />
+        </SettingsSurfaceDialog>
+      ) : null}
+
+      {activeSurface === "family" ? (
+        <SettingsSurfaceDialog
+          description="Voeg gezinsleden toe, werk ze bij en herstel verwijderde gezinsleden zonder bestaande verwijzingen te veranderen."
+          onClose={closeSurface}
+          title="Gezinsleden"
+        >
+          <FamilyAdministration members={members} onChanged={onFamilyMembersChanged} />
         </SettingsSurfaceDialog>
       ) : null}
 

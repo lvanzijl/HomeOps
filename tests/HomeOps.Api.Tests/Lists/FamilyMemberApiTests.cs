@@ -119,6 +119,54 @@ public sealed class FamilyMemberApiTests(HomeOpsWebApplicationFactory factory) :
     }
 
     [Fact]
+    public async Task RemovedMemberIsAdministrativelyVisibleAndCanBeRestored()
+    {
+        var create = await _client.PostAsJsonAsync("/api/family-members", new CreateFamilyMemberRequest("Removed Admin", FamilyMemberKind.Adult, null, null, null, null));
+        var created = await create.Content.ReadFromJsonAsync<FamilyMemberDto>();
+        Assert.Equal(HttpStatusCode.Created, create.StatusCode);
+        var taskResponse = await _client.PostAsJsonAsync(
+            "/api/tasks",
+            new CreateHouseholdTaskRequest("Preserved admin dependency", null, TaskOwnershipKind.FamilyMember, created!.Id));
+        Assert.Equal(HttpStatusCode.Created, taskResponse.StatusCode);
+        var delete = await _client.DeleteAsync($"/api/family-members/{created!.Id}");
+        Assert.Equal(HttpStatusCode.NoContent, delete.StatusCode);
+
+        var removed = await _client.GetFromJsonAsync<IReadOnlyCollection<RemovedFamilyMemberDto>>("/api/family-members/removed");
+        var entry = Assert.Single(removed!, member => member.Member.Id == created.Id);
+        Assert.NotNull(entry.DeletedUtc);
+        Assert.Equal(1, entry.Dependencies.Tasks);
+
+        var restore = await _client.PostAsync($"/api/family-members/{created.Id}/restore", null);
+        Assert.Equal(HttpStatusCode.OK, restore.StatusCode);
+        var restored = await restore.Content.ReadFromJsonAsync<RestoreFamilyMemberResultDto>();
+        Assert.NotNull(restored?.Member);
+        Assert.Empty(restored!.Conflicts);
+
+        var members = await _client.GetFromJsonAsync<IReadOnlyCollection<FamilyMemberDto>>("/api/family-members");
+        Assert.Contains(members!, member => member.Id == created.Id);
+        var tasks = await _client.GetFromJsonAsync<IReadOnlyCollection<HouseholdTaskDto>>("/api/tasks");
+        Assert.Contains(tasks!, task => task.Title == "Preserved admin dependency" && task.FamilyMemberId == created.Id);
+    }
+
+    [Fact]
+    public async Task RestoreReportsNameConflictWithoutChangingRemovedMember()
+    {
+        var create = await _client.PostAsJsonAsync("/api/family-members", new CreateFamilyMemberRequest("Restore Conflict", FamilyMemberKind.Adult, null, null, null, null));
+        var created = await create.Content.ReadFromJsonAsync<FamilyMemberDto>();
+        Assert.Equal(HttpStatusCode.Created, create.StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, (await _client.DeleteAsync($"/api/family-members/{created!.Id}")).StatusCode);
+        Assert.Equal(HttpStatusCode.Created, (await _client.PostAsJsonAsync("/api/family-members", new CreateFamilyMemberRequest("Restore Conflict", FamilyMemberKind.Adult, null, null, null, null))).StatusCode);
+
+        var restore = await _client.PostAsync($"/api/family-members/{created.Id}/restore", null);
+        Assert.Equal(HttpStatusCode.Conflict, restore.StatusCode);
+        var result = await restore.Content.ReadFromJsonAsync<RestoreFamilyMemberResultDto>();
+        Assert.Contains(result!.Conflicts, conflict => conflict.Field == "name");
+
+        var members = await _client.GetFromJsonAsync<IReadOnlyCollection<FamilyMemberDto>>("/api/family-members");
+        Assert.DoesNotContain(members!, member => member.Id == created.Id);
+    }
+
+    [Fact]
     public async Task AssignedTaskMustReferencePersistedActiveFamilyMember()
     {
         var invalid = await _client.PostAsJsonAsync("/api/tasks", new CreateHouseholdTaskRequest("Pack lunch", null, TaskOwnershipKind.FamilyMember, "missing"));

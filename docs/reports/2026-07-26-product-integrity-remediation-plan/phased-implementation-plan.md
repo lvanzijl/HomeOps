@@ -520,9 +520,11 @@ Submit household setup and the reviewed member collection in one transactional c
 
 ### Slice 2.5 — Central family administration and restore
 
-- [ ] **Status: Not started**
+- [x] **Status: Completed**
 
 **Audit IDs:** FAMILY-01, FAMILY-02, SETTINGS-04
+
+**Implementation state:** Settings now exposes bounded central family administration even when the active roster is empty. Add and edit reuse one pending/error-aware profile form; removal shows preserved task, room, individual-goal, and private-known-person dependencies; removed members remain excluded from normal reads but appear in administration and can be restored unless an active-name conflict is returned. Completed households with no active members remain in the application instead of restarting onboarding. OpenAPI and the generated TypeScript client include the new reads/restore operation and are idempotent under NSwag 14.7.1. Focused backend tests pass 14/14, focused frontend tests pass 19/19, backend passes 587/587, frontend passes 323/323, restore/build/model-drift gates pass, and all 6 browser outcomes pass, including empty-roster add/remove/restore across refresh and Settings viewport fit.
 
 **Implementation steps**
 
@@ -560,7 +562,7 @@ Submit household setup and the reviewed member collection in one transactional c
 ### Phase 2 exit criteria
 
 - [x] Clean install enters onboarding with no demo people.
-- [ ] Add/edit/avatar/remove/restore survive refresh.
+- [x] Add/edit/avatar/remove/restore survive refresh.
 - [x] Failed family mutations are visible and recoverable.
 - [x] Onboarding is atomic and fail-safe.
 - [x] Existing household upgrade is non-destructive.

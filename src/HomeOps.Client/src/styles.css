@@ -1316,6 +1316,67 @@ button {
   min-height: 0;
 }
 
+.family-administration,
+.family-administration-list,
+.family-administration-form {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.family-administration-form label {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.family-administration-form input,
+.family-administration-form select {
+  font: inherit;
+}
+
+.family-administration-toolbar,
+.family-administration-list article {
+  align-items: center;
+  display: flex;
+  gap: 0.55rem;
+  justify-content: space-between;
+}
+
+.family-administration-toolbar p,
+.family-administration-toolbar h3,
+.family-administration-toolbar h4,
+.family-administration-list p,
+.family-administration-list article {
+  margin: 0;
+}
+
+.family-administration-list {
+  max-height: 12rem;
+  overflow: auto;
+}
+
+.family-administration-list article,
+.family-administration-confirm {
+  background: color-mix(in srgb, var(--domain-tint, #f8fafc) 66%, white);
+  border: 1px solid color-mix(in srgb, var(--domain-border, #cbd5e1) 72%, white);
+  border-radius: 1rem;
+  padding: 0.65rem 0.75rem;
+}
+
+.family-administration-list article > span {
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+.family-administration-confirm {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.family-administration-confirm h3,
+.family-administration-confirm p {
+  margin: 0;
+}
+
 @media (max-width: 1100px) {
   .settings-dashboard-main {
     grid-template-columns: 1fr;

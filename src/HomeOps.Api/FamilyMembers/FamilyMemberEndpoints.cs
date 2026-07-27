@@ -1,6 +1,7 @@
 using HomeOps.Api.AvatarCatalog;
 using HomeOps.Api.Data;
 using HomeOps.Api.Households;
+using HomeOps.Api.KnownPeople;
 using Microsoft.EntityFrameworkCore;
 
 namespace HomeOps.Api.FamilyMembers;
@@ -28,6 +29,26 @@ public static class FamilyMemberEndpoints
                 .FirstOrDefaultAsync(member => member.Id == memberId && member.HouseholdId == SeedHousehold.Id, cancellationToken);
             return member is null ? Results.NotFound() : Results.Ok(ToDto(member, avatarCatalog));
         }).WithName("GetFamilyMember").Produces<FamilyMemberDto>().Produces(StatusCodes.Status404NotFound);
+
+        group.MapGet("/removed", async (HomeOpsDbContext dbContext, AvatarCatalogService avatarCatalog, CancellationToken cancellationToken) =>
+        {
+            var members = await dbContext.FamilyMembers.AsNoTracking()
+                .Where(member => member.HouseholdId == SeedHousehold.Id && member.IsDeleted)
+                .OrderByDescending(member => member.DeletedUtc)
+                .ToListAsync(cancellationToken);
+            var result = new List<RemovedFamilyMemberDto>();
+            foreach (var member in members)
+            {
+                result.Add(new RemovedFamilyMemberDto(ToDto(member, avatarCatalog), member.DeletedUtc, await GetDependencies(dbContext, member.Id, cancellationToken)));
+            }
+            return Results.Ok(result);
+        }).WithName("GetRemovedFamilyMembers").Produces<IReadOnlyCollection<RemovedFamilyMemberDto>>();
+
+        group.MapGet("/{memberId}/dependencies", async (string memberId, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        {
+            var exists = await dbContext.FamilyMembers.AsNoTracking().AnyAsync(member => member.Id == memberId && member.HouseholdId == SeedHousehold.Id, cancellationToken);
+            return exists ? Results.Ok(await GetDependencies(dbContext, memberId, cancellationToken)) : Results.NotFound();
+        }).WithName("GetFamilyMemberDependencies").Produces<FamilyMemberDependencyDto>().Produces(StatusCodes.Status404NotFound);
 
         group.MapPost("/", async (CreateFamilyMemberRequest request, HomeOpsDbContext dbContext, AvatarCatalogService avatarCatalog, CancellationToken cancellationToken) =>
         {
@@ -129,6 +150,23 @@ public static class FamilyMemberEndpoints
             return Results.NoContent();
         }).WithName("DeleteFamilyMember").Produces(StatusCodes.Status204NoContent).Produces(StatusCodes.Status404NotFound);
 
+        group.MapPost("/{memberId}/restore", async (string memberId, HomeOpsDbContext dbContext, AvatarCatalogService avatarCatalog, CancellationToken cancellationToken) =>
+        {
+            var member = await dbContext.FamilyMembers.FirstOrDefaultAsync(member => member.Id == memberId && member.HouseholdId == SeedHousehold.Id, cancellationToken);
+            if (member is null) return Results.NotFound();
+            if (!member.IsDeleted) return Results.Ok(new RestoreFamilyMemberResultDto(ToDto(member, avatarCatalog), []));
+            var matchingName = await dbContext.FamilyMembers.AsNoTracking().AnyAsync(candidate => candidate.HouseholdId == SeedHousehold.Id && !candidate.IsDeleted && candidate.Id != member.Id && candidate.Name.ToLower() == member.Name.ToLower(), cancellationToken);
+            if (matchingName)
+            {
+                return Results.Conflict(new RestoreFamilyMemberResultDto(null, [new RestoreFamilyMemberConflictDto("name", "Er is al een actief gezinslid met deze naam. Wijzig eerst een van beide namen.")]));
+            }
+            member.IsDeleted = false;
+            member.DeletedUtc = null;
+            member.UpdatedUtc = DateTimeOffset.UtcNow;
+            await dbContext.SaveChangesAsync(cancellationToken);
+            return Results.Ok(new RestoreFamilyMemberResultDto(ToDto(member, avatarCatalog), []));
+        }).WithName("RestoreFamilyMember").Produces<RestoreFamilyMemberResultDto>().Produces(StatusCodes.Status404NotFound).Produces(StatusCodes.Status409Conflict);
+
         return app;
     }
 
@@ -138,6 +176,12 @@ public static class FamilyMemberEndpoints
         if (selectionDto is not null) return avatarCatalog.ValidateForWrite(new AvatarSelection { SchemaVersion = selectionDto.SchemaVersion, Selections = selectionDto.Selections.ToDictionary(StringComparer.Ordinal) });
         return AvatarSelectionValidationResult.Valid(avatarCatalog.MapLegacyAvatarV2(NormalizeAvatarV2Config(legacyDto)));
     }
+
+    private static async Task<FamilyMemberDependencyDto> GetDependencies(HomeOpsDbContext dbContext, string memberId, CancellationToken cancellationToken) => new(
+        await dbContext.HouseholdTasks.CountAsync(task => task.HouseholdId == SeedHousehold.Id && task.FamilyMemberId == memberId, cancellationToken),
+        await dbContext.Rooms.CountAsync(room => room.HouseholdId == SeedHousehold.Id && room.FamilyMemberId == memberId, cancellationToken),
+        await dbContext.MotivationIndividualGoals.CountAsync(goal => goal.HouseholdId == SeedHousehold.Id && goal.FamilyMemberId == memberId, cancellationToken),
+        await dbContext.KnownPeople.CountAsync(person => person.HouseholdId == SeedHousehold.Id && person.FamilyMemberId == memberId && person.Scope == KnownPersonScope.PrivateToMember && !person.IsDeleted, cancellationToken));
 
     private static IResult? Validate(string name, FamilyMemberKind kind, DateOnly? dob)
     {

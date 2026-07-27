@@ -8,7 +8,7 @@ const apiBaseUrl = import.meta.env.VITE_HOMEOPS_API_BASE_URL ?? '';
 const client = new HomeOpsApiClient(apiBaseUrl);
 
 const memberKinds = ['child', 'adult'] as const;
-function fromApi(member: FamilyMemberDto): FamilyMember {
+export function familyMemberFromApi(member: FamilyMemberDto): FamilyMember {
   const avatarSelection = normalizeAvatarSelection(member.avatarSelection ?? avatarV2ConfigurationToAvatarSelection(member.avatarV2Config ?? avatarV2DefaultConfiguration));
   return {
     id: member.id!,
@@ -39,16 +39,16 @@ function toApi(member: FamilyMember): UpdateFamilyMemberRequest {
 }
 
 export async function loadFamilyMembers(): Promise<readonly FamilyMember[]> {
-  return (await client.getFamilyMembers()).map(fromApi);
+  return (await client.getFamilyMembers()).map(familyMemberFromApi);
 }
 
 export async function saveFamilyMember(member: FamilyMember): Promise<FamilyMember> {
-  return fromApi(await client.updateFamilyMember(member.id, toApi(member)));
+  return familyMemberFromApi(await client.updateFamilyMember(member.id, toApi(member)));
 }
 
 export async function createFamilyMember(member: Omit<FamilyMember, 'id'>): Promise<FamilyMember> {
   const avatarSelection = normalizeAvatarSelection(member.avatarSelection ?? avatarV2ConfigurationToAvatarSelection(member.avatarV2Config ?? avatarV2DefaultConfiguration));
-  return fromApi(await client.createFamilyMember(new CreateFamilyMemberRequest({
+  return familyMemberFromApi(await client.createFamilyMember(new CreateFamilyMemberRequest({
     name: member.name,
     memberKind: memberKinds.indexOf(member.memberKind) as FamilyMemberKind,
     dateOfBirth: member.dateOfBirth ? new Date(`${member.dateOfBirth}T00:00:00`) : undefined,

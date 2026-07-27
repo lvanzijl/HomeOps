@@ -2821,6 +2821,133 @@ export class HomeOpsApiClient {
         return Promise.resolve<void>(null as any);
     }
 
+    getRemovedFamilyMembers(): Promise<RemovedFamilyMemberDto[]> {
+        let url_ = this.baseUrl + "/api/family-members/removed";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetRemovedFamilyMembers(_response);
+        });
+    }
+
+    protected processGetRemovedFamilyMembers(response: Response): Promise<RemovedFamilyMemberDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(RemovedFamilyMemberDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<RemovedFamilyMemberDto[]>(null as any);
+    }
+
+    getFamilyMemberDependencies(memberId: string): Promise<FamilyMemberDependencyDto> {
+        let url_ = this.baseUrl + "/api/family-members/{memberId}/dependencies";
+        if (memberId === undefined || memberId === null)
+            throw new globalThis.Error("The parameter 'memberId' must be defined.");
+        url_ = url_.replace("{memberId}", encodeURIComponent("" + memberId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetFamilyMemberDependencies(_response);
+        });
+    }
+
+    protected processGetFamilyMemberDependencies(response: Response): Promise<FamilyMemberDependencyDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = FamilyMemberDependencyDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<FamilyMemberDependencyDto>(null as any);
+    }
+
+    restoreFamilyMember(memberId: string): Promise<RestoreFamilyMemberResultDto> {
+        let url_ = this.baseUrl + "/api/family-members/{memberId}/restore";
+        if (memberId === undefined || memberId === null)
+            throw new globalThis.Error("The parameter 'memberId' must be defined.");
+        url_ = url_.replace("{memberId}", encodeURIComponent("" + memberId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRestoreFamilyMember(_response);
+        });
+    }
+
+    protected processRestoreFamilyMember(response: Response): Promise<RestoreFamilyMemberResultDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = RestoreFamilyMemberResultDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<RestoreFamilyMemberResultDto>(null as any);
+    }
+
     getFloors(includeArchived: boolean | null | undefined): Promise<FloorDto[]> {
         let url_ = this.baseUrl + "/api/floors?";
         if (includeArchived !== undefined && includeArchived !== null)
@@ -12602,6 +12729,98 @@ export interface IAvatarSelectionDto {
     selections?: { [key: string]: string; };
 }
 
+export class RemovedFamilyMemberDto implements IRemovedFamilyMemberDto {
+    member?: FamilyMemberDto;
+    deletedUtc?: Date | undefined;
+    dependencies?: FamilyMemberDependencyDto;
+
+    constructor(data?: IRemovedFamilyMemberDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.member = _data["member"] ? FamilyMemberDto.fromJS(_data["member"]) : undefined as any;
+            this.deletedUtc = _data["deletedUtc"] ? new Date(_data["deletedUtc"].toString()) : undefined as any;
+            this.dependencies = _data["dependencies"] ? FamilyMemberDependencyDto.fromJS(_data["dependencies"]) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): RemovedFamilyMemberDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new RemovedFamilyMemberDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["member"] = this.member ? this.member.toJSON() : undefined as any;
+        data["deletedUtc"] = this.deletedUtc ? this.deletedUtc.toISOString() : undefined as any;
+        data["dependencies"] = this.dependencies ? this.dependencies.toJSON() : undefined as any;
+        return data;
+    }
+}
+
+export interface IRemovedFamilyMemberDto {
+    member?: FamilyMemberDto;
+    deletedUtc?: Date | undefined;
+    dependencies?: FamilyMemberDependencyDto;
+}
+
+export class FamilyMemberDependencyDto implements IFamilyMemberDependencyDto {
+    tasks?: number;
+    rooms?: number;
+    goals?: number;
+    privateKnownPeople?: number;
+
+    constructor(data?: IFamilyMemberDependencyDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.tasks = _data["tasks"];
+            this.rooms = _data["rooms"];
+            this.goals = _data["goals"];
+            this.privateKnownPeople = _data["privateKnownPeople"];
+        }
+    }
+
+    static fromJS(data: any): FamilyMemberDependencyDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new FamilyMemberDependencyDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["tasks"] = this.tasks;
+        data["rooms"] = this.rooms;
+        data["goals"] = this.goals;
+        data["privateKnownPeople"] = this.privateKnownPeople;
+        return data;
+    }
+}
+
+export interface IFamilyMemberDependencyDto {
+    tasks?: number;
+    rooms?: number;
+    goals?: number;
+    privateKnownPeople?: number;
+}
+
 export class CreateFamilyMemberRequest implements ICreateFamilyMemberRequest {
     name?: string;
     memberKind?: FamilyMemberKind;
@@ -12720,6 +12939,94 @@ export interface IUpdateFamilyMemberRequest {
     dateOfBirth?: Date | undefined;
     avatarV2Config?: AvatarV2ConfigDto | undefined;
     avatarSelection?: AvatarSelectionDto | undefined;
+}
+
+export class RestoreFamilyMemberResultDto implements IRestoreFamilyMemberResultDto {
+    member?: FamilyMemberDto | undefined;
+    conflicts?: RestoreFamilyMemberConflictDto[];
+
+    constructor(data?: IRestoreFamilyMemberResultDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.member = _data["member"] ? FamilyMemberDto.fromJS(_data["member"]) : undefined as any;
+            if (Array.isArray(_data["conflicts"])) {
+                this.conflicts = [] as any;
+                for (let item of _data["conflicts"])
+                    this.conflicts!.push(RestoreFamilyMemberConflictDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): RestoreFamilyMemberResultDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new RestoreFamilyMemberResultDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["member"] = this.member ? this.member.toJSON() : undefined as any;
+        if (Array.isArray(this.conflicts)) {
+            data["conflicts"] = [];
+            for (let item of this.conflicts)
+                data["conflicts"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IRestoreFamilyMemberResultDto {
+    member?: FamilyMemberDto | undefined;
+    conflicts?: RestoreFamilyMemberConflictDto[];
+}
+
+export class RestoreFamilyMemberConflictDto implements IRestoreFamilyMemberConflictDto {
+    field?: string;
+    message?: string;
+
+    constructor(data?: IRestoreFamilyMemberConflictDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.field = _data["field"];
+            this.message = _data["message"];
+        }
+    }
+
+    static fromJS(data: any): RestoreFamilyMemberConflictDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new RestoreFamilyMemberConflictDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["field"] = this.field;
+        data["message"] = this.message;
+        return data;
+    }
+}
+
+export interface IRestoreFamilyMemberConflictDto {
+    field?: string;
+    message?: string;
 }
 
 export class FloorDto implements IFloorDto {

@@ -2496,6 +2496,100 @@
         }
       }
     },
+    "/api/family-members/removed": {
+      "get": {
+        "tags": [
+          "Family Members"
+        ],
+        "operationId": "GetRemovedFamilyMembers",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RemovedFamilyMemberDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/family-members/{memberId}/dependencies": {
+      "get": {
+        "tags": [
+          "Family Members"
+        ],
+        "operationId": "GetFamilyMemberDependencies",
+        "parameters": [
+          {
+            "name": "memberId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FamilyMemberDependencyDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/family-members/{memberId}/restore": {
+      "post": {
+        "tags": [
+          "Family Members"
+        ],
+        "operationId": "RestoreFamilyMember",
+        "parameters": [
+          {
+            "name": "memberId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestoreFamilyMemberResultDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          },
+          "409": {
+            "description": ""
+          }
+        }
+      }
+    },
     "/api/floors": {
       "get": {
         "tags": [
@@ -9504,6 +9598,45 @@
           }
         }
       },
+      "RemovedFamilyMemberDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "member": {
+            "$ref": "#/components/schemas/FamilyMemberDto"
+          },
+          "deletedUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "dependencies": {
+            "$ref": "#/components/schemas/FamilyMemberDependencyDto"
+          }
+        }
+      },
+      "FamilyMemberDependencyDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "tasks": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "rooms": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "goals": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "privateKnownPeople": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "CreateFamilyMemberRequest": {
         "type": "object",
         "additionalProperties": false,
@@ -9581,6 +9714,38 @@
                 "$ref": "#/components/schemas/AvatarSelectionDto"
               }
             ]
+          }
+        }
+      },
+      "RestoreFamilyMemberResultDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "member": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/FamilyMemberDto"
+              }
+            ]
+          },
+          "conflicts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RestoreFamilyMemberConflictDto"
+            }
+          }
+        }
+      },
+      "RestoreFamilyMemberConflictDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "field": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
           }
         }
       },

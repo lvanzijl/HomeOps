@@ -72,6 +72,56 @@ test("family-member avatar and profile saves survive refresh", async ({ page, re
   await expect(page.getByRole("heading", { name: "Dad Persisted", level: 1 })).toBeVisible();
 });
 
+test("empty-roster family administration can add, remove, and restore across refresh", async ({ page, request }) => {
+  await resetFixture(request, "visual-marketing-family");
+  const membersResponse = await request.get("/api/family-members");
+  expect(membersResponse.ok(), await membersResponse.text()).toBe(true);
+  const members = await membersResponse.json() as { id: string }[];
+  for (const member of members) {
+    const deleteResponse = await request.delete(`/api/family-members/${encodeURIComponent(member.id)}`);
+    expect(deleteResponse.ok(), await deleteResponse.text()).toBe(true);
+  }
+
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "Welkom bij FamilyBoard" })).toHaveCount(0);
+  await openFamilyAdministration(page);
+  await expect(page.getByText("Er zijn nog geen actieve gezinsleden. Voeg iemand toe om te beginnen.")).toBeVisible();
+
+  await page.getByRole("button", { name: "Gezinslid toevoegen" }).click();
+  const addForm = page.getByLabel("Gezinslid toevoegen");
+  await addForm.getByLabel("Naam").fill("Taylor");
+  const createResponse = page.waitForResponse((response) =>
+    response.request().method() === "POST"
+      && new URL(response.url()).pathname === "/api/family-members");
+  await addForm.getByRole("button", { name: "Gezinslid toevoegen" }).click();
+  expect((await createResponse).ok()).toBe(true);
+  await expect(page.getByRole("list", { name: "Actieve gezinsleden" }).getByText("Taylor")).toBeVisible();
+
+  const activeMembers = page.getByRole("list", { name: "Actieve gezinsleden" });
+  await activeMembers.getByRole("button", { name: "Verwijderen" }).click();
+  const confirmation = page.getByLabel("Gezinslid verwijderen");
+  await expect(confirmation).toContainText("verwijzingen blijven behouden");
+  const removeResponse = page.waitForResponse((response) =>
+    response.request().method() === "DELETE"
+      && new URL(response.url()).pathname.startsWith("/api/family-members/"));
+  await confirmation.getByRole("button", { name: "Verwijderen bevestigen" }).click();
+  expect((await removeResponse).ok()).toBe(true);
+
+  await page.reload();
+  await openFamilyAdministration(page);
+  const removedMembers = page.getByRole("list", { name: "Verwijderde gezinsleden" });
+  const removedTaylor = removedMembers.locator("article").filter({ hasText: "Taylor" });
+  await expect(removedTaylor).toBeVisible();
+  const restoreResponse = page.waitForResponse((response) =>
+    response.request().method() === "POST"
+      && new URL(response.url()).pathname.endsWith("/restore"));
+  await removedTaylor.getByRole("button", { name: "Herstellen" }).click();
+  expect((await restoreResponse).ok()).toBe(true);
+
+  await page.reload();
+  await expect(page.getByRole("button", { name: "Taylor gezinslidpagina openen" })).toBeVisible();
+});
+
 test("Home Today event stays on the household-local day", async ({ page, request }) => {
   test.fail(true, "Known TIME-01 defect: Home converts a local calendar date through UTC.");
   await resetFixture(request, "visual-marketing-home");
@@ -136,6 +186,10 @@ test("primary pages do not create document-level vertical scrolling", async ({ p
 
     await page.getByRole("button", { name: "Instellingen voor gezinsinstellingen" }).click();
     await expectNoDocumentScroll(page, `Instellingen at ${viewport.width}x${viewport.height}`);
+    await page.getByRole("button", { name: "Gezinsleden" }).click();
+    await expect(page.getByRole("dialog", { name: "Gezinsleden" })).toBeVisible();
+    await expectNoDocumentScroll(page, `Gezinsledenbeheer at ${viewport.width}x${viewport.height}`);
+    await page.getByRole("button", { name: "Gezinsleden sluiten" }).click();
 
     await page.getByRole("button", { name: "Thuis", exact: true }).click();
     await page.getByRole("button", { name: "Alex gezinslidpagina openen" }).click();
@@ -146,6 +200,12 @@ test("primary pages do not create document-level vertical scrolling", async ({ p
 async function resetFixture(request: APIRequestContext, scenario: string) {
   const response = await request.post(`/api/visual-review-fixtures/${scenario}/reset`);
   expect(response.ok(), await response.text()).toBe(true);
+}
+
+async function openFamilyAdministration(page: Page) {
+  await page.getByRole("button", { name: "Instellingen voor gezinsinstellingen" }).click();
+  await page.getByRole("button", { name: "Gezinsleden" }).click();
+  await expect(page.getByRole("dialog", { name: "Gezinsleden" })).toBeVisible();
 }
 
 async function openTaskCard(page: Page, request: APIRequestContext): Promise<Locator> {

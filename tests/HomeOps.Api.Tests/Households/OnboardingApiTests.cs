@@ -25,6 +25,50 @@ public sealed class OnboardingApiTests(HomeOpsWebApplicationFactory factory) : I
     }
 
     [Fact]
+    public async Task CompletedHouseholdWithoutActiveMembersDoesNotRestartOnboarding()
+    {
+        using var scope = factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<HomeOpsDbContext>();
+        var household = await dbContext.Households.FirstAsync(item => item.Id == SeedHousehold.Id);
+        var originalCompletion = household.OnboardingCompleted;
+        var members = await dbContext.FamilyMembers
+            .Where(member => member.HouseholdId == SeedHousehold.Id)
+            .ToListAsync();
+        var originalDeletionState = members.ToDictionary(
+            member => member.Id,
+            member => (member.IsDeleted, member.DeletedUtc));
+
+        try
+        {
+            household.OnboardingCompleted = true;
+            foreach (var member in members)
+            {
+                member.IsDeleted = true;
+                member.DeletedUtc ??= DateTimeOffset.UtcNow;
+            }
+            await dbContext.SaveChangesAsync();
+
+            var status = await _client.GetFromJsonAsync<OnboardingStatusDto>("/api/onboarding/status");
+
+            Assert.NotNull(status);
+            Assert.True(status.OnboardingCompleted);
+            Assert.False(status.HasActiveFamilyMembers);
+            Assert.False(status.RequiresOnboarding);
+        }
+        finally
+        {
+            household.OnboardingCompleted = originalCompletion;
+            foreach (var member in members)
+            {
+                var original = originalDeletionState[member.Id];
+                member.IsDeleted = original.IsDeleted;
+                member.DeletedUtc = original.DeletedUtc;
+            }
+            await dbContext.SaveChangesAsync();
+        }
+    }
+
+    [Fact]
     public async Task CompletionValidationFailureWritesNothing()
     {
         using (var scope = factory.Services.CreateScope())

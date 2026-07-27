@@ -21,6 +21,14 @@ public sealed record FamilyMemberDto(
     AvatarV2ConfigDto AvatarV2Config,
     AvatarSelectionDto AvatarSelection);
 
+public sealed record FamilyMemberDependencyDto(int Tasks, int Rooms, int Goals, int PrivateKnownPeople);
+
+public sealed record RemovedFamilyMemberDto(FamilyMemberDto Member, DateTimeOffset? DeletedUtc, FamilyMemberDependencyDto Dependencies);
+
+public sealed record RestoreFamilyMemberConflictDto(string Field, string Message);
+
+public sealed record RestoreFamilyMemberResultDto(FamilyMemberDto? Member, IReadOnlyCollection<RestoreFamilyMemberConflictDto> Conflicts);
+
 public sealed record CreateFamilyMemberRequest(
     string Name,
     FamilyMemberKind MemberKind,
