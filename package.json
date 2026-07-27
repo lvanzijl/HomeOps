@@ -1,0 +1,9 @@
+{
+  "name": "homeops",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "powershell -NoProfile -ExecutionPolicy Bypass -File ./tools/dev/start-dev.ps1",
+    "dev:skip-postgres": "powershell -NoProfile -ExecutionPolicy Bypass -File ./tools/dev/start-dev.ps1 -SkipPostgres"
+  }
+}

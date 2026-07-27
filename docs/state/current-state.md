@@ -1025,3 +1025,6 @@ Home Assistant resume-schedule strategy configuration is now an explicit typed p
 
 ## 2026-07-17 — Home Assistant Resume Strategy Frontend Test Stability
 Frontend full-suite instability after the typed Home Assistant resume-strategy follow-up was resolved by tightening asynchronous test waits in the affected Woning climate, agenda weather, and child dashboard tests. The full frontend suite is green across three consecutive normal runs plus a single-worker run; production frontend build succeeds.
+
+## 2026-07-23 — Local dev startup orchestration
+Added a root `pnpm dev` workflow that starts the Docker Compose PostgreSQL service, waits for `localhost:5432`, then launches the ASP.NET Core API and Vite client together for LAN access. The helper binds the API and Vite to `0.0.0.0`, prints the detected network URL, includes Rancher Desktop/Docker Desktop Compose fallbacks for Windows shells where PATH or Docker CLI plugin discovery is stale, and provides `pnpm dev:skip-postgres` for externally managed PostgreSQL.

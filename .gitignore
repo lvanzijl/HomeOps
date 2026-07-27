@@ -15,6 +15,7 @@ npm-debug.log*
 .dotnet-home/
 .home/
 .npm-cache/
+.codex-run/
 .nuget/
 
 # Environment
