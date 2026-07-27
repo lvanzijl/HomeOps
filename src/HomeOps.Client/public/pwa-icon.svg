@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="HomeOps">
+  <rect width="512" height="512" rx="112" fill="#111827" />
+  <path d="M128 257 256 145l128 112v112c0 8.8-7.2 16-16 16h-64v-96h-96v96h-64c-8.8 0-16-7.2-16-16V257Z" fill="#4f46e5" />
+  <path d="M208 385v-96h96v96h-96Z" fill="#f8fafc" />
+</svg>
