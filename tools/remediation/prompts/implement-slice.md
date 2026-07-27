@@ -24,6 +24,7 @@ Required workflow:
 10. Do not create a commit, push, open a pull request, or start another slice. The parent PowerShell orchestrator owns sequencing and optional commits.
 
 Your final response must conform exactly to the supplied JSON schema.
+Set `slice` to exactly `{{SLICE_ID}}`; return the ID only, without the title.
 
 Outcome rules:
 

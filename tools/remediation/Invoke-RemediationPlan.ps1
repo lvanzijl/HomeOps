@@ -273,6 +273,57 @@ function Resolve-ExecutablePath {
     return $resolved.Source
 }
 
+function Get-CodexChildPathEntries {
+    $entries = @()
+    $nodeCommand = Get-Command node -CommandType Application -ErrorAction SilentlyContinue |
+        Select-Object -First 1
+    if ($nodeCommand) {
+        $entries += Split-Path -Parent $nodeCommand.Source
+    }
+
+    $userProfile = [Environment]::GetFolderPath(
+        [Environment+SpecialFolder]::UserProfile
+    )
+    if (-not [string]::IsNullOrWhiteSpace($userProfile)) {
+        $runtimeDependencies = Join-Path $userProfile (
+            ".cache\codex-runtimes\codex-primary-runtime\dependencies"
+        )
+        foreach ($relativePath in @("node\bin", "bin\fallback")) {
+            $candidate = Join-Path $runtimeDependencies $relativePath
+            if (Test-Path -LiteralPath $candidate -PathType Container) {
+                $entries += [System.IO.Path]::GetFullPath($candidate)
+            }
+        }
+    }
+
+    return @($entries |
+        Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
+        Select-Object -Unique)
+}
+
+function Test-ResultSliceMatch {
+    param(
+        [AllowNull()]
+        [object]$ActualSlice,
+        [Parameter(Mandatory = $true)]
+        [string]$ExpectedSlice
+    )
+
+    if ($null -eq $ActualSlice) {
+        return $false
+    }
+
+    $actual = ([string]$ActualSlice).Trim()
+    if ($actual -eq $ExpectedSlice) {
+        return $true
+    }
+
+    $labelPattern = "^{0}\s+[\u2013\u2014-]\s+\S" -f (
+        [regex]::Escape($ExpectedSlice)
+    )
+    return $actual -match $labelPattern
+}
+
 function Invoke-CodexSlice {
     param(
         [Parameter(Mandatory = $true)]
@@ -293,7 +344,8 @@ function Invoke-CodexSlice {
         [string]$SandboxMode,
         [Parameter(Mandatory = $true)]
         [int]$Timeout,
-        [string]$RequestedModel
+        [string]$RequestedModel,
+        [string[]]$AdditionalPathEntries = @()
     )
 
     $arguments = @(
@@ -324,6 +376,18 @@ function Invoke-CodexSlice {
     $startInfo.RedirectStandardInput = $true
     $startInfo.RedirectStandardOutput = $true
     $startInfo.RedirectStandardError = $true
+    if ($AdditionalPathEntries.Count -gt 0) {
+        $existingPath = $startInfo.EnvironmentVariables["PATH"]
+        $additionalPath = $AdditionalPathEntries -join [System.IO.Path]::PathSeparator
+        $startInfo.EnvironmentVariables["PATH"] = if (
+            [string]::IsNullOrWhiteSpace($existingPath)
+        ) {
+            $additionalPath
+        }
+        else {
+            $additionalPath + [System.IO.Path]::PathSeparator + $existingPath
+        }
+    }
 
     $process = New-Object System.Diagnostics.Process
     $process.StartInfo = $startInfo
@@ -475,7 +539,9 @@ function Test-CompletedResult {
     )
 
     $errors = @()
-    if ($Result.slice -ne $ExpectedSlice) {
+    if (-not (Test-ResultSliceMatch `
+        -ActualSlice $Result.slice `
+        -ExpectedSlice $ExpectedSlice)) {
         $errors += "Result slice '$($Result.slice)' does not match '$ExpectedSlice'."
     }
     if ($Result.plan_status -ne "Completed") {
@@ -599,7 +665,9 @@ function Assert-BlockedResult {
         [string]$ResolvedPlanPath
     )
 
-    if ($Result.slice -ne $ExpectedSlice) {
+    if (-not (Test-ResultSliceMatch `
+        -ActualSlice $Result.slice `
+        -ExpectedSlice $ExpectedSlice)) {
         throw "Blocked result slice '$($Result.slice)' does not match '$ExpectedSlice'."
     }
     if ($Result.plan_status -ne "Blocked" -or [string]::IsNullOrWhiteSpace($Result.blocker)) {
@@ -750,6 +818,7 @@ if ($initialStatus.Output.Count -gt 0 -and $CommitAfterSlice) {
 }
 
 $codexExecutable = Resolve-ExecutablePath -Command $CodexCommand
+$codexChildPathEntries = @(Get-CodexChildPathEntries)
 [System.IO.Directory]::CreateDirectory($resolvedRunDirectory) | Out-Null
 $lockPath = Join-Path $resolvedRunDirectory "orchestrator.lock"
 $lockStream = $null
@@ -842,7 +911,8 @@ try {
             -ProgressPath $progressPath `
             -SandboxMode $Sandbox `
             -Timeout $TimeoutMinutes `
-            -RequestedModel $Model
+            -RequestedModel $Model `
+            -AdditionalPathEntries $codexChildPathEntries
 
         if ($processResult.ExitCode -ne 0) {
             throw "Codex exited with code $($processResult.ExitCode). See $progressPath"
