@@ -40,6 +40,7 @@ export function WorkspaceShell() {
   const [widgetInstancesByWorkspace, setWidgetInstancesByWorkspace] = useState<Partial<Record<WorkspaceId, readonly WidgetInstance[]>>>({});
   const [requiresOnboarding, setRequiresOnboarding] = useState(false);
   const [checkedOnboarding, setCheckedOnboarding] = useState(false);
+  const [onboardingStatusError, setOnboardingStatusError] = useState(false);
   const [settingsNeedsAttention, setSettingsNeedsAttention] = useState(false);
   const [houseView, setHouseView] = useState<'summary' | 'climate'>('summary');
   const [climateStoryContext, setClimateStoryContext] = useState<ClimateStoryDeepLink | undefined>();
@@ -121,7 +122,9 @@ export function WorkspaceShell() {
     setActiveFamilyMemberId(null);
   }
 
-  useEffect(() => {
+  function refreshOnboardingStatus() {
+    setCheckedOnboarding(false);
+    setOnboardingStatusError(false);
     let ignore = false;
     loadOnboardingStatus().then((status) => {
       if (!ignore) {
@@ -130,15 +133,23 @@ export function WorkspaceShell() {
       }
     }).catch(() => {
       if (!ignore) {
-        setRequiresOnboarding(false);
+        setOnboardingStatusError(true);
         setCheckedOnboarding(true);
       }
     });
     return () => { ignore = true; };
+  }
+
+  useEffect(() => {
+    return refreshOnboardingStatus();
   }, []);
 
   if (!checkedOnboarding) {
     return <section className="workspace-shell domain-home" aria-label="Gezinsbord"><section className="workspace-panel"><p>Gezinsinstellingen laden…</p></section></section>;
+  }
+
+  if (onboardingStatusError) {
+    return <section className="workspace-shell domain-home" aria-label="Gezinsbord"><section className="workspace-panel"><p role="alert">Gezinsinstellingen konden niet worden geladen.</p><button type="button" onClick={refreshOnboardingStatus}>Opnieuw proberen</button></section></section>;
   }
 
   if (requiresOnboarding) {
@@ -288,6 +299,7 @@ function AddFamilyMemberDialog({ onCancel, onCreate }: { onCancel: () => void; o
       setSaveState('error');
     }
   }
+
   const clearError = () => {
     if (saveState === 'error') setSaveState('idle');
   };

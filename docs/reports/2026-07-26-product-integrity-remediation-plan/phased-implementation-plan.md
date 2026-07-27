@@ -28,7 +28,7 @@ Do not check a phase merely because one of its slices is complete. A phase is co
 | --- | --- | --- | --- | --- |
 | [x] | **Phase 0 — Safety baseline and regression harness** | **Completed** | Guarded PostgreSQL fixtures, real API contracts, and an isolated Playwright browser suite now exist | Repeatable clean/upgrade DB, API-contract, and browser regression gates exist |
 | [ ] | **Phase 1 — LAN and destructive-development safety** | **Not started** | LAN binding and visual-review fixtures exist, but are unsafe | Database is private, fixture resets are isolated, and household API access is protected |
-| [ ] | **Phase 2 — Truthful first run and family persistence** | **In progress** | Avatar writes, mutation honesty, and production bootstrap are corrected; atomic onboarding and family restore remain | Fresh install onboards correctly; family changes survive refresh with honest error handling |
+| [ ] | **Phase 2 — Truthful first run and family persistence** | **In progress** | Avatar writes, mutation honesty, production bootstrap, and atomic onboarding are corrected; family administration/restore and the setup checklist remain | Fresh install onboards correctly; family changes survive refresh with honest error handling |
 | [ ] | **Phase 3 — Calendar and local-time correctness** | **Not started** | Rich Agenda CRUD/recurrence exists | Home and Agenda preserve household-local calendar intent in all supported time zones |
 | [ ] | **Phase 4 — Tasks and Weekly Reset completion** | **Not started** | Task APIs, routines, and Weekly Reset foundation exist | Core task controls are operable and every reset candidate can be resolved and completed |
 | [ ] | **Phase 5 — House, climate, and household settings** | **Not started** | Substantial backend and partial Settings foundation exist | Woning setup-to-runtime chain is reachable, healthy, configurable, and viewport-safe |
@@ -209,7 +209,7 @@ Maintain five explicit runtime modes:
 
 - [x] **Status: Completed**
 
-**Implementation state:** a pinned Playwright 1.62.0 project now runs five Chromium smoke scenarios through one root command. The runner creates a guarded `homeops_e2e_<guid>` PostgreSQL database, migrates it through the real API, starts API and Vite on test-only loopback ports, waits for health, and drops only the generated database in cleanup. Two remaining defect scenarios are recorded as expected failures (`TIME-01` and `TASK-UI-01`/`TASK-UI-02`), so an unexpected pass fails the baseline and signals that its later remediation test must be promoted. The `MEMBER-01` avatar persistence and `BOOT-01` first-run scenarios are now normal passing regressions after Slices 2.1 and 2.3. The primary-page viewport guard passes at 1440x900 and 1366x768. Failure-only screenshots/traces and browser output are ignored and absent from the changeset.
+**Implementation state:** a pinned Playwright 1.62.0 project now runs five Chromium smoke scenarios through one root command. The runner creates a guarded `homeops_e2e_<guid>` PostgreSQL database, migrates it through the real API, starts API and Vite on test-only loopback ports, waits for health, and drops only the generated database in cleanup. Two remaining defect scenarios are recorded as expected failures (`TIME-01` and `TASK-UI-01`/`TASK-UI-02`), so an unexpected pass fails the baseline and signals that its later remediation test must be promoted. The avatar-persistence and first-run scenarios are normal passing regressions; first run now completes through the atomic endpoint and remains completed after refresh. The primary-page viewport guard passes at 1440x900 and 1366x768. Failure-only screenshots/traces and browser output are ignored and absent from the changeset.
 
 **Goal:** detect hit-target, clipping, refresh-persistence, route, and viewport failures that jsdom cannot see.
 
@@ -375,7 +375,7 @@ Use one household-wide access passphrase and server session. Do **not** turn Fam
 
 **Priority:** P0/P1.  
 **Audit coverage:** BOOT-01, MEMBER-01, MEMBER-02, ONB-01, ONB-02, ONB-03, FAMILY-01, FAMILY-02, UX-01.  
-**Existing foundation:** household, onboarding, family-member CRUD, avatar catalog, and UI already exist. Slices 2.1–2.3 are implemented; atomic onboarding, central administration/restore, and the optional setup checklist remain.
+**Existing foundation:** household, onboarding, family-member CRUD, avatar catalog, and UI already exist. Slices 2.1–2.4 are implemented; central administration/restore and the optional setup checklist remain.
 
 ### Slice 2.1 — Canonical family-member avatar contract
 
@@ -484,8 +484,9 @@ Use one household-wide access passphrase and server session. Do **not** turn Fam
 
 ### Slice 2.4 — Fail-safe, atomic onboarding
 
-- [ ] **Status: Not started**
+- [x] **Status: Completed**
 
+**Implementation state:** onboarding now stages household/member edits locally and submits one typed completion request. The backend validates household, IANA time zone, adult, member, child birth-date, and canonical avatar fields before writing members and completion state in one relational transaction; a completed retry returns the existing result without duplicating members. Review can remove drafts or return to the relevant member step for corrections. Unknown onboarding status fails closed behind a visible retry state. OpenAPI and the TypeScript client were regenerated with NSwag 14.7.1. Focused backend tests pass 3/3, focused frontend tests pass 18/18, the backend suite passes 584/584, the frontend suite passes 319/319, both builds pass, generation is idempotent, and the isolated browser/PostgreSQL path completes onboarding and remains completed after refresh.
 **Audit IDs:** ONB-01, ONB-02
 
 **Recommended design**
@@ -561,7 +562,7 @@ Submit household setup and the reviewed member collection in one transactional c
 - [x] Clean install enters onboarding with no demo people.
 - [ ] Add/edit/avatar/remove/restore survive refresh.
 - [x] Failed family mutations are visible and recoverable.
-- [ ] Onboarding is atomic and fail-safe.
+- [x] Onboarding is atomic and fail-safe.
 - [x] Existing household upgrade is non-destructive.
 
 ## Phase 3 — Calendar and local-time correctness
@@ -1249,8 +1250,8 @@ Every audit finding must appear exactly once as the primary responsibility of a 
 | TASK-03 | 4.3 Routine editing | [ ] Not started |
 | TASK-04 | 4.3 Routine archive/restore | [ ] Not started |
 | TEST-01 | Phase 0 | [x] Completed |
-| ONB-01 | 2.4 Atomic onboarding/review | [ ] Not started |
-| ONB-02 | 2.4 Onboarding fail-safe | [ ] Not started |
+| ONB-01 | 2.4 Atomic onboarding/review | [x] Completed |
+| ONB-02 | 2.4 Onboarding fail-safe | [x] Completed |
 | FAMILY-01 | 2.5 Family administration | [ ] Not started |
 | FAMILY-02 | 2.5 Family restore | [ ] Not started |
 | CAL-02 | 3.5 Calendar file upload | [ ] Not started |

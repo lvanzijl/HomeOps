@@ -18,7 +18,7 @@ public static class HouseholdTimeZone
             : DefaultTimeZoneId;
     }
 
-    private static bool IsSupportedIanaTimeZone(string? timeZoneId)
+    public static bool IsSupportedIanaTimeZone(string? timeZoneId)
     {
         if (string.IsNullOrWhiteSpace(timeZoneId))
         {

@@ -25,6 +25,10 @@ vi.mock('../home/HomeDashboard', () => ({
   ),
 }));
 
+vi.mock('../onboardingApi', () => ({
+  loadOnboardingStatus: vi.fn(async () => ({ onboardingCompleted: true, hasActiveFamilyMembers: true, requiresOnboarding: false })),
+}));
+
 vi.mock('../widgets/WidgetRenderer', () => ({
   WidgetRenderer: ({ instance }: { instance: { title: string } }) => <article>{instance.title}</article>,
 }));
@@ -51,6 +55,10 @@ async function mockedFamilyMembersApi() {
   return await import('../home/familyMembersApi');
 }
 
+async function mockedOnboardingApi() {
+  return await import('../onboardingApi');
+}
+
 afterEach(() => cleanup());
 
 describe('WorkspaceShell API-backed layouts', () => {
@@ -59,6 +67,7 @@ describe('WorkspaceShell API-backed layouts', () => {
     const workspaceLayout = await mockedWorkspaceLayout();
     const calendarSourcesApi = await mockedCalendarSourcesApi();
     const familyMembersApi = await mockedFamilyMembersApi();
+    const onboardingApi = await mockedOnboardingApi();
     vi.mocked(workspaceLayout.loadWorkspaceLayout).mockImplementation(async (workspaceId) => ({
       source: 'api',
       widgetInstances: workspaceId === 'home'
@@ -75,6 +84,7 @@ describe('WorkspaceShell API-backed layouts', () => {
     vi.mocked(familyMembersApi.createFamilyMember).mockImplementation(async (member) => ({ ...member, id: member.name.toLowerCase() }));
     vi.mocked(familyMembersApi.saveFamilyMember).mockImplementation(async (member) => member);
     vi.mocked(familyMembersApi.removeFamilyMember).mockResolvedValue(undefined);
+    vi.mocked(onboardingApi.loadOnboardingStatus).mockResolvedValue({ onboardingCompleted: true, hasActiveFamilyMembers: true, requiresOnboarding: false });
   });
 
   it('loads and renders widgets from the persisted active workspace layout', async () => {
@@ -85,6 +95,18 @@ describe('WorkspaceShell API-backed layouts', () => {
     expect(await screen.findByText('Open Agenda')).not.toBeNull();
     expect(screen.getByLabelText('Home dashboard')).not.toBeNull();
     expect(workspaceLayout.loadWorkspaceLayout).toHaveBeenCalledWith('home');
+  });
+
+  it('does not enter the app when onboarding status loading fails and retries explicitly', async () => {
+    const onboardingApi = await mockedOnboardingApi();
+    vi.mocked(onboardingApi.loadOnboardingStatus).mockRejectedValueOnce(new Error('HTTP 500'));
+    const user = userEvent.setup();
+    render(<WorkspaceShell />);
+
+    expect((await screen.findByRole('alert')).textContent).toContain('Gezinsinstellingen konden niet worden geladen.');
+    expect(screen.queryByLabelText('Home dashboard')).toBeNull();
+    await user.click(screen.getByRole('button', { name: 'Opnieuw proberen' }));
+    expect(await screen.findByLabelText('Home dashboard')).not.toBeNull();
   });
 
   it('does not render static demo members while the API member collection is loading', async () => {

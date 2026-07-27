@@ -6367,13 +6367,17 @@ export class HomeOpsApiClient {
         return Promise.resolve<OnboardingStatusDto>(null as any);
     }
 
-    completeOnboarding(): Promise<OnboardingStatusDto> {
+    completeOnboarding(request: CompleteOnboardingRequest): Promise<OnboardingStatusDto> {
         let url_ = this.baseUrl + "/api/onboarding/complete";
         url_ = url_.replace(/[?&]$/, "");
 
+        const content_ = JSON.stringify(request);
+
         let options_: RequestInit = {
+            body: content_,
             method: "POST",
             headers: {
+                "Content-Type": "application/json",
                 "Accept": "application/json"
             }
         };
@@ -6392,6 +6396,13 @@ export class HomeOpsApiClient {
             let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
             result200 = OnboardingStatusDto.fromJS(resultData200);
             return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = HttpValidationProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
@@ -16380,6 +16391,120 @@ export interface IOnboardingStatusDto {
     onboardingCompleted?: boolean;
     hasActiveFamilyMembers?: boolean;
     requiresOnboarding?: boolean;
+}
+
+export class CompleteOnboardingRequest implements ICompleteOnboardingRequest {
+    householdName!: string;
+    timeZoneId!: string;
+    members!: OnboardingMemberRequest[];
+
+    constructor(data?: ICompleteOnboardingRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+        if (!data) {
+            this.members = [];
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.householdName = _data["householdName"];
+            this.timeZoneId = _data["timeZoneId"];
+            if (Array.isArray(_data["members"])) {
+                this.members = [] as any;
+                for (let item of _data["members"])
+                    this.members!.push(OnboardingMemberRequest.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): CompleteOnboardingRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CompleteOnboardingRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["householdName"] = this.householdName;
+        data["timeZoneId"] = this.timeZoneId;
+        if (Array.isArray(this.members)) {
+            data["members"] = [];
+            for (let item of this.members)
+                data["members"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface ICompleteOnboardingRequest {
+    householdName: string;
+    timeZoneId: string;
+    members: OnboardingMemberRequest[];
+}
+
+export class OnboardingMemberRequest implements IOnboardingMemberRequest {
+    name!: string;
+    displayColor!: string;
+    initials!: string;
+    memberKind?: FamilyMemberKind;
+    dateOfBirth?: Date | undefined;
+    avatarSelection!: AvatarSelectionDto;
+
+    constructor(data?: IOnboardingMemberRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+        if (!data) {
+            this.avatarSelection = new AvatarSelectionDto();
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.name = _data["name"];
+            this.displayColor = _data["displayColor"];
+            this.initials = _data["initials"];
+            this.memberKind = _data["memberKind"];
+            this.dateOfBirth = _data["dateOfBirth"] ? new Date(_data["dateOfBirth"].toString()) : undefined as any;
+            this.avatarSelection = _data["avatarSelection"] ? AvatarSelectionDto.fromJS(_data["avatarSelection"]) : new AvatarSelectionDto();
+        }
+    }
+
+    static fromJS(data: any): OnboardingMemberRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new OnboardingMemberRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["name"] = this.name;
+        data["displayColor"] = this.displayColor;
+        data["initials"] = this.initials;
+        data["memberKind"] = this.memberKind;
+        data["dateOfBirth"] = this.dateOfBirth ? formatDate(this.dateOfBirth) : undefined as any;
+        data["avatarSelection"] = this.avatarSelection ? this.avatarSelection.toJSON() : undefined as any;
+        return data;
+    }
+}
+
+export interface IOnboardingMemberRequest {
+    name: string;
+    displayColor: string;
+    initials: string;
+    memberKind?: FamilyMemberKind;
+    dateOfBirth?: Date | undefined;
+    avatarSelection: AvatarSelectionDto;
 }
 
 export class HouseholdTaskDto implements IHouseholdTaskDto {

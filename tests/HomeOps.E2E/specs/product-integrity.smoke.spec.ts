@@ -2,10 +2,28 @@ import { expect, test, type APIRequestContext, type Locator, type Page } from "@
 
 const taskTitle = "Zwemtas klaarzetten";
 
-test("fresh install shows onboarding", async ({ page }) => {
+test("fresh install completes atomically and stays completed after refresh", async ({ page }) => {
   await page.goto("/");
 
   await expect(page.getByRole("heading", { name: "Welkom bij FamilyBoard" })).toBeVisible();
+  await page.getByRole("button", { name: "Installatie starten" }).click();
+  const adultForm = page.getByRole("form", { name: "Volwassene toevoegen" });
+  await adultForm.getByLabel("Naam").fill("Alex");
+  await adultForm.getByRole("button", { name: "Volwassene toevoegen" }).click();
+  await page.getByRole("button", { name: "Doorgaan" }).click();
+  await page.getByRole("button", { name: "Gezin controleren" }).click();
+  await page.getByRole("button", { name: "Doorgaan" }).click();
+
+  const completionResponse = page.waitForResponse((response) =>
+    response.request().method() === "POST"
+      && new URL(response.url()).pathname === "/api/onboarding/complete");
+  await page.getByRole("button", { name: "Afronden en Thuis openen" }).click();
+  expect((await completionResponse).ok()).toBe(true);
+  await expect(page.getByLabel("Dagelijkse gezinsplekken")).toBeVisible();
+
+  await page.reload();
+  await expect(page.getByRole("heading", { name: "Welkom bij FamilyBoard" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Alex gezinslidpagina openen" })).toBeVisible();
 });
 
 test("family-member avatar and profile saves survive refresh", async ({ page, request }) => {

@@ -48,7 +48,7 @@ describe('FirstRunWizard', () => {
     await user.click(screen.getByRole('button', { name: 'Volwassene toevoegen' }));
     expect(await screen.findByText('Alex')).not.toBeNull();
     const family = await familyApi();
-    expect(vi.mocked(family.createFamilyMember).mock.calls[0][0].avatarSelection).toEqual(defaultAvatarSelection);
+    expect(family.createFamilyMember).not.toHaveBeenCalled();
     await user.click(screen.getByRole('button', { name: 'Doorgaan' }));
 
     expect(screen.getByText('Kinderen toevoegen')).not.toBeNull();
@@ -56,7 +56,6 @@ describe('FirstRunWizard', () => {
     await user.type(screen.getByLabelText('Geboortedatum'), '2018-04-12');
     await user.click(screen.getByRole('button', { name: 'Kind toevoegen' }));
     expect(await screen.findByText('Riley')).not.toBeNull();
-    expect(vi.mocked(family.createFamilyMember).mock.calls[1][0].avatarSelection).toEqual(defaultAvatarSelection);
     await user.click(screen.getByRole('button', { name: 'Gezin controleren' }));
 
     const review = screen.getByLabelText('Gezin controleren');
@@ -67,7 +66,10 @@ describe('FirstRunWizard', () => {
     await user.click(screen.getByRole('button', { name: 'Afronden en Thuis openen' }));
 
     const onboarding = await onboardingApi();
-    expect(onboarding.completeOnboarding).toHaveBeenCalled();
+    expect(onboarding.completeOnboarding).toHaveBeenCalledWith(expect.objectContaining({
+      householdName: 'Thuis',
+      members: expect.arrayContaining([expect.objectContaining({ name: 'Alex', avatarSelection: defaultAvatarSelection })]),
+    }));
     expect(onComplete).toHaveBeenCalled();
   });
 
@@ -83,9 +85,7 @@ describe('FirstRunWizard', () => {
     expect(await screen.findByLabelText('Home dashboard')).not.toBeNull();
   });
 
-  it('retains the member draft when creation fails', async () => {
-    const family = await familyApi();
-    vi.mocked(family.createFamilyMember).mockRejectedValueOnce(new Error('HTTP 500'));
+  it('keeps additions local and lets review remove or return to edit them', async () => {
     const user = userEvent.setup();
     render(<FirstRunWizard initialMembers={[]} onComplete={vi.fn()} />);
 
@@ -93,9 +93,15 @@ describe('FirstRunWizard', () => {
     const name = screen.getByLabelText('Naam');
     await user.type(name, 'Alex Draft');
     await user.click(screen.getByRole('button', { name: 'Volwassene toevoegen' }));
-
-    expect((await screen.findByRole('alert')).textContent).toContain('Gezinslid toevoegen lukte niet.');
-    expect((name as HTMLInputElement).value).toBe('Alex Draft');
-    expect(screen.queryByText('Alex Draft', { selector: 'li strong' })).toBeNull();
+    expect(screen.getByText('Alex Draft')).not.toBeNull();
+    const family = await familyApi();
+    expect(family.createFamilyMember).not.toHaveBeenCalled();
+    await user.click(screen.getByRole('button', { name: 'Doorgaan' }));
+    await user.click(screen.getByRole('button', { name: 'Gezin controleren' }));
+    await user.click(screen.getByRole('button', { name: 'Alex Draft verwijderen' }));
+    expect(screen.getByText('Geen volwassenen toegevoegd.')).not.toBeNull();
+    expect(screen.getByRole('button', { name: 'Doorgaan' }).hasAttribute('disabled')).toBe(true);
+    await user.click(screen.getByRole('button', { name: 'Volwassenen bewerken' }));
+    expect(screen.getByText('Volwassenen toevoegen')).not.toBeNull();
   });
 });

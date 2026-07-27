@@ -5758,6 +5758,18 @@
           "Onboarding"
         ],
         "operationId": "CompleteOnboarding",
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompleteOnboardingRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
         "responses": {
           "200": {
             "description": "",
@@ -5765,6 +5777,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/OnboardingStatusDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
                 }
               }
             }
@@ -11814,6 +11836,66 @@
           },
           "requiresOnboarding": {
             "type": "boolean"
+          }
+        }
+      },
+      "CompleteOnboardingRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "householdName",
+          "timeZoneId",
+          "members"
+        ],
+        "properties": {
+          "householdName": {
+            "type": "string",
+            "minLength": 1
+          },
+          "timeZoneId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "members": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OnboardingMemberRequest"
+            }
+          }
+        }
+      },
+      "OnboardingMemberRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "displayColor",
+          "initials",
+          "avatarSelection"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "displayColor": {
+            "type": "string",
+            "minLength": 1
+          },
+          "initials": {
+            "type": "string",
+            "minLength": 1
+          },
+          "memberKind": {
+            "$ref": "#/components/schemas/FamilyMemberKind"
+          },
+          "dateOfBirth": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "avatarSelection": {
+            "$ref": "#/components/schemas/AvatarSelectionDto"
           }
         }
       },
