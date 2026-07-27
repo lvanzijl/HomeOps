@@ -34,15 +34,53 @@ function Invoke-Git {
         [switch]$AllowFailure
     )
 
-    $output = & git @Arguments 2>&1
-    $exitCode = $LASTEXITCODE
+    $gitCommand = Get-Command git -CommandType Application -ErrorAction SilentlyContinue |
+        Select-Object -First 1
+    if (-not $gitCommand) {
+        throw "Git was not found on PATH."
+    }
+
+    $startInfo = New-Object System.Diagnostics.ProcessStartInfo
+    $startInfo.FileName = $gitCommand.Source
+    $startInfo.Arguments = (($Arguments | ForEach-Object {
+        ConvertTo-NativeArgument -Value $_
+    }) -join " ")
+    $startInfo.UseShellExecute = $false
+    $startInfo.CreateNoWindow = $true
+    $startInfo.RedirectStandardOutput = $true
+    $startInfo.RedirectStandardError = $true
+
+    $process = New-Object System.Diagnostics.Process
+    $process.StartInfo = $startInfo
+    try {
+        if (-not $process.Start()) {
+            throw "Git did not start."
+        }
+
+        $stdoutTask = $process.StandardOutput.ReadToEndAsync()
+        $stderrTask = $process.StandardError.ReadToEndAsync()
+        $process.WaitForExit()
+        $stdout = $stdoutTask.GetAwaiter().GetResult()
+        $stderr = $stderrTask.GetAwaiter().GetResult()
+        $exitCode = $process.ExitCode
+    }
+    finally {
+        $process.Dispose()
+    }
+
+    $output = @(($stdout -split "\r?\n") |
+        Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+    $errorOutput = @(($stderr -split "\r?\n") |
+        Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
     if (-not $AllowFailure -and $exitCode -ne 0) {
-        throw "git $($Arguments -join ' ') failed with exit code $exitCode.`n$($output -join [Environment]::NewLine)"
+        $details = @($output + $errorOutput) -join [Environment]::NewLine
+        throw "git $($Arguments -join ' ') failed with exit code $exitCode.`n$details"
     }
 
     return [pscustomobject]@{
         ExitCode = $exitCode
         Output = @($output)
+        ErrorOutput = @($errorOutput)
     }
 }
 
@@ -356,6 +394,138 @@ function Get-CodexChildPathEntries {
     return @($entries |
         Where-Object { -not [string]::IsNullOrWhiteSpace($_) } |
         Select-Object -Unique)
+}
+
+function Resolve-PnpmExecutable {
+    param(
+        [string[]]$AdditionalPathEntries = @()
+    )
+
+    $pnpm = Get-Command pnpm.cmd, pnpm -CommandType Application `
+        -ErrorAction SilentlyContinue |
+        Select-Object -First 1
+    if ($pnpm) {
+        return $pnpm.Source
+    }
+
+    foreach ($directory in $AdditionalPathEntries) {
+        foreach ($name in @("pnpm.cmd", "pnpm.exe")) {
+            $candidate = Join-Path $directory $name
+            if (Test-Path -LiteralPath $candidate -PathType Leaf) {
+                return [System.IO.Path]::GetFullPath($candidate)
+            }
+        }
+    }
+
+    throw "pnpm was not found for parent-owned contract generation."
+}
+
+function Invoke-ParentNSwagRepair {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$RepositoryRoot,
+        [string[]]$AdditionalPathEntries = @()
+    )
+
+    $pnpm = Resolve-PnpmExecutable `
+        -AdditionalPathEntries $AdditionalPathEntries
+    $generatedFiles = @(
+        "src/HomeOps.Contracts/openapi.json",
+        "src/HomeOps.Client/src/api/homeOpsApiClient.ts"
+    )
+    foreach ($relativePath in $generatedFiles) {
+        $generatedPath = Join-Path $RepositoryRoot $relativePath
+        if (-not (Test-Path -LiteralPath $generatedPath -PathType Leaf)) {
+            throw "Required generated contract file was not found: $relativePath"
+        }
+    }
+
+    $originalPath = $env:PATH
+    if ($AdditionalPathEntries.Count -gt 0) {
+        $additionalPath = $AdditionalPathEntries -join (
+            [System.IO.Path]::PathSeparator
+        )
+        $env:PATH = $additionalPath +
+            [System.IO.Path]::PathSeparator +
+            $originalPath
+    }
+
+    Push-Location $RepositoryRoot
+    try {
+        & $pnpm dlx nswag@14.7.1 run nswag.json
+        if ($LASTEXITCODE -ne 0) {
+            throw "Parent NSwag run 1 failed with exit code $LASTEXITCODE."
+        }
+
+        $firstHashes = @{}
+        foreach ($relativePath in $generatedFiles) {
+            $firstHashes[$relativePath] = (
+                Get-FileHash `
+                    -Algorithm SHA256 `
+                    -LiteralPath (Join-Path $RepositoryRoot $relativePath)
+            ).Hash
+        }
+
+        & $pnpm dlx nswag@14.7.1 run nswag.json
+        if ($LASTEXITCODE -ne 0) {
+            throw "Parent NSwag run 2 failed with exit code $LASTEXITCODE."
+        }
+
+        foreach ($relativePath in $generatedFiles) {
+            $secondHash = (
+                Get-FileHash `
+                    -Algorithm SHA256 `
+                    -LiteralPath (Join-Path $RepositoryRoot $relativePath)
+            ).Hash
+            if ($secondHash -ne $firstHashes[$relativePath]) {
+                throw "Parent NSwag generation was not idempotent: $relativePath"
+            }
+        }
+    }
+    finally {
+        Pop-Location
+        $env:PATH = $originalPath
+    }
+
+    return [pscustomobject]@{
+        Action = "parent_nswag_generation"
+        Command = "pnpm dlx nswag@14.7.1 run nswag.json"
+        Passed = $true
+        Summary = (
+            "The parent ran pinned NSwag twice; the second run left " +
+            "OpenAPI and the generated TypeScript client unchanged."
+        )
+    }
+}
+
+function Test-ParentNSwagRepairRequired {
+    param(
+        [AllowNull()]
+        [string]$FailureReason,
+        [AllowNull()]
+        [object]$Result
+    )
+
+    if ($FailureReason -match "(?i)\b(nswag|pnpm)\b") {
+        return $true
+    }
+    if ($null -eq $Result) {
+        return $false
+    }
+
+    foreach ($validation in @($Result.validations)) {
+        if (
+            -not $validation.passed -and
+            (
+                ([string]$validation.command) -match "(?i)\b(nswag|pnpm)\b" -or
+                ([string]$validation.summary) -match "(?i)\b(nswag|pnpm)\b"
+            )
+        ) {
+            return $true
+        }
+    }
+
+    return $false
 }
 
 function Test-ResultSliceMatch {
@@ -740,6 +910,60 @@ function Assert-BlockedResult {
     }
 }
 
+function Test-RepairResult {
+    param(
+        [Parameter(Mandatory = $true)]
+        [object]$Result,
+        [Parameter(Mandatory = $true)]
+        [string]$ExpectedSlice,
+        [Parameter(Mandatory = $true)]
+        [int]$ExpectedFailedAttempt
+    )
+
+    $errors = @()
+    if (-not (Test-ResultSliceMatch `
+        -ActualSlice $Result.slice `
+        -ExpectedSlice $ExpectedSlice)) {
+        $errors += "Repair result slice '$($Result.slice)' does not match '$ExpectedSlice'."
+    }
+    if ([int]$Result.failed_attempt -ne $ExpectedFailedAttempt) {
+        $errors += (
+            "Repair result attempt '$($Result.failed_attempt)' does not match " +
+            "'$ExpectedFailedAttempt'."
+        )
+    }
+
+    switch ([string]$Result.outcome) {
+        "fixed" {
+            if (@($Result.validations).Count -eq 0) {
+                $errors += "A fixed repair contains no focused validation."
+            }
+            elseif (@(
+                $Result.validations |
+                    Where-Object { -not $_.passed }
+            ).Count -gt 0) {
+                $errors += "A fixed repair reports a failed validation."
+            }
+            if ($Result.blocker) {
+                $errors += "A fixed repair must not contain a blocker."
+            }
+        }
+        "blocked" {
+            if ([string]::IsNullOrWhiteSpace([string]$Result.blocker)) {
+                $errors += "A blocked repair must contain a concrete blocker."
+            }
+        }
+        "unresolved" {
+            # A subsequent full slice attempt remains the authority.
+        }
+        default {
+            $errors += "Unsupported repair outcome: $($Result.outcome)"
+        }
+    }
+
+    return @($errors)
+}
+
 function New-SliceCommit {
     param(
         [Parameter(Mandatory = $true)]
@@ -771,14 +995,26 @@ $resolvedPlanPath = Resolve-RepositoryPath `
 $templatePath = Resolve-RepositoryPath `
     -RepositoryRoot $repositoryRoot `
     -Path "tools/remediation/prompts/implement-slice.md"
+$repairTemplatePath = Resolve-RepositoryPath `
+    -RepositoryRoot $repositoryRoot `
+    -Path "tools/remediation/prompts/repair-slice-failure.md"
 $schemaPath = Resolve-RepositoryPath `
     -RepositoryRoot $repositoryRoot `
     -Path "tools/remediation/slice-result.schema.json"
+$repairSchemaPath = Resolve-RepositoryPath `
+    -RepositoryRoot $repositoryRoot `
+    -Path "tools/remediation/repair-result.schema.json"
 $resolvedRunDirectory = Resolve-RepositoryPath `
     -RepositoryRoot $repositoryRoot `
     -Path $RunDirectory
 
-foreach ($requiredFile in @($resolvedPlanPath, $templatePath, $schemaPath)) {
+foreach ($requiredFile in @(
+    $resolvedPlanPath,
+    $templatePath,
+    $repairTemplatePath,
+    $schemaPath,
+    $repairSchemaPath
+)) {
     if (-not (Test-Path -LiteralPath $requiredFile -PathType Leaf)) {
         throw "Required file was not found: $requiredFile"
     }
@@ -815,6 +1051,7 @@ if ($endIndex -lt $currentIndex) {
 $selected = $slices[$currentIndex]
 
 $template = [System.IO.File]::ReadAllText($templatePath)
+$repairTemplate = [System.IO.File]::ReadAllText($repairTemplatePath)
 $relativePlanPath = Get-RepositoryRelativePath `
     -RepositoryRoot $repositoryRoot `
     -Path $resolvedPlanPath
@@ -947,8 +1184,11 @@ Prompt: $($latestFailure.Prompt)
 Structured result: $($latestFailure.Result)
 Event log: $($latestFailure.Events)
 Progress log: $($latestFailure.Progress)
+Repair outcome: $($latestFailure.RepairOutcome)
+Repair report: $($latestFailure.RepairReport)
 
 Preserve valid existing changes. Inspect the current worktree and the retained evidence instead of restarting blindly. If the blocker can be fixed inside the authorized repository and environment, fix it and complete the slice. Return blocked again only when the remaining condition genuinely requires user input, new authority, or an external-state change.
+If the repair report proves that the parent successfully ran pinned NSwag twice, treat that parent command as valid execution evidence and do not rerun it inside the restricted child sandbox.
 "@
             }
 
@@ -1144,6 +1384,8 @@ Treat this as part of the attempt. Diagnose and repair it if possible within the
                 Result = $resultPath
                 Events = $eventsPath
                 Progress = $progressPath
+                RepairOutcome = "not_run"
+                RepairReport = $null
             }
             $attemptFailures += $failureRecord
             [pscustomobject]@{
@@ -1201,8 +1443,244 @@ Treat this as part of the attempt. Diagnose and repair it if possible within the
                 )
             }
 
+            Reset-SliceForRetry `
+                -ResolvedPlanPath $resolvedPlanPath `
+                -SliceId $slice.Id
+
+            $parentRepairReportPath = Join-Path $resolvedRunDirectory (
+                "$runName-parent-repair.json"
+            )
+            $parentRepairEvidence = (
+                "No allowlisted parent repair was required for this failure."
+            )
+            $repairWasFixed = $false
+
+            if (Test-ParentNSwagRepairRequired `
+                -FailureReason $attemptFailure `
+                -Result $result) {
+                Write-Host (
+                    (
+                        "Starting parent repair for Slice {0} after attempt {1}: pinned NSwag generation."
+                    ) -f
+                        $slice.Id,
+                        $attemptNumber
+                )
+                try {
+                    $parentRepair = Invoke-ParentNSwagRepair `
+                        -RepositoryRoot $repositoryRoot `
+                        -AdditionalPathEntries $codexChildPathEntries
+                    [pscustomobject]@{
+                        slice = $slice.Id
+                        failed_attempt = $attemptNumber
+                        outcome = "fixed"
+                        action = $parentRepair.Action
+                        command = $parentRepair.Command
+                        passed = $parentRepair.Passed
+                        summary = $parentRepair.Summary
+                    } | ConvertTo-Json -Depth 5 |
+                        ForEach-Object {
+                            [System.IO.File]::WriteAllText(
+                                $parentRepairReportPath,
+                                $_,
+                                $script:Utf8NoBom
+                            )
+                        }
+                    $parentRepairEvidence = (
+                        "Passed parent repair. Report: " +
+                        $parentRepairReportPath +
+                        ". " +
+                        $parentRepair.Summary
+                    )
+                    $repairWasFixed = $true
+                    $failureRecord.RepairOutcome = "fixed"
+                    $failureRecord.RepairReport = $parentRepairReportPath
+                    Write-Host $parentRepair.Summary
+                }
+                catch {
+                    $parentRepairFailure = $_.Exception.Message
+                    [pscustomobject]@{
+                        slice = $slice.Id
+                        failed_attempt = $attemptNumber
+                        outcome = "unresolved"
+                        action = "parent_nswag_generation"
+                        command = "pnpm dlx nswag@14.7.1 run nswag.json"
+                        passed = $false
+                        summary = $parentRepairFailure
+                    } | ConvertTo-Json -Depth 5 |
+                        ForEach-Object {
+                            [System.IO.File]::WriteAllText(
+                                $parentRepairReportPath,
+                                $_,
+                                $script:Utf8NoBom
+                            )
+                        }
+                    $parentRepairEvidence = (
+                        "Parent repair failed. Report: " +
+                        $parentRepairReportPath +
+                        ". Failure: " +
+                        $parentRepairFailure
+                    )
+                    Write-Warning $parentRepairEvidence
+                }
+            }
+
+            if (-not $repairWasFixed) {
+                $repairName = "$runName-repair"
+                $repairPromptPath = Join-Path $resolvedRunDirectory (
+                    "$repairName-prompt.md"
+                )
+                $repairResultPath = Join-Path $resolvedRunDirectory (
+                    "$repairName-result.json"
+                )
+                $repairEventsPath = Join-Path $resolvedRunDirectory (
+                    "$repairName-events.jsonl"
+                )
+                $repairProgressPath = Join-Path $resolvedRunDirectory (
+                    "$repairName-progress.log"
+                )
+                $repairFailurePath = Join-Path $resolvedRunDirectory (
+                    "$repairName-failure.json"
+                )
+                $repairPrompt = Expand-PromptTemplate `
+                    -Template $repairTemplate `
+                    -Values @{
+                        REPOSITORY_ROOT = $repositoryRoot
+                        PLAN_PATH = $relativePlanPath
+                        SLICE_ID = $slice.Id
+                        SLICE_TITLE = $slice.Title
+                        FAILED_ATTEMPT = $attemptNumber
+                        MAX_ATTEMPTS = $MaxAttemptsPerSlice
+                        FAILURE_REASON = $attemptFailure
+                        FAILURE_REPORT = $failureReportPath
+                        FAILED_PROMPT = $promptPath
+                        FAILED_RESULT = $resultPath
+                        FAILED_EVENTS = $eventsPath
+                        FAILED_PROGRESS = $progressPath
+                        PARENT_REPAIR_EVIDENCE = $parentRepairEvidence
+                    }
+                [System.IO.File]::WriteAllText(
+                    $repairPromptPath,
+                    $repairPrompt,
+                    $script:Utf8NoBom
+                )
+
+                Write-Host (
+                    (
+                        "Starting dedicated repair for Slice {0} after failed attempt {1}."
+                    ) -f
+                        $slice.Id,
+                        $attemptNumber
+                )
+                $repairFailure = $null
+                $repairResult = $null
+                try {
+                    $repairProcessResult = Invoke-CodexSlice `
+                        -Executable $codexExecutable `
+                        -RepositoryRoot $repositoryRoot `
+                        -Prompt $repairPrompt `
+                        -SchemaPath $repairSchemaPath `
+                        -ResultPath $repairResultPath `
+                        -EventsPath $repairEventsPath `
+                        -ProgressPath $repairProgressPath `
+                        -SandboxMode $Sandbox `
+                        -Timeout $TimeoutMinutes `
+                        -RequestedModel $Model `
+                        -AdditionalPathEntries $codexChildPathEntries
+
+                    if ($repairProcessResult.ExitCode -ne 0) {
+                        throw (
+                            "Repair Codex exited with code " +
+                            "$($repairProcessResult.ExitCode). See " +
+                            $repairProgressPath
+                        )
+                    }
+                    $repairEventErrors = @(
+                        Test-CodexEventStream `
+                            -JsonLines $repairProcessResult.Stdout
+                    )
+                    if ($repairEventErrors.Count -gt 0) {
+                        throw (
+                            "Repair event validation failed:`n- " +
+                            ($repairEventErrors -join "`n- ")
+                        )
+                    }
+                    if (-not (
+                        Test-Path `
+                            -LiteralPath $repairResultPath `
+                            -PathType Leaf
+                    )) {
+                        throw (
+                            "Repair Codex did not write its structured result: " +
+                            $repairResultPath
+                        )
+                    }
+
+                    try {
+                        $repairResult = [System.IO.File]::ReadAllText(
+                            $repairResultPath
+                        ) | ConvertFrom-Json
+                    }
+                    catch {
+                        throw (
+                            "Repair Codex wrote an invalid structured result: " +
+                            $repairResultPath
+                        )
+                    }
+
+                    $repairErrors = @(
+                        Test-RepairResult `
+                            -Result $repairResult `
+                            -ExpectedSlice $slice.Id `
+                            -ExpectedFailedAttempt $attemptNumber
+                    )
+                    if ($repairErrors.Count -gt 0) {
+                        throw (
+                            "Repair result validation failed:`n- " +
+                            ($repairErrors -join "`n- ")
+                        )
+                    }
+
+                    $failureRecord.RepairOutcome = [string]$repairResult.outcome
+                    $failureRecord.RepairReport = $repairResultPath
+                    $repairWasFixed = $repairResult.outcome -eq "fixed"
+                }
+                catch {
+                    $repairFailure = $_.Exception.Message
+                    [pscustomobject]@{
+                        slice = $slice.Id
+                        failed_attempt = $attemptNumber
+                        outcome = "unresolved"
+                        failed_at = [DateTimeOffset]::Now.ToString("o")
+                        reason = $repairFailure
+                        evidence = [pscustomobject]@{
+                            prompt = $repairPromptPath
+                            result = $repairResultPath
+                            events = $repairEventsPath
+                            progress = $repairProgressPath
+                            parent_repair = $parentRepairReportPath
+                        }
+                    } | ConvertTo-Json -Depth 6 |
+                        ForEach-Object {
+                            [System.IO.File]::WriteAllText(
+                                $repairFailurePath,
+                                $_,
+                                $script:Utf8NoBom
+                            )
+                        }
+                    $failureRecord.RepairOutcome = "unresolved"
+                    $failureRecord.RepairReport = $repairFailurePath
+                    Write-Warning (
+                        "Dedicated repair did not resolve the failure: " +
+                        $repairFailure
+                    )
+                }
+            }
+
             Write-Host (
-                "Retrying Slice {0} with the failure report and retained logs." -f
+                (
+                    "Repair phase finished with outcome '{0}'. Starting a fresh Slice {1} attempt next."
+                ) -f
+                    $failureRecord.RepairOutcome,
                     $slice.Id
             )
         }

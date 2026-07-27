@@ -33,7 +33,7 @@ Repository toolchain commands:
 - The orchestrator adds the bundled Node and pnpm directories to `PATH`.
 - The parent orchestrator attempts `dotnet restore HomeOps.sln` outside the child sandbox immediately before this run. If that preflight fails, the failure is appended to this prompt for diagnosis. When no failure is appended, do not repeat restore unless this slice changes a project or package dependency file; use `--no-restore` for the normal build.
 - Generate contracts with `pnpm dlx nswag@14.7.1 run nswag.json`; do not substitute `npx` or unpinned `pnpm exec`.
-- Run NSwag a second time and verify that `src/HomeOps.Contracts/openapi.json` and `src/HomeOps.Client/src/api/homeOpsApiClient.ts` do not change.
+- Run NSwag a second time and verify that `src/HomeOps.Contracts/openapi.json` and `src/HomeOps.Client/src/api/homeOpsApiClient.ts` do not change. Exception: when the recovery context includes a successful parent-owned NSwag repair report, treat those two parent runs as actual validation evidence and do not rerun the inaccessible command inside the child sandbox.
 
 Your final response must conform exactly to the supplied JSON schema.
 Set `slice` to exactly `{{SLICE_ID}}`; return the ID only, without the title.
