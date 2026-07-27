@@ -5,6 +5,8 @@ param(
     [string]$EndSlice,
     [ValidateRange(1, 100)]
     [int]$MaxSlices = 1,
+    [ValidateRange(1, 10)]
+    [int]$MaxAttemptsPerSlice = 3,
     [switch]$Execute,
     [switch]$CommitAfterSlice,
     [switch]$AllowDirtyWorkingTree,
@@ -169,6 +171,12 @@ function Select-InitialSliceIndex {
     }
 
     for ($index = 0; $index -lt $Slices.Count; $index++) {
+        if ($Slices[$index].Status -eq "Blocked") {
+            return $index
+        }
+    }
+
+    for ($index = 0; $index -lt $Slices.Count; $index++) {
         if ($Slices[$index].Status -eq "Not started") {
             return $index
         }
@@ -190,13 +198,38 @@ function Set-SliceInProgress {
     $sliceIndex = Get-SliceIndex -Slices $slices -SliceId $SliceId
     $slice = $slices[$sliceIndex]
 
-    if ($slice.Status -eq "Blocked") {
-        throw "Slice $SliceId is Blocked. Resolve and document the blocker before rerunning it."
-    }
-
     if ($slice.Status -eq "Completed") {
         throw "Slice $SliceId is already Completed."
     }
+
+    if ($slice.Status -eq "In progress") {
+        return
+    }
+
+    $updatedRaw = [regex]::Replace(
+        $slice.Raw,
+        $script:StatusPattern,
+        '- [ ] **Status: In progress**',
+        1
+    )
+    $updatedText = $text.Substring(0, $slice.Index) +
+        $updatedRaw +
+        $text.Substring($slice.Index + $slice.Length)
+    [System.IO.File]::WriteAllText($ResolvedPlanPath, $updatedText, $script:Utf8NoBom)
+}
+
+function Reset-SliceForRetry {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$ResolvedPlanPath,
+        [Parameter(Mandatory = $true)]
+        [string]$SliceId
+    )
+
+    $text = [System.IO.File]::ReadAllText($ResolvedPlanPath)
+    $slices = @(Get-PlanSlices -Text $text)
+    $sliceIndex = Get-SliceIndex -Slices $slices -SliceId $SliceId
+    $slice = $slices[$sliceIndex]
 
     if ($slice.Status -eq "In progress") {
         return
@@ -780,9 +813,6 @@ if ($endIndex -lt $currentIndex) {
 }
 
 $selected = $slices[$currentIndex]
-if ($selected.Status -eq "Blocked") {
-    throw "The next selected slice, $($selected.Id), is Blocked."
-}
 
 $template = [System.IO.File]::ReadAllText($templatePath)
 $relativePlanPath = Get-RepositoryRelativePath `
@@ -794,12 +824,16 @@ $previewPrompt = Expand-PromptTemplate -Template $template -Values @{
     SLICE_ID = $selected.Id
     SLICE_TITLE = $selected.Title
     SLICE_TEXT = $selected.Raw
+    ATTEMPT_NUMBER = 1
+    MAX_ATTEMPTS = $MaxAttemptsPerSlice
+    RECOVERY_CONTEXT = "This is the first attempt. No prior failure evidence exists."
 }
 
 Write-Host "Selected Slice $($selected.Id) - $($selected.Title)"
 Write-Host "Current status: $($selected.Status)"
 Write-Host "Mode: $(if ($Execute) { 'execute' } else { 'dry run' })"
 Write-Host "Maximum slices: $MaxSlices"
+Write-Host "Maximum attempts per slice: $MaxAttemptsPerSlice"
 if ($EndSlice) {
     Write-Host "End boundary: Slice $EndSlice"
 }
@@ -876,122 +910,301 @@ try {
             $currentIndex++
             continue
         }
-        if ($slice.Status -eq "Blocked") {
-            throw "Slice $($slice.Id) is Blocked. The orchestrator will not skip it."
-        }
 
-        Write-Host "Running the .NET restore gate outside the child sandbox."
-        Invoke-ParentDotNetRestore -RepositoryRoot $repositoryRoot
+        $attemptNumber = 0
+        $attemptFailures = @()
+        $slicePassed = $false
 
-        Set-SliceInProgress -ResolvedPlanPath $resolvedPlanPath -SliceId $slice.Id
-        $planText = [System.IO.File]::ReadAllText($resolvedPlanPath)
-        $slices = @(Get-PlanSlices -Text $planText)
-        $slice = $slices[$currentIndex]
+        while (-not $slicePassed -and $attemptNumber -lt $MaxAttemptsPerSlice) {
+            $attemptNumber++
+            if ($attemptNumber -eq 1) {
+                Set-SliceInProgress `
+                    -ResolvedPlanPath $resolvedPlanPath `
+                    -SliceId $slice.Id
+            }
+            else {
+                Reset-SliceForRetry `
+                    -ResolvedPlanPath $resolvedPlanPath `
+                    -SliceId $slice.Id
+            }
 
-        $prompt = Expand-PromptTemplate -Template $template -Values @{
-            REPOSITORY_ROOT = $repositoryRoot
-            PLAN_PATH = $relativePlanPath
-            SLICE_ID = $slice.Id
-            SLICE_TITLE = $slice.Title
-            SLICE_TEXT = $slice.Raw
-        }
+            $planText = [System.IO.File]::ReadAllText($resolvedPlanPath)
+            $slices = @(Get-PlanSlices -Text $planText)
+            $slice = $slices[$currentIndex]
 
-        $timestamp = Get-Date -Format "yyyyMMdd-HHmmssfff"
-        $safeSlice = $slice.Id.Replace(".", "-")
-        $runName = "$timestamp-slice-$safeSlice"
-        $promptPath = Join-Path $resolvedRunDirectory "$runName-prompt.md"
-        $resultPath = Join-Path $resolvedRunDirectory "$runName-result.json"
-        $eventsPath = Join-Path $resolvedRunDirectory "$runName-events.jsonl"
-        $progressPath = Join-Path $resolvedRunDirectory "$runName-progress.log"
-        $manifestPath = Join-Path $resolvedRunDirectory "$runName-manifest.json"
+            $recoveryContext = if ($attemptFailures.Count -eq 0) {
+                "This is the first attempt. No prior failure evidence exists."
+            }
+            else {
+                $latestFailure = $attemptFailures[-1]
+                @"
+This is recovery attempt $attemptNumber of $MaxAttemptsPerSlice for the same slice.
+The prior attempt failed. Diagnose and repair its root cause before repeating the incomplete work or validation.
 
-        [System.IO.File]::WriteAllText($promptPath, $prompt, $script:Utf8NoBom)
-        $head = Invoke-Git -Arguments @("-C", $repositoryRoot, "rev-parse", "HEAD")
-        [pscustomobject]@{
-            slice = $slice.Id
-            title = $slice.Title
-            started_at = [DateTimeOffset]::Now.ToString("o")
-            head = ($head.Output | Select-Object -First 1)
-            plan = $relativePlanPath
-            sandbox = $Sandbox
-            timeout_minutes = $TimeoutMinutes
-            model = if ($Model) { $Model } else { $null }
-        } | ConvertTo-Json -Depth 5 |
-            ForEach-Object {
-                [System.IO.File]::WriteAllText(
-                    $manifestPath,
-                    $_,
-                    $script:Utf8NoBom
+Prior failure: $($latestFailure.Reason)
+Failure report: $($latestFailure.FailureReport)
+Prompt: $($latestFailure.Prompt)
+Structured result: $($latestFailure.Result)
+Event log: $($latestFailure.Events)
+Progress log: $($latestFailure.Progress)
+
+Preserve valid existing changes. Inspect the current worktree and the retained evidence instead of restarting blindly. If the blocker can be fixed inside the authorized repository and environment, fix it and complete the slice. Return blocked again only when the remaining condition genuinely requires user input, new authority, or an external-state change.
+"@
+            }
+
+            $prompt = Expand-PromptTemplate -Template $template -Values @{
+                REPOSITORY_ROOT = $repositoryRoot
+                PLAN_PATH = $relativePlanPath
+                SLICE_ID = $slice.Id
+                SLICE_TITLE = $slice.Title
+                SLICE_TEXT = $slice.Raw
+                ATTEMPT_NUMBER = $attemptNumber
+                MAX_ATTEMPTS = $MaxAttemptsPerSlice
+                RECOVERY_CONTEXT = $recoveryContext
+            }
+
+            $timestamp = Get-Date -Format "yyyyMMdd-HHmmssfff"
+            $safeSlice = $slice.Id.Replace(".", "-")
+            $runName = "$timestamp-slice-$safeSlice-attempt-$attemptNumber"
+            $promptPath = Join-Path $resolvedRunDirectory "$runName-prompt.md"
+            $resultPath = Join-Path $resolvedRunDirectory "$runName-result.json"
+            $eventsPath = Join-Path $resolvedRunDirectory "$runName-events.jsonl"
+            $progressPath = Join-Path $resolvedRunDirectory "$runName-progress.log"
+            $manifestPath = Join-Path $resolvedRunDirectory "$runName-manifest.json"
+            $failureReportPath = Join-Path $resolvedRunDirectory "$runName-failure.json"
+
+            [System.IO.File]::WriteAllText(
+                $promptPath,
+                $prompt,
+                $script:Utf8NoBom
+            )
+            $head = Invoke-Git -Arguments @(
+                "-C",
+                $repositoryRoot,
+                "rev-parse",
+                "HEAD"
+            )
+            [pscustomobject]@{
+                slice = $slice.Id
+                title = $slice.Title
+                attempt = $attemptNumber
+                maximum_attempts = $MaxAttemptsPerSlice
+                started_at = [DateTimeOffset]::Now.ToString("o")
+                head = ($head.Output | Select-Object -First 1)
+                plan = $relativePlanPath
+                sandbox = $Sandbox
+                timeout_minutes = $TimeoutMinutes
+                model = if ($Model) { $Model } else { $null }
+            } | ConvertTo-Json -Depth 5 |
+                ForEach-Object {
+                    [System.IO.File]::WriteAllText(
+                        $manifestPath,
+                        $_,
+                        $script:Utf8NoBom
+                    )
+                }
+
+            Write-Host ""
+            Write-Host (
+                "Starting Codex for Slice {0}, attempt {1} of {2}." -f
+                    $slice.Id,
+                    $attemptNumber,
+                    $MaxAttemptsPerSlice
+            )
+            Write-Host "Run log prefix: $runName"
+
+            $attemptFailure = $null
+            $result = $null
+            $resultOutcome = $null
+            try {
+                Write-Host (
+                    "Running the .NET restore gate outside the child sandbox."
+                )
+                try {
+                    Invoke-ParentDotNetRestore -RepositoryRoot $repositoryRoot
+                }
+                catch {
+                    $restoreFailure = $_.Exception.Message
+                    Write-Warning (
+                        "The parent .NET restore gate failed. Codex will receive " +
+                        "the failure and may diagnose or repair the environment: " +
+                        $restoreFailure
+                    )
+                    $prompt += @"
+
+## Parent preflight failure
+
+The parent orchestrator could not complete `dotnet restore HomeOps.sln` before this attempt:
+
+$restoreFailure
+
+Treat this as part of the attempt. Diagnose and repair it if possible within the authorized repository and environment. Do not claim the restore gate passed unless you subsequently ran it successfully.
+"@
+                    [System.IO.File]::WriteAllText(
+                        $promptPath,
+                        $prompt,
+                        $script:Utf8NoBom
+                    )
+                }
+
+                $processResult = Invoke-CodexSlice `
+                    -Executable $codexExecutable `
+                    -RepositoryRoot $repositoryRoot `
+                    -Prompt $prompt `
+                    -SchemaPath $schemaPath `
+                    -ResultPath $resultPath `
+                    -EventsPath $eventsPath `
+                    -ProgressPath $progressPath `
+                    -SandboxMode $Sandbox `
+                    -Timeout $TimeoutMinutes `
+                    -RequestedModel $Model `
+                    -AdditionalPathEntries $codexChildPathEntries
+
+                if ($processResult.ExitCode -ne 0) {
+                    throw "Codex exited with code $($processResult.ExitCode). See $progressPath"
+                }
+
+                $eventErrors = @(
+                    Test-CodexEventStream -JsonLines $processResult.Stdout
+                )
+                if ($eventErrors.Count -gt 0) {
+                    throw "Codex event validation failed:`n- $($eventErrors -join "`n- ")"
+                }
+                if (-not (
+                    Test-Path -LiteralPath $resultPath -PathType Leaf
+                )) {
+                    throw "Codex did not write its structured result: $resultPath"
+                }
+
+                try {
+                    $result = [System.IO.File]::ReadAllText($resultPath) |
+                        ConvertFrom-Json
+                }
+                catch {
+                    throw "Codex wrote an invalid structured result: $resultPath"
+                }
+
+                $resultOutcome = [string]$result.outcome
+                switch ($resultOutcome) {
+                    "completed" {
+                        $completionErrors = @(
+                            Test-CompletedResult `
+                                -Result $result `
+                                -ExpectedSlice $slice.Id `
+                                -RepositoryRoot $repositoryRoot `
+                                -ResolvedPlanPath $resolvedPlanPath
+                        )
+                        if ($completionErrors.Count -gt 0) {
+                            throw "Completion gate failed:`n- $($completionErrors -join "`n- ")"
+                        }
+
+                        $slicePassed = $true
+                    }
+                    "blocked" {
+                        Assert-BlockedResult `
+                            -Result $result `
+                            -ExpectedSlice $slice.Id `
+                            -ResolvedPlanPath $resolvedPlanPath
+                        throw "Codex reported Slice $($slice.Id) as blocked: $($result.blocker)"
+                    }
+                    "failed" {
+                        throw "Codex reported Slice $($slice.Id) as failed: $($result.summary)"
+                    }
+                    default {
+                        throw "Codex returned an unsupported outcome: $resultOutcome"
+                    }
+                }
+            }
+            catch {
+                $attemptFailure = $_.Exception.Message
+            }
+
+            if ($slicePassed) {
+                Write-Host (
+                    "Slice {0} passed every orchestration gate on attempt {1}." -f
+                        $slice.Id,
+                        $attemptNumber
+                )
+                $completedCount++
+                if ($CommitAfterSlice) {
+                    New-SliceCommit `
+                        -RepositoryRoot $repositoryRoot `
+                        -Slice $slice
+                    Write-Host "Committed Slice $($slice.Id)."
+                }
+                break
+            }
+
+            $failureRecord = [pscustomobject]@{
+                Slice = $slice.Id
+                Attempt = $attemptNumber
+                Reason = $attemptFailure
+                FailureReport = $failureReportPath
+                Prompt = $promptPath
+                Result = $resultPath
+                Events = $eventsPath
+                Progress = $progressPath
+            }
+            $attemptFailures += $failureRecord
+            [pscustomobject]@{
+                slice = $slice.Id
+                title = $slice.Title
+                attempt = $attemptNumber
+                maximum_attempts = $MaxAttemptsPerSlice
+                failed_at = [DateTimeOffset]::Now.ToString("o")
+                outcome = if ($resultOutcome) {
+                    $resultOutcome
+                }
+                else {
+                    "orchestrator_error"
+                }
+                reason = $attemptFailure
+                evidence = [pscustomobject]@{
+                    prompt = $promptPath
+                    result = $resultPath
+                    events = $eventsPath
+                    progress = $progressPath
+                    manifest = $manifestPath
+                }
+            } | ConvertTo-Json -Depth 6 |
+                ForEach-Object {
+                    [System.IO.File]::WriteAllText(
+                        $failureReportPath,
+                        $_,
+                        $script:Utf8NoBom
+                    )
+                }
+
+            Write-Warning (
+                "Slice {0} attempt {1} of {2} failed: {3}" -f
+                    $slice.Id,
+                    $attemptNumber,
+                    $MaxAttemptsPerSlice,
+                    $attemptFailure
+            )
+            Write-Host "Failure report: $failureReportPath"
+
+            if ($attemptNumber -ge $MaxAttemptsPerSlice) {
+                if ($resultOutcome -ne "blocked") {
+                    Reset-SliceForRetry `
+                        -ResolvedPlanPath $resolvedPlanPath `
+                        -SliceId $slice.Id
+                }
+                throw (
+                    (
+                        "Slice {0} failed {1} times. The orchestrator stopped. Latest failure: {2}. Failure report: {3}"
+                    ) -f
+                    $slice.Id,
+                    $MaxAttemptsPerSlice,
+                    $attemptFailure,
+                    $failureReportPath
                 )
             }
 
-        Write-Host ""
-        Write-Host "Starting Codex for Slice $($slice.Id)."
-        Write-Host "Run log prefix: $runName"
-        $processResult = Invoke-CodexSlice `
-            -Executable $codexExecutable `
-            -RepositoryRoot $repositoryRoot `
-            -Prompt $prompt `
-            -SchemaPath $schemaPath `
-            -ResultPath $resultPath `
-            -EventsPath $eventsPath `
-            -ProgressPath $progressPath `
-            -SandboxMode $Sandbox `
-            -Timeout $TimeoutMinutes `
-            -RequestedModel $Model `
-            -AdditionalPathEntries $codexChildPathEntries
-
-        if ($processResult.ExitCode -ne 0) {
-            throw "Codex exited with code $($processResult.ExitCode). See $progressPath"
-        }
-
-        $eventErrors = @(Test-CodexEventStream -JsonLines $processResult.Stdout)
-        if ($eventErrors.Count -gt 0) {
-            throw "Codex event validation failed:`n- $($eventErrors -join "`n- ")"
-        }
-        if (-not (Test-Path -LiteralPath $resultPath -PathType Leaf)) {
-            throw "Codex did not write its structured result: $resultPath"
-        }
-
-        try {
-            $result = [System.IO.File]::ReadAllText($resultPath) | ConvertFrom-Json
-        }
-        catch {
-            throw "Codex wrote an invalid structured result: $resultPath"
-        }
-
-        switch ($result.outcome) {
-            "completed" {
-                $completionErrors = @(Test-CompletedResult `
-                    -Result $result `
-                    -ExpectedSlice $slice.Id `
-                    -RepositoryRoot $repositoryRoot `
-                    -ResolvedPlanPath $resolvedPlanPath)
-                if ($completionErrors.Count -gt 0) {
-                    throw "Completion gate failed:`n- $($completionErrors -join "`n- ")"
-                }
-
-                Write-Host "Slice $($slice.Id) passed every orchestration gate."
-                $completedCount++
-                if ($CommitAfterSlice) {
-                    New-SliceCommit -RepositoryRoot $repositoryRoot -Slice $slice
-                    Write-Host "Committed Slice $($slice.Id)."
-                }
-            }
-            "blocked" {
-                Assert-BlockedResult `
-                    -Result $result `
-                    -ExpectedSlice $slice.Id `
-                    -ResolvedPlanPath $resolvedPlanPath
-                Write-Host "Slice $($slice.Id) is blocked: $($result.blocker)"
-                exit 2
-            }
-            "failed" {
-                throw "Codex reported Slice $($slice.Id) as failed: $($result.summary)"
-            }
-            default {
-                throw "Codex returned an unsupported outcome: $($result.outcome)"
-            }
+            Write-Host (
+                "Retrying Slice {0} with the failure report and retained logs." -f
+                    $slice.Id
+            )
         }
 
         if ($currentIndex -eq $endIndex) {

@@ -9,6 +9,7 @@ $arguments = @{
     StartSlice = "2.4"
     EndSlice = "3.7"
     MaxSlices = 22
+    MaxAttemptsPerSlice = 3
 }
 
 if ($Execute) {
