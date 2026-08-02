@@ -44,6 +44,8 @@ Outcome rules:
 - `blocked`: further work requires a user decision, new authority, an external-state change, or a revised viewport analysis; the plan says Blocked and the blocker is documented.
 - `failed`: the run could not complete for another reason; the plan remains In progress.
 
+For a `completed` result, every listed validation must be a successful requirement check. Do not include a failed exploratory, diagnostic, or superseded command in its `validations` array; repair it, rerun a successful check, or return `failed`/`blocked` instead.
+
 For `documents_updated.implementation_report`, return a repository-relative Markdown file path, or null when no report could be created. List every validation command that actually ran. Set a failed validation's `passed` value to false. List repository-relative paths in `changed_files`.
 
 ## Slice contract

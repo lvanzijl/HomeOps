@@ -42,3 +42,13 @@ Follow-up validation passed:
 - Forced-failure sequencing: three full slice attempts, exactly two repair processes between them, three slice failure reports, two repair failure reports, and terminal stop.
 - Real allowlisted parent NSwag repair: both pinned runs passed and OpenAPI/client hashes remained unchanged.
 - Git warning separation: exit code zero, changed paths contained no warning text, and three line-ending warnings remained available only in `ErrorOutput`.
+
+## Dirty recovery baseline follow-up
+
+`AllowDirtyWorkingTree` previously permitted a one-slice recovery but the completion gate still compared the final worktree directly with `HEAD`. An unrelated pre-existing runner edit was therefore incorrectly charged to Slice 3.1 as an omitted changed file.
+
+The runner now snapshots the initial dirty worktree by repository-relative path and SHA-256 fingerprint. During completion review, an unchanged baseline file is ignored when it is not reported by the slice. A new file, a deleted file, or a baseline file whose fingerprint changed during the run remains subject to the normal changed-file, scope, required-document, and generated-artifact gates. This keeps dirty recovery bounded without silently accepting new unrelated work.
+
+The implementation prompt now also states that a `completed` result must not contain a failed exploratory or diagnostic validation. A child must repair and rerun it, omit it when it is not a requirement check, or return a non-completed outcome.
+
+Finally, parent NSwag stdout is discarded before the structured repair object is returned. This prevents pnpm progress output from turning the return value into an array and breaking the parent's `Action`/`Command` repair report.

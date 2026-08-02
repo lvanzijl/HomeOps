@@ -452,7 +452,7 @@ function Invoke-ParentNSwagRepair {
 
     Push-Location $RepositoryRoot
     try {
-        & $pnpm dlx nswag@14.7.1 run nswag.json
+        & $pnpm dlx nswag@14.7.1 run nswag.json | Out-Null
         if ($LASTEXITCODE -ne 0) {
             throw "Parent NSwag run 1 failed with exit code $LASTEXITCODE."
         }
@@ -466,7 +466,7 @@ function Invoke-ParentNSwagRepair {
             ).Hash
         }
 
-        & $pnpm dlx nswag@14.7.1 run nswag.json
+        & $pnpm dlx nswag@14.7.1 run nswag.json | Out-Null
         if ($LASTEXITCODE -ne 0) {
             throw "Parent NSwag run 2 failed with exit code $LASTEXITCODE."
         }
@@ -753,6 +753,58 @@ function Get-ChangedFiles {
         Sort-Object -Unique)
 }
 
+function Get-ChangedFileSnapshot {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$RepositoryRoot
+    )
+
+    $snapshot = @{}
+    foreach ($relativePath in @(Get-ChangedFiles -RepositoryRoot $RepositoryRoot)) {
+        $absolutePath = Join-Path $RepositoryRoot (
+            $relativePath.Replace("/", "\\")
+        )
+        $snapshot[$relativePath] = if (
+            Test-Path -LiteralPath $absolutePath -PathType Leaf
+        ) {
+            (Get-FileHash -Algorithm SHA256 -LiteralPath $absolutePath).Hash
+        }
+        else {
+            "<missing>"
+        }
+    }
+
+    return $snapshot
+}
+
+function Test-BaselineFileUnchanged {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$RepositoryRoot,
+        [Parameter(Mandatory = $true)]
+        [hashtable]$BaselineChangedFiles,
+        [Parameter(Mandatory = $true)]
+        [string]$RelativePath
+    )
+
+    if (-not $BaselineChangedFiles.ContainsKey($RelativePath)) {
+        return $false
+    }
+
+    $absolutePath = Join-Path $RepositoryRoot (
+        $RelativePath.Replace("/", "\\")
+    )
+    $currentFingerprint = if (
+        Test-Path -LiteralPath $absolutePath -PathType Leaf
+    ) {
+        (Get-FileHash -Algorithm SHA256 -LiteralPath $absolutePath).Hash
+    }
+    else {
+        "<missing>"
+    }
+    return $currentFingerprint -eq $BaselineChangedFiles[$RelativePath]
+}
+
 function Test-CompletedResult {
     param(
         [Parameter(Mandatory = $true)]
@@ -762,7 +814,8 @@ function Test-CompletedResult {
         [Parameter(Mandatory = $true)]
         [string]$RepositoryRoot,
         [Parameter(Mandatory = $true)]
-        [string]$ResolvedPlanPath
+        [string]$ResolvedPlanPath,
+        [hashtable]$BaselineChangedFiles = @{}
     )
 
     $errors = @()
@@ -792,7 +845,16 @@ function Test-CompletedResult {
     if (-not $Result.scope_review.passed) {
         $errors += "The scope review did not pass."
     }
-    if (@($Result.scope_review.unexpected_files).Count -gt 0) {
+    $unexpectedScopeFiles = @($Result.scope_review.unexpected_files |
+        ForEach-Object { ([string]$_).Trim().Replace("\\", "/") } |
+        Where-Object { $_ } |
+        Where-Object {
+            -not (Test-BaselineFileUnchanged `
+                -RepositoryRoot $RepositoryRoot `
+                -BaselineChangedFiles $BaselineChangedFiles `
+                -RelativePath $_)
+        })
+    if ($unexpectedScopeFiles.Count -gt 0) {
         $errors += "The scope review contains unexpected files."
     }
     if ($Result.blocker) {
@@ -813,7 +875,11 @@ function Test-CompletedResult {
         Where-Object { $_ } |
         Sort-Object -Unique)
     foreach ($file in $changedFiles) {
-        if ($reportedFiles -notcontains $file) {
+        $isUnchangedBaseline = Test-BaselineFileUnchanged `
+            -RepositoryRoot $RepositoryRoot `
+            -BaselineChangedFiles $BaselineChangedFiles `
+            -RelativePath $file
+        if ($reportedFiles -notcontains $file -and -not $isUnchangedBaseline) {
             $errors += "Git contains a changed file omitted from the structured result: $file"
         }
     }
@@ -1111,6 +1177,12 @@ if ($initialStatus.Output.Count -gt 0 -and $MaxSlices -gt 1) {
 if ($initialStatus.Output.Count -gt 0 -and $CommitAfterSlice) {
     throw "A dirty recovery run cannot use -CommitAfterSlice because that could commit pre-existing user changes."
 }
+$baselineChangedFiles = if ($initialStatus.Output.Count -gt 0) {
+    Get-ChangedFileSnapshot -RepositoryRoot $repositoryRoot
+}
+else {
+    @{}
+}
 
 $codexExecutable = Resolve-ExecutablePath -Command $CodexCommand
 $codexChildPathEntries = @(Get-CodexChildPathEntries)
@@ -1332,7 +1404,8 @@ Treat this as part of the attempt. Diagnose and repair it if possible within the
                                 -Result $result `
                                 -ExpectedSlice $slice.Id `
                                 -RepositoryRoot $repositoryRoot `
-                                -ResolvedPlanPath $resolvedPlanPath
+                                -ResolvedPlanPath $resolvedPlanPath `
+                                -BaselineChangedFiles $baselineChangedFiles
                         )
                         if ($completionErrors.Count -gt 0) {
                             throw "Completion gate failed:`n- $($completionErrors -join "`n- ")"
