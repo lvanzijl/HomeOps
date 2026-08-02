@@ -28,8 +28,8 @@ Do not check a phase merely because one of its slices is complete. A phase is co
 | --- | --- | --- | --- | --- |
 | [x] | **Phase 0 — Safety baseline and regression harness** | **Completed** | Guarded PostgreSQL fixtures, real API contracts, and an isolated Playwright browser suite now exist | Repeatable clean/upgrade DB, API-contract, and browser regression gates exist |
 | [ ] | **Phase 1 — LAN and destructive-development safety** | **Not started** | LAN binding and visual-review fixtures exist, but are unsafe | Database is private, fixture resets are isolated, and household API access is protected |
-| [ ] | **Phase 2 — Truthful first run and family persistence** | **In progress** | Avatar writes, mutation honesty, production bootstrap, and atomic onboarding are corrected; family administration/restore and the setup checklist remain | Fresh install onboards correctly; family changes survive refresh with honest error handling |
-| [ ] | **Phase 3 — Calendar and local-time correctness** | **Not started** | Rich Agenda CRUD/recurrence exists | Home and Agenda preserve household-local calendar intent in all supported time zones |
+| [x] | **Phase 2 — Truthful first run and family persistence** | **Completed** | Slices 2.1–2.6 are complete, including family administration/restore and the persisted setup checklist | Fresh install onboards correctly; family changes survive refresh with honest error handling |
+| [ ] | **Phase 3 — Calendar and local-time correctness** | **In progress** | Rich Agenda CRUD/recurrence exists; the calendar-field contract is approved | Home and Agenda preserve household-local calendar intent in all supported time zones |
 | [ ] | **Phase 4 — Tasks and Weekly Reset completion** | **Not started** | Task APIs, routines, and Weekly Reset foundation exist | Core task controls are operable and every reset candidate can be resolved and completed |
 | [ ] | **Phase 5 — House, climate, and household settings** | **Not started** | Substantial backend and partial Settings foundation exist | Woning setup-to-runtime chain is reachable, healthy, configurable, and viewport-safe |
 | [ ] | **Phase 6 — Shopping and Motivation lifecycle completion** | **Not started** | Both domains are PostgreSQL-backed | Common create/edit/archive/restore/correction workflows are complete and cross-device |
@@ -570,7 +570,7 @@ Submit household setup and the reviewed member collection in one transactional c
 
 ## Phase 3 — Calendar and local-time correctness
 
-- [ ] **Phase status: Not started**
+- [ ] **Phase status: In progress**
 
 **Priority:** P0 first, then calendar lifecycle.  
 **Audit coverage:** TIME-01, TIME-02, SETTINGS-02, CAL-02, CAL-03, DEVICE-01, CAL-01.  
@@ -578,9 +578,10 @@ Submit household setup and the reviewed member collection in one transactional c
 
 ### Slice 3.1 — Define the calendar-field contract
 
-- [ ] **Status: Not started**
-
+- [x] **Status: Completed**
 **Audit ID:** TIME-01
+
+**Implementation state:** the approved calendar-field contract is recorded in [`2026-07-27-calendar-field-contract/implementation.md`](../2026-07-27-calendar-field-contract/implementation.md). Manual writes will carry `DateOnly`/optional `TimeOnly` fields under the authoritative household zone; imported instants use a separate explicit normalization path. The contract defines all-day, timed, multi-day, recurrence, exception, split, nonexistent-DST, and ambiguous-fall-back behavior, plus the required pre-implementation regression matrix for Slice 3.2. The build and full backend/frontend test gates passed (588 backend and 325 frontend tests). Parent-owned pinned NSwag generation ran twice successfully, and the second run left `src/HomeOps.Contracts/openapi.json` and `src/HomeOps.Client/src/api/homeOpsApiClient.ts` unchanged. No endpoint, persistence, client, OpenAPI, or generated-client behavior changed in this design-only slice.
 
 **Required design decision**
 
@@ -1241,7 +1242,7 @@ Every audit finding must appear exactly once as the primary responsibility of a 
 | BOOT-01 | 2.3 Production/demo bootstrap split | [x] Completed |
 | MEMBER-01 | 2.1 Canonical avatar contract | [x] Completed |
 | MEMBER-02 | 2.2 Honest member mutations | [x] Completed |
-| TIME-01 | 3.1–3.3 Calendar-field correction | [ ] Not started |
+| TIME-01 | 3.1–3.3 Calendar-field correction | [ ] In progress |
 | HOUSE-01 | 5.2 House navigation | [ ] Not started |
 | CLIMATE-01 | 5.3 Climate configuration UI | [ ] Not started |
 | CLIMATE-02 | 5.4 Mapping management | [ ] Not started |
