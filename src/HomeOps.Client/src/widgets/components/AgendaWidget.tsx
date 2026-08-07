@@ -1092,6 +1092,9 @@ function EventConversationForm({
               value={form.decorativeAvatar}
               label="Decoratieve avatar voor afspraak"
             />
+            <p className="agenda-no-reminder-note">
+              HomeOps bewaart afspraken, maar stuurt geen herinneringen of notificaties.
+            </p>
             <section className="agenda-recurrence-section" aria-label="Herhalen">
               <label className="task-conversation-question compact">
                 <span>Herhalen</span>

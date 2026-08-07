@@ -2,6 +2,8 @@
 
 Phase 3 makes household-local calendar intent authoritative across manual writes, recurrence, imports, settings, and device-specific agenda preferences.
 
+**Phase status:** Completed 2026-08-08.
+
 | Slice | Status | Outcome |
 | --- | --- | --- |
 | 3.1 Calendar-field contract | Completed | Approved manual calendar fields, import boundary, and DST policy. |
@@ -10,7 +12,7 @@ Phase 3 makes household-local calendar intent authoritative across manual writes
 | 3.4 Household time-zone setting | Completed | Previewed, preflighted, transactional IANA-zone changes with stale-source gating. |
 | 3.5 Calendar source lifecycle | Completed | Real iCal upload/replacement, opaque managed storage, preflighted reconnect, archive, refresh-before-restore, and confirmed removal. |
 | 3.6 Device settings identity | Completed | Versioned browser identity, last-seen persistence, 180-day cleanup, and confirmed reset. |
-| 3.7 Reminder decision | Not started | Truthfully defer reminders and close the phase. |
+| 3.7 Reminder decision | Completed | Reliable reminders explicitly deferred with truthful Agenda copy and future prerequisites. |
 
 ## Slice 3.2 implementation boundary
 
@@ -55,3 +57,11 @@ Agenda layer visibility now uses a versioned JSON browser identity stored under 
 `DeviceSettingsIdentities` records schema version, creation time, and last-seen time. Existing layer-setting owners are backfilled by migration, child settings cascade with their identity, reads/writes touch last-seen, and a daily service removes identities inactive for more than 180 days. Reset deletes the current server identity and preferences, creates a fresh local identity, and loads normal source defaults.
 
 The approved composition is recorded in `docs/reports/2026-08-07-device-settings-identity/viewport-analysis.md`: Agenda adds only a compact `Dit apparaat` action to the existing source-selector header and keeps explanation, confirmation, pending, success, and failure states inside a bounded dialog. Settings receives no duplicate control or layout change. Validation passes 622 backend tests, 339 frontend tests, both builds, three PostgreSQL migration tests, six Playwright scenarios including both target viewport sizes and the new dialog, EF drift/script checks, and twice-identical pinned NSwag 14.7.1 generation.
+
+## Slice 3.7 implementation boundary and Phase 3 closure
+
+HomeOps stores and displays appointments but does not send reminders or notifications. Agenda states that boundary in the existing bounded details step and exposes no reminder controls. Settings calls its existing operation-result card `Activiteit` and describes in-app status updates without implying delivered notifications.
+
+Decision record `docs/decisions/0007-reliable-reminders-deferred.md` requires persisted reminder rules, background scheduling, delivery acknowledgements, per-device permission/subscription lifecycle, household-zone behavior, and visible failure state before reminders can enter a future phase. Slice 3.7 deliberately adds no reminder fields, permissions, timers, service workers, schedulers, delivery tables, or notification subscriptions.
+
+The approved viewport contract is `docs/reports/2026-08-08-reminders-deferred/viewport-analysis.md`. Validation passes 622 backend tests, 340 frontend tests, both builds, and six Playwright scenarios including the final Agenda details state with zero document-level scrolling at 1440x900 and 1366x768. All Phase 3 slices and exit criteria are complete.

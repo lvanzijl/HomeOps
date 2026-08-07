@@ -127,6 +127,9 @@ describe('SettingsDashboard', () => {
 
     expect(screen.getByText('Is alles in orde?')).not.toBeNull();
     expect(screen.getByRole('heading', { name: 'Alles is in orde.' })).not.toBeNull();
+    expect(screen.getAllByText('Activiteit').length).toBeGreaterThan(0);
+    expect(screen.getByText('Statusupdates van acties verschijnen hier.')).not.toBeNull();
+    expect(screen.queryByText('Nieuwe meldingen verschijnen hier automatisch.')).toBeNull();
     expect(screen.getByRole('button', { name: 'Back-up maken' })).not.toBeNull();
     expect(screen.queryByLabelText(/Back-upbestand kiezen/i)).toBeNull();
     expect(screen.queryByText(/Herstellen vervangt de huidige gezinsagenda/i)).toBeNull();

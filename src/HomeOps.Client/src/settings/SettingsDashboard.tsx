@@ -140,7 +140,7 @@ export function SettingsDashboard({ widgetInstances, members = [], onCalendarSou
       ? "Waarschuwing"
       : status?.kind === "success"
         ? "Laatste actie"
-        : "Melding";
+        : "Activiteit";
   const statusMessage = status?.message
     ?? (hasSourceAttention
       ? `${sources.filter((source) => source.enabled && source.state === "failed").length} kalenderbron${sources.filter((source) => source.enabled && source.state === "failed").length === 1 ? " heeft" : "nen hebben"} aandacht nodig.`
@@ -660,7 +660,7 @@ export function SettingsDashboard({ widgetInstances, members = [], onCalendarSou
           <article className={`settings-card settings-status-card ${status?.kind ?? "idle"}`}>
             <div className="settings-card-header">
               <div>
-                <p className="widget-type">Meldingen</p>
+                <p className="widget-type">Activiteit</p>
                 <h3>{statusTitle}</h3>
               </div>
             </div>
@@ -688,7 +688,7 @@ export function SettingsDashboard({ widgetInstances, members = [], onCalendarSou
                 </ul>
               ) : status?.refreshResults?.length ? null : (
                 <p className="settings-status-hint">
-                  Nieuwe meldingen verschijnen hier automatisch.
+                  Statusupdates van acties verschijnen hier.
                 </p>
               )}
             </div>

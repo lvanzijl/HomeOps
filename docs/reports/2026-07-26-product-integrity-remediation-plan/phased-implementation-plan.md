@@ -29,7 +29,7 @@ Do not check a phase merely because one of its slices is complete. A phase is co
 | [x] | **Phase 0 — Safety baseline and regression harness** | **Completed** | Guarded PostgreSQL fixtures, real API contracts, and an isolated Playwright browser suite now exist | Repeatable clean/upgrade DB, API-contract, and browser regression gates exist |
 | [ ] | **Phase 1 — LAN and destructive-development safety** | **Not started** | LAN binding and visual-review fixtures exist, but are unsafe | Database is private, fixture resets are isolated, and household API access is protected |
 | [x] | **Phase 2 — Truthful first run and family persistence** | **Completed** | Slices 2.1–2.6 are complete, including family administration/restore and the persisted setup checklist | Fresh install onboards correctly; family changes survive refresh with honest error handling |
-| [ ] | **Phase 3 — Calendar and local-time correctness** | **In progress** | Rich Agenda CRUD/recurrence exists; the calendar-field contract is approved | Home and Agenda preserve household-local calendar intent in all supported time zones |
+| [x] | **Phase 3 — Calendar and local-time correctness** | **Completed** | Calendar-field writes, household time zone, source lifecycle, device preferences, and truthful reminder scope are complete | Home and Agenda preserve household-local calendar intent and accurately state that notifications are not delivered |
 | [ ] | **Phase 4 — Tasks and Weekly Reset completion** | **Not started** | Task APIs, routines, and Weekly Reset foundation exist | Core task controls are operable and every reset candidate can be resolved and completed |
 | [ ] | **Phase 5 — House, climate, and household settings** | **Not started** | Substantial backend and partial Settings foundation exist | Woning setup-to-runtime chain is reachable, healthy, configurable, and viewport-safe |
 | [ ] | **Phase 6 — Shopping and Motivation lifecycle completion** | **Not started** | Both domains are PostgreSQL-backed | Common create/edit/archive/restore/correction workflows are complete and cross-device |
@@ -209,7 +209,7 @@ Maintain five explicit runtime modes:
 
 - [x] **Status: Completed**
 
-**Implementation state:** a pinned Playwright 1.62.0 project now runs five Chromium smoke scenarios through one root command. The runner creates a guarded `homeops_e2e_<guid>` PostgreSQL database, migrates it through the real API, starts API and Vite on test-only loopback ports, waits for health, and drops only the generated database in cleanup. Two remaining defect scenarios are recorded as expected failures (`TIME-01` and `TASK-UI-01`/`TASK-UI-02`), so an unexpected pass fails the baseline and signals that its later remediation test must be promoted. The avatar-persistence and first-run scenarios are normal passing regressions; first run now completes through the atomic endpoint and remains completed after refresh. The primary-page viewport guard passes at 1440x900 and 1366x768. Failure-only screenshots/traces and browser output are ignored and absent from the changeset.
+**Implementation state:** a pinned Playwright 1.62.0 project now runs six Chromium smoke scenarios through one root command. The runner creates a guarded `homeops_e2e_<guid>` PostgreSQL database, migrates it through the real API, starts API and Vite on test-only loopback ports, waits for health, and drops only the generated database in cleanup. The former `TIME-01` expected failure was promoted to a normal passing regression in Slice 3.3; only the known `TASK-UI-01`/`TASK-UI-02` interaction scenario remains marked as an expected failure for Phase 4. Avatar persistence, first run, household-local Home events, and viewport checks are normal passing regressions. Failure-only screenshots/traces and browser output are ignored and absent from the changeset.
 
 **Goal:** detect hit-target, clipping, refresh-persistence, route, and viewport failures that jsdom cannot see.
 
@@ -570,7 +570,7 @@ Submit household setup and the reviewed member collection in one transactional c
 
 ## Phase 3 — Calendar and local-time correctness
 
-- [ ] **Phase status: In progress**
+- [x] **Phase status: Completed**
 
 **Priority:** P0 first, then calendar lifecycle.  
 **Audit coverage:** TIME-01, TIME-02, SETTINGS-02, CAL-02, CAL-03, DEVICE-01, CAL-01.  
@@ -717,7 +717,7 @@ timeZoneId: omitted when the household setting is authoritative
 
 ### Slice 3.7 — Reminder decision and implementation
 
-- [ ] **Status: Not started**
+- [x] **Status: Completed**
 
 **Audit ID:** CAL-01
 
@@ -730,14 +730,16 @@ Choose one:
 
 If implemented, add permission UX, per-event/default settings, a server scheduler or service-worker design, delivery state, time-zone tests, and failure visibility. Do not treat an in-page timer as a reliable reminder.
 
+**Decision and implementation state:** reliable reminders are explicitly deferred. Agenda truthfully states that HomeOps stores appointments but sends no reminders or notifications, and it exposes no reminder controls. Settings operation feedback is labeled as in-app activity/status rather than notifications. [`0007-reliable-reminders-deferred.md`](../../decisions/0007-reliable-reminders-deferred.md) requires persisted rules, background scheduling, acknowledgements, per-device permission/subscription lifecycle, household-zone behavior, and failure visibility before any future implementation. No reminder or notification infrastructure was added. Backend 622/622, frontend 340/340, both builds, and Playwright 6/6 at both target viewports pass.
+
 ### Phase 3 exit criteria
 
-- [ ] Home and Agenda preserve date/time intent in all supported flows.
-- [ ] Existing suspicious events have a safe review/repair path.
-- [ ] Household time zone is configurable.
+- [x] Home and Agenda preserve date/time intent in all supported flows.
+- [x] Existing suspicious events have a safe review/repair path.
+- [x] Household time zone is configurable.
 - [x] File imports are real uploads.
 - [x] Device settings have documented lifecycle.
-- [ ] Reminder scope is explicitly implemented or explicitly deferred.
+- [x] Reminder scope is explicitly implemented or explicitly deferred.
 
 ## Phase 4 — Tasks and Weekly Reset completion
 
@@ -1252,7 +1254,7 @@ Every audit finding must appear exactly once as the primary responsibility of a 
 | BOOT-01 | 2.3 Production/demo bootstrap split | [x] Completed |
 | MEMBER-01 | 2.1 Canonical avatar contract | [x] Completed |
 | MEMBER-02 | 2.2 Honest member mutations | [x] Completed |
-| TIME-01 | 3.1–3.3 Calendar-field correction | [ ] In progress |
+| TIME-01 | 3.1–3.3 Calendar-field correction | [x] Completed |
 | HOUSE-01 | 5.2 House navigation | [ ] Not started |
 | CLIMATE-01 | 5.3 Climate configuration UI | [ ] Not started |
 | CLIMATE-02 | 5.4 Mapping management | [ ] Not started |
@@ -1278,16 +1280,16 @@ Every audit finding must appear exactly once as the primary responsibility of a 
 | HOUSE-04 | 5.1 Migration/provider repair | [ ] Not started |
 | HOUSE-05 | 5.6 Provider lifecycle | [ ] Not started |
 | SETTINGS-01 | 7.4 Backup | [ ] Not started |
-| TIME-02 | 3.3 Action-time clock | [ ] Not started |
+| TIME-02 | 3.3 Action-time clock | [x] Completed |
 | ONB-03 | 2.6 Setup checklist | [x] Completed |
 | SHOP-DATA-01 | 6.2 Unified shopping history | [ ] Not started |
 | SHOP-02 | 6.2 Item editing | [ ] Not started |
 | SHOP-04 | 6.1 Destructive shopping actions | [ ] Not started |
 | TASK-05 | 4.4 Recurring occurrence control | [ ] Not started |
-| CAL-01 | 3.7 Reminder decision | [ ] Not started |
+| CAL-01 | 3.7 Reminder decision | [x] Completed |
 | CAL-03 | 3.5 Source lifecycle | [x] Completed |
 | NAV-02 | 7.1 Routing | [ ] Not started |
-| HOME-01 | 3.3 Quick-add semantics | [ ] Not started |
+| HOME-01 | 3.3 Quick-add semantics | [x] Completed |
 | WEATHER-01 | 5.7 Weather location | [ ] Not started |
 | SETTINGS-02 | 3.4 Time-zone setting | [x] Completed |
 | SETTINGS-03 | 7.5 Settings placeholder | [ ] Not started |

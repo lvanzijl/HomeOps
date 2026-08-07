@@ -66,7 +66,10 @@ HomeOps-owned calendar data is persisted as non-recurring EventSeries records. T
 
 EventOccurrence is the Agenda-facing projection generated from EventSeries. Occurrences are not persisted and are not authoritative. The Agenda continues to consume normalized concrete event output while event management operates on logical EventSeries records.
 
-All-day events use date-only semantics. Multi-day all-day events use start date plus exclusive end date. Timed events use date plus time fields interpreted under the household timezone. Recurrence, EventException, Google Calendar integration, import/export, ICS, reminders, notifications, authentication, and timezone configuration UI remain out of scope.
+All-day events use date-only semantics. Multi-day all-day events use start date plus exclusive end date. Timed events use date plus time fields interpreted under the household timezone.
+
+## Reminder Delivery Boundary
+HomeOps stores and displays appointments but does not send reminders or notifications. It has no reminder rules, notification permissions, background scheduler, service worker, delivery acknowledgement, or notification subscription lifecycle. Decision record [`0007-reliable-reminders-deferred.md`](decisions/0007-reliable-reminders-deferred.md) defines the complete prerequisites for any future reminder phase; an in-page browser timer is not reliable delivery.
 
 ## Event Editing Workflow
 Event editing remains embedded in the Agenda experience. The widget supports creating, editing, and deleting events for the writable HomeOps event source only, while read-only sources such as Birthdays remain display-only.

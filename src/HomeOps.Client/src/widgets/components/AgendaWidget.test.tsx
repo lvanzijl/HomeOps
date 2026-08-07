@@ -480,6 +480,25 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     expect(screen.getByLabelText("Planningoverzicht")).not.toBeNull();
   });
 
+  it("states that appointments do not send reminders and exposes no reminder controls", async () => {
+    const user = setupUser();
+    render(<AgendaWidget {...widgetProps} />);
+
+    const dialog = await openCreateDialog(user);
+    await user.type(within(dialog).getByLabelText("Wat gebeurt er?"), "Schoolgesprek");
+    await reachDetailsStep(user);
+
+    expect(
+      within(dialog).getByText(
+        "HomeOps bewaart afspraken, maar stuurt geen herinneringen of notificaties.",
+      ),
+    ).not.toBeNull();
+    expect(within(dialog).queryByLabelText(/herinnering|notificatie/i)).toBeNull();
+    expect(
+      within(dialog).queryByRole("button", { name: /herinnering|notificatie/i }),
+    ).toBeNull();
+  });
+
   it("explains and resets browser-local device settings only after confirmation", async () => {
     const legacyDeviceId = "homeops-legacy-browser";
     window.localStorage.setItem("homeops.deviceKey.v1", legacyDeviceId);

@@ -224,7 +224,15 @@ test("primary pages do not create document-level vertical scrolling", async ({ p
     await page.getByRole("button", { name: "Apparaatinstellingen sluiten" }).click();
     await page.getByRole("button", { name: "Afspraak plannen" }).click();
     await expectNoDocumentScroll(page, `Agenda editor at ${viewport.width}x${viewport.height}`);
-    await page.getByRole("button", { name: "Sluit gebeurtenisvenster" }).click();
+    const agendaEditor = page.getByRole("dialog", { name: "Afspraak toevoegen" });
+    await agendaEditor.getByLabel("Wat gebeurt er?").fill("Viewport controle");
+    for (let step = 0; step < 3; step += 1) {
+      await agendaEditor.getByRole("button", { name: "Verder" }).click();
+    }
+    await expect(agendaEditor.getByText("HomeOps bewaart afspraken, maar stuurt geen herinneringen of notificaties.")).toBeVisible();
+    await expectNoDocumentScroll(page, `Agenda details zonder herinneringen at ${viewport.width}x${viewport.height}`);
+    await page.keyboard.press("Escape");
+    await expect(agendaEditor).toHaveCount(0);
     await page.getByRole("button", { name: "Thuis", exact: true }).click();
     await page.getByRole("button", { name: "Alex gezinslidpagina openen" }).click();
     await expectNoDocumentScroll(page, `Mijn pagina at ${viewport.width}x${viewport.height}`);
