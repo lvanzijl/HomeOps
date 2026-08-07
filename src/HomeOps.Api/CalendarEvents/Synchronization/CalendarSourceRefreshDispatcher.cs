@@ -1,5 +1,7 @@
 using System.Diagnostics;
 using HomeOps.Api.CalendarEvents.ICalendar;
+using HomeOps.Api.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace HomeOps.Api.CalendarEvents.Synchronization;
 
@@ -7,39 +9,55 @@ public sealed class CalendarSourceRefreshDispatcher(
     IICalFeedImporter feedImporter,
     IICalFileImporter fileImporter,
     CalendarSourceSynchronizationEngine synchronizationEngine,
+    HomeOpsDbContext dbContext,
     TimeProvider? timeProvider = null) : ICalendarSourceRefreshDispatcher
 {
     private readonly TimeProvider timeProvider = timeProvider ?? TimeProvider.System;
 
     public async Task<CalendarSourceRefreshDispatchResult> RefreshAsync(EventSource source, CancellationToken cancellationToken = default)
     {
-        return source.SourceType switch
+        var timeZoneId = await dbContext.Households.AsNoTracking()
+            .Where(household => household.Id == source.HouseholdId)
+            .Select(household => household.TimeZoneId)
+            .SingleAsync(cancellationToken);
+        var prepared = await PrepareAsync(source, timeZoneId, false, cancellationToken);
+        if (!IsSupportedSourceType(source.SourceType))
         {
-            EventSourceTypes.ICalFeed => await RefreshFeedAsync(source, cancellationToken),
-            EventSourceTypes.ICalFile => await RefreshFileAsync(source, cancellationToken),
-            _ => Unsupported(source),
+            return Unsupported(source);
+        }
+
+        var syncResult = await synchronizationEngine.SynchronizeAsync(source, prepared.Snapshot, prepared.NormalizationTimeZoneId, cancellationToken);
+        return CalendarSourceRefreshDispatchResult.FromSupported(syncResult);
+    }
+
+    public async Task<CalendarSourcePreparedRefresh> PrepareAsync(EventSource source, string householdTimeZoneId, bool forceFullLoad, CancellationToken cancellationToken = default)
+    {
+        var snapshot = source.SourceType switch
+        {
+            EventSourceTypes.ICalFeed => ToSnapshot(await feedImporter.ImportForZoneAsync(source, householdTimeZoneId, forceFullLoad, cancellationToken)),
+            EventSourceTypes.ICalFile => ToSnapshot(await fileImporter.ImportForZoneAsync(source, householdTimeZoneId, cancellationToken)),
+            _ => CalendarProviderSnapshot.Failed("UnsupportedProvider", $"Source type '{source.SourceType}' is not supported by refresh."),
         };
+
+        if (snapshot.Status == CalendarProviderSnapshotStatus.Successful)
+        {
+            var duplicates = snapshot.Events.GroupBy(item => item.ProviderEventId, StringComparer.Ordinal).Where(group => group.Count() > 1).Select(group => group.Key).ToArray();
+            if (duplicates.Length > 0)
+            {
+                snapshot = CalendarProviderSnapshot.Failed("DuplicateProviderEventId", $"Provider snapshot contains duplicate event identifiers: {string.Join(", ", duplicates)}.");
+            }
+            else if (snapshot.Diagnostics.Any(diagnostic => diagnostic.Severity == ICalendarParseDiagnosticSeverity.Error))
+            {
+                snapshot = CalendarProviderSnapshot.Failed("ParseFailure", "Provider snapshot contained parser errors.", snapshot.Diagnostics);
+            }
+        }
+
+        return new CalendarSourcePreparedRefresh(source, householdTimeZoneId, snapshot);
     }
 
     public static bool IsSupportedSourceType(string sourceType) =>
         string.Equals(sourceType, EventSourceTypes.ICalFeed, StringComparison.Ordinal) ||
         string.Equals(sourceType, EventSourceTypes.ICalFile, StringComparison.Ordinal);
-
-    private async Task<CalendarSourceRefreshDispatchResult> RefreshFeedAsync(EventSource source, CancellationToken cancellationToken)
-    {
-        var importResult = await feedImporter.ImportAsync(source, cancellationToken);
-        var snapshot = ToSnapshot(importResult);
-        var syncResult = await synchronizationEngine.SynchronizeAsync(source, snapshot, cancellationToken);
-        return CalendarSourceRefreshDispatchResult.FromSupported(syncResult);
-    }
-
-    private async Task<CalendarSourceRefreshDispatchResult> RefreshFileAsync(EventSource source, CancellationToken cancellationToken)
-    {
-        var importResult = await fileImporter.ImportAsync(source, cancellationToken);
-        var snapshot = ToSnapshot(importResult);
-        var syncResult = await synchronizationEngine.SynchronizeAsync(source, snapshot, cancellationToken);
-        return CalendarSourceRefreshDispatchResult.FromSupported(syncResult);
-    }
 
     private static CalendarProviderSnapshot ToSnapshot(ICalFeedImportResult importResult)
     {

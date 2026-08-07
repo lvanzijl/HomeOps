@@ -160,6 +160,25 @@ public sealed class CalendarSourceManagementApiTests
     }
 
     [Fact]
+    public async Task Stale_imported_source_cannot_be_reenabled_before_refresh_in_current_household_zone()
+    {
+        await using var factory = new HomeOpsWebApplicationFactory();
+        var client = factory.CreateClient();
+        var created = await CreateICalFeedAsync(client);
+        var configuration = new EventSourceProviderConfigurationRequest(EventSourceProviderConfigurationKind.ICalFeed, ICalFeed: new ICalFeedSourceConfigurationRequest("https://example.test/school.ics"));
+        var disable = await client.PutAsJsonAsync($"/api/event-sources/{created.Id}", new UpdateEventSourceRequest(created.Name, created.Icon, false, created.PollInterval, configuration));
+        Assert.Equal(HttpStatusCode.OK, disable.StatusCode);
+
+        var enable = await client.PutAsJsonAsync($"/api/event-sources/{created.Id}", new UpdateEventSourceRequest(created.Name, created.Icon, true, created.PollInterval, configuration));
+
+        Assert.Equal(HttpStatusCode.BadRequest, enable.StatusCode);
+        var stored = await client.GetFromJsonAsync<EventSourceDto>($"/api/event-sources/{created.Id}");
+        Assert.NotNull(stored);
+        Assert.False(stored.Enabled);
+        Assert.True(stored.RequiresNormalization);
+    }
+
+    [Fact]
     public async Task DeleteICalSourceRemovesConfigurationAndOwnedEvents()
     {
         await using var factory = new HomeOpsWebApplicationFactory();

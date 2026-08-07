@@ -417,6 +417,7 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             entity.Property(source => source.LastErrorMessage).HasMaxLength(500);
             entity.Property(source => source.LastErrorDetail).HasMaxLength(2000);
             entity.Property(source => source.ProviderSourceId).HasMaxLength(240);
+            entity.Property(source => source.NormalizationTimeZoneId).HasMaxLength(120);
             entity.Property(source => source.CreatedUtc).IsRequired();
             entity.Property(source => source.UpdatedUtc).IsRequired();
             entity.HasOne(source => source.Household)

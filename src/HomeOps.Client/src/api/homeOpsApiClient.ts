@@ -674,6 +674,180 @@ export class HomeOpsApiClient {
         return Promise.resolve<HouseholdClimateSummaryDto>(null as any);
     }
 
+    getCurrentHouseholdTimeZone(): Promise<HouseholdTimeZoneDto> {
+        let url_ = this.baseUrl + "/api/households/current/time-zone";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetCurrentHouseholdTimeZone(_response);
+        });
+    }
+
+    protected processGetCurrentHouseholdTimeZone(response: Response): Promise<HouseholdTimeZoneDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = HouseholdTimeZoneDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<HouseholdTimeZoneDto>(null as any);
+    }
+
+    updateHouseholdTimeZone(request: UpdateHouseholdTimeZoneRequest): Promise<HouseholdTimeZoneUpdateDto> {
+        let url_ = this.baseUrl + "/api/households/current/time-zone";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateHouseholdTimeZone(_response);
+        });
+    }
+
+    protected processUpdateHouseholdTimeZone(response: Response): Promise<HouseholdTimeZoneUpdateDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = HouseholdTimeZoneUpdateDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = HttpValidationProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            let result409: any = null;
+            let resultData409 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result409 = HouseholdTimeZoneUpdateDto.fromJS(resultData409);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result409);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<HouseholdTimeZoneUpdateDto>(null as any);
+    }
+
+    listSupportedTimeZones(query: string | null | undefined): Promise<SupportedTimeZoneDto[]> {
+        let url_ = this.baseUrl + "/api/time-zones?";
+        if (query !== undefined && query !== null)
+            url_ += "query=" + encodeURIComponent("" + query) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processListSupportedTimeZones(_response);
+        });
+    }
+
+    protected processListSupportedTimeZones(response: Response): Promise<SupportedTimeZoneDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(SupportedTimeZoneDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<SupportedTimeZoneDto[]>(null as any);
+    }
+
+    previewHouseholdTimeZoneChange(request: HouseholdTimeZonePreviewRequest): Promise<HouseholdTimeZonePreviewDto> {
+        let url_ = this.baseUrl + "/api/households/current/time-zone/preview";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processPreviewHouseholdTimeZoneChange(_response);
+        });
+    }
+
+    protected processPreviewHouseholdTimeZoneChange(response: Response): Promise<HouseholdTimeZonePreviewDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = HouseholdTimeZonePreviewDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = HttpValidationProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<HouseholdTimeZonePreviewDto>(null as any);
+    }
+
     getMotivationSnapshot(): Promise<MotivationSnapshotDto> {
         let url_ = this.baseUrl + "/api/motivation";
         url_ = url_.replace(/[?&]$/, "");
@@ -8324,6 +8498,499 @@ export enum RoomClimateFreshness {
     Unavailable = 3,
 }
 
+export class HouseholdTimeZoneDto implements IHouseholdTimeZoneDto {
+    timeZoneId?: string;
+    updatedUtc?: Date;
+
+    constructor(data?: IHouseholdTimeZoneDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.timeZoneId = _data["timeZoneId"];
+            this.updatedUtc = _data["updatedUtc"] ? new Date(_data["updatedUtc"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): HouseholdTimeZoneDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new HouseholdTimeZoneDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["timeZoneId"] = this.timeZoneId;
+        data["updatedUtc"] = this.updatedUtc ? this.updatedUtc.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface IHouseholdTimeZoneDto {
+    timeZoneId?: string;
+    updatedUtc?: Date;
+}
+
+export class SupportedTimeZoneDto implements ISupportedTimeZoneDto {
+    id?: string;
+    displayName?: string;
+    utcOffset?: string;
+
+    constructor(data?: ISupportedTimeZoneDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.displayName = _data["displayName"];
+            this.utcOffset = _data["utcOffset"];
+        }
+    }
+
+    static fromJS(data: any): SupportedTimeZoneDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new SupportedTimeZoneDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["displayName"] = this.displayName;
+        data["utcOffset"] = this.utcOffset;
+        return data;
+    }
+}
+
+export interface ISupportedTimeZoneDto {
+    id?: string;
+    displayName?: string;
+    utcOffset?: string;
+}
+
+export class HouseholdTimeZonePreviewDto implements IHouseholdTimeZonePreviewDto {
+    currentTimeZoneId?: string;
+    newTimeZoneId?: string;
+    impact?: HouseholdTimeZoneImpactDto;
+    explanations?: string[];
+
+    constructor(data?: IHouseholdTimeZonePreviewDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.currentTimeZoneId = _data["currentTimeZoneId"];
+            this.newTimeZoneId = _data["newTimeZoneId"];
+            this.impact = _data["impact"] ? HouseholdTimeZoneImpactDto.fromJS(_data["impact"]) : undefined as any;
+            if (Array.isArray(_data["explanations"])) {
+                this.explanations = [] as any;
+                for (let item of _data["explanations"])
+                    this.explanations!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): HouseholdTimeZonePreviewDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new HouseholdTimeZonePreviewDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["currentTimeZoneId"] = this.currentTimeZoneId;
+        data["newTimeZoneId"] = this.newTimeZoneId;
+        data["impact"] = this.impact ? this.impact.toJSON() : undefined as any;
+        if (Array.isArray(this.explanations)) {
+            data["explanations"] = [];
+            for (let item of this.explanations)
+                data["explanations"].push(item);
+        }
+        return data;
+    }
+}
+
+export interface IHouseholdTimeZonePreviewDto {
+    currentTimeZoneId?: string;
+    newTimeZoneId?: string;
+    impact?: HouseholdTimeZoneImpactDto;
+    explanations?: string[];
+}
+
+export class HouseholdTimeZoneImpactDto implements IHouseholdTimeZoneImpactDto {
+    manualTimedEventCount?: number;
+    manualAllDayEventCount?: number;
+    enabledImportedSourceCount?: number;
+    disabledImportedSourceCount?: number;
+
+    constructor(data?: IHouseholdTimeZoneImpactDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.manualTimedEventCount = _data["manualTimedEventCount"];
+            this.manualAllDayEventCount = _data["manualAllDayEventCount"];
+            this.enabledImportedSourceCount = _data["enabledImportedSourceCount"];
+            this.disabledImportedSourceCount = _data["disabledImportedSourceCount"];
+        }
+    }
+
+    static fromJS(data: any): HouseholdTimeZoneImpactDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new HouseholdTimeZoneImpactDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["manualTimedEventCount"] = this.manualTimedEventCount;
+        data["manualAllDayEventCount"] = this.manualAllDayEventCount;
+        data["enabledImportedSourceCount"] = this.enabledImportedSourceCount;
+        data["disabledImportedSourceCount"] = this.disabledImportedSourceCount;
+        return data;
+    }
+}
+
+export interface IHouseholdTimeZoneImpactDto {
+    manualTimedEventCount?: number;
+    manualAllDayEventCount?: number;
+    enabledImportedSourceCount?: number;
+    disabledImportedSourceCount?: number;
+}
+
+export class ProblemDetails implements IProblemDetails {
+    type?: string | undefined;
+    title?: string | undefined;
+    status?: number | undefined;
+    detail?: string | undefined;
+    instance?: string | undefined;
+
+    [key: string]: any;
+
+    constructor(data?: IProblemDetails) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            this.type = _data["type"];
+            this.title = _data["title"];
+            this.status = _data["status"];
+            this.detail = _data["detail"];
+            this.instance = _data["instance"];
+        }
+    }
+
+    static fromJS(data: any): ProblemDetails {
+        data = typeof data === 'object' ? data : {};
+        let result = new ProblemDetails();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        data["type"] = this.type;
+        data["title"] = this.title;
+        data["status"] = this.status;
+        data["detail"] = this.detail;
+        data["instance"] = this.instance;
+        return data;
+    }
+}
+
+export interface IProblemDetails {
+    type?: string | undefined;
+    title?: string | undefined;
+    status?: number | undefined;
+    detail?: string | undefined;
+    instance?: string | undefined;
+
+    [key: string]: any;
+}
+
+export class HttpValidationProblemDetails extends ProblemDetails implements IHttpValidationProblemDetails {
+    errors?: { [key: string]: string[]; };
+
+    [key: string]: any;
+
+    constructor(data?: IHttpValidationProblemDetails) {
+        super(data);
+    }
+
+    override init(_data?: any) {
+        super.init(_data);
+        if (_data) {
+            for (var property in _data) {
+                if (_data.hasOwnProperty(property))
+                    this[property] = _data[property];
+            }
+            if (_data["errors"]) {
+                this.errors = {} as any;
+                for (let key in _data["errors"]) {
+                    if (_data["errors"].hasOwnProperty(key))
+                        (this.errors as any)![key] = _data["errors"][key] !== undefined ? _data["errors"][key] : [];
+                }
+            }
+        }
+    }
+
+    static override fromJS(data: any): HttpValidationProblemDetails {
+        data = typeof data === 'object' ? data : {};
+        let result = new HttpValidationProblemDetails();
+        result.init(data);
+        return result;
+    }
+
+    override toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        for (var property in this) {
+            if (this.hasOwnProperty(property))
+                data[property] = this[property];
+        }
+        if (this.errors) {
+            data["errors"] = {};
+            for (let key in this.errors) {
+                if (this.errors.hasOwnProperty(key))
+                    (data["errors"] as any)[key] = (this.errors as any)[key];
+            }
+        }
+        super.toJSON(data);
+        return data;
+    }
+}
+
+export interface IHttpValidationProblemDetails extends IProblemDetails {
+    errors?: { [key: string]: string[]; };
+
+    [key: string]: any;
+}
+
+export class HouseholdTimeZonePreviewRequest implements IHouseholdTimeZonePreviewRequest {
+    timeZoneId?: string;
+
+    constructor(data?: IHouseholdTimeZonePreviewRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.timeZoneId = _data["timeZoneId"];
+        }
+    }
+
+    static fromJS(data: any): HouseholdTimeZonePreviewRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new HouseholdTimeZonePreviewRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["timeZoneId"] = this.timeZoneId;
+        return data;
+    }
+}
+
+export interface IHouseholdTimeZonePreviewRequest {
+    timeZoneId?: string;
+}
+
+export class HouseholdTimeZoneUpdateDto implements IHouseholdTimeZoneUpdateDto {
+    succeeded?: boolean;
+    timeZoneId?: string;
+    impact?: HouseholdTimeZoneImpactDto;
+    sourceFailures?: HouseholdTimeZoneSourceFailureDto[];
+
+    constructor(data?: IHouseholdTimeZoneUpdateDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.succeeded = _data["succeeded"];
+            this.timeZoneId = _data["timeZoneId"];
+            this.impact = _data["impact"] ? HouseholdTimeZoneImpactDto.fromJS(_data["impact"]) : undefined as any;
+            if (Array.isArray(_data["sourceFailures"])) {
+                this.sourceFailures = [] as any;
+                for (let item of _data["sourceFailures"])
+                    this.sourceFailures!.push(HouseholdTimeZoneSourceFailureDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): HouseholdTimeZoneUpdateDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new HouseholdTimeZoneUpdateDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["succeeded"] = this.succeeded;
+        data["timeZoneId"] = this.timeZoneId;
+        data["impact"] = this.impact ? this.impact.toJSON() : undefined as any;
+        if (Array.isArray(this.sourceFailures)) {
+            data["sourceFailures"] = [];
+            for (let item of this.sourceFailures)
+                data["sourceFailures"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IHouseholdTimeZoneUpdateDto {
+    succeeded?: boolean;
+    timeZoneId?: string;
+    impact?: HouseholdTimeZoneImpactDto;
+    sourceFailures?: HouseholdTimeZoneSourceFailureDto[];
+}
+
+export class HouseholdTimeZoneSourceFailureDto implements IHouseholdTimeZoneSourceFailureDto {
+    sourceId?: string;
+    sourceName?: string;
+    code?: string;
+    message?: string;
+
+    constructor(data?: IHouseholdTimeZoneSourceFailureDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.sourceId = _data["sourceId"];
+            this.sourceName = _data["sourceName"];
+            this.code = _data["code"];
+            this.message = _data["message"];
+        }
+    }
+
+    static fromJS(data: any): HouseholdTimeZoneSourceFailureDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new HouseholdTimeZoneSourceFailureDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["sourceId"] = this.sourceId;
+        data["sourceName"] = this.sourceName;
+        data["code"] = this.code;
+        data["message"] = this.message;
+        return data;
+    }
+}
+
+export interface IHouseholdTimeZoneSourceFailureDto {
+    sourceId?: string;
+    sourceName?: string;
+    code?: string;
+    message?: string;
+}
+
+export class UpdateHouseholdTimeZoneRequest implements IUpdateHouseholdTimeZoneRequest {
+    timeZoneId?: string;
+    expectedCurrentTimeZoneId?: string;
+    confirmed?: boolean;
+
+    constructor(data?: IUpdateHouseholdTimeZoneRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.timeZoneId = _data["timeZoneId"];
+            this.expectedCurrentTimeZoneId = _data["expectedCurrentTimeZoneId"];
+            this.confirmed = _data["confirmed"];
+        }
+    }
+
+    static fromJS(data: any): UpdateHouseholdTimeZoneRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpdateHouseholdTimeZoneRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["timeZoneId"] = this.timeZoneId;
+        data["expectedCurrentTimeZoneId"] = this.expectedCurrentTimeZoneId;
+        data["confirmed"] = this.confirmed;
+        return data;
+    }
+}
+
+export interface IUpdateHouseholdTimeZoneRequest {
+    timeZoneId?: string;
+    expectedCurrentTimeZoneId?: string;
+    confirmed?: boolean;
+}
+
 export class MotivationSnapshotDto implements IMotivationSnapshotDto {
     familyGoal?: MotivationFamilyGoalDto | undefined;
     individualGoals?: MotivationIndividualGoalDto[];
@@ -8604,127 +9271,6 @@ export interface IMotivationFamilyCelebrationMemoryDto {
     title?: string;
     description?: string | undefined;
     celebratedUtc?: Date;
-}
-
-export class ProblemDetails implements IProblemDetails {
-    type?: string | undefined;
-    title?: string | undefined;
-    status?: number | undefined;
-    detail?: string | undefined;
-    instance?: string | undefined;
-
-    [key: string]: any;
-
-    constructor(data?: IProblemDetails) {
-        if (data) {
-            for (var property in data) {
-                if (data.hasOwnProperty(property))
-                    (this as any)[property] = (data as any)[property];
-            }
-        }
-    }
-
-    init(_data?: any) {
-        if (_data) {
-            for (var property in _data) {
-                if (_data.hasOwnProperty(property))
-                    this[property] = _data[property];
-            }
-            this.type = _data["type"];
-            this.title = _data["title"];
-            this.status = _data["status"];
-            this.detail = _data["detail"];
-            this.instance = _data["instance"];
-        }
-    }
-
-    static fromJS(data: any): ProblemDetails {
-        data = typeof data === 'object' ? data : {};
-        let result = new ProblemDetails();
-        result.init(data);
-        return result;
-    }
-
-    toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        for (var property in this) {
-            if (this.hasOwnProperty(property))
-                data[property] = this[property];
-        }
-        data["type"] = this.type;
-        data["title"] = this.title;
-        data["status"] = this.status;
-        data["detail"] = this.detail;
-        data["instance"] = this.instance;
-        return data;
-    }
-}
-
-export interface IProblemDetails {
-    type?: string | undefined;
-    title?: string | undefined;
-    status?: number | undefined;
-    detail?: string | undefined;
-    instance?: string | undefined;
-
-    [key: string]: any;
-}
-
-export class HttpValidationProblemDetails extends ProblemDetails implements IHttpValidationProblemDetails {
-    errors?: { [key: string]: string[]; };
-
-    [key: string]: any;
-
-    constructor(data?: IHttpValidationProblemDetails) {
-        super(data);
-    }
-
-    override init(_data?: any) {
-        super.init(_data);
-        if (_data) {
-            for (var property in _data) {
-                if (_data.hasOwnProperty(property))
-                    this[property] = _data[property];
-            }
-            if (_data["errors"]) {
-                this.errors = {} as any;
-                for (let key in _data["errors"]) {
-                    if (_data["errors"].hasOwnProperty(key))
-                        (this.errors as any)![key] = _data["errors"][key] !== undefined ? _data["errors"][key] : [];
-                }
-            }
-        }
-    }
-
-    static override fromJS(data: any): HttpValidationProblemDetails {
-        data = typeof data === 'object' ? data : {};
-        let result = new HttpValidationProblemDetails();
-        result.init(data);
-        return result;
-    }
-
-    override toJSON(data?: any) {
-        data = typeof data === 'object' ? data : {};
-        for (var property in this) {
-            if (this.hasOwnProperty(property))
-                data[property] = this[property];
-        }
-        if (this.errors) {
-            data["errors"] = {};
-            for (let key in this.errors) {
-                if (this.errors.hasOwnProperty(key))
-                    (data["errors"] as any)[key] = (this.errors as any)[key];
-            }
-        }
-        super.toJSON(data);
-        return data;
-    }
-}
-
-export interface IHttpValidationProblemDetails extends IProblemDetails {
-    errors?: { [key: string]: string[]; };
-
-    [key: string]: any;
 }
 
 export class UpsertMotivationIndividualGoalRequest implements IUpsertMotivationIndividualGoalRequest {
@@ -9720,6 +10266,7 @@ export class EventSourceDto implements IEventSourceDto {
     nextSyncAfterUtc?: Date | undefined;
     lastError?: EventSourceLastError | undefined;
     providerSourceId?: string | undefined;
+    requiresNormalization?: boolean;
     providerConfiguration?: EventSourceProviderConfigurationDto | undefined;
 
     constructor(data?: IEventSourceDto) {
@@ -9748,6 +10295,7 @@ export class EventSourceDto implements IEventSourceDto {
             this.nextSyncAfterUtc = _data["nextSyncAfterUtc"] ? new Date(_data["nextSyncAfterUtc"].toString()) : undefined as any;
             this.lastError = _data["lastError"] ? EventSourceLastError.fromJS(_data["lastError"]) : undefined as any;
             this.providerSourceId = _data["providerSourceId"];
+            this.requiresNormalization = _data["requiresNormalization"];
             this.providerConfiguration = _data["providerConfiguration"] ? EventSourceProviderConfigurationDto.fromJS(_data["providerConfiguration"]) : undefined as any;
         }
     }
@@ -9776,6 +10324,7 @@ export class EventSourceDto implements IEventSourceDto {
         data["nextSyncAfterUtc"] = this.nextSyncAfterUtc ? this.nextSyncAfterUtc.toISOString() : undefined as any;
         data["lastError"] = this.lastError ? this.lastError.toJSON() : undefined as any;
         data["providerSourceId"] = this.providerSourceId;
+        data["requiresNormalization"] = this.requiresNormalization;
         data["providerConfiguration"] = this.providerConfiguration ? this.providerConfiguration.toJSON() : undefined as any;
         return data;
     }
@@ -9797,6 +10346,7 @@ export interface IEventSourceDto {
     nextSyncAfterUtc?: Date | undefined;
     lastError?: EventSourceLastError | undefined;
     providerSourceId?: string | undefined;
+    requiresNormalization?: boolean;
     providerConfiguration?: EventSourceProviderConfigurationDto | undefined;
 }
 

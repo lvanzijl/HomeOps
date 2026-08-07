@@ -23,6 +23,7 @@ public sealed class EventSource
     public string? LastErrorMessage { get; set; }
     public string? LastErrorDetail { get; set; }
     public string? ProviderSourceId { get; set; }
+    public string? NormalizationTimeZoneId { get; set; }
     public DateTimeOffset CreatedUtc { get; set; }
     public DateTimeOffset UpdatedUtc { get; set; }
     public ICollection<EventSeries> EventSeries { get; set; } = new System.Collections.Generic.List<EventSeries>();

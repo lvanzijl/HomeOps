@@ -10,6 +10,16 @@ public sealed class ICalFeedImporter(HomeOpsDbContext dbContext, HttpClient http
 
     public async Task<ICalFeedImportResult> ImportAsync(EventSource source, CancellationToken cancellationToken = default)
     {
+        var householdTimeZoneId = await dbContext.Households
+            .AsNoTracking()
+            .Where(household => household.Id == source.HouseholdId)
+            .Select(household => household.TimeZoneId)
+            .FirstOrDefaultAsync(cancellationToken) ?? "Europe/Amsterdam";
+        return await ImportForZoneAsync(source, householdTimeZoneId, false, cancellationToken);
+    }
+
+    public async Task<ICalFeedImportResult> ImportForZoneAsync(EventSource source, string householdTimeZoneId, bool forceFullLoad, CancellationToken cancellationToken = default)
+    {
         if (!string.Equals(source.SourceType, EventSourceTypes.ICalFeed, StringComparison.Ordinal))
         {
             return Failure(
@@ -51,7 +61,7 @@ public sealed class ICalFeedImporter(HomeOpsDbContext dbContext, HttpClient http
 
         try
         {
-            var response = await SendWithRedirectsAsync(feedUri, configuration, cancellationToken);
+            var response = await SendWithRedirectsAsync(feedUri, configuration, forceFullLoad, cancellationToken);
             using var _ = response;
             var retrievalMetadata = BuildRetrievalMetadata(response, feedUri);
 
@@ -83,11 +93,6 @@ public sealed class ICalFeedImporter(HomeOpsDbContext dbContext, HttpClient http
                     response.StatusCode);
             }
 
-            var householdTimeZoneId = await dbContext.Households
-                .AsNoTracking()
-                .Where(household => household.Id == source.HouseholdId)
-                .Select(household => household.TimeZoneId)
-                .FirstOrDefaultAsync(cancellationToken) ?? "Europe/Amsterdam";
             var parserResult = ICalendarParser.Parse(content, householdTimeZoneId);
             if (parserResult.HasErrors && parserResult.Events.Count == 0)
             {
@@ -129,13 +134,16 @@ public sealed class ICalFeedImporter(HomeOpsDbContext dbContext, HttpClient http
         }
     }
 
-    private async Task<HttpResponseMessage> SendWithRedirectsAsync(Uri feedUri, ICalFeedSourceConfiguration configuration, CancellationToken cancellationToken)
+    private async Task<HttpResponseMessage> SendWithRedirectsAsync(Uri feedUri, ICalFeedSourceConfiguration configuration, bool forceFullLoad, CancellationToken cancellationToken)
     {
         var currentUri = feedUri;
         for (var redirectCount = 0; redirectCount <= MaxRedirects; redirectCount++)
         {
             var request = new HttpRequestMessage(HttpMethod.Get, currentUri);
-            AddConditionalHeaders(request, configuration);
+            if (!forceFullLoad)
+            {
+                AddConditionalHeaders(request, configuration);
+            }
 
             var response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
             if (!IsRedirect(response.StatusCode))

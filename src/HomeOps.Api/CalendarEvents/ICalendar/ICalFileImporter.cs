@@ -7,6 +7,16 @@ public sealed class ICalFileImporter(HomeOpsDbContext dbContext, ICalFileContent
 {
     public async Task<ICalFileImportResult> ImportAsync(EventSource source, CancellationToken cancellationToken = default)
     {
+        var householdTimeZoneId = await dbContext.Households
+            .AsNoTracking()
+            .Where(household => household.Id == source.HouseholdId)
+            .Select(household => household.TimeZoneId)
+            .FirstOrDefaultAsync(cancellationToken) ?? "Europe/Amsterdam";
+        return await ImportForZoneAsync(source, householdTimeZoneId, cancellationToken);
+    }
+
+    public async Task<ICalFileImportResult> ImportForZoneAsync(EventSource source, string householdTimeZoneId, CancellationToken cancellationToken = default)
+    {
         if (!string.Equals(source.SourceType, EventSourceTypes.ICalFile, StringComparison.Ordinal))
         {
             return Failure(
@@ -95,11 +105,6 @@ public sealed class ICalFileImporter(HomeOpsDbContext dbContext, ICalFileContent
                     fileMetadata);
             }
 
-            var householdTimeZoneId = await dbContext.Households
-                .AsNoTracking()
-                .Where(household => household.Id == source.HouseholdId)
-                .Select(household => household.TimeZoneId)
-                .FirstOrDefaultAsync(cancellationToken) ?? "Europe/Amsterdam";
             var parserResult = ICalendarParser.Parse(loadResult.Content, householdTimeZoneId);
             if (parserResult.HasErrors && parserResult.Events.Count == 0)
             {

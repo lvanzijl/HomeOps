@@ -16,6 +16,7 @@ public sealed record EventSourceDto(
     DateTimeOffset? NextSyncAfterUtc,
     EventSourceLastError? LastError,
     string? ProviderSourceId,
+    bool RequiresNormalization,
     EventSourceProviderConfigurationDto? ProviderConfiguration);
 
 public sealed record CreateEventSourceRequest(

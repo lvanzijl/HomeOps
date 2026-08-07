@@ -6,7 +6,7 @@ namespace HomeOps.Api.Tests.Infrastructure;
 
 public sealed class DatabaseBaselineTests
 {
-    private const string LatestDiscoverableMigration = "20260807185444_AddCalendarWriteContractVersion";
+    private const string LatestDiscoverableMigration = "20260807202026_AddEventSourceNormalizationTimeZone";
 
     private static readonly string[] ResumeStrategyColumns =
     [

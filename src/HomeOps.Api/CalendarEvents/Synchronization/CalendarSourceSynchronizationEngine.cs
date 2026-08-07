@@ -9,7 +9,7 @@ public sealed class CalendarSourceSynchronizationEngine(HomeOpsDbContext dbConte
 {
     private readonly TimeProvider timeProvider = timeProvider ?? TimeProvider.System;
 
-    public async Task<CalendarSourceSynchronizationResult> SynchronizeAsync(EventSource eventSource, CalendarProviderSnapshot snapshot, CancellationToken cancellationToken = default)
+    public async Task<CalendarSourceSynchronizationResult> SynchronizeAsync(EventSource eventSource, CalendarProviderSnapshot snapshot, string? normalizationTimeZoneId = null, CancellationToken cancellationToken = default)
     {
         var stopwatch = Stopwatch.StartNew();
         var attemptUtc = timeProvider.GetUtcNow();
@@ -56,7 +56,7 @@ public sealed class CalendarSourceSynchronizationEngine(HomeOpsDbContext dbConte
 
             if (snapshot.Status == CalendarProviderSnapshotStatus.NotModified)
             {
-                ApplySuccessfulMetadata(source, attemptUtc, snapshot.ProviderSourceId);
+                ApplySuccessfulMetadata(source, attemptUtc, snapshot.ProviderSourceId, normalizationTimeZoneId);
                 await dbContext.SaveChangesAsync(cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
                 return CalendarSourceSynchronizationResult.Success(0, 0, 0, 0, CountWarnings(snapshot.Diagnostics), snapshot.Diagnostics, stopwatch.Elapsed, attemptUtc);
@@ -100,7 +100,7 @@ public sealed class CalendarSourceSynchronizationEngine(HomeOpsDbContext dbConte
             }
 
             await dbContext.SaveChangesAsync(cancellationToken);
-            ApplySuccessfulMetadata(source, attemptUtc, snapshot.ProviderSourceId);
+            ApplySuccessfulMetadata(source, attemptUtc, snapshot.ProviderSourceId, normalizationTimeZoneId);
             await dbContext.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
             return CalendarSourceSynchronizationResult.Success(created, updated, deleted, unchanged, CountWarnings(snapshot.Diagnostics), snapshot.Diagnostics, stopwatch.Elapsed, attemptUtc);
@@ -110,6 +110,54 @@ public sealed class CalendarSourceSynchronizationEngine(HomeOpsDbContext dbConte
             await transaction.RollbackAsync(CancellationToken.None);
             return CalendarSourceSynchronizationResult.Failed([Error("SynchronizationFailed", exception.Message)], stopwatch.Elapsed, attemptUtc);
         }
+    }
+
+    public async Task<PreparedSnapshotApplyResult> ApplyPreparedSnapshotAsync(Guid sourceId, CalendarProviderSnapshot snapshot, string normalizationTimeZoneId, DateTimeOffset attemptUtc, CancellationToken cancellationToken = default)
+    {
+        if (snapshot.Status != CalendarProviderSnapshotStatus.Successful || snapshot.Diagnostics.Any(diagnostic => diagnostic.Severity == ICalendarParseDiagnosticSeverity.Error))
+        {
+            throw new InvalidOperationException("Only a successful, fully loaded provider snapshot can be applied transactionally.");
+        }
+
+        var source = await dbContext.EventSources.SingleAsync(candidate => candidate.Id == sourceId, cancellationToken);
+        var existingImportedSeries = await dbContext.EventSeries
+            .Include(series => series.Exceptions)
+            .Where(series => series.EventSourceId == source.Id && series.ProviderEventId != null)
+            .ToListAsync(cancellationToken);
+        var existingByProviderEventId = existingImportedSeries.ToDictionary(series => series.ProviderEventId!, StringComparer.Ordinal);
+        var snapshotByProviderEventId = snapshot.Events.ToDictionary(providerEvent => providerEvent.ProviderEventId, StringComparer.Ordinal);
+        var created = 0;
+        var updated = 0;
+        var unchanged = 0;
+        var deleted = 0;
+
+        foreach (var providerEvent in snapshot.Events)
+        {
+            if (!existingByProviderEventId.TryGetValue(providerEvent.ProviderEventId, out var series))
+            {
+                dbContext.EventSeries.Add(CreateSeries(source.Id, providerEvent, attemptUtc));
+                created++;
+            }
+            else if (string.Equals(series.ContentFingerprint, providerEvent.ContentFingerprint, StringComparison.Ordinal))
+            {
+                series.LastSeenSyncAttemptUtc = attemptUtc;
+                unchanged++;
+            }
+            else
+            {
+                ApplyProviderEvent(series, providerEvent, attemptUtc);
+                updated++;
+            }
+        }
+
+        foreach (var series in existingImportedSeries.Where(series => !snapshotByProviderEventId.ContainsKey(series.ProviderEventId!)))
+        {
+            dbContext.EventSeries.Remove(series);
+            deleted++;
+        }
+
+        ApplySuccessfulMetadata(source, attemptUtc, snapshot.ProviderSourceId, normalizationTimeZoneId);
+        return new PreparedSnapshotApplyResult(created, updated, deleted, unchanged);
     }
 
     private static EventSeries CreateSeries(Guid eventSourceId, NormalizedProviderEvent providerEvent, DateTimeOffset attemptUtc)
@@ -207,7 +255,7 @@ public sealed class CalendarSourceSynchronizationEngine(HomeOpsDbContext dbConte
         UnsupportedRecurrenceReason = rule.UnsupportedRecurrenceReason,
     };
 
-    private static void ApplySuccessfulMetadata(EventSource source, DateTimeOffset attemptUtc, string? providerSourceId)
+    private static void ApplySuccessfulMetadata(EventSource source, DateTimeOffset attemptUtc, string? providerSourceId, string? normalizationTimeZoneId)
     {
         source.HealthStatus = EventSourceHealthStatus.Healthy;
         source.LastSyncAttemptUtc = attemptUtc;
@@ -218,6 +266,10 @@ public sealed class CalendarSourceSynchronizationEngine(HomeOpsDbContext dbConte
         source.LastErrorDetail = null;
         source.NextSyncAfterUtc = CalculateNextSyncAfter(source.PollInterval, attemptUtc);
         source.UpdatedUtc = attemptUtc;
+        if (!string.IsNullOrWhiteSpace(normalizationTimeZoneId))
+        {
+            source.NormalizationTimeZoneId = normalizationTimeZoneId;
+        }
         if (!string.IsNullOrWhiteSpace(providerSourceId))
         {
             source.ProviderSourceId = providerSourceId;
@@ -249,3 +301,5 @@ public sealed class CalendarSourceSynchronizationEngine(HomeOpsDbContext dbConte
     private static ICalendarParseDiagnostic Error(string code, string message) =>
         new(ICalendarParseDiagnosticSeverity.Error, code, message);
 }
+
+public sealed record PreparedSnapshotApplyResult(int CreatedCount, int UpdatedCount, int DeletedCount, int UnchangedCount);

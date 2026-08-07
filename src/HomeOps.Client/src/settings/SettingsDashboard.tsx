@@ -41,6 +41,7 @@ import { WoningManagement } from "./WoningManagement";
 import { FamilyAdministration } from "./FamilyAdministration";
 import type { FamilyMember } from "../home/familyMembers";
 import { CalendarRepairDialog } from './CalendarRepairDialog';
+import { HouseholdTimeZoneDialog } from './HouseholdTimeZoneDialog';
 
 interface MaintenanceStatus {
   kind: "success" | "error";
@@ -54,6 +55,7 @@ interface SettingsDashboardProps {
   members?: readonly FamilyMember[];
   onCalendarSourcesChanged?(sources: readonly CalendarSource[]): void;
   onFamilyMembersChanged?(): Promise<void>;
+  onHouseholdTimeZoneChanged?(timeZoneId: string): void;
 }
 
 type SettingsSurface =
@@ -67,9 +69,10 @@ type SettingsSurface =
   | "woning"
   | "family"
   | "calendarRepair"
+  | "timeZone"
   | null;
 
-export function SettingsDashboard({ widgetInstances, members = [], onCalendarSourcesChanged, onFamilyMembersChanged = async () => {} }: SettingsDashboardProps) {
+export function SettingsDashboard({ widgetInstances, members = [], onCalendarSourcesChanged, onFamilyMembersChanged = async () => {}, onHouseholdTimeZoneChanged = () => {} }: SettingsDashboardProps) {
   const [activeSurface, setActiveSurface] = useState<SettingsSurface>(null);
   const [selectedSourceId, setSelectedSourceId] = useState<string | null>(null);
   const [sourceForm, setSourceForm] = useState<CalendarSourceFormValues>(() => createCalendarSourceFormValues());
@@ -509,6 +512,13 @@ export function SettingsDashboard({ widgetInstances, members = [], onCalendarSou
                         </div>
                       ) : null}
 
+                      {source.requiresNormalization ? (
+                        <div className="settings-source-error" role="note">
+                          <strong>Verversen vereist</strong>
+                          <p>Deze bron is nog niet verwerkt in de huidige huishoudtijdzone. Ververs hem voordat je hem inschakelt.</p>
+                        </div>
+                      ) : null}
+
                       <div className="settings-source-footer">
                         <label className="settings-source-switch">
                           <input
@@ -637,6 +647,9 @@ export function SettingsDashboard({ widgetInstances, members = [], onCalendarSou
           <button onClick={() => setActiveSurface("calendarRepair")} type="button">
             Kalendercontrole
           </button>
+          <button onClick={() => setActiveSurface("timeZone")} type="button">
+            Tijdzone
+          </button>
           {hasAdditionalSettings ? (
             <button onClick={() => setActiveSurface("settings")} type="button">
               Gezinsinstellingen
@@ -747,6 +760,8 @@ export function SettingsDashboard({ widgetInstances, members = [], onCalendarSou
       ) : null}
 
       {activeSurface === "calendarRepair" ? <CalendarRepairDialog onClose={closeSurface} /> : null}
+
+      {activeSurface === "timeZone" ? <HouseholdTimeZoneDialog onChanged={onHouseholdTimeZoneChanged} onClose={closeSurface} /> : null}
 
       {activeSurface === "family" ? (
         <SettingsSurfaceDialog

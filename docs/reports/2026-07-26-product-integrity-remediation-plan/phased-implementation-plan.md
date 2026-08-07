@@ -669,7 +669,7 @@ timeZoneId: omitted when the household setting is authoritative
 
 ### Slice 3.4 — Household time-zone setting
 
-- [ ] **Status: Not started**
+- [x] **Status: Completed**
 
 **Audit ID:** SETTINGS-02
 
@@ -680,6 +680,8 @@ timeZoneId: omitted when the household setting is authoritative
 3. Define whether changing the zone preserves local wall-clock intent or absolute instants for each source type.
 4. Invalidate/reproject affected caches.
 5. Require explicit confirmation describing the effect on imported and manual events.
+
+**Implementation state:** the API exposes the current household zone, searchable supported IANA identifiers, an impact preview, and a confirmed concurrency-aware update. Enabled iCal sources are force-loaded without conditional cache shortcuts before any write. A failed source returns source-specific feedback and leaves the zone/events untouched; successful prepared snapshots and the zone change commit in one transaction. Manual calendar fields remain unchanged and reproject on reads. Disabled sources are marked stale, remain hidden, and must refresh successfully under the current zone before re-enabling. Settings uses the approved bounded-dialog composition with searchable selection, effect counts, confirmation, pending state, and retained source failures. Migration `20260807202026_AddEventSourceNormalizationTimeZone` records the last normalization zone. The viewport report is [`2026-08-07-household-time-zone/viewport-analysis.md`](../2026-08-07-household-time-zone/viewport-analysis.md). Backend 606/606, frontend 334/334, PostgreSQL 6/6, both builds, six Playwright scenarios, EF drift/script checks, and twice-identical pinned NSwag 14.7.1 generation pass.
 
 ### Slice 3.5 — Calendar source lifecycle completion
 
@@ -1283,7 +1285,7 @@ Every audit finding must appear exactly once as the primary responsibility of a 
 | NAV-02 | 7.1 Routing | [ ] Not started |
 | HOME-01 | 3.3 Quick-add semantics | [ ] Not started |
 | WEATHER-01 | 5.7 Weather location | [ ] Not started |
-| SETTINGS-02 | 3.4 Time-zone setting | [ ] Not started |
+| SETTINGS-02 | 3.4 Time-zone setting | [x] Completed |
 | SETTINGS-03 | 7.5 Settings placeholder | [ ] Not started |
 | SETTINGS-04 | 2.5 Family administration | [x] Completed |
 | HOUSE-06 | 5.6 Credential guidance | [ ] Not started |

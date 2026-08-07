@@ -70,6 +70,11 @@ public static class EventSourceManagementEndpoints
             if (source is null) return Results.NotFound();
 
             var validationErrors = ValidateUpdateRequest(source, request);
+            if (request.Enabled && !source.IsEnabled && CalendarSourceRefreshDispatcher.IsSupportedSourceType(source.SourceType) &&
+                !string.Equals(source.NormalizationTimeZoneId, source.Household?.TimeZoneId, StringComparison.Ordinal))
+            {
+                validationErrors[nameof(UpdateEventSourceRequest.Enabled)] = ["Ververs deze bron eerst onder de huidige huishoudtijdzone voordat je hem inschakelt."];
+            }
             if (validationErrors.Count > 0) return Results.ValidationProblem(validationErrors);
 
             var now = DateTimeOffset.UtcNow;
@@ -143,6 +148,7 @@ public static class EventSourceManagementEndpoints
 
     private static IQueryable<EventSource> QuerySources(HomeOpsDbContext dbContext) => dbContext.EventSources
         .Include(source => source.Configuration)
+        .Include(source => source.Household)
         .Where(source => source.HouseholdId == SeedHousehold.Id);
 
 
@@ -183,6 +189,7 @@ public static class EventSourceManagementEndpoints
         source.NextSyncAfterUtc,
         source.LastErrorCode is null && source.LastErrorMessage is null ? null : new EventSourceLastError(source.LastErrorCode, source.LastErrorMessage),
         source.ProviderSourceId,
+        CalendarSourceRefreshDispatcher.IsSupportedSourceType(source.SourceType) && !string.Equals(source.NormalizationTimeZoneId, source.Household?.TimeZoneId, StringComparison.Ordinal),
         ToProviderConfigurationDto(source.Configuration));
 
     private static EventSourceProviderConfigurationDto? ToProviderConfigurationDto(EventSourceConfiguration? configuration) => configuration switch

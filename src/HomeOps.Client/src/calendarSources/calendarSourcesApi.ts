@@ -42,6 +42,7 @@ export interface CalendarSource {
   nextSyncAfterUtc?: string;
   lastError?: CalendarSourceLastError;
   providerSourceId?: string;
+  requiresNormalization?: boolean;
   providerConfiguration: CalendarSourceProviderConfiguration | null;
 }
 
@@ -293,6 +294,9 @@ export function getCalendarSourceStateTone(source: Pick<CalendarSource, "enabled
 }
 
 export function getCalendarSourceStatusMessage(source: CalendarSource): string {
+  if (source.requiresNormalization) {
+    return "Ververs deze bron eerst onder de huidige huishoudtijdzone voordat je hem inschakelt.";
+  }
   if (!source.enabled || source.state === "disabled") {
     return "Deze bron staat uit en laat nu geen agenda-items zien.";
   }
@@ -346,7 +350,7 @@ export function formatCalendarSourceSyncSummary(result: CalendarSourceRefreshRes
 }
 
 export function hasCalendarSourceAttention(sources: readonly CalendarSource[]): boolean {
-  return sources.some((source) => source.enabled && source.state === "failed");
+  return sources.some((source) => (source.enabled && source.state === "failed") || source.requiresNormalization);
 }
 
 export function countActionableCalendarSources(sources: readonly CalendarSource[]): number {
@@ -378,6 +382,7 @@ export function toCalendarSource(dto: EventSourceDto): CalendarSource {
     nextSyncAfterUtc: dto.nextSyncAfterUtc?.toISOString(),
     lastError: dto.lastError ? toCalendarSourceLastError(dto.lastError.code, dto.lastError.message) : undefined,
     providerSourceId: dto.providerSourceId ?? undefined,
+    requiresNormalization: dto.requiresNormalization ?? false,
     providerConfiguration: toCalendarSourceProviderConfiguration(dto),
   };
 }

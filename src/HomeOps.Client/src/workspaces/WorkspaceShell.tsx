@@ -251,6 +251,7 @@ export function WorkspaceShell() {
               members={members}
               onCalendarSourcesChanged={(sources) => setSettingsNeedsAttention(hasCalendarSourceAttention(sources))}
               onFamilyMembersChanged={refreshFamilyMembers}
+              onHouseholdTimeZoneChanged={setHouseholdTimeZoneId}
               widgetInstances={widgetInstances}
             />
           ) : (

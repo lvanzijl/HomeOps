@@ -203,6 +203,11 @@ test("primary pages do not create document-level vertical scrolling", async ({ p
     await expect(page.getByRole("dialog", { name: "Kalendercontrole" })).toBeVisible();
     await expectNoDocumentScroll(page, `Kalendercontrole at ${viewport.width}x${viewport.height}`);
     await page.getByRole("button", { name: "Kalendercontrole sluiten" }).click();
+    await page.getByRole("button", { name: "Tijdzone" }).click();
+    await expect(page.getByRole("dialog", { name: "Huishoudtijdzone" })).toBeVisible();
+    await expect(page.getByLabel("Tijdzone zoeken")).toBeEnabled();
+    await expectNoDocumentScroll(page, `Huishoudtijdzone at ${viewport.width}x${viewport.height}`);
+    await page.getByRole("button", { name: "Huishoudtijdzone sluiten" }).click();
     await page.getByRole("button", { name: "Gezinsleden" }).click();
     await expect(page.getByRole("dialog", { name: "Gezinsleden" })).toBeVisible();
     await expectNoDocumentScroll(page, `Gezinsledenbeheer at ${viewport.width}x${viewport.height}`);

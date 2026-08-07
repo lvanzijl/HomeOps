@@ -205,6 +205,32 @@ END:VEVENT
     }
 
     [Fact]
+    public async Task Forced_zone_import_bypasses_conditional_cache_and_normalizes_using_requested_zone()
+    {
+        await using var context = CreateContext();
+        var source = await AddFeedSourceAsync(context, "https://example.test/calendar.ics", etag: "\"old-etag\"", lastModified: "Sun, 05 Jul 2026 10:00:00 GMT");
+        var handler = new StubHttpMessageHandler(request => IcsResponse("""
+BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+UID:utc-event
+SUMMARY:UTC event
+DTSTART:20260706T130000Z
+DTEND:20260706T140000Z
+END:VEVENT
+END:VCALENDAR
+""", request.RequestUri!.ToString()));
+        var importer = new ICalFeedImporter(context, new HttpClient(handler));
+
+        var result = await importer.ImportForZoneAsync(source, "America/New_York", true);
+
+        Assert.True(result.Succeeded);
+        Assert.False(handler.Requests.Single().Headers.Contains("If-None-Match"));
+        Assert.False(handler.Requests.Single().Headers.Contains("If-Modified-Since"));
+        Assert.Equal(new TimeOnly(9, 0), Assert.Single(result.Events).StartTime);
+    }
+
+    [Fact]
     public async Task NotModifiedReturnsSuccessfulEmptySnapshotWithRetrievalMetadata()
     {
         await using var context = CreateContext();

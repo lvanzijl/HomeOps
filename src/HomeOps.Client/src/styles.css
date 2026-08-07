@@ -1322,6 +1322,76 @@ button {
   gap: 0.75rem;
 }
 
+.household-time-zone-flow,
+.household-time-zone-preview,
+.household-time-zone-preview dl {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.household-time-zone-results,
+.household-time-zone-failures {
+  display: grid;
+  gap: 0.4rem;
+  list-style: none;
+  margin: 0;
+  max-height: 10rem;
+  overflow: auto;
+  padding: 0;
+}
+
+.household-time-zone-results button {
+  align-items: start;
+  background: var(--surface-default);
+  border: 1px solid var(--border-default);
+  display: grid;
+  gap: 0.15rem;
+  text-align: left;
+  width: 100%;
+}
+
+.household-time-zone-results button[aria-pressed="true"] {
+  border-color: var(--domain-accent-strong, #475569);
+}
+
+.household-time-zone-results span,
+.household-time-zone-failures span {
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+}
+
+.household-time-zone-preview {
+  border: 1px solid var(--border-default);
+  border-radius: 1rem;
+  padding: 0.75rem;
+}
+
+.household-time-zone-preview h4,
+.household-time-zone-preview dd,
+.household-time-zone-preview dt,
+.household-time-zone-preview ul {
+  margin: 0;
+}
+
+.household-time-zone-preview dl {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.household-time-zone-preview dl div,
+.household-time-zone-failures li {
+  background: color-mix(in srgb, var(--domain-tint, #f8fafc) 66%, white);
+  border: 1px solid var(--border-default);
+  border-radius: 0.8rem;
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.55rem 0.65rem;
+}
+
+.household-time-zone-preview dd {
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
 .calendar-repair-fields {
   border: 1px solid var(--border-default);
   border-radius: 1rem;
