@@ -30,7 +30,7 @@ Do not check a phase merely because one of its slices is complete. A phase is co
 | [ ] | **Phase 1 — LAN and destructive-development safety** | **Not started** | LAN binding and visual-review fixtures exist, but are unsafe | Database is private, fixture resets are isolated, and household API access is protected |
 | [x] | **Phase 2 — Truthful first run and family persistence** | **Completed** | Slices 2.1–2.6 are complete, including family administration/restore and the persisted setup checklist | Fresh install onboards correctly; family changes survive refresh with honest error handling |
 | [x] | **Phase 3 — Calendar and local-time correctness** | **Completed** | Calendar-field writes, household time zone, source lifecycle, device preferences, and truthful reminder scope are complete | Home and Agenda preserve household-local calendar intent and accurately state that notifications are not delivered |
-| [ ] | **Phase 4 — Tasks and Weekly Reset completion** | **Not started** | Task APIs, routines, and Weekly Reset foundation exist | Core task controls are operable and every reset candidate can be resolved and completed |
+| [ ] | **Phase 4 — Tasks and Weekly Reset completion** | **In progress** | Task APIs, routines, and Weekly Reset foundation exist; Slice 4.0 interaction authority is approved | Core task controls are operable and every reset candidate can be resolved and completed |
 | [ ] | **Phase 5 — House, climate, and household settings** | **Not started** | Substantial backend and partial Settings foundation exist | Woning setup-to-runtime chain is reachable, healthy, configurable, and viewport-safe |
 | [ ] | **Phase 6 — Shopping and Motivation lifecycle completion** | **Not started** | Both domains are PostgreSQL-backed | Common create/edit/archive/restore/correction workflows are complete and cross-device |
 | [ ] | **Phase 7 — Navigation, backup, errors, and consistency** | **Not started** | Individual foundations exist | Cross-cutting behavior is routable, recoverable, consistently worded, and accurately backed up |
@@ -743,7 +743,7 @@ If implemented, add permission UX, per-event/default settings, a server schedule
 
 ## Phase 4 — Tasks and Weekly Reset completion
 
-- [ ] **Phase status: Not started**
+- [ ] **Phase status: In progress**
 
 **Priority:** P0/P1.  
 **Audit coverage:** TASK-UI-01, TASK-UI-02, TASK-01, TASK-02, TASK-03, TASK-04, TASK-05, RESET-01, RESET-02, RESET-03.  
@@ -751,9 +751,11 @@ If implemented, add permission UX, per-event/default settings, a server schedule
 
 ### Slice 4.0 — Mandatory Tasks viewport/interaction analysis
 
-- [ ] **Status: Not started**
+- [x] **Status: Completed 2026-08-08**
 
 Before changing Tasks layout or action placement, write the repository-required analysis covering current page composition, reserved viewport regions, primary/secondary actions, density/overflow strategy, laptop fit, and alternatives. The approved analysis is the implementation contract for Slices 4.1–4.3.
+
+**Approved authority:** `docs/reports/2026-08-08-tasks-interaction-analysis/viewport-analysis.md`. The existing fixed command/main-grid/secondary-rail composition remains authoritative. Task cards must use a semantic title/details control plus directly visible Complete/Reopen, eligible Tomorrow, and More controls; the controlled More menu must be portalled outside clipping ancestors and provide named state, Escape/outside-click close, and focus return. Normal-task archive and routine management remain in bounded internally scrolling surfaces. No product code changed in this analysis-only slice.
 
 ### Slice 4.1 — Make task actions directly operable
 
