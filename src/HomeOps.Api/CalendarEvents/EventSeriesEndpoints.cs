@@ -94,17 +94,17 @@ public static class EventSeriesEndpoints
             if (eventSeries is null) return Results.NotFound();
 
             var errors = new Dictionary<string, string[]>();
-            var proposed = request.Timing.ToDomain();
-            CalendarFieldResolver.TryValidate(proposed, timeZoneId, errors, "timing");
+            var proposed = ResolveTiming(request.Timing, errors);
+            if (proposed is not null) CalendarFieldResolver.TryValidate(proposed, timeZoneId, errors, "timing");
             if (errors.Count > 0) return Results.ValidationProblem(errors);
 
             var current = ToCalendarFieldSetRequest(eventSeries);
             var preview = new CalendarFieldRepairPreviewDto(
                 eventSeries.Id,
                 current,
-                request.Timing,
-                ResolveStart(proposed, timeZoneId),
-                ResolveEnd(proposed, timeZoneId));
+                request.Timing!,
+                ResolveStart(proposed!, timeZoneId),
+                ResolveEnd(proposed!, timeZoneId));
             return Results.Ok(preview);
         }).WithName("PreviewCalendarFieldRepair").Produces<CalendarFieldRepairPreviewDto>().ProducesValidationProblem().Produces(StatusCodes.Status404NotFound);
 
@@ -124,8 +124,8 @@ public static class EventSeriesEndpoints
             }
 
             var errors = new Dictionary<string, string[]>();
-            var proposed = request.Timing.ToDomain();
-            CalendarFieldResolver.TryValidate(proposed, timeZoneId, errors, "timing");
+            var proposed = ResolveTiming(request.Timing, errors);
+            if (proposed is not null) CalendarFieldResolver.TryValidate(proposed, timeZoneId, errors, "timing");
             if (errors.Count > 0) return Results.ValidationProblem(errors);
 
             EventOccurrenceProjector.ApplyCalendarFields(
@@ -133,7 +133,7 @@ public static class EventSeriesEndpoints
                 eventSeries.Title,
                 eventSeries.Description,
                 eventSeries.Location,
-                proposed,
+                proposed!,
                 DateTimeOffset.UtcNow);
             await dbContext.SaveChangesAsync(cancellationToken);
             return Results.Ok(EventSeriesNormalizer.ToDto(eventSeries, timeZoneId));
@@ -143,7 +143,7 @@ public static class EventSeriesEndpoints
         {
             var timeZoneId = await GetHouseholdTimeZoneIdAsync(dbContext, cancellationToken);
             var validationErrors = new Dictionary<string, string[]>();
-            var fields = ResolveRequestFields(request.StartDate, request.StartTime, request.EndDate, request.EndTime, request.IsAllDay, request.StartUtc, request.EndUtc, validationErrors);
+            var fields = ResolveRequiredFields(request.StartDate, request.StartTime, request.EndDate, request.EndTime, request.IsAllDay, validationErrors);
             ValidateEvent(request.Title, fields, timeZoneId, validationErrors);
             var recurrenceRule = fields is null ? null : MapRecurrenceRule(request.RecurrenceRule, fields.StartDate, validationErrors);
             var avatarValidation = await DecorativeAvatarReferenceValidation.Validate(dbContext, request.DecorativeAvatar, cancellationToken);
@@ -191,7 +191,7 @@ public static class EventSeriesEndpoints
         {
             var timeZoneId = await GetHouseholdTimeZoneIdAsync(dbContext, cancellationToken);
             var validationErrors = new Dictionary<string, string[]>();
-            var fields = ResolveRequestFields(request.StartDate, request.StartTime, request.EndDate, request.EndTime, request.IsAllDay, request.StartUtc, request.EndUtc, validationErrors);
+            var fields = ResolveRequiredFields(request.StartDate, request.StartTime, request.EndDate, request.EndTime, request.IsAllDay, validationErrors);
             ValidateEvent(request.Title, fields, timeZoneId, validationErrors);
             var recurrenceRule = fields is null ? null : MapRecurrenceRule(request.RecurrenceRule, fields.StartDate, validationErrors);
             var avatarValidation = await DecorativeAvatarReferenceValidation.Validate(dbContext, request.DecorativeAvatar, cancellationToken);
@@ -409,25 +409,12 @@ public static class EventSeriesEndpoints
             errors[nameof(ModifyOccurrenceRequest.Title)] = ["Replacement title must not be blank when provided."];
         }
 
-        if (request.Timing is not null && (request.StartUtc is not null || request.EndUtc is not null || request.IsAllDay is not null))
+        if (request.Timing is not null)
         {
-            errors[nameof(ModifyOccurrenceRequest.Timing)] = ["Timing cannot be combined with legacy UTC timing fields."];
+            var timing = ResolveTiming(request.Timing, errors);
+            if (timing is not null) CalendarFieldResolver.TryValidate(timing, timeZoneId, errors, "timing");
         }
-        else if (request.Timing is not null)
-        {
-            CalendarFieldResolver.TryValidate(request.Timing.ToDomain(), timeZoneId, errors, "timing");
-        }
-        else if (request.EndUtc is not null && request.StartUtc is not null && request.EndUtc < request.StartUtc)
-        {
-            errors[nameof(ModifyOccurrenceRequest.EndUtc)] = ["Replacement end must be on or after replacement start."];
-        }
-
-        if (request.EndUtc is not null && request.StartUtc is null)
-        {
-            errors[nameof(ModifyOccurrenceRequest.StartUtc)] = ["Replacement start is required when replacement end is supplied."];
-        }
-
-        if (request.Title is null && request.Description is null && request.Location is null && request.IsAllDay is null && request.StartUtc is null && request.EndUtc is null && request.Timing is null)
+        if (request.Title is null && request.Description is null && request.Location is null && request.Timing is null)
         {
             errors[nameof(ModifyOccurrenceRequest)] = ["At least one replacement field is required."];
         }
@@ -491,10 +478,8 @@ public static class EventSeriesEndpoints
         exception.Title = string.IsNullOrWhiteSpace(request.Title) ? null : request.Title.Trim();
         exception.Description = NormalizeDescription(request.Description);
         exception.Location = string.IsNullOrWhiteSpace(request.Location) ? null : request.Location.Trim();
-        var timing = request.Timing?.ToDomain() ?? (request.StartUtc is null
-            ? null
-            : CalendarFieldResolver.FromLegacy(request.StartUtc.Value, request.EndUtc, request.IsAllDay ?? false));
-        exception.IsAllDay = timing?.IsAllDay ?? request.IsAllDay;
+        var timing = request.Timing?.ToDomain();
+        exception.IsAllDay = timing?.IsAllDay;
         exception.StartDate = timing?.StartDate;
         exception.StartTime = timing?.StartTime;
         exception.EndDate = timing?.EndDate;
@@ -514,24 +499,11 @@ public static class EventSeriesEndpoints
             errors[nameof(SplitEventSeriesRequest.Title)] = ["Replacement title must not be blank when provided."];
         }
 
-        if (request.Timing is not null && (request.StartUtc is not null || request.EndUtc is not null || request.IsAllDay is not null))
+        if (request.Timing is not null)
         {
-            errors[nameof(SplitEventSeriesRequest.Timing)] = ["Timing cannot be combined with legacy UTC timing fields."];
+            var timing = ResolveTiming(request.Timing, errors);
+            if (timing is not null) CalendarFieldResolver.TryValidate(timing, timeZoneId, errors, "timing");
         }
-        else if (request.Timing is not null)
-        {
-            CalendarFieldResolver.TryValidate(request.Timing.ToDomain(), timeZoneId, errors, "timing");
-        }
-        else if (request.EndUtc is not null && request.StartUtc is not null && request.EndUtc < request.StartUtc)
-        {
-            errors[nameof(SplitEventSeriesRequest.EndUtc)] = ["Replacement end must be on or after replacement start."];
-        }
-
-        if (request.EndUtc is not null && request.StartUtc is null)
-        {
-            errors[nameof(SplitEventSeriesRequest.StartUtc)] = ["Replacement start is required when replacement end is supplied."];
-        }
-
         var splitKey = OccurrenceKey.Parse(request.OccurrenceKey);
         var newStart = ResolveSplitFields(eventSeries, splitKey, request).StartDate;
         if (request.RecurrenceRule is null)
@@ -711,39 +683,21 @@ public static class EventSeriesEndpoints
         }
     }
 
-    private static CalendarFieldSet? ResolveRequestFields(
-        DateOnly? startDate,
-        TimeOnly? startTime,
-        DateOnly? endDate,
-        TimeOnly? endTime,
-        bool isAllDay,
-        DateTimeOffset? legacyStartUtc,
-        DateTimeOffset? legacyEndUtc,
-        Dictionary<string, string[]> errors)
+    private static CalendarFieldSet? ResolveRequiredFields(DateOnly? startDate, TimeOnly? startTime, DateOnly? endDate, TimeOnly? endTime, bool? isAllDay, Dictionary<string, string[]> errors)
     {
-        var hasCalendarFields = startDate is not null || startTime is not null || endDate is not null || endTime is not null;
-        if (hasCalendarFields && (legacyStartUtc is not null || legacyEndUtc is not null))
-        {
-            errors["timing"] = ["Calendar fields cannot be combined with legacy UTC timing fields."];
-            return null;
-        }
+        if (startDate is null) errors["startDate"] = ["Start date is required."];
+        if (endDate is null) errors["endDate"] = ["End date is required."];
+        if (isAllDay is null) errors["isAllDay"] = ["All-day intent is required."];
+        return startDate is not null && endDate is not null && isAllDay is not null
+            ? new CalendarFieldSet(startDate.Value, startTime, endDate.Value, endTime, isAllDay.Value)
+            : null;
+    }
 
-        if (hasCalendarFields)
-        {
-            if (startDate is null) errors["startDate"] = ["Start date is required."];
-            if (endDate is null) errors["endDate"] = ["End date is required."];
-            return startDate is null || endDate is null
-                ? null
-                : new CalendarFieldSet(startDate.Value, startTime, endDate.Value, endTime, isAllDay);
-        }
-
-        if (legacyStartUtc is null)
-        {
-            errors["startDate"] = ["Start date is required."];
-            return null;
-        }
-
-        return CalendarFieldResolver.FromLegacy(legacyStartUtc.Value, legacyEndUtc, isAllDay);
+    private static CalendarFieldSet? ResolveTiming(CalendarFieldSetRequest? timing, Dictionary<string, string[]> errors)
+    {
+        if (timing is not null && timing.TryToDomain(out var fields)) return fields;
+        errors["timing"] = ["A complete timing object with startDate, endDate, and isAllDay is required."];
+        return null;
     }
 
     private static CalendarFieldSet ResolveSplitFields(EventSeries original, OccurrenceKey splitKey, SplitEventSeriesRequest request)
@@ -751,11 +705,6 @@ public static class EventSeriesEndpoints
         if (request.Timing is not null)
         {
             return request.Timing.ToDomain();
-        }
-
-        if (request.StartUtc is not null)
-        {
-            return CalendarFieldResolver.FromLegacy(request.StartUtc.Value, request.EndUtc, request.IsAllDay ?? original.IsAllDay);
         }
 
         var durationDays = Math.Max(0, original.EndDate.DayNumber - original.StartDate.DayNumber);

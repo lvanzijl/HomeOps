@@ -748,8 +748,8 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     expect(
       within(editDialog).getByRole("button", { name: "Kies een tijd" }).className,
     ).toContain("selected");
-    expect(within(editDialog).getByLabelText("Begintijd")).toHaveProperty("value", "09:30");
-    expect(within(editDialog).getByLabelText("Eindtijd")).toHaveProperty("value", "10:15");
+    expect(within(editDialog).getByLabelText("Begintijd")).toHaveProperty("value", "11:30");
+    expect(within(editDialog).getByLabelText("Eindtijd")).toHaveProperty("value", "12:15");
     expect(within(editDialog).getByLabelText("Waar is het?")).not.toBeNull();
     expect(within(editDialog).getByLabelText("Herhaalfrequentie")).not.toBeNull();
     expect(within(editDialog).getByRole("button", { name: "Annuleren" })).not.toBeNull();
@@ -798,8 +798,8 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     expect(calendarEventsApi.createCalendarAgendaEvent).toHaveBeenCalledWith(
       expect.objectContaining({
         title: "All Day Trip",
-        startsAt: "2026-07-01T00:00",
-        endsAt: "2026-07-02T00:00",
+        startsAt: "2026-07-01",
+        endsAt: "2026-07-02",
         allDay: true,
       }),
     );

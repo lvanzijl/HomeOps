@@ -646,7 +646,7 @@ timeZoneId: omitted when the household setting is authoritative
 
 ### Slice 3.3 — Correct frontend event forms and quick actions
 
-- [ ] **Status: Not started**
+- [x] **Status: Completed 2026-08-07**
 
 **Audit IDs:** TIME-01, TIME-02, HOME-01
 
@@ -658,6 +658,8 @@ timeZoneId: omitted when the household setting is authoritative
 4. Share one mapper between Home quick-add and Agenda full forms.
 5. Add “Meer opties” when quick-add omits recurrence/location/participants rather than silently changing semantics.
 6. Add frontend and browser tests with a fixed system clock and multiple time zones.
+
+**Implementation state:** all manual frontend write paths now use one literal calendar-field mapper, including create, series edit, occurrence edit, split, and Home quick-add. Server-authoritative household-zone state drives form projection and action-time today/tomorrow resolution. Home provides `Meer opties` with explicit draft transfer to the bounded Agenda editor. Settings provides a bounded one-event-at-a-time `Kalendercontrole` workflow with retained inputs, server preview, confirmation, and conflict recovery. The temporary UTC request shim is removed from backend DTOs, OpenAPI, and generated TypeScript contracts. The viewport analysis is recorded in [`2026-08-07-calendar-fields-frontend/viewport-analysis.md`](../2026-08-07-calendar-fields-frontend/viewport-analysis.md). Backend passes 598/598, frontend passes 332/332 with the documented extended timeout, builds pass, the six-scenario Playwright suite passes, and pinned NSwag 14.7.1 is twice idempotent.
 
 **Likely files**
 

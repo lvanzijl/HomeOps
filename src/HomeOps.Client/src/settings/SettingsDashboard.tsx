@@ -40,6 +40,7 @@ import { PeopleManagement } from "../knownPeople/PeopleManagement";
 import { WoningManagement } from "./WoningManagement";
 import { FamilyAdministration } from "./FamilyAdministration";
 import type { FamilyMember } from "../home/familyMembers";
+import { CalendarRepairDialog } from './CalendarRepairDialog';
 
 interface MaintenanceStatus {
   kind: "success" | "error";
@@ -65,6 +66,7 @@ type SettingsSurface =
   | "people"
   | "woning"
   | "family"
+  | "calendarRepair"
   | null;
 
 export function SettingsDashboard({ widgetInstances, members = [], onCalendarSourcesChanged, onFamilyMembersChanged = async () => {} }: SettingsDashboardProps) {
@@ -632,6 +634,9 @@ export function SettingsDashboard({ widgetInstances, members = [], onCalendarSou
           <button onClick={() => setActiveSurface("family")} type="button">
             Gezinsleden
           </button>
+          <button onClick={() => setActiveSurface("calendarRepair")} type="button">
+            Kalendercontrole
+          </button>
           {hasAdditionalSettings ? (
             <button onClick={() => setActiveSurface("settings")} type="button">
               Gezinsinstellingen
@@ -740,6 +745,8 @@ export function SettingsDashboard({ widgetInstances, members = [], onCalendarSou
           <WoningManagement members={members} />
         </SettingsSurfaceDialog>
       ) : null}
+
+      {activeSurface === "calendarRepair" ? <CalendarRepairDialog onClose={closeSurface} /> : null}
 
       {activeSurface === "family" ? (
         <SettingsSurfaceDialog
@@ -1002,7 +1009,7 @@ interface SettingsSurfaceDialogProps {
   title: string;
 }
 
-function SettingsSurfaceDialog({ children, description, onClose, title }: SettingsSurfaceDialogProps) {
+export function SettingsSurfaceDialog({ children, description, onClose, title }: SettingsSurfaceDialogProps) {
   const titleId = useId();
 
   return (

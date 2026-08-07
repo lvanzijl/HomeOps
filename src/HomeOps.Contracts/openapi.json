@@ -9560,6 +9560,11 @@
       "CalendarFieldSetRequest": {
         "type": "object",
         "additionalProperties": false,
+        "required": [
+          "startDate",
+          "endDate",
+          "isAllDay"
+        ],
         "properties": {
           "startDate": {
             "type": "string",
@@ -9587,6 +9592,9 @@
       "PreviewCalendarFieldRepairRequest": {
         "type": "object",
         "additionalProperties": false,
+        "required": [
+          "timing"
+        ],
         "properties": {
           "timing": {
             "$ref": "#/components/schemas/CalendarFieldSetRequest"
@@ -9596,6 +9604,11 @@
       "ApplyCalendarFieldRepairRequest": {
         "type": "object",
         "additionalProperties": false,
+        "required": [
+          "timing",
+          "expectedUpdatedUtc",
+          "confirmed"
+        ],
         "properties": {
           "timing": {
             "$ref": "#/components/schemas/CalendarFieldSetRequest"
@@ -9612,9 +9625,16 @@
       "CreateEventSeriesRequest": {
         "type": "object",
         "additionalProperties": false,
+        "required": [
+          "title",
+          "startDate",
+          "endDate",
+          "isAllDay"
+        ],
         "properties": {
           "title": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1
           },
           "description": {
             "type": "string",
@@ -9624,14 +9644,22 @@
             "type": "string",
             "nullable": true
           },
-          "startUtc": {
+          "startDate": {
             "type": "string",
-            "format": "date-time",
+            "format": "date"
+          },
+          "startTime": {
+            "type": "string",
+            "format": "time",
             "nullable": true
           },
-          "endUtc": {
+          "endDate": {
             "type": "string",
-            "format": "date-time",
+            "format": "date"
+          },
+          "endTime": {
+            "type": "string",
+            "format": "time",
             "nullable": true
           },
           "isAllDay": {
@@ -9652,35 +9680,22 @@
                 "$ref": "#/components/schemas/DecorativeAvatarReferenceDto"
               }
             ]
-          },
-          "startDate": {
-            "type": "string",
-            "format": "date",
-            "nullable": true
-          },
-          "startTime": {
-            "type": "string",
-            "format": "time",
-            "nullable": true
-          },
-          "endDate": {
-            "type": "string",
-            "format": "date",
-            "nullable": true
-          },
-          "endTime": {
-            "type": "string",
-            "format": "time",
-            "nullable": true
           }
         }
       },
       "UpdateEventSeriesRequest": {
         "type": "object",
         "additionalProperties": false,
+        "required": [
+          "title",
+          "startDate",
+          "endDate",
+          "isAllDay"
+        ],
         "properties": {
           "title": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1
           },
           "description": {
             "type": "string",
@@ -9690,14 +9705,22 @@
             "type": "string",
             "nullable": true
           },
-          "startUtc": {
+          "startDate": {
             "type": "string",
-            "format": "date-time",
+            "format": "date"
+          },
+          "startTime": {
+            "type": "string",
+            "format": "time",
             "nullable": true
           },
-          "endUtc": {
+          "endDate": {
             "type": "string",
-            "format": "date-time",
+            "format": "date"
+          },
+          "endTime": {
+            "type": "string",
+            "format": "time",
             "nullable": true
           },
           "isAllDay": {
@@ -9718,26 +9741,6 @@
                 "$ref": "#/components/schemas/DecorativeAvatarReferenceDto"
               }
             ]
-          },
-          "startDate": {
-            "type": "string",
-            "format": "date",
-            "nullable": true
-          },
-          "startTime": {
-            "type": "string",
-            "format": "time",
-            "nullable": true
-          },
-          "endDate": {
-            "type": "string",
-            "format": "date",
-            "nullable": true
-          },
-          "endTime": {
-            "type": "string",
-            "format": "time",
-            "nullable": true
           }
         }
       },
@@ -9769,20 +9772,6 @@
             "type": "string",
             "nullable": true
           },
-          "isAllDay": {
-            "type": "boolean",
-            "nullable": true
-          },
-          "startUtc": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          },
-          "endUtc": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          },
           "timing": {
             "nullable": true,
             "oneOf": [
@@ -9810,20 +9799,6 @@
           },
           "location": {
             "type": "string",
-            "nullable": true
-          },
-          "isAllDay": {
-            "type": "boolean",
-            "nullable": true
-          },
-          "startUtc": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          },
-          "endUtc": {
-            "type": "string",
-            "format": "date-time",
             "nullable": true
           },
           "recurrenceRule": {
@@ -12333,6 +12308,9 @@
           },
           "requiresOnboarding": {
             "type": "boolean"
+          },
+          "timeZoneId": {
+            "type": "string"
           },
           "setupChecklist": {
             "nullable": true,

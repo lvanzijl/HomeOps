@@ -78,6 +78,7 @@ describe("HomeDashboard", () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
     vi.clearAllMocks();
     vi.setSystemTime(new Date("2026-06-19T08:30:00Z"));
+    window.sessionStorage.clear();
     const agenda = await agendaApi();
     vi.mocked(agenda.loadCalendarAgendaData).mockResolvedValue({
       sources: [
@@ -688,6 +689,21 @@ describe("HomeDashboard", () => {
     await user.keyboard("{Escape}");
 
     expect(screen.queryByRole("dialog", { name: "Taak toevoegen vanaf Thuis" })).toBeNull();
+  });
+
+  it("transfers only the current quick draft to the full Agenda form", async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    const onNavigate = vi.fn();
+    render(<HomeDashboard members={familyMembers} onNavigate={onNavigate} onSelectFamilyMember={vi.fn()} />);
+    await screen.findByText("Event 1");
+    await user.click(screen.getByRole("button", { name: "Afspraak toevoegen" }));
+    await user.type(screen.getByLabelText("Wat gebeurt er?"), "Zwemles");
+    await user.click(screen.getByRole("button", { name: "Volgende" }));
+    await user.click(screen.getByRole("button", { name: "Meer opties" }));
+    expect(onNavigate).toHaveBeenCalledWith("agenda");
+    expect(JSON.parse(window.sessionStorage.getItem("homeops.calendarDraft.v1") ?? "null")).toEqual({
+      title: "Zwemles", startDate: "2026-06-19", isAllDay: true,
+    });
   });
 
   it("keeps a stable weather fallback when the Home weather request fails", async () => {

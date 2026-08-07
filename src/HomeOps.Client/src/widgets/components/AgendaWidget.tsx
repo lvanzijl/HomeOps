@@ -48,6 +48,8 @@ import {
 import { FamilyBoardIcon, type FamilyBoardIconName } from "../../design";
 import type { WidgetRenderProps } from "../WidgetRenderer";
 import { useVisualReviewNow } from "../../visualReviewTime";
+import { calendarDateInTimeZone, projectedInstantToCalendarDateTime, useHouseholdTimeZone } from '../../households/HouseholdTimeZoneContext';
+import { consumeCalendarDraft } from '../../agenda/calendarDraft';
 
 type EventDialogQuestion = "title" | "date" | "dayKind" | "details";
 type AgendaWorkspaceMode = "planning" | "month";
@@ -110,7 +112,8 @@ const AgendaDecorativeAvatarContext = createContext<{ familyMembers: readonly Fa
 
 export function AgendaWidget({ instance }: WidgetRenderProps) {
   const visualReviewNow = useVisualReviewNow();
-  const today = visualReviewNow ? toIsoDate(visualReviewNow) : todayIsoDate();
+  const householdTimeZoneId = useHouseholdTimeZone();
+  const today = calendarDateInTimeZone(visualReviewNow ?? new Date(), householdTimeZoneId);
   const previousTodayRef = useRef(today);
   const [selectedDate, setSelectedDate] = useState(today);
   const [activeWorkspaceMode, setActiveWorkspaceMode] =
@@ -141,6 +144,15 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
     useState<NormalizedEvent | null>(null);
   const [recentlySkippedOccurrence, setRecentlySkippedOccurrence] =
     useState<RecentSkippedOccurrence | null>(null);
+
+  useEffect(() => {
+    const draft = consumeCalendarDraft();
+    if (!draft) return;
+    setSelectedDate(draft.startDate);
+    setForm({ ...createEmptyForm(draft.startDate), title: draft.title, startsAt: draft.startDate, endsAt: draft.startDate, allDay: true });
+    setEventDialogQuestion('title');
+    setIsEventFormOpen(true);
+  }, []);
 
   useEffect(() => {
     const previousToday = previousTodayRef.current;
@@ -313,8 +325,8 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
       title: event.title,
       description: event.description ?? "",
       location: event.location ?? "",
-      startsAt: toDateTimeLocal(event.startsAt),
-      endsAt: event.endsAt ? toDateTimeLocal(event.endsAt) : "",
+      startsAt: event.allDay ? projectedInstantToCalendarDateTime(event.startsAt, householdTimeZoneId).slice(0, 10) : projectedInstantToCalendarDateTime(event.startsAt, householdTimeZoneId),
+      endsAt: event.endsAt ? (event.allDay ? projectedInstantToCalendarDateTime(event.endsAt, householdTimeZoneId).slice(0, 10) : projectedInstantToCalendarDateTime(event.endsAt, householdTimeZoneId)) : "",
       allDay: event.allDay,
       recurrenceFrequency: "None",
       recurrenceInterval: "1",
@@ -322,9 +334,9 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
       recurrenceUntilDate: "",
       recurrenceCount: "",
       recurrenceWeeklyDays: [],
-      recurrenceMonthlyDayOfMonth: `${new Date(event.startsAt).getDate()}`,
-      recurrenceYearlyMonth: `${new Date(event.startsAt).getMonth() + 1}`,
-      recurrenceYearlyDayOfMonth: `${new Date(event.startsAt).getDate()}`,
+      recurrenceMonthlyDayOfMonth: `${Number(projectedInstantToCalendarDateTime(event.startsAt, householdTimeZoneId).slice(8, 10))}`,
+      recurrenceYearlyMonth: `${Number(projectedInstantToCalendarDateTime(event.startsAt, householdTimeZoneId).slice(5, 7))}`,
+      recurrenceYearlyDayOfMonth: `${Number(projectedInstantToCalendarDateTime(event.startsAt, householdTimeZoneId).slice(8, 10))}`,
       decorativeAvatar: event.decorativeAvatar ?? null,
     });
 
@@ -630,6 +642,7 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
               onCancel={closeEventForm}
               onSubmit={handleSubmit}
               today={today}
+              timeZoneId={householdTimeZoneId}
             />
           </section>
         </div>
@@ -791,6 +804,7 @@ function EventConversationForm({
   onCancel,
   onSubmit,
   today,
+  timeZoneId,
 }: {
   editingEvent: NormalizedEvent | null;
   editingEventSeries: CalendarEventSeriesDetails | null;
@@ -808,6 +822,7 @@ function EventConversationForm({
   onCancel: () => void;
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
   today: string;
+  timeZoneId: string;
 }) {
   const titleIsValid = form.title.trim().length > 0;
   const submitLabel = isEditing ? "Afspraak opslaan" : "Afspraak maken";
@@ -851,6 +866,7 @@ function EventConversationForm({
         {showDateQuestion ? (
           <div className="task-date-question">
             <p className="task-question-label">Wanneer is het?</p>
+            <p className="agenda-time-zone-label">Gezinstijdzone: {timeZoneId}</p>
             <div
               className="task-choice-group horizontal"
               aria-label="Snelle datumkeuzes"
@@ -2297,10 +2313,6 @@ function toEventSeriesInput(form: EventFormState): EventSeriesInput {
   };
 }
 
-function toDateTimeLocal(value: string): string {
-  return value.slice(0, 16);
-}
-
 function validateEventForm(form: EventFormState): string | null {
   const input = toEventSeriesInput(form);
 
@@ -2318,7 +2330,7 @@ function validateEventForm(form: EventFormState): string | null {
     return "Gebeurtenissen met tijd hebben een eindtijd nodig.";
   }
 
-  if (input.endsAt && new Date(input.endsAt) < new Date(input.startsAt)) {
+  if (input.endsAt && input.endsAt < input.startsAt) {
     return "De eindtijd moet gelijk aan of na de begintijd zijn.";
   }
 
@@ -2398,7 +2410,7 @@ function toInputValue(value: string, allDay: boolean): string {
 }
 
 function toApiDateValue(value: string, allDay: boolean): string {
-  return allDay && value.length === 10 ? `${value}T00:00` : value;
+  return allDay ? value.slice(0, 10) : value;
 }
 
 function expandDateTime(value: string, fallbackTime: string): string {

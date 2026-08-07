@@ -6,7 +6,7 @@ namespace HomeOps.Api.Tests.Infrastructure;
 
 public sealed class DatabaseBaselineTests
 {
-    private const string LatestDiscoverableMigration = "20260727143130_AddHouseholdSetupChecklistDismissal";
+    private const string LatestDiscoverableMigration = "20260807185444_AddCalendarWriteContractVersion";
 
     private static readonly string[] ResumeStrategyColumns =
     [
@@ -194,12 +194,14 @@ public sealed class DatabaseBaselineTests
             UPDATE "Households"
             SET "Name" = 'Upgrade fixture household',
                 "OnboardingCompleted" = TRUE,
-                "LegacyDemoDataReviewRequired" = TRUE
+                "LegacyDemoDataReviewRequired" = TRUE,
+                "SetupChecklistDismissedUtc" = @now
             WHERE "Id" = '11111111-1111-1111-1111-111111111111'
             """,
             connection,
             transaction))
         {
+            updateHousehold.Parameters.AddWithValue("now", DateTimeOffset.UtcNow);
             Assert.Equal(1, await updateHousehold.ExecuteNonQueryAsync());
         }
 

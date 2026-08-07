@@ -97,7 +97,7 @@ public sealed class CalendarRecurrenceV2SeriesSplitApiTests
         await using var factory = new HomeOpsWebApplicationFactory();
         var client = factory.CreateClient();
         var original = await CreateSeriesAsync(client, "Exceptions", new RecurrenceRuleDto("Daily", 1, "AfterCount", Count: 6));
-        await client.PutAsJsonAsync($"/api/events/{original.Id}/occurrences/modify", new ModifyOccurrenceRequest("2026-07-07T09:00:00", Title: "Past moved", StartUtc: new DateTimeOffset(2026, 7, 12, 9, 0, 0, TimeSpan.Zero)));
+        await client.PutAsJsonAsync($"/api/events/{original.Id}/occurrences/modify", new ModifyOccurrenceRequest("2026-07-07T09:00:00", Title: "Past moved", Timing: new CalendarFieldSetRequest(new DateOnly(2026, 7, 12), new TimeOnly(9, 0), new DateOnly(2026, 7, 12), new TimeOnly(10, 0), false)));
         await client.PostAsJsonAsync($"/api/events/{original.Id}/occurrences/skip", new OccurrenceTargetRequest("2026-07-10T09:00:00"));
 
         var response = await client.PutAsJsonAsync($"/api/events/{original.Id}/occurrences/split", new SplitEventSeriesRequest("2026-07-09T09:00:00", Title: "Clean future"));

@@ -15,6 +15,7 @@ import { WeeklyResetPage } from '../weeklyReset/WeeklyResetPage';
 import { WoningClimatePage, WoningSummaryPage, type ClimateStoryDeepLink } from '../WoningClimatePage';
 import { FirstRunWizard } from '../FirstRunWizard';
 import { dismissSetupChecklist, loadOnboardingStatus, type SetupChecklist } from '../onboardingApi';
+import { HouseholdTimeZoneProvider } from '../households/HouseholdTimeZoneContext';
 import { DomainPlaceholderPage } from './DomainPlaceholderPage';
 import { getDomainColorClass } from './domainColors';
 import { getWidgetDefinition } from '../widgets/widgetCatalog';
@@ -43,6 +44,7 @@ export function WorkspaceShell() {
   const [setupChecklist, setSetupChecklist] = useState<SetupChecklist | null>(null);
   const [checkedOnboarding, setCheckedOnboarding] = useState(false);
   const [onboardingStatusError, setOnboardingStatusError] = useState(false);
+  const [householdTimeZoneId, setHouseholdTimeZoneId] = useState('Europe/Amsterdam');
   const [settingsNeedsAttention, setSettingsNeedsAttention] = useState(false);
   const [houseView, setHouseView] = useState<'summary' | 'climate'>('summary');
   const [climateStoryContext, setClimateStoryContext] = useState<ClimateStoryDeepLink | undefined>();
@@ -133,6 +135,7 @@ export function WorkspaceShell() {
     loadOnboardingStatus().then((status) => {
       if (!ignore) {
         setRequiresOnboarding(status.requiresOnboarding);
+        setHouseholdTimeZoneId(status.timeZoneId ?? 'Europe/Amsterdam');
         setSetupChecklist(status.setupChecklist);
         setCheckedOnboarding(true);
       }
@@ -158,7 +161,7 @@ export function WorkspaceShell() {
   }
 
   if (requiresOnboarding) {
-    return <FirstRunWizard initialMembers={members} onComplete={(updatedMembers) => { setMembers([...updatedMembers]); setRequiresOnboarding(false); setActiveWorkspaceId('home'); setActiveFamilyMemberId(null); void loadOnboardingStatus().then((status) => setSetupChecklist(status.setupChecklist)); }} />;
+    return <FirstRunWizard initialMembers={members} onComplete={(updatedMembers) => { setMembers([...updatedMembers]); setRequiresOnboarding(false); setActiveWorkspaceId('home'); setActiveFamilyMemberId(null); void loadOnboardingStatus().then((status) => { setSetupChecklist(status.setupChecklist); setHouseholdTimeZoneId(status.timeZoneId ?? 'Europe/Amsterdam'); }); }} />;
   }
 
   const widgetInstances = activeWorkspace.id === 'agenda'
@@ -168,6 +171,7 @@ export function WorkspaceShell() {
       : widgetInstancesByWorkspace[activeWorkspace.id] ?? [];
 
   return (
+    <HouseholdTimeZoneProvider value={householdTimeZoneId}>
     <section className={`workspace-shell ${activeDomainClass}`} aria-label="Gezinsbord">
       <nav className="workspace-nav" aria-label="Navigatie gezinsbord">
         <WorkspaceBackSlot isVisible={Boolean(activeFamilyMember)} onBack={() => setActiveFamilyMemberId(null)} />
@@ -272,6 +276,7 @@ export function WorkspaceShell() {
       {isAddingMember ? <AddFamilyMemberDialog onCancel={() => setIsAddingMember(false)} onCreate={addFamilyMember} /> : null}
       {setupChecklist && !setupChecklist.isDismissed ? <SetupChecklistDialog checklist={setupChecklist} onDismiss={async () => setSetupChecklist(await dismissSetupChecklist())} /> : null}
     </section>
+    </HouseholdTimeZoneProvider>
   );
 }
 

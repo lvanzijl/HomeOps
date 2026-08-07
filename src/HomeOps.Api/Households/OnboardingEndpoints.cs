@@ -18,7 +18,7 @@ public static class OnboardingEndpoints
         {
             var household = await dbContext.Households.AsNoTracking().FirstAsync(h => h.Id == SeedHousehold.Id, cancellationToken);
             var hasActiveMembers = await dbContext.FamilyMembers.AsNoTracking().AnyAsync(m => m.HouseholdId == SeedHousehold.Id && !m.IsDeleted, cancellationToken);
-            return Results.Ok(new OnboardingStatusDto(household.OnboardingCompleted, hasActiveMembers, !household.OnboardingCompleted, await SetupChecklist(dbContext, household, cancellationToken)));
+            return Results.Ok(new OnboardingStatusDto(household.OnboardingCompleted, hasActiveMembers, !household.OnboardingCompleted, household.TimeZoneId, await SetupChecklist(dbContext, household, cancellationToken)));
         }).WithName("GetOnboardingStatus").Produces<OnboardingStatusDto>();
 
         group.MapPost("/setup-checklist/dismiss", async (HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
@@ -95,7 +95,7 @@ public static class OnboardingEndpoints
     private static async Task<OnboardingStatusDto> Status(HomeOpsDbContext dbContext, Household household, CancellationToken cancellationToken)
     {
         var hasActiveMembers = await dbContext.FamilyMembers.AsNoTracking().AnyAsync(m => m.HouseholdId == SeedHousehold.Id && !m.IsDeleted, cancellationToken);
-        return new OnboardingStatusDto(household.OnboardingCompleted, hasActiveMembers, !household.OnboardingCompleted, await SetupChecklist(dbContext, household, cancellationToken));
+        return new OnboardingStatusDto(household.OnboardingCompleted, hasActiveMembers, !household.OnboardingCompleted, household.TimeZoneId, await SetupChecklist(dbContext, household, cancellationToken));
     }
 
     private static async Task<SetupChecklistDto> SetupChecklist(HomeOpsDbContext dbContext, Household household, CancellationToken cancellationToken)

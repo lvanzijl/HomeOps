@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   RecurrenceRuleDto,
   DecorativeAvatarReferenceDto,
@@ -73,6 +73,7 @@ const eventSeriesDto = new EventSeriesDto({
 });
 
 describe('EventSeries API mapping', () => {
+  afterEach(() => vi.unstubAllGlobals());
   it('loads event sources and normalized events from the generated API client', async () => {
     const client = {
       listEventSources: vi.fn().mockResolvedValue([apiSource]),
@@ -85,20 +86,23 @@ describe('EventSeries API mapping', () => {
     expect(data.events[0]).toMatchObject({ id: 'dentist', eventSeriesId: 'series-dentist', occurrenceKey: '2026-06-18T09:30:00', isRecurring: true });
   });
 
-  it('creates, updates, and deletes events through generated API methods', async () => {
+  it('creates and updates with literal calendar fields, then deletes through the generated API', async () => {
     const client = {
-      createEvent: vi.fn().mockResolvedValue(eventSeriesDto),
-      updateEvent: vi.fn().mockResolvedValue(new EventSeriesDto({ ...eventSeriesDto, title: 'Updated Event' })),
       deleteEvent: vi.fn().mockResolvedValue(undefined),
     } as never;
+    const updatedDto = new EventSeriesDto({ ...eventSeriesDto, title: 'Updated Event' });
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify(eventSeriesDto.toJSON()), { status: 201 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify(updatedDto.toJSON()), { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
 
     const created = await createCalendarAgendaEvent({ title: 'Created Event', startsAt: '2026-06-22T09:00', endsAt: '2026-06-22T10:00', allDay: false, decorativeAvatar: { referenceType: 'knownPerson', referenceId: 'known-1' } }, client);
     const updated = await updateCalendarAgendaEvent('created', { title: 'Updated Event', startsAt: '2026-06-22T09:00', endsAt: '2026-06-22T10:00', allDay: false }, client);
     await deleteCalendarAgendaEvent('created', client);
 
-    expect((client as { createEvent: ReturnType<typeof vi.fn> }).createEvent).toHaveBeenCalledTimes(1);
-    expect((client as { createEvent: ReturnType<typeof vi.fn> }).createEvent.mock.calls[0][0].decorativeAvatar).toMatchObject({ referenceType: DecorativeAvatarReferenceType.KnownPerson, referenceId: 'known-1' });
-    expect((client as { updateEvent: ReturnType<typeof vi.fn> }).updateEvent).toHaveBeenCalledWith('created', expect.objectContaining({ title: 'Updated Event' }));
+    expect(fetchMock).toHaveBeenNthCalledWith(1, '/api/events', expect.objectContaining({ method: 'POST' }));
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toMatchObject({ startDate: '2026-06-22', startTime: '09:00', endDate: '2026-06-22', endTime: '10:00', isAllDay: false, decorativeAvatar: { referenceType: 1, referenceId: 'known-1' } });
+    expect(fetchMock).toHaveBeenNthCalledWith(2, '/api/events/created', expect.objectContaining({ method: 'PUT' }));
     expect((client as { deleteEvent: ReturnType<typeof vi.fn> }).deleteEvent).toHaveBeenCalledWith('created');
     expect(created).toMatchObject({ id: 'created', sourceId: 'manual-source', editable: true, decorativeAvatar: { referenceType: 'familyMember', referenceId: 'riley' } });
     expect(updated.title).toBe('Updated Event');
@@ -121,11 +125,13 @@ describe('EventSeries API mapping', () => {
     const client = {
       getEventById: vi.fn().mockResolvedValue(eventSeriesDto),
       skipEventOccurrence: vi.fn().mockResolvedValue(undefined),
-      modifyEventOccurrence: vi.fn().mockResolvedValue(undefined),
-      splitEventSeriesFromOccurrence: vi.fn().mockResolvedValue(eventSeriesDto),
       deleteEventOccurrence: vi.fn().mockResolvedValue(undefined),
       deleteEventOccurrencesFromOccurrence: vi.fn().mockResolvedValue(undefined),
     } as never;
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify(eventSeriesDto.toJSON()), { status: 201 }));
+    vi.stubGlobal('fetch', fetchMock);
 
     const details = await getCalendarAgendaEventSeries('created', client);
     await skipCalendarAgendaOccurrence('created', '2026-06-29T09:00:00', client);
@@ -152,9 +158,8 @@ describe('EventSeries API mapping', () => {
     expect(details.decorativeAvatar).toEqual({ referenceType: 'familyMember', referenceId: 'riley' });
     expect(details.exceptions[0]).toMatchObject({ occurrenceKey: '2026-06-29T09:00:00', title: 'Moved Event' });
     expect((client as { skipEventOccurrence: ReturnType<typeof vi.fn> }).skipEventOccurrence).toHaveBeenCalled();
-    expect((client as { modifyEventOccurrence: ReturnType<typeof vi.fn> }).modifyEventOccurrence).toHaveBeenCalled();
-    expect((client as { splitEventSeriesFromOccurrence: ReturnType<typeof vi.fn> }).splitEventSeriesFromOccurrence).toHaveBeenCalled();
-    expect((client as { splitEventSeriesFromOccurrence: ReturnType<typeof vi.fn> }).splitEventSeriesFromOccurrence.mock.results[0]).toBeDefined();
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toMatchObject({ timing: { startDate: '2026-06-29', startTime: '10:00', endDate: '2026-06-29', endTime: '11:00', isAllDay: false } });
+    expect(fetchMock).toHaveBeenNthCalledWith(2, '/api/events/created/occurrences/split', expect.objectContaining({ method: 'PUT' }));
     expect((client as { deleteEventOccurrence: ReturnType<typeof vi.fn> }).deleteEventOccurrence).toHaveBeenCalledWith('created', '2026-06-29T09:00:00');
     expect((client as { deleteEventOccurrencesFromOccurrence: ReturnType<typeof vi.fn> }).deleteEventOccurrencesFromOccurrence).toHaveBeenCalledWith('created', '2026-06-29T09:00:00');
   });

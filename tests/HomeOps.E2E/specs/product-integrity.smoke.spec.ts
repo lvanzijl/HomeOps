@@ -137,7 +137,6 @@ test("empty-roster family administration can add, remove, and restore across ref
 });
 
 test("Home Today event stays on the household-local day", async ({ page, request }) => {
-  test.fail(true, "Known TIME-01 defect: Home converts a local calendar date through UTC.");
   await resetFixture(request, "visual-marketing-home");
   await page.goto("/");
 
@@ -200,11 +199,23 @@ test("primary pages do not create document-level vertical scrolling", async ({ p
 
     await page.getByRole("button", { name: "Instellingen voor gezinsinstellingen" }).click();
     await expectNoDocumentScroll(page, `Instellingen at ${viewport.width}x${viewport.height}`);
+    await page.getByRole("button", { name: "Kalendercontrole" }).click();
+    await expect(page.getByRole("dialog", { name: "Kalendercontrole" })).toBeVisible();
+    await expectNoDocumentScroll(page, `Kalendercontrole at ${viewport.width}x${viewport.height}`);
+    await page.getByRole("button", { name: "Kalendercontrole sluiten" }).click();
     await page.getByRole("button", { name: "Gezinsleden" }).click();
     await expect(page.getByRole("dialog", { name: "Gezinsleden" })).toBeVisible();
     await expectNoDocumentScroll(page, `Gezinsledenbeheer at ${viewport.width}x${viewport.height}`);
     await page.getByRole("button", { name: "Gezinsleden sluiten" }).click();
 
+    await page.getByRole("button", { name: "Thuis", exact: true }).click();
+    await page.getByRole("button", { name: "Afspraak toevoegen" }).click();
+    await expectNoDocumentScroll(page, `Home quick-add at ${viewport.width}x${viewport.height}`);
+    await page.getByRole("button", { name: "Afspraak toevoegen sluiten" }).click();
+    await page.getByRole("button", { name: "Agenda", exact: true }).click();
+    await page.getByRole("button", { name: "Afspraak plannen" }).click();
+    await expectNoDocumentScroll(page, `Agenda editor at ${viewport.width}x${viewport.height}`);
+    await page.getByRole("button", { name: "Sluit gebeurtenisvenster" }).click();
     await page.getByRole("button", { name: "Thuis", exact: true }).click();
     await page.getByRole("button", { name: "Alex gezinslidpagina openen" }).click();
     await expectNoDocumentScroll(page, `Mijn pagina at ${viewport.width}x${viewport.height}`);

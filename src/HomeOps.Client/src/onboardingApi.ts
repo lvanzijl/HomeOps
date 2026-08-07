@@ -8,6 +8,7 @@ export interface OnboardingStatus {
   onboardingCompleted: boolean;
   hasActiveFamilyMembers: boolean;
   requiresOnboarding: boolean;
+  timeZoneId?: string;
   setupChecklist: SetupChecklist | null;
 }
 
@@ -27,6 +28,7 @@ export async function loadOnboardingStatus(): Promise<OnboardingStatus> {
     onboardingCompleted: status.onboardingCompleted ?? false,
     hasActiveFamilyMembers: status.hasActiveFamilyMembers ?? false,
     requiresOnboarding: status.requiresOnboarding ?? true,
+    timeZoneId: (status as typeof status & { timeZoneId?: string }).timeZoneId ?? 'Europe/Amsterdam',
     setupChecklist: status.setupChecklist ? {
       isDismissed: status.setupChecklist.isDismissed ?? false,
       weatherLocationConfigured: status.setupChecklist.weatherLocationConfigured ?? false,
@@ -65,6 +67,7 @@ export async function completeOnboarding(input: { householdName: string; timeZon
     onboardingCompleted: status.onboardingCompleted ?? true,
     hasActiveFamilyMembers: status.hasActiveFamilyMembers ?? true,
     requiresOnboarding: status.requiresOnboarding ?? false,
+    timeZoneId: (status as typeof status & { timeZoneId?: string }).timeZoneId ?? input.timeZoneId,
     setupChecklist: status.setupChecklist ? {
       isDismissed: status.setupChecklist.isDismissed ?? false,
       weatherLocationConfigured: status.setupChecklist.weatherLocationConfigured ?? false,

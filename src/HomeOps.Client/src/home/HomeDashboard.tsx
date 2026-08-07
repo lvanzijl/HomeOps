@@ -49,6 +49,8 @@ import { WeatherTemperatureBadge } from "../weather/WeatherTemperatureBadge";
 import { loadHomeWeather } from "./homeWeatherApi";
 import { loadWeatherDetail } from "./weatherDetailApi";
 import { WeatherDetailDialog } from "./WeatherDetailDialog";
+import { calendarDateInTimeZone, useHouseholdTimeZone } from '../households/HouseholdTimeZoneContext';
+import { saveCalendarDraft } from '../agenda/calendarDraft';
 
 interface HomeDashboardProps {
   members: readonly FamilyMember[];
@@ -79,6 +81,7 @@ export function HomeDashboard({
   onSelectFamilyMember,
 }: HomeDashboardProps) {
   const visualReviewNow = useVisualReviewNow();
+  const householdTimeZoneId = useHouseholdTimeZone();
   const [now, setNow] = useState(() => visualReviewNow ?? new Date());
   const [motivationFamilyGoal, setMotivationFamilyGoal] = useState<
     MotivationFamilyGoal | undefined
@@ -324,10 +327,11 @@ export function HomeDashboard({
     try {
       const submitter = (event.nativeEvent as SubmitEvent).submitter as HTMLElement | null;
       const when = (submitter?.dataset.when as "today" | "tomorrow" | "pick" | undefined) ?? eventWhen;
-      const startsAt = quickEventDate(when, eventDate, now);
+      const startsAt = quickEventDate(when, eventDate, visualReviewNow ?? new Date(), householdTimeZoneId);
       await createCalendarAgendaEvent({
         title: trimmed,
-        startsAt: startsAt.toISOString(),
+        startsAt,
+        endsAt: startsAt,
         allDay: true,
       });
       setEventTitle("");
@@ -339,6 +343,15 @@ export function HomeDashboard({
     } catch {
       setAgendaError("Afspraak kon niet vanaf Thuis worden toegevoegd.");
     }
+  }
+
+  function handleCalendarMoreOptions() {
+    const trimmed = eventTitle.trim();
+    if (!trimmed) return;
+    const startDate = quickEventDate(eventWhen, eventDate, visualReviewNow ?? new Date(), householdTimeZoneId);
+    saveCalendarDraft({ title: trimmed, startDate, isAllDay: true });
+    setIsEventCaptureOpen(false);
+    onNavigate('agenda');
   }
 
   const agendaItems = useMemo(
@@ -1037,6 +1050,12 @@ export function HomeDashboard({
                       <button type="submit" data-when="pick">Toevoegen</button>
                     </div>
                   ) : null}
+                  <div className="home-quick-secondary-actions">
+                    <button type="button" className="secondary-action" onClick={handleCalendarMoreOptions}>
+                      Meer opties
+                    </button>
+                    <span>Gezinstijdzone: {householdTimeZoneId}</span>
+                  </div>
                 </div>
               )}
             </form>
@@ -1259,20 +1278,21 @@ function quickEventDate(
   when: "today" | "tomorrow" | "pick",
   pickedDate: string,
   now: Date,
-): Date {
-  if (when === "pick" && pickedDate) return localDateFromInput(pickedDate);
-  const date = startOfDay(now);
-  if (when === "tomorrow") date.setDate(date.getDate() + 1);
-  return date;
+  timeZoneId: string,
+): string {
+  if (when === "pick" && pickedDate) return pickedDate;
+  const today = calendarDateInTimeZone(now, timeZoneId);
+  return when === 'tomorrow' ? addCalendarDays(today, 1) : today;
+}
+
+function addCalendarDays(value: string, days: number): string {
+  const [year, month, day] = value.split('-').map(Number);
+  const next = new Date(Date.UTC(year, month - 1, day + days));
+  return `${next.getUTCFullYear()}-${String(next.getUTCMonth() + 1).padStart(2, '0')}-${String(next.getUTCDate()).padStart(2, '0')}`;
 }
 
 function toDateInputValue(date: Date): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-}
-
-function localDateFromInput(value: string): Date {
-  const [year, month, day] = value.split("-").map(Number);
-  return new Date(year, month - 1, day);
 }
 
 function formatTaskOwner(

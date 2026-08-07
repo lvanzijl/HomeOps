@@ -21,9 +21,8 @@ public sealed class CalendarFieldContractApiTests
         var date = new DateOnly(year, month, day);
 
         var response = await client.PostAsJsonAsync("/api/events", new CreateEventSeriesRequest(
-            "Local appointment", null, null, null, null, false,
-            StartDate: date, StartTime: new TimeOnly(hour, minute),
-            EndDate: date, EndTime: new TimeOnly(hour + 1, minute)));
+            "Local appointment", null, null, date, new TimeOnly(hour, minute),
+            date, new TimeOnly(hour + 1, minute), false));
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         var created = await response.Content.ReadFromJsonAsync<EventSeriesDto>();
@@ -43,9 +42,8 @@ public sealed class CalendarFieldContractApiTests
     {
         await using var factory = new HomeOpsWebApplicationFactory();
         var response = await factory.CreateClient().PostAsJsonAsync("/api/events", new CreateEventSeriesRequest(
-            "Impossible", null, null, null, null, false,
-            StartDate: new DateOnly(2026, 3, 29), StartTime: new TimeOnly(2, 30),
-            EndDate: new DateOnly(2026, 3, 29), EndTime: new TimeOnly(3, 30)));
+            "Impossible", null, null, new DateOnly(2026, 3, 29), new TimeOnly(2, 30),
+            new DateOnly(2026, 3, 29), new TimeOnly(3, 30), false));
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.Contains("02:30 does not occur in Europe/Amsterdam", await response.Content.ReadAsStringAsync());
@@ -56,9 +54,8 @@ public sealed class CalendarFieldContractApiTests
     {
         await using var factory = new HomeOpsWebApplicationFactory();
         var response = await factory.CreateClient().PostAsJsonAsync("/api/events", new CreateEventSeriesRequest(
-            "Ambiguous", null, null, null, null, false,
-            StartDate: new DateOnly(2026, 10, 25), StartTime: new TimeOnly(2, 30),
-            EndDate: new DateOnly(2026, 10, 25), EndTime: new TimeOnly(3, 30)));
+            "Ambiguous", null, null, new DateOnly(2026, 10, 25), new TimeOnly(2, 30),
+            new DateOnly(2026, 10, 25), new TimeOnly(3, 30), false));
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         var created = await response.Content.ReadFromJsonAsync<EventSeriesDto>();
@@ -73,8 +70,8 @@ public sealed class CalendarFieldContractApiTests
         await using var factory = new HomeOpsWebApplicationFactory();
         var client = factory.CreateClient();
         var response = await client.PostAsJsonAsync("/api/events", new CreateEventSeriesRequest(
-            "Holiday", null, null, null, null, true,
-            StartDate: new DateOnly(2026, 7, 12), EndDate: new DateOnly(2026, 7, 19)));
+            "Holiday", null, null, new DateOnly(2026, 7, 12), null,
+            new DateOnly(2026, 7, 19), null, true));
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         using var scope = factory.Services.CreateScope();
@@ -96,10 +93,9 @@ public sealed class CalendarFieldContractApiTests
         var startDate = new DateOnly(year, month, day);
         var title = $"DST recurrence {year}-{month}-{day}";
         var response = await client.PostAsJsonAsync("/api/events", new CreateEventSeriesRequest(
-            title, null, null, null, null, false,
-            new RecurrenceRuleDto("Daily", 1, "AfterCount", Count: 3),
-            StartDate: startDate, StartTime: new TimeOnly(9, 0),
-            EndDate: startDate, EndTime: new TimeOnly(10, 0)));
+            title, null, null, startDate, new TimeOnly(9, 0),
+            startDate, new TimeOnly(10, 0), false,
+            new RecurrenceRuleDto("Daily", 1, "AfterCount", Count: 3)));
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
         var events = await client.GetFromJsonAsync<NormalizedEvent[]>("/api/events");
@@ -117,10 +113,9 @@ public sealed class CalendarFieldContractApiTests
         var client = factory.CreateClient();
         var startDate = new DateOnly(2026, 7, 6);
         var createdResponse = await client.PostAsJsonAsync("/api/events", new CreateEventSeriesRequest(
-            "Practice", null, null, null, null, false,
-            new RecurrenceRuleDto("Daily", 1, "AfterCount", Count: 4),
-            StartDate: startDate, StartTime: new TimeOnly(9, 0),
-            EndDate: startDate, EndTime: new TimeOnly(10, 0)));
+            "Practice", null, null, startDate, new TimeOnly(9, 0),
+            startDate, new TimeOnly(10, 0), false,
+            new RecurrenceRuleDto("Daily", 1, "AfterCount", Count: 4)));
         var created = await createdResponse.Content.ReadFromJsonAsync<EventSeriesDto>();
         Assert.NotNull(created);
 
@@ -140,17 +135,19 @@ public sealed class CalendarFieldContractApiTests
     }
 
     [Fact]
-    public async Task CalendarFieldsCannotBeMixedWithLegacyUtcFields()
+    public async Task CalendarFieldCreateRejectsIncompleteFieldSet()
     {
         await using var factory = new HomeOpsWebApplicationFactory();
-        var legacy = new DateTimeOffset(2026, 7, 6, 9, 0, 0, TimeSpan.Zero);
-        var response = await factory.CreateClient().PostAsJsonAsync("/api/events", new CreateEventSeriesRequest(
-            "Mixed", null, null, legacy, legacy.AddHours(1), false,
-            StartDate: new DateOnly(2026, 7, 6), StartTime: new TimeOnly(9, 0),
-            EndDate: new DateOnly(2026, 7, 6), EndTime: new TimeOnly(10, 0)));
+        var response = await factory.CreateClient().PostAsJsonAsync("/api/events", new
+        {
+            title = "Incomplete",
+            startDate = "2026-07-06",
+            startTime = "09:00",
+            isAllDay = false,
+        });
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        Assert.Contains("cannot be combined", await response.Content.ReadAsStringAsync());
+        Assert.Contains("end", (await response.Content.ReadAsStringAsync()).ToLowerInvariant());
     }
 
     [Fact]

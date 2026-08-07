@@ -38,15 +38,13 @@ Use `-KeepDatabase` only while diagnosing a failing test. The generated name is 
 
 ## Expected-failure baseline
 
-Three product-integrity scenarios deliberately use Playwright's expected-failure marker while their defects remain open:
+One product-integrity scenario deliberately uses Playwright's expected-failure marker while its defects remain open:
 
-- fresh install onboarding (`BOOT-01`);
-- Home local-date event placement (`TIME-01`);
 - Tasks Complete/Tomorrow/Edit hit targets (`TASK-UI-01`, `TASK-UI-02`).
 
 Expected failures keep the baseline command green while preserving executable evidence. Playwright treats an unexpected pass as a failure. When a remediation slice fixes one of these defects, remove its expected-failure marker and keep the passing regression test.
 
-Family-member avatar persistence (`MEMBER-01`) and the primary-page no-document-scroll scenario are normal passing regressions. The viewport scenario covers 1440x900 and 1366x768.
+Fresh-install onboarding (`BOOT-01`), family-member avatar persistence (`MEMBER-01`), Home household-local event placement (`TIME-01`), and the primary-page no-document-scroll scenario are normal passing regressions. The viewport scenario covers 1440x900 and 1366x768, including the Home quick-add, Agenda editor, and Kalendercontrole dialogs.
 
 ## Artifacts
 

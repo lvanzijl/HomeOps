@@ -72,9 +72,7 @@ public sealed class CalendarRecurrenceV2OccurrenceOperationApiTests
             Title: "Moved title",
             Description: "Moved description",
             Location: "Library",
-            IsAllDay: false,
-            StartUtc: new DateTimeOffset(2026, 7, 10, 11, 0, 0, TimeSpan.Zero),
-            EndUtc: new DateTimeOffset(2026, 7, 10, 12, 0, 0, TimeSpan.Zero));
+            Timing: new CalendarFieldSetRequest(new DateOnly(2026, 7, 10), new TimeOnly(11, 0), new DateOnly(2026, 7, 10), new TimeOnly(12, 0), false));
 
         var response = await client.PutAsJsonAsync($"/api/events/{created.Id}/occurrences/modify", request);
         var events = await client.GetFromJsonAsync<NormalizedEvent[]>("/api/events");
@@ -165,7 +163,7 @@ public sealed class CalendarRecurrenceV2OccurrenceOperationApiTests
     public static IEnumerable<object[]> InvalidModifyRequests()
     {
         yield return [new ModifyOccurrenceRequest("2026-07-07T09:00:00", Title: "   ")];
-        yield return [new ModifyOccurrenceRequest("2026-07-07T09:00:00", StartUtc: new DateTimeOffset(2026, 7, 7, 12, 0, 0, TimeSpan.Zero), EndUtc: new DateTimeOffset(2026, 7, 7, 11, 0, 0, TimeSpan.Zero))];
+        yield return [new ModifyOccurrenceRequest("2026-07-07T09:00:00", Timing: new CalendarFieldSetRequest(new DateOnly(2026, 7, 7), new TimeOnly(12, 0), new DateOnly(2026, 7, 7), new TimeOnly(11, 0), false))];
         yield return [new ModifyOccurrenceRequest("2026-07-07T09:00:00")];
     }
 

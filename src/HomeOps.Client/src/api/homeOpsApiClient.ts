@@ -12560,11 +12560,11 @@ export interface ICalendarFieldRepairPreviewDto {
 }
 
 export class CalendarFieldSetRequest implements ICalendarFieldSetRequest {
-    startDate?: Date;
+    startDate!: Date;
     startTime?: string | undefined;
-    endDate?: Date;
+    endDate!: Date;
     endTime?: string | undefined;
-    isAllDay?: boolean;
+    isAllDay!: boolean;
 
     constructor(data?: ICalendarFieldSetRequest) {
         if (data) {
@@ -12604,15 +12604,15 @@ export class CalendarFieldSetRequest implements ICalendarFieldSetRequest {
 }
 
 export interface ICalendarFieldSetRequest {
-    startDate?: Date;
+    startDate: Date;
     startTime?: string | undefined;
-    endDate?: Date;
+    endDate: Date;
     endTime?: string | undefined;
-    isAllDay?: boolean;
+    isAllDay: boolean;
 }
 
 export class PreviewCalendarFieldRepairRequest implements IPreviewCalendarFieldRepairRequest {
-    timing?: CalendarFieldSetRequest;
+    timing!: CalendarFieldSetRequest;
 
     constructor(data?: IPreviewCalendarFieldRepairRequest) {
         if (data) {
@@ -12621,11 +12621,14 @@ export class PreviewCalendarFieldRepairRequest implements IPreviewCalendarFieldR
                     (this as any)[property] = (data as any)[property];
             }
         }
+        if (!data) {
+            this.timing = new CalendarFieldSetRequest();
+        }
     }
 
     init(_data?: any) {
         if (_data) {
-            this.timing = _data["timing"] ? CalendarFieldSetRequest.fromJS(_data["timing"]) : undefined as any;
+            this.timing = _data["timing"] ? CalendarFieldSetRequest.fromJS(_data["timing"]) : new CalendarFieldSetRequest();
         }
     }
 
@@ -12644,13 +12647,13 @@ export class PreviewCalendarFieldRepairRequest implements IPreviewCalendarFieldR
 }
 
 export interface IPreviewCalendarFieldRepairRequest {
-    timing?: CalendarFieldSetRequest;
+    timing: CalendarFieldSetRequest;
 }
 
 export class ApplyCalendarFieldRepairRequest implements IApplyCalendarFieldRepairRequest {
-    timing?: CalendarFieldSetRequest;
-    expectedUpdatedUtc?: Date;
-    confirmed?: boolean;
+    timing!: CalendarFieldSetRequest;
+    expectedUpdatedUtc!: Date;
+    confirmed!: boolean;
 
     constructor(data?: IApplyCalendarFieldRepairRequest) {
         if (data) {
@@ -12659,11 +12662,14 @@ export class ApplyCalendarFieldRepairRequest implements IApplyCalendarFieldRepai
                     (this as any)[property] = (data as any)[property];
             }
         }
+        if (!data) {
+            this.timing = new CalendarFieldSetRequest();
+        }
     }
 
     init(_data?: any) {
         if (_data) {
-            this.timing = _data["timing"] ? CalendarFieldSetRequest.fromJS(_data["timing"]) : undefined as any;
+            this.timing = _data["timing"] ? CalendarFieldSetRequest.fromJS(_data["timing"]) : new CalendarFieldSetRequest();
             this.expectedUpdatedUtc = _data["expectedUpdatedUtc"] ? new Date(_data["expectedUpdatedUtc"].toString()) : undefined as any;
             this.confirmed = _data["confirmed"];
         }
@@ -12686,24 +12692,22 @@ export class ApplyCalendarFieldRepairRequest implements IApplyCalendarFieldRepai
 }
 
 export interface IApplyCalendarFieldRepairRequest {
-    timing?: CalendarFieldSetRequest;
-    expectedUpdatedUtc?: Date;
-    confirmed?: boolean;
+    timing: CalendarFieldSetRequest;
+    expectedUpdatedUtc: Date;
+    confirmed: boolean;
 }
 
 export class CreateEventSeriesRequest implements ICreateEventSeriesRequest {
-    title?: string;
+    title!: string;
     description?: string | undefined;
     location?: string | undefined;
-    startUtc?: Date | undefined;
-    endUtc?: Date | undefined;
-    isAllDay?: boolean;
+    startDate!: Date;
+    startTime?: string | undefined;
+    endDate!: Date;
+    endTime?: string | undefined;
+    isAllDay!: boolean;
     recurrenceRule?: RecurrenceRuleDto | undefined;
     decorativeAvatar?: DecorativeAvatarReferenceDto | undefined;
-    startDate?: Date | undefined;
-    startTime?: string | undefined;
-    endDate?: Date | undefined;
-    endTime?: string | undefined;
 
     constructor(data?: ICreateEventSeriesRequest) {
         if (data) {
@@ -12719,15 +12723,13 @@ export class CreateEventSeriesRequest implements ICreateEventSeriesRequest {
             this.title = _data["title"];
             this.description = _data["description"];
             this.location = _data["location"];
-            this.startUtc = _data["startUtc"] ? new Date(_data["startUtc"].toString()) : undefined as any;
-            this.endUtc = _data["endUtc"] ? new Date(_data["endUtc"].toString()) : undefined as any;
-            this.isAllDay = _data["isAllDay"];
-            this.recurrenceRule = _data["recurrenceRule"] ? RecurrenceRuleDto.fromJS(_data["recurrenceRule"]) : undefined as any;
-            this.decorativeAvatar = _data["decorativeAvatar"] ? DecorativeAvatarReferenceDto.fromJS(_data["decorativeAvatar"]) : undefined as any;
             this.startDate = _data["startDate"] ? new Date(_data["startDate"].toString()) : undefined as any;
             this.startTime = _data["startTime"];
             this.endDate = _data["endDate"] ? new Date(_data["endDate"].toString()) : undefined as any;
             this.endTime = _data["endTime"];
+            this.isAllDay = _data["isAllDay"];
+            this.recurrenceRule = _data["recurrenceRule"] ? RecurrenceRuleDto.fromJS(_data["recurrenceRule"]) : undefined as any;
+            this.decorativeAvatar = _data["decorativeAvatar"] ? DecorativeAvatarReferenceDto.fromJS(_data["decorativeAvatar"]) : undefined as any;
         }
     }
 
@@ -12743,47 +12745,41 @@ export class CreateEventSeriesRequest implements ICreateEventSeriesRequest {
         data["title"] = this.title;
         data["description"] = this.description;
         data["location"] = this.location;
-        data["startUtc"] = this.startUtc ? this.startUtc.toISOString() : undefined as any;
-        data["endUtc"] = this.endUtc ? this.endUtc.toISOString() : undefined as any;
-        data["isAllDay"] = this.isAllDay;
-        data["recurrenceRule"] = this.recurrenceRule ? this.recurrenceRule.toJSON() : undefined as any;
-        data["decorativeAvatar"] = this.decorativeAvatar ? this.decorativeAvatar.toJSON() : undefined as any;
         data["startDate"] = this.startDate ? formatDate(this.startDate) : undefined as any;
         data["startTime"] = this.startTime;
         data["endDate"] = this.endDate ? formatDate(this.endDate) : undefined as any;
         data["endTime"] = this.endTime;
+        data["isAllDay"] = this.isAllDay;
+        data["recurrenceRule"] = this.recurrenceRule ? this.recurrenceRule.toJSON() : undefined as any;
+        data["decorativeAvatar"] = this.decorativeAvatar ? this.decorativeAvatar.toJSON() : undefined as any;
         return data;
     }
 }
 
 export interface ICreateEventSeriesRequest {
-    title?: string;
+    title: string;
     description?: string | undefined;
     location?: string | undefined;
-    startUtc?: Date | undefined;
-    endUtc?: Date | undefined;
-    isAllDay?: boolean;
+    startDate: Date;
+    startTime?: string | undefined;
+    endDate: Date;
+    endTime?: string | undefined;
+    isAllDay: boolean;
     recurrenceRule?: RecurrenceRuleDto | undefined;
     decorativeAvatar?: DecorativeAvatarReferenceDto | undefined;
-    startDate?: Date | undefined;
-    startTime?: string | undefined;
-    endDate?: Date | undefined;
-    endTime?: string | undefined;
 }
 
 export class UpdateEventSeriesRequest implements IUpdateEventSeriesRequest {
-    title?: string;
+    title!: string;
     description?: string | undefined;
     location?: string | undefined;
-    startUtc?: Date | undefined;
-    endUtc?: Date | undefined;
-    isAllDay?: boolean;
+    startDate!: Date;
+    startTime?: string | undefined;
+    endDate!: Date;
+    endTime?: string | undefined;
+    isAllDay!: boolean;
     recurrenceRule?: RecurrenceRuleDto | undefined;
     decorativeAvatar?: DecorativeAvatarReferenceDto | undefined;
-    startDate?: Date | undefined;
-    startTime?: string | undefined;
-    endDate?: Date | undefined;
-    endTime?: string | undefined;
 
     constructor(data?: IUpdateEventSeriesRequest) {
         if (data) {
@@ -12799,15 +12795,13 @@ export class UpdateEventSeriesRequest implements IUpdateEventSeriesRequest {
             this.title = _data["title"];
             this.description = _data["description"];
             this.location = _data["location"];
-            this.startUtc = _data["startUtc"] ? new Date(_data["startUtc"].toString()) : undefined as any;
-            this.endUtc = _data["endUtc"] ? new Date(_data["endUtc"].toString()) : undefined as any;
-            this.isAllDay = _data["isAllDay"];
-            this.recurrenceRule = _data["recurrenceRule"] ? RecurrenceRuleDto.fromJS(_data["recurrenceRule"]) : undefined as any;
-            this.decorativeAvatar = _data["decorativeAvatar"] ? DecorativeAvatarReferenceDto.fromJS(_data["decorativeAvatar"]) : undefined as any;
             this.startDate = _data["startDate"] ? new Date(_data["startDate"].toString()) : undefined as any;
             this.startTime = _data["startTime"];
             this.endDate = _data["endDate"] ? new Date(_data["endDate"].toString()) : undefined as any;
             this.endTime = _data["endTime"];
+            this.isAllDay = _data["isAllDay"];
+            this.recurrenceRule = _data["recurrenceRule"] ? RecurrenceRuleDto.fromJS(_data["recurrenceRule"]) : undefined as any;
+            this.decorativeAvatar = _data["decorativeAvatar"] ? DecorativeAvatarReferenceDto.fromJS(_data["decorativeAvatar"]) : undefined as any;
         }
     }
 
@@ -12823,32 +12817,28 @@ export class UpdateEventSeriesRequest implements IUpdateEventSeriesRequest {
         data["title"] = this.title;
         data["description"] = this.description;
         data["location"] = this.location;
-        data["startUtc"] = this.startUtc ? this.startUtc.toISOString() : undefined as any;
-        data["endUtc"] = this.endUtc ? this.endUtc.toISOString() : undefined as any;
-        data["isAllDay"] = this.isAllDay;
-        data["recurrenceRule"] = this.recurrenceRule ? this.recurrenceRule.toJSON() : undefined as any;
-        data["decorativeAvatar"] = this.decorativeAvatar ? this.decorativeAvatar.toJSON() : undefined as any;
         data["startDate"] = this.startDate ? formatDate(this.startDate) : undefined as any;
         data["startTime"] = this.startTime;
         data["endDate"] = this.endDate ? formatDate(this.endDate) : undefined as any;
         data["endTime"] = this.endTime;
+        data["isAllDay"] = this.isAllDay;
+        data["recurrenceRule"] = this.recurrenceRule ? this.recurrenceRule.toJSON() : undefined as any;
+        data["decorativeAvatar"] = this.decorativeAvatar ? this.decorativeAvatar.toJSON() : undefined as any;
         return data;
     }
 }
 
 export interface IUpdateEventSeriesRequest {
-    title?: string;
+    title: string;
     description?: string | undefined;
     location?: string | undefined;
-    startUtc?: Date | undefined;
-    endUtc?: Date | undefined;
-    isAllDay?: boolean;
+    startDate: Date;
+    startTime?: string | undefined;
+    endDate: Date;
+    endTime?: string | undefined;
+    isAllDay: boolean;
     recurrenceRule?: RecurrenceRuleDto | undefined;
     decorativeAvatar?: DecorativeAvatarReferenceDto | undefined;
-    startDate?: Date | undefined;
-    startTime?: string | undefined;
-    endDate?: Date | undefined;
-    endTime?: string | undefined;
 }
 
 export class OccurrenceTargetRequest implements IOccurrenceTargetRequest {
@@ -12892,9 +12882,6 @@ export class ModifyOccurrenceRequest implements IModifyOccurrenceRequest {
     title?: string | undefined;
     description?: string | undefined;
     location?: string | undefined;
-    isAllDay?: boolean | undefined;
-    startUtc?: Date | undefined;
-    endUtc?: Date | undefined;
     timing?: CalendarFieldSetRequest | undefined;
 
     constructor(data?: IModifyOccurrenceRequest) {
@@ -12912,9 +12899,6 @@ export class ModifyOccurrenceRequest implements IModifyOccurrenceRequest {
             this.title = _data["title"];
             this.description = _data["description"];
             this.location = _data["location"];
-            this.isAllDay = _data["isAllDay"];
-            this.startUtc = _data["startUtc"] ? new Date(_data["startUtc"].toString()) : undefined as any;
-            this.endUtc = _data["endUtc"] ? new Date(_data["endUtc"].toString()) : undefined as any;
             this.timing = _data["timing"] ? CalendarFieldSetRequest.fromJS(_data["timing"]) : undefined as any;
         }
     }
@@ -12932,9 +12916,6 @@ export class ModifyOccurrenceRequest implements IModifyOccurrenceRequest {
         data["title"] = this.title;
         data["description"] = this.description;
         data["location"] = this.location;
-        data["isAllDay"] = this.isAllDay;
-        data["startUtc"] = this.startUtc ? this.startUtc.toISOString() : undefined as any;
-        data["endUtc"] = this.endUtc ? this.endUtc.toISOString() : undefined as any;
         data["timing"] = this.timing ? this.timing.toJSON() : undefined as any;
         return data;
     }
@@ -12945,9 +12926,6 @@ export interface IModifyOccurrenceRequest {
     title?: string | undefined;
     description?: string | undefined;
     location?: string | undefined;
-    isAllDay?: boolean | undefined;
-    startUtc?: Date | undefined;
-    endUtc?: Date | undefined;
     timing?: CalendarFieldSetRequest | undefined;
 }
 
@@ -12956,9 +12934,6 @@ export class SplitEventSeriesRequest implements ISplitEventSeriesRequest {
     title?: string | undefined;
     description?: string | undefined;
     location?: string | undefined;
-    isAllDay?: boolean | undefined;
-    startUtc?: Date | undefined;
-    endUtc?: Date | undefined;
     recurrenceRule?: RecurrenceRuleDto | undefined;
     timing?: CalendarFieldSetRequest | undefined;
 
@@ -12977,9 +12952,6 @@ export class SplitEventSeriesRequest implements ISplitEventSeriesRequest {
             this.title = _data["title"];
             this.description = _data["description"];
             this.location = _data["location"];
-            this.isAllDay = _data["isAllDay"];
-            this.startUtc = _data["startUtc"] ? new Date(_data["startUtc"].toString()) : undefined as any;
-            this.endUtc = _data["endUtc"] ? new Date(_data["endUtc"].toString()) : undefined as any;
             this.recurrenceRule = _data["recurrenceRule"] ? RecurrenceRuleDto.fromJS(_data["recurrenceRule"]) : undefined as any;
             this.timing = _data["timing"] ? CalendarFieldSetRequest.fromJS(_data["timing"]) : undefined as any;
         }
@@ -12998,9 +12970,6 @@ export class SplitEventSeriesRequest implements ISplitEventSeriesRequest {
         data["title"] = this.title;
         data["description"] = this.description;
         data["location"] = this.location;
-        data["isAllDay"] = this.isAllDay;
-        data["startUtc"] = this.startUtc ? this.startUtc.toISOString() : undefined as any;
-        data["endUtc"] = this.endUtc ? this.endUtc.toISOString() : undefined as any;
         data["recurrenceRule"] = this.recurrenceRule ? this.recurrenceRule.toJSON() : undefined as any;
         data["timing"] = this.timing ? this.timing.toJSON() : undefined as any;
         return data;
@@ -13012,9 +12981,6 @@ export interface ISplitEventSeriesRequest {
     title?: string | undefined;
     description?: string | undefined;
     location?: string | undefined;
-    isAllDay?: boolean | undefined;
-    startUtc?: Date | undefined;
-    endUtc?: Date | undefined;
     recurrenceRule?: RecurrenceRuleDto | undefined;
     timing?: CalendarFieldSetRequest | undefined;
 }
@@ -17131,6 +17097,7 @@ export class OnboardingStatusDto implements IOnboardingStatusDto {
     onboardingCompleted?: boolean;
     hasActiveFamilyMembers?: boolean;
     requiresOnboarding?: boolean;
+    timeZoneId?: string;
     setupChecklist?: SetupChecklistDto | undefined;
 
     constructor(data?: IOnboardingStatusDto) {
@@ -17147,6 +17114,7 @@ export class OnboardingStatusDto implements IOnboardingStatusDto {
             this.onboardingCompleted = _data["onboardingCompleted"];
             this.hasActiveFamilyMembers = _data["hasActiveFamilyMembers"];
             this.requiresOnboarding = _data["requiresOnboarding"];
+            this.timeZoneId = _data["timeZoneId"];
             this.setupChecklist = _data["setupChecklist"] ? SetupChecklistDto.fromJS(_data["setupChecklist"]) : undefined as any;
         }
     }
@@ -17163,6 +17131,7 @@ export class OnboardingStatusDto implements IOnboardingStatusDto {
         data["onboardingCompleted"] = this.onboardingCompleted;
         data["hasActiveFamilyMembers"] = this.hasActiveFamilyMembers;
         data["requiresOnboarding"] = this.requiresOnboarding;
+        data["timeZoneId"] = this.timeZoneId;
         data["setupChecklist"] = this.setupChecklist ? this.setupChecklist.toJSON() : undefined as any;
         return data;
     }
@@ -17172,6 +17141,7 @@ export interface IOnboardingStatusDto {
     onboardingCompleted?: boolean;
     hasActiveFamilyMembers?: boolean;
     requiresOnboarding?: boolean;
+    timeZoneId?: string;
     setupChecklist?: SetupChecklistDto | undefined;
 }
 

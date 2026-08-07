@@ -1,19 +1,14 @@
 import {
-  CreateEventSeriesRequest,
   EventSourceDto,
-  DecorativeAvatarReferenceDto,
-  DecorativeAvatarReferenceType,
   EventSourceHealthStatus,
   EventSourceType as ApiEventSourceType,
   EventSeriesDto,
   HomeOpsApiClient,
-  ModifyOccurrenceRequest,
   NormalizedEvent as ApiNormalizedEvent,
   OccurrenceTargetRequest,
   RecurrenceRuleDto,
-  SplitEventSeriesRequest,
-  UpdateEventSeriesRequest,
 } from "../api/homeOpsApiClient";
+import { toCalendarFieldSet } from './calendarFieldMapper';
 import type {
   EventSource,
   EventSourceType,
@@ -122,23 +117,18 @@ export async function getCalendarAgendaEventSeries(
 
 export async function createCalendarAgendaEvent(
   input: EventSeriesInput,
-  client = createAgendaApiClient(),
+  _client = createAgendaApiClient(),
 ): Promise<NormalizedEvent> {
-  const event = await client.createEvent(
-    new CreateEventSeriesRequest(toEventSeriesRequest(input)),
-  );
+  const event = EventSeriesDto.fromJS(await calendarWrite('/api/events', 'POST', toEventSeriesRequest(input)));
   return toAgendaEventFromEventSeries(event);
 }
 
 export async function updateCalendarAgendaEvent(
   eventSeriesId: string,
   input: EventSeriesInput,
-  client = createAgendaApiClient(),
+  _client = createAgendaApiClient(),
 ): Promise<NormalizedEvent> {
-  const event = await client.updateEvent(
-    eventSeriesId,
-    new UpdateEventSeriesRequest(toEventSeriesRequest(input)),
-  );
+  const event = EventSeriesDto.fromJS(await calendarWrite(`/api/events/${eventSeriesId}`, 'PUT', toEventSeriesRequest(input)));
   return toAgendaEventFromEventSeries(event);
 }
 
@@ -146,20 +136,15 @@ export async function updateCalendarAgendaOccurrence(
   eventSeriesId: string,
   occurrenceKey: string,
   input: EventSeriesInput,
-  client = createAgendaApiClient(),
+  _client = createAgendaApiClient(),
 ): Promise<void> {
-  await client.modifyEventOccurrence(
-    eventSeriesId,
-    new ModifyOccurrenceRequest({
+  await calendarWrite(`/api/events/${eventSeriesId}/occurrences/modify`, 'PUT', {
       occurrenceKey,
       title: input.title,
       description: input.description,
       location: input.location,
-      isAllDay: input.allDay,
-      startUtc: new Date(input.startsAt),
-      endUtc: input.endsAt ? new Date(input.endsAt) : undefined,
-    }),
-  );
+      timing: toCalendarFieldSet(input),
+    });
 }
 
 export async function skipCalendarAgendaOccurrence(
@@ -188,21 +173,16 @@ export async function splitCalendarAgendaEventSeries(
   eventSeriesId: string,
   occurrenceKey: string,
   input: EventSeriesInput,
-  client = createAgendaApiClient(),
+  _client = createAgendaApiClient(),
 ): Promise<CalendarEventSeriesDetails> {
-  const eventSeries = await client.splitEventSeriesFromOccurrence(
-    eventSeriesId,
-    new SplitEventSeriesRequest({
+  const eventSeries = EventSeriesDto.fromJS(await calendarWrite(`/api/events/${eventSeriesId}/occurrences/split`, 'PUT', {
       occurrenceKey,
       title: input.title,
       description: input.description,
       location: input.location,
-      isAllDay: input.allDay,
-      startUtc: new Date(input.startsAt),
-      endUtc: input.endsAt ? new Date(input.endsAt) : undefined,
-      recurrenceRule: toRecurrenceRuleDto(input.recurrenceRule),
-    }),
-  );
+      timing: toCalendarFieldSet(input),
+      recurrenceRule: toRecurrenceRulePayload(input.recurrenceRule),
+    }));
   return toCalendarEventSeriesDetails(eventSeries);
 }
 
@@ -353,12 +333,33 @@ function toEventSeriesRequest(input: EventSeriesInput) {
     title: input.title,
     description: input.description,
     location: input.location,
-    startUtc: new Date(input.startsAt),
-    endUtc: input.endsAt ? new Date(input.endsAt) : undefined,
-    isAllDay: input.allDay,
-    recurrenceRule: toRecurrenceRuleDto(input.recurrenceRule),
-    decorativeAvatar: toDecorativeAvatarDto(input.decorativeAvatar),
+    ...toCalendarFieldSet(input),
+    recurrenceRule: toRecurrenceRulePayload(input.recurrenceRule),
+    decorativeAvatar: input.decorativeAvatar ? {
+      referenceType: input.decorativeAvatar.referenceType === 'familyMember' ? 0 : 1,
+      referenceId: input.decorativeAvatar.referenceId,
+    } : undefined,
   };
+}
+
+function toRecurrenceRulePayload(recurrenceRule?: EventRecurrenceRuleInput | null) {
+  if (!recurrenceRule) return undefined;
+  return { ...recurrenceRule };
+}
+
+class CalendarWriteError extends Error {
+  constructor(message: string, public readonly response: string) { super(message); }
+}
+
+async function calendarWrite(path: string, method: 'POST' | 'PUT', body: unknown): Promise<unknown> {
+  const response = await fetch(`${apiBaseUrl}${path}`, {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  const text = await response.text();
+  if (!response.ok) throw new CalendarWriteError(`Calendar write failed with status ${response.status}.`, text);
+  return text ? JSON.parse(text) : undefined;
 }
 
 function toDecorativeAvatarReference(reference: { referenceType?: unknown; referenceId?: string } | undefined): DecorativeAvatarReference | null {
@@ -366,36 +367,6 @@ function toDecorativeAvatarReference(reference: { referenceType?: unknown; refer
   const normalizedType = typeof reference.referenceType === 'number' ? reference.referenceType : String(reference.referenceType).toLowerCase();
   const referenceType = normalizedType === 0 || normalizedType === 'familymember' ? 'familyMember' : 'knownPerson';
   return { referenceType, referenceId: reference.referenceId };
-}
-
-function toDecorativeAvatarDto(reference: DecorativeAvatarReference | null | undefined): DecorativeAvatarReferenceDto | undefined {
-  if (!reference) return undefined;
-  return new DecorativeAvatarReferenceDto({
-    referenceType: reference.referenceType === 'familyMember' ? DecorativeAvatarReferenceType.FamilyMember : DecorativeAvatarReferenceType.KnownPerson,
-    referenceId: reference.referenceId,
-  });
-}
-
-function toRecurrenceRuleDto(
-  recurrenceRule?: EventRecurrenceRuleInput | null,
-): RecurrenceRuleDto | undefined {
-  if (!recurrenceRule) {
-    return undefined;
-  }
-
-  return new RecurrenceRuleDto({
-    frequency: recurrenceRule.frequency,
-    interval: recurrenceRule.interval,
-    endMode: recurrenceRule.endMode,
-    untilDate: recurrenceRule.untilDate
-      ? new Date(`${recurrenceRule.untilDate}T00:00:00`)
-      : undefined,
-    count: recurrenceRule.count,
-    weeklyDays: recurrenceRule.weeklyDays,
-    monthlyDayOfMonth: recurrenceRule.monthlyDayOfMonth,
-    yearlyMonth: recurrenceRule.yearlyMonth,
-    yearlyDayOfMonth: recurrenceRule.yearlyDayOfMonth,
-  });
 }
 
 function toRecurrenceRuleInput(
