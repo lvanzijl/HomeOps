@@ -1013,6 +1013,17 @@
               "nullable": true
             },
             "x-position": 1
+          },
+          {
+            "name": "X-HomeOps-Device-Version",
+            "x-originalName": "deviceVersion",
+            "in": "header",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "nullable": true
+            },
+            "x-position": 2
           }
         ],
         "responses": {
@@ -1046,6 +1057,17 @@
               "nullable": true
             },
             "x-position": 1
+          },
+          {
+            "name": "X-HomeOps-Device-Version",
+            "x-originalName": "deviceVersion",
+            "in": "header",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "nullable": true
+            },
+            "x-position": 2
           }
         ],
         "requestBody": {
@@ -1058,7 +1080,7 @@
             }
           },
           "required": true,
-          "x-position": 2
+          "x-position": 3
         },
         "responses": {
           "200": {
@@ -1070,6 +1092,45 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/agenda/layer-settings/device": {
+      "delete": {
+        "tags": [
+          "Agenda Layer Settings"
+        ],
+        "operationId": "ResetAgendaLayerSettingsDevice",
+        "parameters": [
+          {
+            "name": "X-HomeOps-Device-Key",
+            "x-originalName": "deviceKey",
+            "in": "header",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 1
+          },
+          {
+            "name": "X-HomeOps-Device-Version",
+            "x-originalName": "deviceVersion",
+            "in": "header",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "nullable": true
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
           },
           "400": {
             "description": ""

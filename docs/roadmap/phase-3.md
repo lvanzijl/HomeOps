@@ -9,7 +9,7 @@ Phase 3 makes household-local calendar intent authoritative across manual writes
 | 3.3 Frontend forms and quick actions | Completed | Shared literal calendar-field writes, action-time household dates, draft transfer, and bounded repair UI. |
 | 3.4 Household time-zone setting | Completed | Previewed, preflighted, transactional IANA-zone changes with stale-source gating. |
 | 3.5 Calendar source lifecycle | Completed | Real iCal upload/replacement, opaque managed storage, preflighted reconnect, archive, refresh-before-restore, and confirmed removal. |
-| 3.6 Device settings identity | Not started | Versioned identity, last-seen cleanup, and reset. |
+| 3.6 Device settings identity | Completed | Versioned browser identity, last-seen persistence, 180-day cleanup, and confirmed reset. |
 | 3.7 Reminder decision | Not started | Truthfully defer reminders and close the phase. |
 
 ## Slice 3.2 implementation boundary
@@ -47,3 +47,11 @@ Calendar files enter only through multipart `.ics` upload or replacement and are
 Archive disables and hides imported events without deleting configuration or content. Restore refreshes while hidden and exposes the source only after success. Feed reconnect force-loads the proposed HTTPS URL before changing configuration. Explicit permanent removal deletes imported series, provider configuration, source, and managed content. Settings implements these operations through the existing internally scrolling source list and bounded dialogs under `docs/reports/2026-08-07-calendar-source-lifecycle/viewport-analysis.md`.
 
 Validation passes 615 backend tests, 336 frontend tests, focused upload/lifecycle tests, backend/frontend builds, three required PostgreSQL migration tests through Rancher Desktop, all six Playwright scenarios including both Settings viewport sizes, EF model-drift/idempotent-script checks, and twice-identical pinned NSwag 14.7.1 generation.
+
+## Slice 3.6 implementation boundary
+
+Agenda layer visibility now uses a versioned JSON browser identity stored under `homeops.deviceIdentity.v1`. The former `homeops.deviceKey.v1` string migrates in place so existing server preferences keep the same ID. All Agenda settings reads, writes, and reset calls require both device ID and schema-version headers; the identity remains preference correlation only and has no authentication significance.
+
+`DeviceSettingsIdentities` records schema version, creation time, and last-seen time. Existing layer-setting owners are backfilled by migration, child settings cascade with their identity, reads/writes touch last-seen, and a daily service removes identities inactive for more than 180 days. Reset deletes the current server identity and preferences, creates a fresh local identity, and loads normal source defaults.
+
+The approved composition is recorded in `docs/reports/2026-08-07-device-settings-identity/viewport-analysis.md`: Agenda adds only a compact `Dit apparaat` action to the existing source-selector header and keeps explanation, confirmation, pending, success, and failure states inside a bounded dialog. Settings receives no duplicate control or layout change. Validation passes 622 backend tests, 339 frontend tests, both builds, three PostgreSQL migration tests, six Playwright scenarios including both target viewport sizes and the new dialog, EF drift/script checks, and twice-identical pinned NSwag 14.7.1 generation.

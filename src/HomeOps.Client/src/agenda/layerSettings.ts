@@ -16,9 +16,18 @@ export interface AgendaLayerSettings {
 export interface KeyValueStorage {
   getItem(key: string): string | null;
   setItem(key: string, value: string): void;
+  removeItem(key: string): void;
 }
 
-const deviceKeyStorageKey = 'homeops.deviceKey.v1';
+export interface AgendaDeviceIdentity {
+  deviceId: string;
+  schemaVersion: 1;
+  createdUtc: string;
+}
+
+const deviceIdentityStorageKey = 'homeops.deviceIdentity.v1';
+const legacyDeviceKeyStorageKey = 'homeops.deviceKey.v1';
+const currentDeviceSchemaVersion = 1 as const;
 
 export function createDefaultAgendaLayerSettings(sources: readonly EventSource[]): AgendaLayerSettings {
   const defaults = createDefaultSourceSelection(sources);
@@ -31,20 +40,21 @@ export function createDefaultAgendaLayerSettings(sources: readonly EventSource[]
 
 export async function loadAgendaLayerSettings(
   client: Pick<HomeOpsApiClient, 'getAgendaLayerSettings'>,
-  deviceKey: string,
+  identity: AgendaDeviceIdentity,
   sources: readonly EventSource[],
 ): Promise<AgendaLayerSettings> {
-  const dto = await client.getAgendaLayerSettings(deviceKey);
+  const dto = await client.getAgendaLayerSettings(identity.deviceId, identity.schemaVersion);
   return normalizeAgendaLayerSettings(dto, sources, createDefaultAgendaLayerSettings(sources));
 }
 
 export async function saveAgendaLayerSettings(
   client: Pick<HomeOpsApiClient, 'saveAgendaLayerSettings'>,
-  deviceKey: string,
+  identity: AgendaDeviceIdentity,
   settings: AgendaLayerSettings,
 ): Promise<AgendaLayerSettings> {
   const dto = await client.saveAgendaLayerSettings(
-    deviceKey,
+    identity.deviceId,
+    identity.schemaVersion,
     new SaveAgendaLayerSettingsRequest({
       week: settings.week.enabledSourceIds,
       months: settings.months.enabledSourceIds,
@@ -71,38 +81,60 @@ export function updateAgendaLayerSource(
   };
 }
 
-export function getAgendaDeviceKeyStorageKey(): string {
-  return deviceKeyStorageKey;
+export async function resetAgendaLayerSettings(
+  client: Pick<HomeOpsApiClient, 'resetAgendaLayerSettingsDevice'>,
+  identity: AgendaDeviceIdentity,
+): Promise<void> {
+  await client.resetAgendaLayerSettingsDevice(identity.deviceId, identity.schemaVersion);
 }
 
-export function getOrCreateAgendaDeviceKey(storage: KeyValueStorage | undefined): string {
+export function getAgendaDeviceIdentityStorageKey(): string {
+  return deviceIdentityStorageKey;
+}
+
+export function getLegacyAgendaDeviceKeyStorageKey(): string {
+  return legacyDeviceKeyStorageKey;
+}
+
+export function getOrCreateAgendaDeviceIdentity(storage: KeyValueStorage | undefined): AgendaDeviceIdentity {
   if (!storage) {
-    return 'homeops-device-memory';
+    return createIdentity('homeops-device-memory');
   }
 
-  const stored = storage.getItem(deviceKeyStorageKey);
-  if (stored) {
-    return stored;
+  const storedIdentity = parseIdentity(storage.getItem(deviceIdentityStorageKey));
+  if (storedIdentity) {
+    return storedIdentity;
   }
 
-  const generated = generateDeviceKey();
-  storage.setItem(deviceKeyStorageKey, generated);
-  return generated;
+  const legacyDeviceId = normalizeDeviceId(storage.getItem(legacyDeviceKeyStorageKey));
+  const identity = createIdentity(legacyDeviceId ?? generateDeviceKey());
+  storage.setItem(deviceIdentityStorageKey, JSON.stringify(identity));
+  storage.removeItem(legacyDeviceKeyStorageKey);
+  return identity;
+}
+
+export function createFreshAgendaDeviceIdentity(storage: KeyValueStorage | undefined): AgendaDeviceIdentity {
+  const identity = createIdentity(generateDeviceKey());
+  storage?.setItem(deviceIdentityStorageKey, JSON.stringify(identity));
+  storage?.removeItem(legacyDeviceKeyStorageKey);
+  return identity;
 }
 
 export function useAgendaLayerSettings(sources: readonly EventSource[]) {
   const storage = getBrowserStorage();
   const client = useMemo(() => new HomeOpsApiClient(import.meta.env.VITE_HOMEOPS_API_BASE_URL ?? ''), []);
-  const [deviceKey] = useState(() => getOrCreateAgendaDeviceKey(storage));
+  const [deviceIdentity, setDeviceIdentity] = useState(() => getOrCreateAgendaDeviceIdentity(storage));
   const [settings, setSettings] = useState(() => createDefaultAgendaLayerSettings(sources));
   const [hasLoaded, setHasLoaded] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isResetting, setIsResetting] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
+    setHasLoaded(false);
     setSettings((current) => normalizeAgendaLayerSettings(current, sources, createDefaultAgendaLayerSettings(sources)));
 
-    loadAgendaLayerSettings(client, deviceKey, sources)
+    loadAgendaLayerSettings(client, deviceIdentity, sources)
       .then((loaded) => {
         if (!isMounted) return;
         setSettings(loaded);
@@ -119,7 +151,7 @@ export function useAgendaLayerSettings(sources: readonly EventSource[]) {
     return () => {
       isMounted = false;
     };
-  }, [client, deviceKey, sources]);
+  }, [client, deviceIdentity, sources]);
 
   const actions = useMemo(
     () => ({
@@ -127,18 +159,33 @@ export function useAgendaLayerSettings(sources: readonly EventSource[]) {
         setSettings((current) => {
           const next = updateAgendaLayerSource(current, view, sourceId, enabled);
           if (hasLoaded) {
-            void saveAgendaLayerSettings(client, deviceKey, next).catch((error: unknown) => {
+            void saveAgendaLayerSettings(client, deviceIdentity, next).catch((error: unknown) => {
               setErrorMessage(error instanceof Error ? error.message : 'Agenda layer settings could not be saved.');
             });
           }
           return next;
         });
       },
+      async resetDeviceSettings() {
+        setIsResetting(true);
+        try {
+          await resetAgendaLayerSettings(client, deviceIdentity);
+          const freshIdentity = createFreshAgendaDeviceIdentity(storage);
+          setSettings(createDefaultAgendaLayerSettings(sources));
+          setDeviceIdentity(freshIdentity);
+          setErrorMessage(null);
+        } catch (error: unknown) {
+          setErrorMessage(error instanceof Error ? error.message : 'Apparaatinstellingen konden niet worden hersteld.');
+          throw error;
+        } finally {
+          setIsResetting(false);
+        }
+      },
     }),
-    [client, deviceKey, hasLoaded],
+    [client, deviceIdentity, hasLoaded, sources, storage],
   );
 
-  return { settings, deviceKey, errorMessage, ...actions };
+  return { settings, deviceIdentity, errorMessage, isResetting, ...actions };
 }
 
 function createDefaultSourceSelection(sources: readonly EventSource[]): Record<string, boolean> {
@@ -193,6 +240,36 @@ function generateDeviceKey(): string {
   }
 
   return `homeops-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+}
+
+function createIdentity(deviceId: string): AgendaDeviceIdentity {
+  return {
+    deviceId,
+    schemaVersion: currentDeviceSchemaVersion,
+    createdUtc: new Date().toISOString(),
+  };
+}
+
+function parseIdentity(value: string | null): AgendaDeviceIdentity | null {
+  if (!value) return null;
+  try {
+    const parsed = JSON.parse(value) as Partial<AgendaDeviceIdentity>;
+    const deviceId = normalizeDeviceId(parsed.deviceId);
+    if (!deviceId || parsed.schemaVersion !== currentDeviceSchemaVersion || typeof parsed.createdUtc !== 'string' || Number.isNaN(Date.parse(parsed.createdUtc))) {
+      return null;
+    }
+    return { deviceId, schemaVersion: currentDeviceSchemaVersion, createdUtc: parsed.createdUtc };
+  } catch {
+    return null;
+  }
+}
+
+function normalizeDeviceId(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
+  const normalized = value.trim();
+  return normalized.length > 0 && normalized.length <= 160 && /^[A-Za-z0-9_.:-]+$/.test(normalized)
+    ? normalized
+    : null;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

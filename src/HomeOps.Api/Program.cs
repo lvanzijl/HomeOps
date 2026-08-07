@@ -77,6 +77,7 @@ builder.Services.AddScoped<ICalendarSourceRefreshDispatcher, CalendarSourceRefre
 builder.Services.AddScoped<HouseholdTimeZoneChangeService>();
 builder.Services.AddScoped<CalendarSourceUploadService>();
 builder.Services.AddScoped<CalendarSourceLifecycleService>();
+builder.Services.AddScoped<DeviceSettingsCleanupService>();
 builder.Services.AddSingleton<CalendarBackgroundSynchronizationRunner>();
 if (!builder.Environment.IsEnvironment("Testing") &&
     !builder.Environment.IsEnvironment("VisualReview") &&
@@ -85,6 +86,7 @@ if (!builder.Environment.IsEnvironment("Testing") &&
     builder.Services.AddHostedService<CalendarBackgroundSynchronizationHostedService>();
     builder.Services.AddHostedService<RoomHeatingControlReconciliationHostedService>();
     builder.Services.AddHostedService<HomeAssistantClimateRefreshHostedService>();
+    builder.Services.AddHostedService<DeviceSettingsCleanupHostedService>();
 }
 if (builder.Environment.IsEnvironment("VisualReview"))
 {

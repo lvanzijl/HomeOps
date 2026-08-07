@@ -3,9 +3,12 @@ import { AgendaLayerSettingsDto } from '../api/homeOpsApiClient';
 import type { EventSource } from '../events/eventSourceModel';
 import {
   createDefaultAgendaLayerSettings,
-  getAgendaDeviceKeyStorageKey,
-  getOrCreateAgendaDeviceKey,
+  createFreshAgendaDeviceIdentity,
+  getAgendaDeviceIdentityStorageKey,
+  getLegacyAgendaDeviceKeyStorageKey,
+  getOrCreateAgendaDeviceIdentity,
   loadAgendaLayerSettings,
+  resetAgendaLayerSettings,
   saveAgendaLayerSettings,
   updateAgendaLayerSource,
 } from './layerSettings';
@@ -47,9 +50,10 @@ describe('agenda layer settings persistence', () => {
       })),
     };
 
-    const loaded = await loadAgendaLayerSettings(client, 'device-a', sources);
+    const identity = { deviceId: 'device-a', schemaVersion: 1 as const, createdUtc: '2026-08-07T10:00:00.000Z' };
+    const loaded = await loadAgendaLayerSettings(client, identity, sources);
 
-    expect(client.getAgendaLayerSettings).toHaveBeenCalledWith('device-a');
+    expect(client.getAgendaLayerSettings).toHaveBeenCalledWith('device-a', 1);
     expect(loaded.week.enabledSourceIds).toEqual({ 'manual-events': false, 'school-holidays': false });
     expect(loaded.months.enabledSourceIds).toEqual({ 'manual-events': true, 'school-holidays': false });
   });
@@ -63,9 +67,10 @@ describe('agenda layer settings persistence', () => {
       })),
     };
 
-    const saved = await saveAgendaLayerSettings(client, 'device-a', settings);
+    const identity = { deviceId: 'device-a', schemaVersion: 1 as const, createdUtc: '2026-08-07T10:00:00.000Z' };
+    const saved = await saveAgendaLayerSettings(client, identity, settings);
 
-    expect(client.saveAgendaLayerSettings).toHaveBeenCalledWith('device-a', expect.objectContaining({ week: settings.week.enabledSourceIds }));
+    expect(client.saveAgendaLayerSettings).toHaveBeenCalledWith('device-a', 1, expect.objectContaining({ week: settings.week.enabledSourceIds }));
     expect(saved).toEqual(settings);
   });
 
@@ -76,15 +81,40 @@ describe('agenda layer settings persistence', () => {
     expect(settings.months.enabledSourceIds['manual-events']).toBe(true);
   });
 
-  it('persists a generated device key locally without storing layer settings locally', () => {
+  it('persists and reuses a versioned JSON identity without storing layer settings locally', () => {
     const storage = createMemoryStorage();
 
-    const deviceKey = getOrCreateAgendaDeviceKey(storage);
-    const loadedAgain = getOrCreateAgendaDeviceKey(storage);
+    const identity = getOrCreateAgendaDeviceIdentity(storage);
+    const loadedAgain = getOrCreateAgendaDeviceIdentity(storage);
 
-    expect(deviceKey).toMatch(/^homeops-/);
-    expect(loadedAgain).toBe(deviceKey);
-    expect(storage.getItem(getAgendaDeviceKeyStorageKey())).toBe(deviceKey);
+    expect(identity.deviceId).toMatch(/^homeops-/);
+    expect(identity.schemaVersion).toBe(1);
+    expect(loadedAgain).toEqual(identity);
+    expect(JSON.parse(storage.getItem(getAgendaDeviceIdentityStorageKey())!)).toEqual(identity);
+  });
+
+  it('migrates the legacy string key in place so server preferences retain the same id', () => {
+    const storage = createMemoryStorage();
+    storage.setItem(getLegacyAgendaDeviceKeyStorageKey(), 'homeops-existing-device');
+
+    const identity = getOrCreateAgendaDeviceIdentity(storage);
+
+    expect(identity.deviceId).toBe('homeops-existing-device');
+    expect(storage.getItem(getLegacyAgendaDeviceKeyStorageKey())).toBeNull();
+    expect(JSON.parse(storage.getItem(getAgendaDeviceIdentityStorageKey())!).deviceId).toBe('homeops-existing-device');
+  });
+
+  it('resets server state and creates a fresh local identity', async () => {
+    const storage = createMemoryStorage();
+    const identity = getOrCreateAgendaDeviceIdentity(storage);
+    const client = { resetAgendaLayerSettingsDevice: vi.fn().mockResolvedValue(undefined) };
+
+    await resetAgendaLayerSettings(client, identity);
+    const fresh = createFreshAgendaDeviceIdentity(storage);
+
+    expect(client.resetAgendaLayerSettingsDevice).toHaveBeenCalledWith(identity.deviceId, 1);
+    expect(fresh.deviceId).not.toBe(identity.deviceId);
+    expect(getOrCreateAgendaDeviceIdentity(storage)).toEqual(fresh);
   });
 });
 
@@ -97,6 +127,9 @@ function createMemoryStorage() {
     },
     setItem(key: string, value: string) {
       values.set(key, value);
+    },
+    removeItem(key: string) {
+      values.delete(key);
     },
   };
 }

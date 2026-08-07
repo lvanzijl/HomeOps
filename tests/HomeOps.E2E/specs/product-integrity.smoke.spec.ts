@@ -218,6 +218,10 @@ test("primary pages do not create document-level vertical scrolling", async ({ p
     await expectNoDocumentScroll(page, `Home quick-add at ${viewport.width}x${viewport.height}`);
     await page.getByRole("button", { name: "Afspraak toevoegen sluiten" }).click();
     await page.getByRole("button", { name: "Agenda", exact: true }).click();
+    await page.getByRole("button", { name: "Dit apparaat" }).click();
+    await expect(page.getByRole("dialog", { name: "Agenda-instellingen voor dit apparaat" })).toBeVisible();
+    await expectNoDocumentScroll(page, `Agenda-apparaatinstellingen at ${viewport.width}x${viewport.height}`);
+    await page.getByRole("button", { name: "Apparaatinstellingen sluiten" }).click();
     await page.getByRole("button", { name: "Afspraak plannen" }).click();
     await expectNoDocumentScroll(page, `Agenda editor at ${viewport.width}x${viewport.height}`);
     await page.getByRole("button", { name: "Sluit gebeurtenisvenster" }).click();

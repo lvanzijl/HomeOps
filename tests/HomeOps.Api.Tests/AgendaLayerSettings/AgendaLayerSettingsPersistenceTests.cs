@@ -12,23 +12,34 @@ public sealed class AgendaLayerSettingsPersistenceTests
         await using var dbContext = CreateDbContext();
         await dbContext.Database.EnsureCreatedAsync();
         var now = DateTimeOffset.UtcNow;
+        dbContext.DeviceSettingsIdentities.AddRange(
+            CreateIdentity("device-a", now),
+            CreateIdentity("device-b", now));
         dbContext.AgendaLayerSettings.AddRange(
             CreateSetting("device-a", "Week", "manual-source", false, now),
             CreateSetting("device-a", "Months", "manual-source", true, now),
             CreateSetting("device-b", "Week", "manual-source", true, now));
         await dbContext.SaveChangesAsync();
 
-        var deviceASettings = await dbContext.AgendaLayerSettings.AsNoTracking().Where(setting => setting.DeviceKey == "device-a").ToListAsync();
+        var deviceASettings = await dbContext.AgendaLayerSettings.AsNoTracking().Where(setting => setting.DeviceId == "device-a").ToListAsync();
 
         Assert.Equal(2, deviceASettings.Count);
         Assert.False(deviceASettings.Single(setting => setting.ViewType == "Week").IsEnabled);
         Assert.True(deviceASettings.Single(setting => setting.ViewType == "Months").IsEnabled);
     }
 
-    private static AgendaLayerSetting CreateSetting(string deviceKey, string viewType, string sourceId, bool isEnabled, DateTimeOffset now) => new()
+    private static DeviceSettingsIdentity CreateIdentity(string deviceId, DateTimeOffset now) => new()
+    {
+        DeviceId = deviceId,
+        SchemaVersion = 1,
+        CreatedUtc = now,
+        LastSeenUtc = now,
+    };
+
+    private static AgendaLayerSetting CreateSetting(string deviceId, string viewType, string sourceId, bool isEnabled, DateTimeOffset now) => new()
     {
         Id = Guid.NewGuid(),
-        DeviceKey = deviceKey,
+        DeviceId = deviceId,
         ViewType = viewType,
         SourceId = sourceId,
         IsEnabled = isEnabled,

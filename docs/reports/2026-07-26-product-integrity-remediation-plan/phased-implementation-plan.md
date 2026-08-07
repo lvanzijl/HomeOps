@@ -701,7 +701,7 @@ timeZoneId: omitted when the household setting is authoritative
 
 ### Slice 3.6 — Stable per-device settings identity
 
-- [ ] **Status: Not started**
+- [x] **Status: Completed**
 
 **Audit ID:** DEVICE-01
 
@@ -712,6 +712,8 @@ timeZoneId: omitted when the household setting is authoritative
 3. Add server cleanup for stale device-setting rows.
 4. Provide “Reset settings for this device” and explain that layer visibility is device-specific.
 5. Never use device identity as authentication.
+
+**Implementation state:** the client persists versioned identity JSON, migrates the legacy string key in place, sends ID/version headers, and creates a fresh identity only after a confirmed successful reset. The server records schema version plus created/last-seen timestamps, backfills existing device owners, cascades preference cleanup, touches activity on reads/writes, and removes identities inactive for more than 180 days through a daily service. Agenda explains device/browser scope and non-authentication semantics inside the approved bounded dialog. Backend 622/622, frontend 339/339, PostgreSQL migration tests 3/3, both builds, Playwright 6/6 at both target viewports, EF drift/script checks, and twice-identical pinned NSwag 14.7.1 generation pass.
 
 ### Slice 3.7 — Reminder decision and implementation
 
@@ -734,7 +736,7 @@ If implemented, add permission UX, per-event/default settings, a server schedule
 - [ ] Existing suspicious events have a safe review/repair path.
 - [ ] Household time zone is configurable.
 - [x] File imports are real uploads.
-- [ ] Device settings have documented lifecycle.
+- [x] Device settings have documented lifecycle.
 - [ ] Reminder scope is explicitly implemented or explicitly deferred.
 
 ## Phase 4 — Tasks and Weekly Reset completion
@@ -1297,7 +1299,7 @@ Every audit finding must appear exactly once as the primary responsibility of a 
 | WIDGET-01 | 7.6 Widget customization | [ ] Not started |
 | DATA-01 | 7.2 Shared error handling | [ ] Not started |
 | SEC-03 | 7.3 Destructive policy | [ ] Not started |
-| DEVICE-01 | 3.6 Device settings identity | [ ] Not started |
+| DEVICE-01 | 3.6 Device settings identity | [x] Completed |
 | UX-01 | 2.3 Demo localization/boundary | [x] Completed |
 | UX-02 | 7.3 Lifecycle vocabulary | [ ] Not started |
 | HOME-02 | 7.7 Home interaction semantics | [ ] Not started |

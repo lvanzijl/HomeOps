@@ -17,6 +17,7 @@ namespace HomeOps.Api.Data;
 public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options) : DbContext(options)
 {
     public DbSet<AgendaLayerSetting> AgendaLayerSettings => Set<AgendaLayerSetting>();
+    public DbSet<DeviceSettingsIdentity> DeviceSettingsIdentities => Set<DeviceSettingsIdentity>();
     public DbSet<Household> Households => Set<Household>();
     public DbSet<Lists.List> Lists => Set<Lists.List>();
     public DbSet<ListItem> ListItems => Set<ListItem>();
@@ -312,17 +313,32 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
         });
 
 
+        modelBuilder.Entity<DeviceSettingsIdentity>(entity =>
+        {
+            entity.ToTable("DeviceSettingsIdentities");
+            entity.HasKey(identity => identity.DeviceId);
+            entity.Property(identity => identity.DeviceId).HasMaxLength(160);
+            entity.Property(identity => identity.SchemaVersion).IsRequired();
+            entity.Property(identity => identity.CreatedUtc).IsRequired();
+            entity.Property(identity => identity.LastSeenUtc).IsRequired();
+            entity.HasIndex(identity => identity.LastSeenUtc);
+        });
+
         modelBuilder.Entity<AgendaLayerSetting>(entity =>
         {
             entity.ToTable("AgendaLayerSettings");
             entity.HasKey(setting => setting.Id);
-            entity.Property(setting => setting.DeviceKey).HasMaxLength(160).IsRequired();
+            entity.Property(setting => setting.DeviceId).HasMaxLength(160).IsRequired();
             entity.Property(setting => setting.ViewType).HasMaxLength(40).IsRequired();
             entity.Property(setting => setting.SourceId).HasMaxLength(160).IsRequired();
             entity.Property(setting => setting.IsEnabled).IsRequired();
             entity.Property(setting => setting.CreatedUtc).IsRequired();
             entity.Property(setting => setting.UpdatedUtc).IsRequired();
-            entity.HasIndex(setting => new { setting.DeviceKey, setting.ViewType, setting.SourceId }).IsUnique();
+            entity.HasIndex(setting => new { setting.DeviceId, setting.ViewType, setting.SourceId }).IsUnique();
+            entity.HasOne(setting => setting.DeviceIdentity)
+                .WithMany(identity => identity.LayerSettings)
+                .HasForeignKey(setting => setting.DeviceId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<Household>(entity =>

@@ -6,7 +6,7 @@ namespace HomeOps.Api.Tests.Infrastructure;
 
 public sealed class DatabaseBaselineTests
 {
-    private const string LatestDiscoverableMigration = "20260807205708_CompleteCalendarSourceLifecycle";
+    private const string LatestDiscoverableMigration = "20260807220025_StableDeviceSettingsIdentity";
 
     private static readonly string[] ResumeStrategyColumns =
     [
@@ -87,6 +87,20 @@ public sealed class DatabaseBaselineTests
 
         var userFloorId = Guid.NewGuid();
         await InsertRepresentativeUserDataAsync(database.ConnectionString, userFloorId);
+        await using (var legacyConnection = new NpgsqlConnection(database.ConnectionString))
+        {
+            await legacyConnection.OpenAsync();
+            await using var insertLegacyDeviceSetting = new NpgsqlCommand(
+                """
+                INSERT INTO "AgendaLayerSettings" ("Id", "DeviceKey", "ViewType", "SourceId", "IsEnabled", "CreatedUtc", "UpdatedUtc")
+                VALUES (@id, 'legacy-device', 'Week', 'manual-source', FALSE, @created, @updated)
+                """,
+                legacyConnection);
+            insertLegacyDeviceSetting.Parameters.AddWithValue("id", Guid.NewGuid());
+            insertLegacyDeviceSetting.Parameters.AddWithValue("created", DateTimeOffset.Parse("2026-01-01T10:00:00Z"));
+            insertLegacyDeviceSetting.Parameters.AddWithValue("updated", DateTimeOffset.Parse("2026-02-01T10:00:00Z"));
+            await insertLegacyDeviceSetting.ExecuteNonQueryAsync();
+        }
 
         await database.MigrateAsync();
 
@@ -124,6 +138,15 @@ public sealed class DatabaseBaselineTests
             await ScalarAsync<bool>(
                 connection,
                 """SELECT to_regclass('public."RoomHeatingCommands"') IS NOT NULL"""));
+        Assert.Equal(
+            1,
+            await ScalarAsync<int>(
+                connection,
+                """SELECT "SchemaVersion" FROM "DeviceSettingsIdentities" WHERE "DeviceId" = 'legacy-device'"""));
+        Assert.False(
+            await ScalarAsync<bool>(
+                connection,
+                """SELECT "IsEnabled" FROM "AgendaLayerSettings" WHERE "DeviceId" = 'legacy-device' AND "SourceId" = 'manual-source'"""));
     }
 
     [Fact]

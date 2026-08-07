@@ -480,6 +480,69 @@ describe("AgendaWidget HomeOps Calendar event integration", () => {
     expect(screen.getByLabelText("Planningoverzicht")).not.toBeNull();
   });
 
+  it("explains and resets browser-local device settings only after confirmation", async () => {
+    const legacyDeviceId = "homeops-legacy-browser";
+    window.localStorage.setItem("homeops.deviceKey.v1", legacyDeviceId);
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.includes("/api/agenda/layer-settings/device")) {
+        return new Response(null, { status: 204 });
+      }
+
+      if (url.includes("/api/agenda/layer-settings")) {
+        return new Response(JSON.stringify({ week: {}, months: {} }), {
+          headers: { "Content-Type": "application/json" },
+          status: 200,
+        });
+      }
+
+      return new Response(JSON.stringify({ anchorUtc: null }), {
+        headers: { "Content-Type": "application/json" },
+        status: 200,
+      });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const user = setupUser();
+    render(<AgendaWidget {...widgetProps} />);
+    await screen.findByLabelText("Planningoverzicht");
+    await user.click(screen.getByRole("button", { name: "Dit apparaat" }));
+
+    const dialog = screen.getByRole("dialog", {
+      name: "Agenda-instellingen voor dit apparaat",
+    });
+    expect(within(dialog).getByText(/geen gebruikersaccount, toegangssleutel of beveiligingsmiddel/i)).not.toBeNull();
+    const resetButton = within(dialog).getByRole("button", {
+      name: "Instellingen terugzetten",
+    });
+    expect((resetButton as HTMLButtonElement).disabled).toBe(true);
+
+    await user.click(
+      within(dialog).getByRole("checkbox", {
+        name: /nieuw apparaatprofiel met standaardzichtbaarheid/i,
+      }),
+    );
+    await user.click(resetButton);
+
+    await within(dialog).findByText(/zichtbaarheid is teruggezet naar de standaardinstellingen/i);
+    const deleteCall = fetchMock.mock.calls.find(
+      ([input, init]) =>
+        String(input).includes("/api/agenda/layer-settings/device") &&
+        init?.method === "DELETE",
+    );
+    expect(deleteCall?.[1]?.headers).toMatchObject({
+      "X-HomeOps-Device-Key": legacyDeviceId,
+      "X-HomeOps-Device-Version": "1",
+    });
+
+    const identity = JSON.parse(
+      window.localStorage.getItem("homeops.deviceIdentity.v1") ?? "{}",
+    ) as { deviceId?: string; schemaVersion?: number };
+    expect(identity.schemaVersion).toBe(1);
+    expect(identity.deviceId).not.toBe(legacyDeviceId);
+    expect(window.localStorage.getItem("homeops.deviceKey.v1")).toBeNull();
+  });
+
 
   it("renders decorative avatars for imported read-only and recurring events", async () => {
     const user = setupUser();

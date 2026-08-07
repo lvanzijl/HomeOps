@@ -546,6 +546,24 @@ button {
   text-transform: uppercase;
 }
 
+.source-selector-device-action {
+  background: transparent;
+  border: 0;
+  color: var(--color-primary-strong);
+  flex: 0 0 auto;
+  font-size: 0.76rem;
+  font-weight: 800;
+  min-height: 1.5rem;
+  padding: 0.1rem 0.25rem;
+  text-decoration: underline;
+  text-underline-offset: 0.16rem;
+}
+
+.source-selector-device-action:hover,
+.source-selector-device-action:focus-visible {
+  background: rgb(255 255 255 / 72%);
+}
+
 .source-selector label {
   align-items: center;
   background: rgb(255 255 255 / 70%);
@@ -570,6 +588,50 @@ button {
 .source-selector-copy small {
   color: var(--color-text-muted);
   font-size: 0.68rem;
+}
+
+.agenda-device-settings-dialog {
+  max-height: min(36rem, calc(100dvh - 2rem));
+  max-width: 34rem;
+  overflow: hidden;
+}
+
+.agenda-device-settings-content {
+  display: grid;
+  gap: 0.75rem;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.agenda-device-settings-content > p,
+.agenda-device-settings-warning p,
+.agenda-device-settings-message {
+  margin: 0;
+}
+
+.agenda-device-settings-warning {
+  background: var(--surface-warm-tint);
+  border: 1px solid var(--border-warm);
+  border-radius: 1rem;
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.8rem;
+}
+
+.agenda-device-settings-confirmation {
+  align-items: flex-start;
+  display: flex;
+  gap: 0.6rem;
+}
+
+.agenda-device-settings-confirmation input {
+  flex: 0 0 auto;
+  margin-top: 0.2rem;
+}
+
+.agenda-device-settings-message {
+  color: var(--color-primary-strong);
+  font-weight: 750;
 }
 
 .source-color {

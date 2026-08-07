@@ -144,6 +144,9 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
     useState<NormalizedEvent | null>(null);
   const [recentlySkippedOccurrence, setRecentlySkippedOccurrence] =
     useState<RecentSkippedOccurrence | null>(null);
+  const [isDeviceSettingsOpen, setIsDeviceSettingsOpen] = useState(false);
+  const [deviceResetConfirmed, setDeviceResetConfirmed] = useState(false);
+  const [deviceResetMessage, setDeviceResetMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const draft = consumeCalendarDraft();
@@ -226,7 +229,7 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
   const eventSources = useMemo(() => [...calendarSources], [calendarSources]);
   const events = useMemo(() => [...calendarEvents], [calendarEvents]);
   const decorativeAvatarContacts = useMemo(() => ({ familyMembers, knownPeople }), [familyMembers, knownPeople]);
-  const { settings, setSourceEnabled } = useAgendaLayerSettings(eventSources);
+  const { settings, setSourceEnabled, resetDeviceSettings, isResetting } = useAgendaLayerSettings(eventSources);
 
   const selectedSources = settings.months.enabledSourceIds;
 
@@ -239,6 +242,24 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
     : new Date().toISOString();
   const hasAgendaHeaderStatus = isLoading || errorMessage !== null;
   const showAgendaHeader = activeWorkspaceMode === "month" || hasAgendaHeaderStatus;
+
+  function openDeviceSettings() {
+    setDeviceResetConfirmed(false);
+    setDeviceResetMessage(null);
+    setIsDeviceSettingsOpen(true);
+  }
+
+  async function handleResetDeviceSettings() {
+    if (!deviceResetConfirmed) return;
+    setDeviceResetMessage(null);
+    try {
+      await resetDeviceSettings();
+      setDeviceResetConfirmed(false);
+      setDeviceResetMessage("De zichtbaarheid is teruggezet naar de standaardinstellingen voor een nieuw apparaatprofiel.");
+    } catch {
+      setDeviceResetMessage("Terugzetten is niet gelukt. Je huidige apparaatinstellingen zijn behouden; probeer het opnieuw.");
+    }
+  }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -575,6 +596,7 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
               {activeWorkspaceMode === "month" ? (
                 <AgendaSourceSelector
                   eventSources={eventSources}
+                  onOpenDeviceSettings={openDeviceSettings}
                   selectedSources={selectedSources}
                   onToggleSource={(sourceId, enabled) =>
                     setSourceEnabled("months", sourceId, enabled)
@@ -583,6 +605,58 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
               ) : null}
             </div>
           </div>
+        </div>
+      ) : null}
+
+      {isDeviceSettingsOpen ? (
+        <div className="avatar-editor-backdrop" role="presentation" onClick={() => !isResetting && setIsDeviceSettingsOpen(false)}>
+          <section
+            aria-label="Agenda-instellingen voor dit apparaat"
+            aria-modal="true"
+            className="home-capture-dialog domain-agenda agenda-device-settings-dialog"
+            onClick={(event) => event.stopPropagation()}
+            role="dialog"
+          >
+            <header>
+              <div>
+                <p className="eyebrow">Dit apparaat</p>
+                <h3>Agendaweergave terugzetten</h3>
+              </div>
+              <button
+                aria-label="Apparaatinstellingen sluiten"
+                className="icon-button"
+                disabled={isResetting}
+                onClick={() => setIsDeviceSettingsOpen(false)}
+                type="button"
+              >
+                <FamilyBoardIcon name="core.close" size="small" />
+              </button>
+            </header>
+            <div className="agenda-device-settings-content">
+              <p>Welke kalenderbronnen zichtbaar zijn, hoort bij deze browser en dit apparaat.</p>
+              <p>Dit apparaatprofiel is geen gebruikersaccount, toegangssleutel of beveiligingsmiddel.</p>
+              <section className="agenda-device-settings-warning">
+                <strong>Wat wordt teruggezet?</strong>
+                <p>Alleen de bronzichtbaarheid voor week- en maandoverzichten op dit apparaat. Afspraken en kalenderbronnen blijven bestaan.</p>
+              </section>
+              <label className="agenda-device-settings-confirmation">
+                <input
+                  checked={deviceResetConfirmed}
+                  disabled={isResetting}
+                  onChange={(event) => setDeviceResetConfirmed(event.target.checked)}
+                  type="checkbox"
+                />
+                <span>Ik wil voor deze browser een nieuw apparaatprofiel met standaardzichtbaarheid maken.</span>
+              </label>
+              {deviceResetMessage ? <p className="agenda-device-settings-message" role="status">{deviceResetMessage}</p> : null}
+            </div>
+            <div className="agenda-scope-actions">
+              <button disabled={isResetting} onClick={() => setIsDeviceSettingsOpen(false)} type="button">Sluiten</button>
+              <button disabled={!deviceResetConfirmed || isResetting} onClick={() => void handleResetDeviceSettings()} type="button">
+                {isResetting ? "Terugzetten…" : "Instellingen terugzetten"}
+              </button>
+            </div>
+          </section>
         </div>
       ) : null}
 
@@ -773,6 +847,7 @@ export function AgendaWidget({ instance }: WidgetRenderProps) {
             onDelete={removeEvent}
             onEdit={startEditing}
             onOpenMonth={() => setActiveWorkspaceMode("month")}
+            onOpenDeviceSettings={openDeviceSettings}
             onToggleSource={(sourceId, enabled) =>
               setSourceEnabled("months", sourceId, enabled)
             }
@@ -1280,16 +1355,19 @@ function EventConversationForm({
 
 function AgendaSourceSelector({
   eventSources,
+  onOpenDeviceSettings,
   selectedSources,
   onToggleSource,
 }: {
   eventSources: EventSource[];
+  onOpenDeviceSettings: () => void;
   selectedSources: Record<string, boolean>;
   onToggleSource: (sourceId: string, enabled: boolean) => void;
 }) {
   return (
     <div className="source-selector" role="group" aria-label="Kalenderbronnen">
       <span className="source-selector-label">Kalenderbronnen</span>
+      <button className="source-selector-device-action" onClick={onOpenDeviceSettings} type="button">Dit apparaat</button>
       {eventSources.map((source) => (
         <label key={source.id} className={source.canDisplayEvents === false ? "source-selector-unavailable" : undefined}>
           <input
@@ -1325,6 +1403,7 @@ function PlanningWorkspace({
   onDelete,
   onEdit,
   onOpenMonth,
+  onOpenDeviceSettings,
   onToggleSource,
   selectedDate,
   selectedSources,
@@ -1339,6 +1418,7 @@ function PlanningWorkspace({
   onDelete: (event: NormalizedEvent) => void;
   onEdit: (event: NormalizedEvent) => void;
   onOpenMonth: () => void;
+  onOpenDeviceSettings: () => void;
   onToggleSource: (sourceId: string, enabled: boolean) => void;
   selectedDate: string;
   selectedSources: Record<string, boolean>;
@@ -1402,6 +1482,7 @@ function PlanningWorkspace({
           eventSources={eventSources}
           onAddEvent={onAddEvent}
           onOpenMonth={onOpenMonth}
+          onOpenDeviceSettings={onOpenDeviceSettings}
           onToggleSource={onToggleSource}
           selectedDate={selectedDate}
           selectedDayWeather={resolveAgendaDayWeather(
@@ -1684,6 +1765,7 @@ function PlanningToolsCard({
   eventSources,
   onAddEvent,
   onOpenMonth,
+  onOpenDeviceSettings,
   onToggleSource,
   selectedDate,
   selectedDayWeather,
@@ -1693,6 +1775,7 @@ function PlanningToolsCard({
   eventSources: EventSource[];
   onAddEvent: (date?: string) => void;
   onOpenMonth: () => void;
+  onOpenDeviceSettings: () => void;
   onToggleSource: (sourceId: string, enabled: boolean) => void;
   selectedDate: string;
   selectedDayWeather: WeatherTemperatureDisplay | null;
@@ -1744,6 +1827,7 @@ function PlanningToolsCard({
       </div>
       <AgendaSourceSelector
         eventSources={eventSources}
+        onOpenDeviceSettings={onOpenDeviceSettings}
         onToggleSource={onToggleSource}
         selectedSources={selectedSources}
       />

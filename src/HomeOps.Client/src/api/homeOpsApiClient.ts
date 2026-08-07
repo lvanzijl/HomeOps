@@ -1161,7 +1161,7 @@ export class HomeOpsApiClient {
         return Promise.resolve<MotivationFamilyGoalDto>(null as any);
     }
 
-    getAgendaLayerSettings(deviceKey: string | null | undefined): Promise<AgendaLayerSettingsDto> {
+    getAgendaLayerSettings(deviceKey: string | null | undefined, deviceVersion: number | null | undefined): Promise<AgendaLayerSettingsDto> {
         let url_ = this.baseUrl + "/api/agenda/layer-settings";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -1169,6 +1169,7 @@ export class HomeOpsApiClient {
             method: "GET",
             headers: {
                 "X-HomeOps-Device-Key": deviceKey !== undefined && deviceKey !== null ? "" + deviceKey : "",
+                "X-HomeOps-Device-Version": deviceVersion !== undefined && deviceVersion !== null ? "" + deviceVersion : "",
                 "Accept": "application/json"
             }
         };
@@ -1200,7 +1201,7 @@ export class HomeOpsApiClient {
         return Promise.resolve<AgendaLayerSettingsDto>(null as any);
     }
 
-    saveAgendaLayerSettings(deviceKey: string | null | undefined, request: SaveAgendaLayerSettingsRequest): Promise<AgendaLayerSettingsDto> {
+    saveAgendaLayerSettings(deviceKey: string | null | undefined, deviceVersion: number | null | undefined, request: SaveAgendaLayerSettingsRequest): Promise<AgendaLayerSettingsDto> {
         let url_ = this.baseUrl + "/api/agenda/layer-settings";
         url_ = url_.replace(/[?&]$/, "");
 
@@ -1211,6 +1212,7 @@ export class HomeOpsApiClient {
             method: "PUT",
             headers: {
                 "X-HomeOps-Device-Key": deviceKey !== undefined && deviceKey !== null ? "" + deviceKey : "",
+                "X-HomeOps-Device-Version": deviceVersion !== undefined && deviceVersion !== null ? "" + deviceVersion : "",
                 "Content-Type": "application/json",
                 "Accept": "application/json"
             }
@@ -1241,6 +1243,42 @@ export class HomeOpsApiClient {
             });
         }
         return Promise.resolve<AgendaLayerSettingsDto>(null as any);
+    }
+
+    resetAgendaLayerSettingsDevice(deviceKey: string | null | undefined, deviceVersion: number | null | undefined): Promise<void> {
+        let url_ = this.baseUrl + "/api/agenda/layer-settings/device";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+                "X-HomeOps-Device-Key": deviceKey !== undefined && deviceKey !== null ? "" + deviceKey : "",
+                "X-HomeOps-Device-Version": deviceVersion !== undefined && deviceVersion !== null ? "" + deviceVersion : "",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processResetAgendaLayerSettingsDevice(_response);
+        });
+    }
+
+    protected processResetAgendaLayerSettingsDevice(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
     }
 
     getLists(): Promise<ListSummaryDto[]> {
