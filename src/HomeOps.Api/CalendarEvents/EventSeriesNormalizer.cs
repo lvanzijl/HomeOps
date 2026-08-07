@@ -5,6 +5,8 @@ namespace HomeOps.Api.CalendarEvents;
 
 public static class EventSeriesNormalizer
 {
+    private const string DefaultTimeZoneId = "Europe/Amsterdam";
+
     public static HomeOps.Contracts.Events.EventSource ToContract(EventSource source) => new(
         source.Id.ToString(),
         source.Name,
@@ -15,9 +17,9 @@ public static class EventSeriesNormalizer
         new EventSourceColor("#4f46e5"),
         source.ProviderSourceId);
 
-    public static NormalizedEvent ToNormalizedEvent(EventSeries eventSeries)
+    public static NormalizedEvent ToNormalizedEvent(EventSeries eventSeries, string timeZoneId = DefaultTimeZoneId)
     {
-        var occurrence = EventOccurrenceProjector.Project(eventSeries);
+        var occurrence = EventOccurrenceProjector.Project(eventSeries, timeZoneId);
 
         return occurrence.ToNormalizedEvent() with
         {
@@ -40,9 +42,9 @@ public static class EventSeriesNormalizer
         _ => EventSourceType.Provider
     };
 
-    public static EventSeriesDto ToDto(EventSeries eventSeries)
+    public static EventSeriesDto ToDto(EventSeries eventSeries, string timeZoneId = DefaultTimeZoneId)
     {
-        var occurrence = EventOccurrenceProjector.Project(eventSeries);
+        var occurrence = EventOccurrenceProjector.Project(eventSeries, timeZoneId);
 
         return new EventSeriesDto(
             eventSeries.Id,

@@ -16,7 +16,7 @@ public static class ICalendarParser
         "SEQUENCE", "STATUS", "TRANSP", "RRULE", "EXDATE", "RECURRENCE-ID", "DTSTAMP", "BEGIN", "END",
     };
 
-    public static ICalendarParseResult Parse(string? content)
+    public static ICalendarParseResult Parse(string? content, string householdTimeZoneId = "Europe/Amsterdam")
     {
         var diagnostics = new List<ICalendarParseDiagnostic>();
         var events = new List<NormalizedICalendarEvent>();
@@ -67,14 +67,14 @@ public static class ICalendarParser
                 continue;
             }
 
-            if (!TryReadDateRange(calendarEvent, uid, diagnostics, out var startDate, out var startTime, out var endDate, out var endTime, out var isAllDay))
+            if (!TryReadDateRange(calendarEvent, uid, diagnostics, householdTimeZoneId, out var startDate, out var startTime, out var endDate, out var endTime, out var isAllDay))
             {
                 continue;
             }
 
             var block = eventBlocks.FirstOrDefault(candidate => string.Equals(candidate.Uid, uid, StringComparison.Ordinal) && candidate.RecurrenceId is null);
             var recurrenceRule = MapRecurrenceRule(calendarEvent, block, uid, startDate, startTime, diagnostics, out var recurrenceType, out var rawRecurrenceRule);
-            var exceptions = MapExceptions(uid, calendar, block, detachedBlocks.TryGetValue(uid, out var uidDetachedBlocks) ? uidDetachedBlocks : [], recurrenceRule, startTime, diagnostics);
+            var exceptions = MapExceptions(uid, calendar, block, detachedBlocks.TryGetValue(uid, out var uidDetachedBlocks) ? uidDetachedBlocks : [], recurrenceRule, startTime, diagnostics, householdTimeZoneId);
             var createdUtc = ToUtcDateTime(calendarEvent.Created, uid, diagnostics, "CREATED");
             var lastModifiedUtc = ToUtcDateTime(calendarEvent.LastModified, uid, diagnostics, "LAST-MODIFIED");
             var title = string.IsNullOrWhiteSpace(calendarEvent.Summary) ? "Untitled event" : calendarEvent.Summary.Trim();
@@ -83,7 +83,7 @@ public static class ICalendarParser
             var providerRevision = BuildProviderRevision(calendarEvent.Sequence, lastModifiedUtc);
             var status = NormalizeOptionalText(calendarEvent.Status);
             var transparency = NormalizeOptionalText(calendarEvent.Transparency);
-            var fingerprint = BuildContentFingerprint(uid, title, description, location, startDate, startTime, endDate, endTime, isAllDay, recurrenceType, rawRecurrenceRule, status, transparency, string.Join("|", exceptions.Select(exception => $"{exception.OccurrenceKey.Serialize()}:{exception.ExceptionType}:{exception.DetachedContentFingerprint}:{exception.RawProviderRecurrenceId}")));
+            var fingerprint = BuildContentFingerprint(uid, householdTimeZoneId, title, description, location, startDate, startTime, endDate, endTime, isAllDay, recurrenceType, rawRecurrenceRule, status, transparency, string.Join("|", exceptions.Select(exception => $"{exception.OccurrenceKey.Serialize()}:{exception.ExceptionType}:{exception.DetachedContentFingerprint}:{exception.RawProviderRecurrenceId}")));
 
             events.Add(new NormalizedICalendarEvent(
                 ProviderEventId: uid,
@@ -223,6 +223,7 @@ public static class ICalendarParser
         CalendarEvent calendarEvent,
         string uid,
         List<ICalendarParseDiagnostic> diagnostics,
+        string householdTimeZoneId,
         out DateOnly startDate,
         out TimeOnly? startTime,
         out DateOnly endDate,
@@ -235,13 +236,13 @@ public static class ICalendarParser
         endTime = null;
         isAllDay = false;
 
-        if (!TryReadEventDateTime(calendarEvent.DtStart, uid, diagnostics, "DTSTART", required: true, out startDate, out startTime, out var startComparable))
+        if (!TryReadEventDateTime(calendarEvent.DtStart, uid, diagnostics, "DTSTART", householdTimeZoneId, required: true, out startDate, out startTime, out var startComparable))
         {
             return false;
         }
 
         var endValue = calendarEvent.DtEnd ?? calendarEvent.End;
-        if (!TryReadEventDateTime(endValue, uid, diagnostics, "DTEND", required: false, out endDate, out endTime, out var endComparable))
+        if (!TryReadEventDateTime(endValue, uid, diagnostics, "DTEND", householdTimeZoneId, required: false, out endDate, out endTime, out var endComparable))
         {
             return false;
         }
@@ -269,7 +270,7 @@ public static class ICalendarParser
         return true;
     }
 
-    private static bool TryReadEventDateTime(CalDateTime? value, string uid, List<ICalendarParseDiagnostic> diagnostics, string propertyName, bool required, out DateOnly date, out TimeOnly? time, out DateTime comparable)
+    private static bool TryReadEventDateTime(CalDateTime? value, string uid, List<ICalendarParseDiagnostic> diagnostics, string propertyName, string householdTimeZoneId, bool required, out DateOnly date, out TimeOnly? time, out DateTime comparable)
     {
         date = default;
         time = null;
@@ -291,9 +292,26 @@ public static class ICalendarParser
 
         try
         {
-            date = value.Date;
-            time = value.HasTime ? value.Time : null;
-            comparable = value.HasTime ? new DateTime(value.Year, value.Month, value.Day, value.Hour, value.Minute, value.Second) : value.Date.ToDateTime(TimeOnly.MinValue);
+            if (!value.HasTime || value.IsFloating || string.IsNullOrWhiteSpace(value.TzId) && !value.IsUtc)
+            {
+                date = value.Date;
+                time = value.HasTime ? value.Time : null;
+            }
+            else
+            {
+                var utc = value.IsUtc
+                    ? new DateTimeOffset(DateTime.SpecifyKind(value.AsUtc, DateTimeKind.Utc))
+                    : new DateTimeOffset(
+                        TimeZoneInfo.ConvertTimeToUtc(
+                            new DateTime(value.Year, value.Month, value.Day, value.Hour, value.Minute, value.Second, DateTimeKind.Unspecified),
+                            TimeZoneInfo.FindSystemTimeZoneById(value.TzId!)),
+                        TimeSpan.Zero);
+                var householdLocal = TimeZoneInfo.ConvertTime(utc, TimeZoneInfo.FindSystemTimeZoneById(householdTimeZoneId));
+                date = DateOnly.FromDateTime(householdLocal.DateTime);
+                time = TimeOnly.FromDateTime(householdLocal.DateTime);
+            }
+
+            comparable = date.ToDateTime(time ?? TimeOnly.MinValue);
             return true;
         }
         catch (ArgumentOutOfRangeException)
@@ -533,7 +551,7 @@ public static class ICalendarParser
         }
     }
 
-    private static IReadOnlyList<NormalizedICalendarEventException> MapExceptions(string uid, IcalCalendar calendar, ParsedEventBlock? masterBlock, IReadOnlyList<ParsedEventBlock> detachedBlocks, EventRecurrenceRule? recurrenceRule, TimeOnly? masterStartTime, List<ICalendarParseDiagnostic> diagnostics)
+    private static IReadOnlyList<NormalizedICalendarEventException> MapExceptions(string uid, IcalCalendar calendar, ParsedEventBlock? masterBlock, IReadOnlyList<ParsedEventBlock> detachedBlocks, EventRecurrenceRule? recurrenceRule, TimeOnly? masterStartTime, List<ICalendarParseDiagnostic> diagnostics, string householdTimeZoneId)
     {
         if (recurrenceRule is null || recurrenceRule.UnsupportedRecurrenceStatus == UnsupportedRecurrenceStatus.Unsupported)
         {
@@ -571,7 +589,7 @@ public static class ICalendarParser
                 continue;
             }
 
-            if (!TryReadDateRange(detachedEvent, uid, diagnostics, out var startDate, out var startTime, out var endDate, out var endTime, out var isAllDay))
+            if (!TryReadDateRange(detachedEvent, uid, diagnostics, householdTimeZoneId, out var startDate, out var startTime, out var endDate, out var endTime, out var isAllDay))
             {
                 continue;
             }

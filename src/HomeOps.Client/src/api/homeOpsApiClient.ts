@@ -2319,6 +2319,155 @@ export class HomeOpsApiClient {
         return Promise.resolve<void>(null as any);
     }
 
+    listCalendarFieldRepairCandidates(): Promise<CalendarFieldRepairCandidateDto[]> {
+        let url_ = this.baseUrl + "/api/events/calendar-field-repair-candidates";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processListCalendarFieldRepairCandidates(_response);
+        });
+    }
+
+    protected processListCalendarFieldRepairCandidates(response: Response): Promise<CalendarFieldRepairCandidateDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(CalendarFieldRepairCandidateDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<CalendarFieldRepairCandidateDto[]>(null as any);
+    }
+
+    previewCalendarFieldRepair(eventId: string, request: PreviewCalendarFieldRepairRequest): Promise<CalendarFieldRepairPreviewDto> {
+        let url_ = this.baseUrl + "/api/events/{eventId}/calendar-field-repair/preview";
+        if (eventId === undefined || eventId === null)
+            throw new globalThis.Error("The parameter 'eventId' must be defined.");
+        url_ = url_.replace("{eventId}", encodeURIComponent("" + eventId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processPreviewCalendarFieldRepair(_response);
+        });
+    }
+
+    protected processPreviewCalendarFieldRepair(response: Response): Promise<CalendarFieldRepairPreviewDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = CalendarFieldRepairPreviewDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = HttpValidationProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<CalendarFieldRepairPreviewDto>(null as any);
+    }
+
+    applyCalendarFieldRepair(eventId: string, request: ApplyCalendarFieldRepairRequest): Promise<EventSeriesDto> {
+        let url_ = this.baseUrl + "/api/events/{eventId}/calendar-field-repair";
+        if (eventId === undefined || eventId === null)
+            throw new globalThis.Error("The parameter 'eventId' must be defined.");
+        url_ = url_.replace("{eventId}", encodeURIComponent("" + eventId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processApplyCalendarFieldRepair(_response);
+        });
+    }
+
+    protected processApplyCalendarFieldRepair(response: Response): Promise<EventSeriesDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = EventSeriesDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = HttpValidationProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<EventSeriesDto>(null as any);
+    }
+
     skipEventOccurrence(eventId: string, request: OccurrenceTargetRequest): Promise<void> {
         let url_ = this.baseUrl + "/api/events/{eventId}/occurrences/skip";
         if (eventId === undefined || eventId === null)
@@ -12294,15 +12443,267 @@ export interface IEventExceptionDto {
     endsAt?: Date | undefined;
 }
 
+export class CalendarFieldRepairCandidateDto implements ICalendarFieldRepairCandidateDto {
+    eventId?: string;
+    title?: string;
+    startDate?: Date;
+    startTime?: string | undefined;
+    endDate?: Date;
+    endTime?: string | undefined;
+    isAllDay?: boolean;
+    updatedUtc?: Date;
+
+    constructor(data?: ICalendarFieldRepairCandidateDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.eventId = _data["eventId"];
+            this.title = _data["title"];
+            this.startDate = _data["startDate"] ? new Date(_data["startDate"].toString()) : undefined as any;
+            this.startTime = _data["startTime"];
+            this.endDate = _data["endDate"] ? new Date(_data["endDate"].toString()) : undefined as any;
+            this.endTime = _data["endTime"];
+            this.isAllDay = _data["isAllDay"];
+            this.updatedUtc = _data["updatedUtc"] ? new Date(_data["updatedUtc"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): CalendarFieldRepairCandidateDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new CalendarFieldRepairCandidateDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["eventId"] = this.eventId;
+        data["title"] = this.title;
+        data["startDate"] = this.startDate ? formatDate(this.startDate) : undefined as any;
+        data["startTime"] = this.startTime;
+        data["endDate"] = this.endDate ? formatDate(this.endDate) : undefined as any;
+        data["endTime"] = this.endTime;
+        data["isAllDay"] = this.isAllDay;
+        data["updatedUtc"] = this.updatedUtc ? this.updatedUtc.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface ICalendarFieldRepairCandidateDto {
+    eventId?: string;
+    title?: string;
+    startDate?: Date;
+    startTime?: string | undefined;
+    endDate?: Date;
+    endTime?: string | undefined;
+    isAllDay?: boolean;
+    updatedUtc?: Date;
+}
+
+export class CalendarFieldRepairPreviewDto implements ICalendarFieldRepairPreviewDto {
+    eventId?: string;
+    currentTiming?: CalendarFieldSetRequest;
+    proposedTiming?: CalendarFieldSetRequest;
+    proposedStartUtc?: Date;
+    proposedEndUtc?: Date;
+
+    constructor(data?: ICalendarFieldRepairPreviewDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.eventId = _data["eventId"];
+            this.currentTiming = _data["currentTiming"] ? CalendarFieldSetRequest.fromJS(_data["currentTiming"]) : undefined as any;
+            this.proposedTiming = _data["proposedTiming"] ? CalendarFieldSetRequest.fromJS(_data["proposedTiming"]) : undefined as any;
+            this.proposedStartUtc = _data["proposedStartUtc"] ? new Date(_data["proposedStartUtc"].toString()) : undefined as any;
+            this.proposedEndUtc = _data["proposedEndUtc"] ? new Date(_data["proposedEndUtc"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): CalendarFieldRepairPreviewDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new CalendarFieldRepairPreviewDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["eventId"] = this.eventId;
+        data["currentTiming"] = this.currentTiming ? this.currentTiming.toJSON() : undefined as any;
+        data["proposedTiming"] = this.proposedTiming ? this.proposedTiming.toJSON() : undefined as any;
+        data["proposedStartUtc"] = this.proposedStartUtc ? this.proposedStartUtc.toISOString() : undefined as any;
+        data["proposedEndUtc"] = this.proposedEndUtc ? this.proposedEndUtc.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface ICalendarFieldRepairPreviewDto {
+    eventId?: string;
+    currentTiming?: CalendarFieldSetRequest;
+    proposedTiming?: CalendarFieldSetRequest;
+    proposedStartUtc?: Date;
+    proposedEndUtc?: Date;
+}
+
+export class CalendarFieldSetRequest implements ICalendarFieldSetRequest {
+    startDate?: Date;
+    startTime?: string | undefined;
+    endDate?: Date;
+    endTime?: string | undefined;
+    isAllDay?: boolean;
+
+    constructor(data?: ICalendarFieldSetRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.startDate = _data["startDate"] ? new Date(_data["startDate"].toString()) : undefined as any;
+            this.startTime = _data["startTime"];
+            this.endDate = _data["endDate"] ? new Date(_data["endDate"].toString()) : undefined as any;
+            this.endTime = _data["endTime"];
+            this.isAllDay = _data["isAllDay"];
+        }
+    }
+
+    static fromJS(data: any): CalendarFieldSetRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CalendarFieldSetRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["startDate"] = this.startDate ? formatDate(this.startDate) : undefined as any;
+        data["startTime"] = this.startTime;
+        data["endDate"] = this.endDate ? formatDate(this.endDate) : undefined as any;
+        data["endTime"] = this.endTime;
+        data["isAllDay"] = this.isAllDay;
+        return data;
+    }
+}
+
+export interface ICalendarFieldSetRequest {
+    startDate?: Date;
+    startTime?: string | undefined;
+    endDate?: Date;
+    endTime?: string | undefined;
+    isAllDay?: boolean;
+}
+
+export class PreviewCalendarFieldRepairRequest implements IPreviewCalendarFieldRepairRequest {
+    timing?: CalendarFieldSetRequest;
+
+    constructor(data?: IPreviewCalendarFieldRepairRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.timing = _data["timing"] ? CalendarFieldSetRequest.fromJS(_data["timing"]) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): PreviewCalendarFieldRepairRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new PreviewCalendarFieldRepairRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["timing"] = this.timing ? this.timing.toJSON() : undefined as any;
+        return data;
+    }
+}
+
+export interface IPreviewCalendarFieldRepairRequest {
+    timing?: CalendarFieldSetRequest;
+}
+
+export class ApplyCalendarFieldRepairRequest implements IApplyCalendarFieldRepairRequest {
+    timing?: CalendarFieldSetRequest;
+    expectedUpdatedUtc?: Date;
+    confirmed?: boolean;
+
+    constructor(data?: IApplyCalendarFieldRepairRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.timing = _data["timing"] ? CalendarFieldSetRequest.fromJS(_data["timing"]) : undefined as any;
+            this.expectedUpdatedUtc = _data["expectedUpdatedUtc"] ? new Date(_data["expectedUpdatedUtc"].toString()) : undefined as any;
+            this.confirmed = _data["confirmed"];
+        }
+    }
+
+    static fromJS(data: any): ApplyCalendarFieldRepairRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new ApplyCalendarFieldRepairRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["timing"] = this.timing ? this.timing.toJSON() : undefined as any;
+        data["expectedUpdatedUtc"] = this.expectedUpdatedUtc ? this.expectedUpdatedUtc.toISOString() : undefined as any;
+        data["confirmed"] = this.confirmed;
+        return data;
+    }
+}
+
+export interface IApplyCalendarFieldRepairRequest {
+    timing?: CalendarFieldSetRequest;
+    expectedUpdatedUtc?: Date;
+    confirmed?: boolean;
+}
+
 export class CreateEventSeriesRequest implements ICreateEventSeriesRequest {
     title?: string;
     description?: string | undefined;
     location?: string | undefined;
-    startUtc?: Date;
+    startUtc?: Date | undefined;
     endUtc?: Date | undefined;
     isAllDay?: boolean;
     recurrenceRule?: RecurrenceRuleDto | undefined;
     decorativeAvatar?: DecorativeAvatarReferenceDto | undefined;
+    startDate?: Date | undefined;
+    startTime?: string | undefined;
+    endDate?: Date | undefined;
+    endTime?: string | undefined;
 
     constructor(data?: ICreateEventSeriesRequest) {
         if (data) {
@@ -12323,6 +12724,10 @@ export class CreateEventSeriesRequest implements ICreateEventSeriesRequest {
             this.isAllDay = _data["isAllDay"];
             this.recurrenceRule = _data["recurrenceRule"] ? RecurrenceRuleDto.fromJS(_data["recurrenceRule"]) : undefined as any;
             this.decorativeAvatar = _data["decorativeAvatar"] ? DecorativeAvatarReferenceDto.fromJS(_data["decorativeAvatar"]) : undefined as any;
+            this.startDate = _data["startDate"] ? new Date(_data["startDate"].toString()) : undefined as any;
+            this.startTime = _data["startTime"];
+            this.endDate = _data["endDate"] ? new Date(_data["endDate"].toString()) : undefined as any;
+            this.endTime = _data["endTime"];
         }
     }
 
@@ -12343,6 +12748,10 @@ export class CreateEventSeriesRequest implements ICreateEventSeriesRequest {
         data["isAllDay"] = this.isAllDay;
         data["recurrenceRule"] = this.recurrenceRule ? this.recurrenceRule.toJSON() : undefined as any;
         data["decorativeAvatar"] = this.decorativeAvatar ? this.decorativeAvatar.toJSON() : undefined as any;
+        data["startDate"] = this.startDate ? formatDate(this.startDate) : undefined as any;
+        data["startTime"] = this.startTime;
+        data["endDate"] = this.endDate ? formatDate(this.endDate) : undefined as any;
+        data["endTime"] = this.endTime;
         return data;
     }
 }
@@ -12351,22 +12760,30 @@ export interface ICreateEventSeriesRequest {
     title?: string;
     description?: string | undefined;
     location?: string | undefined;
-    startUtc?: Date;
+    startUtc?: Date | undefined;
     endUtc?: Date | undefined;
     isAllDay?: boolean;
     recurrenceRule?: RecurrenceRuleDto | undefined;
     decorativeAvatar?: DecorativeAvatarReferenceDto | undefined;
+    startDate?: Date | undefined;
+    startTime?: string | undefined;
+    endDate?: Date | undefined;
+    endTime?: string | undefined;
 }
 
 export class UpdateEventSeriesRequest implements IUpdateEventSeriesRequest {
     title?: string;
     description?: string | undefined;
     location?: string | undefined;
-    startUtc?: Date;
+    startUtc?: Date | undefined;
     endUtc?: Date | undefined;
     isAllDay?: boolean;
     recurrenceRule?: RecurrenceRuleDto | undefined;
     decorativeAvatar?: DecorativeAvatarReferenceDto | undefined;
+    startDate?: Date | undefined;
+    startTime?: string | undefined;
+    endDate?: Date | undefined;
+    endTime?: string | undefined;
 
     constructor(data?: IUpdateEventSeriesRequest) {
         if (data) {
@@ -12387,6 +12804,10 @@ export class UpdateEventSeriesRequest implements IUpdateEventSeriesRequest {
             this.isAllDay = _data["isAllDay"];
             this.recurrenceRule = _data["recurrenceRule"] ? RecurrenceRuleDto.fromJS(_data["recurrenceRule"]) : undefined as any;
             this.decorativeAvatar = _data["decorativeAvatar"] ? DecorativeAvatarReferenceDto.fromJS(_data["decorativeAvatar"]) : undefined as any;
+            this.startDate = _data["startDate"] ? new Date(_data["startDate"].toString()) : undefined as any;
+            this.startTime = _data["startTime"];
+            this.endDate = _data["endDate"] ? new Date(_data["endDate"].toString()) : undefined as any;
+            this.endTime = _data["endTime"];
         }
     }
 
@@ -12407,6 +12828,10 @@ export class UpdateEventSeriesRequest implements IUpdateEventSeriesRequest {
         data["isAllDay"] = this.isAllDay;
         data["recurrenceRule"] = this.recurrenceRule ? this.recurrenceRule.toJSON() : undefined as any;
         data["decorativeAvatar"] = this.decorativeAvatar ? this.decorativeAvatar.toJSON() : undefined as any;
+        data["startDate"] = this.startDate ? formatDate(this.startDate) : undefined as any;
+        data["startTime"] = this.startTime;
+        data["endDate"] = this.endDate ? formatDate(this.endDate) : undefined as any;
+        data["endTime"] = this.endTime;
         return data;
     }
 }
@@ -12415,11 +12840,15 @@ export interface IUpdateEventSeriesRequest {
     title?: string;
     description?: string | undefined;
     location?: string | undefined;
-    startUtc?: Date;
+    startUtc?: Date | undefined;
     endUtc?: Date | undefined;
     isAllDay?: boolean;
     recurrenceRule?: RecurrenceRuleDto | undefined;
     decorativeAvatar?: DecorativeAvatarReferenceDto | undefined;
+    startDate?: Date | undefined;
+    startTime?: string | undefined;
+    endDate?: Date | undefined;
+    endTime?: string | undefined;
 }
 
 export class OccurrenceTargetRequest implements IOccurrenceTargetRequest {
@@ -12466,6 +12895,7 @@ export class ModifyOccurrenceRequest implements IModifyOccurrenceRequest {
     isAllDay?: boolean | undefined;
     startUtc?: Date | undefined;
     endUtc?: Date | undefined;
+    timing?: CalendarFieldSetRequest | undefined;
 
     constructor(data?: IModifyOccurrenceRequest) {
         if (data) {
@@ -12485,6 +12915,7 @@ export class ModifyOccurrenceRequest implements IModifyOccurrenceRequest {
             this.isAllDay = _data["isAllDay"];
             this.startUtc = _data["startUtc"] ? new Date(_data["startUtc"].toString()) : undefined as any;
             this.endUtc = _data["endUtc"] ? new Date(_data["endUtc"].toString()) : undefined as any;
+            this.timing = _data["timing"] ? CalendarFieldSetRequest.fromJS(_data["timing"]) : undefined as any;
         }
     }
 
@@ -12504,6 +12935,7 @@ export class ModifyOccurrenceRequest implements IModifyOccurrenceRequest {
         data["isAllDay"] = this.isAllDay;
         data["startUtc"] = this.startUtc ? this.startUtc.toISOString() : undefined as any;
         data["endUtc"] = this.endUtc ? this.endUtc.toISOString() : undefined as any;
+        data["timing"] = this.timing ? this.timing.toJSON() : undefined as any;
         return data;
     }
 }
@@ -12516,6 +12948,7 @@ export interface IModifyOccurrenceRequest {
     isAllDay?: boolean | undefined;
     startUtc?: Date | undefined;
     endUtc?: Date | undefined;
+    timing?: CalendarFieldSetRequest | undefined;
 }
 
 export class SplitEventSeriesRequest implements ISplitEventSeriesRequest {
@@ -12527,6 +12960,7 @@ export class SplitEventSeriesRequest implements ISplitEventSeriesRequest {
     startUtc?: Date | undefined;
     endUtc?: Date | undefined;
     recurrenceRule?: RecurrenceRuleDto | undefined;
+    timing?: CalendarFieldSetRequest | undefined;
 
     constructor(data?: ISplitEventSeriesRequest) {
         if (data) {
@@ -12547,6 +12981,7 @@ export class SplitEventSeriesRequest implements ISplitEventSeriesRequest {
             this.startUtc = _data["startUtc"] ? new Date(_data["startUtc"].toString()) : undefined as any;
             this.endUtc = _data["endUtc"] ? new Date(_data["endUtc"].toString()) : undefined as any;
             this.recurrenceRule = _data["recurrenceRule"] ? RecurrenceRuleDto.fromJS(_data["recurrenceRule"]) : undefined as any;
+            this.timing = _data["timing"] ? CalendarFieldSetRequest.fromJS(_data["timing"]) : undefined as any;
         }
     }
 
@@ -12567,6 +13002,7 @@ export class SplitEventSeriesRequest implements ISplitEventSeriesRequest {
         data["startUtc"] = this.startUtc ? this.startUtc.toISOString() : undefined as any;
         data["endUtc"] = this.endUtc ? this.endUtc.toISOString() : undefined as any;
         data["recurrenceRule"] = this.recurrenceRule ? this.recurrenceRule.toJSON() : undefined as any;
+        data["timing"] = this.timing ? this.timing.toJSON() : undefined as any;
         return data;
     }
 }
@@ -12580,6 +13016,7 @@ export interface ISplitEventSeriesRequest {
     startUtc?: Date | undefined;
     endUtc?: Date | undefined;
     recurrenceRule?: RecurrenceRuleDto | undefined;
+    timing?: CalendarFieldSetRequest | undefined;
 }
 
 export class FamilyMemberDto implements IFamilyMemberDto {

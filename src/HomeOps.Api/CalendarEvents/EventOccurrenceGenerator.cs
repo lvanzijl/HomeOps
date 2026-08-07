@@ -365,14 +365,7 @@ public static class EventOccurrenceGenerator
 
     private static DateTimeOffset ToLocalOffset(DateOnly date, TimeOnly time, string timeZoneId)
     {
-        var zone = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
-        var local = DateTime.SpecifyKind(date.ToDateTime(time), DateTimeKind.Unspecified);
-        while (zone.IsInvalidTime(local))
-        {
-            local = local.AddMinutes(1);
-        }
-
-        return new DateTimeOffset(local, zone.GetUtcOffset(local));
+        return CalendarFieldResolver.Resolve(date, time, timeZoneId);
     }
 
     private static DateOnly StartOfWeek(DateOnly date) => date.AddDays(-DayOffset(date.DayOfWeek));

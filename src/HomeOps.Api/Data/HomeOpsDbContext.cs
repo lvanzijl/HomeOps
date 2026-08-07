@@ -453,6 +453,7 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             entity.Property(eventSeries => eventSeries.EndDate).HasColumnType("date").IsRequired();
             entity.Property(eventSeries => eventSeries.EndTime).HasColumnType("time without time zone");
             entity.Property(eventSeries => eventSeries.IsAllDay).IsRequired();
+            entity.Property(eventSeries => eventSeries.CalendarWriteContractVersion);
             entity.Property(eventSeries => eventSeries.RecurrenceType).HasConversion<string>().HasMaxLength(16).IsRequired();
             entity.OwnsOne(eventSeries => eventSeries.RecurrenceRule, rule =>
             {

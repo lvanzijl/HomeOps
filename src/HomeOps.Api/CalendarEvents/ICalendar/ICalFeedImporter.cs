@@ -83,7 +83,12 @@ public sealed class ICalFeedImporter(HomeOpsDbContext dbContext, HttpClient http
                     response.StatusCode);
             }
 
-            var parserResult = ICalendarParser.Parse(content);
+            var householdTimeZoneId = await dbContext.Households
+                .AsNoTracking()
+                .Where(household => household.Id == source.HouseholdId)
+                .Select(household => household.TimeZoneId)
+                .FirstOrDefaultAsync(cancellationToken) ?? "Europe/Amsterdam";
+            var parserResult = ICalendarParser.Parse(content, householdTimeZoneId);
             if (parserResult.HasErrors && parserResult.Events.Count == 0)
             {
                 return Failure(

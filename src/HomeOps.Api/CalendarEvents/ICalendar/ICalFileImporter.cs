@@ -95,7 +95,12 @@ public sealed class ICalFileImporter(HomeOpsDbContext dbContext, ICalFileContent
                     fileMetadata);
             }
 
-            var parserResult = ICalendarParser.Parse(loadResult.Content);
+            var householdTimeZoneId = await dbContext.Households
+                .AsNoTracking()
+                .Where(household => household.Id == source.HouseholdId)
+                .Select(household => household.TimeZoneId)
+                .FirstOrDefaultAsync(cancellationToken) ?? "Europe/Amsterdam";
+            var parserResult = ICalendarParser.Parse(loadResult.Content, householdTimeZoneId);
             if (parserResult.HasErrors && parserResult.Events.Count == 0)
             {
                 return Failure(

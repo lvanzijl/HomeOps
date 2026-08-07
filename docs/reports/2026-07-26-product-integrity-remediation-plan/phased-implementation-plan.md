@@ -612,9 +612,11 @@ timeZoneId: omitted when the household setting is authoritative
 
 ### Slice 3.2 — Correct backend event writes and recurrence
 
-- [ ] **Status: Not started**
+- [x] **Status: Completed**
 
 **Audit ID:** TIME-01
+
+**Implementation state:** manual create/update endpoints now accept authoritative `DateOnly`/optional `TimeOnly` calendar fields, while occurrence modification and splitting accept one optional atomic `timing` object. One household-zone resolver validates all-day/timed ranges, rejects nonexistent DST times, and selects the first ambiguous fall-back occurrence. Recurrence anchoring and single-series read projections use household-local dates and the household IANA zone. UTC and `TZID` iCalendar values normalize into household-local fields, while floating and all-day values remain calendar fields; the normalization zone participates in imported-event fingerprints. Migration `20260807185444_AddCalendarWriteContractVersion` marks existing writable manual events as version 1, new writes as version 2, and leaves imports unversioned. Review candidates, preview, and confirmed concurrency-checked repair endpoints provide an explicit no-auto-shift repair path. A deprecated UTC-input compatibility shim remains only so the existing Slice 3.3 frontend stays deployable; Slice 3.3 must migrate all callers and remove those fields. OpenAPI and the generated client are idempotent under pinned NSwag 14.7.1. Backend passes 598/598, frontend passes 325/325 with the documented timeout-sensitive tests given a 20-second budget, both builds pass, and EF reports no pending model changes.
 
 **Implementation steps**
 

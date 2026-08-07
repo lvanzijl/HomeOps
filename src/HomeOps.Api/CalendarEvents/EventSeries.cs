@@ -4,6 +4,8 @@ namespace HomeOps.Api.CalendarEvents;
 
 public sealed class EventSeries
 {
+    public const int CurrentCalendarWriteContractVersion = 2;
+
     public Guid Id { get; set; }
     public Guid EventSourceId { get; set; }
     public EventSource? EventSource { get; set; }
@@ -11,6 +13,7 @@ public sealed class EventSeries
     public string? Description { get; set; }
     public string? Location { get; set; }
     public bool IsAllDay { get; set; }
+    public int? CalendarWriteContractVersion { get; set; }
     public DateOnly StartDate { get; set; }
     public TimeOnly? StartTime { get; set; }
     public DateOnly EndDate { get; set; }

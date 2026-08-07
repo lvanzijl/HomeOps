@@ -29,7 +29,7 @@ public static class EventSeriesEndpoints
         events.MapGet("/", async (HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
         {
             var household = await dbContext.Households.AsNoTracking().SingleAsync(candidate => candidate.Id == SeedHousehold.Id, cancellationToken);
-            var startsOn = DateOnly.FromDateTime(DateTimeOffset.UtcNow.UtcDateTime).AddYears(-1);
+            var startsOn = DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, TimeZoneInfo.FindSystemTimeZoneById(household.TimeZoneId)).DateTime).AddYears(-1);
             var endsOn = startsOn.AddMonths(30);
             var eventSeries = await dbContext.EventSeries
                 .AsNoTracking()
@@ -55,18 +55,97 @@ public static class EventSeriesEndpoints
 
         events.MapGet("/{eventId:guid}", async (Guid eventId, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
         {
+            var timeZoneId = await GetHouseholdTimeZoneIdAsync(dbContext, cancellationToken);
             var eventSeries = await dbContext.EventSeries
                 .AsNoTracking()
                 .Where(candidate => candidate.Id == eventId && candidate.EventSource!.HouseholdId == SeedHousehold.Id)
                 .FirstOrDefaultAsync(cancellationToken);
 
-            return eventSeries is null ? Results.NotFound() : Results.Ok(EventSeriesNormalizer.ToDto(eventSeries));
+            return eventSeries is null ? Results.NotFound() : Results.Ok(EventSeriesNormalizer.ToDto(eventSeries, timeZoneId));
         }).WithName("GetEventById").Produces<EventSeriesDto>().Produces(StatusCodes.Status404NotFound);
+
+        events.MapGet("/calendar-field-repair-candidates", async (HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        {
+            var candidates = await dbContext.EventSeries
+                .AsNoTracking()
+                .Where(series => series.EventSource!.HouseholdId == SeedHousehold.Id)
+                .Where(series => series.EventSource!.IsWritable)
+                .Where(series => series.CalendarWriteContractVersion == 1)
+                .OrderBy(series => series.StartDate)
+                .ThenBy(series => series.StartTime)
+                .Select(series => new CalendarFieldRepairCandidateDto(
+                    series.Id,
+                    series.Title,
+                    series.StartDate,
+                    series.StartTime,
+                    series.EndDate,
+                    series.EndTime,
+                    series.IsAllDay,
+                    series.UpdatedUtc))
+                .ToListAsync(cancellationToken);
+
+            return Results.Ok(candidates);
+        }).WithName("ListCalendarFieldRepairCandidates").Produces<IReadOnlyCollection<CalendarFieldRepairCandidateDto>>();
+
+        events.MapPost("/{eventId:guid}/calendar-field-repair/preview", async (Guid eventId, PreviewCalendarFieldRepairRequest request, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        {
+            var timeZoneId = await GetHouseholdTimeZoneIdAsync(dbContext, cancellationToken);
+            var eventSeries = await LoadRepairCandidateAsync(eventId, dbContext, cancellationToken);
+            if (eventSeries is null) return Results.NotFound();
+
+            var errors = new Dictionary<string, string[]>();
+            var proposed = request.Timing.ToDomain();
+            CalendarFieldResolver.TryValidate(proposed, timeZoneId, errors, "timing");
+            if (errors.Count > 0) return Results.ValidationProblem(errors);
+
+            var current = ToCalendarFieldSetRequest(eventSeries);
+            var preview = new CalendarFieldRepairPreviewDto(
+                eventSeries.Id,
+                current,
+                request.Timing,
+                ResolveStart(proposed, timeZoneId),
+                ResolveEnd(proposed, timeZoneId));
+            return Results.Ok(preview);
+        }).WithName("PreviewCalendarFieldRepair").Produces<CalendarFieldRepairPreviewDto>().ProducesValidationProblem().Produces(StatusCodes.Status404NotFound);
+
+        events.MapPost("/{eventId:guid}/calendar-field-repair", async (Guid eventId, ApplyCalendarFieldRepairRequest request, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        {
+            if (!request.Confirmed)
+            {
+                return Results.ValidationProblem(new Dictionary<string, string[]> { [nameof(ApplyCalendarFieldRepairRequest.Confirmed)] = ["Explicit confirmation is required."] });
+            }
+
+            var timeZoneId = await GetHouseholdTimeZoneIdAsync(dbContext, cancellationToken);
+            var eventSeries = await LoadRepairCandidateAsync(eventId, dbContext, cancellationToken);
+            if (eventSeries is null) return Results.NotFound();
+            if (eventSeries.UpdatedUtc != request.ExpectedUpdatedUtc)
+            {
+                return Results.Conflict(new { error = "The event changed after the repair preview. Reload it before applying a correction." });
+            }
+
+            var errors = new Dictionary<string, string[]>();
+            var proposed = request.Timing.ToDomain();
+            CalendarFieldResolver.TryValidate(proposed, timeZoneId, errors, "timing");
+            if (errors.Count > 0) return Results.ValidationProblem(errors);
+
+            EventOccurrenceProjector.ApplyCalendarFields(
+                eventSeries,
+                eventSeries.Title,
+                eventSeries.Description,
+                eventSeries.Location,
+                proposed,
+                DateTimeOffset.UtcNow);
+            await dbContext.SaveChangesAsync(cancellationToken);
+            return Results.Ok(EventSeriesNormalizer.ToDto(eventSeries, timeZoneId));
+        }).WithName("ApplyCalendarFieldRepair").Produces<EventSeriesDto>().ProducesValidationProblem().Produces(StatusCodes.Status404NotFound).Produces(StatusCodes.Status409Conflict);
 
         events.MapPost("/", async (CreateEventSeriesRequest request, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
         {
-            var validationErrors = ValidateEvent(request.Title, request.StartUtc, request.EndUtc);
-            var recurrenceRule = MapRecurrenceRule(request.RecurrenceRule, request.StartUtc, validationErrors);
+            var timeZoneId = await GetHouseholdTimeZoneIdAsync(dbContext, cancellationToken);
+            var validationErrors = new Dictionary<string, string[]>();
+            var fields = ResolveRequestFields(request.StartDate, request.StartTime, request.EndDate, request.EndTime, request.IsAllDay, request.StartUtc, request.EndUtc, validationErrors);
+            ValidateEvent(request.Title, fields, timeZoneId, validationErrors);
+            var recurrenceRule = fields is null ? null : MapRecurrenceRule(request.RecurrenceRule, fields.StartDate, validationErrors);
             var avatarValidation = await DecorativeAvatarReferenceValidation.Validate(dbContext, request.DecorativeAvatar, cancellationToken);
             if (!avatarValidation.IsValid)
             {
@@ -88,15 +167,13 @@ public static class EventSeriesEndpoints
             }
 
             var now = DateTimeOffset.UtcNow;
-            var eventSeries = EventOccurrenceProjector.FromRequest(
+            var eventSeries = EventOccurrenceProjector.FromCalendarFields(
                 Guid.NewGuid(),
                 writableSourceId.Value,
                 request.Title.Trim(),
                 NormalizeDescription(request.Description),
                 NormalizeDescription(request.Location),
-                request.StartUtc,
-                request.EndUtc,
-                request.IsAllDay,
+                fields!,
                 now,
                 now);
             eventSeries.RecurrenceType = RecurrenceType.None;
@@ -107,13 +184,16 @@ public static class EventSeriesEndpoints
             dbContext.EventSeries.Add(eventSeries);
             await dbContext.SaveChangesAsync(cancellationToken);
 
-            return Results.Created($"/api/events/{eventSeries.Id}", EventSeriesNormalizer.ToDto(eventSeries));
+            return Results.Created($"/api/events/{eventSeries.Id}", EventSeriesNormalizer.ToDto(eventSeries, timeZoneId));
         }).WithName("CreateEvent").Produces<EventSeriesDto>(StatusCodes.Status201Created).Produces(StatusCodes.Status400BadRequest).Produces(StatusCodes.Status404NotFound);
 
         events.MapPut("/{eventId:guid}", async (Guid eventId, UpdateEventSeriesRequest request, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
         {
-            var validationErrors = ValidateEvent(request.Title, request.StartUtc, request.EndUtc);
-            var recurrenceRule = MapRecurrenceRule(request.RecurrenceRule, request.StartUtc, validationErrors);
+            var timeZoneId = await GetHouseholdTimeZoneIdAsync(dbContext, cancellationToken);
+            var validationErrors = new Dictionary<string, string[]>();
+            var fields = ResolveRequestFields(request.StartDate, request.StartTime, request.EndDate, request.EndTime, request.IsAllDay, request.StartUtc, request.EndUtc, validationErrors);
+            ValidateEvent(request.Title, fields, timeZoneId, validationErrors);
+            var recurrenceRule = fields is null ? null : MapRecurrenceRule(request.RecurrenceRule, fields.StartDate, validationErrors);
             var avatarValidation = await DecorativeAvatarReferenceValidation.Validate(dbContext, request.DecorativeAvatar, cancellationToken);
             if (!avatarValidation.IsValid)
             {
@@ -133,14 +213,12 @@ public static class EventSeriesEndpoints
                 return Results.NotFound();
             }
 
-            EventOccurrenceProjector.ApplyRequest(
+            EventOccurrenceProjector.ApplyCalendarFields(
                 eventSeries,
                 request.Title.Trim(),
                 NormalizeDescription(request.Description),
                 NormalizeDescription(request.Location),
-                request.StartUtc,
-                request.EndUtc,
-                request.IsAllDay,
+                fields!,
                 DateTimeOffset.UtcNow);
             eventSeries.RecurrenceType = RecurrenceType.None;
             eventSeries.RecurrenceRule = recurrenceRule;
@@ -148,7 +226,7 @@ public static class EventSeriesEndpoints
             eventSeries.DecorativeAvatarReferenceId = avatarValidation.ReferenceId;
             await dbContext.SaveChangesAsync(cancellationToken);
 
-            return Results.Ok(EventSeriesNormalizer.ToDto(eventSeries));
+            return Results.Ok(EventSeriesNormalizer.ToDto(eventSeries, timeZoneId));
         }).WithName("UpdateEvent").Produces<EventSeriesDto>().Produces(StatusCodes.Status400BadRequest).Produces(StatusCodes.Status404NotFound);
 
 
@@ -193,7 +271,8 @@ public static class EventSeriesEndpoints
                 return validationResult;
             }
 
-            var validationErrors = ValidateModifiedOccurrence(request);
+            var timeZoneId = await GetHouseholdTimeZoneIdAsync(dbContext, cancellationToken);
+            var validationErrors = ValidateModifiedOccurrence(request, timeZoneId);
             if (validationErrors.Count > 0)
             {
                 return Results.ValidationProblem(validationErrors);
@@ -226,11 +305,13 @@ public static class EventSeriesEndpoints
                 return validationResult;
             }
 
-            var validationErrors = ValidateSplitRequest(eventSeries!, request);
+            var timeZoneId = await GetHouseholdTimeZoneIdAsync(dbContext, cancellationToken);
+            var validationErrors = ValidateSplitRequest(eventSeries!, request, timeZoneId);
             var splitKey = OccurrenceKey.Parse(request.OccurrenceKey);
+            var splitFields = ResolveSplitFields(eventSeries!, splitKey, request);
             var newRule = request.RecurrenceRule is null
                 ? CopyRuleForSplit(eventSeries!, splitKey)
-                : MapRecurrenceRule(request.RecurrenceRule, request.StartUtc ?? ToDateTimeOffset(splitKey.Date, eventSeries!.StartTime), validationErrors);
+                : MapRecurrenceRule(request.RecurrenceRule, splitFields.StartDate, validationErrors);
 
             if (validationErrors.Count > 0)
             {
@@ -238,14 +319,14 @@ public static class EventSeriesEndpoints
             }
 
             await using var transaction = dbContext.Database.IsRelational() ? await dbContext.Database.BeginTransactionAsync(cancellationToken) : null;
-            var newSeries = SplitSeries(eventSeries!, splitKey, request, newRule, dbContext);
+            var newSeries = SplitSeries(eventSeries!, splitKey, request, splitFields, newRule, dbContext);
             await dbContext.SaveChangesAsync(cancellationToken);
             if (transaction is not null)
             {
                 await transaction.CommitAsync(cancellationToken);
             }
 
-            return Results.Created($"/api/events/{newSeries.Id}", EventSeriesNormalizer.ToDto(newSeries));
+            return Results.Created($"/api/events/{newSeries.Id}", EventSeriesNormalizer.ToDto(newSeries, timeZoneId));
         }).WithName("SplitEventSeriesFromOccurrence").Produces<EventSeriesDto>(StatusCodes.Status201Created).ProducesValidationProblem().Produces(StatusCodes.Status404NotFound);
 
         events.MapDelete("/{eventId:guid}/occurrences/future", async (Guid eventId, string occurrenceKey, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
@@ -320,7 +401,7 @@ public static class EventSeriesEndpoints
         return (eventSeries, null);
     }
 
-    private static Dictionary<string, string[]> ValidateModifiedOccurrence(ModifyOccurrenceRequest request)
+    private static Dictionary<string, string[]> ValidateModifiedOccurrence(ModifyOccurrenceRequest request, string timeZoneId)
     {
         var errors = new Dictionary<string, string[]>();
         if (request.Title is not null && string.IsNullOrWhiteSpace(request.Title))
@@ -328,7 +409,15 @@ public static class EventSeriesEndpoints
             errors[nameof(ModifyOccurrenceRequest.Title)] = ["Replacement title must not be blank when provided."];
         }
 
-        if (request.EndUtc is not null && request.StartUtc is not null && request.EndUtc < request.StartUtc)
+        if (request.Timing is not null && (request.StartUtc is not null || request.EndUtc is not null || request.IsAllDay is not null))
+        {
+            errors[nameof(ModifyOccurrenceRequest.Timing)] = ["Timing cannot be combined with legacy UTC timing fields."];
+        }
+        else if (request.Timing is not null)
+        {
+            CalendarFieldResolver.TryValidate(request.Timing.ToDomain(), timeZoneId, errors, "timing");
+        }
+        else if (request.EndUtc is not null && request.StartUtc is not null && request.EndUtc < request.StartUtc)
         {
             errors[nameof(ModifyOccurrenceRequest.EndUtc)] = ["Replacement end must be on or after replacement start."];
         }
@@ -338,7 +427,7 @@ public static class EventSeriesEndpoints
             errors[nameof(ModifyOccurrenceRequest.StartUtc)] = ["Replacement start is required when replacement end is supplied."];
         }
 
-        if (request.Title is null && request.Description is null && request.Location is null && request.IsAllDay is null && request.StartUtc is null && request.EndUtc is null)
+        if (request.Title is null && request.Description is null && request.Location is null && request.IsAllDay is null && request.StartUtc is null && request.EndUtc is null && request.Timing is null)
         {
             errors[nameof(ModifyOccurrenceRequest)] = ["At least one replacement field is required."];
         }
@@ -402,11 +491,14 @@ public static class EventSeriesEndpoints
         exception.Title = string.IsNullOrWhiteSpace(request.Title) ? null : request.Title.Trim();
         exception.Description = NormalizeDescription(request.Description);
         exception.Location = string.IsNullOrWhiteSpace(request.Location) ? null : request.Location.Trim();
-        exception.IsAllDay = request.IsAllDay;
-        exception.StartDate = request.StartUtc is null ? null : DateOnly.FromDateTime(request.StartUtc.Value.UtcDateTime);
-        exception.StartTime = request.IsAllDay == true || request.StartUtc is null ? null : TimeOnly.FromDateTime(request.StartUtc.Value.UtcDateTime);
-        exception.EndDate = request.EndUtc is null ? null : DateOnly.FromDateTime(request.EndUtc.Value.UtcDateTime);
-        exception.EndTime = request.IsAllDay == true || request.EndUtc is null ? null : TimeOnly.FromDateTime(request.EndUtc.Value.UtcDateTime);
+        var timing = request.Timing?.ToDomain() ?? (request.StartUtc is null
+            ? null
+            : CalendarFieldResolver.FromLegacy(request.StartUtc.Value, request.EndUtc, request.IsAllDay ?? false));
+        exception.IsAllDay = timing?.IsAllDay ?? request.IsAllDay;
+        exception.StartDate = timing?.StartDate;
+        exception.StartTime = timing?.StartTime;
+        exception.EndDate = timing?.EndDate;
+        exception.EndTime = timing?.EndTime;
         exception.UpdatedUtc = now;
         eventSeries.UpdatedUtc = now;
     }
@@ -414,7 +506,7 @@ public static class EventSeriesEndpoints
     private static EventException? FindException(EventSeries eventSeries, OccurrenceKey key) => eventSeries.Exceptions.FirstOrDefault(exception => exception.OccurrenceKey == key);
 
 
-    private static Dictionary<string, string[]> ValidateSplitRequest(EventSeries eventSeries, SplitEventSeriesRequest request)
+    private static Dictionary<string, string[]> ValidateSplitRequest(EventSeries eventSeries, SplitEventSeriesRequest request, string timeZoneId)
     {
         var errors = new Dictionary<string, string[]>();
         if (request.Title is not null && string.IsNullOrWhiteSpace(request.Title))
@@ -422,7 +514,15 @@ public static class EventSeriesEndpoints
             errors[nameof(SplitEventSeriesRequest.Title)] = ["Replacement title must not be blank when provided."];
         }
 
-        if (request.EndUtc is not null && request.StartUtc is not null && request.EndUtc < request.StartUtc)
+        if (request.Timing is not null && (request.StartUtc is not null || request.EndUtc is not null || request.IsAllDay is not null))
+        {
+            errors[nameof(SplitEventSeriesRequest.Timing)] = ["Timing cannot be combined with legacy UTC timing fields."];
+        }
+        else if (request.Timing is not null)
+        {
+            CalendarFieldResolver.TryValidate(request.Timing.ToDomain(), timeZoneId, errors, "timing");
+        }
+        else if (request.EndUtc is not null && request.StartUtc is not null && request.EndUtc < request.StartUtc)
         {
             errors[nameof(SplitEventSeriesRequest.EndUtc)] = ["Replacement end must be on or after replacement start."];
         }
@@ -433,11 +533,11 @@ public static class EventSeriesEndpoints
         }
 
         var splitKey = OccurrenceKey.Parse(request.OccurrenceKey);
-        var newStart = request.StartUtc ?? ToDateTimeOffset(splitKey.Date, eventSeries.StartTime);
+        var newStart = ResolveSplitFields(eventSeries, splitKey, request).StartDate;
         if (request.RecurrenceRule is null)
         {
             var copiedRule = CopyRuleForSplit(eventSeries, splitKey);
-            var validation = EventRecurrenceRuleValidation.Validate(copiedRule, DateOnly.FromDateTime(newStart.UtcDateTime));
+            var validation = EventRecurrenceRuleValidation.Validate(copiedRule, newStart);
             if (!validation.IsValid)
             {
                 errors[nameof(SplitEventSeriesRequest.RecurrenceRule)] = validation.Errors.ToArray();
@@ -447,21 +547,16 @@ public static class EventSeriesEndpoints
         return errors;
     }
 
-    private static EventSeries SplitSeries(EventSeries original, OccurrenceKey splitKey, SplitEventSeriesRequest request, EventRecurrenceRule? newRule, HomeOpsDbContext dbContext)
+    private static EventSeries SplitSeries(EventSeries original, OccurrenceKey splitKey, SplitEventSeriesRequest request, CalendarFieldSet fields, EventRecurrenceRule? newRule, HomeOpsDbContext dbContext)
     {
         var now = DateTimeOffset.UtcNow;
-        var newStart = request.StartUtc ?? ToDateTimeOffset(splitKey.Date, original.StartTime);
-        var originalDurationDays = Math.Max(0, original.EndDate.DayNumber - original.StartDate.DayNumber);
-        var newEnd = request.EndUtc ?? ToDateTimeOffset(splitKey.Date.AddDays(originalDurationDays), original.EndTime ?? original.StartTime);
-        var newSeries = EventOccurrenceProjector.FromRequest(
+        var newSeries = EventOccurrenceProjector.FromCalendarFields(
             Guid.NewGuid(),
             original.EventSourceId,
             request.Title?.Trim() ?? original.Title,
             request.Description is null ? original.Description : NormalizeDescription(request.Description),
             request.Location is null ? original.Location : NormalizeDescription(request.Location),
-            newStart,
-            newEnd,
-            request.IsAllDay ?? original.IsAllDay,
+            fields,
             now,
             now);
         newSeries.RecurrenceType = RecurrenceType.None;
@@ -537,9 +632,7 @@ public static class EventSeriesEndpoints
         UnsupportedRecurrenceReason = rule.UnsupportedRecurrenceReason,
     };
 
-    private static DateTimeOffset ToDateTimeOffset(DateOnly date, TimeOnly? time) => new(date, time ?? new TimeOnly(0, 0), TimeSpan.Zero);
-
-    private static EventRecurrenceRule? MapRecurrenceRule(RecurrenceRuleDto? recurrenceRule, DateTimeOffset startUtc, Dictionary<string, string[]> errors)
+    private static EventRecurrenceRule? MapRecurrenceRule(RecurrenceRuleDto? recurrenceRule, DateOnly firstOccurrenceDate, Dictionary<string, string[]> errors)
     {
         if (recurrenceRule is null)
         {
@@ -596,7 +689,6 @@ public static class EventSeriesEndpoints
             YearlyDayOfMonth = recurrenceRule.YearlyDayOfMonth,
         };
 
-        var firstOccurrenceDate = DateOnly.FromDateTime(startUtc.UtcDateTime);
         var validation = EventRecurrenceRuleValidation.Validate(rule, firstOccurrenceDate);
         if (!validation.IsValid)
         {
@@ -606,22 +698,99 @@ public static class EventSeriesEndpoints
         return validation.IsValid ? rule : null;
     }
 
-    private static Dictionary<string, string[]> ValidateEvent(string title, DateTimeOffset startUtc, DateTimeOffset? endUtc)
+    private static void ValidateEvent(string title, CalendarFieldSet? fields, string timeZoneId, Dictionary<string, string[]> errors)
     {
-        var errors = new Dictionary<string, string[]>();
-
         if (string.IsNullOrWhiteSpace(title))
         {
             errors[nameof(CreateEventSeriesRequest.Title)] = ["Event title is required."];
         }
 
-        if (endUtc is not null && endUtc < startUtc)
+        if (fields is not null)
         {
-            errors[nameof(CreateEventSeriesRequest.EndUtc)] = ["Event end must be on or after event start."];
+            CalendarFieldResolver.TryValidate(fields, timeZoneId, errors);
+        }
+    }
+
+    private static CalendarFieldSet? ResolveRequestFields(
+        DateOnly? startDate,
+        TimeOnly? startTime,
+        DateOnly? endDate,
+        TimeOnly? endTime,
+        bool isAllDay,
+        DateTimeOffset? legacyStartUtc,
+        DateTimeOffset? legacyEndUtc,
+        Dictionary<string, string[]> errors)
+    {
+        var hasCalendarFields = startDate is not null || startTime is not null || endDate is not null || endTime is not null;
+        if (hasCalendarFields && (legacyStartUtc is not null || legacyEndUtc is not null))
+        {
+            errors["timing"] = ["Calendar fields cannot be combined with legacy UTC timing fields."];
+            return null;
         }
 
-        return errors;
+        if (hasCalendarFields)
+        {
+            if (startDate is null) errors["startDate"] = ["Start date is required."];
+            if (endDate is null) errors["endDate"] = ["End date is required."];
+            return startDate is null || endDate is null
+                ? null
+                : new CalendarFieldSet(startDate.Value, startTime, endDate.Value, endTime, isAllDay);
+        }
+
+        if (legacyStartUtc is null)
+        {
+            errors["startDate"] = ["Start date is required."];
+            return null;
+        }
+
+        return CalendarFieldResolver.FromLegacy(legacyStartUtc.Value, legacyEndUtc, isAllDay);
     }
+
+    private static CalendarFieldSet ResolveSplitFields(EventSeries original, OccurrenceKey splitKey, SplitEventSeriesRequest request)
+    {
+        if (request.Timing is not null)
+        {
+            return request.Timing.ToDomain();
+        }
+
+        if (request.StartUtc is not null)
+        {
+            return CalendarFieldResolver.FromLegacy(request.StartUtc.Value, request.EndUtc, request.IsAllDay ?? original.IsAllDay);
+        }
+
+        var durationDays = Math.Max(0, original.EndDate.DayNumber - original.StartDate.DayNumber);
+        return new CalendarFieldSet(
+            splitKey.Date,
+            original.IsAllDay ? null : original.StartTime,
+            splitKey.Date.AddDays(durationDays),
+            original.IsAllDay ? null : original.EndTime,
+            original.IsAllDay);
+    }
+
+    private static Task<string> GetHouseholdTimeZoneIdAsync(HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        dbContext.Households.AsNoTracking()
+            .Where(household => household.Id == SeedHousehold.Id)
+            .Select(household => household.TimeZoneId)
+            .SingleAsync(cancellationToken);
+
+    private static Task<EventSeries?> LoadRepairCandidateAsync(Guid eventId, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        dbContext.EventSeries
+            .Include(series => series.EventSource)
+            .FirstOrDefaultAsync(series =>
+                series.Id == eventId &&
+                series.EventSource!.HouseholdId == SeedHousehold.Id &&
+                series.EventSource.IsWritable &&
+                series.CalendarWriteContractVersion == 1,
+                cancellationToken);
+
+    private static CalendarFieldSetRequest ToCalendarFieldSetRequest(EventSeries series) =>
+        new(series.StartDate, series.StartTime, series.EndDate, series.EndTime, series.IsAllDay);
+
+    private static DateTimeOffset ResolveStart(CalendarFieldSet fields, string timeZoneId) =>
+        CalendarFieldResolver.Resolve(fields.StartDate, fields.StartTime ?? TimeOnly.MinValue, timeZoneId);
+
+    private static DateTimeOffset ResolveEnd(CalendarFieldSet fields, string timeZoneId) =>
+        CalendarFieldResolver.Resolve(fields.EndDate, fields.EndTime ?? TimeOnly.MinValue, timeZoneId);
 
     private static string? NormalizeDescription(string? description)
     {

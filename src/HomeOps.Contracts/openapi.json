@@ -2033,6 +2033,146 @@
         }
       }
     },
+    "/api/events/calendar-field-repair-candidates": {
+      "get": {
+        "tags": [
+          "Events"
+        ],
+        "operationId": "ListCalendarFieldRepairCandidates",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CalendarFieldRepairCandidateDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/events/{eventId}/calendar-field-repair/preview": {
+      "post": {
+        "tags": [
+          "Events"
+        ],
+        "operationId": "PreviewCalendarFieldRepair",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PreviewCalendarFieldRepairRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarFieldRepairPreviewDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/events/{eventId}/calendar-field-repair": {
+      "post": {
+        "tags": [
+          "Events"
+        ],
+        "operationId": "ApplyCalendarFieldRepair",
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplyCalendarFieldRepairRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventSeriesDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          },
+          "409": {
+            "description": ""
+          }
+        }
+      }
+    },
     "/api/events/{eventId}/occurrences/skip": {
       "post": {
         "tags": [
@@ -9355,6 +9495,120 @@
           }
         }
       },
+      "CalendarFieldRepairCandidateDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "startTime": {
+            "type": "string",
+            "format": "time",
+            "nullable": true
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "endTime": {
+            "type": "string",
+            "format": "time",
+            "nullable": true
+          },
+          "isAllDay": {
+            "type": "boolean"
+          },
+          "updatedUtc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CalendarFieldRepairPreviewDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "currentTiming": {
+            "$ref": "#/components/schemas/CalendarFieldSetRequest"
+          },
+          "proposedTiming": {
+            "$ref": "#/components/schemas/CalendarFieldSetRequest"
+          },
+          "proposedStartUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "proposedEndUtc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CalendarFieldSetRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "startDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "startTime": {
+            "type": "string",
+            "format": "time",
+            "nullable": true
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "endTime": {
+            "type": "string",
+            "format": "time",
+            "nullable": true
+          },
+          "isAllDay": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PreviewCalendarFieldRepairRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "timing": {
+            "$ref": "#/components/schemas/CalendarFieldSetRequest"
+          }
+        }
+      },
+      "ApplyCalendarFieldRepairRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "timing": {
+            "$ref": "#/components/schemas/CalendarFieldSetRequest"
+          },
+          "expectedUpdatedUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "confirmed": {
+            "type": "boolean"
+          }
+        }
+      },
       "CreateEventSeriesRequest": {
         "type": "object",
         "additionalProperties": false,
@@ -9372,7 +9626,8 @@
           },
           "startUtc": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "nullable": true
           },
           "endUtc": {
             "type": "string",
@@ -9397,6 +9652,26 @@
                 "$ref": "#/components/schemas/DecorativeAvatarReferenceDto"
               }
             ]
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "startTime": {
+            "type": "string",
+            "format": "time",
+            "nullable": true
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "endTime": {
+            "type": "string",
+            "format": "time",
+            "nullable": true
           }
         }
       },
@@ -9417,7 +9692,8 @@
           },
           "startUtc": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "nullable": true
           },
           "endUtc": {
             "type": "string",
@@ -9442,6 +9718,26 @@
                 "$ref": "#/components/schemas/DecorativeAvatarReferenceDto"
               }
             ]
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "startTime": {
+            "type": "string",
+            "format": "time",
+            "nullable": true
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "endTime": {
+            "type": "string",
+            "format": "time",
+            "nullable": true
           }
         }
       },
@@ -9486,6 +9782,14 @@
             "type": "string",
             "format": "date-time",
             "nullable": true
+          },
+          "timing": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/CalendarFieldSetRequest"
+              }
+            ]
           }
         }
       },
@@ -9527,6 +9831,14 @@
             "oneOf": [
               {
                 "$ref": "#/components/schemas/RecurrenceRuleDto"
+              }
+            ]
+          },
+          "timing": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/CalendarFieldSetRequest"
               }
             ]
           }

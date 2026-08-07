@@ -103,7 +103,9 @@ END:VEVENT
         Assert.Equal(3, result.Events.Count);
         Assert.Empty(result.Diagnostics);
         Assert.All(result.Events, parsed => Assert.Equal(new DateOnly(2026, 7, 6), parsed.StartDate));
-        Assert.All(result.Events, parsed => Assert.Equal(new TimeOnly(parsed.ProviderEventId == "utc-event" ? 13 : 9, 0), parsed.StartTime));
+        Assert.Equal(new TimeOnly(15, 0), result.Events.Single(parsed => parsed.ProviderEventId == "utc-event").StartTime);
+        Assert.Equal(new TimeOnly(9, 0), result.Events.Single(parsed => parsed.ProviderEventId == "floating-event").StartTime);
+        Assert.Equal(new TimeOnly(15, 0), result.Events.Single(parsed => parsed.ProviderEventId == "tzid-event").StartTime);
     }
 
     [Fact]
