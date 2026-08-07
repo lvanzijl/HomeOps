@@ -1857,11 +1857,115 @@
               "format": "guid"
             },
             "x-position": 1
+          },
+          {
+            "name": "confirmed",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            },
+            "x-position": 2
           }
         ],
         "responses": {
           "204": {
             "description": ""
+          },
+          "404": {
+            "description": ""
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/event-sources/ical-file": {
+      "post": {
+        "tags": [
+          "Event Sources"
+        ],
+        "operationId": "CreateICalFileSource",
+        "parameters": [
+          {
+            "name": "form",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/CreateICalFileSourceForm"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventSourceDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/event-sources/{sourceId}/file": {
+      "put": {
+        "tags": [
+          "Event Sources"
+        ],
+        "operationId": "ReplaceICalFileSource",
+        "parameters": [
+          {
+            "name": "sourceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "form",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ReplaceICalFileSourceForm"
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventSourceDto"
+                }
+              }
+            }
           },
           "404": {
             "description": ""
@@ -1937,6 +2041,208 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/RefreshAllResultDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/event-sources/{sourceId}/archive": {
+      "post": {
+        "tags": [
+          "Event Sources"
+        ],
+        "operationId": "ArchiveEventSource",
+        "parameters": [
+          {
+            "name": "sourceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CalendarSourceArchiveRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventSourceDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/event-sources/{sourceId}/restore": {
+      "post": {
+        "tags": [
+          "Event Sources"
+        ],
+        "operationId": "RestoreEventSource",
+        "parameters": [
+          {
+            "name": "sourceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CalendarSourceLifecycleResultDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          },
+          "409": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/event-sources/{sourceId}/reconnect-feed": {
+      "put": {
+        "tags": [
+          "Event Sources"
+        ],
+        "operationId": "ReconnectICalFeedSource",
+        "parameters": [
+          {
+            "name": "sourceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CalendarSourceFeedReconnectRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventSourceDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          },
+          "409": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/event-sources/{sourceId}/metadata": {
+      "put": {
+        "tags": [
+          "Event Sources"
+        ],
+        "operationId": "UpdateEventSourceMetadata",
+        "parameters": [
+          {
+            "name": "sourceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCalendarSourceMetadataRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventSourceDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
                 }
               }
             }
@@ -8073,6 +8379,14 @@
           "isSystem": {
             "type": "boolean"
           },
+          "isArchived": {
+            "type": "boolean"
+          },
+          "archivedUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
           "healthStatus": {
             "$ref": "#/components/schemas/EventSourceHealthStatus"
           },
@@ -8256,18 +8570,22 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "fileReference": {
-            "type": "string"
-          },
           "originalFilename": {
             "type": "string"
           },
           "contentHash": {
             "type": "string"
           },
+          "contentLength": {
+            "type": "integer",
+            "format": "int64"
+          },
           "uploadedUtc": {
             "type": "string",
             "format": "date-time"
+          },
+          "hasContent": {
+            "type": "boolean"
           }
         }
       },
@@ -8314,14 +8632,6 @@
                 "$ref": "#/components/schemas/ICalFeedSourceConfigurationRequest"
               }
             ]
-          },
-          "iCalFile": {
-            "nullable": true,
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/ICalFileSourceConfigurationRequest"
-              }
-            ]
           }
         }
       },
@@ -8334,18 +8644,37 @@
           }
         }
       },
-      "ICalFileSourceConfigurationRequest": {
+      "CreateICalFileSourceForm": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "fileReference": {
+          "name": {
             "type": "string"
           },
-          "originalFilename": {
+          "icon": {
             "type": "string"
           },
-          "contentHash": {
-            "type": "string"
+          "enabled": {
+            "type": "boolean"
+          },
+          "pollInterval": {
+            "$ref": "#/components/schemas/EventSourcePollInterval"
+          },
+          "file": {
+            "type": "string",
+            "format": "binary",
+            "nullable": true
+          }
+        }
+      },
+      "ReplaceICalFileSourceForm": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "file": {
+            "type": "string",
+            "format": "binary",
+            "nullable": true
           }
         }
       },
@@ -8446,6 +8775,71 @@
             "items": {
               "$ref": "#/components/schemas/SyncSourceResultDto"
             }
+          }
+        }
+      },
+      "CalendarSourceArchiveRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "confirmed": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CalendarSourceLifecycleResultDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "source": {
+            "$ref": "#/components/schemas/EventSourceDto"
+          },
+          "refreshResult": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/SyncSourceResultDto"
+              }
+            ]
+          }
+        }
+      },
+      "CalendarSourceFeedReconnectRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "pollInterval": {
+            "$ref": "#/components/schemas/EventSourcePollInterval"
+          },
+          "feedUrl": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdateCalendarSourceMetadataRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "pollInterval": {
+            "$ref": "#/components/schemas/EventSourcePollInterval"
           }
         }
       },

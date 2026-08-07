@@ -56,6 +56,9 @@ const {
   updateCalendarSource,
   setCalendarSourceEnabled,
   deleteCalendarSource,
+  archiveCalendarSource,
+  restoreCalendarSource,
+  replaceCalendarSourceFile,
 } = vi.hoisted(() => ({
   loadCalendarSources: vi.fn(),
   refreshAllCalendarSources: vi.fn(),
@@ -64,6 +67,9 @@ const {
   updateCalendarSource: vi.fn(),
   setCalendarSourceEnabled: vi.fn(),
   deleteCalendarSource: vi.fn(),
+  archiveCalendarSource: vi.fn(),
+  restoreCalendarSource: vi.fn(),
+  replaceCalendarSourceFile: vi.fn(),
 }));
 
 vi.mock('../calendarPortability', async (importOriginal) => {
@@ -89,6 +95,9 @@ vi.mock('../calendarSources/calendarSourcesApi', async (importOriginal) => {
     updateCalendarSource,
     setCalendarSourceEnabled,
     deleteCalendarSource,
+    archiveCalendarSource,
+    restoreCalendarSource,
+    replaceCalendarSourceFile,
   };
 });
 
@@ -106,6 +115,9 @@ describe('SettingsDashboard', () => {
     updateCalendarSource.mockResolvedValue(undefined);
     setCalendarSourceEnabled.mockResolvedValue(undefined);
     deleteCalendarSource.mockResolvedValue(undefined);
+    archiveCalendarSource.mockResolvedValue(undefined);
+    restoreCalendarSource.mockResolvedValue(undefined);
+    replaceCalendarSourceFile.mockResolvedValue(undefined);
   });
 
   it('shows a status-first dashboard while keeping restore contextual', async () => {
@@ -217,7 +229,7 @@ describe('SettingsDashboard', () => {
     expect(await screen.findByText('Sportclub')).not.toBeNull();
   });
 
-  it('updates, refreshes, toggles, and removes a managed source', async () => {
+  it('updates, refreshes, toggles, archives, and removes a managed source', async () => {
     const user = userEvent.setup();
     const updatedSource = {
       ...schoolFeedSource,
@@ -237,6 +249,13 @@ describe('SettingsDashboard', () => {
     setCalendarSourceEnabled.mockResolvedValueOnce({
       ...updatedSource,
       enabled: false,
+      state: 'disabled' as const,
+      canDisplayEvents: false,
+    });
+    archiveCalendarSource.mockResolvedValueOnce({
+      ...updatedSource,
+      enabled: false,
+      isArchived: true,
       state: 'disabled' as const,
       canDisplayEvents: false,
     });
@@ -274,12 +293,59 @@ describe('SettingsDashboard', () => {
     );
     expect(await screen.findByText('Schoolagenda is uitgeschakeld.')).not.toBeNull();
 
-    await user.click(screen.getByRole('button', { name: 'Verwijderen' }));
+    await user.click(screen.getByRole('button', { name: 'Archiveren' }));
+    const archiveDialog = await screen.findByRole('dialog', { name: 'Kalenderbron archiveren' });
+    await user.click(within(archiveDialog).getByRole('button', { name: 'Bron archiveren' }));
+    await waitFor(() => expect(archiveCalendarSource).toHaveBeenCalledWith('school-feed'));
+
+    await user.click(screen.getByRole('button', { name: 'Definitief verwijderen' }));
     const deleteDialog = await screen.findByRole('dialog', { name: 'Kalenderbron verwijderen' });
     await user.click(within(deleteDialog).getByRole('button', { name: 'Bron verwijderen' }));
 
     await waitFor(() => expect(deleteCalendarSource).toHaveBeenCalledWith('school-feed'));
     expect(await screen.findByText('Schoolagenda is verwijderd.')).not.toBeNull();
+  });
+
+  it('uploads and replaces a managed iCal file through bounded dialogs', async () => {
+    const user = userEvent.setup();
+    const file = new File(['BEGIN:VCALENDAR\nEND:VCALENDAR'], 'family.ics', { type: 'text/calendar' });
+    const createdSource = {
+      ...schoolFeedSource,
+      id: 'family-file',
+      name: 'Gezinsbestand',
+      type: 'iCalFile' as const,
+      state: 'healthy' as const,
+      canDisplayEvents: true,
+      providerConfiguration: {
+        kind: 'iCalFile' as const,
+        originalFilename: 'family.ics',
+        contentHash: 'abc',
+        contentLength: file.size,
+        uploadedUtc: '2026-08-07T20:00:00.000Z',
+        hasContent: true,
+      },
+    };
+    createCalendarSource.mockResolvedValueOnce(createdSource);
+    replaceCalendarSourceFile.mockResolvedValueOnce({ ...createdSource, providerConfiguration: { ...createdSource.providerConfiguration, originalFilename: 'replacement.ics' } });
+    loadCalendarSources.mockResolvedValueOnce([manualSource]).mockResolvedValueOnce([manualSource, createdSource]);
+
+    render(<SettingsDashboard widgetInstances={[]} />);
+    await user.click(await screen.findByRole('button', { name: 'Bron toevoegen' }));
+    const createDialog = await screen.findByRole('dialog', { name: 'Kalenderbron toevoegen' });
+    await user.type(within(createDialog).getByLabelText('Naam'), 'Gezinsbestand');
+    await user.selectOptions(within(createDialog).getByLabelText('Brontype'), 'iCalFile');
+    await user.upload(within(createDialog).getByLabelText(/iCal-bestand/i), file);
+    await user.click(within(createDialog).getByRole('button', { name: 'Bron toevoegen' }));
+    await waitFor(() => expect(createCalendarSource).toHaveBeenCalledWith(expect.objectContaining({
+      type: 'iCalFile', providerConfiguration: { kind: 'iCalFile', file },
+    })));
+
+    await user.click(await screen.findByRole('button', { name: 'Bestand vervangen' }));
+    const replaceDialog = await screen.findByRole('dialog', { name: 'iCal-bestand vervangen' });
+    const replacement = new File(['BEGIN:VCALENDAR\nEND:VCALENDAR'], 'replacement.ics', { type: 'text/calendar' });
+    await user.upload(within(replaceDialog).getByLabelText(/Nieuw iCal-bestand/i), replacement);
+    await user.click(within(replaceDialog).getByRole('button', { name: 'Bestand vervangen' }));
+    await waitFor(() => expect(replaceCalendarSourceFile).toHaveBeenCalledWith('family-file', replacement));
   });
 
   it('shows refresh-all results without a page reload', async () => {

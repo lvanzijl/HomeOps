@@ -2078,11 +2078,15 @@ export class HomeOpsApiClient {
         return Promise.resolve<EventSourceDto>(null as any);
     }
 
-    deleteEventSource(sourceId: string): Promise<void> {
-        let url_ = this.baseUrl + "/api/event-sources/{sourceId}";
+    deleteEventSource(sourceId: string, confirmed: boolean): Promise<void> {
+        let url_ = this.baseUrl + "/api/event-sources/{sourceId}?";
         if (sourceId === undefined || sourceId === null)
             throw new globalThis.Error("The parameter 'sourceId' must be defined.");
         url_ = url_.replace("{sourceId}", encodeURIComponent("" + sourceId));
+        if (confirmed === undefined || confirmed === null)
+            throw new globalThis.Error("The parameter 'confirmed' must be defined and cannot be null.");
+        else
+            url_ += "confirmed=" + encodeURIComponent("" + confirmed) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
@@ -2120,6 +2124,103 @@ export class HomeOpsApiClient {
             });
         }
         return Promise.resolve<void>(null as any);
+    }
+
+    createICalFileSource(form: CreateICalFileSourceForm): Promise<EventSourceDto> {
+        let url_ = this.baseUrl + "/api/event-sources/ical-file?";
+        if (form === undefined || form === null)
+            throw new globalThis.Error("The parameter 'form' must be defined and cannot be null.");
+        else
+            url_ += "form=" + encodeURIComponent("" + form) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCreateICalFileSource(_response);
+        });
+    }
+
+    protected processCreateICalFileSource(response: Response): Promise<EventSourceDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 201) {
+            return response.text().then((_responseText) => {
+            let result201: any = null;
+            let resultData201 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result201 = EventSourceDto.fromJS(resultData201);
+            return result201;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = HttpValidationProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<EventSourceDto>(null as any);
+    }
+
+    replaceICalFileSource(sourceId: string, form: ReplaceICalFileSourceForm): Promise<EventSourceDto> {
+        let url_ = this.baseUrl + "/api/event-sources/{sourceId}/file?";
+        if (sourceId === undefined || sourceId === null)
+            throw new globalThis.Error("The parameter 'sourceId' must be defined.");
+        url_ = url_.replace("{sourceId}", encodeURIComponent("" + sourceId));
+        if (form === undefined || form === null)
+            throw new globalThis.Error("The parameter 'form' must be defined and cannot be null.");
+        else
+            url_ += "form=" + encodeURIComponent("" + form) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "PUT",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processReplaceICalFileSource(_response);
+        });
+    }
+
+    protected processReplaceICalFileSource(response: Response): Promise<EventSourceDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = EventSourceDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = HttpValidationProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<EventSourceDto>(null as any);
     }
 
     refreshEventSource(sourceId: string): Promise<SyncSourceResultDto> {
@@ -2202,6 +2303,204 @@ export class HomeOpsApiClient {
             });
         }
         return Promise.resolve<RefreshAllResultDto>(null as any);
+    }
+
+    archiveEventSource(sourceId: string, request: CalendarSourceArchiveRequest): Promise<EventSourceDto> {
+        let url_ = this.baseUrl + "/api/event-sources/{sourceId}/archive";
+        if (sourceId === undefined || sourceId === null)
+            throw new globalThis.Error("The parameter 'sourceId' must be defined.");
+        url_ = url_.replace("{sourceId}", encodeURIComponent("" + sourceId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processArchiveEventSource(_response);
+        });
+    }
+
+    protected processArchiveEventSource(response: Response): Promise<EventSourceDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = EventSourceDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = HttpValidationProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<EventSourceDto>(null as any);
+    }
+
+    restoreEventSource(sourceId: string): Promise<CalendarSourceLifecycleResultDto> {
+        let url_ = this.baseUrl + "/api/event-sources/{sourceId}/restore";
+        if (sourceId === undefined || sourceId === null)
+            throw new globalThis.Error("The parameter 'sourceId' must be defined.");
+        url_ = url_.replace("{sourceId}", encodeURIComponent("" + sourceId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRestoreEventSource(_response);
+        });
+    }
+
+    protected processRestoreEventSource(response: Response): Promise<CalendarSourceLifecycleResultDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = CalendarSourceLifecycleResultDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<CalendarSourceLifecycleResultDto>(null as any);
+    }
+
+    reconnectICalFeedSource(sourceId: string, request: CalendarSourceFeedReconnectRequest): Promise<EventSourceDto> {
+        let url_ = this.baseUrl + "/api/event-sources/{sourceId}/reconnect-feed";
+        if (sourceId === undefined || sourceId === null)
+            throw new globalThis.Error("The parameter 'sourceId' must be defined.");
+        url_ = url_.replace("{sourceId}", encodeURIComponent("" + sourceId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processReconnectICalFeedSource(_response);
+        });
+    }
+
+    protected processReconnectICalFeedSource(response: Response): Promise<EventSourceDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = EventSourceDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<EventSourceDto>(null as any);
+    }
+
+    updateEventSourceMetadata(sourceId: string, request: UpdateCalendarSourceMetadataRequest): Promise<EventSourceDto> {
+        let url_ = this.baseUrl + "/api/event-sources/{sourceId}/metadata";
+        if (sourceId === undefined || sourceId === null)
+            throw new globalThis.Error("The parameter 'sourceId' must be defined.");
+        url_ = url_.replace("{sourceId}", encodeURIComponent("" + sourceId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateEventSourceMetadata(_response);
+        });
+    }
+
+    protected processUpdateEventSourceMetadata(response: Response): Promise<EventSourceDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = EventSourceDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = HttpValidationProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<EventSourceDto>(null as any);
     }
 
     exportCalendar(): Promise<CalendarExportDocument> {
@@ -10258,6 +10557,8 @@ export class EventSourceDto implements IEventSourceDto {
     enabled?: boolean;
     writable?: boolean;
     isSystem?: boolean;
+    isArchived?: boolean;
+    archivedUtc?: Date | undefined;
     healthStatus?: EventSourceHealthStatus;
     pollInterval?: EventSourcePollInterval;
     lastSyncAttemptUtc?: Date | undefined;
@@ -10287,6 +10588,8 @@ export class EventSourceDto implements IEventSourceDto {
             this.enabled = _data["enabled"];
             this.writable = _data["writable"];
             this.isSystem = _data["isSystem"];
+            this.isArchived = _data["isArchived"];
+            this.archivedUtc = _data["archivedUtc"] ? new Date(_data["archivedUtc"].toString()) : undefined as any;
             this.healthStatus = _data["healthStatus"];
             this.pollInterval = _data["pollInterval"];
             this.lastSyncAttemptUtc = _data["lastSyncAttemptUtc"] ? new Date(_data["lastSyncAttemptUtc"].toString()) : undefined as any;
@@ -10316,6 +10619,8 @@ export class EventSourceDto implements IEventSourceDto {
         data["enabled"] = this.enabled;
         data["writable"] = this.writable;
         data["isSystem"] = this.isSystem;
+        data["isArchived"] = this.isArchived;
+        data["archivedUtc"] = this.archivedUtc ? this.archivedUtc.toISOString() : undefined as any;
         data["healthStatus"] = this.healthStatus;
         data["pollInterval"] = this.pollInterval;
         data["lastSyncAttemptUtc"] = this.lastSyncAttemptUtc ? this.lastSyncAttemptUtc.toISOString() : undefined as any;
@@ -10338,6 +10643,8 @@ export interface IEventSourceDto {
     enabled?: boolean;
     writable?: boolean;
     isSystem?: boolean;
+    isArchived?: boolean;
+    archivedUtc?: Date | undefined;
     healthStatus?: EventSourceHealthStatus;
     pollInterval?: EventSourcePollInterval;
     lastSyncAttemptUtc?: Date | undefined;
@@ -10513,10 +10820,11 @@ export interface IICalFeedSourceConfigurationDto {
 }
 
 export class ICalFileSourceConfigurationDto implements IICalFileSourceConfigurationDto {
-    fileReference?: string;
     originalFilename?: string;
     contentHash?: string;
+    contentLength?: number;
     uploadedUtc?: Date;
+    hasContent?: boolean;
 
     constructor(data?: IICalFileSourceConfigurationDto) {
         if (data) {
@@ -10529,10 +10837,11 @@ export class ICalFileSourceConfigurationDto implements IICalFileSourceConfigurat
 
     init(_data?: any) {
         if (_data) {
-            this.fileReference = _data["fileReference"];
             this.originalFilename = _data["originalFilename"];
             this.contentHash = _data["contentHash"];
+            this.contentLength = _data["contentLength"];
             this.uploadedUtc = _data["uploadedUtc"] ? new Date(_data["uploadedUtc"].toString()) : undefined as any;
+            this.hasContent = _data["hasContent"];
         }
     }
 
@@ -10545,19 +10854,21 @@ export class ICalFileSourceConfigurationDto implements IICalFileSourceConfigurat
 
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["fileReference"] = this.fileReference;
         data["originalFilename"] = this.originalFilename;
         data["contentHash"] = this.contentHash;
+        data["contentLength"] = this.contentLength;
         data["uploadedUtc"] = this.uploadedUtc ? this.uploadedUtc.toISOString() : undefined as any;
+        data["hasContent"] = this.hasContent;
         return data;
     }
 }
 
 export interface IICalFileSourceConfigurationDto {
-    fileReference?: string;
     originalFilename?: string;
     contentHash?: string;
+    contentLength?: number;
     uploadedUtc?: Date;
+    hasContent?: boolean;
 }
 
 export class CreateEventSourceRequest implements ICreateEventSourceRequest {
@@ -10619,7 +10930,6 @@ export interface ICreateEventSourceRequest {
 export class EventSourceProviderConfigurationRequest implements IEventSourceProviderConfigurationRequest {
     kind?: EventSourceProviderConfigurationKind;
     iCalFeed?: ICalFeedSourceConfigurationRequest | undefined;
-    iCalFile?: ICalFileSourceConfigurationRequest | undefined;
 
     constructor(data?: IEventSourceProviderConfigurationRequest) {
         if (data) {
@@ -10634,7 +10944,6 @@ export class EventSourceProviderConfigurationRequest implements IEventSourceProv
         if (_data) {
             this.kind = _data["kind"];
             this.iCalFeed = _data["iCalFeed"] ? ICalFeedSourceConfigurationRequest.fromJS(_data["iCalFeed"]) : undefined as any;
-            this.iCalFile = _data["iCalFile"] ? ICalFileSourceConfigurationRequest.fromJS(_data["iCalFile"]) : undefined as any;
         }
     }
 
@@ -10649,7 +10958,6 @@ export class EventSourceProviderConfigurationRequest implements IEventSourceProv
         data = typeof data === 'object' ? data : {};
         data["kind"] = this.kind;
         data["iCalFeed"] = this.iCalFeed ? this.iCalFeed.toJSON() : undefined as any;
-        data["iCalFile"] = this.iCalFile ? this.iCalFile.toJSON() : undefined as any;
         return data;
     }
 }
@@ -10657,7 +10965,6 @@ export class EventSourceProviderConfigurationRequest implements IEventSourceProv
 export interface IEventSourceProviderConfigurationRequest {
     kind?: EventSourceProviderConfigurationKind;
     iCalFeed?: ICalFeedSourceConfigurationRequest | undefined;
-    iCalFile?: ICalFileSourceConfigurationRequest | undefined;
 }
 
 export class ICalFeedSourceConfigurationRequest implements IICalFeedSourceConfigurationRequest {
@@ -10696,12 +11003,14 @@ export interface IICalFeedSourceConfigurationRequest {
     feedUrl?: string;
 }
 
-export class ICalFileSourceConfigurationRequest implements IICalFileSourceConfigurationRequest {
-    fileReference?: string;
-    originalFilename?: string;
-    contentHash?: string;
+export class CreateICalFileSourceForm implements ICreateICalFileSourceForm {
+    name?: string;
+    icon?: string;
+    enabled?: boolean;
+    pollInterval?: EventSourcePollInterval;
+    file?: string | undefined;
 
-    constructor(data?: IICalFileSourceConfigurationRequest) {
+    constructor(data?: ICreateICalFileSourceForm) {
         if (data) {
             for (var property in data) {
                 if (data.hasOwnProperty(property))
@@ -10712,32 +11021,74 @@ export class ICalFileSourceConfigurationRequest implements IICalFileSourceConfig
 
     init(_data?: any) {
         if (_data) {
-            this.fileReference = _data["fileReference"];
-            this.originalFilename = _data["originalFilename"];
-            this.contentHash = _data["contentHash"];
+            this.name = _data["name"];
+            this.icon = _data["icon"];
+            this.enabled = _data["enabled"];
+            this.pollInterval = _data["pollInterval"];
+            this.file = _data["file"];
         }
     }
 
-    static fromJS(data: any): ICalFileSourceConfigurationRequest {
+    static fromJS(data: any): CreateICalFileSourceForm {
         data = typeof data === 'object' ? data : {};
-        let result = new ICalFileSourceConfigurationRequest();
+        let result = new CreateICalFileSourceForm();
         result.init(data);
         return result;
     }
 
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        data["fileReference"] = this.fileReference;
-        data["originalFilename"] = this.originalFilename;
-        data["contentHash"] = this.contentHash;
+        data["name"] = this.name;
+        data["icon"] = this.icon;
+        data["enabled"] = this.enabled;
+        data["pollInterval"] = this.pollInterval;
+        data["file"] = this.file;
         return data;
     }
 }
 
-export interface IICalFileSourceConfigurationRequest {
-    fileReference?: string;
-    originalFilename?: string;
-    contentHash?: string;
+export interface ICreateICalFileSourceForm {
+    name?: string;
+    icon?: string;
+    enabled?: boolean;
+    pollInterval?: EventSourcePollInterval;
+    file?: string | undefined;
+}
+
+export class ReplaceICalFileSourceForm implements IReplaceICalFileSourceForm {
+    file?: string | undefined;
+
+    constructor(data?: IReplaceICalFileSourceForm) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.file = _data["file"];
+        }
+    }
+
+    static fromJS(data: any): ReplaceICalFileSourceForm {
+        data = typeof data === 'object' ? data : {};
+        let result = new ReplaceICalFileSourceForm();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["file"] = this.file;
+        return data;
+    }
+}
+
+export interface IReplaceICalFileSourceForm {
+    file?: string | undefined;
 }
 
 export class UpdateEventSourceRequest implements IUpdateEventSourceRequest {
@@ -10918,6 +11269,182 @@ export class RefreshAllResultDto implements IRefreshAllResultDto {
 
 export interface IRefreshAllResultDto {
     results?: SyncSourceResultDto[];
+}
+
+export class CalendarSourceArchiveRequest implements ICalendarSourceArchiveRequest {
+    confirmed?: boolean;
+
+    constructor(data?: ICalendarSourceArchiveRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.confirmed = _data["confirmed"];
+        }
+    }
+
+    static fromJS(data: any): CalendarSourceArchiveRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CalendarSourceArchiveRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["confirmed"] = this.confirmed;
+        return data;
+    }
+}
+
+export interface ICalendarSourceArchiveRequest {
+    confirmed?: boolean;
+}
+
+export class CalendarSourceLifecycleResultDto implements ICalendarSourceLifecycleResultDto {
+    source?: EventSourceDto;
+    refreshResult?: SyncSourceResultDto | undefined;
+
+    constructor(data?: ICalendarSourceLifecycleResultDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.source = _data["source"] ? EventSourceDto.fromJS(_data["source"]) : undefined as any;
+            this.refreshResult = _data["refreshResult"] ? SyncSourceResultDto.fromJS(_data["refreshResult"]) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): CalendarSourceLifecycleResultDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new CalendarSourceLifecycleResultDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["source"] = this.source ? this.source.toJSON() : undefined as any;
+        data["refreshResult"] = this.refreshResult ? this.refreshResult.toJSON() : undefined as any;
+        return data;
+    }
+}
+
+export interface ICalendarSourceLifecycleResultDto {
+    source?: EventSourceDto;
+    refreshResult?: SyncSourceResultDto | undefined;
+}
+
+export class CalendarSourceFeedReconnectRequest implements ICalendarSourceFeedReconnectRequest {
+    name?: string;
+    icon?: string;
+    enabled?: boolean;
+    pollInterval?: EventSourcePollInterval;
+    feedUrl?: string;
+
+    constructor(data?: ICalendarSourceFeedReconnectRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.name = _data["name"];
+            this.icon = _data["icon"];
+            this.enabled = _data["enabled"];
+            this.pollInterval = _data["pollInterval"];
+            this.feedUrl = _data["feedUrl"];
+        }
+    }
+
+    static fromJS(data: any): CalendarSourceFeedReconnectRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CalendarSourceFeedReconnectRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["name"] = this.name;
+        data["icon"] = this.icon;
+        data["enabled"] = this.enabled;
+        data["pollInterval"] = this.pollInterval;
+        data["feedUrl"] = this.feedUrl;
+        return data;
+    }
+}
+
+export interface ICalendarSourceFeedReconnectRequest {
+    name?: string;
+    icon?: string;
+    enabled?: boolean;
+    pollInterval?: EventSourcePollInterval;
+    feedUrl?: string;
+}
+
+export class UpdateCalendarSourceMetadataRequest implements IUpdateCalendarSourceMetadataRequest {
+    name?: string;
+    icon?: string;
+    enabled?: boolean;
+    pollInterval?: EventSourcePollInterval;
+
+    constructor(data?: IUpdateCalendarSourceMetadataRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.name = _data["name"];
+            this.icon = _data["icon"];
+            this.enabled = _data["enabled"];
+            this.pollInterval = _data["pollInterval"];
+        }
+    }
+
+    static fromJS(data: any): UpdateCalendarSourceMetadataRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpdateCalendarSourceMetadataRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["name"] = this.name;
+        data["icon"] = this.icon;
+        data["enabled"] = this.enabled;
+        data["pollInterval"] = this.pollInterval;
+        return data;
+    }
+}
+
+export interface IUpdateCalendarSourceMetadataRequest {
+    name?: string;
+    icon?: string;
+    enabled?: boolean;
+    pollInterval?: EventSourcePollInterval;
 }
 
 export class CalendarExportDocument implements ICalendarExportDocument {

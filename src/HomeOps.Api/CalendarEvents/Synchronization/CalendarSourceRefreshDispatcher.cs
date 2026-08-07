@@ -39,6 +39,17 @@ public sealed class CalendarSourceRefreshDispatcher(
             _ => CalendarProviderSnapshot.Failed("UnsupportedProvider", $"Source type '{source.SourceType}' is not supported by refresh."),
         };
 
+        return new CalendarSourcePreparedRefresh(source, householdTimeZoneId, ValidateSnapshot(snapshot));
+    }
+
+    public async Task<CalendarSourcePreparedRefresh> PrepareFeedReconnectAsync(EventSource source, string feedUrl, string householdTimeZoneId, CancellationToken cancellationToken = default)
+    {
+        var snapshot = ToSnapshot(await feedImporter.ImportUrlForZoneAsync(source, feedUrl, householdTimeZoneId, cancellationToken));
+        return new CalendarSourcePreparedRefresh(source, householdTimeZoneId, ValidateSnapshot(snapshot));
+    }
+
+    private static CalendarProviderSnapshot ValidateSnapshot(CalendarProviderSnapshot snapshot)
+    {
         if (snapshot.Status == CalendarProviderSnapshotStatus.Successful)
         {
             var duplicates = snapshot.Events.GroupBy(item => item.ProviderEventId, StringComparer.Ordinal).Where(group => group.Count() > 1).Select(group => group.Key).ToArray();
@@ -52,7 +63,7 @@ public sealed class CalendarSourceRefreshDispatcher(
             }
         }
 
-        return new CalendarSourcePreparedRefresh(source, householdTimeZoneId, snapshot);
+        return snapshot;
     }
 
     public static bool IsSupportedSourceType(string sourceType) =>

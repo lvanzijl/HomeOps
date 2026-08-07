@@ -1,3 +1,4 @@
+using System.Text;
 using HomeOps.Api.CalendarEvents;
 using HomeOps.Api.CalendarEvents.ICalendar;
 using HomeOps.Api.Data;
@@ -156,6 +157,40 @@ public sealed class ICalFileImporterTests
             {
                 Directory.Delete(tempRoot, recursive: true);
             }
+        }
+    }
+
+    [Fact]
+    public async Task FileSystemContentStoreUsesOpaqueManagedReferencesAndAtomicReplacementLifecycle()
+    {
+        var tempRoot = Path.Combine(Path.GetTempPath(), "homeops-calendar-file-store", Guid.NewGuid().ToString("N"));
+        try
+        {
+            var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["CalendarSources:FileStoragePath"] = tempRoot,
+            }).Build();
+            var store = new FileSystemICalFileContentStore(configuration);
+            await using var original = new MemoryStream(Encoding.UTF8.GetBytes(ValidCalendar("original")));
+            var saved = await store.SaveAsync(original);
+            Assert.True(saved.Succeeded);
+            Assert.Matches("^[a-f0-9]{32}\\.ics$", saved.FileReference!);
+            Assert.Equal(64, saved.Sha256?.Length);
+
+            await using var replacement = new MemoryStream(Encoding.UTF8.GetBytes(ValidCalendar("replacement")));
+            var replaced = await store.ReplaceAsync(saved.FileReference!, replacement);
+            Assert.True(replaced.Succeeded);
+            Assert.NotEqual(saved.FileReference, replaced.FileReference);
+            Assert.True((await store.LoadAsync(saved.FileReference!)).Succeeded);
+            Assert.True((await store.LoadAsync(replaced.FileReference!)).Succeeded);
+
+            Assert.True((await store.DeleteAsync(saved.FileReference!)).Succeeded);
+            Assert.True((await store.DeleteAsync(replaced.FileReference!)).Succeeded);
+            Assert.True((await store.DeleteAsync(replaced.FileReference!)).WasMissing);
+        }
+        finally
+        {
+            if (Directory.Exists(tempRoot)) Directory.Delete(tempRoot, recursive: true);
         }
     }
 

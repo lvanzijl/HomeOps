@@ -8,6 +8,8 @@ public sealed record EventSourceDto(
     bool Enabled,
     bool Writable,
     bool IsSystem,
+    bool IsArchived,
+    DateTimeOffset? ArchivedUtc,
     EventSourceHealthStatus HealthStatus,
     EventSourcePollInterval PollInterval,
     DateTimeOffset? LastSyncAttemptUtc,
@@ -50,3 +52,9 @@ public sealed record SyncSourceResultDto(
     EventSourceLastError? Error);
 
 public sealed record RefreshAllResultDto(IReadOnlyCollection<SyncSourceResultDto> Results);
+
+public sealed record CalendarSourceArchiveRequest(bool Confirmed);
+public sealed record CalendarSourceRemovalRequest(bool Confirmed);
+public sealed record CalendarSourceFeedReconnectRequest(string Name, string Icon, bool Enabled, EventSourcePollInterval PollInterval, string FeedUrl);
+public sealed record UpdateCalendarSourceMetadataRequest(string Name, string Icon, bool Enabled, EventSourcePollInterval PollInterval);
+public sealed record CalendarSourceLifecycleResultDto(EventSourceDto Source, SyncSourceResultDto? RefreshResult = null);

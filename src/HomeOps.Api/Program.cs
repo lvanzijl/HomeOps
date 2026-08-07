@@ -75,6 +75,8 @@ builder.Services.AddScoped<IICalFileImporter, ICalFileImporter>();
 builder.Services.AddScoped<CalendarSourceSynchronizationEngine>();
 builder.Services.AddScoped<ICalendarSourceRefreshDispatcher, CalendarSourceRefreshDispatcher>();
 builder.Services.AddScoped<HouseholdTimeZoneChangeService>();
+builder.Services.AddScoped<CalendarSourceUploadService>();
+builder.Services.AddScoped<CalendarSourceLifecycleService>();
 builder.Services.AddSingleton<CalendarBackgroundSynchronizationRunner>();
 if (!builder.Environment.IsEnvironment("Testing") &&
     !builder.Environment.IsEnvironment("VisualReview") &&

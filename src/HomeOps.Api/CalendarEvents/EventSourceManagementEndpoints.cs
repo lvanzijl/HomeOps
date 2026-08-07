@@ -3,6 +3,7 @@ using HomeOps.Api.Households;
 using HomeOps.Api.CalendarEvents.Synchronization;
 using HomeOps.Contracts.Events;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc;
 using ContractHealthStatus = HomeOps.Contracts.Events.EventSourceHealthStatus;
 using ContractPollInterval = HomeOps.Contracts.Events.EventSourcePollInterval;
 using ContractSourceType = HomeOps.Contracts.Events.EventSourceType;
@@ -13,7 +14,7 @@ namespace HomeOps.Api.CalendarEvents;
 
 public static class EventSourceManagementEndpoints
 {
-    private static readonly HashSet<ContractSourceType> CreatableSourceTypes = [ContractSourceType.ICalFeed, ContractSourceType.ICalFile];
+    private static readonly HashSet<ContractSourceType> CreatableSourceTypes = [ContractSourceType.ICalFeed];
 
     public static IEndpointRouteBuilder MapEventSourceManagementEndpoints(this IEndpointRouteBuilder app)
     {
@@ -64,12 +65,32 @@ public static class EventSourceManagementEndpoints
             return Results.Created($"/api/event-sources/{source.Id}", ToDto(created));
         }).WithName("CreateEventSource").Produces<EventSourceDto>(StatusCodes.Status201Created).ProducesValidationProblem();
 
+        sources.MapPost("/ical-file", async ([FromForm] CreateICalFileSourceForm form, CalendarSourceUploadService uploadService, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        {
+            var errors = ValidateUploadMetadata(form.Name, form.Icon, form.PollInterval, form.File);
+            if (errors.Count > 0) return Results.ValidationProblem(errors);
+            var result = await uploadService.CreateAsync(form.Name, form.Icon, ToDomainPollInterval(form.PollInterval), form.Enabled, form.File!, cancellationToken);
+            if (!result.Succeeded) return result.Missing ? Results.NotFound() : Results.ValidationProblem(result.Errors);
+            var created = await QuerySources(dbContext).SingleAsync(item => item.Id == result.SourceId, cancellationToken);
+            return Results.Created($"/api/event-sources/{created.Id}", ToDto(created));
+        }).DisableAntiforgery().WithName("CreateICalFileSource").Accepts<CreateICalFileSourceForm>("multipart/form-data").Produces<EventSourceDto>(StatusCodes.Status201Created).ProducesValidationProblem();
+
+        sources.MapPut("/{sourceId:guid}/file", async (Guid sourceId, [FromForm] ReplaceICalFileSourceForm form, CalendarSourceUploadService uploadService, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        {
+            if (form.File is null) return Results.ValidationProblem(new Dictionary<string, string[]> { ["file"] = ["Kies een iCal-bestand."] });
+            var result = await uploadService.ReplaceAsync(sourceId, form.File, cancellationToken);
+            if (!result.Succeeded) return result.Missing ? Results.NotFound() : Results.ValidationProblem(result.Errors);
+            var updated = await QuerySources(dbContext).SingleAsync(item => item.Id == sourceId, cancellationToken);
+            return Results.Ok(ToDto(updated));
+        }).DisableAntiforgery().WithName("ReplaceICalFileSource").Accepts<ReplaceICalFileSourceForm>("multipart/form-data").Produces<EventSourceDto>().Produces(StatusCodes.Status404NotFound).ProducesValidationProblem();
+
         sources.MapPut("/{sourceId:guid}", async (Guid sourceId, UpdateEventSourceRequest request, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
         {
             var source = await QuerySources(dbContext).FirstOrDefaultAsync(candidate => candidate.Id == sourceId, cancellationToken);
             if (source is null) return Results.NotFound();
 
             var validationErrors = ValidateUpdateRequest(source, request);
+            if (source.IsArchived && request.Enabled) validationErrors[nameof(UpdateEventSourceRequest.Enabled)] = ["Herstel de gearchiveerde bron om hem opnieuw zichtbaar te maken."];
             if (request.Enabled && !source.IsEnabled && CalendarSourceRefreshDispatcher.IsSupportedSourceType(source.SourceType) &&
                 !string.Equals(source.NormalizationTimeZoneId, source.Household?.TimeZoneId, StringComparison.Ordinal))
             {
@@ -108,6 +129,7 @@ public static class EventSourceManagementEndpoints
                 .AsNoTracking()
                 .Where(source => source.HouseholdId == SeedHousehold.Id)
                 .Where(source => source.IsEnabled)
+                .Where(source => !source.IsArchived)
                 .Where(source => source.SourceType == EventSourceTypes.ICalFeed || source.SourceType == EventSourceTypes.ICalFile)
                 .OrderBy(source => source.Name)
                 .ToListAsync(cancellationToken);
@@ -122,24 +144,48 @@ public static class EventSourceManagementEndpoints
             return Results.Ok(new RefreshAllResultDto(results));
         }).WithName("RefreshAllEventSources").Produces<RefreshAllResultDto>();
 
-        sources.MapDelete("/{sourceId:guid}", async (Guid sourceId, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        sources.MapPost("/{sourceId:guid}/archive", async (Guid sourceId, CalendarSourceArchiveRequest request, CalendarSourceLifecycleService lifecycle, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
         {
-            var source = await dbContext.EventSources
-                .Include(candidate => candidate.Configuration)
-                .Include(candidate => candidate.EventSeries)
-                .FirstOrDefaultAsync(candidate => candidate.HouseholdId == SeedHousehold.Id && candidate.Id == sourceId, cancellationToken);
+            if (!request.Confirmed) return Results.ValidationProblem(new Dictionary<string, string[]> { [nameof(request.Confirmed)] = ["Bevestig dat de bron en geïmporteerde afspraken worden verborgen."] });
+            var result = await lifecycle.ArchiveAsync(sourceId, cancellationToken);
+            if (!result.Succeeded) return result.Missing ? Results.NotFound() : Results.ValidationProblem(new Dictionary<string, string[]> { ["source"] = [result.Error ?? "De bron kon niet worden gearchiveerd."] });
+            return Results.Ok(ToDto(await QuerySources(dbContext).SingleAsync(item => item.Id == sourceId, cancellationToken)));
+        }).WithName("ArchiveEventSource").Produces<EventSourceDto>().Produces(StatusCodes.Status404NotFound).ProducesValidationProblem();
+
+        sources.MapPost("/{sourceId:guid}/restore", async (Guid sourceId, CalendarSourceLifecycleService lifecycle, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        {
+            var result = await lifecycle.RestoreAsync(sourceId, cancellationToken);
+            if (!result.Succeeded) return result.Missing ? Results.NotFound() : Results.Conflict(new { error = result.Error });
+            var source = ToDto(await QuerySources(dbContext).SingleAsync(item => item.Id == sourceId, cancellationToken));
+            return Results.Ok(new CalendarSourceLifecycleResultDto(source, result.RefreshResult is null ? null : ToSyncResultDto(sourceId, result.RefreshResult)));
+        }).WithName("RestoreEventSource").Produces<CalendarSourceLifecycleResultDto>().Produces(StatusCodes.Status404NotFound).Produces(StatusCodes.Status409Conflict);
+
+        sources.MapPut("/{sourceId:guid}/reconnect-feed", async (Guid sourceId, CalendarSourceFeedReconnectRequest request, CalendarSourceLifecycleService lifecycle, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        {
+            if (string.IsNullOrWhiteSpace(request.Name) || string.IsNullOrWhiteSpace(request.Icon)) return Results.ValidationProblem(new Dictionary<string, string[]> { ["source"] = ["Naam en icoon zijn verplicht."] });
+            var result = await lifecycle.ReconnectFeedAsync(sourceId, request, cancellationToken);
+            if (!result.Succeeded) return result.Missing ? Results.NotFound() : Results.Conflict(new { error = result.Error });
+            return Results.Ok(ToDto(await QuerySources(dbContext).SingleAsync(item => item.Id == sourceId, cancellationToken)));
+        }).WithName("ReconnectICalFeedSource").Produces<EventSourceDto>().Produces(StatusCodes.Status404NotFound).Produces(StatusCodes.Status409Conflict);
+
+        sources.MapPut("/{sourceId:guid}/metadata", async (Guid sourceId, UpdateCalendarSourceMetadataRequest request, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        {
+            var source = await QuerySources(dbContext).SingleOrDefaultAsync(item => item.Id == sourceId, cancellationToken);
             if (source is null) return Results.NotFound();
-
-            if (source.IsSystemManualSource)
-            {
-                return Results.ValidationProblem(new Dictionary<string, string[]>
-                {
-                    [nameof(EventSource.IsSystem)] = ["The system manual source cannot be deleted."]
-                });
-            }
-
-            dbContext.EventSources.Remove(source);
+            if (source.IsSystemManualSource) return Results.ValidationProblem(new Dictionary<string, string[]> { ["source"] = ["De handmatige gezinsagenda kan hier niet worden gewijzigd."] });
+            if (string.IsNullOrWhiteSpace(request.Name) || string.IsNullOrWhiteSpace(request.Icon)) return Results.ValidationProblem(new Dictionary<string, string[]> { ["source"] = ["Naam en icoon zijn verplicht."] });
+            if (request.Enabled && source.IsArchived) return Results.ValidationProblem(new Dictionary<string, string[]> { [nameof(request.Enabled)] = ["Herstel de gearchiveerde bron om hem opnieuw zichtbaar te maken."] });
+            if (request.Enabled && CalendarSourceRefreshDispatcher.IsSupportedSourceType(source.SourceType) && !string.Equals(source.NormalizationTimeZoneId, source.Household?.TimeZoneId, StringComparison.Ordinal)) return Results.ValidationProblem(new Dictionary<string, string[]> { [nameof(request.Enabled)] = ["Ververs deze bron eerst onder de huidige huishoudtijdzone."] });
+            source.Name = request.Name.Trim(); source.Icon = request.Icon.Trim(); source.IsEnabled = request.Enabled; source.PollInterval = ToDomainPollInterval(request.PollInterval); source.UpdatedUtc = DateTimeOffset.UtcNow;
             await dbContext.SaveChangesAsync(cancellationToken);
+            return Results.Ok(ToDto(source));
+        }).WithName("UpdateEventSourceMetadata").Produces<EventSourceDto>().Produces(StatusCodes.Status404NotFound).ProducesValidationProblem();
+
+        sources.MapDelete("/{sourceId:guid}", async (Guid sourceId, bool confirmed, CalendarSourceLifecycleService lifecycle, CancellationToken cancellationToken) =>
+        {
+            if (!confirmed) return Results.ValidationProblem(new Dictionary<string, string[]> { [nameof(confirmed)] = ["Bevestig permanente verwijdering."] });
+            var result = await lifecycle.RemoveAsync(sourceId, cancellationToken);
+            if (!result.Succeeded) return result.Missing ? Results.NotFound() : Results.ValidationProblem(new Dictionary<string, string[]> { ["source"] = [result.Error ?? "De bron kon niet permanent worden verwijderd."] });
             return Results.NoContent();
         }).WithName("DeleteEventSource").Produces(StatusCodes.Status204NoContent).Produces(StatusCodes.Status404NotFound).ProducesValidationProblem();
 
@@ -181,6 +227,8 @@ public static class EventSourceManagementEndpoints
         source.IsEnabled,
         source.IsWritable,
         source.IsSystem,
+        source.IsArchived,
+        source.ArchivedUtc,
         ToContractHealthStatus(source.HealthStatus),
         ToContractPollInterval(source.PollInterval),
         source.LastSyncAttemptUtc,
@@ -199,7 +247,7 @@ public static class EventSourceManagementEndpoints
             ICalFeed: new ICalFeedSourceConfigurationDto(feed.FeedUrl, feed.ETag, feed.LastModified, feed.LastContentHash)),
         ICalFileSourceConfiguration file => new EventSourceProviderConfigurationDto(
             EventSourceProviderConfigurationKind.ICalFile,
-            ICalFile: new ICalFileSourceConfigurationDto(file.FileReference, file.OriginalFilename, file.ContentHash, file.UploadedUtc)),
+            ICalFile: new ICalFileSourceConfigurationDto(file.OriginalFilename, file.ContentHash, file.ContentLength, file.UploadedUtc, !string.IsNullOrWhiteSpace(file.FileReference))),
         _ => null
     };
 
@@ -208,7 +256,7 @@ public static class EventSourceManagementEndpoints
         var errors = ValidateCommon(request.Name, request.Icon, request.PollInterval, request.SourceType, request.ProviderConfiguration);
         if (!CreatableSourceTypes.Contains(request.SourceType))
         {
-            errors[nameof(CreateEventSourceRequest.SourceType)] = ["Only ICalFeed and ICalFile sources can be created by users."];
+            errors[nameof(CreateEventSourceRequest.SourceType)] = ["Use this JSON endpoint for HTTPS iCal feeds and the multipart endpoint for iCal files."];
         }
 
         return errors;
@@ -229,6 +277,18 @@ public static class EventSourceManagementEndpoints
             errors[nameof(EventSource.SourceType)] = ["Only ICalFeed and ICalFile sources can be updated through this endpoint."];
         }
 
+        return errors;
+    }
+
+    private static Dictionary<string, string[]> ValidateUploadMetadata(string name, string icon, ContractPollInterval pollInterval, IFormFile? file)
+    {
+        var errors = new Dictionary<string, string[]>();
+        if (string.IsNullOrWhiteSpace(name)) errors[nameof(CreateICalFileSourceForm.Name)] = ["Source name is required."];
+        else if (name.Trim().Length > 160) errors[nameof(CreateICalFileSourceForm.Name)] = ["Source name may contain at most 160 characters."];
+        if (string.IsNullOrWhiteSpace(icon)) errors[nameof(CreateICalFileSourceForm.Icon)] = ["Source icon is required."];
+        else if (icon.Trim().Length > 16) errors[nameof(CreateICalFileSourceForm.Icon)] = ["Source icon may contain at most 16 characters."];
+        if (!EventSourceContractValidation.IsSupportedPollInterval(pollInterval)) errors[nameof(CreateICalFileSourceForm.PollInterval)] = ["Unsupported poll interval."];
+        if (file is null) errors[nameof(CreateICalFileSourceForm.File)] = ["Choose an iCal file."];
         return errors;
     }
 
@@ -273,31 +333,6 @@ public static class EventSourceManagementEndpoints
                 }
                 break;
 
-            case EventSourceTypes.ICalFile:
-                var fileRequest = providerConfiguration.ICalFile!;
-                var file = dbContext.ICalFileSourceConfigurations.Local.FirstOrDefault(configuration => configuration.EventSourceId == sourceId)
-                    ?? dbContext.ICalFileSourceConfigurations.FirstOrDefault(configuration => configuration.EventSourceId == sourceId);
-                if (file is null)
-                {
-                    dbContext.ICalFileSourceConfigurations.Add(new ICalFileSourceConfiguration
-                    {
-                        EventSourceId = sourceId,
-                        FileReference = fileRequest.FileReference.Trim(),
-                        OriginalFilename = fileRequest.OriginalFilename.Trim(),
-                        ContentHash = fileRequest.ContentHash.Trim(),
-                        UploadedUtc = now,
-                        CreatedUtc = now,
-                        UpdatedUtc = now,
-                    });
-                }
-                else
-                {
-                    file.FileReference = fileRequest.FileReference.Trim();
-                    file.OriginalFilename = fileRequest.OriginalFilename.Trim();
-                    file.ContentHash = fileRequest.ContentHash.Trim();
-                    file.UpdatedUtc = now;
-                }
-                break;
         }
     }
 
@@ -347,4 +382,18 @@ public static class EventSourceManagementEndpoints
         DomainHealthStatus.Failed => ContractHealthStatus.Failed,
         _ => ContractHealthStatus.Healthy
     };
+}
+
+public sealed class CreateICalFileSourceForm
+{
+    public string Name { get; set; } = string.Empty;
+    public string Icon { get; set; } = "📄";
+    public bool Enabled { get; set; } = true;
+    public ContractPollInterval PollInterval { get; set; } = ContractPollInterval.Every8Hours;
+    public IFormFile? File { get; set; }
+}
+
+public sealed class ReplaceICalFileSourceForm
+{
+    public IFormFile? File { get; set; }
 }

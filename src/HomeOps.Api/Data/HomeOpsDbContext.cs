@@ -407,6 +407,8 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             entity.Property(source => source.IsEnabled).HasDefaultValue(true).IsRequired();
             entity.Property(source => source.IsWritable).IsRequired();
             entity.Property(source => source.IsSystem).HasDefaultValue(false).IsRequired();
+            entity.Property(source => source.IsArchived).HasDefaultValue(false).IsRequired();
+            entity.Property(source => source.ArchivedUtc);
             entity.Property(source => source.HealthStatus).HasConversion<string>().HasMaxLength(32).HasDefaultValue(EventSourceHealthStatus.Healthy).HasSentinel((EventSourceHealthStatus)(-1)).IsRequired();
             entity.Property(source => source.PollInterval).HasConversion<string>().HasMaxLength(32).HasDefaultValue(EventSourcePollInterval.Every8Hours).HasSentinel((EventSourcePollInterval)(-1)).IsRequired();
             entity.Property(source => source.LastSyncAttemptUtc);
@@ -513,6 +515,7 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             entity.Property(configuration => configuration.FileReference).HasMaxLength(1024).IsRequired();
             entity.Property(configuration => configuration.OriginalFilename).HasMaxLength(260).IsRequired();
             entity.Property(configuration => configuration.ContentHash).HasMaxLength(128).IsRequired();
+            entity.Property(configuration => configuration.ContentLength).IsRequired();
             entity.Property(configuration => configuration.UploadedUtc).IsRequired();
         });
 

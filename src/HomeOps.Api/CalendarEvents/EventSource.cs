@@ -13,6 +13,8 @@ public sealed class EventSource
     public bool IsEnabled { get; set; } = true;
     public bool IsWritable { get; set; }
     public bool IsSystem { get; set; }
+    public bool IsArchived { get; set; }
+    public DateTimeOffset? ArchivedUtc { get; set; }
     public EventSourceHealthStatus HealthStatus { get; set; } = EventSourceHealthStatus.Healthy;
     public EventSourcePollInterval PollInterval { get; set; } = EventSourcePollInterval.Every8Hours;
     public DateTimeOffset? LastSyncAttemptUtc { get; set; }

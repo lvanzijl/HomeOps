@@ -685,7 +685,7 @@ timeZoneId: omitted when the household setting is authoritative
 
 ### Slice 3.5 — Calendar source lifecycle completion
 
-- [ ] **Status: Not started**
+- [x] **Status: Completed**
 
 **Audit IDs:** CAL-02, CAL-03
 
@@ -696,6 +696,8 @@ timeZoneId: omitted when the household setting is authoritative
 3. Expose only genuinely supported source types.
 4. Provide archive/remove and reconnect behavior with clear imported-event consequences.
 5. Test invalid type, oversize file, malformed iCalendar, duplicate import, refresh, and removal.
+
+**Implementation state:** multipart `.ics` create/replace, 5 MiB enforcement, pre-persistence parsing and duplicate detection, opaque managed storage, safe source DTOs, HTTPS feed reconnect preflight, archive/restore/permanent removal, and bounded Settings lifecycle dialogs are implemented. The legacy public file-reference request shape is removed. Backend 615/615, frontend 336/336, builds, focused lifecycle regressions, PostgreSQL migration tests 3/3, Playwright 6/6 with both target viewport sizes, EF drift/script checks, and twice-idempotent pinned NSwag generation pass.
 
 ### Slice 3.6 — Stable per-device settings identity
 
@@ -731,7 +733,7 @@ If implemented, add permission UX, per-event/default settings, a server schedule
 - [ ] Home and Agenda preserve date/time intent in all supported flows.
 - [ ] Existing suspicious events have a safe review/repair path.
 - [ ] Household time zone is configurable.
-- [ ] File imports are real uploads.
+- [x] File imports are real uploads.
 - [ ] Device settings have documented lifecycle.
 - [ ] Reminder scope is explicitly implemented or explicitly deferred.
 
@@ -1264,7 +1266,7 @@ Every audit finding must appear exactly once as the primary responsibility of a 
 | ONB-02 | 2.4 Onboarding fail-safe | [x] Completed |
 | FAMILY-01 | 2.5 Family administration | [x] Completed |
 | FAMILY-02 | 2.5 Family restore | [x] Completed |
-| CAL-02 | 3.5 Calendar file upload | [ ] Not started |
+| CAL-02 | 3.5 Calendar file upload | [x] Completed |
 | SHOP-01 | 6.1 Create lists | [ ] Not started |
 | SHOP-03 | 6.1 Archive/restore lists | [ ] Not started |
 | MOT-01 | 6.3 Goal progress semantics | [ ] Not started |
@@ -1281,7 +1283,7 @@ Every audit finding must appear exactly once as the primary responsibility of a 
 | SHOP-04 | 6.1 Destructive shopping actions | [ ] Not started |
 | TASK-05 | 4.4 Recurring occurrence control | [ ] Not started |
 | CAL-01 | 3.7 Reminder decision | [ ] Not started |
-| CAL-03 | 3.5 Source lifecycle | [ ] Not started |
+| CAL-03 | 3.5 Source lifecycle | [x] Completed |
 | NAV-02 | 7.1 Routing | [ ] Not started |
 | HOME-01 | 3.3 Quick-add semantics | [ ] Not started |
 | WEATHER-01 | 5.7 Weather location | [ ] Not started |

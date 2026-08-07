@@ -9,10 +9,8 @@ import {
   HomeOpsApiClient,
   HttpValidationProblemDetails,
   ICalFeedSourceConfigurationRequest,
-  ICalFileSourceConfigurationRequest,
   RefreshAllResultDto,
   SyncSourceResultDto,
-  UpdateEventSourceRequest,
   EventSourceProviderConfigurationRequest,
 } from "../api/homeOpsApiClient";
 
@@ -33,6 +31,8 @@ export interface CalendarSource {
   enabled: boolean;
   writable: boolean;
   isSystem: boolean;
+  isArchived?: boolean;
+  archivedUtc?: string;
   state: CalendarSourceState;
   canDisplayEvents: boolean;
   pollInterval: CalendarSourcePollIntervalOption;
@@ -56,10 +56,11 @@ export type CalendarSourceProviderConfiguration =
     }
   | {
       kind: "iCalFile";
-      fileReference: string;
       originalFilename: string;
       contentHash: string;
+      contentLength: number;
       uploadedUtc?: string;
+      hasContent: boolean;
     };
 
 export interface CalendarSourceFormValues {
@@ -75,9 +76,7 @@ export interface CalendarSourceFormValues {
       }
     | {
         kind: "iCalFile";
-        fileReference: string;
-        originalFilename: string;
-        contentHash: string;
+        file: File | null;
       };
 }
 
@@ -109,6 +108,13 @@ export async function loadCalendarSources(client = createCalendarSourcesClient()
 }
 
 export async function createCalendarSource(input: CalendarSourceFormValues, client = createCalendarSourcesClient()): Promise<CalendarSource> {
+  if (input.providerConfiguration.kind === "iCalFile") {
+    if (!input.providerConfiguration.file) throw new Error("Kies een iCal-bestand.");
+    const form = new FormData();
+    form.set("name", input.name.trim()); form.set("icon", input.icon.trim()); form.set("enabled", String(input.enabled));
+    form.set("pollInterval", String(toApiPollInterval(input.pollInterval))); form.set("file", input.providerConfiguration.file);
+    return toCalendarSource(await requestEventSource("/api/event-sources/ical-file", { method: "POST", body: form }));
+  }
   const created = await client.createEventSource(
     new CreateEventSourceRequest({
       name: input.name.trim(),
@@ -124,26 +130,48 @@ export async function createCalendarSource(input: CalendarSourceFormValues, clie
 }
 
 export async function updateCalendarSource(sourceId: string, input: CalendarSourceFormValues, client = createCalendarSourcesClient()): Promise<CalendarSource> {
-  const updated = await client.updateEventSource(
-    sourceId,
-    new UpdateEventSourceRequest({
-      name: input.name.trim(),
-      icon: input.icon.trim(),
-      enabled: input.enabled,
-      pollInterval: toApiPollInterval(input.pollInterval),
-      providerConfiguration: toProviderConfigurationRequest(input.providerConfiguration),
-    }),
-  );
-
-  return toCalendarSource(updated);
+  void client;
+  if (input.providerConfiguration.kind === "iCalFile") {
+    return toCalendarSource(await requestEventSource(`/api/event-sources/${sourceId}/metadata`, {
+      method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: input.name.trim(), icon: input.icon.trim(), enabled: input.enabled, pollInterval: toApiPollInterval(input.pollInterval) }),
+    }));
+  }
+  return toCalendarSource(await requestEventSource(`/api/event-sources/${sourceId}/reconnect-feed`, {
+    method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: input.name.trim(), icon: input.icon.trim(), enabled: input.enabled, pollInterval: toApiPollInterval(input.pollInterval), feedUrl: input.providerConfiguration.feedUrl.trim() }),
+  }));
 }
 
 export async function setCalendarSourceEnabled(source: CalendarSource, enabled: boolean, client = createCalendarSourcesClient()): Promise<CalendarSource> {
-  return updateCalendarSource(source.id, createCalendarSourceFormValues(source, enabled), client);
+  void client;
+  return toCalendarSource(await requestEventSource(`/api/event-sources/${source.id}/metadata`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      name: source.name,
+      icon: source.icon,
+      enabled,
+      pollInterval: toApiPollInterval(source.pollInterval),
+    }),
+  }));
 }
 
 export async function deleteCalendarSource(sourceId: string, client = createCalendarSourcesClient()): Promise<void> {
-  await client.deleteEventSource(sourceId);
+  void client;
+  await request(`/api/event-sources/${sourceId}?confirmed=true`, { method: "DELETE" });
+}
+
+export async function archiveCalendarSource(sourceId: string): Promise<CalendarSource> {
+  return toCalendarSource(await requestEventSource(`/api/event-sources/${sourceId}/archive`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ confirmed: true }) }));
+}
+
+export async function restoreCalendarSource(sourceId: string): Promise<CalendarSource> {
+  const result = await request<{ source: unknown }>(`/api/event-sources/${sourceId}/restore`, { method: "POST" });
+  return toCalendarSource(EventSourceDto.fromJS(result.source));
+}
+
+export async function replaceCalendarSourceFile(sourceId: string, file: File): Promise<CalendarSource> {
+  const form = new FormData(); form.set("file", file);
+  return toCalendarSource(await requestEventSource(`/api/event-sources/${sourceId}/file`, { method: "PUT", body: form }));
 }
 
 export async function refreshCalendarSource(sourceId: string, client = createCalendarSourcesClient()): Promise<CalendarSourceRefreshResult> {
@@ -174,9 +202,7 @@ export function createCalendarSourceFormValues(source?: CalendarSource, enabled 
     source.providerConfiguration?.kind === "iCalFile"
       ? {
           kind: "iCalFile" as const,
-          fileReference: source.providerConfiguration.fileReference,
-          originalFilename: source.providerConfiguration.originalFilename,
-          contentHash: source.providerConfiguration.contentHash,
+          file: null,
         }
       : {
           kind: "iCalFeed" as const,
@@ -212,6 +238,8 @@ export function getFriendlyCalendarSourceError(error: unknown): string {
       return "Deze kalenderbron kon nu niet worden verwerkt. Probeer het zo opnieuw.";
     }
   }
+
+  if (error instanceof Error && error.message.trim()) return error.message;
 
   return "Deze kalenderbron kon nu niet worden verwerkt.";
 }
@@ -264,7 +292,8 @@ export function getCalendarSourcePollIntervalLabel(value: CalendarSourcePollInte
   }
 }
 
-export function getCalendarSourceStateLabel(source: Pick<CalendarSource, "enabled" | "state">): string {
+export function getCalendarSourceStateLabel(source: Pick<CalendarSource, "enabled" | "state" | "isArchived">): string {
+  if (source.isArchived) return "Gearchiveerd";
   if (!source.enabled || source.state === "disabled") {
     return "Uitgeschakeld";
   }
@@ -281,7 +310,8 @@ export function getCalendarSourceStateLabel(source: Pick<CalendarSource, "enable
   }
 }
 
-export function getCalendarSourceStateTone(source: Pick<CalendarSource, "enabled" | "state">): "ready" | "attention" | "pending" {
+export function getCalendarSourceStateTone(source: Pick<CalendarSource, "enabled" | "state" | "isArchived">): "ready" | "attention" | "pending" {
+  if (source.isArchived) return "pending";
   if (!source.enabled || source.state === "disabled") {
     return "pending";
   }
@@ -294,6 +324,7 @@ export function getCalendarSourceStateTone(source: Pick<CalendarSource, "enabled
 }
 
 export function getCalendarSourceStatusMessage(source: CalendarSource): string {
+  if (source.isArchived) return "Deze bron is gearchiveerd en de geïmporteerde afspraken zijn verborgen.";
   if (source.requiresNormalization) {
     return "Ververs deze bron eerst onder de huidige huishoudtijdzone voordat je hem inschakelt.";
   }
@@ -350,7 +381,7 @@ export function formatCalendarSourceSyncSummary(result: CalendarSourceRefreshRes
 }
 
 export function hasCalendarSourceAttention(sources: readonly CalendarSource[]): boolean {
-  return sources.some((source) => (source.enabled && source.state === "failed") || source.requiresNormalization);
+  return sources.some((source) => !source.isArchived && ((source.enabled && source.state === "failed") || source.requiresNormalization));
 }
 
 export function countActionableCalendarSources(sources: readonly CalendarSource[]): number {
@@ -373,8 +404,10 @@ export function toCalendarSource(dto: EventSourceDto): CalendarSource {
     enabled,
     writable: dto.writable ?? false,
     isSystem: dto.isSystem ?? false,
+    isArchived: dto.isArchived ?? false,
+    archivedUtc: dto.archivedUtc?.toISOString(),
     state,
-    canDisplayEvents: state === "healthy",
+    canDisplayEvents: !dto.isArchived && state === "healthy",
     pollInterval: toCalendarSourcePollInterval(dto.pollInterval),
     lastSyncAttemptUtc: dto.lastSyncAttemptUtc?.toISOString(),
     lastSuccessfulSyncUtc: dto.lastSuccessfulSyncUtc?.toISOString(),
@@ -471,10 +504,11 @@ function toCalendarSourceProviderConfiguration(dto: EventSourceDto): CalendarSou
   if (configuration.kind === EventSourceProviderConfigurationKind.ICalFile) {
     return {
       kind: "iCalFile",
-      fileReference: configuration.iCalFile?.fileReference ?? "",
       originalFilename: configuration.iCalFile?.originalFilename ?? "",
       contentHash: configuration.iCalFile?.contentHash ?? "",
+      contentLength: configuration.iCalFile?.contentLength ?? 0,
       uploadedUtc: configuration.iCalFile?.uploadedUtc?.toISOString(),
+      hasContent: configuration.iCalFile?.hasContent ?? false,
     };
   }
 
@@ -487,24 +521,31 @@ function toCalendarSourceProviderConfiguration(dto: EventSourceDto): CalendarSou
   };
 }
 
-function toProviderConfigurationRequest(configuration: CalendarSourceFormValues["providerConfiguration"]): EventSourceProviderConfigurationRequest {
-  if (configuration.kind === "iCalFile") {
-    return new EventSourceProviderConfigurationRequest({
-      kind: EventSourceProviderConfigurationKind.ICalFile,
-      iCalFile: new ICalFileSourceConfigurationRequest({
-        fileReference: configuration.fileReference.trim(),
-        originalFilename: configuration.originalFilename.trim(),
-        contentHash: configuration.contentHash.trim(),
-      }),
-    });
-  }
-
+function toProviderConfigurationRequest(configuration: Extract<CalendarSourceFormValues["providerConfiguration"], { kind: "iCalFeed" }>): EventSourceProviderConfigurationRequest {
   return new EventSourceProviderConfigurationRequest({
     kind: EventSourceProviderConfigurationKind.ICalFeed,
     iCalFeed: new ICalFeedSourceConfigurationRequest({
       feedUrl: configuration.feedUrl.trim(),
     }),
   });
+}
+
+async function requestEventSource(path: string, init: RequestInit): Promise<EventSourceDto> {
+  return EventSourceDto.fromJS(await request(path, init));
+}
+
+async function request<T = void>(path: string, init: RequestInit): Promise<T> {
+  const response = await fetch(`${apiBaseUrl}${path}`, init);
+  const text = await response.text();
+  if (!response.ok) {
+    let message = "Deze kalenderbron kon nu niet worden verwerkt.";
+    try {
+      const body = JSON.parse(text) as { error?: string; title?: string; errors?: Record<string, string[]> };
+      message = Object.values(body.errors ?? {}).flat().join(" ") || body.error || body.title || message;
+    } catch { /* retain fallback */ }
+    throw new Error(message);
+  }
+  return (text ? JSON.parse(text) : undefined) as T;
 }
 
 function toApiSourceType(type: CalendarSourceFormValues["type"]): EventSourceType {

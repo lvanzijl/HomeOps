@@ -16,10 +16,11 @@ public sealed record ICalFeedSourceConfigurationDto(
     string? LastContentHash = null);
 
 public sealed record ICalFileSourceConfigurationDto(
-    string FileReference,
     string OriginalFilename,
     string ContentHash,
-    DateTimeOffset UploadedUtc);
+    long ContentLength,
+    DateTimeOffset UploadedUtc,
+    bool HasContent);
 
 /// <summary>
 /// Provider configuration shape accepted by source management APIs.
@@ -27,12 +28,6 @@ public sealed record ICalFileSourceConfigurationDto(
 /// </summary>
 public sealed record EventSourceProviderConfigurationRequest(
     EventSourceProviderConfigurationKind Kind,
-    ICalFeedSourceConfigurationRequest? ICalFeed = null,
-    ICalFileSourceConfigurationRequest? ICalFile = null);
+    ICalFeedSourceConfigurationRequest? ICalFeed = null);
 
 public sealed record ICalFeedSourceConfigurationRequest(string FeedUrl);
-
-public sealed record ICalFileSourceConfigurationRequest(
-    string FileReference,
-    string OriginalFilename,
-    string ContentHash);

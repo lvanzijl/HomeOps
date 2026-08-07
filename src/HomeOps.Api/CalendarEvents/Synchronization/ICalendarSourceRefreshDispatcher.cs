@@ -5,6 +5,8 @@ public interface ICalendarSourceRefreshDispatcher
     Task<CalendarSourceRefreshDispatchResult> RefreshAsync(EventSource source, CancellationToken cancellationToken = default);
     Task<CalendarSourcePreparedRefresh> PrepareAsync(EventSource source, string householdTimeZoneId, bool forceFullLoad, CancellationToken cancellationToken = default) =>
         throw new NotSupportedException("This dispatcher does not support preflight preparation.");
+    Task<CalendarSourcePreparedRefresh> PrepareFeedReconnectAsync(EventSource source, string feedUrl, string householdTimeZoneId, CancellationToken cancellationToken = default) =>
+        throw new NotSupportedException("This dispatcher does not support feed reconnection preparation.");
 }
 
 public sealed record CalendarSourcePreparedRefresh(EventSource Source, string NormalizationTimeZoneId, CalendarProviderSnapshot Snapshot)

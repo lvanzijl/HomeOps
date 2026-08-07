@@ -55,22 +55,14 @@ public static class EventSourceContractValidation
                 {
                     errors[nameof(ICalFeedSourceConfigurationRequest.FeedUrl)] = ["Feed URL is required."];
                 }
-                else if (!Uri.TryCreate(configuration.ICalFeed.FeedUrl, UriKind.Absolute, out var uri) || uri.Scheme is not ("http" or "https"))
+                else if (!Uri.TryCreate(configuration.ICalFeed.FeedUrl, UriKind.Absolute, out var uri) || uri.Scheme != "https")
                 {
-                    errors[nameof(ICalFeedSourceConfigurationRequest.FeedUrl)] = ["Feed URL must be an absolute HTTP or HTTPS URL."];
+                    errors[nameof(ICalFeedSourceConfigurationRequest.FeedUrl)] = ["Feed URL must be an absolute HTTPS URL."];
                 }
                 break;
 
             case EventSourceType.ICalFile:
-                if (configuration.Kind != EventSourceProviderConfigurationKind.ICalFile || configuration.ICalFile is null)
-                {
-                    errors[nameof(configuration)] = ["iCal File configuration is required for iCal File sources."];
-                    break;
-                }
-
-                if (string.IsNullOrWhiteSpace(configuration.ICalFile.FileReference)) errors[nameof(ICalFileSourceConfigurationRequest.FileReference)] = ["File reference is required."];
-                if (string.IsNullOrWhiteSpace(configuration.ICalFile.OriginalFilename)) errors[nameof(ICalFileSourceConfigurationRequest.OriginalFilename)] = ["Original filename is required."];
-                if (string.IsNullOrWhiteSpace(configuration.ICalFile.ContentHash)) errors[nameof(ICalFileSourceConfigurationRequest.ContentHash)] = ["Content hash is required."];
+                errors[nameof(configuration)] = ["Use the multipart iCal file endpoint; managed file references are server-internal."];
                 break;
 
             default:

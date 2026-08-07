@@ -100,7 +100,7 @@ public sealed class CalendarSourceDomainContractsTests
     public void ProviderConfigurationContractsUseDiscriminatedShapesWithoutSecrets()
     {
         var feed = new EventSourceProviderConfigurationRequest(EventSourceProviderConfigurationKind.ICalFeed, ICalFeed: new ICalFeedSourceConfigurationRequest("https://example.test/calendar.ics"));
-        var file = new EventSourceProviderConfigurationRequest(EventSourceProviderConfigurationKind.ICalFile, ICalFile: new ICalFileSourceConfigurationRequest("calendar-files/file.ics", "file.ics", "sha256:abc"));
+        var file = new EventSourceProviderConfigurationRequest(EventSourceProviderConfigurationKind.ICalFile);
         var safeFeed = new EventSourceProviderConfigurationDto(EventSourceProviderConfigurationKind.ICalFeed, ICalFeed: new ICalFeedSourceConfigurationDto("https://example.test/calendar.ics", ETag: "etag", LastModified: "Sun, 05 Jul 2026 10:00:00 GMT", LastContentHash: "sha256:def"));
 
         Assert.Equal(EventSourceProviderConfigurationKind.ICalFeed, feed.Kind);
@@ -121,7 +121,7 @@ public sealed class CalendarSourceDomainContractsTests
         Assert.True(EventSourceContractValidation.IsSupportedPollInterval(HomeOps.Contracts.Events.EventSourcePollInterval.Every8Hours));
 
         Assert.Empty(EventSourceContractValidation.ValidateProviderConfiguration(EventSourceType.ICalFeed, new EventSourceProviderConfigurationRequest(EventSourceProviderConfigurationKind.ICalFeed, ICalFeed: new ICalFeedSourceConfigurationRequest("https://example.test/calendar.ics"))));
-        Assert.Empty(EventSourceContractValidation.ValidateProviderConfiguration(EventSourceType.ICalFile, new EventSourceProviderConfigurationRequest(EventSourceProviderConfigurationKind.ICalFile, ICalFile: new ICalFileSourceConfigurationRequest("calendar-files/file.ics", "file.ics", "sha256:abc"))));
+        Assert.Contains("configuration", EventSourceContractValidation.ValidateProviderConfiguration(EventSourceType.ICalFile, new EventSourceProviderConfigurationRequest(EventSourceProviderConfigurationKind.ICalFile)).Keys);
         Assert.Contains(nameof(ICalFeedSourceConfigurationRequest.FeedUrl), EventSourceContractValidation.ValidateProviderConfiguration(EventSourceType.ICalFeed, new EventSourceProviderConfigurationRequest(EventSourceProviderConfigurationKind.ICalFeed, ICalFeed: new ICalFeedSourceConfigurationRequest("not-a-url"))).Keys);
         Assert.Contains("configuration", EventSourceContractValidation.ValidateProviderConfiguration(EventSourceType.ICalFeed, null).Keys);
         Assert.Contains("configuration", EventSourceContractValidation.ValidateProviderConfiguration(EventSourceType.Manual, new EventSourceProviderConfigurationRequest(EventSourceProviderConfigurationKind.ICalFeed, ICalFeed: new ICalFeedSourceConfigurationRequest("https://example.test/calendar.ics"))).Keys);

@@ -79,7 +79,7 @@ public sealed class CalendarSourceManagementApiTests
     }
 
     [Fact]
-    public async Task CreateICalFilePersistsSourceAndConfiguration()
+    public async Task Json_create_rejects_ical_file_paths_and_requires_multipart_upload()
     {
         await using var factory = new HomeOpsWebApplicationFactory();
         var client = factory.CreateClient();
@@ -89,22 +89,11 @@ public sealed class CalendarSourceManagementApiTests
             EventSourceType.ICalFile,
             true,
             ContractPollInterval.EveryDay,
-            new EventSourceProviderConfigurationRequest(
-                EventSourceProviderConfigurationKind.ICalFile,
-                ICalFile: new ICalFileSourceConfigurationRequest("calendar-files/upload.ics", "upload.ics", "sha256:file")));
+            new EventSourceProviderConfigurationRequest(EventSourceProviderConfigurationKind.ICalFile));
 
         var response = await client.PostAsJsonAsync("/api/event-sources", request);
 
-        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        var created = await response.Content.ReadFromJsonAsync<EventSourceDto>();
-        Assert.NotNull(created);
-        Assert.Equal(EventSourceType.ICalFile, created.SourceType);
-        Assert.Equal(ContractHealthStatus.NeverSynced, created.HealthStatus);
-        Assert.Equal(ContractPollInterval.EveryDay, created.PollInterval);
-        Assert.Equal(EventSourceProviderConfigurationKind.ICalFile, created.ProviderConfiguration?.Kind);
-        Assert.Equal("calendar-files/upload.ics", created.ProviderConfiguration?.ICalFile?.FileReference);
-        Assert.Equal("upload.ics", created.ProviderConfiguration?.ICalFile?.OriginalFilename);
-        Assert.Equal("sha256:file", created.ProviderConfiguration?.ICalFile?.ContentHash);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Theory]
@@ -207,7 +196,7 @@ public sealed class CalendarSourceManagementApiTests
             await dbContext.SaveChangesAsync();
         }
 
-        var response = await client.DeleteAsync($"/api/event-sources/{created.Id}");
+        var response = await client.DeleteAsync($"/api/event-sources/{created.Id}?confirmed=true");
 
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         using (var scope = factory.Services.CreateScope())
@@ -225,7 +214,7 @@ public sealed class CalendarSourceManagementApiTests
         await using var factory = new HomeOpsWebApplicationFactory();
         var client = factory.CreateClient();
 
-        var response = await client.DeleteAsync($"/api/event-sources/{SeedCalendarEvents.EventSourceId}");
+        var response = await client.DeleteAsync($"/api/event-sources/{SeedCalendarEvents.EventSourceId}?confirmed=true");
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
@@ -260,7 +249,7 @@ public sealed class CalendarSourceManagementApiTests
             EventSourceType.ICalFile,
             true,
             ContractPollInterval.Every8Hours,
-            new EventSourceProviderConfigurationRequest(EventSourceProviderConfigurationKind.ICalFile, ICalFile: new ICalFileSourceConfigurationRequest("", "", "")));
+            new EventSourceProviderConfigurationRequest(EventSourceProviderConfigurationKind.ICalFile));
 
         var feedResponse = await client.PostAsJsonAsync("/api/event-sources", missingFeedUrl);
         var fileResponse = await client.PostAsJsonAsync("/api/event-sources", missingFileFields);

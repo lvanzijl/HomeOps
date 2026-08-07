@@ -18,7 +18,13 @@ public sealed class ICalFeedImporter(HomeOpsDbContext dbContext, HttpClient http
         return await ImportForZoneAsync(source, householdTimeZoneId, false, cancellationToken);
     }
 
-    public async Task<ICalFeedImportResult> ImportForZoneAsync(EventSource source, string householdTimeZoneId, bool forceFullLoad, CancellationToken cancellationToken = default)
+    public Task<ICalFeedImportResult> ImportForZoneAsync(EventSource source, string householdTimeZoneId, bool forceFullLoad, CancellationToken cancellationToken = default) =>
+        ImportCoreAsync(source, householdTimeZoneId, forceFullLoad, null, cancellationToken);
+
+    public Task<ICalFeedImportResult> ImportUrlForZoneAsync(EventSource source, string feedUrl, string householdTimeZoneId, CancellationToken cancellationToken = default) =>
+        ImportCoreAsync(source, householdTimeZoneId, true, feedUrl, cancellationToken);
+
+    private async Task<ICalFeedImportResult> ImportCoreAsync(EventSource source, string householdTimeZoneId, bool forceFullLoad, string? feedUrlOverride, CancellationToken cancellationToken)
     {
         if (!string.Equals(source.SourceType, EventSourceTypes.ICalFeed, StringComparison.Ordinal))
         {
@@ -32,7 +38,7 @@ public sealed class ICalFeedImporter(HomeOpsDbContext dbContext, HttpClient http
             .AsNoTracking()
             .SingleOrDefaultAsync(config => config.EventSourceId == source.Id, cancellationToken);
 
-        if (configuration is null || string.IsNullOrWhiteSpace(configuration.FeedUrl))
+        if (configuration is null || string.IsNullOrWhiteSpace(feedUrlOverride ?? configuration.FeedUrl))
         {
             return Failure(
                 ICalFeedImportFailureCategory.InvalidConfiguration,
@@ -40,7 +46,7 @@ public sealed class ICalFeedImporter(HomeOpsDbContext dbContext, HttpClient http
                 Diagnostic(ICalendarParseDiagnosticSeverity.Error, "InvalidConfiguration", "iCal Feed source configuration is missing a feed URL."));
         }
 
-        if (!Uri.TryCreate(configuration.FeedUrl, UriKind.Absolute, out var feedUri))
+        if (!Uri.TryCreate(feedUrlOverride ?? configuration.FeedUrl, UriKind.Absolute, out var feedUri))
         {
             return Failure(
                 ICalFeedImportFailureCategory.InvalidUrl,

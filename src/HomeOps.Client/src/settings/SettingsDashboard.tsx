@@ -2,6 +2,7 @@ import { ChangeEvent, useEffect, useId, useMemo, useState, type ReactNode } from
 import { CalendarExportDocument } from "../api/homeOpsApiClient";
 import {
   createCalendarSource,
+  archiveCalendarSource,
   createCalendarSourceFormValues,
   deleteCalendarSource,
   formatCalendarSourceDateTime,
@@ -18,6 +19,8 @@ import {
   loadCalendarSources,
   refreshAllCalendarSources,
   refreshCalendarSource,
+  replaceCalendarSourceFile,
+  restoreCalendarSource,
   setCalendarSourceEnabled,
   updateCalendarSource,
   type CalendarSource,
@@ -65,6 +68,8 @@ type SettingsSurface =
   | "createSource"
   | "editSource"
   | "deleteSource"
+  | "archiveSource"
+  | "replaceFile"
   | "people"
   | "woning"
   | "family"
@@ -87,6 +92,7 @@ export function SettingsDashboard({ widgetInstances, members = [], onCalendarSou
   const [status, setStatus] = useState<MaintenanceStatus | null>(null);
   const [restoreConfirmed, setRestoreConfirmed] = useState(false);
   const [isPortabilityBusy, setIsPortabilityBusy] = useState(false);
+  const [replacementFile, setReplacementFile] = useState<File | null>(null);
 
   const additionalWidgets = useMemo(
     () =>
@@ -186,19 +192,15 @@ export function SettingsDashboard({ widgetInstances, members = [], onCalendarSou
     setActiveSurface("deleteSource");
   }
 
-  function updateFileProviderConfiguration(
-    updater: (configuration: Extract<CalendarSourceFormValues["providerConfiguration"], { kind: "iCalFile" }>) => Extract<CalendarSourceFormValues["providerConfiguration"], { kind: "iCalFile" }>,
-  ) {
-    setSourceForm((current) => {
-      const currentConfiguration = current.providerConfiguration.kind === "iCalFile"
-        ? current.providerConfiguration
-        : { kind: "iCalFile" as const, fileReference: "", originalFilename: "", contentHash: "" };
+  function openArchiveSource(source: CalendarSource) {
+    setSelectedSourceId(source.id);
+    setActiveSurface("archiveSource");
+  }
 
-      return {
-        ...current,
-        providerConfiguration: updater(currentConfiguration),
-      };
-    });
+  function openReplaceFile(source: CalendarSource) {
+    setSelectedSourceId(source.id);
+    setReplacementFile(null);
+    setActiveSurface("replaceFile");
   }
 
   async function handleExport() {
@@ -329,6 +331,55 @@ export function SettingsDashboard({ widgetInstances, members = [], onCalendarSou
     } finally {
       setIsSavingSource(false);
     }
+  }
+
+  async function handleArchiveSource() {
+    if (!selectedSource) return;
+    setIsSavingSource(true); setStatus(null);
+    try {
+      const updated = await archiveCalendarSource(selectedSource.id);
+      setSources((current) => {
+        const next = current.map((source) => source.id === updated.id ? updated : source).sort(compareCalendarSources);
+        onCalendarSourcesChanged?.(next);
+        return next;
+      });
+      setStatus({ kind: "success", message: `${updated.name} is gearchiveerd; geïmporteerde afspraken zijn verborgen.`, validationErrors: [] });
+      closeSurface();
+    } catch (error) {
+      setStatus({ kind: "error", message: getFriendlyCalendarSourceError(error), validationErrors: [] });
+    } finally { setIsSavingSource(false); }
+  }
+
+  async function handleRestoreSource(source: CalendarSource) {
+    setBusySourceId(source.id); setStatus(null);
+    try {
+      const restored = await restoreCalendarSource(source.id);
+      setSources((current) => {
+        const next = current.map((candidate) => candidate.id === restored.id ? restored : candidate).sort(compareCalendarSources);
+        onCalendarSourcesChanged?.(next);
+        return next;
+      });
+      setStatus({ kind: "success", message: `${restored.name} is ververst en hersteld.`, validationErrors: [] });
+    } catch (error) {
+      setStatus({ kind: "error", message: getFriendlyCalendarSourceError(error), validationErrors: [] });
+    } finally { setBusySourceId(null); }
+  }
+
+  async function handleReplaceFile() {
+    if (!selectedSource || !replacementFile) return;
+    setIsSavingSource(true); setStatus(null);
+    try {
+      const updated = await replaceCalendarSourceFile(selectedSource.id, replacementFile);
+      setSources((current) => {
+        const next = current.map((source) => source.id === updated.id ? updated : source).sort(compareCalendarSources);
+        onCalendarSourcesChanged?.(next);
+        return next;
+      });
+      setStatus({ kind: "success", message: `Het bestand van ${updated.name} is vervangen en opnieuw geïmporteerd.`, validationErrors: [] });
+      closeSurface();
+    } catch (error) {
+      setStatus({ kind: "error", message: getFriendlyCalendarSourceError(error), validationErrors: [] });
+    } finally { setIsSavingSource(false); }
   }
 
   async function handleToggleSource(source: CalendarSource, enabled: boolean) {
@@ -524,7 +575,7 @@ export function SettingsDashboard({ widgetInstances, members = [], onCalendarSou
                           <input
                             aria-label={`${source.name} ${source.enabled ? "uitschakelen" : "inschakelen"}`}
                             checked={source.enabled}
-                            disabled={!isUserManaged || isSourceBusy || isSavingSource}
+                            disabled={!isUserManaged || source.isArchived || isSourceBusy || isSavingSource}
                             onChange={(event) => void handleToggleSource(source, event.target.checked)}
                             type="checkbox"
                           />
@@ -533,17 +584,42 @@ export function SettingsDashboard({ widgetInstances, members = [], onCalendarSou
 
                         <div className="settings-source-actions">
                           {isUserManaged ? (
-                            <>
-                              <button disabled={isSourceBusy || isSavingSource} onClick={() => openEditSource(source)} type="button">
-                                Bewerken
-                              </button>
-                              <button disabled={isSourceBusy || isSavingSource} onClick={() => void handleRefreshSource(source)} type="button">
-                                {isSourceBusy ? "Verversen…" : "Verversen"}
-                              </button>
-                              <button disabled={isSourceBusy || isSavingSource} onClick={() => openDeleteSource(source)} type="button">
-                                Verwijderen
-                              </button>
-                            </>
+                            source.isArchived ? (
+                              <>
+                                {source.type === "iCalFile" ? (
+                                  <button disabled={isSourceBusy || isSavingSource} onClick={() => openReplaceFile(source)} type="button">
+                                    Bestand koppelen
+                                  </button>
+                                ) : (
+                                  <button disabled={isSourceBusy || isSavingSource} onClick={() => openEditSource(source)} type="button">
+                                    Feed koppelen
+                                  </button>
+                                )}
+                                <button disabled={isSourceBusy || isSavingSource} onClick={() => void handleRestoreSource(source)} type="button">
+                                  {isSourceBusy ? "Herstellen…" : "Herstellen"}
+                                </button>
+                                <button disabled={isSourceBusy || isSavingSource} onClick={() => openDeleteSource(source)} type="button">
+                                  Definitief verwijderen
+                                </button>
+                              </>
+                            ) : (
+                              <>
+                                <button disabled={isSourceBusy || isSavingSource} onClick={() => openEditSource(source)} type="button">
+                                  Bewerken
+                                </button>
+                                {source.type === "iCalFile" ? (
+                                  <button disabled={isSourceBusy || isSavingSource} onClick={() => openReplaceFile(source)} type="button">
+                                    Bestand vervangen
+                                  </button>
+                                ) : null}
+                                <button disabled={isSourceBusy || isSavingSource} onClick={() => void handleRefreshSource(source)} type="button">
+                                  {isSourceBusy ? "Verversen…" : "Verversen"}
+                                </button>
+                                <button disabled={isSourceBusy || isSavingSource} onClick={() => openArchiveSource(source)} type="button">
+                                  Archiveren
+                                </button>
+                              </>
+                            )
                           ) : (
                             <p className="settings-source-protection">Deze handmatige gezinsagenda blijft beschikbaar voor eigen afspraken.</p>
                           )}
@@ -837,7 +913,7 @@ export function SettingsDashboard({ widgetInstances, members = [], onCalendarSou
                     type: nextType,
                     icon: nextType === "iCalFile" ? "📄" : current.icon || "🌐",
                     providerConfiguration: nextType === "iCalFile"
-                      ? { kind: "iCalFile", fileReference: "", originalFilename: "", contentHash: "" }
+                      ? { kind: "iCalFile", file: null }
                       : { kind: "iCalFeed", feedUrl: "" },
                   }));
                 }}
@@ -886,52 +962,29 @@ export function SettingsDashboard({ widgetInstances, members = [], onCalendarSou
               </label>
             ) : (
               <>
-                <label className="settings-file-field settings-source-form-span-2">
-                  <span>Bestandslocatie</span>
-                  <input
-                    disabled={isSavingSource}
-                    onChange={(event) =>
-                      updateFileProviderConfiguration((configuration) => ({
-                        ...configuration,
-                        fileReference: event.target.value,
-                      }))
-                    }
-                    placeholder="calendar-files/family.ics"
-                    value={sourceForm.providerConfiguration.fileReference}
-                  />
-                </label>
-                <label className="settings-file-field">
-                  <span>Bestandsnaam</span>
-                  <input
-                    disabled={isSavingSource}
-                    onChange={(event) =>
-                      updateFileProviderConfiguration((configuration) => ({
-                        ...configuration,
-                        originalFilename: event.target.value,
-                      }))
-                    }
-                    placeholder="family.ics"
-                    value={sourceForm.providerConfiguration.originalFilename}
-                  />
-                </label>
-                <label className="settings-file-field">
-                  <span>Controlecode</span>
-                  <input
-                    disabled={isSavingSource}
-                    onChange={(event) =>
-                      updateFileProviderConfiguration((configuration) => ({
-                        ...configuration,
-                        contentHash: event.target.value,
-                      }))
-                    }
-                    placeholder="sha256:..."
-                    value={sourceForm.providerConfiguration.contentHash}
-                  />
-                </label>
-                <section className="settings-surface-card settings-source-form-span-2">
-                  <h4>iCal-bestand</h4>
-                  <p>Vul de locatie, bestandsnaam en controlecode van het opgeslagen iCal-bestand in.</p>
-                </section>
+                {activeSurface === "createSource" ? (
+                  <label className="settings-file-field settings-source-form-span-2">
+                    <span>iCal-bestand</span>
+                    <input
+                      accept=".ics,text/calendar"
+                      disabled={isSavingSource}
+                      onChange={(event) => {
+                        const file = event.target.files?.[0] ?? null;
+                        setSourceForm((current) => ({
+                          ...current,
+                          providerConfiguration: { kind: "iCalFile", file },
+                        }));
+                      }}
+                      type="file"
+                    />
+                    <small>Maximaal 5 MiB. Alleen een geldig .ics-bestand wordt opgeslagen.</small>
+                  </label>
+                ) : (
+                  <section className="settings-surface-card settings-source-form-span-2">
+                    <h4>Beheerd iCal-bestand</h4>
+                    <p>Gebruik ‘Bestand vervangen’ op de bronkaart om nieuwe inhoud eerst veilig te laten controleren.</p>
+                  </section>
+                )}
               </>
             )}
 
@@ -979,6 +1032,63 @@ export function SettingsDashboard({ widgetInstances, members = [], onCalendarSou
               </button>
               <button disabled={isSavingSource} onClick={() => void handleDeleteSource()} type="button">
                 {isSavingSource ? "Verwijderen…" : "Bron verwijderen"}
+              </button>
+            </div>
+          </div>
+        </SettingsSurfaceDialog>
+      ) : null}
+
+      {activeSurface === "archiveSource" && selectedSource ? (
+        <SettingsSurfaceDialog
+          description="Bewaar de koppeling, maar verberg alle geïmporteerde afspraken."
+          onClose={closeSurface}
+          title="Kalenderbron archiveren"
+        >
+          <div className="settings-restore-flow">
+            <section className="settings-surface-card">
+              <h4>{selectedSource.icon} {selectedSource.name}</h4>
+              <p>De configuratie en het beheerde bestand blijven bewaard.</p>
+            </section>
+            <section className="settings-restore-warning">
+              <h4>Agenda-items worden verborgen</h4>
+              <p>Herstellen haalt de bron opnieuw op en toont de afspraken pas als die verversing slaagt.</p>
+            </section>
+            <div className="settings-surface-actions">
+              <button onClick={closeSurface} type="button">Annuleren</button>
+              <button disabled={isSavingSource} onClick={() => void handleArchiveSource()} type="button">
+                {isSavingSource ? "Archiveren…" : "Bron archiveren"}
+              </button>
+            </div>
+          </div>
+        </SettingsSurfaceDialog>
+      ) : null}
+
+      {activeSurface === "replaceFile" && selectedSource?.providerConfiguration?.kind === "iCalFile" ? (
+        <SettingsSurfaceDialog
+          description="Controleer en importeer een nieuw iCal-bestand zonder de huidige inhoud voortijdig te vervangen."
+          onClose={closeSurface}
+          title="iCal-bestand vervangen"
+        >
+          <div className="settings-restore-flow">
+            <section className="settings-surface-card">
+              <h4>Huidig bestand</h4>
+              <p>{selectedSource.providerConfiguration.originalFilename || "Geen bestand gekoppeld"}</p>
+              <p>{formatFileSize(selectedSource.providerConfiguration.contentLength)} · {formatCalendarSourceDateTime(selectedSource.providerConfiguration.uploadedUtc)}</p>
+            </section>
+            <label className="settings-file-field">
+              <span>Nieuw iCal-bestand</span>
+              <input
+                accept=".ics,text/calendar"
+                disabled={isSavingSource}
+                onChange={(event) => setReplacementFile(event.target.files?.[0] ?? null)}
+                type="file"
+              />
+              <small>Maximaal 5 MiB. Bij een fout blijft het huidige bestand actief.</small>
+            </label>
+            <div className="settings-surface-actions">
+              <button onClick={closeSurface} type="button">Annuleren</button>
+              <button disabled={isSavingSource || !replacementFile} onClick={() => void handleReplaceFile()} type="button">
+                {isSavingSource ? "Controleren…" : "Bestand vervangen"}
               </button>
             </div>
           </div>
@@ -1066,10 +1176,19 @@ function describeProviderConfiguration(source: CalendarSource) {
   }
 
   if (source.providerConfiguration?.kind === "iCalFile") {
-    return `Bestand: ${source.providerConfiguration.originalFilename || source.providerConfiguration.fileReference}`;
+    const uploaded = source.providerConfiguration.uploadedUtc
+      ? `, geüpload ${formatCalendarSourceDateTime(source.providerConfiguration.uploadedUtc)}`
+      : "";
+    return `Bestand: ${source.providerConfiguration.originalFilename || "niet gekoppeld"} (${formatFileSize(source.providerConfiguration.contentLength)}${uploaded})`;
   }
 
   return source.writable
     ? "Handmatige gezinsagenda voor eigen afspraken."
     : "Deze bron is klaar voor agenda-import.";
+}
+
+function formatFileSize(bytes: number) {
+  if (!Number.isFinite(bytes) || bytes <= 0) return "0 bytes";
+  if (bytes < 1024) return `${bytes} bytes`;
+  return `${(bytes / (1024 * 1024)).toLocaleString("nl-NL", { maximumFractionDigits: 1 })} MiB`;
 }

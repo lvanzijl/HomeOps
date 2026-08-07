@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   EventSourceDto,
   EventSourceHealthStatus,
@@ -7,7 +7,9 @@ import {
   EventSourceType,
   SyncSourceResultDto,
 } from '../api/homeOpsApiClient';
-import { formatCalendarSourceSyncSummary, getCalendarSourceStatusMessage, toCalendarSource, toCalendarSourceRefreshResult } from './calendarSourcesApi';
+import { formatCalendarSourceSyncSummary, getCalendarSourceStatusMessage, setCalendarSourceEnabled, toCalendarSource, toCalendarSourceRefreshResult } from './calendarSourcesApi';
+
+afterEach(() => vi.unstubAllGlobals());
 
 describe('calendarSourcesApi', () => {
   it('maps technical source errors to household-friendly status copy', () => {
@@ -46,5 +48,24 @@ describe('calendarSourcesApi', () => {
 
     expect(result.error?.message).toBe('Het ophalen van deze bron duurde te lang. Probeer het zo opnieuw.');
     expect(formatCalendarSourceSyncSummary(result)).toBe('Het ophalen van deze bron duurde te lang. Probeer het zo opnieuw.');
+  });
+
+  it('disables an unreachable feed through metadata without reconnecting it', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      id: 'feed-source', name: 'School', icon: 'calendar', sourceType: EventSourceType.ICalFeed,
+      enabled: false, writable: false, isSystem: false, isArchived: false,
+      healthStatus: EventSourceHealthStatus.Failed, pollInterval: EventSourcePollInterval.Every8Hours,
+      requiresNormalization: false,
+    }), { status: 200, headers: { 'Content-Type': 'application/json' } }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await setCalendarSourceEnabled({
+      id: 'feed-source', name: 'School', icon: 'calendar', type: 'iCalFeed', enabled: true,
+      writable: false, isSystem: false, state: 'failed', canDisplayEvents: false,
+      pollInterval: 'every8Hours', providerConfiguration: { kind: 'iCalFeed', feedUrl: 'https://example.test/school.ics' },
+    }, false);
+
+    expect(fetchMock).toHaveBeenCalledWith('/api/event-sources/feed-source/metadata', expect.objectContaining({ method: 'PUT' }));
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toMatchObject({ enabled: false, name: 'School' });
   });
 });

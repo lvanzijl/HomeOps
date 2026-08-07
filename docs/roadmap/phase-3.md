@@ -8,7 +8,7 @@ Phase 3 makes household-local calendar intent authoritative across manual writes
 | 3.2 Backend writes and recurrence | Completed | Calendar-field API, household-zone projection, import normalization, migration, and explicit repair endpoints. |
 | 3.3 Frontend forms and quick actions | Completed | Shared literal calendar-field writes, action-time household dates, draft transfer, and bounded repair UI. |
 | 3.4 Household time-zone setting | Completed | Previewed, preflighted, transactional IANA-zone changes with stale-source gating. |
-| 3.5 Calendar source lifecycle | Not started | Real iCal upload, replacement, archive, restore, and removal. |
+| 3.5 Calendar source lifecycle | Completed | Real iCal upload/replacement, opaque managed storage, preflighted reconnect, archive, refresh-before-restore, and confirmed removal. |
 | 3.6 Device settings identity | Not started | Versioned identity, last-seen cleanup, and reset. |
 | 3.7 Reminder decision | Not started | Truthfully defer reminders and close the phase. |
 
@@ -39,3 +39,11 @@ Settings now exposes household time-zone management through one compact action i
 An update force-loads every enabled iCal source without conditional-cache headers and normalizes the prepared snapshots in the proposed zone. Any source failure returns source-specific feedback without changing the household or events. A successful preflight enters one transaction that changes the household zone, synchronizes all prepared imported snapshots, and marks disabled imports as stale. Stale sources remain hidden and cannot be enabled until a successful refresh under the current zone. Stored manual calendar fields are never changed; their UTC projections are computed in the new zone at read time.
 
 The approved viewport contract is recorded in `docs/reports/2026-08-07-household-time-zone/viewport-analysis.md`. Validation passes 606 backend tests, 334 frontend tests, the client build, six required PostgreSQL migration/atomicity tests with PostgreSQL required, six Playwright scenarios including both Settings viewport sizes, EF model-drift and idempotent-script checks, and two identical pinned NSwag 14.7.1 generations.
+
+## Slice 3.5 implementation boundary
+
+Calendar files enter only through multipart `.ics` upload or replacement and are capped at 5 MiB. The server validates UTF-8, iCalendar structure, at least one event, and unique provider UIDs before persistence. Managed files use opaque references and server-computed SHA-256, filename, size, and upload time; public source DTOs never return the reference and the legacy reference request shape is removed from OpenAPI.
+
+Archive disables and hides imported events without deleting configuration or content. Restore refreshes while hidden and exposes the source only after success. Feed reconnect force-loads the proposed HTTPS URL before changing configuration. Explicit permanent removal deletes imported series, provider configuration, source, and managed content. Settings implements these operations through the existing internally scrolling source list and bounded dialogs under `docs/reports/2026-08-07-calendar-source-lifecycle/viewport-analysis.md`.
+
+Validation passes 615 backend tests, 336 frontend tests, focused upload/lifecycle tests, backend/frontend builds, three required PostgreSQL migration tests through Rancher Desktop, all six Playwright scenarios including both Settings viewport sizes, EF model-drift/idempotent-script checks, and twice-identical pinned NSwag 14.7.1 generation.
