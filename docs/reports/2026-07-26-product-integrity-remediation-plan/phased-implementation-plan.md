@@ -32,7 +32,7 @@ Do not check a phase merely because one of its slices is complete. A phase is co
 | [x] | **Phase 3 — Calendar and local-time correctness** | **Completed** | Calendar-field writes, household time zone, source lifecycle, device preferences, and truthful reminder scope are complete | Home and Agenda preserve household-local calendar intent and accurately state that notifications are not delivered |
 | [x] | **Phase 4 — Tasks and Weekly Reset completion** | **Completed 2026-08-08** | Task APIs, routines, and Weekly Reset foundation exist; Slice 4.0 interaction authority is approved | Core task controls are operable and every reset candidate can be resolved and completed |
 | [x] | **Phase 5 — House, climate, and household settings** | **Completed 2026-08-08** | Slices 5.1–5.7 complete the healthy Woning setup/runtime chain, provider lifecycle, floor-plan onboarding, and household weather configuration | Woning setup-to-runtime chain is reachable, healthy, configurable, and viewport-safe |
-| [ ] | **Phase 6 — Shopping and Motivation lifecycle completion** | **In progress** | The separate Shopping and Motivation viewport contracts are approved; lifecycle implementation remains in Slices 6.1–6.4 | Common create/edit/archive/restore/correction workflows are complete and cross-device |
+| [ ] | **Phase 6 — Shopping and Motivation lifecycle completion** | **In progress** | Slice 6.1 completes Shopping list creation and lifecycle; Slices 6.2–6.4 remain | Common create/edit/archive/restore/correction workflows are complete and cross-device |
 | [ ] | **Phase 7 — Navigation, backup, errors, and consistency** | **Not started** | Individual foundations exist | Cross-cutting behavior is routable, recoverable, consistently worded, and accurately backed up |
 | [ ] | **Phase 8 — Optional product breadth** | **Not started** | Placeholders only | Each optional feature is either deliberately implemented or deliberately removed from product expectations |
 
@@ -1024,7 +1024,7 @@ Before modifying Shopping or Motivation layouts, produce separate Viewport-First
 
 ### Slice 6.1 — Shopping list lifecycle
 
-- [ ] **Status: Not started**
+- [x] **Status: Completed 2026-08-08**
 
 **Audit IDs:** SHOP-01, SHOP-03, SHOP-04
 
@@ -1036,6 +1036,8 @@ Before modifying Shopping or Motivation layouts, produce separate Viewport-First
 4. Distinguish archive (reversible) from permanent delete.
 5. Show item count and consequences in confirmation.
 6. Keep list overflow inside the page's reserved region.
+
+**Implementation state:** The always-enabled bounded `Lijsten` directory now creates and opens additional active lists and exposes archived lists. Names are trimmed, required, capped at 160 characters, and protected against case-insensitive active duplicates; archived names may be reused and conflicting restores return 409. Archive/restore/permanent delete use generated contracts, expected-update concurrency, explicit confirmation where destructive, and item/consequence counts. Permanent delete physically removes the list and item rows while leaving household-level suggestion/purchase history intact. Migration `20260808160556_AddShoppingListLifecycleCompletion` repairs the legacy hidden-delete state and adds active-only name uniqueness. The approved command/list/footer composition is unchanged, the workspace uses border-box sizing, and directory overflow stays internal. Full backend 652/652, frontend 384/384, PostgreSQL 4/4, builds, EF drift/script validation, twice-idempotent pinned NSwag 14.7.1 generation, Playwright 17/17, and independent 1366×768 viewport inspection pass. See `docs/reports/2026-08-08-shopping-list-lifecycle/implementation.md` and `docs/roadmap/phase-6.md`.
 
 ### Slice 6.2 — Shopping item editing and unified history
 
@@ -1083,7 +1085,7 @@ Before modifying Shopping or Motivation layouts, produce separate Viewport-First
 
 ### Phase 6 exit criteria
 
-- [ ] Multiple shopping lists can be created, archived, restored, and intentionally deleted.
+- [x] Multiple shopping lists can be created, archived, restored, and intentionally deleted.
 - [ ] Shopping items can be corrected in place.
 - [ ] Home/Shopping suggestions use one server source.
 - [ ] Goal progress is explainable and correctable.
@@ -1300,8 +1302,8 @@ Every audit finding must appear exactly once as the primary responsibility of a 
 | FAMILY-01 | 2.5 Family administration | [x] Completed |
 | FAMILY-02 | 2.5 Family restore | [x] Completed |
 | CAL-02 | 3.5 Calendar file upload | [x] Completed |
-| SHOP-01 | 6.1 Create lists | [ ] Not started |
-| SHOP-03 | 6.1 Archive/restore lists | [ ] Not started |
+| SHOP-01 | 6.1 Create lists | [x] Completed |
+| SHOP-03 | 6.1 Archive/restore lists | [x] Completed |
 | MOT-01 | 6.3 Goal progress semantics | [ ] Not started |
 | MOT-02 | 6.4 Helpful-moment lifecycle | [ ] Not started |
 | MOT-03 | 6.4 Family-goal lifecycle | [ ] Not started |
@@ -1313,7 +1315,7 @@ Every audit finding must appear exactly once as the primary responsibility of a 
 | ONB-03 | 2.6 Setup checklist | [x] Completed |
 | SHOP-DATA-01 | 6.2 Unified shopping history | [ ] Not started |
 | SHOP-02 | 6.2 Item editing | [ ] Not started |
-| SHOP-04 | 6.1 Destructive shopping actions | [ ] Not started |
+| SHOP-04 | 6.1 Destructive shopping actions | [x] Completed |
 | CAL-01 | 3.7 Reminder decision | [x] Completed |
 | CAL-03 | 3.5 Source lifecycle | [x] Completed |
 | NAV-02 | 7.1 Routing | [ ] Not started |

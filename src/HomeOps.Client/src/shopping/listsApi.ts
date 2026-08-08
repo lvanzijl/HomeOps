@@ -1,5 +1,5 @@
-import { AddListItemRequest, CreateListRequest, DecorativeAvatarReferenceDto, DecorativeAvatarReferenceType, HomeOpsApiClient, ListDto, ListItemDto, RenameListRequest, UpdateListItemDecorativeAvatarRequest, UpdateListItemStoreRequest } from '../api/homeOpsApiClient';
-import type { ShoppingDecorativeAvatarReference, ShoppingListItem, ShoppingListState } from './shoppingListModel';
+import { AddListItemRequest, ArchiveListRequest, CreateListRequest, DecorativeAvatarReferenceDto, DecorativeAvatarReferenceType, HomeOpsApiClient, ListDto, ListItemDto, ListSummaryDto, PermanentDeleteListRequest, RenameListRequest, RestoreListRequest, UpdateListItemDecorativeAvatarRequest, UpdateListItemStoreRequest } from '../api/homeOpsApiClient';
+import type { ShoppingDecorativeAvatarReference, ShoppingListItem, ShoppingListLifecycleSummary, ShoppingListState } from './shoppingListModel';
 
 export const shoppingListName = 'Shopping';
 const localizedShoppingListNames = new Set(['shopping', 'boodschappen']);
@@ -15,6 +15,7 @@ export function createListsApiClient(): HomeOpsApiClient {
 export interface ShoppingPageLists {
   shoppingList: ShoppingListState;
   otherLists: readonly ShoppingListState[];
+  archivedLists?: readonly ShoppingListLifecycleSummary[];
 }
 
 export async function loadShoppingList(client = createListsApiClient()): Promise<ShoppingListState> {
@@ -22,23 +23,33 @@ export async function loadShoppingList(client = createListsApiClient()): Promise
 }
 
 export async function loadShoppingPageLists(client = createListsApiClient()): Promise<ShoppingPageLists> {
-  const lists = await client.getLists();
+  const lists = await client.getLists(true);
+  const activeLists = lists.filter((list) => list.isArchived !== true);
   const listDetails = await Promise.all(
-    lists
+    activeLists
       .filter((list) => Boolean(list.id))
       .map((list) => client.getListById(requireValue(list.id, 'list id'))),
   );
-  const mappedLists = listDetails.map(toShoppingListState);
+  const mappedLists = listDetails.map((list) => toShoppingListState(
+    list,
+    activeLists.find((summary) => summary.id === list.id),
+  ));
   const shoppingList = mappedLists.find((list) => isDedicatedShoppingListName(list.name));
 
   return {
     shoppingList: shoppingList ?? { listId: null, name: shoppingListName, items: [] },
     otherLists: mappedLists.filter((list) => !isDedicatedShoppingListName(list.name)),
+    archivedLists: lists.filter((list) => list.isArchived === true).map(toLifecycleSummary),
   };
 }
 
 export async function createShoppingList(client: HomeOpsApiClient): Promise<ShoppingListState> {
   const created = await client.createList(new CreateListRequest({ name: shoppingListName }));
+  return toShoppingListState(created);
+}
+
+export async function createNamedShoppingList(client: HomeOpsApiClient, name: string): Promise<ShoppingListState> {
+  const created = await client.createList(new CreateListRequest({ name: name.trim() }));
   return toShoppingListState(created);
 }
 
@@ -62,15 +73,22 @@ export async function undoShoppingListItem(client: HomeOpsApiClient, listId: str
 }
 
 export async function renameShoppingList(client: HomeOpsApiClient, listId: string, name: string): Promise<ShoppingListState> {
-  return toShoppingListState(await client.renameList(listId, new RenameListRequest({ name })));
+  const renamed = await client.renameList(listId, new RenameListRequest({ name }));
+  const summaries = await client.getLists(true);
+  return toShoppingListState(renamed, summaries.find((summary) => summary.id === listId));
 }
 
-export async function archiveShoppingList(client: HomeOpsApiClient, listId: string): Promise<ShoppingListState> {
-  return toShoppingListState(await client.archiveList(listId));
+export async function archiveShoppingList(client: HomeOpsApiClient, listId: string, expectedUpdatedUtc: Date): Promise<ShoppingListLifecycleSummary> {
+  return toLifecycleSummary(await client.archiveList(listId, new ArchiveListRequest({ expectedUpdatedUtc, confirmed: true })));
 }
 
-export async function deleteShoppingList(client: HomeOpsApiClient, listId: string): Promise<void> {
-  await client.deleteList(listId);
+export async function restoreShoppingList(client: HomeOpsApiClient, summary: ShoppingListLifecycleSummary): Promise<ShoppingListState> {
+  const restored = await client.restoreList(summary.listId, new RestoreListRequest({ expectedUpdatedUtc: summary.updatedUtc }));
+  return toShoppingListState(await client.getListById(summary.listId), restored);
+}
+
+export async function permanentlyDeleteShoppingList(client: HomeOpsApiClient, listId: string, expectedUpdatedUtc: Date): Promise<void> {
+  await client.permanentlyDeleteList(listId, new PermanentDeleteListRequest({ expectedUpdatedUtc, confirmed: true }));
 }
 
 export async function updateShoppingListItemStore(client: HomeOpsApiClient, listId: string, itemId: string, preferredStore: string | null): Promise<ShoppingListItem> {
@@ -85,7 +103,7 @@ export async function removeShoppingListItem(client: HomeOpsApiClient, listId: s
   return toShoppingListItem(await client.removeListItem(listId, itemId));
 }
 
-export function toShoppingListState(list: ListDto): ShoppingListState {
+export function toShoppingListState(list: ListDto, summary?: ListSummaryDto): ShoppingListState {
   if (!list.id) {
     throw new Error('List id is required.');
   }
@@ -93,7 +111,30 @@ export function toShoppingListState(list: ListDto): ShoppingListState {
   return {
     listId: list.id,
     name: list.name,
+    ...(summary?.updatedUtc ? {
+      updatedUtc: summary.updatedUtc,
+      activeItemCount: summary.activeItemCount ?? 0,
+      completedItemCount: summary.completedItemCount ?? 0,
+      deletedItemCount: summary.deletedItemCount ?? 0,
+      totalItemCount: summary.totalItemCount ?? 0,
+    } : list.updatedUtc ? { updatedUtc: list.updatedUtc } : {}),
     items: (list.items ?? []).map(toShoppingListItem),
+  };
+}
+
+export function toLifecycleSummary(list: ListSummaryDto): ShoppingListLifecycleSummary {
+  if (!list.id || !list.name || !list.updatedUtc) {
+    throw new Error('List lifecycle summary is incomplete.');
+  }
+  return {
+    listId: list.id,
+    name: list.name,
+    archivedUtc: list.archivedUtc ?? null,
+    updatedUtc: list.updatedUtc,
+    activeItemCount: list.activeItemCount ?? 0,
+    completedItemCount: list.completedItemCount ?? 0,
+    deletedItemCount: list.deletedItemCount ?? 0,
+    totalItemCount: list.totalItemCount ?? 0,
   };
 }
 

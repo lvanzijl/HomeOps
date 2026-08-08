@@ -1292,8 +1292,10 @@ export class HomeOpsApiClient {
         return Promise.resolve<void>(null as any);
     }
 
-    getLists(): Promise<ListSummaryDto[]> {
-        let url_ = this.baseUrl + "/api/lists";
+    getLists(includeArchived: boolean | null | undefined): Promise<ListSummaryDto[]> {
+        let url_ = this.baseUrl + "/api/lists?";
+        if (includeArchived !== undefined && includeArchived !== null)
+            url_ += "includeArchived=" + encodeURIComponent("" + includeArchived) + "&";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
@@ -1367,6 +1369,10 @@ export class HomeOpsApiClient {
             return response.text().then((_responseText) => {
             return throwException("A server side error occurred.", status, _responseText, _headers);
             });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
@@ -1416,43 +1422,6 @@ export class HomeOpsApiClient {
         return Promise.resolve<ListDto>(null as any);
     }
 
-    deleteList(listId: string): Promise<void> {
-        let url_ = this.baseUrl + "/api/lists/{listId}";
-        if (listId === undefined || listId === null)
-            throw new globalThis.Error("The parameter 'listId' must be defined.");
-        url_ = url_.replace("{listId}", encodeURIComponent("" + listId));
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "DELETE",
-            headers: {
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processDeleteList(_response);
-        });
-    }
-
-    protected processDeleteList(response: Response): Promise<void> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 204) {
-            return response.text().then((_responseText) => {
-            return;
-            });
-        } else if (status === 404) {
-            return response.text().then((_responseText) => {
-            return throwException("A server side error occurred.", status, _responseText, _headers);
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<void>(null as any);
-    }
-
     renameList(listId: string, request: RenameListRequest): Promise<ListDto> {
         let url_ = this.baseUrl + "/api/lists/{listId}/name";
         if (listId === undefined || listId === null)
@@ -1494,44 +1463,7 @@ export class HomeOpsApiClient {
             return response.text().then((_responseText) => {
             return throwException("A server side error occurred.", status, _responseText, _headers);
             });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<ListDto>(null as any);
-    }
-
-    archiveList(listId: string): Promise<ListDto> {
-        let url_ = this.baseUrl + "/api/lists/{listId}/archive";
-        if (listId === undefined || listId === null)
-            throw new globalThis.Error("The parameter 'listId' must be defined.");
-        url_ = url_.replace("{listId}", encodeURIComponent("" + listId));
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "POST",
-            headers: {
-                "Accept": "application/json"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processArchiveList(_response);
-        });
-    }
-
-    protected processArchiveList(response: Response): Promise<ListDto> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = ListDto.fromJS(resultData200);
-            return result200;
-            });
-        } else if (status === 404) {
+        } else if (status === 409) {
             return response.text().then((_responseText) => {
             return throwException("A server side error occurred.", status, _responseText, _headers);
             });
@@ -1541,6 +1473,163 @@ export class HomeOpsApiClient {
             });
         }
         return Promise.resolve<ListDto>(null as any);
+    }
+
+    archiveList(listId: string, request: ArchiveListRequest): Promise<ListSummaryDto> {
+        let url_ = this.baseUrl + "/api/lists/{listId}/archive";
+        if (listId === undefined || listId === null)
+            throw new globalThis.Error("The parameter 'listId' must be defined.");
+        url_ = url_.replace("{listId}", encodeURIComponent("" + listId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processArchiveList(_response);
+        });
+    }
+
+    protected processArchiveList(response: Response): Promise<ListSummaryDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ListSummaryDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = HttpValidationProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ListSummaryDto>(null as any);
+    }
+
+    restoreList(listId: string, request: RestoreListRequest): Promise<ListSummaryDto> {
+        let url_ = this.baseUrl + "/api/lists/{listId}/restore";
+        if (listId === undefined || listId === null)
+            throw new globalThis.Error("The parameter 'listId' must be defined.");
+        url_ = url_.replace("{listId}", encodeURIComponent("" + listId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRestoreList(_response);
+        });
+    }
+
+    protected processRestoreList(response: Response): Promise<ListSummaryDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ListSummaryDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ListSummaryDto>(null as any);
+    }
+
+    permanentlyDeleteList(listId: string, request: PermanentDeleteListRequest): Promise<void> {
+        let url_ = this.baseUrl + "/api/lists/{listId}/permanent-delete";
+        if (listId === undefined || listId === null)
+            throw new globalThis.Error("The parameter 'listId' must be defined.");
+        url_ = url_.replace("{listId}", encodeURIComponent("" + listId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processPermanentlyDeleteList(_response);
+        });
+    }
+
+    protected processPermanentlyDeleteList(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = HttpValidationProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
     }
 
     addListItem(listId: string, request: AddListItemRequest): Promise<ListItemDto> {
@@ -10601,10 +10690,15 @@ export class ListSummaryDto implements IListSummaryDto {
     name?: string;
     isArchived?: boolean;
     isDeleted?: boolean;
+    archivedUtc?: Date | undefined;
     createdUtc?: Date;
     updatedUtc?: Date;
     householdId?: string;
     itemCount?: number;
+    activeItemCount?: number;
+    completedItemCount?: number;
+    deletedItemCount?: number;
+    totalItemCount?: number;
 
     constructor(data?: IListSummaryDto) {
         if (data) {
@@ -10621,10 +10715,15 @@ export class ListSummaryDto implements IListSummaryDto {
             this.name = _data["name"];
             this.isArchived = _data["isArchived"];
             this.isDeleted = _data["isDeleted"];
+            this.archivedUtc = _data["archivedUtc"] ? new Date(_data["archivedUtc"].toString()) : undefined as any;
             this.createdUtc = _data["createdUtc"] ? new Date(_data["createdUtc"].toString()) : undefined as any;
             this.updatedUtc = _data["updatedUtc"] ? new Date(_data["updatedUtc"].toString()) : undefined as any;
             this.householdId = _data["householdId"];
             this.itemCount = _data["itemCount"];
+            this.activeItemCount = _data["activeItemCount"];
+            this.completedItemCount = _data["completedItemCount"];
+            this.deletedItemCount = _data["deletedItemCount"];
+            this.totalItemCount = _data["totalItemCount"];
         }
     }
 
@@ -10641,10 +10740,15 @@ export class ListSummaryDto implements IListSummaryDto {
         data["name"] = this.name;
         data["isArchived"] = this.isArchived;
         data["isDeleted"] = this.isDeleted;
+        data["archivedUtc"] = this.archivedUtc ? this.archivedUtc.toISOString() : undefined as any;
         data["createdUtc"] = this.createdUtc ? this.createdUtc.toISOString() : undefined as any;
         data["updatedUtc"] = this.updatedUtc ? this.updatedUtc.toISOString() : undefined as any;
         data["householdId"] = this.householdId;
         data["itemCount"] = this.itemCount;
+        data["activeItemCount"] = this.activeItemCount;
+        data["completedItemCount"] = this.completedItemCount;
+        data["deletedItemCount"] = this.deletedItemCount;
+        data["totalItemCount"] = this.totalItemCount;
         return data;
     }
 }
@@ -10654,10 +10758,15 @@ export interface IListSummaryDto {
     name?: string;
     isArchived?: boolean;
     isDeleted?: boolean;
+    archivedUtc?: Date | undefined;
     createdUtc?: Date;
     updatedUtc?: Date;
     householdId?: string;
     itemCount?: number;
+    activeItemCount?: number;
+    completedItemCount?: number;
+    deletedItemCount?: number;
+    totalItemCount?: number;
 }
 
 export class ListDto implements IListDto {
@@ -10975,6 +11084,122 @@ export class RenameListRequest implements IRenameListRequest {
 
 export interface IRenameListRequest {
     name?: string;
+}
+
+export class ArchiveListRequest implements IArchiveListRequest {
+    expectedUpdatedUtc?: Date;
+    confirmed?: boolean;
+
+    constructor(data?: IArchiveListRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.expectedUpdatedUtc = _data["expectedUpdatedUtc"] ? new Date(_data["expectedUpdatedUtc"].toString()) : undefined as any;
+            this.confirmed = _data["confirmed"];
+        }
+    }
+
+    static fromJS(data: any): ArchiveListRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new ArchiveListRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["expectedUpdatedUtc"] = this.expectedUpdatedUtc ? this.expectedUpdatedUtc.toISOString() : undefined as any;
+        data["confirmed"] = this.confirmed;
+        return data;
+    }
+}
+
+export interface IArchiveListRequest {
+    expectedUpdatedUtc?: Date;
+    confirmed?: boolean;
+}
+
+export class RestoreListRequest implements IRestoreListRequest {
+    expectedUpdatedUtc?: Date;
+
+    constructor(data?: IRestoreListRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.expectedUpdatedUtc = _data["expectedUpdatedUtc"] ? new Date(_data["expectedUpdatedUtc"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): RestoreListRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new RestoreListRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["expectedUpdatedUtc"] = this.expectedUpdatedUtc ? this.expectedUpdatedUtc.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface IRestoreListRequest {
+    expectedUpdatedUtc?: Date;
+}
+
+export class PermanentDeleteListRequest implements IPermanentDeleteListRequest {
+    expectedUpdatedUtc?: Date;
+    confirmed?: boolean;
+
+    constructor(data?: IPermanentDeleteListRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.expectedUpdatedUtc = _data["expectedUpdatedUtc"] ? new Date(_data["expectedUpdatedUtc"].toString()) : undefined as any;
+            this.confirmed = _data["confirmed"];
+        }
+    }
+
+    static fromJS(data: any): PermanentDeleteListRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new PermanentDeleteListRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["expectedUpdatedUtc"] = this.expectedUpdatedUtc ? this.expectedUpdatedUtc.toISOString() : undefined as any;
+        data["confirmed"] = this.confirmed;
+        return data;
+    }
+}
+
+export interface IPermanentDeleteListRequest {
+    expectedUpdatedUtc?: Date;
+    confirmed?: boolean;
 }
 
 export class AddListItemRequest implements IAddListItemRequest {

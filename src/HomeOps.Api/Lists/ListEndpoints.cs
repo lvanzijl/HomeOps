@@ -11,24 +11,18 @@ public static class ListEndpoints
     {
         var group = app.MapGroup("/api/lists").WithTags("Lists");
 
-        group.MapGet("/", async (HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        group.MapGet("/", async (bool? includeArchived, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
         {
+            var includeArchivedLists = includeArchived == true;
             var lists = await dbContext.Lists
                 .AsNoTracking()
-                .Where(list => list.HouseholdId == SeedHousehold.Id && !list.IsArchived && !list.IsDeleted)
-                .OrderBy(list => list.Name)
-                .Select(list => new ListSummaryDto(
-                    list.Id,
-                    list.Name,
-                    list.IsArchived,
-                    list.IsDeleted,
-                    list.CreatedUtc,
-                    list.UpdatedUtc,
-                    list.HouseholdId,
-                    list.Items.Count(item => !item.IsDeleted && (!item.IsCompleted || item.CompletedUtc == null || item.CompletedUtc >= DateTimeOffset.UtcNow.AddHours(-24)))))
+                .Include(list => list.Items)
+                .Where(list => list.HouseholdId == SeedHousehold.Id && !list.IsDeleted && (includeArchivedLists || !list.IsArchived))
+                .OrderBy(list => list.IsArchived)
+                .ThenBy(list => list.Name)
                 .ToListAsync(cancellationToken);
 
-            return Results.Ok(lists);
+            return Results.Ok(lists.Select(ToSummaryDto).ToList());
         }).WithName("GetLists").Produces<IReadOnlyCollection<ListSummaryDto>>();
 
         group.MapGet("/{listId:guid}", async (Guid listId, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
@@ -39,55 +33,90 @@ public static class ListEndpoints
 
         group.MapPost("/", async (CreateListRequest request, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
         {
-            var trimmedName = request.Name.Trim();
-            if (trimmedName.Length == 0)
+            var nameValidation = ValidateListName(request.Name);
+            if (nameValidation.Error is not null)
             {
-                return Results.BadRequest(new { error = "List name is required." });
+                return Results.ValidationProblem(new Dictionary<string, string[]> { [nameof(request.Name)] = [nameValidation.Error] });
+            }
+
+            if (await ActiveListNameExists(dbContext, nameValidation.Name, null, cancellationToken))
+            {
+                return Results.Conflict(new { error = "An active list with this name already exists." });
             }
 
             var now = DateTimeOffset.UtcNow;
             var list = new List
             {
                 Id = Guid.NewGuid(),
-                Name = trimmedName,
+                Name = nameValidation.Name,
                 CreatedUtc = now,
                 UpdatedUtc = now,
                 HouseholdId = SeedHousehold.Id,
             };
 
             dbContext.Lists.Add(list);
-            await dbContext.SaveChangesAsync(cancellationToken);
+            try
+            {
+                await dbContext.SaveChangesAsync(cancellationToken);
+            }
+            catch (DbUpdateException)
+            {
+                return Results.Conflict(new { error = "An active list with this name already exists." });
+            }
 
             var dto = await LoadList(dbContext, list.Id, cancellationToken);
             return Results.Created($"/api/lists/{list.Id}", dto);
-        }).WithName("CreateList").Produces<ListDto>(StatusCodes.Status201Created).Produces(StatusCodes.Status400BadRequest);
+        }).WithName("CreateList").Produces<ListDto>(StatusCodes.Status201Created).Produces(StatusCodes.Status400BadRequest).Produces(StatusCodes.Status409Conflict);
 
         group.MapPatch("/{listId:guid}/name", async (Guid listId, RenameListRequest request, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
         {
-            var trimmedName = request.Name.Trim();
-            if (trimmedName.Length == 0)
+            var nameValidation = ValidateListName(request.Name);
+            if (nameValidation.Error is not null)
             {
-                return Results.BadRequest(new { error = "List name is required." });
+                return Results.ValidationProblem(new Dictionary<string, string[]> { [nameof(request.Name)] = [nameValidation.Error] });
             }
 
-            var list = await dbContext.Lists.FirstOrDefaultAsync(candidate => candidate.Id == listId && candidate.HouseholdId == SeedHousehold.Id && !candidate.IsDeleted, cancellationToken);
+            var list = await dbContext.Lists.FirstOrDefaultAsync(candidate => candidate.Id == listId && candidate.HouseholdId == SeedHousehold.Id && !candidate.IsArchived && !candidate.IsDeleted, cancellationToken);
             if (list is null)
             {
                 return Results.NotFound();
             }
 
-            list.Name = trimmedName;
+            if (await ActiveListNameExists(dbContext, nameValidation.Name, list.Id, cancellationToken))
+            {
+                return Results.Conflict(new { error = "An active list with this name already exists." });
+            }
+
+            list.Name = nameValidation.Name;
             list.UpdatedUtc = DateTimeOffset.UtcNow;
-            await dbContext.SaveChangesAsync(cancellationToken);
-            return Results.Ok(await LoadList(dbContext, list.Id, cancellationToken));
-        }).WithName("RenameList").Produces<ListDto>().Produces(StatusCodes.Status400BadRequest).Produces(StatusCodes.Status404NotFound);
+            try
+            {
+                await dbContext.SaveChangesAsync(cancellationToken);
+            }
+            catch (DbUpdateException)
+            {
+                return Results.Conflict(new { error = "An active list with this name already exists." });
+            }
 
-        group.MapPost("/{listId:guid}/archive", async (Guid listId, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+            return Results.Ok(await LoadList(dbContext, list.Id, cancellationToken));
+        }).WithName("RenameList").Produces<ListDto>().Produces(StatusCodes.Status400BadRequest).Produces(StatusCodes.Status404NotFound).Produces(StatusCodes.Status409Conflict);
+
+        group.MapPost("/{listId:guid}/archive", async (Guid listId, ArchiveListRequest request, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
         {
-            var list = await dbContext.Lists.FirstOrDefaultAsync(candidate => candidate.Id == listId && candidate.HouseholdId == SeedHousehold.Id && !candidate.IsDeleted, cancellationToken);
+            if (!request.Confirmed)
+            {
+                return Results.ValidationProblem(new Dictionary<string, string[]> { [nameof(request.Confirmed)] = ["Archiving requires explicit confirmation."] });
+            }
+
+            var list = await dbContext.Lists.Include(candidate => candidate.Items).FirstOrDefaultAsync(candidate => candidate.Id == listId && candidate.HouseholdId == SeedHousehold.Id && !candidate.IsArchived && !candidate.IsDeleted, cancellationToken);
             if (list is null)
             {
                 return Results.NotFound();
+            }
+
+            if (!MatchesExpectedUpdate(list.UpdatedUtc, request.ExpectedUpdatedUtc))
+            {
+                return Results.Conflict(new { error = "The list changed after the confirmation was opened." });
             }
 
             var now = DateTimeOffset.UtcNow;
@@ -95,24 +124,69 @@ public static class ListEndpoints
             list.ArchivedUtc = now;
             list.UpdatedUtc = now;
             await dbContext.SaveChangesAsync(cancellationToken);
-            return Results.Ok(await LoadList(dbContext, list.Id, cancellationToken, includeInactiveList: true));
-        }).WithName("ArchiveList").Produces<ListDto>().Produces(StatusCodes.Status404NotFound);
+            return Results.Ok(ToSummaryDto(list));
+        }).WithName("ArchiveList").Produces<ListSummaryDto>().ProducesValidationProblem().Produces(StatusCodes.Status404NotFound).Produces(StatusCodes.Status409Conflict);
 
-        group.MapDelete("/{listId:guid}", async (Guid listId, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        group.MapPost("/{listId:guid}/restore", async (Guid listId, RestoreListRequest request, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
         {
-            var list = await dbContext.Lists.FirstOrDefaultAsync(candidate => candidate.Id == listId && candidate.HouseholdId == SeedHousehold.Id && !candidate.IsDeleted, cancellationToken);
+            var list = await dbContext.Lists.Include(candidate => candidate.Items).FirstOrDefaultAsync(candidate => candidate.Id == listId && candidate.HouseholdId == SeedHousehold.Id && candidate.IsArchived && !candidate.IsDeleted, cancellationToken);
             if (list is null)
             {
                 return Results.NotFound();
             }
 
+
+            if (!MatchesExpectedUpdate(list.UpdatedUtc, request.ExpectedUpdatedUtc))
+            {
+                return Results.Conflict(new { error = "The list changed after it was loaded." });
+            }
+
+            if (await ActiveListNameExists(dbContext, list.Name, list.Id, cancellationToken))
+            {
+                return Results.Conflict(new { error = "Restore is blocked because an active list with this name already exists." });
+            }
+
             var now = DateTimeOffset.UtcNow;
-            list.IsDeleted = true;
-            list.DeletedUtc = now;
+            list.IsArchived = false;
+            list.ArchivedUtc = null;
             list.UpdatedUtc = now;
+            try
+            {
+                await dbContext.SaveChangesAsync(cancellationToken);
+            }
+            catch (DbUpdateException)
+            {
+                return Results.Conflict(new { error = "Restore is blocked because an active list with this name already exists." });
+            }
+
+            return Results.Ok(ToSummaryDto(list));
+        }).WithName("RestoreList").Produces<ListSummaryDto>().Produces(StatusCodes.Status404NotFound).Produces(StatusCodes.Status409Conflict);
+
+        group.MapPost("/{listId:guid}/permanent-delete", async (Guid listId, PermanentDeleteListRequest request, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        {
+            if (!request.Confirmed)
+            {
+                return Results.ValidationProblem(new Dictionary<string, string[]> { [nameof(request.Confirmed)] = ["Permanent deletion requires explicit confirmation."] });
+            }
+
+            var list = await dbContext.Lists
+                .Include(candidate => candidate.Items)
+                .FirstOrDefaultAsync(candidate => candidate.Id == listId && candidate.HouseholdId == SeedHousehold.Id && !candidate.IsDeleted, cancellationToken);
+            if (list is null)
+            {
+                return Results.NotFound();
+            }
+
+            if (!MatchesExpectedUpdate(list.UpdatedUtc, request.ExpectedUpdatedUtc))
+            {
+                return Results.Conflict(new { error = "The list changed after the confirmation was opened." });
+            }
+
+            dbContext.ListItems.RemoveRange(list.Items);
+            dbContext.Lists.Remove(list);
             await dbContext.SaveChangesAsync(cancellationToken);
             return Results.NoContent();
-        }).WithName("DeleteList").Produces(StatusCodes.Status204NoContent).Produces(StatusCodes.Status404NotFound);
+        }).WithName("PermanentlyDeleteList").Produces(StatusCodes.Status204NoContent).ProducesValidationProblem().Produces(StatusCodes.Status404NotFound).Produces(StatusCodes.Status409Conflict);
 
         group.MapPost("/{listId:guid}/items", async (Guid listId, AddListItemRequest request, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
         {
@@ -322,6 +396,45 @@ public static class ListEndpoints
             .ToListAsync(cancellationToken);
 
     private static string NormalizeItemText(string text) => text.Trim().ToUpperInvariant();
+
+    private static ListSummaryDto ToSummaryDto(List list) => new(
+        list.Id,
+        list.Name,
+        list.IsArchived,
+        list.IsDeleted,
+        list.ArchivedUtc,
+        list.CreatedUtc,
+        list.UpdatedUtc,
+        list.HouseholdId,
+        list.Items.Count(item => !item.IsDeleted && !item.IsCompleted),
+        list.Items.Count(item => !item.IsDeleted && !item.IsCompleted),
+        list.Items.Count(item => !item.IsDeleted && item.IsCompleted),
+        list.Items.Count(item => item.IsDeleted),
+        list.Items.Count);
+
+    private static (string Name, string? Error) ValidateListName(string? name)
+    {
+        var trimmedName = name?.Trim() ?? string.Empty;
+        if (trimmedName.Length == 0) return (trimmedName, "List name is required.");
+        if (trimmedName.Length > 160) return (trimmedName, "List name must be 160 characters or fewer.");
+        return (trimmedName, null);
+    }
+
+    private static Task<bool> ActiveListNameExists(HomeOpsDbContext dbContext, string name, Guid? exceptListId, CancellationToken cancellationToken) =>
+        dbContext.Lists.AsNoTracking().AnyAsync(
+            candidate => candidate.HouseholdId == SeedHousehold.Id
+                && !candidate.IsArchived
+                && !candidate.IsDeleted
+                && (exceptListId == null || candidate.Id != exceptListId.Value)
+                && candidate.Name.ToUpper() == name.ToUpper(),
+            cancellationToken);
+
+    private static bool MatchesExpectedUpdate(DateTimeOffset actual, DateTimeOffset expected)
+    {
+        // JavaScript Date preserves milliseconds, while PostgreSQL/.NET can retain finer precision.
+        // Compare at the precision represented by the generated TypeScript client.
+        return actual.ToUnixTimeMilliseconds() == expected.ToUnixTimeMilliseconds();
+    }
 
     private static string? NormalizeStore(string? store)
     {

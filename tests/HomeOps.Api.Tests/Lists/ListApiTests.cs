@@ -7,6 +7,7 @@ using HomeOps.Api.Data;
 using HomeOps.Api.FamilyMembers;
 using HomeOps.Api.Households;
 using HomeOps.Api.KnownPeople;
+using Microsoft.EntityFrameworkCore;
 
 namespace HomeOps.Api.Tests.Lists;
 
@@ -45,6 +46,25 @@ public sealed class ListApiTests(HomeOpsWebApplicationFactory factory) : IClassF
         var created = await response.Content.ReadFromJsonAsync<ListDto>();
         Assert.NotNull(created);
         Assert.Equal("Hardware Store", created.Name);
+    }
+
+    [Fact]
+    public async Task CreateAndRenameRejectEmptyOverlongAndCaseInsensitiveActiveDuplicates()
+    {
+        var name = $"Weekend {Guid.NewGuid():N}";
+        var createdResponse = await _client.PostAsJsonAsync("/api/lists", new CreateListRequest(name));
+        createdResponse.EnsureSuccessStatusCode();
+        var created = await createdResponse.Content.ReadFromJsonAsync<ListDto>();
+        Assert.NotNull(created);
+
+        Assert.Equal(HttpStatusCode.Conflict, (await _client.PostAsJsonAsync("/api/lists", new CreateListRequest($"  {name.ToUpperInvariant()}  "))).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await _client.PostAsJsonAsync("/api/lists", new CreateListRequest("   "))).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await _client.PostAsJsonAsync("/api/lists", new CreateListRequest(new string('x', 161)))).StatusCode);
+
+        var otherResponse = await _client.PostAsJsonAsync("/api/lists", new CreateListRequest($"Other {Guid.NewGuid():N}"));
+        var other = await otherResponse.Content.ReadFromJsonAsync<ListDto>();
+        Assert.NotNull(other);
+        Assert.Equal(HttpStatusCode.Conflict, (await _client.PatchAsJsonAsync($"/api/lists/{other.Id}/name", new RenameListRequest(name.ToLowerInvariant()))).StatusCode);
     }
 
     [Fact]
@@ -100,33 +120,69 @@ public sealed class ListApiTests(HomeOpsWebApplicationFactory factory) : IClassF
     }
 
     [Fact]
-    public async Task RenameArchiveAndDeleteListLifecycleHidesListsFromNormalViews()
+    public async Task ListLifecycleSupportsCountsArchiveRestoreConflictAndConfirmedPermanentDeletion()
     {
-        var createResponse = await _client.PostAsJsonAsync("/api/lists", new CreateListRequest("Camping Trip"));
+        var lifecycleName = $"Camping Trip {Guid.NewGuid():N}";
+        var createResponse = await _client.PostAsJsonAsync("/api/lists", new CreateListRequest(lifecycleName));
         var created = await createResponse.Content.ReadFromJsonAsync<ListDto>();
         Assert.NotNull(created);
 
-        var renameResponse = await _client.PatchAsJsonAsync($"/api/lists/{created.Id}/name", new RenameListRequest("Summer Camping"));
+        var activeItem = await (await _client.PostAsJsonAsync($"/api/lists/{created.Id}/items", new AddListItemRequest("Tent"))).Content.ReadFromJsonAsync<ListItemDto>();
+        var completedItem = await (await _client.PostAsJsonAsync($"/api/lists/{created.Id}/items", new AddListItemRequest("Sleeping bag"))).Content.ReadFromJsonAsync<ListItemDto>();
+        Assert.NotNull(activeItem);
+        Assert.NotNull(completedItem);
+        (await _client.PostAsync($"/api/lists/{created.Id}/items/{completedItem.Id}/toggle", null)).EnsureSuccessStatusCode();
+
+        var renamedName = $"Summer Camping {Guid.NewGuid():N}";
+        var renameResponse = await _client.PatchAsJsonAsync($"/api/lists/{created.Id}/name", new RenameListRequest(renamedName));
         Assert.Equal(HttpStatusCode.OK, renameResponse.StatusCode);
         var renamed = await renameResponse.Content.ReadFromJsonAsync<ListDto>();
         Assert.NotNull(renamed);
-        Assert.Equal("Summer Camping", renamed.Name);
+        Assert.Equal(renamedName, renamed.Name);
 
-        var archiveResponse = await _client.PostAsync($"/api/lists/{created.Id}/archive", null);
+        Assert.Equal(HttpStatusCode.BadRequest, (await _client.PostAsJsonAsync($"/api/lists/{created.Id}/archive", new ArchiveListRequest(renamed.UpdatedUtc, false))).StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict, (await _client.PostAsJsonAsync($"/api/lists/{created.Id}/archive", new ArchiveListRequest(renamed.UpdatedUtc.AddSeconds(-1), true))).StatusCode);
+
+        var browserPrecisionUpdatedUtc = DateTimeOffset.FromUnixTimeMilliseconds(renamed.UpdatedUtc.ToUnixTimeMilliseconds());
+        var archiveResponse = await _client.PostAsJsonAsync($"/api/lists/{created.Id}/archive", new ArchiveListRequest(browserPrecisionUpdatedUtc, true));
         Assert.Equal(HttpStatusCode.OK, archiveResponse.StatusCode);
+        var archivedSummary = await archiveResponse.Content.ReadFromJsonAsync<ListSummaryDto>();
+        Assert.NotNull(archivedSummary);
+        Assert.True(archivedSummary.IsArchived);
+        Assert.Equal(1, archivedSummary.ActiveItemCount);
+        Assert.Equal(1, archivedSummary.CompletedItemCount);
+        Assert.Equal(2, archivedSummary.TotalItemCount);
+
         var listsAfterArchive = await _client.GetFromJsonAsync<ListSummaryDto[]>("/api/lists");
         Assert.NotNull(listsAfterArchive);
         Assert.DoesNotContain(listsAfterArchive, list => list.Id == created.Id);
+        var allLists = await _client.GetFromJsonAsync<ListSummaryDto[]>("/api/lists?includeArchived=true");
+        Assert.Contains(allLists!, list => list.Id == created.Id && list.IsArchived);
 
-        var deleteCreateResponse = await _client.PostAsJsonAsync("/api/lists", new CreateListRequest("Birthday Party"));
-        var deleteCandidate = await deleteCreateResponse.Content.ReadFromJsonAsync<ListDto>();
-        Assert.NotNull(deleteCandidate);
+        var replacementResponse = await _client.PostAsJsonAsync("/api/lists", new CreateListRequest(renamedName.ToLowerInvariant()));
+        Assert.Equal(HttpStatusCode.Created, replacementResponse.StatusCode);
+        var replacement = await replacementResponse.Content.ReadFromJsonAsync<ListDto>();
+        Assert.NotNull(replacement);
+        Assert.Equal(HttpStatusCode.Conflict, (await _client.PostAsJsonAsync($"/api/lists/{created.Id}/restore", new RestoreListRequest(archivedSummary.UpdatedUtc))).StatusCode);
 
-        var deleteResponse = await _client.DeleteAsync($"/api/lists/{deleteCandidate.Id}");
+        var archivedReplacementResponse = await _client.PostAsJsonAsync($"/api/lists/{replacement.Id}/archive", new ArchiveListRequest(replacement.UpdatedUtc, true));
+        archivedReplacementResponse.EnsureSuccessStatusCode();
+        var restoreResponse = await _client.PostAsJsonAsync($"/api/lists/{created.Id}/restore", new RestoreListRequest(archivedSummary.UpdatedUtc));
+        Assert.Equal(HttpStatusCode.OK, restoreResponse.StatusCode);
+        var restoredSummary = await restoreResponse.Content.ReadFromJsonAsync<ListSummaryDto>();
+        Assert.NotNull(restoredSummary);
+        Assert.False(restoredSummary.IsArchived);
+        Assert.Null(restoredSummary.ArchivedUtc);
+
+        Assert.Equal(HttpStatusCode.BadRequest, (await _client.PostAsJsonAsync($"/api/lists/{created.Id}/permanent-delete", new PermanentDeleteListRequest(restoredSummary.UpdatedUtc, false))).StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict, (await _client.PostAsJsonAsync($"/api/lists/{created.Id}/permanent-delete", new PermanentDeleteListRequest(restoredSummary.UpdatedUtc.AddSeconds(-1), true))).StatusCode);
+        var deleteResponse = await _client.PostAsJsonAsync($"/api/lists/{created.Id}/permanent-delete", new PermanentDeleteListRequest(restoredSummary.UpdatedUtc, true));
         Assert.Equal(HttpStatusCode.NoContent, deleteResponse.StatusCode);
-        var listsAfterDelete = await _client.GetFromJsonAsync<ListSummaryDto[]>("/api/lists");
-        Assert.NotNull(listsAfterDelete);
-        Assert.DoesNotContain(listsAfterDelete, list => list.Id == deleteCandidate.Id);
+
+        await using var scope = factory.Services.CreateAsyncScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<HomeOpsDbContext>();
+        Assert.False(await dbContext.Lists.AnyAsync(list => list.Id == created.Id));
+        Assert.False(await dbContext.ListItems.AnyAsync(item => item.ListId == created.Id));
     }
 
     [Fact]

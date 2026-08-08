@@ -10,7 +10,7 @@ export function createListsSummaryApiClient(): HomeOpsApiClient {
 
 
 export async function loadShoppingListSummary(client = createListsSummaryApiClient()): Promise<ListSummary | null> {
-  const lists = await client.getLists();
+  const lists = await client.getLists(false);
   const shoppingList = lists.find((list) => isDedicatedShoppingListName(list.name));
 
   if (!shoppingList?.id) {
@@ -23,7 +23,7 @@ export async function loadShoppingListSummary(client = createListsSummaryApiClie
 }
 
 export async function loadListSummaries(client = createListsSummaryApiClient()): Promise<ListSummary[]> {
-  const lists = await client.getLists();
+  const lists = await client.getLists(false);
   const listDetails = await Promise.all(
     lists
       .filter((list) => (list.itemCount ?? 0) > 0)

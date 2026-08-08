@@ -754,6 +754,55 @@ test("household weather location persists coordinates and units in the bounded S
   await expect(reopened.getByLabel("Eenheden")).toHaveValue("1");
 });
 
+test("shopping lists can be created, archived, restored, and permanently deleted in one bounded surface", async ({ page, request }) => {
+  await resetFixture(request, "visual-full");
+  await page.setViewportSize({ width: 1366, height: 768 });
+  await page.goto("/");
+
+  await page.getByLabel("Dagelijkse gezinsplekken").getByRole("button", { name: "Boodschappen", exact: true }).click();
+  await page.getByRole("button", { name: "Lijsten" }).click();
+  const dialog = page.getByRole("dialog", { name: "Lijsten", exact: true });
+  const listName = `Weekend ${Date.now()}`;
+  await dialog.getByLabel("Nieuwe lijst").fill(listName);
+  const createResponse = page.waitForResponse((response) => response.request().method() === "POST" && new URL(response.url()).pathname === "/api/lists");
+  await dialog.getByRole("button", { name: "Lijst maken" }).click();
+  expect((await createResponse).ok()).toBe(true);
+  await expect(dialog.getByRole("status")).toContainText(`${listName} is gemaakt en geopend.`);
+  await expectNoDocumentScroll(page, "Shopping list directory at 1366x768");
+
+  const createdList = dialog.getByLabel(listName);
+  await createdList.getByRole("button", { name: "Archiveren" }).click();
+  let confirmation = dialog.getByRole("alertdialog", { name: "Archiveren bevestigen" });
+  await expect(confirmation).toContainText("beschikbaar om te herstellen");
+  const archiveResponse = page.waitForResponse((response) => response.request().method() === "POST" && new URL(response.url()).pathname.endsWith("/archive"));
+  await confirmation.getByRole("button", { name: "Archiveren" }).click();
+  expect((await archiveResponse).ok()).toBe(true);
+  await expect(dialog.getByRole("status")).toContainText(`${listName} is gearchiveerd.`);
+
+  const archivedLists = dialog.getByLabel("Gearchiveerde lijsten");
+  let archivedList = archivedLists.locator("article").filter({ hasText: listName });
+  const restoreResponse = page.waitForResponse((response) => response.request().method() === "POST" && new URL(response.url()).pathname.endsWith("/restore"));
+  await archivedList.getByRole("button", { name: "Herstellen" }).click();
+  expect((await restoreResponse).ok()).toBe(true);
+  await expect(dialog.getByRole("status")).toContainText(`${listName} is hersteld en geopend.`);
+
+  await dialog.getByLabel(listName).getByRole("button", { name: "Archiveren" }).click();
+  confirmation = dialog.getByRole("alertdialog", { name: "Archiveren bevestigen" });
+  const secondArchiveResponse = page.waitForResponse((response) => response.request().method() === "POST" && new URL(response.url()).pathname.endsWith("/archive"));
+  await confirmation.getByRole("button", { name: "Archiveren" }).click();
+  expect((await secondArchiveResponse).ok()).toBe(true);
+
+  archivedList = archivedLists.locator("article").filter({ hasText: listName });
+  await archivedList.getByRole("button", { name: "Permanent verwijderen" }).click();
+  confirmation = dialog.getByRole("alertdialog", { name: "Gearchiveerde lijst permanent verwijderen bevestigen" });
+  await expect(confirmation).toContainText("verdwijnen definitief");
+  const deleteResponse = page.waitForResponse((response) => response.request().method() === "POST" && new URL(response.url()).pathname.endsWith("/permanent-delete"));
+  await confirmation.getByRole("button", { name: "Permanent verwijderen" }).click();
+  expect((await deleteResponse).status()).toBe(204);
+  await expect(archivedLists.getByText(listName, { exact: true })).toHaveCount(0);
+  await expectNoDocumentScroll(page, "Shopping list lifecycle at 1366x768");
+});
+
 test("primary pages do not create document-level vertical scrolling", async ({ page, request }) => {
   await resetFixture(request, "visual-full");
   await seedWoningRuntime(request);

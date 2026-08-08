@@ -58,6 +58,7 @@ describe('lists API mapping', () => {
         ],
       },
       otherLists: [],
+      archivedLists: [],
     });
   });
 
@@ -75,6 +76,7 @@ describe('lists API mapping', () => {
     await expect(loadShoppingPageLists(client as never)).resolves.toEqual({
       shoppingList: { listId: 'shopping-list-id', name: 'Shopping', items: [{ id: 'milk', label: 'Milk', completed: false, completedUtc: null, deleted: false, deletedUtc: null, preferredStore: null, storeSuggestions: [] }] },
       otherLists: [{ listId: 'packing-list-id', name: 'Vacation Packing', items: [{ id: 'sunscreen', label: 'Sunscreen', completed: false, completedUtc: null, deleted: false, deletedUtc: null, preferredStore: null, storeSuggestions: [] }] }],
+      archivedLists: [],
     });
   });
 });

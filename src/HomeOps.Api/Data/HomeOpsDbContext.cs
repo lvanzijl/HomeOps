@@ -378,7 +378,9 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
                 .WithMany()
                 .HasForeignKey(list => list.HouseholdId)
                 .OnDelete(DeleteBehavior.Restrict);
-            entity.HasIndex(list => new { list.HouseholdId, list.Name }).IsUnique();
+            entity.HasIndex(list => new { list.HouseholdId, list.Name })
+                .IsUnique()
+                .HasFilter("NOT \"IsArchived\" AND NOT \"IsDeleted\"");
         });
 
         modelBuilder.Entity<ListItem>(entity =>

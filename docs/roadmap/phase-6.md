@@ -7,7 +7,7 @@ Phase 6 completes the normal user lifecycle for Shopping lists/items and Motivat
 | Slice | Status | Outcome |
 | --- | --- | --- |
 | 6.0 Mandatory primary-page analyses | Completed 2026-08-08 | Approved separate Shopping and Motivation viewport contracts, including the required Motivation overflow repair. |
-| 6.1 Shopping list lifecycle | Not started | Add visible multi-list creation plus explicit archive, restore, and permanent-delete lifecycle. |
+| 6.1 Shopping list lifecycle | Completed 2026-08-08 | Added bounded multi-list creation plus explicit archive, restore, and permanent-delete lifecycle. |
 | 6.2 Shopping item editing and unified history | Not started | Correct items in place and make Home/Shopping use one server-backed history/suggestion source. |
 | 6.3 Goal progress definition and audit ledger | Not started | Define progress semantics, derive totals from immutable ledger entries, and add compensating corrections. |
 | 6.4 Helpful-moment and family-goal lifecycle | Not started | Add helpful-moment correction/removal and family-goal stop/archive/history behavior. |
@@ -22,6 +22,16 @@ The Motivation contract keeps the current two-column/top plus full-width/bottom 
 
 Validation: repository/audit/code/test inspection; live isolated-data browser inspection at 1280×720; measured document/body overflow and internal regions; current Shopping management, Motivation progress, appreciation-history, and personal-goal dialogs; and the existing Playwright primary-page viewport guard at 1440×900 and 1366×768. The guard passes 1/1. The approved analyses and completion report are under `docs/reports/2026-08-08-phase-6-viewport-analysis/`.
 
+## Slice 6.1 outcome
+
+Shopping now exposes an always-available `Lijsten` action. Its bounded directory creates additional named lists, opens active lists, and shows archived lists without changing the page's command/list/footer composition. Active names are trimmed, required, limited to 160 characters, and compared case-insensitively; an archived name may be reused, while restore is blocked if that would collide with an active list.
+
+Archive is explicitly reversible. Restore reopens the list with its items. Permanent delete is explicitly confirmed and removes the list plus its item rows while retaining only household-level suggestion and purchase history. Confirmation states show open, completed, deleted, and total item counts. Expected-update checks protect every lifecycle mutation and compare at the millisecond precision carried by the generated TypeScript client.
+
+Migration `20260808160556_AddShoppingListLifecycleCompletion` removes rows previously marked as permanently deleted and replaces the old name index with a filtered unique index for active lists. OpenAPI and the TypeScript client were regenerated twice with pinned NSwag 14.7.1 and identical hashes.
+
+The implementation follows the approved Shopping analysis. The workspace now uses border-box sizing; list-directory growth is owned by its internal scroller. PostgreSQL-backed Chromium passes all 17 scenarios, including create/archive/restore/permanent delete and the no-document-scroll checks at 1440×900 and 1366×768. Independent in-app inspection at 1366×768 measured zero document overflow, a 585.1 px dialog ending at 730.8 px, and a border-box Shopping workspace ending at 743.0 px. See `docs/reports/2026-08-08-shopping-list-lifecycle/implementation.md`.
+
 ## Fixed boundaries
 
 - Work remains one numeric slice and one commit per run.
@@ -34,7 +44,7 @@ Validation: repository/audit/code/test inspection; live isolated-data browser in
 
 ## Phase exit criteria
 
-- [ ] Multiple shopping lists can be created, archived, restored, and intentionally deleted.
+- [x] Multiple shopping lists can be created, archived, restored, and intentionally deleted.
 - [ ] Shopping items can be corrected in place.
 - [ ] Home/Shopping suggestions use one server source.
 - [ ] Goal progress is explainable and correctable.

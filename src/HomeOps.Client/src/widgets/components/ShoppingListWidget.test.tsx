@@ -12,9 +12,11 @@ import { ShoppingListWidget } from "./ShoppingListWidget";
 const apiClient = {} as never;
 
 vi.mock("../../shopping/listsApi", () => ({
+  isDedicatedShoppingListName: (name: string | undefined) => ["shopping", "boodschappen"].includes(name?.trim().toLowerCase() ?? ""),
   createListsApiClient: () => apiClient,
   loadShoppingPageLists: vi.fn(),
   createShoppingList: vi.fn(),
+  createNamedShoppingList: vi.fn(),
   addShoppingListItem: vi.fn(),
   toggleShoppingListItem: vi.fn(),
   updateShoppingListItemStore: vi.fn(),
@@ -23,7 +25,8 @@ vi.mock("../../shopping/listsApi", () => ({
   undoShoppingListItem: vi.fn(),
   renameShoppingList: vi.fn(),
   archiveShoppingList: vi.fn(),
-  deleteShoppingList: vi.fn(),
+  restoreShoppingList: vi.fn(),
+  permanentlyDeleteShoppingList: vi.fn(),
 }));
 
 vi.mock("../../home/familyMembersApi", () => ({
@@ -81,6 +84,11 @@ describe("ShoppingListWidget API-backed behavior", () => {
       shoppingList: {
         listId: "shopping-list-id",
         name: "Shopping",
+        updatedUtc: new Date("2026-08-08T10:00:00Z"),
+        activeItemCount: 2,
+        completedItemCount: 1,
+        deletedItemCount: 0,
+        totalItemCount: 3,
         items: [
           {
             id: "bread",
@@ -114,6 +122,11 @@ describe("ShoppingListWidget API-backed behavior", () => {
         {
           listId: "packing-list-id",
           name: "Vacation Packing",
+          updatedUtc: new Date("2026-08-08T10:00:00Z"),
+          activeItemCount: 1,
+          completedItemCount: 0,
+          deletedItemCount: 0,
+          totalItemCount: 1,
           items: [
             {
               id: "sunscreen",
@@ -127,6 +140,11 @@ describe("ShoppingListWidget API-backed behavior", () => {
         {
           listId: "camping-list-id",
           name: "Camping",
+          updatedUtc: new Date("2026-08-08T10:00:00Z"),
+          activeItemCount: 1,
+          completedItemCount: 0,
+          deletedItemCount: 0,
+          totalItemCount: 1,
           items: [
             {
               id: "tent",
@@ -138,6 +156,7 @@ describe("ShoppingListWidget API-backed behavior", () => {
           ],
         },
       ],
+      archivedLists: [],
     });
     vi.mocked(listsApi.createShoppingList).mockResolvedValue({
       listId: "shopping-list-id",
@@ -195,6 +214,37 @@ describe("ShoppingListWidget API-backed behavior", () => {
         { store: "Corner Shop", purchaseCount: 1 },
       ],
     });
+    vi.mocked(listsApi.createNamedShoppingList).mockResolvedValue({
+      listId: "weekend-list-id",
+      name: "Weekend",
+      updatedUtc: new Date("2026-08-08T11:00:00Z"),
+      activeItemCount: 0,
+      completedItemCount: 0,
+      deletedItemCount: 0,
+      totalItemCount: 0,
+      items: [],
+    });
+    vi.mocked(listsApi.archiveShoppingList).mockResolvedValue({
+      listId: "shopping-list-id",
+      name: "Shopping",
+      archivedUtc: new Date("2026-08-08T11:00:00Z"),
+      updatedUtc: new Date("2026-08-08T11:00:00Z"),
+      activeItemCount: 2,
+      completedItemCount: 1,
+      deletedItemCount: 0,
+      totalItemCount: 3,
+    });
+    vi.mocked(listsApi.restoreShoppingList).mockResolvedValue({
+      listId: "archived-list-id",
+      name: "Feest",
+      updatedUtc: new Date("2026-08-08T12:00:00Z"),
+      activeItemCount: 1,
+      completedItemCount: 1,
+      deletedItemCount: 0,
+      totalItemCount: 2,
+      items: [],
+    });
+    vi.mocked(listsApi.permanentlyDeleteShoppingList).mockResolvedValue();
   });
 
   it("loads shopping list items from the API-backed list service", async () => {
@@ -408,7 +458,7 @@ describe("ShoppingListWidget API-backed behavior", () => {
     ).not.toBeNull();
     expect(screen.queryByText("Vacation Packing")).toBeNull();
 
-    await user.click(screen.getByRole("button", { name: /Andere lijsten/i }));
+    await user.click(screen.getByRole("button", { name: /Lijsten/i }));
     expect(await screen.findByText("Vacation Packing")).not.toBeNull();
     expect(screen.getByText("Camping")).not.toBeNull();
     expect(screen.getByText("Sunscreen")).not.toBeNull();
@@ -478,8 +528,84 @@ describe("ShoppingListWidget API-backed behavior", () => {
       within(shoppingSurface).getByRole("button", { name: "Archiveren" }),
     ).not.toBeNull();
     expect(
-      within(shoppingSurface).getByRole("button", { name: "Verwijderen" }),
+      within(shoppingSurface).getByRole("button", { name: "Permanent verwijderen" }),
     ).not.toBeNull();
+  });
+
+  it("creates an additional named list from the always-available bounded directory", async () => {
+    const user = userEvent.setup();
+    const listsApi = await mockedListsApi();
+    render(<ShoppingListWidget {...widgetProps} />);
+    await screen.findAllByText("Bread");
+
+    await user.click(screen.getByRole("button", { name: /Lijsten/i }));
+    await user.type(screen.getByLabelText("Nieuwe lijst"), "Weekend");
+    await user.click(screen.getByRole("button", { name: "Lijst maken" }));
+
+    expect(listsApi.createNamedShoppingList).toHaveBeenCalledWith(apiClient, "Weekend");
+    expect(await screen.findByText("Weekend is gemaakt en geopend.")).not.toBeNull();
+    expect(screen.getByRole("tab", { name: /Weekend/i })).not.toBeNull();
+  });
+
+  it("requires an in-dialog confirmation before archiving the current list", async () => {
+    const user = userEvent.setup();
+    const listsApi = await mockedListsApi();
+    render(<ShoppingListWidget {...widgetProps} />);
+    await screen.findAllByText("Bread");
+
+    await user.click(screen.getByRole("checkbox", { name: "Bread" }));
+    await user.click(screen.getByRole("button", { name: "Beheer" }));
+    await user.click(screen.getByRole("button", { name: "Archiveren" }));
+    const confirmation = screen.getByRole("alertdialog", { name: "Archiveren bevestigen" });
+    expect(within(confirmation).getByText(/1 open, 2 afgevinkte/)).not.toBeNull();
+    expect(listsApi.archiveShoppingList).not.toHaveBeenCalled();
+
+    await user.click(within(confirmation).getByRole("button", { name: "Ja, archiveren" }));
+    expect(listsApi.archiveShoppingList).toHaveBeenCalledWith(apiClient, "shopping-list-id", new Date("2026-08-08T10:00:00Z"));
+    expect(await screen.findByText("Boodschappen is gearchiveerd.")).not.toBeNull();
+  });
+
+  it("restores or permanently deletes archived lists from the same directory surface", async () => {
+    const user = userEvent.setup();
+    const listsApi = await mockedListsApi();
+    const archivedSummary = {
+      listId: "archived-list-id",
+      name: "Feest",
+      archivedUtc: new Date("2026-08-07T10:00:00Z"),
+      updatedUtc: new Date("2026-08-07T10:00:00Z"),
+      activeItemCount: 1,
+      completedItemCount: 1,
+      deletedItemCount: 0,
+      totalItemCount: 2,
+    };
+    vi.mocked(listsApi.loadShoppingPageLists).mockResolvedValueOnce({
+      shoppingList: { listId: "shopping-list-id", name: "Shopping", updatedUtc: new Date("2026-08-08T10:00:00Z"), items: [] },
+      otherLists: [],
+      archivedLists: [archivedSummary],
+    });
+
+    render(<ShoppingListWidget {...widgetProps} />);
+    await screen.findByText("Begin met je eerste boodschap");
+    await user.click(screen.getByRole("button", { name: /Lijsten/i }));
+    expect(await screen.findByText("Feest")).not.toBeNull();
+    await user.click(screen.getByRole("button", { name: "Herstellen" }));
+    expect(listsApi.restoreShoppingList).toHaveBeenCalledWith(apiClient, archivedSummary);
+    expect(await screen.findByText("Feest is hersteld en geopend.")).not.toBeNull();
+
+    cleanup();
+    vi.mocked(listsApi.loadShoppingPageLists).mockResolvedValueOnce({
+      shoppingList: { listId: "shopping-list-id", name: "Shopping", updatedUtc: new Date("2026-08-08T10:00:00Z"), items: [] },
+      otherLists: [],
+      archivedLists: [archivedSummary],
+    });
+    render(<ShoppingListWidget {...widgetProps} />);
+    await screen.findByText("Begin met je eerste boodschap");
+    await user.click(screen.getByRole("button", { name: /Lijsten/i }));
+    await user.click(screen.getByRole("button", { name: "Permanent verwijderen" }));
+    const confirmation = screen.getByRole("alertdialog", { name: "Gearchiveerde lijst permanent verwijderen bevestigen" });
+    expect(within(confirmation).getByText(/2 items/)).not.toBeNull();
+    await user.click(within(confirmation).getByRole("button", { name: "Ja, permanent verwijderen" }));
+    expect(listsApi.permanentlyDeleteShoppingList).toHaveBeenCalledWith(apiClient, "archived-list-id", archivedSummary.updatedUtc);
   });
 
   it("guides households when the first list has no items yet", async () => {
@@ -532,8 +658,8 @@ describe("ShoppingListWidget API-backed behavior", () => {
       screen.getByRole("button", { name: "Sluit boodschappenpaneel" }),
     );
 
-    await user.click(screen.getByRole("button", { name: /Andere lijsten/i }));
-    expect(await screen.findByText("Open een andere lijst.")).not.toBeNull();
+    await user.click(screen.getByRole("button", { name: /Lijsten/i }));
+    expect(await screen.findByText("Maak, open, archiveer of herstel een lijst.")).not.toBeNull();
     expect(
       screen.queryByText(
         "Schakel naar ondersteunende lijsten zonder de standaardweergave uit te breiden.",

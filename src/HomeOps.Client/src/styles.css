@@ -9980,6 +9980,7 @@ button {
     radial-gradient(circle at 0 0, color-mix(in srgb, var(--domain-accent, #f97316) 16%, transparent), transparent 34%);
   border: 1px solid color-mix(in srgb, var(--domain-border, #fed7aa) 76%, white);
   border-radius: 1.45rem;
+  box-sizing: border-box;
   box-shadow: var(--elevation-warm-1);
   display: grid;
   gap: clamp(0.55rem, 0.8vw, 0.85rem);
@@ -10407,7 +10408,107 @@ button {
 
 .shopping-other-lists-panel {
   gap: 0.8rem;
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr);
+}
+
+.shopping-list-create-form {
+  align-items: end;
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.shopping-list-create-form label {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.shopping-list-create-form label span,
+.shopping-list-directory-section h5 {
+  color: #7c2d12;
+  font-size: 0.88rem;
+  font-weight: 850;
+}
+
+.shopping-list-create-form input {
+  min-height: 2.55rem;
+}
+
+.shopping-list-create-form button {
+  min-height: 2.55rem;
+}
+
+.shopping-directory-status {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 0.75rem;
+  color: #9a3412;
+  margin: 0;
+  padding: 0.45rem 0.65rem;
+}
+
+.shopping-list-directory-body {
+  display: grid;
+  gap: 0.85rem;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 0.25rem;
+}
+
+.shopping-list-directory-section {
+  display: grid;
+  gap: 0.55rem;
+  min-height: 0;
+}
+
+.shopping-list-directory-section h5 {
+  margin: 0;
+}
+
+.shopping-archived-list-rows {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.shopping-archived-list-row {
+  align-items: center;
+  background: rgb(255 255 255 / 78%);
+  border: 1px solid color-mix(in srgb, var(--domain-border, #fed7aa) 68%, white);
+  border-radius: 0.9rem;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+  padding: 0.65rem;
+}
+
+.shopping-archived-list-row > div:first-child {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.shopping-archived-list-row small {
+  color: var(--color-text-muted);
+}
+
+.shopping-lifecycle-confirmation {
+  background: rgb(255 247 237 / 92%);
+  border: 1px solid #fdba74;
+  border-radius: 1rem;
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.8rem;
+}
+
+.shopping-lifecycle-confirmation h5,
+.shopping-lifecycle-confirmation p {
+  margin: 0;
+}
+
+.shopping-lifecycle-confirmation > div:first-child {
+  display: grid;
+  gap: 0.4rem;
 }
 
 .shopping-other-list-tabs {
@@ -10466,6 +10567,15 @@ button {
 }
 
 @media (max-width: 900px) {
+  .shopping-list-create-form {
+    grid-template-columns: 1fr;
+  }
+
+  .shopping-archived-list-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
   .shopping-execution-form {
     grid-template-columns: 1fr;
   }

@@ -1,6 +1,6 @@
 import { type ReactNode, FormEvent, useEffect, useId, useMemo, useState } from 'react';
-import { addShoppingListItem, archiveShoppingList, createListsApiClient, createShoppingList, deleteShoppingList, loadShoppingPageLists, removeShoppingListItem, renameShoppingList, toggleShoppingListItem, undoShoppingListItem, updateShoppingListItemDecorativeAvatar, updateShoppingListItemStore } from '../../shopping/listsApi';
-import type { ShoppingDecorativeAvatarReference, ShoppingListItem, ShoppingListState } from '../../shopping/shoppingListModel';
+import { addShoppingListItem, archiveShoppingList, createListsApiClient, createNamedShoppingList, createShoppingList, isDedicatedShoppingListName, loadShoppingPageLists, permanentlyDeleteShoppingList, removeShoppingListItem, renameShoppingList, restoreShoppingList, toggleShoppingListItem, undoShoppingListItem, updateShoppingListItemDecorativeAvatar, updateShoppingListItemStore } from '../../shopping/listsApi';
+import type { ShoppingDecorativeAvatarReference, ShoppingListItem, ShoppingListLifecycleSummary, ShoppingListState } from '../../shopping/shoppingListModel';
 import { groupShoppingItemsByPreferredStore } from '../../shopping/shoppingGrouping';
 import { getActiveShoppingListItems, getCompletedShoppingListItems, getDeletedShoppingListItems, upsertShoppingListItem } from '../../shopping/shoppingListState';
 import type { WidgetRenderProps } from '../WidgetRenderer';
@@ -11,7 +11,7 @@ import type { FamilyMember } from '../../home/familyMembers';
 import { listKnownPeople } from '../../knownPeople/knownPeopleApi';
 import type { KnownPerson } from '../../knownPeople/knownPeople';
 
-type ShoppingPanelKind = 'completed' | 'deleted' | 'otherLists' | 'manage';
+type ShoppingPanelKind = 'completed' | 'deleted' | 'lists' | 'manage';
 
 function getDisplayListName(name: string) {
   return name === 'Shopping' ? 'Boodschappen' : name;
@@ -21,11 +21,15 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
   const apiClient = useMemo(() => createListsApiClient(), []);
   const [shoppingList, setShoppingList] = useState<ShoppingListState>({ listId: null, name: 'Shopping', items: [] });
   const [otherLists, setOtherLists] = useState<ShoppingListState[]>([]);
+  const [archivedLists, setArchivedLists] = useState<ShoppingListLifecycleSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isCreatingList, setIsCreatingList] = useState(false);
   const [activePanel, setActivePanel] = useState<ShoppingPanelKind | null>(null);
   const [selectedOtherListId, setSelectedOtherListId] = useState<string | null>(null);
+  const [newListName, setNewListName] = useState('');
+  const [isCreatingNamedList, setIsCreatingNamedList] = useState(false);
+  const [listDirectoryStatus, setListDirectoryStatus] = useState<string | null>(null);
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
   const [knownPeople, setKnownPeople] = useState<KnownPerson[]>([]);
 
@@ -41,6 +45,7 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
         if (!ignoreResult) {
           setShoppingList(loaded.shoppingList);
           setOtherLists([...loaded.otherLists]);
+          setArchivedLists([...(loaded.archivedLists ?? [])]);
         }
       } catch {
         if (!ignoreResult) {
@@ -95,10 +100,6 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
 
   useEffect(() => {
     if (otherLists.length === 0) {
-      if (activePanel === 'otherLists') {
-        setActivePanel(null);
-      }
-
       if (selectedOtherListId !== null) {
         setSelectedOtherListId(null);
       }
@@ -110,6 +111,68 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
       setSelectedOtherListId(otherLists[0].listId);
     }
   }, [activePanel, otherLists, selectedOtherListId]);
+
+  async function createAdditionalList(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!newListName.trim()) return;
+    try {
+      setIsCreatingNamedList(true);
+      setListDirectoryStatus(null);
+      const created = await createNamedShoppingList(apiClient, newListName);
+      if (isDedicatedShoppingListName(created.name) && !shoppingList.listId) {
+        setShoppingList(created);
+      } else {
+        setOtherLists((current) => [...current, created].sort((left, right) => (left.name ?? '').localeCompare(right.name ?? '')));
+        setSelectedOtherListId(created.listId);
+      }
+      setNewListName('');
+      setListDirectoryStatus(`${getDisplayListName(created.name ?? 'Nieuwe lijst')} is gemaakt en geopend.`);
+    } catch {
+      setListDirectoryStatus('Lijst kon niet worden gemaakt. Kies een andere unieke naam en probeer opnieuw.');
+    } finally {
+      setIsCreatingNamedList(false);
+    }
+  }
+
+  function handleArchivedList(summary: ShoppingListLifecycleSummary) {
+    if (summary.listId === shoppingList.listId) {
+      setShoppingList({ listId: null, name: 'Shopping', items: [] });
+      setActivePanel('lists');
+    } else {
+      setOtherLists((current) => current.filter((list) => list.listId !== summary.listId));
+    }
+    setArchivedLists((current) => [...current.filter((list) => list.listId !== summary.listId), summary]);
+    setSelectedOtherListId(null);
+    setListDirectoryStatus(`${getDisplayListName(summary.name)} is gearchiveerd.`);
+  }
+
+  function handlePermanentlyDeletedList(listId: string) {
+    if (listId === shoppingList.listId) {
+      setShoppingList({ listId: null, name: 'Shopping', items: [] });
+      setActivePanel('lists');
+    }
+    setOtherLists((current) => current.filter((list) => list.listId !== listId));
+    setArchivedLists((current) => current.filter((list) => list.listId !== listId));
+    setSelectedOtherListId(null);
+    setListDirectoryStatus('De lijst en alle bijbehorende items zijn permanent verwijderd.');
+  }
+
+  async function handleRestoreList(summary: ShoppingListLifecycleSummary) {
+    try {
+      setListDirectoryStatus(null);
+      const restored = await restoreShoppingList(apiClient, summary);
+      setArchivedLists((current) => current.filter((list) => list.listId !== summary.listId));
+      if (isDedicatedShoppingListName(restored.name) && !shoppingList.listId) {
+        setShoppingList(restored);
+      } else {
+        setOtherLists((current) => [...current, restored].sort((left, right) => (left.name ?? '').localeCompare(right.name ?? '')));
+        setSelectedOtherListId(restored.listId);
+      }
+      setListDirectoryStatus(`${getDisplayListName(summary.name)} is hersteld en geopend.`);
+    } catch {
+      setListDirectoryStatus('Herstellen lukt niet. Controleer of er al een actieve lijst met deze naam bestaat.');
+    }
+  }
 
   async function createFirstList() {
     try {
@@ -126,30 +189,20 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
 
   function replaceList(updated: ShoppingListState) {
     if (updated.listId === shoppingList.listId) {
-      setShoppingList(updated);
+      setShoppingList((current) => ({ ...current, ...updated }));
       return;
     }
 
-    setOtherLists((current) => current.map((list) => list.listId === updated.listId ? updated : list));
+    setOtherLists((current) => current.map((list) => list.listId === updated.listId ? { ...list, ...updated } : list));
   }
 
   function updateListItems(listId: string | null, updater: (items: readonly ShoppingListItem[]) => readonly ShoppingListItem[]) {
     if (listId === shoppingList.listId) {
-      setShoppingList((current) => ({ ...current, items: updater(current.items) }));
+      setShoppingList((current) => updateListStateItems(current, updater));
       return;
     }
 
-    setOtherLists((current) => current.map((list) => list.listId === listId ? { ...list, items: updater(list.items) } : list));
-  }
-
-  function clearList(listId: string | null) {
-    if (listId === shoppingList.listId) {
-      setShoppingList({ listId: null, name: 'Shopping', items: [] });
-      setActivePanel(null);
-      return;
-    }
-
-    setOtherLists((current) => current.filter((list) => list.listId !== listId));
+    setOtherLists((current) => current.map((list) => list.listId === listId ? updateListStateItems(list, updater) : list));
   }
 
   const shoppingActiveItems = getActiveShoppingListItems(shoppingList.items);
@@ -178,7 +231,8 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
           apiClient={apiClient}
           list={shoppingList}
           listFallbackName="Boodschappen"
-          onClearList={clearList}
+          onArchived={handleArchivedList}
+          onPermanentlyDeleted={handlePermanentlyDeletedList}
           onError={setError}
           onReplaceList={replaceList}
           familyMembers={familyMembers}
@@ -207,7 +261,8 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
             apiClient={apiClient}
             list={shoppingList}
             listFallbackName="Boodschappen"
-            onClearList={clearList}
+            onArchived={handleArchivedList}
+            onPermanentlyDeleted={handlePermanentlyDeletedList}
             onError={setError}
             onReplaceList={replaceList}
             familyMembers={familyMembers}
@@ -238,8 +293,8 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
         <button className="shopping-footer-action" onClick={() => setActivePanel('deleted')} type="button">
           Herstellen <span>{shoppingDeletedItems.length}</span>
         </button>
-        <button className="shopping-footer-action" disabled={otherLists.length === 0} onClick={() => setActivePanel('otherLists')} type="button">
-          Andere lijsten <span>{otherLists.length}</span>
+        <button className="shopping-footer-action" onClick={() => setActivePanel('lists')} type="button">
+          Lijsten <span>{otherLists.length + archivedLists.length}</span>
         </button>
         <button className="shopping-footer-action" disabled={!shoppingList.listId} onClick={() => setActivePanel('manage')} type="button">
           Beheer
@@ -257,7 +312,8 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
               apiClient={apiClient}
               list={shoppingList}
               listFallbackName="Boodschappen"
-              onClearList={clearList}
+              onArchived={handleArchivedList}
+              onPermanentlyDeleted={handlePermanentlyDeletedList}
               onError={setError}
               onReplaceList={replaceList}
               familyMembers={familyMembers}
@@ -272,7 +328,8 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
               apiClient={apiClient}
               list={shoppingList}
               listFallbackName="Boodschappen"
-              onClearList={clearList}
+              onArchived={handleArchivedList}
+              onPermanentlyDeleted={handlePermanentlyDeletedList}
               onError={setError}
               onReplaceList={replaceList}
               familyMembers={familyMembers}
@@ -287,7 +344,8 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
               apiClient={apiClient}
               list={shoppingList}
               listFallbackName="Boodschappen"
-              onClearList={clearList}
+              onArchived={handleArchivedList}
+              onPermanentlyDeleted={handlePermanentlyDeletedList}
               onError={setError}
               onReplaceList={replaceList}
               familyMembers={familyMembers}
@@ -297,12 +355,20 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
               primaryMode="manage"
             />
           ) : null}
-          {activePanel === 'otherLists' ? (
+          {activePanel === 'lists' ? (
             <div className="shopping-other-lists-panel">
-              {otherLists.length === 0 ? (
-                <p className="shopping-empty">Geen andere lijsten beschikbaar.</p>
-              ) : (
-                <>
+              <form className="shopping-list-create-form" onSubmit={createAdditionalList}>
+                <label>
+                  <span>Nieuwe lijst</span>
+                  <input maxLength={160} onChange={(event) => setNewListName(event.target.value)} placeholder="Bijvoorbeeld Weekend" value={newListName} />
+                </label>
+                <button disabled={isCreatingNamedList || !newListName.trim()} type="submit">{isCreatingNamedList ? 'Maken…' : 'Lijst maken'}</button>
+              </form>
+              {listDirectoryStatus ? <p className="shopping-directory-status" role="status">{listDirectoryStatus}</p> : null}
+              <div className="shopping-list-directory-body">
+                <section className="shopping-list-directory-section" aria-label="Actieve lijsten">
+                  <h5>Actieve lijsten</h5>
+                  {otherLists.length === 0 ? <p className="shopping-empty">Geen andere actieve lijsten.</p> : <>
                   <div className="shopping-other-list-tabs" role="tablist" aria-label="Andere lijsten">
                     {otherLists.map((list) => (
                       <button
@@ -324,7 +390,8 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
                         apiClient={apiClient}
                         list={selectedOtherList}
                         listFallbackName="Naamloze lijst"
-                        onClearList={clearList}
+                        onArchived={handleArchivedList}
+                        onPermanentlyDeleted={handlePermanentlyDeletedList}
                         onError={setError}
                         onReplaceList={replaceList}
                         familyMembers={familyMembers}
@@ -333,8 +400,10 @@ export function ShoppingListWidget({ instance }: WidgetRenderProps) {
                       />
                     </div>
                   ) : null}
-                </>
-              )}
+                  </>}
+                </section>
+                <ArchivedShoppingLists lists={archivedLists} onDeleted={handlePermanentlyDeletedList} onRestore={handleRestoreList} apiClient={apiClient} onStatus={setListDirectoryStatus} />
+              </div>
             </div>
           ) : null}
         </ShoppingSurfaceDialog>
@@ -349,8 +418,8 @@ function getPanelTitle(panel: ShoppingPanelKind) {
       return 'Afgevinkte boodschappen';
     case 'deleted':
       return 'Herstellen en terugzetten';
-    case 'otherLists':
-      return 'Andere lijsten';
+    case 'lists':
+      return 'Lijsten';
     case 'manage':
       return 'Boodschappenlijst beheren';
   }
@@ -362,11 +431,97 @@ function getPanelDescription(panel: ShoppingPanelKind) {
       return 'Bekijk wat al is afgehandeld.';
     case 'deleted':
       return 'Zet recent verwijderde boodschappen terug.';
-    case 'otherLists':
-      return 'Open een andere lijst.';
+    case 'lists':
+      return 'Maak, open, archiveer of herstel een lijst.';
     case 'manage':
       return 'Hernoem, archiveer of verwijder deze lijst.';
   }
+}
+
+function updateListStateItems(list: ShoppingListState, updater: (items: readonly ShoppingListItem[]) => readonly ShoppingListItem[]): ShoppingListState {
+  const nextItems = updater(list.items);
+  const previousActiveCount = getActiveShoppingListItems(list.items).length;
+  const previousCompletedCount = getCompletedShoppingListItems(list.items).length;
+  const previousDeletedCount = getDeletedShoppingListItems(list.items).length;
+
+  return {
+    ...list,
+    items: nextItems,
+    activeItemCount: (list.activeItemCount ?? previousActiveCount) + getActiveShoppingListItems(nextItems).length - previousActiveCount,
+    completedItemCount: (list.completedItemCount ?? previousCompletedCount) + getCompletedShoppingListItems(nextItems).length - previousCompletedCount,
+    deletedItemCount: (list.deletedItemCount ?? previousDeletedCount) + getDeletedShoppingListItems(nextItems).length - previousDeletedCount,
+    totalItemCount: (list.totalItemCount ?? list.items.length) + nextItems.length - list.items.length,
+  };
+}
+
+interface ArchivedShoppingListsProps {
+  apiClient: Parameters<typeof permanentlyDeleteShoppingList>[0];
+  lists: readonly ShoppingListLifecycleSummary[];
+  onDeleted(listId: string): void;
+  onRestore(summary: ShoppingListLifecycleSummary): Promise<void>;
+  onStatus(message: string): void;
+}
+
+function ArchivedShoppingLists({ apiClient, lists, onDeleted, onRestore, onStatus }: ArchivedShoppingListsProps) {
+  const [deleteCandidate, setDeleteCandidate] = useState<ShoppingListLifecycleSummary | null>(null);
+  const [pendingListId, setPendingListId] = useState<string | null>(null);
+
+  async function restore(summary: ShoppingListLifecycleSummary) {
+    setPendingListId(summary.listId);
+    await onRestore(summary);
+    setPendingListId(null);
+  }
+
+  async function permanentlyDelete(summary: ShoppingListLifecycleSummary) {
+    try {
+      setPendingListId(summary.listId);
+      await permanentlyDeleteShoppingList(apiClient, summary.listId, summary.updatedUtc);
+      onDeleted(summary.listId);
+      setDeleteCandidate(null);
+    } catch {
+      onStatus('Permanent verwijderen lukt niet. Vernieuw de lijst en probeer opnieuw.');
+    } finally {
+      setPendingListId(null);
+    }
+  }
+
+  return (
+    <section className="shopping-list-directory-section" aria-label="Gearchiveerde lijsten">
+      <h5>Gearchiveerd</h5>
+      {deleteCandidate ? (
+        <div className="shopping-lifecycle-confirmation" role="alertdialog" aria-label="Gearchiveerde lijst permanent verwijderen bevestigen">
+          <div>
+            <p className="eyebrow">Definitieve actie</p>
+            <h5>{getDisplayListName(deleteCandidate.name)} permanent verwijderen?</h5>
+            <p>Deze lijst bevat {deleteCandidate.totalItemCount} items. De lijst en items verdwijnen definitief; gedeelde suggestie- en aankoophistorie blijft bewaard.</p>
+          </div>
+          <div className="shopping-management-actions">
+            <button disabled={pendingListId !== null} onClick={() => setDeleteCandidate(null)} type="button">Annuleren</button>
+            <button className="danger-button" disabled={pendingListId !== null} onClick={() => void permanentlyDelete(deleteCandidate)} type="button">
+              {pendingListId ? 'Verwijderen…' : 'Ja, permanent verwijderen'}
+            </button>
+          </div>
+        </div>
+      ) : lists.length === 0 ? (
+        <p className="shopping-empty">Nog geen gearchiveerde lijsten.</p>
+      ) : (
+        <div className="shopping-archived-list-rows">
+          {lists.map((summary) => (
+            <article className="shopping-archived-list-row" key={summary.listId}>
+              <div>
+                <strong>{getDisplayListName(summary.name)}</strong>
+                <small>{summary.activeItemCount} open · {summary.completedItemCount} afgevinkt · {summary.totalItemCount} totaal</small>
+              </div>
+              <div className="shopping-management-actions">
+                <button disabled={pendingListId !== null} onClick={() => void restore(summary)} type="button">Herstellen</button>
+                <button className="danger-button" disabled={pendingListId !== null} onClick={() => setDeleteCandidate(summary)} type="button">Permanent verwijderen</button>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
+    </section>
+  );
 }
 
 interface ShoppingSurfaceDialogProps {
@@ -401,8 +556,9 @@ interface ListSurfaceProps {
   apiClient: Parameters<typeof addShoppingListItem>[0];
   list: ShoppingListState;
   listFallbackName: string;
-  onClearList(listId: string | null): void;
+  onArchived(summary: ShoppingListLifecycleSummary): void;
   onError(message: string): void;
+  onPermanentlyDeleted(listId: string): void;
   onReplaceList(list: ShoppingListState): void;
   familyMembers: readonly FamilyMember[];
   knownPeople: readonly KnownPerson[];
@@ -411,10 +567,12 @@ interface ListSurfaceProps {
   primaryMode?: 'all' | 'quickAdd' | 'active' | 'completed' | 'deleted' | 'manage';
 }
 
-function ListSurface({ apiClient, familyMembers, knownPeople, list, listFallbackName, onClearList, onError, onReplaceList, onUpdateItems, primary = false, primaryMode = 'all' }: ListSurfaceProps) {
+function ListSurface({ apiClient, familyMembers, knownPeople, list, listFallbackName, onArchived, onError, onPermanentlyDeleted, onReplaceList, onUpdateItems, primary = false, primaryMode = 'all' }: ListSurfaceProps) {
   const [newItemLabel, setNewItemLabel] = useState('');
   const [listName, setListName] = useState(list.name ?? listFallbackName);
   const [newItemAvatar, setNewItemAvatar] = useState<ShoppingDecorativeAvatarReference | null>(null);
+  const [lifecycleAction, setLifecycleAction] = useState<'archive' | 'delete' | null>(null);
+  const [isLifecyclePending, setIsLifecyclePending] = useState(false);
 
   useEffect(() => setListName(list.name ?? listFallbackName), [list.name, listFallbackName]);
 
@@ -481,25 +639,30 @@ function ListSurface({ apiClient, familyMembers, knownPeople, list, listFallback
     }
   }
 
-  async function archiveList() {
-    if (!list.listId) return;
+  async function confirmArchiveList() {
+    if (!list.listId || !list.updatedUtc) return;
     try {
-      await archiveShoppingList(apiClient, list.listId);
-      onClearList(list.listId);
+      setIsLifecyclePending(true);
+      onArchived(await archiveShoppingList(apiClient, list.listId, list.updatedUtc));
       onError('');
     } catch {
-      onError('Lijst kon niet worden gearchiveerd.');
+      onError('Lijst kon niet worden gearchiveerd. Vernieuw de lijst en probeer opnieuw.');
+    } finally {
+      setIsLifecyclePending(false);
     }
   }
 
-  async function deleteList() {
-    if (!list.listId) return;
+  async function confirmPermanentDeleteList() {
+    if (!list.listId || !list.updatedUtc) return;
     try {
-      await deleteShoppingList(apiClient, list.listId);
-      onClearList(list.listId);
+      setIsLifecyclePending(true);
+      await permanentlyDeleteShoppingList(apiClient, list.listId, list.updatedUtc);
+      onPermanentlyDeleted(list.listId);
       onError('');
     } catch {
-      onError('Lijst kon niet worden verwijderd.');
+      onError('Lijst kon niet permanent worden verwijderd. Vernieuw de lijst en probeer opnieuw.');
+    } finally {
+      setIsLifecyclePending(false);
     }
   }
 
@@ -544,6 +707,50 @@ function ListSurface({ apiClient, familyMembers, knownPeople, list, listFallback
     </form>
   );
 
+  const activeItemCount = list.activeItemCount ?? activeItems.length;
+  const completedItemCount = list.completedItemCount ?? completedItems.length;
+  const deletedItemCount = list.deletedItemCount ?? deletedItems.length;
+  const totalItemCount = list.totalItemCount ?? activeItemCount + completedItemCount + deletedItemCount;
+  const managementContent = lifecycleAction ? (
+    <div className="shopping-lifecycle-confirmation" role="alertdialog" aria-label={lifecycleAction === 'archive' ? 'Archiveren bevestigen' : 'Permanent verwijderen bevestigen'}>
+      <div>
+        <p className="eyebrow">{lifecycleAction === 'archive' ? 'Omkeerbare actie' : 'Definitieve actie'}</p>
+        <h5>{lifecycleAction === 'archive' ? `${listLabel} archiveren?` : `${listLabel} permanent verwijderen?`}</h5>
+        <p>
+          Deze lijst bevat {activeItemCount} open, {completedItemCount} afgevinkte en {deletedItemCount} verwijderde items ({totalItemCount} totaal).
+        </p>
+        <p>
+          {lifecycleAction === 'archive'
+            ? 'De lijst verdwijnt uit de actieve lijsten, maar blijft met alle items beschikbaar om te herstellen.'
+            : 'De lijst en alle items worden definitief verwijderd. Gedeelde suggestie- en aankoophistorie blijft als huishoudgeschiedenis bewaard.'}
+        </p>
+      </div>
+      <div className="shopping-management-actions">
+        <button disabled={isLifecyclePending} onClick={() => setLifecycleAction(null)} type="button">Annuleren</button>
+        <button
+          className={lifecycleAction === 'delete' ? 'danger-button' : undefined}
+          disabled={isLifecyclePending}
+          onClick={() => void (lifecycleAction === 'archive' ? confirmArchiveList() : confirmPermanentDeleteList())}
+          type="button"
+        >
+          {isLifecyclePending ? 'Bezig…' : lifecycleAction === 'archive' ? 'Ja, archiveren' : 'Ja, permanent verwijderen'}
+        </button>
+      </div>
+    </div>
+  ) : (
+    <form className="shopping-add-form shopping-list-name-form" onSubmit={renameList}>
+      <label>
+        <span>Lijstnaam</span>
+        <input disabled={!list.listId} maxLength={160} onChange={(event) => setListName(event.target.value)} type="text" value={listName} />
+      </label>
+      <div className="shopping-management-actions">
+        <button disabled={!list.listId} type="submit">Hernoemen</button>
+        <button disabled={!list.listId || !list.updatedUtc} onClick={() => setLifecycleAction('archive')} type="button">Archiveren</button>
+        <button className="danger-button" disabled={!list.listId || !list.updatedUtc} onClick={() => setLifecycleAction('delete')} type="button">Permanent verwijderen</button>
+      </div>
+    </form>
+  );
+
   if (primary && primaryMode === 'quickAdd') {
     return <div className="shopping-quick-add-surface" aria-label={listLabel}>{quickAddForm}</div>;
   }
@@ -578,17 +785,7 @@ function ListSurface({ apiClient, familyMembers, knownPeople, list, listFallback
         <section className="shopping-section shopping-management-section">
           <h4>Lijst beheren</h4>
           <div className="shopping-section-body">
-            <form className="shopping-add-form shopping-list-name-form" onSubmit={renameList}>
-              <label>
-                <span>Lijstnaam</span>
-                <input disabled={!list.listId} onChange={(event) => setListName(event.target.value)} type="text" value={listName} />
-              </label>
-              <div className="shopping-management-actions">
-                <button disabled={!list.listId} type="submit">Hernoemen</button>
-                <button disabled={!list.listId} onClick={archiveList} type="button">Archiveren</button>
-                <button className="danger-button" disabled={!list.listId} onClick={deleteList} type="button">Verwijderen</button>
-              </div>
-            </form>
+            {managementContent}
           </div>
         </section>
       </div>
@@ -603,17 +800,7 @@ function ListSurface({ apiClient, familyMembers, knownPeople, list, listFallback
       <section className="shopping-section shopping-management-section">
         <h4>Lijst beheren</h4>
         <div className="shopping-section-body">
-          <form className="shopping-add-form shopping-list-name-form" onSubmit={renameList}>
-            <label>
-              <span>Lijstnaam</span>
-              <input disabled={!list.listId} onChange={(event) => setListName(event.target.value)} type="text" value={listName} />
-            </label>
-            <div className="shopping-management-actions">
-              <button disabled={!list.listId} type="submit">Hernoemen</button>
-              <button disabled={!list.listId} onClick={archiveList} type="button">Archiveren</button>
-              <button className="danger-button" disabled={!list.listId} onClick={deleteList} type="button">Verwijderen</button>
-            </div>
-          </form>
+          {managementContent}
         </div>
       </section>
       <ShoppingListSection emptyLabel="Niets recent verwijderd." items={deletedItems} familyMembers={familyMembers} knownPeople={knownPeople} onAvatarChange={primary ? updateItemAvatar : undefined} onRemove={removeItem} onStoreChange={primary ? updateItemStore : undefined} onToggle={toggleItem} onUndo={undoItem} title="Recent verwijderd" />

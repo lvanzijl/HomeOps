@@ -22,5 +22,21 @@ export interface ShoppingStoreSuggestion {
 export interface ShoppingListState {
   listId: string | null;
   name?: string;
+  updatedUtc?: Date | null;
+  activeItemCount?: number;
+  completedItemCount?: number;
+  deletedItemCount?: number;
+  totalItemCount?: number;
   items: readonly ShoppingListItem[];
+}
+
+export interface ShoppingListLifecycleSummary {
+  listId: string;
+  name: string;
+  archivedUtc?: Date | null;
+  updatedUtc: Date;
+  activeItemCount: number;
+  completedItemCount: number;
+  deletedItemCount: number;
+  totalItemCount: number;
 }

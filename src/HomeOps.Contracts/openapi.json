@@ -1161,6 +1161,17 @@
           "Lists"
         ],
         "operationId": "GetLists",
+        "parameters": [
+          {
+            "name": "includeArchived",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "nullable": true
+            },
+            "x-position": 1
+          }
+        ],
         "responses": {
           "200": {
             "description": "",
@@ -1207,6 +1218,9 @@
           },
           "400": {
             "description": ""
+          },
+          "409": {
+            "description": ""
           }
         }
       }
@@ -1239,32 +1253,6 @@
                 }
               }
             }
-          },
-          "404": {
-            "description": ""
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "Lists"
-        ],
-        "operationId": "DeleteList",
-        "parameters": [
-          {
-            "name": "listId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "guid"
-            },
-            "x-position": 1
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": ""
           },
           "404": {
             "description": ""
@@ -1318,6 +1306,9 @@
           },
           "404": {
             "description": ""
+          },
+          "409": {
+            "description": ""
           }
         }
       }
@@ -1340,18 +1331,146 @@
             "x-position": 1
           }
         ],
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ArchiveListRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
         "responses": {
           "200": {
             "description": "",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ListDto"
+                  "$ref": "#/components/schemas/ListSummaryDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
                 }
               }
             }
           },
           "404": {
+            "description": ""
+          },
+          "409": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/lists/{listId}/restore": {
+      "post": {
+        "tags": [
+          "Lists"
+        ],
+        "operationId": "RestoreList",
+        "parameters": [
+          {
+            "name": "listId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RestoreListRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListSummaryDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          },
+          "409": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/lists/{listId}/permanent-delete": {
+      "post": {
+        "tags": [
+          "Lists"
+        ],
+        "operationId": "PermanentlyDeleteList",
+        "parameters": [
+          {
+            "name": "listId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PermanentDeleteListRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          },
+          "409": {
             "description": ""
           }
         }
@@ -8689,6 +8808,11 @@
           "isDeleted": {
             "type": "boolean"
           },
+          "archivedUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
           "createdUtc": {
             "type": "string",
             "format": "date-time"
@@ -8702,6 +8826,22 @@
             "format": "guid"
           },
           "itemCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "activeItemCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "completedItemCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "deletedItemCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalItemCount": {
             "type": "integer",
             "format": "int32"
           }
@@ -8861,6 +9001,42 @@
         "properties": {
           "name": {
             "type": "string"
+          }
+        }
+      },
+      "ArchiveListRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "expectedUpdatedUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "confirmed": {
+            "type": "boolean"
+          }
+        }
+      },
+      "RestoreListRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "expectedUpdatedUtc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PermanentDeleteListRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "expectedUpdatedUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "confirmed": {
+            "type": "boolean"
           }
         }
       },
