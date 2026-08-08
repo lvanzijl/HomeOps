@@ -32,7 +32,7 @@ Do not check a phase merely because one of its slices is complete. A phase is co
 | [x] | **Phase 3 — Calendar and local-time correctness** | **Completed** | Calendar-field writes, household time zone, source lifecycle, device preferences, and truthful reminder scope are complete | Home and Agenda preserve household-local calendar intent and accurately state that notifications are not delivered |
 | [x] | **Phase 4 — Tasks and Weekly Reset completion** | **Completed 2026-08-08** | Task APIs, routines, and Weekly Reset foundation exist; Slice 4.0 interaction authority is approved | Core task controls are operable and every reset candidate can be resolved and completed |
 | [x] | **Phase 5 — House, climate, and household settings** | **Completed 2026-08-08** | Slices 5.1–5.7 complete the healthy Woning setup/runtime chain, provider lifecycle, floor-plan onboarding, and household weather configuration | Woning setup-to-runtime chain is reachable, healthy, configurable, and viewport-safe |
-| [ ] | **Phase 6 — Shopping and Motivation lifecycle completion** | **Not started** | Both domains are PostgreSQL-backed | Common create/edit/archive/restore/correction workflows are complete and cross-device |
+| [ ] | **Phase 6 — Shopping and Motivation lifecycle completion** | **In progress** | The separate Shopping and Motivation viewport contracts are approved; lifecycle implementation remains in Slices 6.1–6.4 | Common create/edit/archive/restore/correction workflows are complete and cross-device |
 | [ ] | **Phase 7 — Navigation, backup, errors, and consistency** | **Not started** | Individual foundations exist | Cross-cutting behavior is routable, recoverable, consistently worded, and accurately backed up |
 | [ ] | **Phase 8 — Optional product breadth** | **Not started** | Placeholders only | Each optional feature is either deliberately implemented or deliberately removed from product expectations |
 
@@ -1008,7 +1008,7 @@ Before changing Tasks layout or action placement, write the repository-required 
 
 ## Phase 6 — Shopping and Motivation lifecycle completion
 
-- [ ] **Phase status: Not started**
+- [ ] **Phase status: In progress**
 
 **Priority:** P1/P2.  
 **Audit coverage:** SHOP-01, SHOP-02, SHOP-03, SHOP-04, SHOP-DATA-01, MOT-01, MOT-02, MOT-03, MOT-04.  
@@ -1016,9 +1016,11 @@ Before changing Tasks layout or action placement, write the repository-required 
 
 ### Slice 6.0 — Mandatory primary-page analyses
 
-- [ ] **Status: Not started**
+- [x] **Status: Completed 2026-08-08**
 
 Before modifying Shopping or Motivation layouts, produce separate Viewport-First analyses. Preserve fixed page height; long lists and history must scroll inside reserved components.
+
+**Implementation state:** Separate approved Shopping and Motivation viewport contracts now govern Slices 6.1–6.4. Shopping keeps its execution-first command/list/footer composition, fixes its content-box host overshoot, and places create/archive/restore/delete/item-edit/history decisions in bounded contextual surfaces. Motivation retains its three-region dashboard but must compact the family-goal summary before adding lifecycle UI: live 1280×720 inspection found 588 px of goal content inside a 331 px hidden-overflow card, causing clipped/overlapping progress and celebration content. Ledger/correction, helpful-moment edit/delete, and family-goal lifecycle therefore use fixed-header/action dialogs with internal scrolling rather than new page regions. The existing Playwright viewport guard passes at 1440×900 and 1366×768. See `docs/reports/2026-08-08-phase-6-viewport-analysis/` and `docs/roadmap/phase-6.md`.
 
 ### Slice 6.1 — Shopping list lifecycle
 
