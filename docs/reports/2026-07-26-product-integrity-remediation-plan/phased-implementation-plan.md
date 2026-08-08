@@ -30,7 +30,7 @@ Do not check a phase merely because one of its slices is complete. A phase is co
 | [ ] | **Phase 1 — LAN and destructive-development safety** | **Not started** | LAN binding and visual-review fixtures exist, but are unsafe | Database is private, fixture resets are isolated, and household API access is protected |
 | [x] | **Phase 2 — Truthful first run and family persistence** | **Completed** | Slices 2.1–2.6 are complete, including family administration/restore and the persisted setup checklist | Fresh install onboards correctly; family changes survive refresh with honest error handling |
 | [x] | **Phase 3 — Calendar and local-time correctness** | **Completed** | Calendar-field writes, household time zone, source lifecycle, device preferences, and truthful reminder scope are complete | Home and Agenda preserve household-local calendar intent and accurately state that notifications are not delivered |
-| [ ] | **Phase 4 — Tasks and Weekly Reset completion** | **In progress** | Task APIs, routines, and Weekly Reset foundation exist; Slice 4.0 interaction authority is approved | Core task controls are operable and every reset candidate can be resolved and completed |
+| [x] | **Phase 4 — Tasks and Weekly Reset completion** | **Completed 2026-08-08** | Task APIs, routines, and Weekly Reset foundation exist; Slice 4.0 interaction authority is approved | Core task controls are operable and every reset candidate can be resolved and completed |
 | [ ] | **Phase 5 — House, climate, and household settings** | **Not started** | Substantial backend and partial Settings foundation exist | Woning setup-to-runtime chain is reachable, healthy, configurable, and viewport-safe |
 | [ ] | **Phase 6 — Shopping and Motivation lifecycle completion** | **Not started** | Both domains are PostgreSQL-backed | Common create/edit/archive/restore/correction workflows are complete and cross-device |
 | [ ] | **Phase 7 — Navigation, backup, errors, and consistency** | **Not started** | Individual foundations exist | Cross-cutting behavior is routable, recoverable, consistently worded, and accurately backed up |
@@ -743,7 +743,7 @@ If implemented, add permission UX, per-event/default settings, a server schedule
 
 ## Phase 4 — Tasks and Weekly Reset completion
 
-- [ ] **Phase status: In progress**
+- [x] **Phase status: Completed 2026-08-08**
 
 **Priority:** P0/P1.  
 **Audit coverage:** TASK-UI-01, TASK-UI-02, TASK-01, TASK-02, TASK-03, TASK-04, TASK-05, RESET-01, RESET-02, RESET-03.  
@@ -834,7 +834,7 @@ Before changing Tasks layout or action placement, write the repository-required 
 
 ### Slice 4.5 — Persisted Weekly Reset aggregate
 
-- [ ] **Status: Not started**
+- [x] **Status: Completed 2026-08-08**
 
 **Audit IDs:** RESET-01, RESET-02, RESET-03
 
@@ -853,13 +853,15 @@ Before changing Tasks layout or action placement, write the repository-required 
 
 - Do not let “skip” mean both “decide later” and “resolved for this week.” Use distinct terms and states.
 
+**Implementation state:** one household/local-Monday aggregate snapshots every counted candidate and its display/context label on first load. Candidate decisions, optional actor, and timestamp persist with their source mutation; stale sources remain visible with an acknowledge path. Progress is derived solely from decisions, explicit completion is server-rejected until all candidates resolve, and separately confirmed skip records a distinct terminal outcome. Completed/skipped instances are idempotent, read-only, and available through bounded history after refresh. The approved fixed-region viewport contract is `docs/reports/2026-08-08-persisted-weekly-reset/viewport-analysis.md`. Focused API 5/5, focused frontend 5/5, backend 636/636, frontend 354/354, both builds, PostgreSQL 3/3, EF drift, twice-idempotent pinned NSwag, and Playwright 10/10 pass. See `docs/reports/2026-08-08-persisted-weekly-reset/implementation.md`.
+
 ### Phase 4 exit criteria
 
 - [x] Task actions are discoverable and accessible.
 - [x] Edit menu is never clipped at supported viewports.
 - [x] Normal tasks and routines have coherent archive/restore lifecycle.
 - [x] Recurring scope is explicit.
-- [ ] Weekly Reset can be completed and reviewed after refresh.
+- [x] Weekly Reset can be completed and reviewed after refresh.
 
 ## Phase 5 — House, climate, and household settings
 
@@ -1268,7 +1270,7 @@ Every audit finding must appear exactly once as the primary responsibility of a 
 | HOUSE-01 | 5.2 House navigation | [ ] Not started |
 | CLIMATE-01 | 5.3 Climate configuration UI | [ ] Not started |
 | CLIMATE-02 | 5.4 Mapping management | [ ] Not started |
-| RESET-01 | 4.5 Persisted Weekly Reset | [ ] Not started |
+| RESET-01 | 4.5 Persisted Weekly Reset | [x] Completed |
 | TASK-UI-01 | 4.1 Task actions | [x] Completed |
 | TASK-UI-02 | 4.1 Task popup/hit targets | [x] Completed |
 | TASK-01 | 4.2 Normal task lifecycle | [x] Completed |
@@ -1305,8 +1307,8 @@ Every audit finding must appear exactly once as the primary responsibility of a 
 | SETTINGS-03 | 7.5 Settings placeholder | [ ] Not started |
 | SETTINGS-04 | 2.5 Family administration | [x] Completed |
 | HOUSE-06 | 5.6 Credential guidance | [ ] Not started |
-| RESET-02 | 4.5 Persisted reset decisions | [ ] Not started |
-| RESET-03 | 4.5 Reset completion/history | [ ] Not started |
+| RESET-02 | 4.5 Persisted reset decisions | [x] Completed |
+| RESET-03 | 4.5 Reset completion/history | [x] Completed |
 | MOT-04 | 6.3 Progress ledger | [ ] Not started |
 | WIDGET-01 | 7.6 Widget customization | [ ] Not started |
 | DATA-01 | 7.2 Shared error handling | [ ] Not started |

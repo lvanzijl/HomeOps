@@ -395,6 +395,67 @@ test("recurring tasks require explicit occurrence scope and destructive confirma
   await expect(editedCard).toHaveCount(0);
 });
 
+test("weekly reset decisions resume after refresh and complete into read-only history", async ({ page, request }) => {
+  await page.setViewportSize({ width: 1366, height: 768 });
+  await resetFixture(request, "visual-weekly-reset");
+
+  const openWeeklyReset = async () => {
+    await page.getByRole("button", { name: "Taken", exact: true }).click();
+    await page.getByRole("button", { name: "Gezinsreset openen" }).click();
+    await expect(page.getByRole("heading", { name: "Weekritueel" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Kies bewust wat meegaat|Deze week is afgerond/ })).toBeVisible();
+  };
+
+  await page.goto("/");
+  await openWeeklyReset();
+  await expectNoDocumentScroll(page, "Open Weekly Reset at 1366x768");
+  const progress = page.locator(".weekly-reset-progress");
+  const total = await page.locator(".weekly-reset-candidate").count();
+  expect(total).toBeGreaterThan(0);
+  await expect(progress).toContainText(`0/${total}`);
+
+  const firstDecisionResponse = page.waitForResponse((response) =>
+    response.request().method() === "POST"
+      && new URL(response.url()).pathname.includes("/api/weekly-reset/candidates/"));
+  await page.locator(".weekly-reset-candidate").first().locator(".weekly-reset-candidate-actions button").first().click();
+  expect((await firstDecisionResponse).ok()).toBe(true);
+  await expect(progress).toContainText(`1/${total}`);
+
+  await page.reload();
+  await openWeeklyReset();
+  await expect(progress).toContainText(`1/${total}`);
+
+  while (await page.locator(".weekly-reset-candidate").count()) {
+    const candidateCount = await page.locator(".weekly-reset-candidate").count();
+    const decisionButton = page.locator(".weekly-reset-candidate").first().locator(".weekly-reset-candidate-actions button").first();
+    await expect(decisionButton).toBeEnabled();
+    const decisionResponse = page.waitForResponse((response) =>
+      response.request().method() === "POST"
+        && new URL(response.url()).pathname.includes("/api/weekly-reset/candidates/"));
+    await decisionButton.click();
+    expect((await decisionResponse).ok()).toBe(true);
+    await expect(page.locator(".weekly-reset-candidate")).toHaveCount(candidateCount - 1);
+  }
+
+  const completeButton = page.getByRole("button", { name: "Week afronden" });
+  await expect(completeButton).toBeEnabled();
+  const completeResponse = page.waitForResponse((response) =>
+    response.request().method() === "POST"
+      && new URL(response.url()).pathname === "/api/weekly-reset/complete");
+  await completeButton.click();
+  expect((await completeResponse).ok()).toBe(true);
+  await expect(page.getByText("Deze week is afgerond")).toBeVisible();
+  await expect(page.getByText("Alleen-lezen", { exact: true })).toBeVisible();
+
+  await page.reload();
+  await openWeeklyReset();
+  await expect(page.getByText("Deze week is afgerond")).toBeVisible();
+  await page.getByRole("button", { name: "Eerdere weken" }).click();
+  const history = page.getByRole("dialog", { name: "Eerdere weken" });
+  await expect(history.getByText("Week afgerond")).toBeVisible();
+  await expectNoDocumentScroll(page, "Weekly Reset history at 1366x768");
+});
+
 test("primary pages do not create document-level vertical scrolling", async ({ page, request }) => {
   await resetFixture(request, "visual-full");
 
@@ -409,6 +470,14 @@ test("primary pages do not create document-level vertical scrolling", async ({ p
       await page.getByRole("button", { name: label, exact: true }).click();
       await expectNoDocumentScroll(page, `${label} at ${viewport.width}x${viewport.height}`);
     }
+
+    await page.getByRole("button", { name: "Taken", exact: true }).click();
+    await page.getByRole("button", { name: "Gezinsreset openen" }).click();
+    await expectNoDocumentScroll(page, `Weekritueel at ${viewport.width}x${viewport.height}`);
+    await page.getByRole("button", { name: "Eerdere weken" }).click();
+    await expect(page.getByRole("dialog", { name: "Eerdere weken" })).toBeVisible();
+    await expectNoDocumentScroll(page, `Weekritueelgeschiedenis at ${viewport.width}x${viewport.height}`);
+    await page.getByRole("button", { name: "Sluiten" }).click();
 
     await page.getByRole("button", { name: "Instellingen voor gezinsinstellingen" }).click();
     await expectNoDocumentScroll(page, `Instellingen at ${viewport.width}x${viewport.height}`);

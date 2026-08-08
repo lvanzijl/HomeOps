@@ -6,7 +6,7 @@ namespace HomeOps.Api.Tests.Infrastructure;
 
 public sealed class DatabaseBaselineTests
 {
-    private const string LatestDiscoverableMigration = "20260808080048_AddRecurringTaskOccurrenceControl";
+    private const string LatestDiscoverableMigration = "20260808090440_PersistWeeklyResetAggregate";
 
     private static readonly string[] ResumeStrategyColumns =
     [
@@ -47,6 +47,8 @@ public sealed class DatabaseBaselineTests
         Assert.Empty(await context.Lists.AsNoTracking().ToListAsync());
         Assert.Empty(await context.EventSeries.AsNoTracking().ToListAsync());
         Assert.Empty(await context.MotivationFamilyGoals.AsNoTracking().ToListAsync());
+        Assert.Empty(await context.WeeklyResetSessions.AsNoTracking().ToListAsync());
+        Assert.Empty(await context.WeeklyResetCandidates.AsNoTracking().ToListAsync());
         Assert.Single(await context.EventSources.AsNoTracking().ToListAsync());
         Assert.Equal(4, await context.WorkspaceLayouts.CountAsync());
         Assert.Equal(5, await context.TaskTemplates.CountAsync());

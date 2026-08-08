@@ -2,7 +2,7 @@
 
 Phase 4 makes task actions directly operable, gives normal tasks and routines coherent lifecycle management, defines recurring occurrence scope, and turns Weekly Reset into a persisted completable workflow.
 
-**Phase status:** In progress.
+**Phase status:** Completed 2026-08-08.
 
 | Slice | Status | Outcome |
 | --- | --- | --- |
@@ -11,7 +11,7 @@ Phase 4 makes task actions directly operable, gives normal tasks and routines co
 | 4.2 Normal task archive/delete | Completed 2026-08-08 | Added reversible normal-task archive/restore and task-specific confirmed permanent deletion from a bounded archive surface. |
 | 4.3 Routine/template lifecycle | Completed 2026-08-08 | Added a dedicated ordered-item editor and reversible archive/restore/confirmed-delete lifecycle for routines. |
 | 4.4 Recurring occurrence control | Completed 2026-08-08 | Added exception-backed occurrence, future, and entire-series edit/removal scopes with explicit destructive confirmation. |
-| 4.5 Persisted Weekly Reset | Not started | Persist candidate decisions, completion, resume, and history. |
+| 4.5 Persisted Weekly Reset | Completed 2026-08-08 | Added stable weekly candidate snapshots, persisted decisions/skip/completion, refresh-safe resume, and read-only history. |
 
 ## Slice 4.0 implementation authority
 
@@ -59,6 +59,14 @@ The approved `docs/reports/2026-08-08-recurring-task-occurrence-control/viewport
 
 Validation: focused recurring API 15/15 and Tasks frontend 21/21; full frontend 351/351; backend 633/633; frontend and solution builds; pinned NSwag 14.7.1 twice with an idempotent second run; EF model-drift check; PostgreSQL migration baseline 3/3; and PostgreSQL-backed Playwright 9/9, including scoped occurrence editing, confirmed entire-series removal, 1280×720 dialog containment, and established 1440×900 and 1366×768 page checks. The implementation report is `docs/reports/2026-08-08-recurring-task-occurrence-control/implementation.md`.
 
+## Slice 4.5 implementation boundary
+
+Weekly Reset now creates or resumes one aggregate per household and household-local Monday week. Candidate membership, type, source ID, and display/context labels are snapshotted at first load, so a week has stable progress and historical labels survive later source changes. Every task, family-goal, individual-goal, and shopping candidate has valid persisted actions; a missing source receives an honest acknowledge action. Decisions store an optional actor label and timestamp while their source mutation is saved in the same unit of work.
+
+Completion is an explicit server transition rejected while candidates remain unresolved. Skip is a separately confirmed persisted `Skipped` outcome and never means “decide later.” Repeated current loads, completion, and skip resume idempotently. Completed weeks are read-only through history list/detail APIs.
+
+The approved `docs/reports/2026-08-08-persisted-weekly-reset/viewport-analysis.md` replaces the vertically stacked document with a fixed command band, internally scrolling candidate/recap workspace, always-visible completion footer, and viewport-bounded skip/history dialogs. Validation: focused API 5/5, focused frontend 5/5, backend 636/636, frontend 354/354, both builds, EF drift, PostgreSQL migration baseline 3/3, twice-idempotent pinned NSwag 14.7.1, and PostgreSQL-backed Playwright 10/10 including refresh/resume, completion/history, and 1440×900 plus 1366×768 containment. The implementation report is `docs/reports/2026-08-08-persisted-weekly-reset/implementation.md`.
+
 ## Fixed boundaries
 
 - Slice 4.0 changes documentation only.
@@ -74,4 +82,4 @@ Validation: focused recurring API 15/15 and Tasks frontend 21/21; full frontend 
 - [x] Edit menu is never clipped at supported viewports.
 - [x] Normal tasks and routines have coherent archive/restore lifecycle.
 - [x] Recurring scope is explicit.
-- [ ] Weekly Reset can be completed and reviewed after refresh.
+- [x] Weekly Reset can be completed and reviewed after refresh.

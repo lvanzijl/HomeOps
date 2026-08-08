@@ -10,6 +10,7 @@ using HomeOps.Api.KnownPeople;
 using HomeOps.Api.Motivation;
 using HomeOps.Api.WidgetLayouts;
 using HomeOps.Api.Tasks;
+using HomeOps.Api.WeeklyReset;
 using Microsoft.EntityFrameworkCore;
 
 namespace HomeOps.Api.Data;
@@ -50,6 +51,8 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
     public DbSet<FloorPlanReplacementReviewItem> FloorPlanReplacementReviewItems => Set<FloorPlanReplacementReviewItem>();
     public DbSet<RoomClimateObservation> RoomClimateObservations => Set<RoomClimateObservation>();
     public DbSet<RoomHeatingCommand> RoomHeatingCommands => Set<RoomHeatingCommand>();
+    public DbSet<WeeklyResetSession> WeeklyResetSessions => Set<WeeklyResetSession>();
+    public DbSet<WeeklyResetCandidate> WeeklyResetCandidates => Set<WeeklyResetCandidate>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -899,6 +902,46 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             OnboardingCompleted = false,
             LegacyDemoDataReviewRequired = false,
             UpdatedUtc = SeedLists.SeededUtc,
+        });
+
+        modelBuilder.Entity<WeeklyResetSession>(entity =>
+        {
+            entity.ToTable("WeeklyResetSessions", table =>
+            {
+                table.HasCheckConstraint("CK_WeeklyResetSessions_Completion", "(\"Status\" = 'Open' AND \"Outcome\" IS NULL AND \"CompletedUtc\" IS NULL) OR (\"Status\" = 'Completed' AND \"Outcome\" IS NOT NULL AND \"CompletedUtc\" IS NOT NULL)");
+            });
+            entity.HasKey(session => session.Id);
+            entity.Property(session => session.WeekStart).HasColumnType("date").IsRequired();
+            entity.Property(session => session.Status).HasConversion<string>().HasMaxLength(16).IsRequired();
+            entity.Property(session => session.Outcome).HasConversion<string>().HasMaxLength(16);
+            entity.Property(session => session.CreatedUtc).IsRequired();
+            entity.Property(session => session.UpdatedUtc).IsRequired();
+            entity.HasOne(session => session.Household)
+                .WithMany()
+                .HasForeignKey(session => session.HouseholdId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(session => new { session.HouseholdId, session.WeekStart }).IsUnique();
+            entity.HasIndex(session => new { session.HouseholdId, session.Status, session.WeekStart });
+        });
+
+        modelBuilder.Entity<WeeklyResetCandidate>(entity =>
+        {
+            entity.ToTable("WeeklyResetCandidates", table =>
+            {
+                table.HasCheckConstraint("CK_WeeklyResetCandidates_Decision", "(\"Decision\" IS NULL AND \"ActorLabel\" IS NULL AND \"DecidedUtc\" IS NULL) OR (\"Decision\" IS NOT NULL AND \"DecidedUtc\" IS NOT NULL)");
+            });
+            entity.HasKey(candidate => candidate.Id);
+            entity.Property(candidate => candidate.CandidateType).HasConversion<string>().HasMaxLength(24).IsRequired();
+            entity.Property(candidate => candidate.DisplayLabel).HasMaxLength(240).IsRequired();
+            entity.Property(candidate => candidate.ContextLabel).HasMaxLength(500).IsRequired();
+            entity.Property(candidate => candidate.Decision).HasConversion<string>().HasMaxLength(24);
+            entity.Property(candidate => candidate.ActorLabel).HasMaxLength(120);
+            entity.HasOne(candidate => candidate.WeeklyResetSession)
+                .WithMany(session => session.Candidates)
+                .HasForeignKey(candidate => candidate.WeeklyResetSessionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasIndex(candidate => new { candidate.WeeklyResetSessionId, candidate.CandidateType, candidate.SourceId }).IsUnique();
+            entity.HasIndex(candidate => new { candidate.WeeklyResetSessionId, candidate.Decision });
         });
 
         var templateIds = new[]

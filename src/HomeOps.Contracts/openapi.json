@@ -7443,15 +7443,35 @@
         }
       }
     },
-    "/api/weekly-reset/family-goal/{id}/archive": {
-      "post": {
+    "/api/weekly-reset/history": {
+      "get": {
         "tags": [
           "Weekly Reset"
         ],
-        "operationId": "ArchiveWeeklyResetFamilyGoal",
+        "operationId": "GetWeeklyResetHistory",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WeeklyResetHistoryDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/weekly-reset/history/{sessionId}": {
+      "get": {
+        "tags": [
+          "Weekly Reset"
+        ],
+        "operationId": "GetWeeklyResetHistoryDetail",
         "parameters": [
           {
-            "name": "id",
+            "name": "sessionId",
             "in": "path",
             "required": true,
             "schema": {
@@ -7462,10 +7482,145 @@
           }
         ],
         "responses": {
-          "204": {
-            "description": ""
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WeeklyResetHistoryDetailDto"
+                }
+              }
+            }
           },
           "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/weekly-reset/candidates/{candidateId}/decision": {
+      "post": {
+        "tags": [
+          "Weekly Reset"
+        ],
+        "operationId": "DecideWeeklyResetCandidate",
+        "parameters": [
+          {
+            "name": "candidateId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecideWeeklyResetCandidateRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WeeklyResetCandidateDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          },
+          "409": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/weekly-reset/complete": {
+      "post": {
+        "tags": [
+          "Weekly Reset"
+        ],
+        "operationId": "CompleteWeeklyReset",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WeeklyResetSessionDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/weekly-reset/skip": {
+      "post": {
+        "tags": [
+          "Weekly Reset"
+        ],
+        "operationId": "SkipWeeklyReset",
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SkipWeeklyResetRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WeeklyResetSessionDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
             "description": ""
           }
         }
@@ -13832,30 +13987,13 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "reviewCandidates": {
+          "session": {
+            "$ref": "#/components/schemas/WeeklyResetSessionDto"
+          },
+          "candidates": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/HouseholdTaskDto"
-            }
-          },
-          "familyGoal": {
-            "nullable": true,
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/MotivationFamilyGoalDto"
-              }
-            ]
-          },
-          "individualGoals": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/MotivationIndividualGoalDto"
-            }
-          },
-          "shoppingReviewCandidates": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ShoppingReviewCandidateDto"
+              "$ref": "#/components/schemas/WeeklyResetCandidateDto"
             }
           },
           "contributionRecap": {
@@ -13863,7 +14001,7 @@
           }
         }
       },
-      "ShoppingReviewCandidateDto": {
+      "WeeklyResetSessionDto": {
         "type": "object",
         "additionalProperties": false,
         "properties": {
@@ -13871,21 +14009,148 @@
             "type": "string",
             "format": "guid"
           },
-          "name": {
-            "type": "string"
+          "weekStart": {
+            "type": "string",
+            "format": "date"
           },
-          "reason": {
-            "type": "string"
+          "weekEnd": {
+            "type": "string",
+            "format": "date"
           },
-          "updatedUtc": {
+          "status": {
+            "$ref": "#/components/schemas/WeeklyResetStatus"
+          },
+          "outcome": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/WeeklyResetOutcome"
+              }
+            ]
+          },
+          "createdUtc": {
             "type": "string",
             "format": "date-time"
           },
-          "itemCount": {
+          "completedUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "resolvedCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalCount": {
             "type": "integer",
             "format": "int32"
           }
         }
+      },
+      "WeeklyResetStatus": {
+        "type": "string",
+        "description": "",
+        "x-enumNames": [
+          "Open",
+          "Completed"
+        ],
+        "enum": [
+          "Open",
+          "Completed"
+        ]
+      },
+      "WeeklyResetOutcome": {
+        "type": "string",
+        "description": "",
+        "x-enumNames": [
+          "Reviewed",
+          "Skipped"
+        ],
+        "enum": [
+          "Reviewed",
+          "Skipped"
+        ]
+      },
+      "WeeklyResetCandidateDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "candidateType": {
+            "$ref": "#/components/schemas/WeeklyResetCandidateType"
+          },
+          "sourceId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "displayLabel": {
+            "type": "string"
+          },
+          "contextLabel": {
+            "type": "string"
+          },
+          "decision": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/WeeklyResetDecision"
+              }
+            ]
+          },
+          "actorLabel": {
+            "type": "string",
+            "nullable": true
+          },
+          "decidedUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "sourceAvailable": {
+            "type": "boolean"
+          },
+          "allowedDecisions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WeeklyResetDecision"
+            }
+          }
+        }
+      },
+      "WeeklyResetCandidateType": {
+        "type": "string",
+        "description": "",
+        "x-enumNames": [
+          "Task",
+          "FamilyGoal",
+          "IndividualGoal",
+          "ShoppingList"
+        ],
+        "enum": [
+          "Task",
+          "FamilyGoal",
+          "IndividualGoal",
+          "ShoppingList"
+        ]
+      },
+      "WeeklyResetDecision": {
+        "type": "string",
+        "description": "",
+        "x-enumNames": [
+          "CarryForward",
+          "Later",
+          "Archive",
+          "Acknowledge"
+        ],
+        "enum": [
+          "CarryForward",
+          "Later",
+          "Archive",
+          "Acknowledge"
+        ]
       },
       "WeeklyContributionRecapDto": {
         "type": "object",
@@ -13899,20 +14164,6 @@
             "type": "integer",
             "format": "int32"
           },
-          "familyGoal": {
-            "nullable": true,
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/MotivationFamilyGoalDto"
-              }
-            ]
-          },
-          "individualGoals": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/MotivationIndividualGoalDto"
-            }
-          },
           "helpfulMoments": {
             "type": "array",
             "items": {
@@ -13924,6 +14175,59 @@
             "items": {
               "$ref": "#/components/schemas/MotivationFamilyCelebrationMemoryDto"
             }
+          }
+        }
+      },
+      "WeeklyResetHistoryDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "sessions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WeeklyResetSessionDto"
+            }
+          }
+        }
+      },
+      "WeeklyResetHistoryDetailDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "session": {
+            "$ref": "#/components/schemas/WeeklyResetSessionDto"
+          },
+          "candidates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WeeklyResetCandidateDto"
+            }
+          }
+        }
+      },
+      "DecideWeeklyResetCandidateRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "decision": {
+            "$ref": "#/components/schemas/WeeklyResetDecision"
+          },
+          "actorLabel": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "SkipWeeklyResetRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "confirmed": {
+            "type": "boolean"
+          },
+          "actorLabel": {
+            "type": "string",
+            "nullable": true
           }
         }
       },

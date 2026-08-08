@@ -5152,6 +5152,507 @@ button {
     grid-template-columns: 1fr;
   }
 }
+
+/* Phase 4.5: persisted Weekly Reset uses fixed viewport regions. */
+.workspace-panel-weeklyReset .workspace-page-body {
+  overflow: hidden;
+}
+
+.workspace-panel-weeklyReset .workspace-page-body > * {
+  height: 100%;
+  min-height: 0;
+}
+
+.weekly-reset-page {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.weekly-reset-loading {
+  align-content: center;
+  justify-items: center;
+}
+
+.weekly-reset-command-band,
+.weekly-reset-candidates,
+.weekly-reset-recap,
+.weekly-reset-completion,
+.weekly-reset-dialog {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(255, 247, 237, 0.82));
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 1.2rem;
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.07);
+}
+
+.weekly-reset-command-band {
+  align-items: center;
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  padding: 0.75rem 0.9rem;
+}
+
+.weekly-reset-command-copy,
+.weekly-reset-section-heading > div,
+.weekly-reset-completion > div {
+  min-width: 0;
+}
+
+.weekly-reset-command-copy h3,
+.weekly-reset-command-copy p,
+.weekly-reset-section-heading h3,
+.weekly-reset-section-heading p,
+.weekly-reset-completion p,
+.weekly-reset-completion strong,
+.weekly-reset-dialog h3,
+.weekly-reset-dialog h4,
+.weekly-reset-dialog p {
+  margin: 0;
+}
+
+.weekly-reset-command-copy h3 {
+  color: #172554;
+  font-size: 1.15rem;
+}
+
+.weekly-reset-command-copy > p:last-child,
+.weekly-reset-completion p:last-child,
+.weekly-reset-muted {
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+}
+
+.weekly-reset-progress {
+  align-items: center;
+  background: rgba(204, 251, 241, 0.72);
+  border: 1px solid rgba(20, 184, 166, 0.28);
+  border-radius: 1rem;
+  display: grid;
+  justify-items: center;
+  min-width: 5.4rem;
+  padding: 0.45rem 0.65rem;
+}
+
+.weekly-reset-progress strong {
+  color: #0f766e;
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.weekly-reset-progress span {
+  color: #475569;
+  font-size: 0.7rem;
+  font-weight: 750;
+}
+
+.weekly-reset-command-actions,
+.weekly-reset-dialog-actions,
+.weekly-reset-candidate-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.weekly-reset-command-actions button,
+.weekly-reset-dialog-actions button,
+.weekly-reset-candidate-actions button,
+.weekly-reset-completion button,
+.weekly-reset-filters button,
+.weekly-reset-history-dialog nav button {
+  border-radius: 999px;
+  min-height: 2.5rem;
+  padding: 0.45rem 0.8rem;
+}
+
+.weekly-reset-workspace {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: minmax(0, 1.7fr) minmax(16rem, 0.8fr);
+  min-height: 0;
+  overflow: hidden;
+}
+
+.weekly-reset-candidates,
+.weekly-reset-recap {
+  display: grid;
+  gap: 0.6rem;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0.75rem;
+}
+
+.weekly-reset-candidates {
+  grid-template-rows: auto auto minmax(0, 1fr);
+}
+
+.weekly-reset-recap {
+  grid-template-rows: auto auto minmax(0, 1fr);
+}
+
+.weekly-reset-section-heading {
+  align-items: center;
+  display: flex;
+  gap: 0.6rem;
+  justify-content: space-between;
+}
+
+.weekly-reset-section-heading h3 {
+  color: #172554;
+  font-size: 1.05rem;
+}
+
+.weekly-reset-section-heading > span {
+  background: rgba(20, 184, 166, 0.12);
+  border-radius: 999px;
+  color: #0f766e;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 0.2rem 0.5rem;
+}
+
+.weekly-reset-filters {
+  display: flex;
+  gap: 0.35rem;
+  min-width: 0;
+  overflow-x: auto;
+  padding-bottom: 0.15rem;
+  scrollbar-width: thin;
+}
+
+.weekly-reset-filters button {
+  background: rgba(255, 255, 255, 0.72);
+  border-color: rgba(148, 163, 184, 0.36);
+  color: #475569;
+  flex: 0 0 auto;
+  font-size: 0.75rem;
+  min-height: 2.15rem;
+  padding: 0.3rem 0.65rem;
+}
+
+.weekly-reset-filters button[aria-pressed="true"] {
+  background: #0f766e;
+  border-color: #0f766e;
+  color: white;
+}
+
+.weekly-reset-candidate-scroll,
+.weekly-reset-recap-scroll,
+.weekly-reset-history-dialog nav,
+.weekly-reset-history-detail {
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+.weekly-reset-candidate-scroll,
+.weekly-reset-recap-scroll {
+  display: grid;
+  align-content: start;
+  gap: 0.55rem;
+  padding-right: 0.25rem;
+}
+
+.weekly-reset-candidate {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  border-radius: 1rem;
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: 0.7rem;
+}
+
+.weekly-reset-candidate.is-resolved {
+  background: rgba(240, 253, 250, 0.62);
+}
+
+.weekly-reset-candidate-copy {
+  display: grid;
+  gap: 0.12rem;
+  min-width: 0;
+}
+
+.weekly-reset-candidate-copy > span {
+  color: #0f766e;
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.weekly-reset-candidate-copy strong,
+.weekly-reset-candidate-copy p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.weekly-reset-candidate-copy p,
+.weekly-reset-saved-decision small {
+  color: var(--color-text-muted);
+  font-size: 0.76rem;
+}
+
+.weekly-reset-candidate-actions {
+  justify-content: flex-end;
+}
+
+.weekly-reset-saved-decision {
+  align-items: flex-end;
+  display: grid;
+  font-size: 0.78rem;
+  font-weight: 750;
+  justify-items: end;
+}
+
+.weekly-reset-recap-metrics {
+  display: grid;
+  gap: 0.45rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.weekly-reset-recap-metrics span {
+  background: rgba(204, 251, 241, 0.55);
+  border-radius: 0.85rem;
+  color: #475569;
+  display: grid;
+  font-size: 0.72rem;
+  padding: 0.5rem;
+}
+
+.weekly-reset-recap-metrics strong {
+  color: #0f766e;
+  font-size: 1.1rem;
+}
+
+.weekly-reset-recap-row {
+  border-top: 1px solid rgba(148, 163, 184, 0.25);
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.55rem 0.1rem 0;
+}
+
+.weekly-reset-recap-row strong {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.35rem;
+  font-size: 0.82rem;
+}
+
+.weekly-reset-recap-row p {
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  margin: 0;
+}
+
+.weekly-reset-empty {
+  align-self: center;
+  display: grid;
+  gap: 0.3rem;
+  justify-self: center;
+  max-width: 24rem;
+  padding: 1rem;
+  text-align: center;
+}
+
+.weekly-reset-empty p {
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.weekly-reset-completion {
+  align-items: center;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+  padding: 0.65rem 0.85rem;
+}
+
+.weekly-reset-completion > div {
+  display: grid;
+  gap: 0.08rem;
+}
+
+.weekly-reset-completion.is-completed {
+  background: linear-gradient(145deg, rgba(240, 253, 250, 0.96), rgba(255, 251, 235, 0.88));
+  border-color: rgba(20, 184, 166, 0.32);
+}
+
+.weekly-reset-completed-badge {
+  background: #ccfbf1;
+  border-radius: 999px;
+  color: #0f766e;
+  font-size: 0.75rem;
+  font-weight: 850;
+  padding: 0.4rem 0.65rem;
+}
+
+.weekly-reset-status {
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+  line-height: 1.1;
+  margin: 0;
+  min-height: 0.8rem;
+  padding-inline: 0.2rem;
+}
+
+.weekly-reset-status.is-error {
+  color: #b91c1c;
+  font-weight: 750;
+}
+
+.weekly-reset-dialog-backdrop {
+  align-items: center;
+  background: rgba(15, 23, 42, 0.52);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 1rem;
+  position: fixed;
+  z-index: 1200;
+}
+
+.weekly-reset-dialog {
+  max-height: min(42rem, calc(100vh - 2rem));
+  max-width: min(58rem, calc(100vw - 2rem));
+  overflow: hidden;
+  padding: 1rem;
+  width: 100%;
+}
+
+.weekly-reset-skip-dialog {
+  display: grid;
+  gap: 0.75rem;
+  max-width: min(34rem, calc(100vw - 2rem));
+}
+
+.weekly-reset-dialog-actions {
+  justify-content: flex-end;
+}
+
+.weekly-reset-history-dialog {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  height: min(38rem, calc(100vh - 2rem));
+}
+
+.weekly-reset-history-dialog > header {
+  align-items: center;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+}
+
+.weekly-reset-history-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: minmax(12rem, 0.7fr) minmax(0, 1.3fr);
+  min-height: 0;
+  overflow: hidden;
+}
+
+.weekly-reset-history-dialog nav {
+  display: grid;
+  align-content: start;
+  gap: 0.4rem;
+}
+
+.weekly-reset-history-dialog nav button {
+  align-items: start;
+  background: rgba(255, 255, 255, 0.72);
+  border-color: rgba(148, 163, 184, 0.36);
+  color: #334155;
+  display: grid;
+  gap: 0.15rem;
+  justify-items: start;
+  text-align: left;
+}
+
+.weekly-reset-history-dialog nav button[aria-current="page"] {
+  background: rgba(204, 251, 241, 0.72);
+  border-color: rgba(20, 184, 166, 0.42);
+}
+
+.weekly-reset-history-dialog nav span {
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+}
+
+.weekly-reset-history-detail {
+  display: grid;
+  align-content: start;
+  gap: 0.5rem;
+  padding-right: 0.25rem;
+}
+
+.weekly-reset-history-detail article {
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  border-radius: 0.85rem;
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.6rem;
+}
+
+.weekly-reset-history-detail article span,
+.weekly-reset-history-detail article em {
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+}
+
+@media (max-width: 920px) {
+  .weekly-reset-command-band {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .weekly-reset-command-actions {
+    grid-column: 1 / -1;
+  }
+
+  .weekly-reset-workspace {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1.35fr) minmax(8rem, 0.65fr);
+  }
+
+  .weekly-reset-history-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(7rem, 0.7fr) minmax(0, 1.3fr);
+  }
+}
+
+@media (max-height: 780px) {
+  .weekly-reset-page {
+    gap: 0.45rem;
+  }
+
+  .weekly-reset-command-band,
+  .weekly-reset-candidates,
+  .weekly-reset-recap,
+  .weekly-reset-completion {
+    padding: 0.55rem 0.65rem;
+  }
+
+  .weekly-reset-command-copy > p:last-child,
+  .weekly-reset-completion p:last-child {
+    display: none;
+  }
+
+  .weekly-reset-candidate {
+    padding: 0.5rem 0.6rem;
+  }
+
+  .weekly-reset-candidate-actions button {
+    min-height: 2.2rem;
+    padding-block: 0.3rem;
+  }
+}
 .moment-avatar .homeops-icon-asset {
   font-size: 1.45rem;
 }

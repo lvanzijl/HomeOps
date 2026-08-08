@@ -81,6 +81,8 @@ public static class VisualReviewFixtureService
 
     private static async Task ClearReviewData(HomeOpsDbContext db, CancellationToken ct)
     {
+        db.WeeklyResetCandidates.RemoveRange(await db.WeeklyResetCandidates.ToListAsync(ct));
+        db.WeeklyResetSessions.RemoveRange(await db.WeeklyResetSessions.ToListAsync(ct));
         db.EventExceptions.RemoveRange(await db.EventExceptions.ToListAsync(ct));
         db.EventSeries.RemoveRange(await db.EventSeries.ToListAsync(ct));
         db.EventSources.RemoveRange(await db.EventSources.ToListAsync(ct));

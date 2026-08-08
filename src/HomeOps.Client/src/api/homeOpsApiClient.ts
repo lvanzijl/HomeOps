@@ -8310,30 +8310,68 @@ export class HomeOpsApiClient {
         return Promise.resolve<WeeklyResetDto>(null as any);
     }
 
-    archiveWeeklyResetFamilyGoal(id: string): Promise<void> {
-        let url_ = this.baseUrl + "/api/weekly-reset/family-goal/{id}/archive";
-        if (id === undefined || id === null)
-            throw new globalThis.Error("The parameter 'id' must be defined.");
-        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+    getWeeklyResetHistory(): Promise<WeeklyResetHistoryDto> {
+        let url_ = this.baseUrl + "/api/weekly-reset/history";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
-            method: "POST",
+            method: "GET",
             headers: {
+                "Accept": "application/json"
             }
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processArchiveWeeklyResetFamilyGoal(_response);
+            return this.processGetWeeklyResetHistory(_response);
         });
     }
 
-    protected processArchiveWeeklyResetFamilyGoal(response: Response): Promise<void> {
+    protected processGetWeeklyResetHistory(response: Response): Promise<WeeklyResetHistoryDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 204) {
+        if (status === 200) {
             return response.text().then((_responseText) => {
-            return;
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = WeeklyResetHistoryDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<WeeklyResetHistoryDto>(null as any);
+    }
+
+    getWeeklyResetHistoryDetail(sessionId: string): Promise<WeeklyResetHistoryDetailDto> {
+        let url_ = this.baseUrl + "/api/weekly-reset/history/{sessionId}";
+        if (sessionId === undefined || sessionId === null)
+            throw new globalThis.Error("The parameter 'sessionId' must be defined.");
+        url_ = url_.replace("{sessionId}", encodeURIComponent("" + sessionId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetWeeklyResetHistoryDetail(_response);
+        });
+    }
+
+    protected processGetWeeklyResetHistoryDetail(response: Response): Promise<WeeklyResetHistoryDetailDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = WeeklyResetHistoryDetailDto.fromJS(resultData200);
+            return result200;
             });
         } else if (status === 404) {
             return response.text().then((_responseText) => {
@@ -8344,7 +8382,150 @@ export class HomeOpsApiClient {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<void>(null as any);
+        return Promise.resolve<WeeklyResetHistoryDetailDto>(null as any);
+    }
+
+    decideWeeklyResetCandidate(candidateId: string, request: DecideWeeklyResetCandidateRequest): Promise<WeeklyResetCandidateDto> {
+        let url_ = this.baseUrl + "/api/weekly-reset/candidates/{candidateId}/decision";
+        if (candidateId === undefined || candidateId === null)
+            throw new globalThis.Error("The parameter 'candidateId' must be defined.");
+        url_ = url_.replace("{candidateId}", encodeURIComponent("" + candidateId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDecideWeeklyResetCandidate(_response);
+        });
+    }
+
+    protected processDecideWeeklyResetCandidate(response: Response): Promise<WeeklyResetCandidateDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = WeeklyResetCandidateDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = HttpValidationProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<WeeklyResetCandidateDto>(null as any);
+    }
+
+    completeWeeklyReset(): Promise<WeeklyResetSessionDto> {
+        let url_ = this.baseUrl + "/api/weekly-reset/complete";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCompleteWeeklyReset(_response);
+        });
+    }
+
+    protected processCompleteWeeklyReset(response: Response): Promise<WeeklyResetSessionDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = WeeklyResetSessionDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<WeeklyResetSessionDto>(null as any);
+    }
+
+    skipWeeklyReset(request: SkipWeeklyResetRequest): Promise<WeeklyResetSessionDto> {
+        let url_ = this.baseUrl + "/api/weekly-reset/skip";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processSkipWeeklyReset(_response);
+        });
+    }
+
+    protected processSkipWeeklyReset(response: Response): Promise<WeeklyResetSessionDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = WeeklyResetSessionDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = HttpValidationProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<WeeklyResetSessionDto>(null as any);
     }
 
     getHomeWeather(): Promise<HomeWeatherProjection> {
@@ -19501,10 +19682,8 @@ export interface ICreateHelpfulMomentRequest {
 }
 
 export class WeeklyResetDto implements IWeeklyResetDto {
-    reviewCandidates?: HouseholdTaskDto[];
-    familyGoal?: MotivationFamilyGoalDto | undefined;
-    individualGoals?: MotivationIndividualGoalDto[];
-    shoppingReviewCandidates?: ShoppingReviewCandidateDto[];
+    session?: WeeklyResetSessionDto;
+    candidates?: WeeklyResetCandidateDto[];
     contributionRecap?: WeeklyContributionRecapDto;
 
     constructor(data?: IWeeklyResetDto) {
@@ -19518,21 +19697,11 @@ export class WeeklyResetDto implements IWeeklyResetDto {
 
     init(_data?: any) {
         if (_data) {
-            if (Array.isArray(_data["reviewCandidates"])) {
-                this.reviewCandidates = [] as any;
-                for (let item of _data["reviewCandidates"])
-                    this.reviewCandidates!.push(HouseholdTaskDto.fromJS(item));
-            }
-            this.familyGoal = _data["familyGoal"] ? MotivationFamilyGoalDto.fromJS(_data["familyGoal"]) : undefined as any;
-            if (Array.isArray(_data["individualGoals"])) {
-                this.individualGoals = [] as any;
-                for (let item of _data["individualGoals"])
-                    this.individualGoals!.push(MotivationIndividualGoalDto.fromJS(item));
-            }
-            if (Array.isArray(_data["shoppingReviewCandidates"])) {
-                this.shoppingReviewCandidates = [] as any;
-                for (let item of _data["shoppingReviewCandidates"])
-                    this.shoppingReviewCandidates!.push(ShoppingReviewCandidateDto.fromJS(item));
+            this.session = _data["session"] ? WeeklyResetSessionDto.fromJS(_data["session"]) : undefined as any;
+            if (Array.isArray(_data["candidates"])) {
+                this.candidates = [] as any;
+                for (let item of _data["candidates"])
+                    this.candidates!.push(WeeklyResetCandidateDto.fromJS(item));
             }
             this.contributionRecap = _data["contributionRecap"] ? WeeklyContributionRecapDto.fromJS(_data["contributionRecap"]) : undefined as any;
         }
@@ -19547,21 +19716,11 @@ export class WeeklyResetDto implements IWeeklyResetDto {
 
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
-        if (Array.isArray(this.reviewCandidates)) {
-            data["reviewCandidates"] = [];
-            for (let item of this.reviewCandidates)
-                data["reviewCandidates"].push(item ? item.toJSON() : undefined as any);
-        }
-        data["familyGoal"] = this.familyGoal ? this.familyGoal.toJSON() : undefined as any;
-        if (Array.isArray(this.individualGoals)) {
-            data["individualGoals"] = [];
-            for (let item of this.individualGoals)
-                data["individualGoals"].push(item ? item.toJSON() : undefined as any);
-        }
-        if (Array.isArray(this.shoppingReviewCandidates)) {
-            data["shoppingReviewCandidates"] = [];
-            for (let item of this.shoppingReviewCandidates)
-                data["shoppingReviewCandidates"].push(item ? item.toJSON() : undefined as any);
+        data["session"] = this.session ? this.session.toJSON() : undefined as any;
+        if (Array.isArray(this.candidates)) {
+            data["candidates"] = [];
+            for (let item of this.candidates)
+                data["candidates"].push(item ? item.toJSON() : undefined as any);
         }
         data["contributionRecap"] = this.contributionRecap ? this.contributionRecap.toJSON() : undefined as any;
         return data;
@@ -19569,21 +19728,23 @@ export class WeeklyResetDto implements IWeeklyResetDto {
 }
 
 export interface IWeeklyResetDto {
-    reviewCandidates?: HouseholdTaskDto[];
-    familyGoal?: MotivationFamilyGoalDto | undefined;
-    individualGoals?: MotivationIndividualGoalDto[];
-    shoppingReviewCandidates?: ShoppingReviewCandidateDto[];
+    session?: WeeklyResetSessionDto;
+    candidates?: WeeklyResetCandidateDto[];
     contributionRecap?: WeeklyContributionRecapDto;
 }
 
-export class ShoppingReviewCandidateDto implements IShoppingReviewCandidateDto {
+export class WeeklyResetSessionDto implements IWeeklyResetSessionDto {
     id?: string;
-    name?: string;
-    reason?: string;
-    updatedUtc?: Date;
-    itemCount?: number;
+    weekStart?: Date;
+    weekEnd?: Date;
+    status?: WeeklyResetStatus;
+    outcome?: WeeklyResetOutcome | undefined;
+    createdUtc?: Date;
+    completedUtc?: Date | undefined;
+    resolvedCount?: number;
+    totalCount?: number;
 
-    constructor(data?: IShoppingReviewCandidateDto) {
+    constructor(data?: IWeeklyResetSessionDto) {
         if (data) {
             for (var property in data) {
                 if (data.hasOwnProperty(property))
@@ -19595,16 +19756,20 @@ export class ShoppingReviewCandidateDto implements IShoppingReviewCandidateDto {
     init(_data?: any) {
         if (_data) {
             this.id = _data["id"];
-            this.name = _data["name"];
-            this.reason = _data["reason"];
-            this.updatedUtc = _data["updatedUtc"] ? new Date(_data["updatedUtc"].toString()) : undefined as any;
-            this.itemCount = _data["itemCount"];
+            this.weekStart = _data["weekStart"] ? new Date(_data["weekStart"].toString()) : undefined as any;
+            this.weekEnd = _data["weekEnd"] ? new Date(_data["weekEnd"].toString()) : undefined as any;
+            this.status = _data["status"];
+            this.outcome = _data["outcome"];
+            this.createdUtc = _data["createdUtc"] ? new Date(_data["createdUtc"].toString()) : undefined as any;
+            this.completedUtc = _data["completedUtc"] ? new Date(_data["completedUtc"].toString()) : undefined as any;
+            this.resolvedCount = _data["resolvedCount"];
+            this.totalCount = _data["totalCount"];
         }
     }
 
-    static fromJS(data: any): ShoppingReviewCandidateDto {
+    static fromJS(data: any): WeeklyResetSessionDto {
         data = typeof data === 'object' ? data : {};
-        let result = new ShoppingReviewCandidateDto();
+        let result = new WeeklyResetSessionDto();
         result.init(data);
         return result;
     }
@@ -19612,27 +19777,137 @@ export class ShoppingReviewCandidateDto implements IShoppingReviewCandidateDto {
     toJSON(data?: any) {
         data = typeof data === 'object' ? data : {};
         data["id"] = this.id;
-        data["name"] = this.name;
-        data["reason"] = this.reason;
-        data["updatedUtc"] = this.updatedUtc ? this.updatedUtc.toISOString() : undefined as any;
-        data["itemCount"] = this.itemCount;
+        data["weekStart"] = this.weekStart ? formatDate(this.weekStart) : undefined as any;
+        data["weekEnd"] = this.weekEnd ? formatDate(this.weekEnd) : undefined as any;
+        data["status"] = this.status;
+        data["outcome"] = this.outcome;
+        data["createdUtc"] = this.createdUtc ? this.createdUtc.toISOString() : undefined as any;
+        data["completedUtc"] = this.completedUtc ? this.completedUtc.toISOString() : undefined as any;
+        data["resolvedCount"] = this.resolvedCount;
+        data["totalCount"] = this.totalCount;
         return data;
     }
 }
 
-export interface IShoppingReviewCandidateDto {
+export interface IWeeklyResetSessionDto {
     id?: string;
-    name?: string;
-    reason?: string;
-    updatedUtc?: Date;
-    itemCount?: number;
+    weekStart?: Date;
+    weekEnd?: Date;
+    status?: WeeklyResetStatus;
+    outcome?: WeeklyResetOutcome | undefined;
+    createdUtc?: Date;
+    completedUtc?: Date | undefined;
+    resolvedCount?: number;
+    totalCount?: number;
+}
+
+export enum WeeklyResetStatus {
+    Open = "Open",
+    Completed = "Completed",
+}
+
+export enum WeeklyResetOutcome {
+    Reviewed = "Reviewed",
+    Skipped = "Skipped",
+}
+
+export class WeeklyResetCandidateDto implements IWeeklyResetCandidateDto {
+    id?: string;
+    candidateType?: WeeklyResetCandidateType;
+    sourceId?: string;
+    displayLabel?: string;
+    contextLabel?: string;
+    decision?: WeeklyResetDecision | undefined;
+    actorLabel?: string | undefined;
+    decidedUtc?: Date | undefined;
+    sourceAvailable?: boolean;
+    allowedDecisions?: WeeklyResetDecision[];
+
+    constructor(data?: IWeeklyResetCandidateDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.candidateType = _data["candidateType"];
+            this.sourceId = _data["sourceId"];
+            this.displayLabel = _data["displayLabel"];
+            this.contextLabel = _data["contextLabel"];
+            this.decision = _data["decision"];
+            this.actorLabel = _data["actorLabel"];
+            this.decidedUtc = _data["decidedUtc"] ? new Date(_data["decidedUtc"].toString()) : undefined as any;
+            this.sourceAvailable = _data["sourceAvailable"];
+            if (Array.isArray(_data["allowedDecisions"])) {
+                this.allowedDecisions = [] as any;
+                for (let item of _data["allowedDecisions"])
+                    this.allowedDecisions!.push(item);
+            }
+        }
+    }
+
+    static fromJS(data: any): WeeklyResetCandidateDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new WeeklyResetCandidateDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["candidateType"] = this.candidateType;
+        data["sourceId"] = this.sourceId;
+        data["displayLabel"] = this.displayLabel;
+        data["contextLabel"] = this.contextLabel;
+        data["decision"] = this.decision;
+        data["actorLabel"] = this.actorLabel;
+        data["decidedUtc"] = this.decidedUtc ? this.decidedUtc.toISOString() : undefined as any;
+        data["sourceAvailable"] = this.sourceAvailable;
+        if (Array.isArray(this.allowedDecisions)) {
+            data["allowedDecisions"] = [];
+            for (let item of this.allowedDecisions)
+                data["allowedDecisions"].push(item);
+        }
+        return data;
+    }
+}
+
+export interface IWeeklyResetCandidateDto {
+    id?: string;
+    candidateType?: WeeklyResetCandidateType;
+    sourceId?: string;
+    displayLabel?: string;
+    contextLabel?: string;
+    decision?: WeeklyResetDecision | undefined;
+    actorLabel?: string | undefined;
+    decidedUtc?: Date | undefined;
+    sourceAvailable?: boolean;
+    allowedDecisions?: WeeklyResetDecision[];
+}
+
+export enum WeeklyResetCandidateType {
+    Task = "Task",
+    FamilyGoal = "FamilyGoal",
+    IndividualGoal = "IndividualGoal",
+    ShoppingList = "ShoppingList",
+}
+
+export enum WeeklyResetDecision {
+    CarryForward = "CarryForward",
+    Later = "Later",
+    Archive = "Archive",
+    Acknowledge = "Acknowledge",
 }
 
 export class WeeklyContributionRecapDto implements IWeeklyContributionRecapDto {
     completedTaskCount?: number;
     helpfulMomentCount?: number;
-    familyGoal?: MotivationFamilyGoalDto | undefined;
-    individualGoals?: MotivationIndividualGoalDto[];
     helpfulMoments?: HelpfulMomentDto[];
     celebrationMemories?: MotivationFamilyCelebrationMemoryDto[];
 
@@ -19649,12 +19924,6 @@ export class WeeklyContributionRecapDto implements IWeeklyContributionRecapDto {
         if (_data) {
             this.completedTaskCount = _data["completedTaskCount"];
             this.helpfulMomentCount = _data["helpfulMomentCount"];
-            this.familyGoal = _data["familyGoal"] ? MotivationFamilyGoalDto.fromJS(_data["familyGoal"]) : undefined as any;
-            if (Array.isArray(_data["individualGoals"])) {
-                this.individualGoals = [] as any;
-                for (let item of _data["individualGoals"])
-                    this.individualGoals!.push(MotivationIndividualGoalDto.fromJS(item));
-            }
             if (Array.isArray(_data["helpfulMoments"])) {
                 this.helpfulMoments = [] as any;
                 for (let item of _data["helpfulMoments"])
@@ -19679,12 +19948,6 @@ export class WeeklyContributionRecapDto implements IWeeklyContributionRecapDto {
         data = typeof data === 'object' ? data : {};
         data["completedTaskCount"] = this.completedTaskCount;
         data["helpfulMomentCount"] = this.helpfulMomentCount;
-        data["familyGoal"] = this.familyGoal ? this.familyGoal.toJSON() : undefined as any;
-        if (Array.isArray(this.individualGoals)) {
-            data["individualGoals"] = [];
-            for (let item of this.individualGoals)
-                data["individualGoals"].push(item ? item.toJSON() : undefined as any);
-        }
         if (Array.isArray(this.helpfulMoments)) {
             data["helpfulMoments"] = [];
             for (let item of this.helpfulMoments)
@@ -19702,10 +19965,180 @@ export class WeeklyContributionRecapDto implements IWeeklyContributionRecapDto {
 export interface IWeeklyContributionRecapDto {
     completedTaskCount?: number;
     helpfulMomentCount?: number;
-    familyGoal?: MotivationFamilyGoalDto | undefined;
-    individualGoals?: MotivationIndividualGoalDto[];
     helpfulMoments?: HelpfulMomentDto[];
     celebrationMemories?: MotivationFamilyCelebrationMemoryDto[];
+}
+
+export class WeeklyResetHistoryDto implements IWeeklyResetHistoryDto {
+    sessions?: WeeklyResetSessionDto[];
+
+    constructor(data?: IWeeklyResetHistoryDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            if (Array.isArray(_data["sessions"])) {
+                this.sessions = [] as any;
+                for (let item of _data["sessions"])
+                    this.sessions!.push(WeeklyResetSessionDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): WeeklyResetHistoryDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new WeeklyResetHistoryDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        if (Array.isArray(this.sessions)) {
+            data["sessions"] = [];
+            for (let item of this.sessions)
+                data["sessions"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IWeeklyResetHistoryDto {
+    sessions?: WeeklyResetSessionDto[];
+}
+
+export class WeeklyResetHistoryDetailDto implements IWeeklyResetHistoryDetailDto {
+    session?: WeeklyResetSessionDto;
+    candidates?: WeeklyResetCandidateDto[];
+
+    constructor(data?: IWeeklyResetHistoryDetailDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.session = _data["session"] ? WeeklyResetSessionDto.fromJS(_data["session"]) : undefined as any;
+            if (Array.isArray(_data["candidates"])) {
+                this.candidates = [] as any;
+                for (let item of _data["candidates"])
+                    this.candidates!.push(WeeklyResetCandidateDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): WeeklyResetHistoryDetailDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new WeeklyResetHistoryDetailDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["session"] = this.session ? this.session.toJSON() : undefined as any;
+        if (Array.isArray(this.candidates)) {
+            data["candidates"] = [];
+            for (let item of this.candidates)
+                data["candidates"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IWeeklyResetHistoryDetailDto {
+    session?: WeeklyResetSessionDto;
+    candidates?: WeeklyResetCandidateDto[];
+}
+
+export class DecideWeeklyResetCandidateRequest implements IDecideWeeklyResetCandidateRequest {
+    decision?: WeeklyResetDecision;
+    actorLabel?: string | undefined;
+
+    constructor(data?: IDecideWeeklyResetCandidateRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.decision = _data["decision"];
+            this.actorLabel = _data["actorLabel"];
+        }
+    }
+
+    static fromJS(data: any): DecideWeeklyResetCandidateRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new DecideWeeklyResetCandidateRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["decision"] = this.decision;
+        data["actorLabel"] = this.actorLabel;
+        return data;
+    }
+}
+
+export interface IDecideWeeklyResetCandidateRequest {
+    decision?: WeeklyResetDecision;
+    actorLabel?: string | undefined;
+}
+
+export class SkipWeeklyResetRequest implements ISkipWeeklyResetRequest {
+    confirmed?: boolean;
+    actorLabel?: string | undefined;
+
+    constructor(data?: ISkipWeeklyResetRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.confirmed = _data["confirmed"];
+            this.actorLabel = _data["actorLabel"];
+        }
+    }
+
+    static fromJS(data: any): SkipWeeklyResetRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new SkipWeeklyResetRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["confirmed"] = this.confirmed;
+        data["actorLabel"] = this.actorLabel;
+        return data;
+    }
+}
+
+export interface ISkipWeeklyResetRequest {
+    confirmed?: boolean;
+    actorLabel?: string | undefined;
 }
 
 export class HomeWeatherProjection implements IHomeWeatherProjection {
