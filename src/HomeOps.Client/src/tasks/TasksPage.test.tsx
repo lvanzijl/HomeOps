@@ -173,11 +173,18 @@ describe("TasksPage hierarchy compaction", () => {
     const lunchCard = screen.getByText("Pack lunches").closest("li")!;
     expect(within(lunchCard).getByText("Herhaalt wekelijks")).not.toBeNull();
     expect(
-      within(lunchCard).queryByRole("button", { name: "Morgen" }),
+      within(lunchCard).queryByRole("button", { name: /Morgen plannen/ }),
     ).toBeNull();
+    const moreActions = within(lunchCard).getByRole("button", {
+      name: /Meer acties voor Pack lunches/,
+    });
+    await user.click(moreActions);
     expect(
-      within(lunchCard).getByRole("button", { name: "Routine verwijderen" }),
+      screen.getByRole("menuitem", {
+        name: /Routine verwijderen: Pack lunches/,
+      }),
     ).not.toBeNull();
+    await user.keyboard("{Escape}");
     await user.click(
       screen.getByRole("button", { name: /Week plannen \(1\)/ }),
     );
@@ -281,10 +288,10 @@ describe("TasksPage hierarchy compaction", () => {
       .getByText("Return library books")
       .closest("li")!;
     await user.click(
-      within(normalCard).getByRole("button", { name: "Morgen" }),
+      within(normalCard).getByRole("button", { name: /Morgen plannen/ }),
     );
     await user.click(
-      within(overdueCard).getByRole("button", { name: "Morgen" }),
+      within(overdueCard).getByRole("button", { name: /Morgen plannen/ }),
     );
 
     expect(vi.mocked(api.updateTask)).toHaveBeenCalledWith("normal", {
@@ -304,10 +311,85 @@ describe("TasksPage hierarchy compaction", () => {
     expect(
       within(screen.getByText("Pack lunches").closest("li")!).queryByRole(
         "button",
-        { name: "Morgen" },
+        { name: /Morgen plannen/ },
       ),
     ).toBeNull();
     expect(vi.mocked(api.updateTask)).toHaveBeenCalledTimes(2);
+  });
+
+  it("exposes direct semantic task controls and restores focus from the More menu", async () => {
+    const user = userEvent.setup();
+    render(<TasksPage members={familyMembers} />);
+
+    const card = (await screen.findByText("Return library books")).closest("li")!;
+    expect(card.hasAttribute("tabindex")).toBe(false);
+    expect(card.hasAttribute("aria-selected")).toBe(false);
+    expect(
+      within(card).getByRole("button", {
+        name: "Details van Return library books openen",
+      }),
+    ).not.toBeNull();
+    expect(
+      within(card).getByRole("button", {
+        name: "Klaar: Return library books",
+      }),
+    ).not.toBeNull();
+    expect(
+      within(card).getByRole("button", {
+        name: "Morgen plannen: Return library books",
+      }),
+    ).not.toBeNull();
+
+    const more = within(card).getByRole("button", {
+      name: "Meer acties voor Return library books",
+    });
+    expect(more.getAttribute("aria-expanded")).toBe("false");
+    more.focus();
+    await user.keyboard("{Enter}");
+
+    const menu = screen.getByRole("menu", {
+      name: "Meer acties voor Return library books",
+    });
+    const edit = within(menu).getByRole("menuitem", {
+      name: "Aanpassen: Return library books",
+    });
+    expect(more.getAttribute("aria-expanded")).toBe("true");
+    expect(more.getAttribute("aria-controls")).toBe(menu.id);
+    expect(document.activeElement).toBe(edit);
+
+    await user.keyboard("{Escape}");
+    expect(screen.queryByRole("menu")).toBeNull();
+    expect(document.activeElement).toBe(more);
+
+    await user.click(more);
+    expect(screen.getByRole("menu")).not.toBeNull();
+    await user.click(
+      screen.getByRole("heading", { name: "Taken voor het gezin" }),
+    );
+    expect(screen.queryByRole("menu")).toBeNull();
+  });
+
+  it("keeps Reopen directly available for completed tasks", async () => {
+    const user = userEvent.setup();
+    const api = await tasksApi();
+    vi.mocked(api.loadTasks).mockResolvedValue([
+      task({
+        id: "completed",
+        title: "Put coats away",
+        isCompleted: true,
+        completedUtc: "2026-06-20T09:00:00Z",
+      }),
+    ]);
+    render(<TasksPage members={familyMembers} />);
+
+    await screen.findByText("Planning");
+    await user.click(screen.getByRole("button", { name: /Afgerond1/ }));
+    const card = (await screen.findByText("Put coats away")).closest("li")!;
+    expect(
+      within(card).getByRole("button", {
+        name: "Terugzetten: Put coats away",
+      }),
+    ).not.toBeNull();
   });
 
   it("guides task creation through one friendly question at a time", async () => {
@@ -387,7 +469,7 @@ describe("TasksPage hierarchy compaction", () => {
     await user.click(
       within(screen.getByText("Return library books").closest("li")!).getByRole(
         "button",
-        { name: "Aanpassen" },
+        { name: "Details van Return library books openen" },
       ),
     );
 
@@ -526,7 +608,11 @@ describe("TasksPage hierarchy compaction", () => {
       within(card).getByLabelText("Decoratieve avatar voor Grandma gift"),
     ).not.toBeNull();
     expect(within(card).getByText("Alex")).not.toBeNull();
-    await user.click(within(card).getByRole("button", { name: "Aanpassen" }));
+    await user.click(
+      within(card).getByRole("button", {
+        name: "Details van Grandma gift openen",
+      }),
+    );
     const dialog = screen.getByRole("dialog", { name: "Taak aanpassen" });
     await user.click(within(dialog).getByRole("button", { name: "Verder" }));
     await user.click(within(dialog).getByRole("button", { name: "Verder" }));

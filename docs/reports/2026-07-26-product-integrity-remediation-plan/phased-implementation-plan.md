@@ -209,7 +209,7 @@ Maintain five explicit runtime modes:
 
 - [x] **Status: Completed**
 
-**Implementation state:** a pinned Playwright 1.62.0 project now runs six Chromium smoke scenarios through one root command. The runner creates a guarded `homeops_e2e_<guid>` PostgreSQL database, migrates it through the real API, starts API and Vite on test-only loopback ports, waits for health, and drops only the generated database in cleanup. The former `TIME-01` expected failure was promoted to a normal passing regression in Slice 3.3; only the known `TASK-UI-01`/`TASK-UI-02` interaction scenario remains marked as an expected failure for Phase 4. Avatar persistence, first run, household-local Home events, and viewport checks are normal passing regressions. Failure-only screenshots/traces and browser output are ignored and absent from the changeset.
+**Implementation state:** a pinned Playwright 1.62.0 project now runs six Chromium smoke scenarios through one root command. The runner creates a guarded `homeops_e2e_<guid>` PostgreSQL database, migrates it through the real API, starts API and Vite on test-only loopback ports, waits for health, and drops only the generated database in cleanup. The former `TIME-01` expected failure was promoted to a normal passing regression in Slice 3.3, and the former `TASK-UI-01`/`TASK-UI-02` expected failure was promoted in Slice 4.1 with mouse/keyboard and 1280×720 hit-target coverage. All six scenarios are normal passing regressions. Failure-only screenshots/traces and browser output are ignored and absent from the changeset.
 
 **Goal:** detect hit-target, clipping, refresh-persistence, route, and viewport failures that jsdom cannot see.
 
@@ -759,7 +759,7 @@ Before changing Tasks layout or action placement, write the repository-required 
 
 ### Slice 4.1 — Make task actions directly operable
 
-- [ ] **Status: Not started**
+- [x] **Status: Completed 2026-08-08**
 
 **Audit IDs:** TASK-UI-01, TASK-UI-02
 
@@ -779,6 +779,8 @@ Before changing Tasks layout or action placement, write the repository-required 
 - `src/HomeOps.Client/src/styles.css`
 - `src/HomeOps.Client/src/tasks/TasksPage.test.tsx`
 - E2E task specs
+
+**Implementation state:** task list items are now non-interactive containers with named title/details, Complete/Reopen, eligible Tomorrow, and More buttons that are visible without selection. More uses a controlled, viewport-clamped document portal with expanded/control state, first-item focus, Escape focus return, outside-click and scroll closure, and no clipping ancestor. Real-browser checks prove at least 40×40 hit geometry, pointer activation, keyboard behavior, popup bounds, and zero document overflow at 1280×720; established 1440×900 and 1366×768 viewport checks remain passing. Focused frontend 12/12, full frontend 342/342, backend 622/622, both builds, and PostgreSQL-backed Playwright 6/6 pass. See `docs/reports/2026-08-08-task-actions/implementation.md`.
 
 ### Slice 4.2 — Normal task archive/delete
 
@@ -847,8 +849,8 @@ Before changing Tasks layout or action placement, write the repository-required 
 
 ### Phase 4 exit criteria
 
-- [ ] Task actions are discoverable and accessible.
-- [ ] Edit menu is never clipped at supported viewports.
+- [x] Task actions are discoverable and accessible.
+- [x] Edit menu is never clipped at supported viewports.
 - [ ] Normal tasks and routines have coherent archive/restore lifecycle.
 - [ ] Recurring scope is explicit.
 - [ ] Weekly Reset can be completed and reviewed after refresh.
@@ -1261,8 +1263,8 @@ Every audit finding must appear exactly once as the primary responsibility of a 
 | CLIMATE-01 | 5.3 Climate configuration UI | [ ] Not started |
 | CLIMATE-02 | 5.4 Mapping management | [ ] Not started |
 | RESET-01 | 4.5 Persisted Weekly Reset | [ ] Not started |
-| TASK-UI-01 | 4.1 Task actions | [ ] Not started |
-| TASK-UI-02 | 4.1 Task popup/hit targets | [ ] Not started |
+| TASK-UI-01 | 4.1 Task actions | [x] Completed |
+| TASK-UI-02 | 4.1 Task popup/hit targets | [x] Completed |
 | TASK-01 | 4.2 Normal task lifecycle | [ ] Not started |
 | TASK-02 | 4.3 Routine creation | [ ] Not started |
 | TASK-03 | 4.3 Routine editing | [ ] Not started |

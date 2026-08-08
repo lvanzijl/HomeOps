@@ -7,7 +7,7 @@ Phase 4 makes task actions directly operable, gives normal tasks and routines co
 | Slice | Status | Outcome |
 | --- | --- | --- |
 | 4.0 Tasks viewport/interaction analysis | Completed 2026-08-08 | Approved the existing fixed dashboard composition and defined semantic task actions, portalled menu behavior, and bounded archive/routine placement. |
-| 4.1 Directly operable task actions | Not started | Replace selection-only card actions and clipped Edit with semantic, visible, real-hit-target controls. |
+| 4.1 Directly operable task actions | Completed 2026-08-08 | Replaced selection-only cards with semantic direct actions and a keyboard-safe viewport-clamped portalled menu. |
 | 4.2 Normal task archive/delete | Not started | Add reversible archive, restore, and explicitly confirmed permanent deletion for normal tasks. |
 | 4.3 Routine/template lifecycle | Not started | Add a dedicated ordered-item routine editor and archive/restore/delete lifecycle. |
 | 4.4 Recurring occurrence control | Not started | Define and implement occurrence, future, and entire-series scopes. |
@@ -27,6 +27,14 @@ Slice 4.1 must make the list item non-interactive, provide a named title/details
 
 Slice 4.2 may add one compact `Archief` entry to the existing secondary rail and must keep archive/restore/delete inside bounded surfaces. Slice 4.3 must retain the existing `Routines` rail entry and keep its dedicated ordered-item editor and lifecycle inside an internally scrolling bounded surface. Neither slice may add variable-height management content to the default page.
 
+## Slice 4.1 implementation boundary
+
+Task list items are now non-interactive containers. Title/details, Complete/Reopen, eligible Tomorrow, and More are named buttons whose availability does not depend on card selection, hover, or focus. More opens a controlled menu through a document-level portal; it flips and clamps inside the viewport, closes on outside interaction or scroll, exposes expanded/control state, focuses Edit after positioning, and returns focus to the trigger on Escape.
+
+The approved page composition did not change. Action targets remain at least 40×40 CSS pixels, metadata compacts before actions, and all variable task volume remains inside existing list/dialog overflow owners. The former TASK-UI-01/TASK-UI-02 Playwright expected failure is a normal passing regression with mouse and keyboard coverage at 1280×720; the established 1440×900 and 1366×768 viewport checks also pass.
+
+Validation: focused Tasks tests 12/12; full frontend 342/342; backend 622/622; frontend and solution builds; and PostgreSQL-backed Playwright 6/6. The implementation report is `docs/reports/2026-08-08-task-actions/implementation.md`.
+
 ## Fixed boundaries
 
 - Slice 4.0 changes documentation only.
@@ -38,8 +46,8 @@ Slice 4.2 may add one compact `Archief` entry to the existing secondary rail and
 
 ## Phase exit criteria
 
-- [ ] Task actions are discoverable and accessible.
-- [ ] Edit menu is never clipped at supported viewports.
+- [x] Task actions are discoverable and accessible.
+- [x] Edit menu is never clipped at supported viewports.
 - [ ] Normal tasks and routines have coherent archive/restore lifecycle.
 - [ ] Recurring scope is explicit.
 - [ ] Weekly Reset can be completed and reviewed after refresh.

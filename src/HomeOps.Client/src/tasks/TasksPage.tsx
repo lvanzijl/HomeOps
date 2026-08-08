@@ -1,4 +1,14 @@
-import { FormEvent, type ReactNode, useEffect, useMemo, useState } from "react";
+import {
+  FormEvent,
+  type ReactNode,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { createPortal } from "react-dom";
 import {
   familyMembers as fallbackFamilyMembers,
   type FamilyMember,
@@ -78,7 +88,6 @@ export function TasksPage({
   );
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const reviewTasks = useMemo(
     () =>
       tasks
@@ -456,7 +465,6 @@ export function TasksPage({
       setTasks((current) =>
         current.map((task) => (task.id === updated.id ? updated : task)),
       );
-      setSelectedTaskId(null);
     } catch {
       setError("Taak kon niet worden bijgewerkt.");
     }
@@ -481,7 +489,6 @@ export function TasksPage({
       setTasks((current) =>
         current.map((item) => (item.id === updated.id ? updated : item)),
       );
-      setSelectedTaskId(null);
     } catch {
       setError("Taak kon niet naar morgen worden verplaatst.");
     }
@@ -491,7 +498,6 @@ export function TasksPage({
     <article
       className="tasks-page"
       aria-label="Takenpagina"
-      onClick={() => setSelectedTaskId(null)}
     >
       <header className="tasks-command-band">
         <div className="tasks-command-copy">
@@ -543,8 +549,6 @@ export function TasksPage({
           onDeleteSeries={deleteSeries}
           onEdit={startEditing}
           onMoveToTomorrow={moveTaskToTomorrow}
-          selectedTaskId={selectedTaskId}
-          onSelectTask={setSelectedTaskId}
           onUpdate={updateTask}
           emptyState={
             isLoading ? (
@@ -876,14 +880,12 @@ export function TasksPage({
               todayDate={todayDate}
               todayIso={todayIso}
               tomorrowGroup={tomorrowGroup}
-              selectedTaskId={selectedTaskId}
               onDeleteSeries={deleteSeries}
               onEdit={startEditing}
               onMoveToTomorrow={moveTaskToTomorrow}
               onOpenSection={(section) =>
                 setActivePanel({ kind: "planning", section })
               }
-              onSelectTask={setSelectedTaskId}
               onUpdate={updateTask}
             />
           ) : null}
@@ -899,8 +901,6 @@ export function TasksPage({
               onDeleteSeries={deleteSeries}
               onEdit={startEditing}
               onMoveToTomorrow={moveTaskToTomorrow}
-              selectedTaskId={selectedTaskId}
-              onSelectTask={setSelectedTaskId}
               onUpdate={updateTask}
               scrollable
             />
@@ -917,8 +917,6 @@ export function TasksPage({
               onDeleteSeries={deleteSeries}
               onEdit={startEditing}
               onMoveToTomorrow={moveTaskToTomorrow}
-              selectedTaskId={selectedTaskId}
-              onSelectTask={setSelectedTaskId}
               onUpdate={updateTask}
               scrollable
             />
@@ -1183,12 +1181,10 @@ function PlanningDetailPanel({
   todayDate,
   todayIso,
   tomorrowGroup,
-  selectedTaskId,
   onDeleteSeries,
   onEdit,
   onMoveToTomorrow,
   onOpenSection,
-  onSelectTask,
   onUpdate,
 }: {
   activeSection: PlanningSection;
@@ -1199,12 +1195,10 @@ function PlanningDetailPanel({
   todayDate: Date;
   todayIso: string;
   tomorrowGroup: TaskTimeGroup;
-  selectedTaskId: string | null;
   onDeleteSeries(id: string): void;
   onEdit(task: HouseholdTask): void;
   onMoveToTomorrow(task: HouseholdTask): void;
   onOpenSection(section: PlanningSection): void;
-  onSelectTask(id: string | null): void;
   onUpdate(id: string, action: "complete" | "reopen"): void;
 }) {
   const activeGroup =
@@ -1260,8 +1254,6 @@ function PlanningDetailPanel({
         onDeleteSeries={onDeleteSeries}
         onEdit={onEdit}
         onMoveToTomorrow={onMoveToTomorrow}
-        selectedTaskId={selectedTaskId}
-        onSelectTask={onSelectTask}
         onUpdate={onUpdate}
         scrollable
       />
@@ -1348,8 +1340,6 @@ function TaskGroup({
   onDeleteSeries,
   onEdit,
   onMoveToTomorrow,
-  selectedTaskId,
-  onSelectTask,
   onUpdate,
 }: {
   countOverride?: number;
@@ -1366,8 +1356,6 @@ function TaskGroup({
   onDeleteSeries(id: string): void;
   onEdit(task: HouseholdTask): void;
   onMoveToTomorrow(task: HouseholdTask): void;
-  selectedTaskId: string | null;
-  onSelectTask(id: string | null): void;
   onUpdate(id: string, action: "complete" | "reopen"): void;
 }) {
   const taskCount = countOverride ?? tasks.length;
@@ -1404,8 +1392,6 @@ function TaskGroup({
               onDeleteSeries={onDeleteSeries}
               onEdit={onEdit}
               onMoveToTomorrow={onMoveToTomorrow}
-              selectedTaskId={selectedTaskId}
-              onSelectTask={onSelectTask}
               onUpdate={onUpdate}
             />
           ))}
@@ -1427,8 +1413,6 @@ function TaskCard({
   onDeleteSeries,
   onEdit,
   onMoveToTomorrow,
-  selectedTaskId,
-  onSelectTask,
   onUpdate,
 }: {
   density: "primary" | "planning" | "compact";
@@ -1441,31 +1425,16 @@ function TaskCard({
   onDeleteSeries(id: string): void;
   onEdit(task: HouseholdTask): void;
   onMoveToTomorrow(task: HouseholdTask): void;
-  selectedTaskId: string | null;
-  onSelectTask(id: string | null): void;
   onUpdate(id: string, action: "complete" | "reopen"): void;
 }) {
   const isRecurring = isRecurringTask(task);
   const tomorrow = toDateInputValue(addDays(todayDate, 1));
   const canMoveToTomorrow =
     !task.isCompleted && !isRecurring && task.dueDate !== tomorrow;
-  const isSelected = selectedTaskId === task.id;
   return (
     <li
-      className={`task-item operational-task-card rich-task-card ${density === "compact" ? "is-compact-card" : density === "planning" ? "is-planning-card" : "is-primary-card"} ${task.isCompleted ? "is-completed" : ""} ${isRecurring ? "is-recurring" : ""} ${isSelected ? "is-selected" : ""}`}
+      className={`task-item operational-task-card rich-task-card ${density === "compact" ? "is-compact-card" : density === "planning" ? "is-planning-card" : "is-primary-card"} ${task.isCompleted ? "is-completed" : ""} ${isRecurring ? "is-recurring" : ""}`}
       key={task.id}
-      onClick={(event) => {
-        event.stopPropagation();
-        onSelectTask(isSelected ? null : task.id);
-      }}
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          onSelectTask(isSelected ? null : task.id);
-        }
-      }}
-      tabIndex={0}
-      aria-selected={isSelected}
     >
       <div className="task-card-visual" aria-hidden="true">
         <DecorativeAvatarBadge identity={resolveDecorativeAvatar(task.decorativeAvatar, members, knownPeople)} label={`Decoratieve avatar voor ${task.title}`} />
@@ -1475,45 +1444,49 @@ function TaskCard({
           }
         />
       </div>
-      <div className="task-card-content">
-        <div className="task-card-main">
-          <span className="task-card-status">
-            {task.isCompleted
-              ? "Afgerond"
-              : groupId === "today"
-                ? "Vandaag eerst"
-                : "Gepland"}
-          </span>
-          <strong>{task.title}</strong>
-        </div>
-        <span className="task-card-meta" aria-label="Taakdetails">
-          <TaskMetadataChip tone="family" label={formatOwner(task, members)} />
-          <TaskMetadataChip
-            tone={groupId === "today" ? "urgent" : "time"}
-            label={formatDue(task, groupId, todayIso)}
-          />
-          {isRecurring ? (
-            <TaskMetadataChip
-              tone="recurring"
-              label={formatRecurrence(task.recurrenceFrequency ?? "None")}
-            />
-          ) : null}
-          <TaskMetadataChip
-            tone={task.isCompleted ? "done" : "open"}
-            label={task.isCompleted ? "Afgerond" : "Openstaand"}
-          />
-        </span>
-      </div>
-      <div
-        className="task-card-actions"
-        aria-label={`Acties voor ${task.title}`}
-        onClick={(event) => event.stopPropagation()}
+      <button
+        type="button"
+        className="task-card-details"
+        aria-label={`Details van ${task.title} openen`}
+        onClick={() => onEdit(task)}
       >
+        <span className="task-card-content">
+          <span className="task-card-main">
+            <span className="task-card-status">
+              {task.isCompleted
+                ? "Afgerond"
+                : groupId === "today"
+                  ? "Vandaag eerst"
+                  : "Gepland"}
+            </span>
+            <strong>{task.title}</strong>
+          </span>
+          <span className="task-card-meta" aria-label="Taakdetails">
+            <TaskMetadataChip tone="family" label={formatOwner(task, members)} />
+            <TaskMetadataChip
+              tone={groupId === "today" ? "urgent" : "time"}
+              label={formatDue(task, groupId, todayIso)}
+            />
+            {isRecurring ? (
+              <TaskMetadataChip
+                tone="recurring"
+                label={formatRecurrence(task.recurrenceFrequency ?? "None")}
+              />
+            ) : null}
+            <TaskMetadataChip
+              tone={task.isCompleted ? "done" : "open"}
+              label={task.isCompleted ? "Afgerond" : "Openstaand"}
+            />
+          </span>
+        </span>
+      </button>
+      <div className="task-card-actions" aria-label={`Acties voor ${task.title}`}>
         {!task.isCompleted ? (
           <button
             className="task-action-button primary"
             onClick={() => onUpdate(task.id, "complete")}
             type="button"
+            aria-label={`Klaar: ${task.title}`}
           >
             <TaskActionIcon name="complete" />
             <span>Klaar</span>
@@ -1523,6 +1496,7 @@ function TaskCard({
             className="task-action-button"
             onClick={() => onUpdate(task.id, "reopen")}
             type="button"
+            aria-label={`Terugzetten: ${task.title}`}
           >
             <TaskActionIcon name="reopen" />
             <span>Terugzetten</span>
@@ -1533,39 +1507,202 @@ function TaskCard({
             className="task-action-button tomorrow"
             onClick={() => onMoveToTomorrow(task)}
             type="button"
+            aria-label={`Morgen plannen: ${task.title}`}
           >
             <TaskActionIcon name="tomorrow" />
             <span>Morgen</span>
           </button>
         ) : null}
-        <details className="task-more-actions">
-          <summary>
-            <TaskActionIcon name="more" />
-            <span>Meer</span>
-          </summary>
-          <div>
-            <button
-              className="task-action-button secondary"
-              onClick={() => onEdit(task)}
-              type="button"
-            >
-              <TaskActionIcon name="edit" />
-              <span>Aanpassen</span>
-            </button>
-            {task.recurringTaskSeriesId ? (
-              <button
-                className="task-action-button secondary"
-                onClick={() => onDeleteSeries(task.id)}
-                type="button"
-              >
-                <TaskActionIcon name="more" />
-                <span>Routine verwijderen</span>
-              </button>
-            ) : null}
-          </div>
-        </details>
+        <TaskActionsMenu
+          task={task}
+          onDeleteSeries={onDeleteSeries}
+          onEdit={onEdit}
+        />
       </div>
     </li>
+  );
+}
+
+type TaskMenuPosition = {
+  top: number;
+  left: number;
+  maxHeight: number;
+  visibility: "hidden" | "visible";
+};
+
+function TaskActionsMenu({
+  task,
+  onDeleteSeries,
+  onEdit,
+}: {
+  task: HouseholdTask;
+  onDeleteSeries(id: string): void;
+  onEdit(task: HouseholdTask): void;
+}) {
+  const menuId = useId();
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+  const firstItemRef = useRef<HTMLButtonElement | null>(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const [position, setPosition] = useState<TaskMenuPosition>({
+    top: 0,
+    left: 0,
+    maxHeight: 0,
+    visibility: "hidden",
+  });
+
+  useLayoutEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    const updatePosition = () => {
+      const trigger = triggerRef.current;
+      const menu = menuRef.current;
+      if (!trigger || !menu) {
+        return;
+      }
+
+      const viewportMargin = 8;
+      const triggerGap = 6;
+      const triggerRect = trigger.getBoundingClientRect();
+      const menuRect = menu.getBoundingClientRect();
+      const maxHeight = Math.max(96, window.innerHeight - viewportMargin * 2);
+      const renderedMenuHeight = Math.min(menuRect.height, maxHeight);
+      const renderedMenuWidth = Math.min(
+        menuRect.width,
+        window.innerWidth - viewportMargin * 2,
+      );
+      const preferredLeft = triggerRect.right - renderedMenuWidth;
+      const left = Math.min(
+        Math.max(viewportMargin, preferredLeft),
+        window.innerWidth - renderedMenuWidth - viewportMargin,
+      );
+      const fitsBelow =
+        triggerRect.bottom + triggerGap + renderedMenuHeight <=
+        window.innerHeight - viewportMargin;
+      const preferredTop = fitsBelow
+        ? triggerRect.bottom + triggerGap
+        : triggerRect.top - triggerGap - renderedMenuHeight;
+      const top = Math.min(
+        Math.max(viewportMargin, preferredTop),
+        window.innerHeight - renderedMenuHeight - viewportMargin,
+      );
+
+      setPosition({ top, left, maxHeight, visibility: "visible" });
+    };
+
+    updatePosition();
+    window.addEventListener("resize", updatePosition);
+    return () => window.removeEventListener("resize", updatePosition);
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen || position.visibility !== "visible") {
+      return;
+    }
+
+    firstItemRef.current?.focus();
+  }, [isOpen, position.visibility]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target;
+      if (!(target instanceof Node)) {
+        return;
+      }
+      if (
+        !triggerRef.current?.contains(target) &&
+        !menuRef.current?.contains(target)
+      ) {
+        setIsOpen(false);
+      }
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") {
+        return;
+      }
+      event.preventDefault();
+      setIsOpen(false);
+      triggerRef.current?.focus();
+    };
+    const handleScroll = () => setIsOpen(false);
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("scroll", handleScroll, true);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("scroll", handleScroll, true);
+    };
+  }, [isOpen]);
+
+  const closeBefore = (action: () => void) => {
+    setIsOpen(false);
+    action();
+  };
+
+  return (
+    <>
+      <button
+        ref={triggerRef}
+        type="button"
+        className="task-action-button more"
+        aria-label={`Meer acties voor ${task.title}`}
+        aria-haspopup="menu"
+        aria-expanded={isOpen}
+        aria-controls={isOpen ? menuId : undefined}
+        onClick={() => {
+          setPosition({ top: 0, left: 0, maxHeight: 0, visibility: "hidden" });
+          setIsOpen((current) => !current);
+        }}
+      >
+        <TaskActionIcon name="more" />
+        <span>Meer</span>
+      </button>
+      {isOpen
+        ? createPortal(
+            <div
+              ref={menuRef}
+              id={menuId}
+              className="task-actions-menu"
+              role="menu"
+              aria-label={`Meer acties voor ${task.title}`}
+              style={position}
+            >
+              <button
+                ref={firstItemRef}
+                className="task-action-button secondary"
+                onClick={() => closeBefore(() => onEdit(task))}
+                type="button"
+                role="menuitem"
+                aria-label={`Aanpassen: ${task.title}`}
+              >
+                <TaskActionIcon name="edit" />
+                <span>Aanpassen</span>
+              </button>
+              {task.recurringTaskSeriesId ? (
+                <button
+                  className="task-action-button secondary"
+                  onClick={() => closeBefore(() => onDeleteSeries(task.id))}
+                  type="button"
+                  role="menuitem"
+                  aria-label={`Routine verwijderen: ${task.title}`}
+                >
+                  <TaskActionIcon name="more" />
+                  <span>Routine verwijderen</span>
+                </button>
+              ) : null}
+            </div>,
+            document.body,
+          )
+        : null}
+    </>
   );
 }
 

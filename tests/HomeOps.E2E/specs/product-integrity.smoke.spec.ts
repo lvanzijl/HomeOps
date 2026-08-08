@@ -152,19 +152,33 @@ test("Home Today event stays on the household-local day", async ({ page, request
   await expect(today.getByText(title)).toBeVisible();
 });
 
-test("task Complete, Tomorrow, and Edit controls are real hit targets", async ({ page, request }) => {
-  test.fail(true, "Known TASK-UI-01/TASK-UI-02 defects: expanded task controls are clipped and do not receive pointer input.");
+test("task controls are direct, keyboard operable, and unclipped at 1280x720", async ({ page, request }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+
+  await test.step("Details", async () => {
+    const card = await openTaskCard(page, request);
+    const details = card.getByRole("button", { name: `Details van ${taskTitle} openen` });
+    await expectRealHitTarget(details);
+    await details.click();
+    await expect(page.getByRole("dialog", { name: "Taak aanpassen" })).toBeVisible();
+    await page.keyboard.press("Escape");
+  });
+
   await test.step("Complete", async () => {
     const card = await openTaskCard(page, request);
-    const complete = card.getByRole("button", { name: "Klaar" });
+    const complete = card.getByRole("button", { name: `Klaar: ${taskTitle}` });
     await expectRealHitTarget(complete);
+    const completionResponse = page.waitForResponse((response) =>
+      response.request().method() === "POST"
+        && new URL(response.url()).pathname.endsWith("/complete"));
     await complete.click();
-    await expect(card).toContainText("Afgerond");
+    expect((await completionResponse).ok()).toBe(true);
+    await expect(card).toHaveCount(0);
   });
 
   await test.step("Tomorrow", async () => {
     const card = await openTaskCard(page, request);
-    const tomorrow = card.getByRole("button", { name: "Morgen" });
+    const tomorrow = card.getByRole("button", { name: `Morgen plannen: ${taskTitle}` });
     await expectRealHitTarget(tomorrow);
     await tomorrow.click();
     await expect(card).toHaveCount(0);
@@ -172,13 +186,36 @@ test("task Complete, Tomorrow, and Edit controls are real hit targets", async ({
 
   await test.step("Edit", async () => {
     const card = await openTaskCard(page, request);
-    const more = card.getByText("Meer", { exact: true });
+    const more = card.getByRole("button", { name: `Meer acties voor ${taskTitle}` });
     await expectRealHitTarget(more);
     await more.click();
-    const edit = card.getByRole("button", { name: "Aanpassen" });
+    const menu = page.getByRole("menu", { name: `Meer acties voor ${taskTitle}` });
+    await expect(menu).toBeVisible();
+    await expectWithinViewport(menu, { width: 1280, height: 720 });
+    const edit = menu.getByRole("menuitem", { name: `Aanpassen: ${taskTitle}` });
     await expectRealHitTarget(edit);
     await edit.click();
     await expect(page.getByRole("dialog", { name: "Taak aanpassen" })).toBeVisible();
+    await page.keyboard.press("Escape");
+  });
+
+  await test.step("Keyboard, outside click, and page containment", async () => {
+    const card = await openTaskCard(page, request);
+    const more = card.getByRole("button", { name: `Meer acties voor ${taskTitle}` });
+    await more.focus();
+    await page.keyboard.press("Enter");
+    const menu = page.getByRole("menu", { name: `Meer acties voor ${taskTitle}` });
+    const edit = menu.getByRole("menuitem", { name: `Aanpassen: ${taskTitle}` });
+    await expect(edit).toBeFocused();
+    await page.keyboard.press("Escape");
+    await expect(menu).toHaveCount(0);
+    await expect(more).toBeFocused();
+
+    await page.keyboard.press("Space");
+    await expect(page.getByRole("menu", { name: `Meer acties voor ${taskTitle}` })).toBeVisible();
+    await page.getByRole("heading", { name: "Taken voor het gezin" }).click();
+    await expect(page.getByRole("menu", { name: `Meer acties voor ${taskTitle}` })).toHaveCount(0);
+    await expectNoDocumentOverflow(page, "Tasks controls at 1280x720");
   });
 });
 
@@ -256,19 +293,52 @@ async function openTaskCard(page: Page, request: APIRequestContext): Promise<Loc
   await page.getByRole("button", { name: "Taken", exact: true }).click();
   const card = page.locator(".operational-task-card").filter({ hasText: taskTitle }).first();
   await expect(card).toBeVisible();
-  await card.click();
   return card;
 }
 
 async function expectRealHitTarget(locator: Locator) {
   await expect(locator).toBeVisible();
-  const receivesPointerAtCenter = await locator.evaluate((element) => {
+  const geometry = await locator.evaluate((element) => {
     const rect = element.getBoundingClientRect();
-    if (rect.width <= 0 || rect.height <= 0) return false;
+    if (rect.width <= 0 || rect.height <= 0) {
+      return { height: rect.height, receivesPointerAtCenter: false, width: rect.width };
+    }
     const target = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
-    return target === element || (target !== null && element.contains(target));
+    return {
+      height: rect.height,
+      receivesPointerAtCenter: target === element || (target !== null && element.contains(target)),
+      width: rect.width,
+    };
   });
-  expect(receivesPointerAtCenter).toBe(true);
+  expect(geometry.receivesPointerAtCenter).toBe(true);
+  expect(geometry.width).toBeGreaterThanOrEqual(40);
+  expect(geometry.height).toBeGreaterThanOrEqual(40);
+}
+
+async function expectWithinViewport(
+  locator: Locator,
+  viewport: { width: number; height: number },
+) {
+  const box = await locator.boundingBox();
+  expect(box).not.toBeNull();
+  expect(box!.x).toBeGreaterThanOrEqual(0);
+  expect(box!.y).toBeGreaterThanOrEqual(0);
+  expect(box!.x + box!.width).toBeLessThanOrEqual(viewport.width);
+  expect(box!.y + box!.height).toBeLessThanOrEqual(viewport.height);
+}
+
+async function expectNoDocumentOverflow(page: Page, context: string) {
+  await page.waitForTimeout(100);
+  const overflow = await page.evaluate(() => ({
+    bodyVertical: document.body.scrollHeight - document.body.clientHeight,
+    bodyHorizontal: document.body.scrollWidth - document.body.clientWidth,
+    documentVertical: document.documentElement.scrollHeight - document.documentElement.clientHeight,
+    documentHorizontal: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+  }));
+  expect(overflow.bodyVertical, `${context}: body vertical overflow`).toBeLessThanOrEqual(1);
+  expect(overflow.bodyHorizontal, `${context}: body horizontal overflow`).toBeLessThanOrEqual(1);
+  expect(overflow.documentVertical, `${context}: document vertical overflow`).toBeLessThanOrEqual(1);
+  expect(overflow.documentHorizontal, `${context}: document horizontal overflow`).toBeLessThanOrEqual(1);
 }
 
 async function expectNoDocumentScroll(page: Page, context: string) {
