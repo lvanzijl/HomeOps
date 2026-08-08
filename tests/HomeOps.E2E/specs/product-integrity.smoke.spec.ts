@@ -803,6 +803,37 @@ test("shopping lists can be created, archived, restored, and permanently deleted
   await expectNoDocumentScroll(page, "Shopping list lifecycle at 1366x768");
 });
 
+test("shopping item corrections persist and feed shared Home suggestions", async ({ page, request }) => {
+  await resetFixture(request, "visual-full");
+  await page.setViewportSize({ width: 1366, height: 768 });
+  await page.goto("/");
+  await page.getByLabel("Dagelijkse gezinsplekken").getByRole("button", { name: "Boodschappen", exact: true }).click();
+
+  const milkRow = page.locator(".shopping-item").filter({ hasText: "Melk" }).first();
+  await milkRow.getByRole("button", { name: "Aanpassen" }).click();
+  const editor = page.getByRole("dialog", { name: "Boodschap aanpassen" });
+  await editor.getByLabel("Naam").fill("Havermelk");
+  await editor.getByLabel("Hoeveelheid").fill("2 pakken");
+  await editor.getByLabel("Winkel", { exact: true }).fill("Bakker");
+  await expectNoDocumentScroll(page, "Shopping item editor at 1366x768");
+  const editResponse = page.waitForResponse((response) => response.request().method() === "PATCH" && /\/api\/lists\/[^/]+\/items\/[^/]+$/.test(new URL(response.url()).pathname));
+  await editor.getByRole("button", { name: "Wijzigingen opslaan" }).click();
+  expect((await editResponse).ok()).toBe(true);
+  await expect(editor.getByRole("status")).toContainText("Boodschap is bijgewerkt.");
+  await editor.getByRole("button", { name: "Sluit boodschappenpaneel" }).click();
+
+  await page.reload();
+  await page.getByLabel("Dagelijkse gezinsplekken").getByRole("button", { name: "Boodschappen", exact: true }).click();
+  await expect(page.getByText("Havermelk", { exact: true })).toBeVisible();
+  await expect(page.getByText("2 pakken", { exact: true })).toBeVisible();
+
+  await page.getByLabel("Dagelijkse gezinsplekken").getByRole("button", { name: "Thuis", exact: true }).click();
+  await page.getByRole("button", { name: "Boodschap toevoegen" }).click();
+  await expect(page.locator('#home-shopping-suggestions option[value="Havermelk"]')).toHaveCount(1);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await expectNoDocumentScroll(page, "Home shared shopping suggestions at 1440x900");
+});
+
 test("primary pages do not create document-level vertical scrolling", async ({ page, request }) => {
   await resetFixture(request, "visual-full");
   await seedWoningRuntime(request);

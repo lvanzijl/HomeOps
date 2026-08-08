@@ -18,9 +18,10 @@ vi.mock("../../shopping/listsApi", () => ({
   createShoppingList: vi.fn(),
   createNamedShoppingList: vi.fn(),
   addShoppingListItem: vi.fn(),
+  loadShoppingHistorySuggestions: vi.fn(),
+  importLegacyShoppingHistory: vi.fn(),
   toggleShoppingListItem: vi.fn(),
-  updateShoppingListItemStore: vi.fn(),
-  updateShoppingListItemDecorativeAvatar: vi.fn(),
+  updateShoppingListItem: vi.fn(),
   removeShoppingListItem: vi.fn(),
   undoShoppingListItem: vi.fn(),
   renameShoppingList: vi.fn(),
@@ -79,7 +80,10 @@ afterEach(() => cleanup());
 describe("ShoppingListWidget API-backed behavior", () => {
   beforeEach(async () => {
     vi.clearAllMocks();
+    window.localStorage.clear();
     const listsApi = await mockedListsApi();
+    vi.mocked(listsApi.loadShoppingHistorySuggestions).mockResolvedValue([]);
+    vi.mocked(listsApi.importLegacyShoppingHistory).mockResolvedValue([]);
     vi.mocked(listsApi.loadShoppingPageLists).mockResolvedValue({
       shoppingList: {
         listId: "shopping-list-id",
@@ -96,6 +100,8 @@ describe("ShoppingListWidget API-backed behavior", () => {
             completed: false,
             deleted: false,
             preferredStore: "Supermarket",
+            quantity: null,
+            updatedUtc: new Date("2026-08-08T10:00:00Z"),
             storeSuggestions: [
               { store: "Supermarket", purchaseCount: 4 },
               { store: "Corner Shop", purchaseCount: 1 },
@@ -134,6 +140,7 @@ describe("ShoppingListWidget API-backed behavior", () => {
               completed: false,
               deleted: false,
               preferredStore: null,
+              updatedUtc: new Date("2026-08-08T10:00:00Z"),
             },
           ],
         },
@@ -176,18 +183,10 @@ describe("ShoppingListWidget API-backed behavior", () => {
       deleted: false,
       preferredStore: "Supermarket",
     });
-    vi.mocked(listsApi.updateShoppingListItemStore).mockResolvedValue({
-      id: "coffee",
-      label: "Coffee",
-      completed: true,
-      deleted: false,
-      preferredStore: "Drugstore",
-    });
-    vi.mocked(
-      listsApi.updateShoppingListItemDecorativeAvatar,
-    ).mockResolvedValue({
+    vi.mocked(listsApi.updateShoppingListItem).mockResolvedValue({
       id: "bread",
-      label: "Bread",
+      label: "Wholegrain bread",
+      quantity: "2 loaves",
       completed: false,
       deleted: false,
       preferredStore: "Supermarket",
@@ -195,6 +194,7 @@ describe("ShoppingListWidget API-backed behavior", () => {
         referenceType: "knownPerson",
         referenceId: "known-1",
       },
+      updatedUtc: new Date("2026-08-08T11:00:00Z"),
     });
     vi.mocked(listsApi.removeShoppingListItem).mockResolvedValue({
       id: "bread",
@@ -280,82 +280,28 @@ describe("ShoppingListWidget API-backed behavior", () => {
     expect((await screen.findAllByText("Apples")).length).toBeGreaterThan(0);
   });
 
-  it("allows manual decorative avatar selection and clearing", async () => {
+  it("edits label, quantity, store, avatar, and history attribution in the bounded editor", async () => {
     const user = userEvent.setup();
     const listsApi = await mockedListsApi();
     render(<ShoppingListWidget {...widgetProps} />);
     await screen.findAllByText("Bread");
+    await user.click(within(screen.getAllByText("Bread")[0].closest("li")!).getByRole("button", { name: "Aanpassen" }));
+    const dialog = screen.getByRole("dialog", { name: "Boodschap aanpassen" });
+    const name = within(dialog).getByLabelText("Naam");
+    await user.clear(name);
+    await user.type(name, "Wholegrain bread");
+    await user.type(within(dialog).getByLabelText("Hoeveelheid"), "2 loaves");
+    await user.selectOptions(within(dialog).getByLabelText("Decoratieve avatar voor Wholegrain bread"), "knownPerson:known-1");
+    await user.click(within(dialog).getByRole("button", { name: "Wijzigingen opslaan" }));
 
-    await user.click(screen.getAllByText("Avatar")[0]);
-    const avatarSelect = screen
-      .getAllByLabelText("Decoratieve avatar voor Bread")
-      .find((element) => element.tagName === "SELECT")!;
-    await user.selectOptions(avatarSelect, "knownPerson:known-1");
-
-    expect(
-      listsApi.updateShoppingListItemDecorativeAvatar,
-    ).toHaveBeenCalledWith(apiClient, "shopping-list-id", "bread", {
-      referenceType: "knownPerson",
-      referenceId: "known-1",
-    });
-
-    await user.selectOptions(avatarSelect, "");
-    expect(
-      listsApi.updateShoppingListItemDecorativeAvatar,
-    ).toHaveBeenCalledWith(apiClient, "shopping-list-id", "bread", null);
-  });
-
-  it("shows deterministic Suggested entries in the manual decorative avatar picker without attaching automatically", async () => {
-    const user = userEvent.setup();
-    const listsApi = await mockedListsApi();
-    render(<ShoppingListWidget {...widgetProps} />);
-    await screen.findAllByText("Bread");
-
-    await user.click(screen.getAllByText("Avatar")[0]);
-    const avatarSelect = screen
-      .getAllByLabelText("Decoratieve avatar voor Bread")
-      .find((element) => element.tagName === "SELECT")!;
-    expect(
-      within(avatarSelect).queryByRole("group", { name: "Voorgesteld" }),
-    ).toBeNull();
-    expect(
-      listsApi.updateShoppingListItemDecorativeAvatar,
-    ).not.toHaveBeenCalled();
-
-    vi.mocked(listsApi.loadShoppingPageLists).mockResolvedValueOnce({
-      shoppingList: {
-        listId: "shopping-list-id",
-        name: "Shopping",
-        items: [
-          {
-            id: "grandma-gift",
-            label: "Grandma gift",
-            completed: false,
-            deleted: false,
-            preferredStore: null,
-          },
-        ],
-      },
-      otherLists: [],
-    });
-    cleanup();
-    render(<ShoppingListWidget {...widgetProps} />);
-    await screen.findByText("Grandma gift");
-    await user.click(screen.getByText("Avatar"));
-    const suggestedSelect = screen
-      .getAllByLabelText("Decoratieve avatar voor Grandma gift")
-      .find((element) => element.tagName === "SELECT")!;
-
-    expect(
-      within(suggestedSelect).getByRole("group", { name: "Voorgesteld" }),
-    ).not.toBeNull();
-    expect(
-      within(suggestedSelect).getAllByRole("option", { name: "Grandma" })
-        .length,
-    ).toBeGreaterThan(0);
-    expect(
-      listsApi.updateShoppingListItemDecorativeAvatar,
-    ).not.toHaveBeenCalled();
+    expect(listsApi.updateShoppingListItem).toHaveBeenCalledWith(
+      apiClient,
+      "shopping-list-id",
+      expect.objectContaining({ id: "bread" }),
+      expect.objectContaining({ label: "Wholegrain bread", quantity: "2 loaves", preservePurchaseHistory: true }),
+    );
+    expect(await screen.findByText("Boodschap is bijgewerkt.")).not.toBeNull();
+    expect((await screen.findAllByText("Wholegrain bread")).length).toBeGreaterThan(0);
   });
 
   it("toggles and removes items through the API-backed list service", async () => {
@@ -390,9 +336,7 @@ describe("ShoppingListWidget API-backed behavior", () => {
     expect(await screen.findByText("Verwijderd")).not.toBeNull();
   });
 
-  it("groups items by store and allows store overrides", async () => {
-    const user = userEvent.setup();
-    const listsApi = await mockedListsApi();
+  it("groups items by store while keeping row actions compact", async () => {
     render(<ShoppingListWidget {...widgetProps} />);
 
     expect(
@@ -402,35 +346,14 @@ describe("ShoppingListWidget API-backed behavior", () => {
       screen.getAllByRole("heading", { name: "Zonder winkel" }).length,
     ).toBeGreaterThan(0);
     expect(screen.getAllByText("Batteries")[0]).not.toBeNull();
-    expect(
-      document.querySelector('option[value=\"Corner Shop\"]'),
-    ).not.toBeNull();
     expect(screen.queryByText("Snel toevoegen")).toBeNull();
     expect(
       screen.queryByText("Altijd zichtbaar tijdens het boodschappenrondje."),
     ).toBeNull();
 
-    await user.click(screen.getByRole("button", { name: /Afgevinkt/i }));
-    await user.click(
-      within(screen.getAllByText("Coffee")[0].closest("li")!).getAllByText(
-        "Winkel",
-      )[0],
-    );
-    const coffeeStore = screen.getByLabelText("Winkel voor Coffee");
-    await user.clear(coffeeStore);
-    await user.type(coffeeStore, "Drugstore");
-    await user.tab();
-
-    expect(listsApi.updateShoppingListItemStore).toHaveBeenCalledWith(
-      apiClient,
-      "shopping-list-id",
-      "coffee",
-      "Drugstore",
-    );
-    expect(
-      await screen.findByRole("heading", { name: "Drugstore" }),
-    ).not.toBeNull();
-    expect(screen.queryByText("(Drugstore)")).toBeNull();
+    expect(within(screen.getAllByText("Bread")[0].closest("li")!).getByRole("button", { name: "Aanpassen" })).not.toBeNull();
+    expect(screen.queryByText("Avatar")).toBeNull();
+    expect(screen.queryByText("Winkel")).toBeNull();
   });
 
   it("shows other lists and allows managing a non-Shopping list from the Shopping page", async () => {
@@ -530,6 +453,45 @@ describe("ShoppingListWidget API-backed behavior", () => {
     expect(
       within(shoppingSurface).getByRole("button", { name: "Permanent verwijderen" }),
     ).not.toBeNull();
+  });
+
+  it("edits an item in an additional list using that list's identity", async () => {
+    const user = userEvent.setup();
+    const listsApi = await mockedListsApi();
+    vi.mocked(listsApi.updateShoppingListItem).mockResolvedValueOnce({
+      id: "sunscreen", label: "SPF 50", completed: false, deleted: false, preferredStore: null, updatedUtc: new Date("2026-08-08T11:00:00Z"),
+    });
+    render(<ShoppingListWidget {...widgetProps} />);
+    await screen.findAllByText("Bread");
+    await user.click(screen.getByRole("button", { name: /Lijsten/i }));
+    const sunscreenRow = screen.getByText("Sunscreen").closest("li")!;
+    await user.click(within(sunscreenRow).getByRole("button", { name: "Aanpassen" }));
+    const editor = screen.getByRole("dialog", { name: "Boodschap aanpassen" });
+    await user.clear(within(editor).getByLabelText("Naam"));
+    await user.type(within(editor).getByLabelText("Naam"), "SPF 50");
+    await user.click(within(editor).getByRole("button", { name: "Wijzigingen opslaan" }));
+
+    expect(listsApi.updateShoppingListItem).toHaveBeenCalledWith(
+      apiClient, "packing-list-id", expect.objectContaining({ id: "sunscreen" }), expect.objectContaining({ label: "SPF 50" }),
+    );
+  });
+
+  it("never uploads legacy browser history until the household explicitly chooses to import it", async () => {
+    window.localStorage.setItem("homeops.shopping.history.v1", JSON.stringify(["Old milk", "Bread"]));
+    const user = userEvent.setup();
+    const listsApi = await mockedListsApi();
+    vi.mocked(listsApi.importLegacyShoppingHistory).mockResolvedValue([]);
+    render(<ShoppingListWidget {...widgetProps} />);
+    await screen.findAllByText("Bread");
+    expect(listsApi.importLegacyShoppingHistory).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole("button", { name: "Beheer" }));
+    expect(screen.getByText("Oude suggesties op dit apparaat")).not.toBeNull();
+    expect(listsApi.importLegacyShoppingHistory).not.toHaveBeenCalled();
+    await user.click(screen.getByRole("button", { name: "Overnemen" }));
+
+    expect(listsApi.importLegacyShoppingHistory).toHaveBeenCalledWith(apiClient, ["Old milk", "Bread"]);
+    expect(window.localStorage.getItem("homeops.shopping.history.v1")).toBeNull();
   });
 
   it("creates an additional named list from the always-available bounded directory", async () => {

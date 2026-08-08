@@ -24,6 +24,7 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
     public DbSet<Lists.List> Lists => Set<Lists.List>();
     public DbSet<ListItem> ListItems => Set<ListItem>();
     public DbSet<ShoppingPurchaseHistory> ShoppingPurchaseHistories => Set<ShoppingPurchaseHistory>();
+    public DbSet<ShoppingItemHistory> ShoppingItemHistories => Set<ShoppingItemHistory>();
     public DbSet<CalendarEvents.EventSource> EventSources => Set<CalendarEvents.EventSource>();
     public DbSet<EventSeries> EventSeries => Set<EventSeries>();
     public DbSet<EventException> EventExceptions => Set<EventException>();
@@ -391,6 +392,7 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             });
             entity.HasKey(item => item.Id);
             entity.Property(item => item.Text).HasMaxLength(240).IsRequired();
+            entity.Property(item => item.Quantity).HasMaxLength(80);
             entity.Property(item => item.IsCompleted).IsRequired();
             entity.Property(item => item.CompletedUtc);
             entity.Property(item => item.IsDeleted).IsRequired();
@@ -421,6 +423,19 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             entity.Property(history => history.UpdatedUtc).IsRequired();
             entity.HasIndex(history => new { history.HouseholdId, history.NormalizedText, history.Store }).IsUnique();
             entity.HasIndex(history => new { history.HouseholdId, history.NormalizedText, history.PurchaseCount });
+        });
+
+        modelBuilder.Entity<ShoppingItemHistory>(entity =>
+        {
+            entity.ToTable("ShoppingItemHistories");
+            entity.HasKey(history => history.Id);
+            entity.Property(history => history.NormalizedText).HasMaxLength(240).IsRequired();
+            entity.Property(history => history.ItemText).HasMaxLength(240).IsRequired();
+            entity.Property(history => history.UseCount).IsRequired();
+            entity.Property(history => history.CreatedUtc).IsRequired();
+            entity.Property(history => history.UpdatedUtc).IsRequired();
+            entity.HasIndex(history => new { history.HouseholdId, history.NormalizedText }).IsUnique();
+            entity.HasIndex(history => new { history.HouseholdId, history.UseCount, history.UpdatedUtc });
         });
 
 

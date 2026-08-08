@@ -96,6 +96,7 @@ public static class VisualReviewFixtureService
         db.TaskTemplates.RemoveRange(await db.TaskTemplates.ToListAsync(ct));
         db.ListItems.RemoveRange(await db.ListItems.ToListAsync(ct));
         db.ShoppingPurchaseHistories.RemoveRange(await db.ShoppingPurchaseHistories.ToListAsync(ct));
+        db.ShoppingItemHistories.RemoveRange(await db.ShoppingItemHistories.ToListAsync(ct));
         db.Lists.RemoveRange(await db.Lists.ToListAsync(ct));
         db.FamilyMembers.RemoveRange(await db.FamilyMembers.ToListAsync(ct));
         await db.SaveChangesAsync(ct);
@@ -130,7 +131,7 @@ public static class VisualReviewFixtureService
         var shopping = Id(200); db.Lists.Add(new() { Id = shopping, HouseholdId = SeedHousehold.Id, Name = "Boodschappen", CreatedUtc = AnchorUtc.AddDays(-10), UpdatedUtc = AnchorUtc });
         string[] items = ["Melk", "Appels", "Pasta", "Afwasmiddel", "Yoghurt", "Koffiebonen"];
         for (var i = 0; i < items.Length; i++) db.ListItems.Add(new() { Id = Id(201 + i), ListId = shopping, Text = items[i], PreferredStore = i % 2 == 0 ? "Albert Heijn" : "Buurtmarkt", IsCompleted = lifecycle && i is 2 or 4, CompletedUtc = lifecycle && i is 2 or 4 ? AnchorUtc.AddDays(-1) : null, IsDeleted = lifecycle && i == 5, DeletedUtc = lifecycle && i == 5 ? AnchorUtc.AddHours(-4) : null, CreatedUtc = AnchorUtc.AddDays(-6 + i), UpdatedUtc = AnchorUtc.AddDays(-1) });
-        if (lifecycle) { db.Lists.Add(new() { Id = Id(220), HouseholdId = SeedHousehold.Id, Name = "Feestwinkel", IsArchived = true, ArchivedUtc = AnchorUtc.AddDays(-2), CreatedUtc = AnchorUtc.AddDays(-45), UpdatedUtc = AnchorUtc.AddDays(-35) }); db.ShoppingPurchaseHistories.Add(new() { Id = Id(230), HouseholdId = SeedHousehold.Id, NormalizedText = "melk", ItemText = "Melk", Store = "Albert Heijn", PurchaseCount = 4, CreatedUtc = AnchorUtc.AddDays(-40), UpdatedUtc = AnchorUtc.AddDays(-2) }); }
+        if (lifecycle) { db.Lists.Add(new() { Id = Id(220), HouseholdId = SeedHousehold.Id, Name = "Feestwinkel", IsArchived = true, ArchivedUtc = AnchorUtc.AddDays(-2), CreatedUtc = AnchorUtc.AddDays(-45), UpdatedUtc = AnchorUtc.AddDays(-35) }); db.ShoppingPurchaseHistories.Add(new() { Id = Id(230), HouseholdId = SeedHousehold.Id, NormalizedText = "MELK", ItemText = "Melk", Store = "Albert Heijn", PurchaseCount = 4, CreatedUtc = AnchorUtc.AddDays(-40), UpdatedUtc = AnchorUtc.AddDays(-2) }); }
     }
 
     private static void AddGoals(HomeOpsDbContext db, FamilyCelebrationStatus status, string? focusMember = null)

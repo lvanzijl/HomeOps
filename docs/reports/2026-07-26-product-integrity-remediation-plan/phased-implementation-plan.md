@@ -32,7 +32,7 @@ Do not check a phase merely because one of its slices is complete. A phase is co
 | [x] | **Phase 3 — Calendar and local-time correctness** | **Completed** | Calendar-field writes, household time zone, source lifecycle, device preferences, and truthful reminder scope are complete | Home and Agenda preserve household-local calendar intent and accurately state that notifications are not delivered |
 | [x] | **Phase 4 — Tasks and Weekly Reset completion** | **Completed 2026-08-08** | Task APIs, routines, and Weekly Reset foundation exist; Slice 4.0 interaction authority is approved | Core task controls are operable and every reset candidate can be resolved and completed |
 | [x] | **Phase 5 — House, climate, and household settings** | **Completed 2026-08-08** | Slices 5.1–5.7 complete the healthy Woning setup/runtime chain, provider lifecycle, floor-plan onboarding, and household weather configuration | Woning setup-to-runtime chain is reachable, healthy, configurable, and viewport-safe |
-| [ ] | **Phase 6 — Shopping and Motivation lifecycle completion** | **In progress** | Slice 6.1 completes Shopping list creation and lifecycle; Slices 6.2–6.4 remain | Common create/edit/archive/restore/correction workflows are complete and cross-device |
+| [ ] | **Phase 6 — Shopping and Motivation lifecycle completion** | **In progress** | Slices 6.1–6.2 complete Shopping lifecycle/editing/history; Slices 6.3–6.4 remain | Common create/edit/archive/restore/correction workflows are complete and cross-device |
 | [ ] | **Phase 7 — Navigation, backup, errors, and consistency** | **Not started** | Individual foundations exist | Cross-cutting behavior is routable, recoverable, consistently worded, and accurately backed up |
 | [ ] | **Phase 8 — Optional product breadth** | **Not started** | Placeholders only | Each optional feature is either deliberately implemented or deliberately removed from product expectations |
 
@@ -1041,7 +1041,7 @@ Before modifying Shopping or Motivation layouts, produce separate Viewport-First
 
 ### Slice 6.2 — Shopping item editing and unified history
 
-- [ ] **Status: Not started**
+- [x] **Status: Completed 2026-08-08**
 
 **Audit IDs:** SHOP-02, SHOP-DATA-01
 
@@ -1053,6 +1053,8 @@ Before modifying Shopping or Motivation layouts, produce separate Viewport-First
 4. Use the server purchase-history/suggestion API for both Home and Shopping.
 5. Provide a one-time local-history discard/migration decision; do not silently upload arbitrary stale browser strings.
 6. Test cross-device suggestions and refresh persistence.
+
+**Implementation state:** Shopping items now expose one atomic expected-update edit for label, optional quantity, existing store, and decorative avatar metadata. Explicit `PreservePurchaseHistory` moves or merges item/store attribution for corrections; opting out leaves the old attribution and records the corrected name separately. Household-level `ShoppingItemHistories` are backfilled by migration `20260808172019_AddShoppingItemEditingAndHistory` and serve both Home and Shopping, while Home no longer reads or writes the legacy browser key. The bounded Shopping management surface offers an explicit one-time import-or-discard decision and never uploads local strings on load. Focused backend 22/22, focused frontend 41/41, backend 655/655, frontend 387/387, builds, PostgreSQL 4/4, EF drift/script checks, twice-idempotent pinned NSwag 14.7.1, Playwright 18/18, and independent 1366×768 browser inspection pass. See `docs/reports/2026-08-08-shopping-item-editing-history/implementation.md` and `docs/roadmap/phase-6.md`.
 
 ### Slice 6.3 — Define goal progress and add an audit ledger
 
@@ -1313,8 +1315,8 @@ Every audit finding must appear exactly once as the primary responsibility of a 
 | SETTINGS-01 | 7.4 Backup | [ ] Not started |
 | TIME-02 | 3.3 Action-time clock | [x] Completed |
 | ONB-03 | 2.6 Setup checklist | [x] Completed |
-| SHOP-DATA-01 | 6.2 Unified shopping history | [ ] Not started |
-| SHOP-02 | 6.2 Item editing | [ ] Not started |
+| SHOP-DATA-01 | 6.2 Unified shopping history | [x] Completed 2026-08-08 |
+| SHOP-02 | 6.2 Item editing | [x] Completed 2026-08-08 |
 | SHOP-04 | 6.1 Destructive shopping actions | [x] Completed |
 | CAL-01 | 3.7 Reminder decision | [x] Completed |
 | CAL-03 | 3.5 Source lifecycle | [x] Completed |

@@ -5,6 +5,7 @@ export type ShoppingDecorativeAvatarReference = DecorativeAvatarReference;
 export interface ShoppingListItem {
   id: string;
   label: string;
+  quantity?: string | null;
   completed: boolean;
   completedUtc?: Date | null;
   deleted?: boolean;
@@ -12,6 +13,7 @@ export interface ShoppingListItem {
   preferredStore?: string | null;
   decorativeAvatar?: ShoppingDecorativeAvatarReference | null;
   storeSuggestions?: readonly ShoppingStoreSuggestion[];
+  updatedUtc?: Date | null;
 }
 
 export interface ShoppingStoreSuggestion {
@@ -28,6 +30,13 @@ export interface ShoppingListState {
   deletedItemCount?: number;
   totalItemCount?: number;
   items: readonly ShoppingListItem[];
+}
+
+export interface ShoppingHistorySuggestion {
+  text: string;
+  useCount: number;
+  updatedUtc: Date;
+  storeSuggestions: readonly ShoppingStoreSuggestion[];
 }
 
 export interface ShoppingListLifecycleSummary {

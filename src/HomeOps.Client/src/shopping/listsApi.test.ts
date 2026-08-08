@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { ListDto, ListItemDto, ShoppingStoreSuggestionDto } from '../api/homeOpsApiClient';
-import { isDedicatedShoppingListName, loadShoppingPageLists, toShoppingListState } from './listsApi';
+import { ListDto, ListItemDto, ShoppingHistorySuggestionDto, ShoppingStoreSuggestionDto } from '../api/homeOpsApiClient';
+import { importLegacyShoppingHistory, isDedicatedShoppingListName, loadShoppingHistorySuggestions, loadShoppingPageLists, toShoppingListState, updateShoppingListItem } from './listsApi';
 
 describe('lists API mapping', () => {
 
@@ -78,5 +78,27 @@ describe('lists API mapping', () => {
       otherLists: [{ listId: 'packing-list-id', name: 'Vacation Packing', items: [{ id: 'sunscreen', label: 'Sunscreen', completed: false, completedUtc: null, deleted: false, deletedUtc: null, preferredStore: null, storeSuggestions: [] }] }],
       archivedLists: [],
     });
+  });
+
+  it('sends one atomic item edit with concurrency and history intent', async () => {
+    const updatedUtc = new Date('2026-08-08T10:00:00Z');
+    const client = { updateListItem: vi.fn().mockResolvedValue(new ListItemDto({ id: 'bread', listId: 'shopping', text: 'Wholegrain bread', quantity: '2', isCompleted: false, updatedUtc })) };
+    await updateShoppingListItem(client as never, 'shopping', { id: 'bread', label: 'Bread', completed: false, updatedUtc }, {
+      label: 'Wholegrain bread', quantity: '2', preferredStore: 'Bakery', decorativeAvatar: null, preservePurchaseHistory: true,
+    });
+
+    expect(client.updateListItem).toHaveBeenCalledWith('shopping', 'bread', expect.objectContaining({
+      text: 'Wholegrain bread', quantity: '2', preferredStore: 'Bakery', expectedUpdatedUtc: updatedUtc, preservePurchaseHistory: true,
+    }));
+  });
+
+  it('uses the same server history contract for reads and confirmed legacy import', async () => {
+    const updatedUtc = new Date('2026-08-08T10:00:00Z');
+    const payload = [new ShoppingHistorySuggestionDto({ text: 'Milk', useCount: 4, updatedUtc, storeSuggestions: [new ShoppingStoreSuggestionDto({ store: 'Market', purchaseCount: 3 })] })];
+    const client = { getShoppingHistorySuggestions: vi.fn().mockResolvedValue(payload), importShoppingHistory: vi.fn().mockResolvedValue(payload) };
+
+    await expect(loadShoppingHistorySuggestions(client as never)).resolves.toEqual([{ text: 'Milk', useCount: 4, updatedUtc, storeSuggestions: [{ store: 'Market', purchaseCount: 3 }] }]);
+    await importLegacyShoppingHistory(client as never, ['Milk']);
+    expect(client.importShoppingHistory).toHaveBeenCalledWith(expect.objectContaining({ items: ['Milk'], confirmed: true }));
   });
 });

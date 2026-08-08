@@ -120,6 +120,69 @@ public sealed class ListApiTests(HomeOpsWebApplicationFactory factory) : IClassF
     }
 
     [Fact]
+    public async Task ItemEditUpdatesAllEditableFieldsAndPreservesAttributedHistory()
+    {
+        var listId = await CreateIsolatedListId();
+        var suffix = Guid.NewGuid().ToString("N");
+        var item = await CreateItem(listId, $"Tomatos {suffix}");
+        var storedResponse = await _client.PatchAsJsonAsync($"/api/lists/{listId}/items/{item.Id}/store", new UpdateListItemStoreRequest("Market"));
+        var stored = await storedResponse.Content.ReadFromJsonAsync<ListItemDto>();
+        Assert.NotNull(stored);
+
+        var response = await _client.PatchAsJsonAsync($"/api/lists/{listId}/items/{item.Id}", new UpdateListItemRequest(
+            $"Tomatoes {suffix}", "2 bakjes", "Groenteboer", new DecorativeAvatarReferenceDto(DecorativeAvatarReferenceType.FamilyMember, "riley"), stored.UpdatedUtc, true));
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var updated = await response.Content.ReadFromJsonAsync<ListItemDto>();
+        Assert.NotNull(updated);
+        Assert.Equal($"Tomatoes {suffix}", updated.Text);
+        Assert.Equal("2 bakjes", updated.Quantity);
+        Assert.Equal("Groenteboer", updated.PreferredStore);
+        Assert.Equal("riley", updated.DecorativeAvatar?.ReferenceId);
+
+        var history = await _client.GetFromJsonAsync<ShoppingHistorySuggestionDto[]>($"/api/lists/shopping/history?query={suffix}");
+        var suggestion = Assert.Single(history!);
+        Assert.Equal($"Tomatoes {suffix}", suggestion.Text);
+        Assert.Contains(suggestion.StoreSuggestions, store => store.Store == "Market");
+        Assert.Contains(suggestion.StoreSuggestions, store => store.Store == "Groenteboer");
+
+        var stale = await _client.PatchAsJsonAsync($"/api/lists/{listId}/items/{item.Id}", new UpdateListItemRequest(
+            "Stale", null, null, null, stored.UpdatedUtc, true));
+        Assert.Equal(HttpStatusCode.Conflict, stale.StatusCode);
+    }
+
+    [Fact]
+    public async Task ItemEditRejectsInvalidFieldsWithoutChangingTheItem()
+    {
+        var listId = await CreateIsolatedListId();
+        var item = await CreateItem(listId, "Valid item");
+
+        var response = await _client.PatchAsJsonAsync($"/api/lists/{listId}/items/{item.Id}", new UpdateListItemRequest(
+            " ", new string('q', 81), new string('s', 121), null, item.UpdatedUtc, true));
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var unchanged = await _client.GetFromJsonAsync<ListDto>($"/api/lists/{listId}");
+        Assert.Equal("Valid item", Assert.Single(unchanged!.Items).Text);
+    }
+
+    [Fact]
+    public async Task SharedHistoryRequiresExplicitImportAndPersistsAcrossClients()
+    {
+        var unique = $"Cross-device {Guid.NewGuid():N}";
+        var denied = await _client.PostAsJsonAsync("/api/lists/shopping/history/import", new ImportShoppingHistoryRequest([unique], false));
+        Assert.Equal(HttpStatusCode.BadRequest, denied.StatusCode);
+        var missing = await _client.PostAsJsonAsync("/api/lists/shopping/history/import", new ImportShoppingHistoryRequest(null!, true));
+        Assert.Equal(HttpStatusCode.BadRequest, missing.StatusCode);
+
+        var imported = await _client.PostAsJsonAsync("/api/lists/shopping/history/import", new ImportShoppingHistoryRequest([unique], true));
+        imported.EnsureSuccessStatusCode();
+
+        using var secondClient = factory.CreateClient();
+        var history = await secondClient.GetFromJsonAsync<ShoppingHistorySuggestionDto[]>($"/api/lists/shopping/history?query=Cross-device");
+        Assert.Contains(history!, suggestion => suggestion.Text == unique);
+    }
+
+    [Fact]
     public async Task ListLifecycleSupportsCountsArchiveRestoreConflictAndConfirmedPermanentDeletion()
     {
         var lifecycleName = $"Camping Trip {Guid.NewGuid():N}";

@@ -6,6 +6,7 @@ public sealed class ListItem
     public Guid ListId { get; set; }
     public List? List { get; set; }
     public string Text { get; set; } = string.Empty;
+    public string? Quantity { get; set; }
     public bool IsCompleted { get; set; }
     public DateTimeOffset? CompletedUtc { get; set; }
     public bool IsDeleted { get; set; }

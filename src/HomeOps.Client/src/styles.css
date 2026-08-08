@@ -10709,6 +10709,37 @@ button {
   transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease, background 160ms ease;
 }
 
+.shopping-item-editor,
+.shopping-legacy-history {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.shopping-item-editor label {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.shopping-item-editor input:not([type='checkbox']) {
+  min-width: 0;
+  width: 100%;
+}
+
+.shopping-history-preservation {
+  align-items: center;
+  grid-template-columns: auto 1fr;
+}
+
+.shopping-item-quantity {
+  white-space: nowrap;
+}
+
+.shopping-legacy-history {
+  border-bottom: 1px solid var(--border-color, #d8d8d8);
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+}
+
 .rich-task-card.is-primary-card {
   min-height: 5.55rem;
 }

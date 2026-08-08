@@ -1681,6 +1681,109 @@ export class HomeOpsApiClient {
         return Promise.resolve<ListItemDto>(null as any);
     }
 
+    updateListItem(listId: string, itemId: string, request: UpdateListItemRequest): Promise<ListItemDto> {
+        let url_ = this.baseUrl + "/api/lists/{listId}/items/{itemId}";
+        if (listId === undefined || listId === null)
+            throw new globalThis.Error("The parameter 'listId' must be defined.");
+        url_ = url_.replace("{listId}", encodeURIComponent("" + listId));
+        if (itemId === undefined || itemId === null)
+            throw new globalThis.Error("The parameter 'itemId' must be defined.");
+        url_ = url_.replace("{itemId}", encodeURIComponent("" + itemId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateListItem(_response);
+        });
+    }
+
+    protected processUpdateListItem(response: Response): Promise<ListItemDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ListItemDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = HttpValidationProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ListItemDto>(null as any);
+    }
+
+    removeListItem(listId: string, itemId: string): Promise<ListItemDto> {
+        let url_ = this.baseUrl + "/api/lists/{listId}/items/{itemId}";
+        if (listId === undefined || listId === null)
+            throw new globalThis.Error("The parameter 'listId' must be defined.");
+        url_ = url_.replace("{listId}", encodeURIComponent("" + listId));
+        if (itemId === undefined || itemId === null)
+            throw new globalThis.Error("The parameter 'itemId' must be defined.");
+        url_ = url_.replace("{itemId}", encodeURIComponent("" + itemId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRemoveListItem(_response);
+        });
+    }
+
+    protected processRemoveListItem(response: Response): Promise<ListItemDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = ListItemDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ListItemDto>(null as any);
+    }
+
     updateListItemStore(listId: string, itemId: string, request: UpdateListItemStoreRequest): Promise<ListItemDto> {
         let url_ = this.baseUrl + "/api/lists/{listId}/items/{itemId}/store";
         if (listId === undefined || listId === null)
@@ -1819,6 +1922,101 @@ export class HomeOpsApiClient {
         return Promise.resolve<ShoppingItemSuggestionDto>(null as any);
     }
 
+    getShoppingHistorySuggestions(query: string | null | undefined): Promise<ShoppingHistorySuggestionDto[]> {
+        let url_ = this.baseUrl + "/api/lists/shopping/history?";
+        if (query !== undefined && query !== null)
+            url_ += "query=" + encodeURIComponent("" + query) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetShoppingHistorySuggestions(_response);
+        });
+    }
+
+    protected processGetShoppingHistorySuggestions(response: Response): Promise<ShoppingHistorySuggestionDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(ShoppingHistorySuggestionDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ShoppingHistorySuggestionDto[]>(null as any);
+    }
+
+    importShoppingHistory(request: ImportShoppingHistoryRequest): Promise<ShoppingHistorySuggestionDto[]> {
+        let url_ = this.baseUrl + "/api/lists/shopping/history/import";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processImportShoppingHistory(_response);
+        });
+    }
+
+    protected processImportShoppingHistory(response: Response): Promise<ShoppingHistorySuggestionDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(ShoppingHistorySuggestionDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = HttpValidationProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<ShoppingHistorySuggestionDto[]>(null as any);
+    }
+
     toggleListItemCompletion(listId: string, itemId: string): Promise<ListItemDto> {
         let url_ = this.baseUrl + "/api/lists/{listId}/items/{itemId}/toggle";
         if (listId === undefined || listId === null)
@@ -1842,50 +2040,6 @@ export class HomeOpsApiClient {
     }
 
     protected processToggleListItemCompletion(response: Response): Promise<ListItemDto> {
-        const status = response.status;
-        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
-        if (status === 200) {
-            return response.text().then((_responseText) => {
-            let result200: any = null;
-            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
-            result200 = ListItemDto.fromJS(resultData200);
-            return result200;
-            });
-        } else if (status === 404) {
-            return response.text().then((_responseText) => {
-            return throwException("A server side error occurred.", status, _responseText, _headers);
-            });
-        } else if (status !== 200 && status !== 204) {
-            return response.text().then((_responseText) => {
-            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
-            });
-        }
-        return Promise.resolve<ListItemDto>(null as any);
-    }
-
-    removeListItem(listId: string, itemId: string): Promise<ListItemDto> {
-        let url_ = this.baseUrl + "/api/lists/{listId}/items/{itemId}";
-        if (listId === undefined || listId === null)
-            throw new globalThis.Error("The parameter 'listId' must be defined.");
-        url_ = url_.replace("{listId}", encodeURIComponent("" + listId));
-        if (itemId === undefined || itemId === null)
-            throw new globalThis.Error("The parameter 'itemId' must be defined.");
-        url_ = url_.replace("{itemId}", encodeURIComponent("" + itemId));
-        url_ = url_.replace(/[?&]$/, "");
-
-        let options_: RequestInit = {
-            method: "DELETE",
-            headers: {
-                "Accept": "application/json"
-            }
-        };
-
-        return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processRemoveListItem(_response);
-        });
-    }
-
-    protected processRemoveListItem(response: Response): Promise<ListItemDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
@@ -10845,6 +10999,7 @@ export class ListItemDto implements IListItemDto {
     id?: string;
     listId?: string;
     text?: string;
+    quantity?: string | undefined;
     isCompleted?: boolean;
     completedUtc?: Date | undefined;
     isDeleted?: boolean;
@@ -10869,6 +11024,7 @@ export class ListItemDto implements IListItemDto {
             this.id = _data["id"];
             this.listId = _data["listId"];
             this.text = _data["text"];
+            this.quantity = _data["quantity"];
             this.isCompleted = _data["isCompleted"];
             this.completedUtc = _data["completedUtc"] ? new Date(_data["completedUtc"].toString()) : undefined as any;
             this.isDeleted = _data["isDeleted"];
@@ -10897,6 +11053,7 @@ export class ListItemDto implements IListItemDto {
         data["id"] = this.id;
         data["listId"] = this.listId;
         data["text"] = this.text;
+        data["quantity"] = this.quantity;
         data["isCompleted"] = this.isCompleted;
         data["completedUtc"] = this.completedUtc ? this.completedUtc.toISOString() : undefined as any;
         data["isDeleted"] = this.isDeleted;
@@ -10918,6 +11075,7 @@ export interface IListItemDto {
     id?: string;
     listId?: string;
     text?: string;
+    quantity?: string | undefined;
     isCompleted?: boolean;
     completedUtc?: Date | undefined;
     isDeleted?: boolean;
@@ -11242,6 +11400,62 @@ export interface IAddListItemRequest {
     decorativeAvatar?: DecorativeAvatarReferenceDto | undefined;
 }
 
+export class UpdateListItemRequest implements IUpdateListItemRequest {
+    text?: string;
+    quantity?: string | undefined;
+    preferredStore?: string | undefined;
+    decorativeAvatar?: DecorativeAvatarReferenceDto | undefined;
+    expectedUpdatedUtc?: Date;
+    preservePurchaseHistory?: boolean;
+
+    constructor(data?: IUpdateListItemRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.text = _data["text"];
+            this.quantity = _data["quantity"];
+            this.preferredStore = _data["preferredStore"];
+            this.decorativeAvatar = _data["decorativeAvatar"] ? DecorativeAvatarReferenceDto.fromJS(_data["decorativeAvatar"]) : undefined as any;
+            this.expectedUpdatedUtc = _data["expectedUpdatedUtc"] ? new Date(_data["expectedUpdatedUtc"].toString()) : undefined as any;
+            this.preservePurchaseHistory = _data["preservePurchaseHistory"];
+        }
+    }
+
+    static fromJS(data: any): UpdateListItemRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpdateListItemRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["text"] = this.text;
+        data["quantity"] = this.quantity;
+        data["preferredStore"] = this.preferredStore;
+        data["decorativeAvatar"] = this.decorativeAvatar ? this.decorativeAvatar.toJSON() : undefined as any;
+        data["expectedUpdatedUtc"] = this.expectedUpdatedUtc ? this.expectedUpdatedUtc.toISOString() : undefined as any;
+        data["preservePurchaseHistory"] = this.preservePurchaseHistory;
+        return data;
+    }
+}
+
+export interface IUpdateListItemRequest {
+    text?: string;
+    quantity?: string | undefined;
+    preferredStore?: string | undefined;
+    decorativeAvatar?: DecorativeAvatarReferenceDto | undefined;
+    expectedUpdatedUtc?: Date;
+    preservePurchaseHistory?: boolean;
+}
+
 export class UpdateListItemStoreRequest implements IUpdateListItemStoreRequest {
     preferredStore?: string | undefined;
 
@@ -11360,6 +11574,110 @@ export class ShoppingItemSuggestionDto implements IShoppingItemSuggestionDto {
 export interface IShoppingItemSuggestionDto {
     text?: string;
     storeSuggestions?: ShoppingStoreSuggestionDto[];
+}
+
+export class ShoppingHistorySuggestionDto implements IShoppingHistorySuggestionDto {
+    text?: string;
+    useCount?: number;
+    updatedUtc?: Date;
+    storeSuggestions?: ShoppingStoreSuggestionDto[];
+
+    constructor(data?: IShoppingHistorySuggestionDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.text = _data["text"];
+            this.useCount = _data["useCount"];
+            this.updatedUtc = _data["updatedUtc"] ? new Date(_data["updatedUtc"].toString()) : undefined as any;
+            if (Array.isArray(_data["storeSuggestions"])) {
+                this.storeSuggestions = [] as any;
+                for (let item of _data["storeSuggestions"])
+                    this.storeSuggestions!.push(ShoppingStoreSuggestionDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): ShoppingHistorySuggestionDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new ShoppingHistorySuggestionDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["text"] = this.text;
+        data["useCount"] = this.useCount;
+        data["updatedUtc"] = this.updatedUtc ? this.updatedUtc.toISOString() : undefined as any;
+        if (Array.isArray(this.storeSuggestions)) {
+            data["storeSuggestions"] = [];
+            for (let item of this.storeSuggestions)
+                data["storeSuggestions"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IShoppingHistorySuggestionDto {
+    text?: string;
+    useCount?: number;
+    updatedUtc?: Date;
+    storeSuggestions?: ShoppingStoreSuggestionDto[];
+}
+
+export class ImportShoppingHistoryRequest implements IImportShoppingHistoryRequest {
+    items?: string[];
+    confirmed?: boolean;
+
+    constructor(data?: IImportShoppingHistoryRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            if (Array.isArray(_data["items"])) {
+                this.items = [] as any;
+                for (let item of _data["items"])
+                    this.items!.push(item);
+            }
+            this.confirmed = _data["confirmed"];
+        }
+    }
+
+    static fromJS(data: any): ImportShoppingHistoryRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new ImportShoppingHistoryRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        if (Array.isArray(this.items)) {
+            data["items"] = [];
+            for (let item of this.items)
+                data["items"].push(item);
+        }
+        data["confirmed"] = this.confirmed;
+        return data;
+    }
+}
+
+export interface IImportShoppingHistoryRequest {
+    items?: string[];
+    confirmed?: boolean;
 }
 
 export class WorkspaceLayoutDto implements IWorkspaceLayoutDto {

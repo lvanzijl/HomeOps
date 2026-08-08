@@ -15,7 +15,7 @@ namespace HomeOps.Api.Tests.Infrastructure;
 
 public sealed class DatabaseBaselineTests
 {
-    private const string LatestDiscoverableMigration = "20260808160556_AddShoppingListLifecycleCompletion";
+    private const string LatestDiscoverableMigration = "20260808172019_AddShoppingItemEditingAndHistory";
 
     private static readonly string[] ResumeStrategyColumns =
     [

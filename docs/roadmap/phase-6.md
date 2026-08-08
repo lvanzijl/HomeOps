@@ -8,7 +8,7 @@ Phase 6 completes the normal user lifecycle for Shopping lists/items and Motivat
 | --- | --- | --- |
 | 6.0 Mandatory primary-page analyses | Completed 2026-08-08 | Approved separate Shopping and Motivation viewport contracts, including the required Motivation overflow repair. |
 | 6.1 Shopping list lifecycle | Completed 2026-08-08 | Added bounded multi-list creation plus explicit archive, restore, and permanent-delete lifecycle. |
-| 6.2 Shopping item editing and unified history | Not started | Correct items in place and make Home/Shopping use one server-backed history/suggestion source. |
+| 6.2 Shopping item editing and unified history | Completed 2026-08-08 | Correct items atomically and make Home/Shopping use one server-backed history/suggestion source. |
 | 6.3 Goal progress definition and audit ledger | Not started | Define progress semantics, derive totals from immutable ledger entries, and add compensating corrections. |
 | 6.4 Helpful-moment and family-goal lifecycle | Not started | Add helpful-moment correction/removal and family-goal stop/archive/history behavior. |
 
@@ -32,6 +32,14 @@ Migration `20260808160556_AddShoppingListLifecycleCompletion` removes rows previ
 
 The implementation follows the approved Shopping analysis. The workspace now uses border-box sizing; list-directory growth is owned by its internal scroller. PostgreSQL-backed Chromium passes all 17 scenarios, including create/archive/restore/permanent delete and the no-document-scroll checks at 1440×900 and 1366×768. Independent in-app inspection at 1366×768 measured zero document overflow, a 585.1 px dialog ending at 730.8 px, and a border-box Shopping workspace ending at 743.0 px. See `docs/reports/2026-08-08-shopping-list-lifecycle/implementation.md`.
 
+## Slice 6.2 outcome
+
+Shopping items now have one atomic, concurrency-checked edit contract for label, optional free-form quantity, store, and decorative avatar. The bounded `Aanpassen` editor keeps failed drafts visible and lets households preserve purchase/store attribution when correcting a name. Migration `20260808172019_AddShoppingItemEditingAndHistory` adds quantity and a household-level item-history table, backfills existing items, and keeps imported browser strings out of the server unless a user explicitly chooses `Overnemen` from the bounded management surface.
+
+Home no longer reads or writes `homeops.shopping.history.v1` as a suggestion source. Home and Shopping both consume the same server history endpoint; item additions, corrections, refreshes, and another client therefore see one household history with attached store suggestions. The old local key can be explicitly imported or discarded and is never uploaded on page load.
+
+Validation passes with focused backend 22/22, focused frontend 41/41, full backend 655/655, full frontend 387/387, both builds, PostgreSQL migration baseline 4/4, EF list/drift/idempotent-script checks, twice-identical pinned NSwag 14.7.1 output, and Playwright 18/18. Automated viewport checks cover 1440×900 and 1366×768; independent in-app inspection at 1366×768 measured zero document overflow, no console errors, and the 585.125 px item editor ending at 730.75 px. See `docs/reports/2026-08-08-shopping-item-editing-history/implementation.md`.
+
 ## Fixed boundaries
 
 - Work remains one numeric slice and one commit per run.
@@ -45,7 +53,7 @@ The implementation follows the approved Shopping analysis. The workspace now use
 ## Phase exit criteria
 
 - [x] Multiple shopping lists can be created, archived, restored, and intentionally deleted.
-- [ ] Shopping items can be corrected in place.
-- [ ] Home/Shopping suggestions use one server source.
+- [x] Shopping items can be corrected in place.
+- [x] Home/Shopping suggestions use one server source.
 - [ ] Goal progress is explainable and correctable.
 - [ ] Helpful moments and family goals have complete user lifecycles.

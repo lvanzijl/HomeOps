@@ -17,7 +17,9 @@ import {
   createListsApiClient,
   toggleShoppingListItem,
   loadShoppingList,
+  loadShoppingHistorySuggestions,
 } from "../shopping/listsApi";
+import type { ShoppingHistorySuggestion } from "../shopping/shoppingListModel";
 import {
   loadShoppingListSummary,
   type ListSummary,
@@ -112,7 +114,7 @@ export function HomeDashboard({
   const [isShoppingCaptureOpen, setIsShoppingCaptureOpen] = useState(false);
   const [isEventCaptureOpen, setIsEventCaptureOpen] = useState(false);
   const [isTaskCaptureOpen, setIsTaskCaptureOpen] = useState(false);
-  const [history, setHistory] = useState<string[]>(() => loadShoppingHistory());
+  const [history, setHistory] = useState<ShoppingHistorySuggestion[]>([]);
   const [homeWeather, setHomeWeather] = useState<HomeWeatherProjection | null>(null);
   const [weatherStatus, setWeatherStatus] = useState<"loading" | "ready" | "error">(
     "loading",
@@ -217,17 +219,12 @@ export function HomeDashboard({
           if (!ignore) setAgendaError("Agenda-overzicht kon niet worden geladen.");
         });
     const refreshLists = () =>
-      loadShoppingListSummary()
-        .then((data) => {
+      Promise.all([loadShoppingListSummary(), loadShoppingHistorySuggestions()])
+        .then(([data, suggestions]) => {
           if (ignore) return;
           const shoppingLists = data ? [data] : [];
           setLists(shoppingLists);
-          setHistory((current) =>
-            mergeShoppingHistory(
-              current,
-              shoppingLists.flatMap((list) => list.activeItems.map((item) => item.text)),
-            ),
-          );
+          setHistory(suggestions);
           setListsError(null);
         })
         .catch(() => {
@@ -252,15 +249,17 @@ export function HomeDashboard({
   }, []);
 
   async function refreshHomeData() {
-    const [agendaData, listData, taskData] = await Promise.all([
+    const [agendaData, listData, taskData, shoppingHistory] = await Promise.all([
       loadCalendarAgendaData(),
       loadShoppingListSummary(),
       loadTasks(),
+      loadShoppingHistorySuggestions(),
     ]);
     setSources(agendaData.sources);
     setEvents(agendaData.events);
     setLists(listData ? [listData] : []);
     setTasks(taskData);
+    setHistory(shoppingHistory);
   }
 
   async function handleShoppingSubmit(event: FormEvent) {
@@ -273,8 +272,6 @@ export function HomeDashboard({
       const shopping = await loadShoppingList(client);
       if (!shopping.listId) throw new Error("Shopping list id is required.");
       await addShoppingListItem(client, shopping.listId, trimmed);
-      const nextHistory = rememberShoppingItem(history, trimmed);
-      setHistory(nextHistory);
       setShoppingText("");
       setIsShoppingCaptureOpen(false);
       setQuickStatus(`${trimmed} toegevoegd aan Boodschappen.`);
@@ -854,16 +851,16 @@ export function HomeDashboard({
               <datalist id="home-shopping-suggestions">
                 {history
                   .filter((item) =>
-                    item
+                    item.text
                       .toLowerCase()
                       .includes(shoppingText.trim().toLowerCase()),
                   )
                   .slice(0, 6)
                   .map((item) => (
                     <option
-                      key={item}
-                      value={item}
-                      label={getShoppingSuggestionLabel(item, activeListItems)}
+                      key={item.text}
+                      value={item.text}
+                      label={item.storeSuggestions[0]?.store ?? getShoppingSuggestionLabel(item.text, activeListItems)}
                     />
                   ))}
               </datalist>
@@ -1231,47 +1228,6 @@ function addDays(date: Date, days: number) {
   const next = new Date(date);
   next.setDate(next.getDate() + days);
   return next;
-}
-
-const shoppingHistoryKey = "homeops.shopping.history.v1";
-
-function loadShoppingHistory(): string[] {
-  try {
-    const raw = window.localStorage.getItem(shoppingHistoryKey);
-    const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed)
-      ? parsed.filter((item): item is string => typeof item === "string")
-      : [];
-  } catch {
-    return [];
-  }
-}
-
-function rememberShoppingItem(history: string[], item: string): string[] {
-  return persistShoppingHistory(mergeShoppingHistory(history, [item]));
-}
-
-function mergeShoppingHistory(history: string[], items: string[]): string[] {
-  const seen = new Set<string>();
-  return [...items, ...history]
-    .map((item) => item.trim())
-    .filter((item) => item.length > 0)
-    .filter((item) => {
-      const key = item.toLowerCase();
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    })
-    .slice(0, 50);
-}
-
-function persistShoppingHistory(history: string[]): string[] {
-  try {
-    window.localStorage.setItem(shoppingHistoryKey, JSON.stringify(history));
-  } catch {
-    /* local history is best effort */
-  }
-  return history;
 }
 
 function quickEventDate(

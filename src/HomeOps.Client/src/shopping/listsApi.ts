@@ -1,5 +1,5 @@
-import { AddListItemRequest, ArchiveListRequest, CreateListRequest, DecorativeAvatarReferenceDto, DecorativeAvatarReferenceType, HomeOpsApiClient, ListDto, ListItemDto, ListSummaryDto, PermanentDeleteListRequest, RenameListRequest, RestoreListRequest, UpdateListItemDecorativeAvatarRequest, UpdateListItemStoreRequest } from '../api/homeOpsApiClient';
-import type { ShoppingDecorativeAvatarReference, ShoppingListItem, ShoppingListLifecycleSummary, ShoppingListState } from './shoppingListModel';
+import { AddListItemRequest, ArchiveListRequest, CreateListRequest, DecorativeAvatarReferenceDto, DecorativeAvatarReferenceType, HomeOpsApiClient, ImportShoppingHistoryRequest, ListDto, ListItemDto, ListSummaryDto, PermanentDeleteListRequest, RenameListRequest, RestoreListRequest, UpdateListItemRequest } from '../api/homeOpsApiClient';
+import type { ShoppingDecorativeAvatarReference, ShoppingHistorySuggestion, ShoppingListItem, ShoppingListLifecycleSummary, ShoppingListState } from './shoppingListModel';
 
 export const shoppingListName = 'Shopping';
 const localizedShoppingListNames = new Set(['shopping', 'boodschappen']);
@@ -91,12 +91,40 @@ export async function permanentlyDeleteShoppingList(client: HomeOpsApiClient, li
   await client.permanentlyDeleteList(listId, new PermanentDeleteListRequest({ expectedUpdatedUtc, confirmed: true }));
 }
 
-export async function updateShoppingListItemStore(client: HomeOpsApiClient, listId: string, itemId: string, preferredStore: string | null): Promise<ShoppingListItem> {
-  return toShoppingListItem(await client.updateListItemStore(listId, itemId, new UpdateListItemStoreRequest({ preferredStore: preferredStore ?? undefined })));
+export async function updateShoppingListItem(client: HomeOpsApiClient, listId: string, item: ShoppingListItem, changes: { label: string; quantity: string | null; preferredStore: string | null; decorativeAvatar: ShoppingDecorativeAvatarReference | null; preservePurchaseHistory: boolean }): Promise<ShoppingListItem> {
+  if (!item.updatedUtc) throw new Error('Item update timestamp is required.');
+  return toShoppingListItem(await client.updateListItem(listId, item.id, new UpdateListItemRequest({
+    text: changes.label,
+    quantity: changes.quantity ?? undefined,
+    preferredStore: changes.preferredStore ?? undefined,
+    decorativeAvatar: toApiDecorativeAvatar(changes.decorativeAvatar),
+    expectedUpdatedUtc: item.updatedUtc,
+    preservePurchaseHistory: changes.preservePurchaseHistory,
+  })));
 }
 
-export async function updateShoppingListItemDecorativeAvatar(client: HomeOpsApiClient, listId: string, itemId: string, decorativeAvatar: ShoppingDecorativeAvatarReference | null): Promise<ShoppingListItem> {
-  return toShoppingListItem(await client.updateListItemDecorativeAvatar(listId, itemId, new UpdateListItemDecorativeAvatarRequest({ decorativeAvatar: toApiDecorativeAvatar(decorativeAvatar) })));
+export async function loadShoppingHistorySuggestions(client = createListsApiClient(), query?: string): Promise<ShoppingHistorySuggestion[]> {
+  const suggestions = await client.getShoppingHistorySuggestions(query);
+  return suggestions
+    .filter((suggestion) => Boolean(suggestion.text && suggestion.updatedUtc))
+    .map((suggestion) => ({
+      text: suggestion.text!,
+      useCount: suggestion.useCount ?? 0,
+      updatedUtc: suggestion.updatedUtc!,
+      storeSuggestions: (suggestion.storeSuggestions ?? [])
+        .filter((store) => Boolean(store.store))
+        .map((store) => ({ store: store.store!, purchaseCount: store.purchaseCount ?? 0 })),
+    }));
+}
+
+export async function importLegacyShoppingHistory(client: HomeOpsApiClient, items: readonly string[]): Promise<ShoppingHistorySuggestion[]> {
+  const suggestions = await client.importShoppingHistory(new ImportShoppingHistoryRequest({ items: [...items], confirmed: true }));
+  return suggestions
+    .filter((suggestion) => Boolean(suggestion.text && suggestion.updatedUtc))
+    .map((suggestion) => ({
+      text: suggestion.text!, useCount: suggestion.useCount ?? 0, updatedUtc: suggestion.updatedUtc!,
+      storeSuggestions: (suggestion.storeSuggestions ?? []).filter((store) => Boolean(store.store)).map((store) => ({ store: store.store!, purchaseCount: store.purchaseCount ?? 0 })),
+    }));
 }
 
 export async function removeShoppingListItem(client: HomeOpsApiClient, listId: string, itemId: string): Promise<ShoppingListItem> {
@@ -146,6 +174,7 @@ function toShoppingListItem(item: ListItemDto): ShoppingListItem {
   return {
     id: item.id,
     label: item.text,
+    ...(item.quantity ? { quantity: item.quantity } : {}),
     completed: item.isCompleted,
     completedUtc: item.completedUtc ?? null,
     deleted: item.isDeleted ?? false,
@@ -155,6 +184,7 @@ function toShoppingListItem(item: ListItemDto): ShoppingListItem {
     storeSuggestions: (item.storeSuggestions ?? [])
       .filter((suggestion) => Boolean(suggestion.store))
       .map((suggestion) => ({ store: suggestion.store!, purchaseCount: suggestion.purchaseCount ?? 0 })),
+    ...(item.updatedUtc ? { updatedUtc: item.updatedUtc } : {}),
   };
 }
 

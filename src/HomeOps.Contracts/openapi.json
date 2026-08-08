@@ -1526,6 +1526,119 @@
         }
       }
     },
+    "/api/lists/{listId}/items/{itemId}": {
+      "patch": {
+        "tags": [
+          "Lists"
+        ],
+        "operationId": "UpdateListItem",
+        "parameters": [
+          {
+            "name": "listId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 2
+          }
+        ],
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateListItemRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 3
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListItemDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          },
+          "409": {
+            "description": ""
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Lists"
+        ],
+        "operationId": "RemoveListItem",
+        "parameters": [
+          {
+            "name": "listId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListItemDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
     "/api/lists/{listId}/items/{itemId}/store": {
       "patch": {
         "tags": [
@@ -1674,32 +1787,21 @@
         }
       }
     },
-    "/api/lists/{listId}/items/{itemId}/toggle": {
-      "post": {
+    "/api/lists/shopping/history": {
+      "get": {
         "tags": [
           "Lists"
         ],
-        "operationId": "ToggleListItemCompletion",
+        "operationId": "GetShoppingHistorySuggestions",
         "parameters": [
           {
-            "name": "listId",
-            "in": "path",
-            "required": true,
+            "name": "query",
+            "in": "query",
             "schema": {
               "type": "string",
-              "format": "guid"
+              "nullable": true
             },
             "x-position": 1
-          },
-          {
-            "name": "itemId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "guid"
-            },
-            "x-position": 2
           }
         ],
         "responses": {
@@ -1708,23 +1810,68 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ListItemDto"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ShoppingHistorySuggestionDto"
+                  }
                 }
               }
             }
-          },
-          "404": {
-            "description": ""
           }
         }
       }
     },
-    "/api/lists/{listId}/items/{itemId}": {
-      "delete": {
+    "/api/lists/shopping/history/import": {
+      "post": {
         "tags": [
           "Lists"
         ],
-        "operationId": "RemoveListItem",
+        "operationId": "ImportShoppingHistory",
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImportShoppingHistoryRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ShoppingHistorySuggestionDto"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/lists/{listId}/items/{itemId}/toggle": {
+      "post": {
+        "tags": [
+          "Lists"
+        ],
+        "operationId": "ToggleListItemCompletion",
         "parameters": [
           {
             "name": "listId",
@@ -8899,6 +9046,10 @@
           "text": {
             "type": "string"
           },
+          "quantity": {
+            "type": "string",
+            "nullable": true
+          },
           "isCompleted": {
             "type": "boolean"
           },
@@ -9057,6 +9208,38 @@
           }
         }
       },
+      "UpdateListItemRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "string",
+            "nullable": true
+          },
+          "preferredStore": {
+            "type": "string",
+            "nullable": true
+          },
+          "decorativeAvatar": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/DecorativeAvatarReferenceDto"
+              }
+            ]
+          },
+          "expectedUpdatedUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "preservePurchaseHistory": {
+            "type": "boolean"
+          }
+        }
+      },
       "UpdateListItemStoreRequest": {
         "type": "object",
         "additionalProperties": false,
@@ -9093,6 +9276,44 @@
             "items": {
               "$ref": "#/components/schemas/ShoppingStoreSuggestionDto"
             }
+          }
+        }
+      },
+      "ShoppingHistorySuggestionDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "useCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "updatedUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "storeSuggestions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ShoppingStoreSuggestionDto"
+            }
+          }
+        }
+      },
+      "ImportShoppingHistoryRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "confirmed": {
+            "type": "boolean"
           }
         }
       },

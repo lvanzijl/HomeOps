@@ -32,6 +32,7 @@ vi.mock("../shopping/listsApi", () => ({
   loadShoppingList: vi.fn(),
   addShoppingListItem: vi.fn(),
   toggleShoppingListItem: vi.fn(),
+  loadShoppingHistorySuggestions: vi.fn(),
 }));
 vi.mock("../shopping/listsSummaryApi", () => ({ loadShoppingListSummary: vi.fn() }));
 vi.mock("../tasks/tasksApi", () => ({ loadTasks: vi.fn(), createTask: vi.fn() }));
@@ -117,6 +118,9 @@ describe("HomeDashboard", () => {
       ],
     });
     const lists = await listsApi();
+    vi.mocked(lists.loadShoppingHistorySuggestions).mockResolvedValue([
+      { text: "Milk", useCount: 4, updatedUtc: new Date("2026-06-19T08:00:00Z"), storeSuggestions: [{ store: "Supermarket", purchaseCount: 3 }] },
+    ]);
     vi.mocked(lists.loadShoppingList).mockResolvedValue({
       listId: "shopping",
       items: [],
