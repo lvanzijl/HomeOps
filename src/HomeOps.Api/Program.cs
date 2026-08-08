@@ -43,9 +43,6 @@ else
 {
     builder.Services.AddSingleton<IWeatherSnapshotSource, OpenMeteoWeatherSnapshotSource>();
 }
-builder.Services.AddSingleton(new WeatherLocationOptions(
-    builder.Configuration.GetValue<decimal?>("Weather:Latitude") ?? 52.3676m,
-    builder.Configuration.GetValue<decimal?>("Weather:Longitude") ?? 4.9041m));
 builder.Services.AddSingleton<WeatherSnapshotCache>();
 builder.Services.AddSingleton<DepartureAdviceEngine>();
 builder.Services.AddSingleton<WeatherProjectionBuilder>();
@@ -204,6 +201,7 @@ app.MapHomeAssistantResumeStrategyEndpoints();
 app.MapKnownPersonEndpoints();
 app.MapOnboardingEndpoints();
 app.MapHouseholdTimeZoneEndpoints();
+app.MapHouseholdWeatherLocationEndpoints();
 app.MapTaskEndpoints();
 app.MapTaskTemplateEndpoints();
 app.MapMotivationEndpoints();

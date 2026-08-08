@@ -7,4 +7,5 @@ public sealed record FamilyBoardWeatherSnapshot(
     IReadOnlyList<DailyWeatherSummary> DailySummaries,
     WeatherFreshness Freshness,
     WeatherProviderStatus ProviderStatus,
-    string? ProviderStatusMessage = null);
+    string? ProviderStatusMessage = null,
+    WeatherUnitSystem UnitSystem = WeatherUnitSystem.Metric);

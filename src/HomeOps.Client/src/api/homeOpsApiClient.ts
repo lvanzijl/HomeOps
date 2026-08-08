@@ -7327,6 +7327,126 @@ export class HomeOpsApiClient {
         return Promise.resolve<OnboardingStatusDto>(null as any);
     }
 
+    getCurrentHouseholdWeatherLocation(): Promise<HouseholdWeatherLocationDto> {
+        let url_ = this.baseUrl + "/api/households/current/weather-location";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetCurrentHouseholdWeatherLocation(_response);
+        });
+    }
+
+    protected processGetCurrentHouseholdWeatherLocation(response: Response): Promise<HouseholdWeatherLocationDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = HouseholdWeatherLocationDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<HouseholdWeatherLocationDto>(null as any);
+    }
+
+    updateCurrentHouseholdWeatherLocation(request: UpdateHouseholdWeatherLocationRequest): Promise<HouseholdWeatherLocationDto> {
+        let url_ = this.baseUrl + "/api/households/current/weather-location";
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateCurrentHouseholdWeatherLocation(_response);
+        });
+    }
+
+    protected processUpdateCurrentHouseholdWeatherLocation(response: Response): Promise<HouseholdWeatherLocationDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = HouseholdWeatherLocationDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = HttpValidationProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<HouseholdWeatherLocationDto>(null as any);
+    }
+
+    refreshCurrentHouseholdWeatherLocation(): Promise<HouseholdWeatherLocationDto> {
+        let url_ = this.baseUrl + "/api/households/current/weather-location/refresh";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRefreshCurrentHouseholdWeatherLocation(_response);
+        });
+    }
+
+    protected processRefreshCurrentHouseholdWeatherLocation(response: Response): Promise<HouseholdWeatherLocationDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = HouseholdWeatherLocationDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = HttpValidationProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<HouseholdWeatherLocationDto>(null as any);
+    }
+
     getTasks(): Promise<HouseholdTaskDto[]> {
         let url_ = this.baseUrl + "/api/tasks";
         url_ = url_.replace(/[?&]$/, "");
@@ -19206,6 +19326,134 @@ export interface IOnboardingMemberRequest {
     avatarSelection: AvatarSelectionDto;
 }
 
+export class HouseholdWeatherLocationDto implements IHouseholdWeatherLocationDto {
+    isConfigured?: boolean;
+    displayName?: string | undefined;
+    latitude?: number | undefined;
+    longitude?: number | undefined;
+    unitSystem?: WeatherUnitSystem;
+    providerName?: string;
+    providerStatus?: WeatherProviderStatus;
+    lastRefreshedUtc?: Date | undefined;
+    statusMessage?: string;
+
+    constructor(data?: IHouseholdWeatherLocationDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.isConfigured = _data["isConfigured"];
+            this.displayName = _data["displayName"];
+            this.latitude = _data["latitude"];
+            this.longitude = _data["longitude"];
+            this.unitSystem = _data["unitSystem"];
+            this.providerName = _data["providerName"];
+            this.providerStatus = _data["providerStatus"];
+            this.lastRefreshedUtc = _data["lastRefreshedUtc"] ? new Date(_data["lastRefreshedUtc"].toString()) : undefined as any;
+            this.statusMessage = _data["statusMessage"];
+        }
+    }
+
+    static fromJS(data: any): HouseholdWeatherLocationDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new HouseholdWeatherLocationDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["isConfigured"] = this.isConfigured;
+        data["displayName"] = this.displayName;
+        data["latitude"] = this.latitude;
+        data["longitude"] = this.longitude;
+        data["unitSystem"] = this.unitSystem;
+        data["providerName"] = this.providerName;
+        data["providerStatus"] = this.providerStatus;
+        data["lastRefreshedUtc"] = this.lastRefreshedUtc ? this.lastRefreshedUtc.toISOString() : undefined as any;
+        data["statusMessage"] = this.statusMessage;
+        return data;
+    }
+}
+
+export interface IHouseholdWeatherLocationDto {
+    isConfigured?: boolean;
+    displayName?: string | undefined;
+    latitude?: number | undefined;
+    longitude?: number | undefined;
+    unitSystem?: WeatherUnitSystem;
+    providerName?: string;
+    providerStatus?: WeatherProviderStatus;
+    lastRefreshedUtc?: Date | undefined;
+    statusMessage?: string;
+}
+
+export enum WeatherUnitSystem {
+    Metric = 0,
+    Imperial = 1,
+}
+
+export enum WeatherProviderStatus {
+    Unknown = 0,
+    Available = 1,
+    Stale = 2,
+    Unavailable = 3,
+}
+
+export class UpdateHouseholdWeatherLocationRequest implements IUpdateHouseholdWeatherLocationRequest {
+    displayName?: string | undefined;
+    latitude?: number | undefined;
+    longitude?: number | undefined;
+    unitSystem?: WeatherUnitSystem | undefined;
+
+    constructor(data?: IUpdateHouseholdWeatherLocationRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.displayName = _data["displayName"];
+            this.latitude = _data["latitude"];
+            this.longitude = _data["longitude"];
+            this.unitSystem = _data["unitSystem"];
+        }
+    }
+
+    static fromJS(data: any): UpdateHouseholdWeatherLocationRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpdateHouseholdWeatherLocationRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["displayName"] = this.displayName;
+        data["latitude"] = this.latitude;
+        data["longitude"] = this.longitude;
+        data["unitSystem"] = this.unitSystem;
+        return data;
+    }
+}
+
+export interface IUpdateHouseholdWeatherLocationRequest {
+    displayName?: string | undefined;
+    latitude?: number | undefined;
+    longitude?: number | undefined;
+    unitSystem?: WeatherUnitSystem | undefined;
+}
+
 export class HouseholdTaskDto implements IHouseholdTaskDto {
     id?: string;
     title?: string;
@@ -20474,6 +20722,7 @@ export class HomeWeatherProjection implements IHomeWeatherProjection {
     freshness?: WeatherFreshnessProjection;
     status?: WeatherProviderStatus;
     statusMessage?: string | undefined;
+    unitSystem?: WeatherUnitSystem;
 
     constructor(data?: IHomeWeatherProjection) {
         if (data) {
@@ -20494,6 +20743,7 @@ export class HomeWeatherProjection implements IHomeWeatherProjection {
             this.freshness = _data["freshness"] ? WeatherFreshnessProjection.fromJS(_data["freshness"]) : undefined as any;
             this.status = _data["status"];
             this.statusMessage = _data["statusMessage"];
+            this.unitSystem = _data["unitSystem"];
         }
     }
 
@@ -20514,6 +20764,7 @@ export class HomeWeatherProjection implements IHomeWeatherProjection {
         data["freshness"] = this.freshness ? this.freshness.toJSON() : undefined as any;
         data["status"] = this.status;
         data["statusMessage"] = this.statusMessage;
+        data["unitSystem"] = this.unitSystem;
         return data;
     }
 }
@@ -20527,6 +20778,7 @@ export interface IHomeWeatherProjection {
     freshness?: WeatherFreshnessProjection;
     status?: WeatherProviderStatus;
     statusMessage?: string | undefined;
+    unitSystem?: WeatherUnitSystem;
 }
 
 export enum WeatherConditionCategory {
@@ -20689,13 +20941,6 @@ export interface IWeatherFreshnessProjection {
     isFresh?: boolean;
 }
 
-export enum WeatherProviderStatus {
-    Unknown = 0,
-    Available = 1,
-    Stale = 2,
-    Unavailable = 3,
-}
-
 export class WeatherDetailProjection implements IWeatherDetailProjection {
     departureAdvice?: DepartureAdviceProjection;
     summary?: string;
@@ -20706,6 +20951,7 @@ export class WeatherDetailProjection implements IWeatherDetailProjection {
     freshness?: WeatherFreshnessProjection;
     status?: WeatherProviderStatus;
     statusMessage?: string | undefined;
+    unitSystem?: WeatherUnitSystem;
 
     constructor(data?: IWeatherDetailProjection) {
         if (data) {
@@ -20735,6 +20981,7 @@ export class WeatherDetailProjection implements IWeatherDetailProjection {
             this.freshness = _data["freshness"] ? WeatherFreshnessProjection.fromJS(_data["freshness"]) : undefined as any;
             this.status = _data["status"];
             this.statusMessage = _data["statusMessage"];
+            this.unitSystem = _data["unitSystem"];
         }
     }
 
@@ -20764,6 +21011,7 @@ export class WeatherDetailProjection implements IWeatherDetailProjection {
         data["freshness"] = this.freshness ? this.freshness.toJSON() : undefined as any;
         data["status"] = this.status;
         data["statusMessage"] = this.statusMessage;
+        data["unitSystem"] = this.unitSystem;
         return data;
     }
 }
@@ -20778,6 +21026,7 @@ export interface IWeatherDetailProjection {
     freshness?: WeatherFreshnessProjection;
     status?: WeatherProviderStatus;
     statusMessage?: string | undefined;
+    unitSystem?: WeatherUnitSystem;
 }
 
 export class CurrentWeatherProjection implements ICurrentWeatherProjection {
@@ -21091,6 +21340,7 @@ export class AgendaWeatherSlotProjection implements IAgendaWeatherSlotProjection
     condition?: WeatherConditionCategory;
     summary?: string;
     freshness?: WeatherFreshnessProjection;
+    unitSystem?: WeatherUnitSystem;
 
     constructor(data?: IAgendaWeatherSlotProjection) {
         if (data) {
@@ -21109,6 +21359,7 @@ export class AgendaWeatherSlotProjection implements IAgendaWeatherSlotProjection
             this.condition = _data["condition"];
             this.summary = _data["summary"];
             this.freshness = _data["freshness"] ? WeatherFreshnessProjection.fromJS(_data["freshness"]) : undefined as any;
+            this.unitSystem = _data["unitSystem"];
         }
     }
 
@@ -21127,6 +21378,7 @@ export class AgendaWeatherSlotProjection implements IAgendaWeatherSlotProjection
         data["condition"] = this.condition;
         data["summary"] = this.summary;
         data["freshness"] = this.freshness ? this.freshness.toJSON() : undefined as any;
+        data["unitSystem"] = this.unitSystem;
         return data;
     }
 }
@@ -21138,6 +21390,7 @@ export interface IAgendaWeatherSlotProjection {
     condition?: WeatherConditionCategory;
     summary?: string;
     freshness?: WeatherFreshnessProjection;
+    unitSystem?: WeatherUnitSystem;
 }
 
 export class VisualReviewScenarioDto implements IVisualReviewScenarioDto {

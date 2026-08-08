@@ -46,13 +46,13 @@ public sealed class OpenMeteoWeatherProvider
         {
             return CreateUnavailableSnapshot(location.HouseholdId, nowUtc, "Open-Meteo request timed out.");
         }
-        catch (HttpRequestException exception)
+        catch (HttpRequestException)
         {
-            return CreateUnavailableSnapshot(location.HouseholdId, nowUtc, $"Open-Meteo request failed: {exception.Message}");
+            return CreateUnavailableSnapshot(location.HouseholdId, nowUtc, "Open-Meteo request failed.");
         }
-        catch (JsonException exception)
+        catch (JsonException)
         {
-            return CreateUnavailableSnapshot(location.HouseholdId, nowUtc, $"Open-Meteo response could not be parsed: {exception.Message}");
+            return CreateUnavailableSnapshot(location.HouseholdId, nowUtc, "Open-Meteo response could not be parsed.");
         }
     }
 

@@ -289,6 +289,10 @@ export function WorkspaceShell() {
               onCalendarSourcesChanged={(sources) => setSettingsNeedsAttention(hasCalendarSourceAttention(sources))}
               onFamilyMembersChanged={refreshFamilyMembers}
               onHouseholdTimeZoneChanged={setHouseholdTimeZoneId}
+              onWeatherLocationChanged={async () => {
+                const status = await loadOnboardingStatus();
+                setSetupChecklist(status.setupChecklist);
+              }}
               widgetInstances={widgetInstances}
             />
           ) : (

@@ -16,7 +16,8 @@ public sealed class WeatherProjectionBuilder
             departureAdvice.Confidence,
             ToFreshnessProjection(snapshot.Freshness, nowUtc),
             snapshot.ProviderStatus,
-            snapshot.ProviderStatusMessage);
+            snapshot.ProviderStatusMessage,
+            snapshot.UnitSystem);
 
     public WeatherDetailProjection ToDetail(
         FamilyBoardWeatherSnapshot snapshot,
@@ -37,7 +38,8 @@ public sealed class WeatherProjectionBuilder
                 snapshot.Freshness.RefreshedAtUtc),
             ToFreshnessProjection(snapshot.Freshness, nowUtc),
             snapshot.ProviderStatus,
-            snapshot.ProviderStatusMessage);
+            snapshot.ProviderStatusMessage,
+            snapshot.UnitSystem);
 
     public AgendaWeatherProjection ToAgenda(FamilyBoardWeatherSnapshot snapshot, DateTimeOffset nowUtc)
     {
@@ -49,7 +51,8 @@ public sealed class WeatherProjectionBuilder
                 slot.TemperatureCelsius,
                 slot.Condition,
                 slot.Summary,
-                freshness)).ToArray(),
+                freshness,
+                snapshot.UnitSystem)).ToArray(),
             freshness,
             snapshot.ProviderStatus,
             snapshot.ProviderStatusMessage);

@@ -31,7 +31,7 @@ Do not check a phase merely because one of its slices is complete. A phase is co
 | [x] | **Phase 2 — Truthful first run and family persistence** | **Completed** | Slices 2.1–2.6 are complete, including family administration/restore and the persisted setup checklist | Fresh install onboards correctly; family changes survive refresh with honest error handling |
 | [x] | **Phase 3 — Calendar and local-time correctness** | **Completed** | Calendar-field writes, household time zone, source lifecycle, device preferences, and truthful reminder scope are complete | Home and Agenda preserve household-local calendar intent and accurately state that notifications are not delivered |
 | [x] | **Phase 4 — Tasks and Weekly Reset completion** | **Completed 2026-08-08** | Task APIs, routines, and Weekly Reset foundation exist; Slice 4.0 interaction authority is approved | Core task controls are operable and every reset candidate can be resolved and completed |
-| [ ] | **Phase 5 — House, climate, and household settings** | **In progress** | Slices 5.1–5.6 repaired migration/runtime, made Woning reachable, completed climate configuration/mapping and floor-plan onboarding, and secured provider lifecycle; weather location remains | Woning setup-to-runtime chain is reachable, healthy, configurable, and viewport-safe |
+| [x] | **Phase 5 — House, climate, and household settings** | **Completed 2026-08-08** | Slices 5.1–5.7 complete the healthy Woning setup/runtime chain, provider lifecycle, floor-plan onboarding, and household weather configuration | Woning setup-to-runtime chain is reachable, healthy, configurable, and viewport-safe |
 | [ ] | **Phase 6 — Shopping and Motivation lifecycle completion** | **Not started** | Both domains are PostgreSQL-backed | Common create/edit/archive/restore/correction workflows are complete and cross-device |
 | [ ] | **Phase 7 — Navigation, backup, errors, and consistency** | **Not started** | Individual foundations exist | Cross-cutting behavior is routable, recoverable, consistently worded, and accurately backed up |
 | [ ] | **Phase 8 — Optional product breadth** | **Not started** | Placeholders only | Each optional feature is either deliberately implemented or deliberately removed from product expectations |
@@ -865,7 +865,7 @@ Before changing Tasks layout or action placement, write the repository-required 
 
 ## Phase 5 — House, climate, and household settings
 
-- [ ] **Phase status: In progress**
+- [x] **Phase status: Completed 2026-08-08**
 
 **Priority:** P0/P1.  
 **Audit coverage:** HOUSE-01, CLIMATE-01, CLIMATE-02, HOUSE-02, HOUSE-04, HOUSE-05, HOUSE-06, WEATHER-01.  
@@ -983,7 +983,7 @@ Before changing Tasks layout or action placement, write the repository-required 
 
 ### Slice 5.7 — Household weather location
 
-- [ ] **Status: Not started**
+- [x] **Status: Completed 2026-08-08**
 
 **Audit ID:** WEATHER-01
 
@@ -995,6 +995,8 @@ Before changing Tasks layout or action placement, write the repository-required 
 4. Show last refresh/provider status and retry.
 5. Test invalid coordinates, provider failure, and Agenda/Home refresh.
 
+**Implementation state:** The household now persists a complete coordinate-based weather location and metric/imperial preference; the former process-wide default is removed. Saving validates atomically, invalidates the shared cache, and updates onboarding. Open-Meteo loads the current household configuration in a background-safe dependency scope, canonical metric facts remain unchanged, and generated Home/detail/Agenda projections carry the unit preference. The approved bounded Settings dialog shows normalized provider health, last refresh, explicit retry, retained validation, and coordinate-only privacy guidance without geocoding or location permissions. Full backend 651/651, frontend 381/381, PostgreSQL 4/4, both builds, EF drift/script checks, repeated hash-identical pinned NSwag 14.7.1 generation, and Playwright 16/16 pass. Automated viewport checks cover 1440×900 and 1366×768; independent browser inspection confirms zero overflow and visible fixed actions at 1366×768. See `docs/reports/2026-08-08-household-weather-location/` and `docs/roadmap/phase-5.md`.
+
 ### Phase 5 exit criteria
 
 - [x] Provider endpoint and DB upgrades are healthy.
@@ -1002,7 +1004,7 @@ Before changing Tasks layout or action placement, write the repository-required 
 - [x] Climate configuration and mapping lifecycle work end to end.
 - [x] A normal user can upload the first floor plan.
 - [x] Provider credentials remain secret and lifecycle is manageable.
-- [ ] Weather location is household-configurable.
+- [x] Weather location is household-configurable.
 
 ## Phase 6 — Shopping and Motivation lifecycle completion
 
@@ -1314,7 +1316,7 @@ Every audit finding must appear exactly once as the primary responsibility of a 
 | CAL-03 | 3.5 Source lifecycle | [x] Completed |
 | NAV-02 | 7.1 Routing | [ ] Not started |
 | HOME-01 | 3.3 Quick-add semantics | [x] Completed |
-| WEATHER-01 | 5.7 Weather location | [ ] Not started |
+| WEATHER-01 | 5.7 Weather location | [x] Completed |
 | SETTINGS-02 | 3.4 Time-zone setting | [x] Completed |
 | SETTINGS-03 | 7.5 Settings placeholder | [ ] Not started |
 | SETTINGS-04 | 2.5 Family administration | [x] Completed |

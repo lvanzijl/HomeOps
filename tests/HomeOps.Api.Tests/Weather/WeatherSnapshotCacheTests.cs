@@ -104,7 +104,7 @@ public sealed class WeatherSnapshotCacheTests
         var snapshot = await cache.GetOrRefreshAsync(householdId, _ => throw new InvalidOperationException("provider offline"));
 
         Assert.Equal(WeatherProviderStatus.Unavailable, snapshot.ProviderStatus);
-        Assert.Contains("provider offline", snapshot.ProviderStatusMessage);
+        Assert.Equal("Weather refresh failed.", snapshot.ProviderStatusMessage);
         Assert.Empty(snapshot.HourlySlots);
         Assert.Empty(snapshot.DailySummaries);
     }
@@ -126,7 +126,8 @@ public sealed class WeatherSnapshotCacheTests
         for (var attempt = 0; attempt < 20; attempt++)
         {
             cache.TryGetSnapshot(householdId, out cached);
-            if (cached?.ProviderStatus == WeatherProviderStatus.Stale && cached.ProviderStatusMessage?.Contains("provider offline") == true)
+            if (cached?.ProviderStatus == WeatherProviderStatus.Stale
+                && cached.ProviderStatusMessage == "Weather refresh failed.")
             {
                 break;
             }
@@ -137,7 +138,7 @@ public sealed class WeatherSnapshotCacheTests
         Assert.NotNull(cached);
         Assert.Equal(16, cached.Current.TemperatureCelsius);
         Assert.Equal(WeatherProviderStatus.Stale, cached.ProviderStatus);
-        Assert.Contains("provider offline", cached.ProviderStatusMessage);
+        Assert.Equal("Weather refresh failed.", cached.ProviderStatusMessage);
     }
 
     private static FamilyBoardWeatherSnapshot CreateSnapshot(

@@ -11,4 +11,5 @@ public sealed record WeatherDetailProjection(
     WeatherDetailsProjection Details,
     WeatherFreshnessProjection Freshness,
     WeatherProviderStatus Status,
-    string? StatusMessage);
+    string? StatusMessage,
+    WeatherUnitSystem UnitSystem);

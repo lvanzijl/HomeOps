@@ -712,6 +712,48 @@ test("floor-plan upload activates the first plan and enters cancellable replacem
   await expect(woning.getByText("Wordt beoordeeld")).toBeVisible();
 });
 
+test("household weather location persists coordinates and units in the bounded Settings dialog", async ({ page, request }) => {
+  await resetFixture(request, "visual-full");
+  const initialResponse = await request.put("/api/households/current/weather-location/", {
+    data: {
+      displayName: "Amsterdam thuis",
+      latitude: 52.3676,
+      longitude: 4.9041,
+      unitSystem: 0,
+    },
+  });
+  expect(initialResponse.ok(), await initialResponse.text()).toBe(true);
+
+  await page.setViewportSize({ width: 1366, height: 768 });
+  await page.goto("/");
+  await page.getByRole("button", { name: "Instellingen voor gezinsinstellingen" }).click();
+  await page.getByRole("button", { name: "Weerlocatie" }).click();
+  const dialog = page.getByRole("dialog", { name: "Weerlocatie" });
+  await expect(dialog).toBeVisible();
+  await expect(dialog.getByText("Open-Meteo", { exact: true })).toBeVisible();
+  await expectNoDocumentScroll(page, "Weerlocatie at 1366x768");
+  await expectWithinViewport(dialog.getByRole("button", { name: "Locatie opslaan" }), { width: 1366, height: 768 });
+
+  await dialog.getByLabel("Naam voor thuis").fill("Rotterdam thuis");
+  await dialog.getByLabel("Breedtegraad").fill("51.9225");
+  await dialog.getByLabel("Lengtegraad").fill("4.47917");
+  await dialog.getByLabel("Eenheden").selectOption({ label: "Fahrenheit en mph" });
+  const saveResponse = page.waitForResponse((response) =>
+    response.request().method() === "PUT"
+      && new URL(response.url()).pathname === "/api/households/current/weather-location");
+  await dialog.getByRole("button", { name: "Locatie opslaan" }).click();
+  expect((await saveResponse).ok()).toBe(true);
+  await expect(dialog.getByRole("status")).toContainText("De weerlocatie is opgeslagen.");
+
+  await page.getByRole("button", { name: "Weerlocatie sluiten" }).click();
+  await page.getByRole("button", { name: "Weerlocatie" }).click();
+  const reopened = page.getByRole("dialog", { name: "Weerlocatie" });
+  await expect(reopened.getByLabel("Naam voor thuis")).toHaveValue("Rotterdam thuis");
+  await expect(reopened.getByLabel("Breedtegraad")).toHaveValue("51.9225");
+  await expect(reopened.getByLabel("Lengtegraad")).toHaveValue("4.47917");
+  await expect(reopened.getByLabel("Eenheden")).toHaveValue("1");
+});
+
 test("primary pages do not create document-level vertical scrolling", async ({ page, request }) => {
   await resetFixture(request, "visual-full");
   await seedWoningRuntime(request);
@@ -757,6 +799,12 @@ test("primary pages do not create document-level vertical scrolling", async ({ p
     await expect(page.getByRole("dialog", { name: "Gezinsleden" })).toBeVisible();
     await expectNoDocumentScroll(page, `Gezinsledenbeheer at ${viewport.width}x${viewport.height}`);
     await page.getByRole("button", { name: "Gezinsleden sluiten" }).click();
+    await page.getByRole("button", { name: "Weerlocatie" }).click();
+    const weatherLocationDialog = page.getByRole("dialog", { name: "Weerlocatie" });
+    await expect(weatherLocationDialog).toBeVisible();
+    await expectNoDocumentScroll(page, `Weerlocatie at ${viewport.width}x${viewport.height}`);
+    await expectWithinViewport(weatherLocationDialog.getByRole("button", { name: "Locatie opslaan" }), viewport);
+    await page.getByRole("button", { name: "Weerlocatie sluiten" }).click();
     await page.locator(".settings-action-rail").getByRole("button", { name: "Woning", exact: true }).click();
     const woningDialog = page.getByRole("dialog", { name: "Woning", exact: true });
     await expect(woningDialog).toBeVisible();

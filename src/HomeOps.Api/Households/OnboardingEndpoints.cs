@@ -107,8 +107,12 @@ public static class OnboardingEndpoints
         var homeAssistantConfigured = await dbContext.ClimateProviders.AsNoTracking()
             .AnyAsync(provider => provider.HouseholdId == household.Id && provider.ProviderType == ProviderType.HomeAssistant && provider.IsEnabled && !provider.IsArchived, cancellationToken);
 
-        // Weather location remains deliberately deferred to WEATHER-01; it is not implied by process-wide defaults.
-        return new SetupChecklistDto(household.SetupChecklistDismissedUtc is not null, false, firstListConfigured, calendarSourceConfigured, homeAssistantConfigured);
+        var weatherLocationConfigured =
+            !string.IsNullOrWhiteSpace(household.WeatherLocationDisplayName) &&
+            household.WeatherLatitude is not null &&
+            household.WeatherLongitude is not null;
+
+        return new SetupChecklistDto(household.SetupChecklistDismissedUtc is not null, weatherLocationConfigured, firstListConfigured, calendarSourceConfigured, homeAssistantConfigured);
     }
 
     private static Dictionary<string, string[]> Validate(CompleteOnboardingRequest request, AvatarCatalogService avatarCatalog, out List<AvatarSelection> avatarSelections)

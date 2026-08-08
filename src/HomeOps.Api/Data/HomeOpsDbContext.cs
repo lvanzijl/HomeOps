@@ -11,6 +11,7 @@ using HomeOps.Api.Motivation;
 using HomeOps.Api.WidgetLayouts;
 using HomeOps.Api.Tasks;
 using HomeOps.Api.WeeklyReset;
+using HomeOps.Api.Weather;
 using Microsoft.EntityFrameworkCore;
 
 namespace HomeOps.Api.Data;
@@ -351,6 +352,10 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             entity.HasKey(household => household.Id);
             entity.Property(household => household.Name).HasMaxLength(120).IsRequired();
             entity.Property(household => household.TimeZoneId).HasMaxLength(80).IsRequired();
+            entity.Property(household => household.WeatherLocationDisplayName).HasMaxLength(120);
+            entity.Property(household => household.WeatherLatitude).HasPrecision(8, 5);
+            entity.Property(household => household.WeatherLongitude).HasPrecision(9, 5);
+            entity.Property(household => household.WeatherUnitSystem).HasConversion<string>().HasMaxLength(16).IsRequired();
             entity.Property(household => household.OnboardingCompleted).IsRequired();
             entity.Property(household => household.SetupChecklistDismissedUtc);
             entity.Property(household => household.LegacyDemoDataReviewRequired).IsRequired();
@@ -899,6 +904,7 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             Name = SeedHousehold.Name,
             CreatedUtc = SeedLists.SeededUtc,
             TimeZoneId = SeedHousehold.TimeZoneId,
+            WeatherUnitSystem = WeatherUnitSystem.Metric,
             OnboardingCompleted = false,
             LegacyDemoDataReviewRequired = false,
             UpdatedUtc = SeedLists.SeededUtc,

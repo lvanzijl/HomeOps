@@ -116,10 +116,10 @@ public sealed class WeatherSnapshotCache
         {
             throw;
         }
-        catch (Exception exception)
+        catch (Exception)
         {
             var nowUtc = nowProvider();
-            return CreateUnavailableSnapshot(householdId, nowUtc, $"Weather refresh failed: {exception.Message}");
+            return CreateUnavailableSnapshot(householdId, nowUtc, "Weather refresh failed.");
         }
     }
 

@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using HomeOps.Api.Data;
 using HomeOps.Api.FloorPlans;
 using HomeOps.Api.Households;
+using HomeOps.Api.Weather;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
@@ -14,7 +15,7 @@ namespace HomeOps.Api.Tests.Infrastructure;
 
 public sealed class DatabaseBaselineTests
 {
-    private const string LatestDiscoverableMigration = "20260808124113_SanitizeClimateProviderDiagnostics";
+    private const string LatestDiscoverableMigration = "20260808135023_AddHouseholdWeatherLocation";
 
     private static readonly string[] ResumeStrategyColumns =
     [
@@ -51,6 +52,10 @@ public sealed class DatabaseBaselineTests
         Assert.False(household.OnboardingCompleted);
         Assert.Null(household.SetupChecklistDismissedUtc);
         Assert.False(household.LegacyDemoDataReviewRequired);
+        Assert.Null(household.WeatherLocationDisplayName);
+        Assert.Null(household.WeatherLatitude);
+        Assert.Null(household.WeatherLongitude);
+        Assert.Equal(WeatherUnitSystem.Metric, household.WeatherUnitSystem);
         Assert.Empty(await context.FamilyMembers.AsNoTracking().ToListAsync());
         Assert.Empty(await context.Lists.AsNoTracking().ToListAsync());
         Assert.Empty(await context.EventSeries.AsNoTracking().ToListAsync());

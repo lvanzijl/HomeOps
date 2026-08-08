@@ -3400,9 +3400,11 @@ function buildAgendaWeatherDisplay(
       contextLabel,
       slot.temperatureCelsius,
       slot.summary,
+      "weercontext",
+      slot.unitSystem,
     ),
     iconKey: toWeatherIconKey(slot.condition),
-    temperatureLabel: formatTemperatureLabel(slot.temperatureCelsius),
+    temperatureLabel: formatTemperatureLabel(slot.temperatureCelsius, slot.unitSystem),
   };
 }
 

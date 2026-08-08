@@ -10,4 +10,5 @@ public sealed record HomeWeatherProjection(
     DepartureAdviceConfidence Confidence,
     WeatherFreshnessProjection Freshness,
     WeatherProviderStatus Status,
-    string? StatusMessage);
+    string? StatusMessage,
+    WeatherUnitSystem UnitSystem);

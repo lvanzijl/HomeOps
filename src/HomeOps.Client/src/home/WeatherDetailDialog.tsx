@@ -2,6 +2,7 @@ import { useEffect, useId, useRef } from "react";
 import type { WeatherDetailProjection } from "../api/homeOpsApiClient";
 import {
   formatTemperatureLabel,
+  formatWindSpeedLabel,
   formatWeatherSentence,
   getDepartureAdviceConfidenceText,
   resolveDepartureAdviceHeadline,
@@ -124,7 +125,7 @@ export function WeatherDetailDialog({
               <div className="weather-detail-hero-copy">
                 <div className="weather-detail-hero-row">
                   <span className="weather-detail-temperature">
-                    {formatTemperatureLabel(detail?.current?.temperatureCelsius)}
+                    {formatTemperatureLabel(detail?.current?.temperatureCelsius, detail?.unitSystem)}
                   </span>
                   {confidenceLabel ? (
                     <span className="weather-detail-confidence">
@@ -167,7 +168,7 @@ export function WeatherDetailDialog({
                         <WeatherGlyph iconKey={toWeatherIconKey(item.condition)} />
                       </span>
                       <span className="weather-detail-hour-temp">
-                        {formatTemperatureLabel(item.temperatureCelsius)}
+                        {formatTemperatureLabel(item.temperatureCelsius, detail?.unitSystem)}
                       </span>
                     </li>
                   ))}
@@ -190,8 +191,8 @@ export function WeatherDetailDialog({
                         <WeatherGlyph iconKey={toWeatherIconKey(item.condition)} />
                       </span>
                       <span className="weather-detail-day-range">
-                        {formatTemperatureLabel(item.lowTemperatureCelsius)} /{" "}
-                        {formatTemperatureLabel(item.highTemperatureCelsius)}
+                        {formatTemperatureLabel(item.lowTemperatureCelsius, detail?.unitSystem)} /{" "}
+                        {formatTemperatureLabel(item.highTemperatureCelsius, detail?.unitSystem)}
                       </span>
                     </li>
                   ))}
@@ -277,8 +278,8 @@ function buildDetailItems(detail: WeatherDetailProjection | null) {
   const detailValues = detail?.details;
 
   return [
-    formatFact("Gevoel", formatTemperatureLabelOrNothing(current?.feelsLikeTemperatureCelsius)),
-    formatFact("Wind", formatNumberFact(detailValues?.windSpeedKph ?? current?.windSpeedKph, "km/u")),
+    formatFact("Gevoel", formatTemperatureLabelOrNothing(current?.feelsLikeTemperatureCelsius, detail?.unitSystem)),
+    formatFact("Wind", formatWindSpeedLabel(detailValues?.windSpeedKph ?? current?.windSpeedKph, detail?.unitSystem)),
     formatFact(
       "Luchtvochtigheid",
       formatNumberFact(
@@ -318,8 +319,9 @@ function formatNumberFact(
 
 function formatTemperatureLabelOrNothing(
   value: number | undefined,
+  unitSystem: WeatherDetailProjection["unitSystem"],
 ): string | undefined {
-  return typeof value === "number" ? formatTemperatureLabel(value) : undefined;
+  return typeof value === "number" ? formatTemperatureLabel(value, unitSystem) : undefined;
 }
 
 function formatUv(value: number | undefined): string | undefined {

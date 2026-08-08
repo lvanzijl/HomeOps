@@ -6636,6 +6636,96 @@
         }
       }
     },
+    "/api/households/current/weather-location": {
+      "get": {
+        "tags": [
+          "Households"
+        ],
+        "operationId": "GetCurrentHouseholdWeatherLocation",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HouseholdWeatherLocationDto"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Households"
+        ],
+        "operationId": "UpdateCurrentHouseholdWeatherLocation",
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateHouseholdWeatherLocationRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 1
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HouseholdWeatherLocationDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/households/current/weather-location/refresh": {
+      "post": {
+        "tags": [
+          "Households"
+        ],
+        "operationId": "RefreshCurrentHouseholdWeatherLocation",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HouseholdWeatherLocationDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/tasks": {
       "get": {
         "tags": [
@@ -13702,6 +13792,102 @@
           }
         }
       },
+      "HouseholdWeatherLocationDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "isConfigured": {
+            "type": "boolean"
+          },
+          "displayName": {
+            "type": "string",
+            "nullable": true
+          },
+          "latitude": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "longitude": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "unitSystem": {
+            "$ref": "#/components/schemas/WeatherUnitSystem"
+          },
+          "providerName": {
+            "type": "string"
+          },
+          "providerStatus": {
+            "$ref": "#/components/schemas/WeatherProviderStatus"
+          },
+          "lastRefreshedUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "statusMessage": {
+            "type": "string"
+          }
+        }
+      },
+      "WeatherUnitSystem": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "Metric",
+          "Imperial"
+        ],
+        "enum": [
+          0,
+          1
+        ]
+      },
+      "WeatherProviderStatus": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "Unknown",
+          "Available",
+          "Stale",
+          "Unavailable"
+        ],
+        "enum": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "UpdateHouseholdWeatherLocationRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "displayName": {
+            "type": "string",
+            "nullable": true
+          },
+          "latitude": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "longitude": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "unitSystem": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/WeatherUnitSystem"
+              }
+            ]
+          }
+        }
+      },
       "HouseholdTaskDto": {
         "type": "object",
         "additionalProperties": false,
@@ -14450,6 +14636,9 @@
           "statusMessage": {
             "type": "string",
             "nullable": true
+          },
+          "unitSystem": {
+            "$ref": "#/components/schemas/WeatherUnitSystem"
           }
         }
       },
@@ -14595,22 +14784,6 @@
           }
         }
       },
-      "WeatherProviderStatus": {
-        "type": "integer",
-        "description": "",
-        "x-enumNames": [
-          "Unknown",
-          "Available",
-          "Stale",
-          "Unavailable"
-        ],
-        "enum": [
-          0,
-          1,
-          2,
-          3
-        ]
-      },
       "WeatherDetailProjection": {
         "type": "object",
         "additionalProperties": false,
@@ -14648,6 +14821,9 @@
           "statusMessage": {
             "type": "string",
             "nullable": true
+          },
+          "unitSystem": {
+            "$ref": "#/components/schemas/WeatherUnitSystem"
           }
         }
       },
@@ -14849,6 +15025,9 @@
           },
           "freshness": {
             "$ref": "#/components/schemas/WeatherFreshnessProjection"
+          },
+          "unitSystem": {
+            "$ref": "#/components/schemas/WeatherUnitSystem"
           }
         }
       },

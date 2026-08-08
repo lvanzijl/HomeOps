@@ -3,6 +3,7 @@ import {
   type DepartureAdviceProjection,
   type HomeWeatherProjection,
   WeatherConditionCategory,
+  WeatherUnitSystem,
 } from "../api/homeOpsApiClient";
 import { getDepartureAdviceHeaderText } from "./weatherAdviceLocalization";
 
@@ -17,7 +18,7 @@ export function buildHomeWeatherDisplay(
   weather: HomeWeatherProjection | null,
 ): HomeWeatherDisplay {
   const advice = resolveDepartureAdviceHeadline(weather?.departureAdvice);
-  const temperatureLabel = formatTemperatureLabel(weather?.temperatureCelsius);
+  const temperatureLabel = formatTemperatureLabel(weather?.temperatureCelsius, weather?.unitSystem);
 
   return {
     accessibleLabel:
@@ -71,10 +72,12 @@ export function getDepartureAdviceConfidenceText(
 
 export function formatTemperatureLabel(
   temperatureCelsius: number | undefined,
+  unitSystem: WeatherUnitSystem | undefined = WeatherUnitSystem.Metric,
 ): string {
-  return typeof temperatureCelsius === "number"
-    ? `${Math.round(temperatureCelsius)}°`
-    : "—";
+  if (typeof temperatureCelsius !== "number") return "—";
+  return unitSystem === WeatherUnitSystem.Imperial
+    ? `${Math.round((temperatureCelsius * 9) / 5 + 32)}°F`
+    : `${Math.round(temperatureCelsius)}°`;
 }
 
 export function formatWeatherAccessibleLabel(
@@ -82,10 +85,21 @@ export function formatWeatherAccessibleLabel(
   temperatureCelsius: number | undefined,
   summary: string | undefined,
   fallbackSummary = "weercontext",
+  unitSystem: WeatherUnitSystem | undefined = WeatherUnitSystem.Metric,
 ): string {
-  return `${contextLabel}, ${formatTemperatureLabel(temperatureCelsius)}, ${
+  return `${contextLabel}, ${formatTemperatureLabel(temperatureCelsius, unitSystem)}, ${
     formatWeatherSentence(summary) ?? fallbackSummary
   }`;
+}
+
+export function formatWindSpeedLabel(
+  windSpeedKph: number | undefined,
+  unitSystem: WeatherUnitSystem | undefined = WeatherUnitSystem.Metric,
+): string | undefined {
+  if (typeof windSpeedKph !== "number") return undefined;
+  return unitSystem === WeatherUnitSystem.Imperial
+    ? `${Math.round(windSpeedKph * 0.621371)} mph`
+    : `${Math.round(windSpeedKph)} km/u`;
 }
 
 export function formatWeatherSentence(

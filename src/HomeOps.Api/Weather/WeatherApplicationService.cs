@@ -48,6 +48,12 @@ public sealed class WeatherApplicationService
         return projectionBuilder.ToAgenda(snapshot, nowUtc);
     }
 
+    public async Task<FamilyBoardWeatherSnapshot> RefreshAsync(CancellationToken cancellationToken = default)
+    {
+        snapshotCache.Remove(SeedHousehold.Id);
+        return await GetSnapshotAsync(cancellationToken);
+    }
+
     private Task<FamilyBoardWeatherSnapshot> GetSnapshotAsync(CancellationToken cancellationToken) =>
         snapshotCache.GetOrRefreshAsync(
             SeedHousehold.Id,

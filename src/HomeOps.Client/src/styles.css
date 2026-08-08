@@ -1065,6 +1065,7 @@ button {
 
 .settings-action-rail-buttons button,
 .settings-surface-actions button,
+.weather-location-actions button,
 .settings-surface-header button {
   background: rgb(255 255 255 / 92%);
   border: 1px solid color-mix(in srgb, var(--domain-border, #cbd5e1) 78%, white);
@@ -1078,7 +1079,8 @@ button {
 }
 
 .settings-action-rail-buttons button[disabled],
-.settings-surface-actions button[disabled] {
+.settings-surface-actions button[disabled],
+.weather-location-actions button[disabled] {
   cursor: default;
   opacity: 0.5;
 }
@@ -1376,6 +1378,125 @@ button {
 
 .settings-extra-widget-list > * {
   min-height: 0;
+}
+
+.weather-location-dialog .settings-surface-body {
+  overflow: hidden;
+}
+
+.weather-location-dialog-layout {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-rows: minmax(0, 1fr) auto;
+  min-height: 0;
+}
+
+.weather-location-dialog-content {
+  display: grid;
+  gap: 0.75rem;
+  min-height: 0;
+  overflow: auto;
+  padding-right: 0.15rem;
+}
+
+.weather-location-state,
+.weather-location-fields,
+.weather-location-guidance {
+  background: color-mix(in srgb, var(--domain-tint, #f8fafc) 68%, white);
+  border: 1px solid color-mix(in srgb, var(--domain-border, #cbd5e1) 72%, white);
+  border-radius: 1rem;
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.75rem 0.8rem;
+}
+
+.weather-location-state.success {
+  background: linear-gradient(160deg, rgb(236 253 245 / 94%), rgb(255 255 255 / 92%));
+  border-color: #86efac;
+}
+
+.weather-location-state.error {
+  background: linear-gradient(160deg, rgb(255 251 235 / 96%), rgb(255 255 255 / 92%));
+  border-color: #fbbf24;
+}
+
+.weather-location-state h4,
+.weather-location-state p,
+.weather-location-guidance h4,
+.weather-location-guidance p {
+  margin: 0;
+}
+
+.weather-location-state dl {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+}
+
+.weather-location-state dl > div {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+}
+
+.weather-location-state dt {
+  color: var(--color-text-muted);
+}
+
+.weather-location-state dd {
+  font-weight: 800;
+  margin: 0;
+  text-align: right;
+}
+
+.weather-location-fields label {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.weather-location-fields label > span {
+  color: var(--domain-accent-strong, #475569);
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.weather-location-fields input,
+.weather-location-fields select {
+  background: rgb(255 255 255 / 92%);
+  border: 1px solid color-mix(in srgb, var(--domain-border, #cbd5e1) 78%, white);
+  border-radius: 0.8rem;
+  color: var(--color-text);
+  font: inherit;
+  min-width: 0;
+  padding: 0.62rem 0.7rem;
+}
+
+.weather-location-coordinate-grid {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.weather-location-operation-message {
+  background: rgb(255 255 255 / 86%);
+  border-radius: 0.85rem;
+  margin: 0;
+  padding: 0.6rem 0.7rem;
+}
+
+.weather-location-actions {
+  border-top: 1px solid color-mix(in srgb, var(--domain-border, #cbd5e1) 68%, white);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  padding-top: 0.75rem;
+}
+
+@media (max-width: 720px) {
+  .weather-location-coordinate-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .calendar-repair-flow,

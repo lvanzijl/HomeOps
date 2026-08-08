@@ -86,6 +86,22 @@ public sealed class WeatherProjectionBuilderTests
         Assert.Equal(now.AddHours(-1), projection.Freshness.ExpiresAtUtc);
     }
 
+    [Fact]
+    public void Projections_carry_the_household_unit_system_without_changing_canonical_facts()
+    {
+        var now = new DateTimeOffset(2026, 7, 4, 8, 0, 0, TimeSpan.Zero);
+        var snapshot = CreateSnapshot(now) with { UnitSystem = WeatherUnitSystem.Imperial };
+
+        var home = new WeatherProjectionBuilder().ToHome(snapshot, CreateAdvice(), now);
+        var detail = new WeatherProjectionBuilder().ToDetail(snapshot, CreateAdvice(), now);
+        var agenda = new WeatherProjectionBuilder().ToAgenda(snapshot, now);
+
+        Assert.Equal(WeatherUnitSystem.Imperial, home.UnitSystem);
+        Assert.Equal(WeatherUnitSystem.Imperial, detail.UnitSystem);
+        Assert.All(agenda.Slots, slot => Assert.Equal(WeatherUnitSystem.Imperial, slot.UnitSystem));
+        Assert.Equal(18, home.TemperatureCelsius);
+    }
+
     private static FamilyBoardWeatherSnapshot CreateSnapshot(DateTimeOffset now) =>
         CreateSnapshot(now, now.AddMinutes(30));
 

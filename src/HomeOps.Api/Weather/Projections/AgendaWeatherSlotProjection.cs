@@ -8,4 +8,5 @@ public sealed record AgendaWeatherSlotProjection(
     decimal TemperatureCelsius,
     WeatherConditionCategory Condition,
     string Summary,
-    WeatherFreshnessProjection Freshness);
+    WeatherFreshnessProjection Freshness,
+    WeatherUnitSystem UnitSystem);

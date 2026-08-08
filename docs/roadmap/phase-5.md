@@ -2,7 +2,7 @@
 
 Phase 5 completes the Woning setup-to-runtime chain: reliable schema upgrades, reachable climate runtime, editable room climate configuration and mappings, floor-plan onboarding, provider lifecycle, and household weather configuration.
 
-**Phase status:** In progress.
+**Phase status:** Completed 2026-08-08.
 
 | Slice | Status | Outcome |
 | --- | --- | --- |
@@ -12,7 +12,7 @@ Phase 5 completes the Woning setup-to-runtime chain: reliable schema upgrades, r
 | 5.4 Provider/source mapping management | Completed 2026-08-08 | Added the bounded room/role mapping workspace with safe source editing, priority and enablement controls, health, archive/restore, and dependency validation. |
 | 5.5 Floor-plan upload and replacement entry | Completed 2026-08-08 | Added safe multipart upload, derivative preview, explicit first activation, and dedicated bounded replacement-review entry. |
 | 5.6 Provider credential and lifecycle management | Completed 2026-08-08 | Added a server-owned credential-status boundary, normalized connection tests, explicit provider archive/restore with dependency impact, and a bounded management dialog that never accepts or reveals the secret. |
-| 5.7 Household weather location | Not started | Make weather location household-configurable with visible refresh health. |
+| 5.7 Household weather location | Completed 2026-08-08 | Persisted household coordinates, label, and units; removed the process-wide default; added safe provider health/refresh and a bounded Settings workflow; and closed Phase 5. |
 
 ## Slice 5.1 implementation boundary
 
@@ -74,6 +74,16 @@ PostgreSQL-backed Chromium exposed an archived-row pointer-interception defect e
 
 Validation: focused frontend 13/13 and focused backend 58/58; full frontend 377/377; full backend 646/646; solution and frontend production builds; PostgreSQL migration baseline 4/4; EF list/model-drift/idempotent-script checks; two hash-identical pinned NSwag 14.7.1 generations; and PostgreSQL-backed Playwright 15/15. Independent in-app browser checks confirmed the credential boundary, normalized missing-credential result, archive/restore mapping preservation, no browser errors, and zero document overflow at both target viewports. See `docs/reports/2026-08-08-provider-lifecycle/`.
 
+## Slice 5.7 implementation boundary
+
+The household now owns a complete weather location: a display label, decimal latitude/longitude, and a metric/imperial preference. Fresh installs remain truthfully unconfigured instead of inheriting the previous process-wide Amsterdam default. Saving is atomic, validates every field, clears the household weather cache, and completes the persisted onboarding checklist item.
+
+Open-Meteo always receives the stored coordinates. Canonical facts remain Celsius and km/h, while generated Home, detail, and Agenda projections carry the selected unit system for consistent client formatting. Snapshot loads create their own dependency scope so stale-cache background refreshes never retain a request-scoped database context. Provider failures are normalized before reaching the cache, API, or Settings UI.
+
+The approved Settings composition adds one compact `Weerlocatie` quick action and one bounded dialog with an internally scrolling body and fixed actions. It shows configured state, provider health, last refresh, retained validation errors, explicit retry, and privacy guidance. No address lookup, map, browser geolocation, permission request, or geocoding provider was added.
+
+Validation: focused frontend 51/51 and focused backend weather/location suites pass; full frontend 381/381 and backend 651/651 pass; solution and frontend production builds pass; PostgreSQL migration baseline 4/4; EF list/model-drift/idempotent-script checks; repeated hash-identical pinned NSwag 14.7.1 generation; and PostgreSQL-backed Playwright 16/16. Automated checks prove zero document overflow at 1440×900 and 1366×768; independent in-app inspection at 1366×768 measured zero overflow and a fully visible fixed action row. See `docs/reports/2026-08-08-household-weather-location/`.
+
 ## Fixed boundaries
 
 - Work remains one numeric slice and one commit per run.
@@ -83,8 +93,8 @@ Validation: focused frontend 13/13 and focused backend 58/58; full frontend 377/
 - Slice 5.4 manages typed climate source mappings only; provider credentials/lifecycle, floor-plan upload, runtime control expansion, and weather remain deferred.
 - Slice 5.5 reuses floor-plan ingestion, activation, boundary editing, and replacement review; provider credentials/lifecycle, runtime control expansion, and weather remain deferred.
 - Slice 5.6 manages provider credentials and lifecycle only; it does not add browser token entry, encrypted secret persistence, discovery, arbitrary Home Assistant execution, runtime control expansion, or weather configuration.
+- Slice 5.7 manages household weather coordinates, label, units, cache invalidation, and safe provider health only; geocoding, maps, browser location permissions, and changes to canonical weather facts remain outside scope.
 - Further primary-page layout work still requires its own approved viewport analysis.
-- Weather location remains Slice 5.7.
 
 ## Phase exit criteria
 
@@ -93,4 +103,4 @@ Validation: focused frontend 13/13 and focused backend 58/58; full frontend 377/
 - [x] Climate configuration and mapping lifecycle work end to end.
 - [x] A normal user can upload the first floor plan.
 - [x] Provider credentials remain secret and lifecycle is manageable.
-- [ ] Weather location is household-configurable.
+- [x] Weather location is household-configurable.

@@ -45,6 +45,7 @@ import { FamilyAdministration } from "./FamilyAdministration";
 import type { FamilyMember } from "../home/familyMembers";
 import { CalendarRepairDialog } from './CalendarRepairDialog';
 import { HouseholdTimeZoneDialog } from './HouseholdTimeZoneDialog';
+import { HouseholdWeatherLocationDialog } from './HouseholdWeatherLocationDialog';
 
 interface MaintenanceStatus {
   kind: "success" | "error";
@@ -59,6 +60,7 @@ interface SettingsDashboardProps {
   onCalendarSourcesChanged?(sources: readonly CalendarSource[]): void;
   onFamilyMembersChanged?(): Promise<void>;
   onHouseholdTimeZoneChanged?(timeZoneId: string): void;
+  onWeatherLocationChanged?(): void | Promise<void>;
 }
 
 type SettingsSurface =
@@ -75,9 +77,10 @@ type SettingsSurface =
   | "family"
   | "calendarRepair"
   | "timeZone"
+  | "weatherLocation"
   | null;
 
-export function SettingsDashboard({ widgetInstances, members = [], onCalendarSourcesChanged, onFamilyMembersChanged = async () => {}, onHouseholdTimeZoneChanged = () => {} }: SettingsDashboardProps) {
+export function SettingsDashboard({ widgetInstances, members = [], onCalendarSourcesChanged, onFamilyMembersChanged = async () => {}, onHouseholdTimeZoneChanged = () => {}, onWeatherLocationChanged = () => {} }: SettingsDashboardProps) {
   const [activeSurface, setActiveSurface] = useState<SettingsSurface>(null);
   const [selectedSourceId, setSelectedSourceId] = useState<string | null>(null);
   const [sourceForm, setSourceForm] = useState<CalendarSourceFormValues>(() => createCalendarSourceFormValues());
@@ -726,6 +729,9 @@ export function SettingsDashboard({ widgetInstances, members = [], onCalendarSou
           <button onClick={() => setActiveSurface("timeZone")} type="button">
             Tijdzone
           </button>
+          <button onClick={() => setActiveSurface("weatherLocation")} type="button">
+            Weerlocatie
+          </button>
           {hasAdditionalSettings ? (
             <button onClick={() => setActiveSurface("settings")} type="button">
               Gezinsinstellingen
@@ -838,6 +844,8 @@ export function SettingsDashboard({ widgetInstances, members = [], onCalendarSou
       {activeSurface === "calendarRepair" ? <CalendarRepairDialog onClose={closeSurface} /> : null}
 
       {activeSurface === "timeZone" ? <HouseholdTimeZoneDialog onChanged={onHouseholdTimeZoneChanged} onClose={closeSurface} /> : null}
+
+      {activeSurface === "weatherLocation" ? <HouseholdWeatherLocationDialog onChanged={onWeatherLocationChanged} onClose={closeSurface} /> : null}
 
       {activeSurface === "family" ? (
         <SettingsSurfaceDialog
@@ -1130,11 +1138,12 @@ function SourceMetaItem({ label, value }: { label: string; value: string }) {
 interface SettingsSurfaceDialogProps {
   children: ReactNode;
   description: string;
+  dialogClassName?: string;
   onClose(): void;
   title: string;
 }
 
-export function SettingsSurfaceDialog({ children, description, onClose, title }: SettingsSurfaceDialogProps) {
+export function SettingsSurfaceDialog({ children, description, dialogClassName, onClose, title }: SettingsSurfaceDialogProps) {
   const titleId = useId();
 
   return (
@@ -1142,7 +1151,7 @@ export function SettingsSurfaceDialog({ children, description, onClose, title }:
       <section
         aria-labelledby={titleId}
         aria-modal="true"
-        className="settings-surface-dialog"
+        className={["settings-surface-dialog", dialogClassName].filter(Boolean).join(" ")}
         onClick={(event) => event.stopPropagation()}
         role="dialog"
       >
