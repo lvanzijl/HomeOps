@@ -14,7 +14,7 @@ namespace HomeOps.Api.Tests.Infrastructure;
 
 public sealed class DatabaseBaselineTests
 {
-    private const string LatestDiscoverableMigration = "20260808090440_PersistWeeklyResetAggregate";
+    private const string LatestDiscoverableMigration = "20260808124113_SanitizeClimateProviderDiagnostics";
 
     private static readonly string[] ResumeStrategyColumns =
     [
@@ -145,6 +145,14 @@ public sealed class DatabaseBaselineTests
         }
 
         await database.MigrateAsync();
+        await using (var sanitizedConnection = new NpgsqlConnection(database.ConnectionString))
+        {
+            await sanitizedConnection.OpenAsync();
+            Assert.True(await ScalarAsync<bool>(
+                sanitizedConnection,
+                """SELECT "DiagnosticMetadata" IS NULL FROM "ClimateProviders" WHERE "Id" = @id""",
+                new NpgsqlParameter("id", providerId)));
+        }
         await using var factory = new PostgreSqlApiFactory(database.ConnectionString);
         using var client = factory.CreateClient();
         var response = await client.GetAsync("/api/climate-providers/");

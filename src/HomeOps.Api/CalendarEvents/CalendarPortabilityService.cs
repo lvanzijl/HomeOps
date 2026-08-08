@@ -98,11 +98,13 @@ public static class CalendarPortabilityService
             .OrderBy(config => config.RoomId)
             .Select(config => new CalendarExportRoomClimateConfiguration(config.RoomId, config.IsClimateEnabled, config.IsBedtimeRelevant, config.MinimumPreferredTemperatureCelsius, config.MaximumPreferredTemperatureCelsius, config.MinimumPreferredRelativeHumidity, config.MaximumPreferredRelativeHumidity, config.HeatingPolicyIntent.ToString(), config.CreatedUtc, config.UpdatedUtc))
             .ToListAsync(cancellationToken);
-        var climateProviders = await dbContext.ClimateProviders.AsNoTracking()
+        var climateProviderEntities = await dbContext.ClimateProviders.AsNoTracking()
             .Where(provider => provider.HouseholdId == SeedHousehold.Id)
             .OrderBy(provider => provider.DisplayName)
-            .Select(provider => new CalendarExportClimateProvider(provider.Id, provider.DisplayName, provider.ProviderType.ToString(), provider.IsEnabled, provider.IsArchived, provider.ArchivedUtc, provider.ExternalInstanceReference, provider.DiagnosticMetadata, provider.CreatedUtc, provider.UpdatedUtc, provider.HomeAssistantResumeStrategyType.ToString(), provider.HomeAssistantResumeScriptEntityReference, provider.HomeAssistantResumeClimateEntityReference, provider.HomeAssistantResumePresetValue, provider.HomeAssistantResumeStrategyUpdatedUtc))
             .ToListAsync(cancellationToken);
+        var climateProviders = climateProviderEntities
+            .Select(provider => new CalendarExportClimateProvider(provider.Id, provider.DisplayName, provider.ProviderType.ToString(), provider.IsEnabled, provider.IsArchived, provider.ArchivedUtc, provider.ExternalInstanceReference, SafeClimateProviderDiagnostic(provider.DiagnosticMetadata), provider.CreatedUtc, provider.UpdatedUtc, provider.HomeAssistantResumeStrategyType.ToString(), provider.HomeAssistantResumeScriptEntityReference, provider.HomeAssistantResumeClimateEntityReference, provider.HomeAssistantResumePresetValue, provider.HomeAssistantResumeStrategyUpdatedUtc))
+            .ToList();
         var climateMappings = await dbContext.RoomClimateSourceMappings.AsNoTracking()
             .Where(mapping => mapping.HouseholdId == SeedHousehold.Id)
             .OrderBy(mapping => mapping.RoomId).ThenBy(mapping => mapping.SourceRole).ThenBy(mapping => mapping.Priority)
@@ -372,7 +374,7 @@ public static class CalendarPortabilityService
             dbContext.ClimateProviders.RemoveRange(existingProviders);
             dbContext.ClimateProviders.AddRange(document.Calendar.ClimateProviders.Select(provider => new ClimateProvider
             {
-                Id = provider.Id, HouseholdId = SeedHousehold.Id, DisplayName = provider.DisplayName.Trim(), ProviderType = Enum.Parse<ProviderType>(provider.ProviderType, true), IsEnabled = provider.IsEnabled, IsArchived = provider.IsArchived, ArchivedUtc = provider.ArchivedUtc, ExternalInstanceReference = string.IsNullOrWhiteSpace(provider.ExternalInstanceReference) ? null : provider.ExternalInstanceReference.Trim(), DiagnosticMetadata = string.IsNullOrWhiteSpace(provider.DiagnosticMetadata) ? null : provider.DiagnosticMetadata.Trim(), CreatedUtc = provider.CreatedUtc, UpdatedUtc = provider.UpdatedUtc, HomeAssistantResumeStrategyType = ParseResumeStrategyType(provider.HomeAssistantResumeStrategyType), HomeAssistantResumeScriptEntityReference = string.IsNullOrWhiteSpace(provider.HomeAssistantResumeScriptEntityReference) ? null : provider.HomeAssistantResumeScriptEntityReference.Trim(), HomeAssistantResumeClimateEntityReference = string.IsNullOrWhiteSpace(provider.HomeAssistantResumeClimateEntityReference) ? null : provider.HomeAssistantResumeClimateEntityReference.Trim(), HomeAssistantResumePresetValue = string.IsNullOrWhiteSpace(provider.HomeAssistantResumePresetValue) ? null : provider.HomeAssistantResumePresetValue.Trim(), HomeAssistantResumeStrategyUpdatedUtc = provider.HomeAssistantResumeStrategyUpdatedUtc
+                Id = provider.Id, HouseholdId = SeedHousehold.Id, DisplayName = provider.DisplayName.Trim(), ProviderType = Enum.Parse<ProviderType>(provider.ProviderType, true), IsEnabled = provider.IsEnabled, IsArchived = provider.IsArchived, ArchivedUtc = provider.ArchivedUtc, ExternalInstanceReference = string.IsNullOrWhiteSpace(provider.ExternalInstanceReference) ? null : provider.ExternalInstanceReference.Trim(), DiagnosticMetadata = SafeClimateProviderDiagnostic(provider.DiagnosticMetadata), CreatedUtc = provider.CreatedUtc, UpdatedUtc = provider.UpdatedUtc, HomeAssistantResumeStrategyType = ParseResumeStrategyType(provider.HomeAssistantResumeStrategyType), HomeAssistantResumeScriptEntityReference = string.IsNullOrWhiteSpace(provider.HomeAssistantResumeScriptEntityReference) ? null : provider.HomeAssistantResumeScriptEntityReference.Trim(), HomeAssistantResumeClimateEntityReference = string.IsNullOrWhiteSpace(provider.HomeAssistantResumeClimateEntityReference) ? null : provider.HomeAssistantResumeClimateEntityReference.Trim(), HomeAssistantResumePresetValue = string.IsNullOrWhiteSpace(provider.HomeAssistantResumePresetValue) ? null : provider.HomeAssistantResumePresetValue.Trim(), HomeAssistantResumeStrategyUpdatedUtc = provider.HomeAssistantResumeStrategyUpdatedUtc
             }));
             if (document.Calendar.RoomClimateSourceMappings is not null)
             {
@@ -1082,6 +1084,14 @@ public static class CalendarPortabilityService
     }
 
     private static bool IsSupportedExceptionType(string? exceptionType) => string.Equals(exceptionType, "Skipped", StringComparison.OrdinalIgnoreCase) || string.Equals(exceptionType, "Modified", StringComparison.OrdinalIgnoreCase);
+
+    private static string? SafeClimateProviderDiagnostic(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value) || !value.StartsWith("ha-refresh:", StringComparison.Ordinal)) return null;
+        return Enum.TryParse<HomeAssistantClimateRefreshOutcome>(value["ha-refresh:".Length..], out var outcome)
+            ? $"ha-refresh:{outcome}"
+            : null;
+    }
 
     private static bool IsValidTimeZone(string timeZoneId)
     {

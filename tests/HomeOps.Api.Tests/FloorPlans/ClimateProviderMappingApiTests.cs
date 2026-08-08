@@ -83,9 +83,16 @@ public sealed class ClimateProviderMappingApiTests(HomeOpsWebApplicationFactory 
         var reprioritize = await _client.PutAsJsonAsync($"/api/climate-mappings/{secondary.Id}", new UpdateClimateMappingRequest(Priority: 0));
         Assert.Equal(HttpStatusCode.OK, reprioritize.StatusCode);
 
-        Assert.Equal(HttpStatusCode.NoContent, (await _client.PostAsync($"/api/climate-providers/{provider.Id}/archive", null)).StatusCode);
+        var unconfirmedArchive = await _client.PostAsJsonAsync($"/api/climate-providers/{provider.Id}/archive", new ArchiveClimateProviderRequest(false));
+        Assert.Equal(HttpStatusCode.BadRequest, unconfirmedArchive.StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, (await _client.PostAsJsonAsync($"/api/climate-providers/{provider.Id}/archive", new ArchiveClimateProviderRequest(true))).StatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, (await _client.PostAsync($"/api/climate-mappings/{primary.Id}/restore", null)).StatusCode);
         Assert.Equal(HttpStatusCode.OK, (await _client.PostAsync($"/api/climate-providers/{provider.Id}/restore", null)).StatusCode);
+
+        var restoredSecondary = await _client.GetFromJsonAsync<ClimateMappingDto>($"/api/climate-mappings/{secondary.Id}");
+        Assert.NotNull(restoredSecondary);
+        Assert.Equal(MappingHealth.Unverified, restoredSecondary.Health);
+        Assert.Null(restoredSecondary.LastCheckedUtc);
 
         var restore = await _client.PostAsync($"/api/climate-mappings/{primary.Id}/restore", null);
         Assert.Equal(HttpStatusCode.OK, restore.StatusCode);
@@ -94,6 +101,46 @@ public sealed class ClimateProviderMappingApiTests(HomeOpsWebApplicationFactory 
         Assert.False(restored.IsArchived);
         Assert.Equal(1, restored.Priority);
         Assert.Equal(MappingHealth.NeedsReview, restored.Health);
+    }
+
+    [Fact]
+    public async Task ProviderManagementExposesOnlyCredentialPresenceAndDependencyCounts()
+    {
+        const string secret = "raw-token-must-never-round-trip";
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+        var floor = await CreateFloor($"Secret floor {suffix}");
+        var room = await CreateRoom(floor.Id, $"Secret room {suffix}");
+        await ConfigureClimate(room.Id, HeatingPolicyIntent.None);
+
+        var embeddedCredential = await _client.PostAsJsonAsync("/api/climate-providers", new CreateClimateProviderRequest($"Unsafe HA {suffix}", ProviderType.HomeAssistant, $"https://user:{secret}@ha.local"));
+        Assert.Equal(HttpStatusCode.BadRequest, embeddedCredential.StatusCode);
+        Assert.DoesNotContain(secret, await embeddedCredential.Content.ReadAsStringAsync());
+
+        var response = await _client.PostAsJsonAsync("/api/climate-providers", new
+        {
+            displayName = $"Secret HA {suffix}",
+            providerType = ProviderType.HomeAssistant,
+            externalInstanceReference = "https://ha.local",
+            diagnosticMetadata = secret
+        });
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var provider = (await response.Content.ReadFromJsonAsync<ClimateProviderDto>())!;
+        Assert.Equal("HOMEASSISTANT__ACCESSTOKEN", provider.CredentialConfigurationKey);
+        Assert.DoesNotContain(secret, await response.Content.ReadAsStringAsync());
+
+        await CreateMapping(room.Id, provider.Id, ClimateSourceRole.ComfortTemperature, $"sensor.secret_{suffix}", 0);
+        var listed = (await _client.GetFromJsonAsync<List<ClimateProviderDto>>("/api/climate-providers?includeArchived=true"))!.Single(item => item.Id == provider.Id);
+        Assert.Equal(1, listed.ActiveMappingCount);
+        Assert.Equal(0, listed.ArchivedMappingCount);
+        Assert.Equal(1, listed.MappedRoomCount);
+
+        var credential = await _client.GetFromJsonAsync<HomeAssistantCredentialStatusDto>("/api/climate-providers/home-assistant/credential-status");
+        Assert.NotNull(credential);
+        Assert.Equal("HOMEASSISTANT__ACCESSTOKEN", credential.ConfigurationKey);
+
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<HomeOpsDbContext>();
+        Assert.Null((await db.ClimateProviders.SingleAsync(item => item.Id == provider.Id)).DiagnosticMetadata);
     }
 
     private async Task<FloorDto> CreateFloor(string name)
@@ -118,7 +165,7 @@ public sealed class ClimateProviderMappingApiTests(HomeOpsWebApplicationFactory 
 
     private async Task<ClimateProviderDto> CreateProvider(string displayName)
     {
-        var response = await _client.PostAsJsonAsync("/api/climate-providers", new CreateClimateProviderRequest(displayName, ProviderType.HomeAssistant));
+        var response = await _client.PostAsJsonAsync("/api/climate-providers", new CreateClimateProviderRequest(displayName, ProviderType.HomeAssistant, "http://ha.local:8123"));
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         return (await response.Content.ReadFromJsonAsync<ClimateProviderDto>())!;
     }

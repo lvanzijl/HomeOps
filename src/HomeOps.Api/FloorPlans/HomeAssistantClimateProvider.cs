@@ -4,6 +4,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using HomeOps.Api.Data;
+using HomeOps.Api.Households;
 using Microsoft.EntityFrameworkCore;
 
 namespace HomeOps.Api.FloorPlans;
@@ -26,6 +27,50 @@ public sealed class HomeAssistantClimateProvider(
         if (!state.Success) return ValidationFailure(state);
         var entity = state.Entity!;
         return ValidateRole(mapping.SourceRole, entity);
+    }
+
+    public async Task<HomeAssistantConnectionTestDto?> TestConnectionAsync(Guid providerId, CancellationToken ct)
+    {
+        var provider = await db.ClimateProviders.AsNoTracking().FirstOrDefaultAsync(
+            item => item.Id == providerId && item.HouseholdId == SeedHousehold.Id && item.ProviderType == ProviderType.HomeAssistant,
+            ct);
+        if (provider is null) return null;
+
+        var checkedUtc = clock.GetUtcNow();
+        var client = Client(provider, out var error);
+        var timeoutSeconds = client is null ? 10 : Math.Max(1, (int)Math.Ceiling(client.Timeout.TotalSeconds));
+        if (provider.IsArchived || !provider.IsEnabled)
+            return ConnectionResult(providerId, HomeAssistantConnectionTestOutcome.ProviderInactive, "Home Assistant is uitgeschakeld of gearchiveerd.", checkedUtc, timeoutSeconds);
+        if (error is not null)
+        {
+            var normalized = error.Value.code switch
+            {
+                "MissingCredential" => (HomeAssistantConnectionTestOutcome.CredentialMissing, "De beheerderssleutel is niet ingesteld."),
+                "InvalidConfiguration" => (HomeAssistantConnectionTestOutcome.InvalidConfiguration, "Het Home Assistant-adres is ongeldig."),
+                _ => (HomeAssistantConnectionTestOutcome.ProviderUnavailable, "Home Assistant kon niet veilig worden bereikt.")
+            };
+            return ConnectionResult(providerId, normalized.Item1, normalized.Item2, checkedUtc, timeoutSeconds);
+        }
+
+        try
+        {
+            using var response = await client!.GetAsync(new Uri(BaseUri(provider), "api/"), ct);
+            _ = await ReadBounded(response, ct);
+            if (response.StatusCode is HttpStatusCode.Unauthorized or HttpStatusCode.Forbidden)
+                return ConnectionResult(providerId, HomeAssistantConnectionTestOutcome.AuthenticationFailure, "Home Assistant heeft de beheerderssleutel geweigerd.", checkedUtc, timeoutSeconds);
+            if (!response.IsSuccessStatusCode)
+                return ConnectionResult(providerId, HomeAssistantConnectionTestOutcome.ProviderUnavailable, "Home Assistant gaf geen beschikbare verbinding terug.", checkedUtc, timeoutSeconds);
+            return ConnectionResult(providerId, HomeAssistantConnectionTestOutcome.Healthy, "De verbinding met Home Assistant is gelukt.", checkedUtc, timeoutSeconds);
+        }
+        catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+        {
+            return ConnectionResult(providerId, HomeAssistantConnectionTestOutcome.TimedOut, $"Home Assistant antwoordde niet binnen {timeoutSeconds} seconden.", checkedUtc, timeoutSeconds);
+        }
+        catch (OperationCanceledException) { throw; }
+        catch
+        {
+            return ConnectionResult(providerId, HomeAssistantConnectionTestOutcome.ProviderUnavailable, "Home Assistant kon niet veilig worden bereikt.", checkedUtc, timeoutSeconds);
+        }
     }
 
     public async Task<HomeAssistantRefreshResult> RefreshProviderAsync(Guid providerId, CancellationToken ct)
@@ -158,12 +203,15 @@ public sealed class HomeAssistantClimateProvider(
     {
         error = null;
         if (!Uri.TryCreate(provider.ExternalInstanceReference, UriKind.Absolute, out var uri) || (uri.Scheme != Uri.UriSchemeHttps && uri.Scheme != Uri.UriSchemeHttp) || !string.IsNullOrEmpty(uri.UserInfo)) { error = ("InvalidConfiguration", "Home Assistant base URL is invalid.", true); return null!; }
-        var token = Environment.GetEnvironmentVariable("HOMEASSISTANT__ACCESSTOKEN") ?? Environment.GetEnvironmentVariable("HomeAssistant__AccessToken");
+        var token = HomeAssistantCredentialResolver.GetAccessToken();
         if (string.IsNullOrWhiteSpace(token)) { error = ("MissingCredential", "Home Assistant access token is not configured.", true); return null!; }
         var client = httpClientFactory.CreateClient("HomeAssistantClimate");
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         return client;
     }
+
+    private static HomeAssistantConnectionTestDto ConnectionResult(Guid providerId, HomeAssistantConnectionTestOutcome outcome, string message, DateTimeOffset checkedUtc, int timeoutSeconds) =>
+        new(providerId, outcome, message, checkedUtc, timeoutSeconds);
 
     private static async Task<string> ReadBounded(HttpResponseMessage res, CancellationToken ct)
     {

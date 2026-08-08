@@ -738,6 +738,41 @@ public sealed class CalendarPortabilityTests
         Assert.Empty(await dbContext.Rooms.ToListAsync());
     }
 
+    [Fact]
+    public async Task ClimateProviderDiagnosticsNeverExportOrRestoreFreeFormSecretMaterial()
+    {
+        const string secret = "raw-home-assistant-token";
+        using var snapshots = UseSnapshotDirectory();
+        await using var dbContext = CreateDbContext("provider-secret-boundary");
+        var provider = new ClimateProvider
+        {
+            Id = Guid.NewGuid(), HouseholdId = SeedHousehold.Id, ProviderType = ProviderType.HomeAssistant,
+            DisplayName = "Home Assistant", ExternalInstanceReference = "https://ha.local", DiagnosticMetadata = secret,
+            IsEnabled = true, CreatedUtc = SeedCalendarEvents.SeededUtc, UpdatedUtc = SeedCalendarEvents.SeededUtc
+        };
+        dbContext.ClimateProviders.Add(provider);
+        await dbContext.SaveChangesAsync();
+
+        var export = await CalendarPortabilityService.ExportAsync(dbContext);
+        var exportedProvider = Assert.Single(export.Calendar.ClimateProviders!, item => item.Id == provider.Id);
+        Assert.Null(exportedProvider.DiagnosticMetadata);
+        Assert.DoesNotContain(secret, System.Text.Json.JsonSerializer.Serialize(export));
+
+        var unsafeRestore = export with
+        {
+            Calendar = export.Calendar with
+            {
+                ClimateProviders = export.Calendar.ClimateProviders!
+                    .Select(item => item.Id == provider.Id ? item with { DiagnosticMetadata = secret } : item)
+                    .ToList()
+            }
+        };
+        var result = await CalendarPortabilityService.RestoreAsync(dbContext, unsafeRestore);
+
+        Assert.True(result.Succeeded);
+        Assert.Null((await dbContext.ClimateProviders.SingleAsync(item => item.Id == provider.Id)).DiagnosticMetadata);
+    }
+
     private static HomeOps.Api.CalendarEvents.EventSource AddFeedSource(HomeOpsDbContext dbContext, string name, bool enabled, DateTimeOffset now)
     {
         var source = new HomeOps.Api.CalendarEvents.EventSource

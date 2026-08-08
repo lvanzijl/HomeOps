@@ -82,6 +82,48 @@ public sealed class HomeAssistantClimateProviderTests
         Assert.Null((await db.ClimateProviders.SingleAsync()).DiagnosticMetadata);
     }
 
+    [Fact]
+    public async Task ConnectionTestUsesBoundedRequestAndReturnsOnlyNormalizedOutcomes()
+    {
+        await using var db = Db();
+        var fixture = Seed(db, ClimateSourceRole.ComfortTemperature, "https://ha.local:8123/root/");
+
+        using (var missing = new EnvToken(null))
+        {
+            var result = await Provider(db, new QueueHandler(_ => throw new InvalidOperationException("must not call"))).TestConnectionAsync(fixture.Provider.Id, default);
+            Assert.NotNull(result);
+            Assert.Equal(HomeAssistantConnectionTestOutcome.CredentialMissing, result.Outcome);
+            Assert.Equal(10, result.TimeoutSeconds);
+            Assert.DoesNotContain("token", result.Message, StringComparison.OrdinalIgnoreCase);
+        }
+
+        using var configured = new EnvToken(Token);
+        var handler = new QueueHandler(
+            _ => Json(HttpStatusCode.OK, "{}"),
+            _ => new HttpResponseMessage(HttpStatusCode.Unauthorized) { Content = new StringContent("raw " + Token) },
+            _ => new HttpResponseMessage(HttpStatusCode.ServiceUnavailable),
+            _ => throw new TaskCanceledException("timeout with " + Token));
+        var provider = Provider(db, handler);
+
+        var outcomes = new[]
+        {
+            HomeAssistantConnectionTestOutcome.Healthy,
+            HomeAssistantConnectionTestOutcome.AuthenticationFailure,
+            HomeAssistantConnectionTestOutcome.ProviderUnavailable,
+            HomeAssistantConnectionTestOutcome.TimedOut
+        };
+        foreach (var expected in outcomes)
+        {
+            var result = await provider.TestConnectionAsync(fixture.Provider.Id, default);
+            Assert.NotNull(result);
+            Assert.Equal(expected, result.Outcome);
+            Assert.DoesNotContain(Token, result.Message);
+            Assert.DoesNotContain("raw", result.Message, StringComparison.OrdinalIgnoreCase);
+        }
+
+        Assert.All(handler.Requests, request => Assert.Equal(new Uri("https://ha.local:8123/api/"), request.RequestUri));
+    }
+
     [Theory]
     [InlineData(ClimateSourceRole.ComfortTemperature, "sensor.temp", "68", "°F", true, "Healthy")]
     [InlineData(ClimateSourceRole.ComfortTemperature, "climate.room", "heat", "°C", true, "Healthy")]

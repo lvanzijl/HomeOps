@@ -11579,7 +11579,8 @@ button {
 .woning-select { width: 100%; text-align: left; display: flex; justify-content: space-between; gap: 0.5rem; background: transparent; color: inherit; padding: 0; }
 .woning-room { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.75rem; align-items: start; }
 .woning-room-regions { display: grid; grid-template-rows: minmax(8rem, 1.2fr) minmax(6rem, .8fr); gap: .65rem; min-height: 0; overflow: hidden; }
-.woning-room-secondary { display: grid; gap: .65rem; min-height: 0; overflow-y: auto; padding-right: .25rem; }
+.woning-room-secondary { display: flex; flex-direction: column; gap: .65rem; min-height: 0; overflow-y: auto; padding-right: .25rem; }
+.woning-room-secondary > * { flex: 0 0 auto; }
 .woning-room h5, .woning-room p { margin: 0 0 0.25rem; }
 .woning-actions { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.6rem; }
 .woning-actions button, .woning-archived button { font-size: 0.82rem; padding: 0.42rem 0.55rem; }
@@ -11742,6 +11743,7 @@ button {
 @media (max-width: 640px) { .heating-dialog-backdrop { align-items: end; padding: .5rem; } .heating-dialog { width: 100%; max-height: 86vh; border-radius: 1.25rem 1.25rem .75rem .75rem; } }
 @media (prefers-reduced-motion: reduce) { .heating-dialog, .heating-dialog-backdrop { animation: none; } }
 .ha-climate { border: 1px solid rgba(14,116,144,.18); border-radius: 1rem; background: rgba(236,254,255,.45); padding: .85rem; display: flex; flex-direction: column; gap: .7rem; min-height: 24rem; }
+.ha-climate > * { flex-shrink: 0; }
 .ha-climate__header { display: flex; align-items: start; justify-content: space-between; gap: 1rem; }
 .ha-climate__header h4, .ha-climate__header p { margin: 0 0 .25rem; }
 .ha-climate__grid { display: grid; grid-template-columns: minmax(16rem,.85fr) minmax(18rem,1.15fr); gap: .75rem; min-height: 18rem; overflow: hidden; }
@@ -11749,13 +11751,33 @@ button {
 .ha-climate__summary dl { display: grid; grid-template-columns: auto 1fr; gap: .3rem .6rem; font-size: .9rem; }
 .ha-climate__summary dt { font-weight: 800; }
 .ha-climate__safe { font-weight: 800; color: #164e63; }
+.ha-credential-status { border-radius: 999px; display: inline-flex; font-size: .78rem; font-weight: 800; padding: .25rem .55rem; }
+.ha-credential-status.is-configured { background: rgba(22,163,74,.12); color: #166534; }
+.ha-credential-status.is-missing { background: rgba(220,38,38,.1); color: #991b1b; }
+.ha-provider-archive { border: 1px solid rgba(15,23,42,.12); border-radius: .9rem; background: rgba(255,255,255,.72); padding: .7rem; display: grid; gap: .55rem; }
+.ha-provider-archive h5, .ha-provider-archive p { margin: 0; }
+.ha-provider-archive article { align-items: start; border-top: 1px solid rgba(15,23,42,.1); display: grid; gap: .65rem; grid-template-columns: minmax(0,1fr) auto; padding-top: .55rem; }
+.ha-provider-dialog { max-height: 100%; width: min(44rem, calc(100% - .4rem)); }
+.ha-provider-form { display: grid; grid-template-rows: minmax(0,1fr) auto; min-height: 0; overflow: hidden; }
+.ha-provider-dialog__body { display: grid; gap: .75rem; min-height: 0; overflow-y: auto; }
+.ha-provider-dialog__body section { border: 1px solid rgba(15,23,42,.12); border-radius: .9rem; padding: .75rem; }
+.ha-provider-dialog__body h4, .ha-provider-dialog__body p { margin: 0 0 .45rem; }
+.ha-provider-guidance > div, .ha-connection-test > div { align-items: center; display: flex; gap: .75rem; justify-content: space-between; }
+.ha-provider-fields { display: grid; gap: .55rem; }
+.ha-provider-impact dl, .ha-provider-confirm dl { display: grid; gap: .35rem .75rem; grid-template-columns: minmax(10rem,1fr) auto; }
+.ha-provider-impact dt, .ha-provider-confirm dt { font-weight: 800; }
+.ha-connection-result { border-radius: .7rem; padding: .55rem; }
+.ha-connection-result.is-healthy { background: rgba(22,163,74,.1); color: #166534; }
+.ha-connection-result.is-failed { background: rgba(220,38,38,.08); color: #991b1b; }
+.ha-provider-dialog__actions { background: #fff; border-top: 1px solid rgba(15,23,42,.12); margin: 0; padding: .75rem 1rem; }
+.ha-provider-dialog__actions .danger, .ha-provider-dialog__actions .danger-secondary { border-color: rgba(185,28,28,.35); color: #991b1b; }
 .ha-room { border-bottom: 1px solid rgba(15,23,42,.1); padding-bottom: .75rem; margin-bottom: .75rem; }
 .ha-room header { display: flex; justify-content: space-between; gap: .75rem; align-items: start; }
 .ha-mapping { border: 1px solid rgba(15,23,42,.12); border-radius: .8rem; margin-top: .5rem; padding: .65rem; display: grid; grid-template-columns: minmax(0,1fr) auto; gap: .75rem; }
 .ha-mapping p { margin: .15rem 0; }
 .ha-refresh { border-radius: .8rem; background: rgba(14,116,144,.09); padding: .6rem; }
 .ha-refresh p, .ha-refresh h6 { margin: .15rem 0; }
-@media (max-width: 880px) { .ha-climate__grid { grid-template-columns: 1fr; overflow: visible; } .ha-climate__header, .ha-room header, .ha-mapping { display: flex; flex-direction: column; } }
+@media (max-width: 880px) { .ha-climate__grid { grid-template-columns: 1fr; overflow: visible; } .ha-climate__header, .ha-room header, .ha-mapping, .ha-provider-archive article { display: flex; flex-direction: column; } }
 .ha-resume { border-radius: .8rem; background: rgba(255,255,255,.62); border: 1px solid rgba(15,23,42,.1); padding: .65rem; display: grid; gap: .5rem; }
 .ha-resume fieldset { border: 1px solid rgba(15,23,42,.14); border-radius: .75rem; display: grid; gap: .3rem; }
 .ha-resume h6, .ha-resume p { margin: .1rem 0; }

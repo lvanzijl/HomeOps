@@ -1,8 +1,12 @@
 namespace HomeOps.Api.FloorPlans;
 
-public sealed record ClimateProviderDto(Guid Id, string DisplayName, ProviderType ProviderType, bool IsEnabled, bool IsArchived, DateTimeOffset? ArchivedUtc, string? ExternalInstanceReference, string? DiagnosticMetadata, DateTimeOffset CreatedUtc, DateTimeOffset UpdatedUtc);
-public sealed record CreateClimateProviderRequest(string DisplayName, ProviderType ProviderType = ProviderType.Other, string? ExternalInstanceReference = null, string? DiagnosticMetadata = null);
-public sealed record UpdateClimateProviderRequest(string DisplayName, bool? IsEnabled = null, string? ExternalInstanceReference = null, string? DiagnosticMetadata = null);
+public sealed record ClimateProviderDto(Guid Id, string DisplayName, ProviderType ProviderType, bool IsEnabled, bool IsArchived, DateTimeOffset? ArchivedUtc, string? ExternalInstanceReference, string? CredentialConfigurationKey, bool IsCredentialConfigured, int ActiveMappingCount, int ArchivedMappingCount, int MappedRoomCount, DateTimeOffset CreatedUtc, DateTimeOffset UpdatedUtc);
+public sealed record CreateClimateProviderRequest(string DisplayName, ProviderType ProviderType = ProviderType.Other, string? ExternalInstanceReference = null);
+public sealed record UpdateClimateProviderRequest(string DisplayName, bool? IsEnabled = null, string? ExternalInstanceReference = null);
+public sealed record ArchiveClimateProviderRequest(bool Confirmed);
+public sealed record HomeAssistantCredentialStatusDto(string ConfigurationKey, bool IsConfigured);
+public enum HomeAssistantConnectionTestOutcome { Healthy, CredentialMissing, AuthenticationFailure, ProviderUnavailable, TimedOut, InvalidConfiguration, ProviderInactive }
+public sealed record HomeAssistantConnectionTestDto(Guid ProviderId, HomeAssistantConnectionTestOutcome Outcome, string Message, DateTimeOffset CheckedUtc, int TimeoutSeconds);
 
 public sealed record ExternalSourceReferenceDto(string ExternalSourceId, string? ExternalDisplayName = null, string? ExternalSourceKind = null, string? ExternalAreaId = null, string? ExternalAreaName = null, string? ExternalDeviceId = null, string? ExternalDeviceName = null);
 public sealed record CreateClimateMappingRequest(Guid ProviderId, ClimateSourceRole SourceRole, ExternalSourceReferenceDto Source, int? Priority = null, bool IsEnabled = true);

@@ -5672,6 +5672,40 @@ export class HomeOpsApiClient {
         return Promise.resolve<ClimateProviderDto>(null as any);
     }
 
+    getHomeAssistantCredentialStatus(): Promise<HomeAssistantCredentialStatusDto> {
+        let url_ = this.baseUrl + "/api/climate-providers/home-assistant/credential-status";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetHomeAssistantCredentialStatus(_response);
+        });
+    }
+
+    protected processGetHomeAssistantCredentialStatus(response: Response): Promise<HomeAssistantCredentialStatusDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = HomeAssistantCredentialStatusDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<HomeAssistantCredentialStatusDto>(null as any);
+    }
+
     getClimateProvider(providerId: string): Promise<ClimateProviderDto> {
         let url_ = this.baseUrl + "/api/climate-providers/{providerId}";
         if (providerId === undefined || providerId === null)
@@ -5803,8 +5837,8 @@ export class HomeOpsApiClient {
         return Promise.resolve<void>(null as any);
     }
 
-    archiveClimateProvider(providerId: string): Promise<void> {
-        let url_ = this.baseUrl + "/api/climate-providers/{providerId}/archive";
+    testHomeAssistantConnection(providerId: string): Promise<HomeAssistantConnectionTestDto> {
+        let url_ = this.baseUrl + "/api/climate-providers/{providerId}/connection-test";
         if (providerId === undefined || providerId === null)
             throw new globalThis.Error("The parameter 'providerId' must be defined.");
         url_ = url_.replace("{providerId}", encodeURIComponent("" + providerId));
@@ -5813,6 +5847,51 @@ export class HomeOpsApiClient {
         let options_: RequestInit = {
             method: "POST",
             headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processTestHomeAssistantConnection(_response);
+        });
+    }
+
+    protected processTestHomeAssistantConnection(response: Response): Promise<HomeAssistantConnectionTestDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = HomeAssistantConnectionTestDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<HomeAssistantConnectionTestDto>(null as any);
+    }
+
+    archiveClimateProvider(providerId: string, req: ArchiveClimateProviderRequest): Promise<void> {
+        let url_ = this.baseUrl + "/api/climate-providers/{providerId}/archive";
+        if (providerId === undefined || providerId === null)
+            throw new globalThis.Error("The parameter 'providerId' must be defined.");
+        url_ = url_.replace("{providerId}", encodeURIComponent("" + providerId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(req);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
             }
         };
 
@@ -5827,6 +5906,10 @@ export class HomeOpsApiClient {
         if (status === 204) {
             return response.text().then((_responseText) => {
             return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
             });
         } else if (status === 404) {
             return response.text().then((_responseText) => {
@@ -16508,7 +16591,11 @@ export class ClimateProviderDto implements IClimateProviderDto {
     isArchived?: boolean;
     archivedUtc?: Date | undefined;
     externalInstanceReference?: string | undefined;
-    diagnosticMetadata?: string | undefined;
+    credentialConfigurationKey?: string | undefined;
+    isCredentialConfigured?: boolean;
+    activeMappingCount?: number;
+    archivedMappingCount?: number;
+    mappedRoomCount?: number;
     createdUtc?: Date;
     updatedUtc?: Date;
 
@@ -16530,7 +16617,11 @@ export class ClimateProviderDto implements IClimateProviderDto {
             this.isArchived = _data["isArchived"];
             this.archivedUtc = _data["archivedUtc"] ? new Date(_data["archivedUtc"].toString()) : undefined as any;
             this.externalInstanceReference = _data["externalInstanceReference"];
-            this.diagnosticMetadata = _data["diagnosticMetadata"];
+            this.credentialConfigurationKey = _data["credentialConfigurationKey"];
+            this.isCredentialConfigured = _data["isCredentialConfigured"];
+            this.activeMappingCount = _data["activeMappingCount"];
+            this.archivedMappingCount = _data["archivedMappingCount"];
+            this.mappedRoomCount = _data["mappedRoomCount"];
             this.createdUtc = _data["createdUtc"] ? new Date(_data["createdUtc"].toString()) : undefined as any;
             this.updatedUtc = _data["updatedUtc"] ? new Date(_data["updatedUtc"].toString()) : undefined as any;
         }
@@ -16552,7 +16643,11 @@ export class ClimateProviderDto implements IClimateProviderDto {
         data["isArchived"] = this.isArchived;
         data["archivedUtc"] = this.archivedUtc ? this.archivedUtc.toISOString() : undefined as any;
         data["externalInstanceReference"] = this.externalInstanceReference;
-        data["diagnosticMetadata"] = this.diagnosticMetadata;
+        data["credentialConfigurationKey"] = this.credentialConfigurationKey;
+        data["isCredentialConfigured"] = this.isCredentialConfigured;
+        data["activeMappingCount"] = this.activeMappingCount;
+        data["archivedMappingCount"] = this.archivedMappingCount;
+        data["mappedRoomCount"] = this.mappedRoomCount;
         data["createdUtc"] = this.createdUtc ? this.createdUtc.toISOString() : undefined as any;
         data["updatedUtc"] = this.updatedUtc ? this.updatedUtc.toISOString() : undefined as any;
         return data;
@@ -16567,7 +16662,11 @@ export interface IClimateProviderDto {
     isArchived?: boolean;
     archivedUtc?: Date | undefined;
     externalInstanceReference?: string | undefined;
-    diagnosticMetadata?: string | undefined;
+    credentialConfigurationKey?: string | undefined;
+    isCredentialConfigured?: boolean;
+    activeMappingCount?: number;
+    archivedMappingCount?: number;
+    mappedRoomCount?: number;
     createdUtc?: Date;
     updatedUtc?: Date;
 }
@@ -16577,11 +16676,50 @@ export enum ProviderType {
     Other = 1,
 }
 
+export class HomeAssistantCredentialStatusDto implements IHomeAssistantCredentialStatusDto {
+    configurationKey?: string;
+    isConfigured?: boolean;
+
+    constructor(data?: IHomeAssistantCredentialStatusDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.configurationKey = _data["configurationKey"];
+            this.isConfigured = _data["isConfigured"];
+        }
+    }
+
+    static fromJS(data: any): HomeAssistantCredentialStatusDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new HomeAssistantCredentialStatusDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["configurationKey"] = this.configurationKey;
+        data["isConfigured"] = this.isConfigured;
+        return data;
+    }
+}
+
+export interface IHomeAssistantCredentialStatusDto {
+    configurationKey?: string;
+    isConfigured?: boolean;
+}
+
 export class CreateClimateProviderRequest implements ICreateClimateProviderRequest {
     displayName?: string;
     providerType?: ProviderType;
     externalInstanceReference?: string | undefined;
-    diagnosticMetadata?: string | undefined;
 
     constructor(data?: ICreateClimateProviderRequest) {
         if (data) {
@@ -16597,7 +16735,6 @@ export class CreateClimateProviderRequest implements ICreateClimateProviderReque
             this.displayName = _data["displayName"];
             this.providerType = _data["providerType"];
             this.externalInstanceReference = _data["externalInstanceReference"];
-            this.diagnosticMetadata = _data["diagnosticMetadata"];
         }
     }
 
@@ -16613,7 +16750,6 @@ export class CreateClimateProviderRequest implements ICreateClimateProviderReque
         data["displayName"] = this.displayName;
         data["providerType"] = this.providerType;
         data["externalInstanceReference"] = this.externalInstanceReference;
-        data["diagnosticMetadata"] = this.diagnosticMetadata;
         return data;
     }
 }
@@ -16622,14 +16758,12 @@ export interface ICreateClimateProviderRequest {
     displayName?: string;
     providerType?: ProviderType;
     externalInstanceReference?: string | undefined;
-    diagnosticMetadata?: string | undefined;
 }
 
 export class UpdateClimateProviderRequest implements IUpdateClimateProviderRequest {
     displayName?: string;
     isEnabled?: boolean | undefined;
     externalInstanceReference?: string | undefined;
-    diagnosticMetadata?: string | undefined;
 
     constructor(data?: IUpdateClimateProviderRequest) {
         if (data) {
@@ -16645,7 +16779,6 @@ export class UpdateClimateProviderRequest implements IUpdateClimateProviderReque
             this.displayName = _data["displayName"];
             this.isEnabled = _data["isEnabled"];
             this.externalInstanceReference = _data["externalInstanceReference"];
-            this.diagnosticMetadata = _data["diagnosticMetadata"];
         }
     }
 
@@ -16661,7 +16794,6 @@ export class UpdateClimateProviderRequest implements IUpdateClimateProviderReque
         data["displayName"] = this.displayName;
         data["isEnabled"] = this.isEnabled;
         data["externalInstanceReference"] = this.externalInstanceReference;
-        data["diagnosticMetadata"] = this.diagnosticMetadata;
         return data;
     }
 }
@@ -16670,7 +16802,104 @@ export interface IUpdateClimateProviderRequest {
     displayName?: string;
     isEnabled?: boolean | undefined;
     externalInstanceReference?: string | undefined;
-    diagnosticMetadata?: string | undefined;
+}
+
+export class HomeAssistantConnectionTestDto implements IHomeAssistantConnectionTestDto {
+    providerId?: string;
+    outcome?: HomeAssistantConnectionTestOutcome;
+    message?: string;
+    checkedUtc?: Date;
+    timeoutSeconds?: number;
+
+    constructor(data?: IHomeAssistantConnectionTestDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.providerId = _data["providerId"];
+            this.outcome = _data["outcome"];
+            this.message = _data["message"];
+            this.checkedUtc = _data["checkedUtc"] ? new Date(_data["checkedUtc"].toString()) : undefined as any;
+            this.timeoutSeconds = _data["timeoutSeconds"];
+        }
+    }
+
+    static fromJS(data: any): HomeAssistantConnectionTestDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new HomeAssistantConnectionTestDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["providerId"] = this.providerId;
+        data["outcome"] = this.outcome;
+        data["message"] = this.message;
+        data["checkedUtc"] = this.checkedUtc ? this.checkedUtc.toISOString() : undefined as any;
+        data["timeoutSeconds"] = this.timeoutSeconds;
+        return data;
+    }
+}
+
+export interface IHomeAssistantConnectionTestDto {
+    providerId?: string;
+    outcome?: HomeAssistantConnectionTestOutcome;
+    message?: string;
+    checkedUtc?: Date;
+    timeoutSeconds?: number;
+}
+
+export enum HomeAssistantConnectionTestOutcome {
+    Healthy = 0,
+    CredentialMissing = 1,
+    AuthenticationFailure = 2,
+    ProviderUnavailable = 3,
+    TimedOut = 4,
+    InvalidConfiguration = 5,
+    ProviderInactive = 6,
+}
+
+export class ArchiveClimateProviderRequest implements IArchiveClimateProviderRequest {
+    confirmed?: boolean;
+
+    constructor(data?: IArchiveClimateProviderRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.confirmed = _data["confirmed"];
+        }
+    }
+
+    static fromJS(data: any): ArchiveClimateProviderRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new ArchiveClimateProviderRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["confirmed"] = this.confirmed;
+        return data;
+    }
+}
+
+export interface IArchiveClimateProviderRequest {
+    confirmed?: boolean;
 }
 
 export class ClimateMappingDto implements IClimateMappingDto {

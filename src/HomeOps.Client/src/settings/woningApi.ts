@@ -1,10 +1,12 @@
 import {
+  ArchiveClimateProviderRequest,
   ClimateSourceRole,
   CreateClimateMappingRequest,
   CreateClimateProviderRequest,
   CreateFloorRequest,
   CreateRoomRequest,
   HomeAssistantResumeStrategyType,
+  HomeAssistantConnectionTestOutcome,
   HomeOpsApiClient,
   ExternalSourceReferenceDto,
   MappingHealth,
@@ -24,6 +26,8 @@ import {
   type FloorDto,
   type HomeAssistantClimateRefreshDiagnosticsDto,
   type HomeAssistantClimateRefreshSummary,
+  type HomeAssistantConnectionTestDto,
+  type HomeAssistantCredentialStatusDto,
   type HomeAssistantResumeStrategyConfigurationDto,
   type RoomClimateConfigurationDto,
   type RoomDto,
@@ -35,6 +39,8 @@ export type ClimateMapping = ClimateMappingDto;
 export type ClimateCapabilitySummary = ClimateCapabilitySummaryDto;
 export type HomeAssistantDiagnostics = HomeAssistantClimateRefreshDiagnosticsDto;
 export type HomeAssistantRefreshSummary = HomeAssistantClimateRefreshSummary;
+export type HomeAssistantConnectionTest = HomeAssistantConnectionTestDto;
+export type HomeAssistantCredentialStatus = HomeAssistantCredentialStatusDto;
 export type HomeAssistantResumeStrategyConfiguration = HomeAssistantResumeStrategyConfigurationDto;
 export type Floor = FloorDto;
 export type Room = RoomDto;
@@ -59,7 +65,7 @@ export const roomTypeOptions = Object.values(RoomType)
   .filter((value): value is RoomType => typeof value === "number")
   .map((value) => ({ value, label: roomTypeLabels[value] }));
 
-export { ClimateSourceRole, HomeAssistantResumeStrategyType, MappingHealth, ProviderType };
+export { ClimateSourceRole, HomeAssistantConnectionTestOutcome, HomeAssistantResumeStrategyType, MappingHealth, ProviderType };
 
 export function createWoningClient() {
   return new HomeOpsApiClient();
@@ -78,6 +84,10 @@ export async function loadClimateProviders() {
   return createWoningClient().getClimateProviders(true);
 }
 
+export async function loadHomeAssistantCredentialStatus() {
+  return createWoningClient().getHomeAssistantCredentialStatus();
+}
+
 export async function saveHomeAssistantProvider(provider: ClimateProvider | null, displayName: string, baseUrl: string, isEnabled: boolean) {
   const trimmedName = displayName.trim();
   const trimmedUrl = baseUrl.trim();
@@ -90,6 +100,18 @@ export async function saveHomeAssistantProvider(provider: ClimateProvider | null
 
 export async function loadRoomClimateMappings(roomId: string) {
   return createWoningClient().getRoomClimateMappings(roomId, true);
+}
+
+export async function testHomeAssistantConnection(providerId: string) {
+  return createWoningClient().testHomeAssistantConnection(providerId);
+}
+
+export async function archiveClimateProvider(providerId: string) {
+  return createWoningClient().archiveClimateProvider(providerId, new ArchiveClimateProviderRequest({ confirmed: true }));
+}
+
+export async function restoreClimateProvider(providerId: string) {
+  return createWoningClient().restoreClimateProvider(providerId);
 }
 
 export async function loadRoomClimateCapabilities(roomId: string) {

@@ -31,7 +31,7 @@ Do not check a phase merely because one of its slices is complete. A phase is co
 | [x] | **Phase 2 — Truthful first run and family persistence** | **Completed** | Slices 2.1–2.6 are complete, including family administration/restore and the persisted setup checklist | Fresh install onboards correctly; family changes survive refresh with honest error handling |
 | [x] | **Phase 3 — Calendar and local-time correctness** | **Completed** | Calendar-field writes, household time zone, source lifecycle, device preferences, and truthful reminder scope are complete | Home and Agenda preserve household-local calendar intent and accurately state that notifications are not delivered |
 | [x] | **Phase 4 — Tasks and Weekly Reset completion** | **Completed 2026-08-08** | Task APIs, routines, and Weekly Reset foundation exist; Slice 4.0 interaction authority is approved | Core task controls are operable and every reset candidate can be resolved and completed |
-| [ ] | **Phase 5 — House, climate, and household settings** | **In progress** | Slices 5.1–5.5 repaired migration/runtime, made Woning reachable, completed climate configuration/mapping, and added safe floor-plan onboarding; provider lifecycle and weather remain | Woning setup-to-runtime chain is reachable, healthy, configurable, and viewport-safe |
+| [ ] | **Phase 5 — House, climate, and household settings** | **In progress** | Slices 5.1–5.6 repaired migration/runtime, made Woning reachable, completed climate configuration/mapping and floor-plan onboarding, and secured provider lifecycle; weather location remains | Woning setup-to-runtime chain is reachable, healthy, configurable, and viewport-safe |
 | [ ] | **Phase 6 — Shopping and Motivation lifecycle completion** | **Not started** | Both domains are PostgreSQL-backed | Common create/edit/archive/restore/correction workflows are complete and cross-device |
 | [ ] | **Phase 7 — Navigation, backup, errors, and consistency** | **Not started** | Individual foundations exist | Cross-cutting behavior is routable, recoverable, consistently worded, and accurately backed up |
 | [ ] | **Phase 8 — Optional product breadth** | **Not started** | Placeholders only | Each optional feature is either deliberately implemented or deliberately removed from product expectations |
@@ -966,7 +966,7 @@ Before changing Tasks layout or action placement, write the repository-required 
 
 ### Slice 5.6 — Provider lifecycle and credential guidance
 
-- [ ] **Status: Not started**
+- [x] **Status: Completed 2026-08-08**
 
 **Audit IDs:** HOUSE-05, HOUSE-06
 
@@ -978,6 +978,8 @@ Before changing Tasks layout or action placement, write the repository-required 
 4. Show the exact environment/secret key expected and whether it is configured, never its value.
 5. If future token entry is required, design encrypted-at-rest secret storage as a separate security-reviewed slice.
 6. Add connection-test timeouts and normalized errors.
+
+**Implementation state:** The API now exposes only the canonical administrator-managed credential key plus configured/missing state, validates provider URLs against embedded credentials, removes diagnostic input from normal provider writes, filters portability diagnostics to enumerated safe markers, and sanitizes legacy free-form values with migration `20260808124113_SanitizeClimateProviderDiagnostics`. A dedicated ten-second connection test returns normalized safe outcomes. Settings → Woning follows the approved bounded-dialog analysis with safe provider fields, dependency counts, named archive confirmation, preserved mappings, compact archived restore rows, and restore-to-`Unverified` behavior. Browser validation revised the secondary Woning overflow owner to a sequential non-shrinking flex column after Chromium exposed pointer interception despite zero document overflow. Focused frontend 13/13, focused backend 58/58, frontend 377/377, backend 646/646, both builds, PostgreSQL 4/4, EF list/drift/idempotent-script checks, twice-identical pinned NSwag 14.7.1 generation, and Playwright 15/15 pass. Independent browser checks confirm the credential boundary, normalized missing-credential result, archive/restore, no errors, and zero document overflow at 1440×900 and 1366×768. See `docs/reports/2026-08-08-provider-lifecycle/` and `docs/roadmap/phase-5.md`.
 
 ### Slice 5.7 — Household weather location
 
@@ -999,7 +1001,7 @@ Before changing Tasks layout or action placement, write the repository-required 
 - [x] House runtime is reachable through an approved viewport-safe composition.
 - [x] Climate configuration and mapping lifecycle work end to end.
 - [x] A normal user can upload the first floor plan.
-- [ ] Provider credentials remain secret and lifecycle is manageable.
+- [x] Provider credentials remain secret and lifecycle is manageable.
 - [ ] Weather location is household-configurable.
 
 ## Phase 6 — Shopping and Motivation lifecycle completion
@@ -1301,7 +1303,7 @@ Every audit finding must appear exactly once as the primary responsibility of a 
 | MOT-03 | 6.4 Family-goal lifecycle | [ ] Not started |
 | HOUSE-02 | 5.5 Floor-plan upload | [x] Completed |
 | HOUSE-04 | 5.1 Migration/provider repair | [ ] Not started |
-| HOUSE-05 | 5.6 Provider lifecycle | [ ] Not started |
+| HOUSE-05 | 5.6 Provider lifecycle | [x] Completed |
 | SETTINGS-01 | 7.4 Backup | [ ] Not started |
 | TIME-02 | 3.3 Action-time clock | [x] Completed |
 | ONB-03 | 2.6 Setup checklist | [x] Completed |
@@ -1316,7 +1318,7 @@ Every audit finding must appear exactly once as the primary responsibility of a 
 | SETTINGS-02 | 3.4 Time-zone setting | [x] Completed |
 | SETTINGS-03 | 7.5 Settings placeholder | [ ] Not started |
 | SETTINGS-04 | 2.5 Family administration | [x] Completed |
-| HOUSE-06 | 5.6 Credential guidance | [ ] Not started |
+| HOUSE-06 | 5.6 Credential guidance | [x] Completed |
 | RESET-02 | 4.5 Persisted reset decisions | [x] Completed |
 | RESET-03 | 4.5 Reset completion/history | [x] Completed |
 | MOT-04 | 6.3 Progress ledger | [ ] Not started |

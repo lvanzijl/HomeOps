@@ -11,7 +11,7 @@ Phase 5 completes the Woning setup-to-runtime chain: reliable schema upgrades, r
 | 5.3 Room climate configuration UI | Completed 2026-08-08 | Added generated-contract room policy editing, strict range validation, durable save states, lifecycle guidance, and bounded browser-safe composition. |
 | 5.4 Provider/source mapping management | Completed 2026-08-08 | Added the bounded room/role mapping workspace with safe source editing, priority and enablement controls, health, archive/restore, and dependency validation. |
 | 5.5 Floor-plan upload and replacement entry | Completed 2026-08-08 | Added safe multipart upload, derivative preview, explicit first activation, and dedicated bounded replacement-review entry. |
-| 5.6 Provider credential and lifecycle management | Not started | Make provider configuration and lifecycle safe, explicit, and operationally honest. |
+| 5.6 Provider credential and lifecycle management | Completed 2026-08-08 | Added a server-owned credential-status boundary, normalized connection tests, explicit provider archive/restore with dependency impact, and a bounded management dialog that never accepts or reveals the secret. |
 | 5.7 Household weather location | Not started | Make weather location household-configurable with visible refresh health. |
 
 ## Slice 5.1 implementation boundary
@@ -62,6 +62,18 @@ Browser validation revised the approved composition after proving that the full 
 
 Validation: focused frontend 20/20 and floor-plan backend 8/8; full frontend 374/374; full backend 643/643; both builds; PostgreSQL migration baseline 4/4; EF list/model-drift/idempotent-script checks; two hash-identical pinned NSwag 14.7.1 generations with no generated diff; and PostgreSQL-backed Playwright 14/14. Independent browser checks confirmed the active/replace/resume flow, operable cancellation, no error logs, and zero document overflow at 1280×720; automated checks cover 1440×900 and 1366×768. See `docs/reports/2026-08-08-floor-plan-upload-entry/`.
 
+## Slice 5.6 implementation boundary
+
+Settings → Woning now keeps provider credentials outside FamilyBoard. The backend exposes only the canonical administrator key `HOMEASSISTANT__ACCESSTOKEN` and a configured/missing boolean; create and update contracts contain no diagnostic or secret field, provider URLs reject embedded credentials, and portability accepts only enumerated safe refresh markers. A data-only migration removes legacy free-form provider diagnostics that could cross the new boundary.
+
+The Home Assistant adapter uses one credential resolver and a dedicated ten-second connection test with normalized healthy, missing-credential, authentication, unavailable, timeout, invalid-configuration, and inactive outcomes. Responses never contain tokens, response bodies, exception text, or provider-authored diagnostics.
+
+The approved bounded management dialog shows credential status and guidance, safe provider fields, connection proof, and room/mapping dependency counts. Archive requires a named confirmation, disables runtime use while preserving mappings, and leaves archived providers reachable as compact restore rows. Restore returns mappings to `Unverified` without forging a successful connection and directs the user to test and refresh them.
+
+PostgreSQL-backed Chromium exposed an archived-row pointer-interception defect even though document overflow was zero. The approved viewport analysis was revised so the existing secondary Woning overflow owner is a sequential non-shrinking flex column. Final automated and independent browser checks prove that restore remains operable and the provider dialog fits without document overflow at 1440×900 and 1366×768.
+
+Validation: focused frontend 13/13 and focused backend 58/58; full frontend 377/377; full backend 646/646; solution and frontend production builds; PostgreSQL migration baseline 4/4; EF list/model-drift/idempotent-script checks; two hash-identical pinned NSwag 14.7.1 generations; and PostgreSQL-backed Playwright 15/15. Independent in-app browser checks confirmed the credential boundary, normalized missing-credential result, archive/restore mapping preservation, no browser errors, and zero document overflow at both target viewports. See `docs/reports/2026-08-08-provider-lifecycle/`.
+
 ## Fixed boundaries
 
 - Work remains one numeric slice and one commit per run.
@@ -70,8 +82,8 @@ Validation: focused frontend 20/20 and floor-plan backend 8/8; full frontend 374
 - Slice 5.3 edits room policy only; provider/source mapping, credentials, floor-plan ingestion, runtime control, and weather remain deferred.
 - Slice 5.4 manages typed climate source mappings only; provider credentials/lifecycle, floor-plan upload, runtime control expansion, and weather remain deferred.
 - Slice 5.5 reuses floor-plan ingestion, activation, boundary editing, and replacement review; provider credentials/lifecycle, runtime control expansion, and weather remain deferred.
+- Slice 5.6 manages provider credentials and lifecycle only; it does not add browser token entry, encrypted secret persistence, discovery, arbitrary Home Assistant execution, runtime control expansion, or weather configuration.
 - Further primary-page layout work still requires its own approved viewport analysis.
-- Provider credentials and lifecycle remain Slice 5.6.
 - Weather location remains Slice 5.7.
 
 ## Phase exit criteria
@@ -80,5 +92,5 @@ Validation: focused frontend 20/20 and floor-plan backend 8/8; full frontend 374
 - [x] House runtime is reachable through an approved viewport-safe composition.
 - [x] Climate configuration and mapping lifecycle work end to end.
 - [x] A normal user can upload the first floor plan.
-- [ ] Provider credentials remain secret and lifecycle is manageable.
+- [x] Provider credentials remain secret and lifecycle is manageable.
 - [ ] Weather location is household-configurable.

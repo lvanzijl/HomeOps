@@ -5179,6 +5179,26 @@
         }
       }
     },
+    "/api/climate-providers/home-assistant/credential-status": {
+      "get": {
+        "tags": [
+          "Climate Providers"
+        ],
+        "operationId": "GetHomeAssistantCredentialStatus",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HomeAssistantCredentialStatusDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/climate-providers/{providerId}": {
       "get": {
         "tags": [
@@ -5291,6 +5311,41 @@
         }
       }
     },
+    "/api/climate-providers/{providerId}/connection-test": {
+      "post": {
+        "tags": [
+          "Climate Providers"
+        ],
+        "operationId": "TestHomeAssistantConnection",
+        "parameters": [
+          {
+            "name": "providerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HomeAssistantConnectionTestDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
     "/api/climate-providers/{providerId}/archive": {
       "post": {
         "tags": [
@@ -5309,8 +5364,23 @@
             "x-position": 1
           }
         ],
+        "requestBody": {
+          "x-name": "req",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ArchiveClimateProviderRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
         "responses": {
           "204": {
+            "description": ""
+          },
+          "400": {
             "description": ""
           },
           "404": {
@@ -12017,9 +12087,24 @@
             "type": "string",
             "nullable": true
           },
-          "diagnosticMetadata": {
+          "credentialConfigurationKey": {
             "type": "string",
             "nullable": true
+          },
+          "isCredentialConfigured": {
+            "type": "boolean"
+          },
+          "activeMappingCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "archivedMappingCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "mappedRoomCount": {
+            "type": "integer",
+            "format": "int32"
           },
           "createdUtc": {
             "type": "string",
@@ -12043,6 +12128,18 @@
           1
         ]
       },
+      "HomeAssistantCredentialStatusDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "configurationKey": {
+            "type": "string"
+          },
+          "isConfigured": {
+            "type": "boolean"
+          }
+        }
+      },
       "CreateClimateProviderRequest": {
         "type": "object",
         "additionalProperties": false,
@@ -12054,10 +12151,6 @@
             "$ref": "#/components/schemas/ProviderType"
           },
           "externalInstanceReference": {
-            "type": "string",
-            "nullable": true
-          },
-          "diagnosticMetadata": {
             "type": "string",
             "nullable": true
           }
@@ -12077,10 +12170,61 @@
           "externalInstanceReference": {
             "type": "string",
             "nullable": true
-          },
-          "diagnosticMetadata": {
+          }
+        }
+      },
+      "HomeAssistantConnectionTestDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "providerId": {
             "type": "string",
-            "nullable": true
+            "format": "guid"
+          },
+          "outcome": {
+            "$ref": "#/components/schemas/HomeAssistantConnectionTestOutcome"
+          },
+          "message": {
+            "type": "string"
+          },
+          "checkedUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "timeoutSeconds": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "HomeAssistantConnectionTestOutcome": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "Healthy",
+          "CredentialMissing",
+          "AuthenticationFailure",
+          "ProviderUnavailable",
+          "TimedOut",
+          "InvalidConfiguration",
+          "ProviderInactive"
+        ],
+        "enum": [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ]
+      },
+      "ArchiveClimateProviderRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "confirmed": {
+            "type": "boolean"
           }
         }
       },
