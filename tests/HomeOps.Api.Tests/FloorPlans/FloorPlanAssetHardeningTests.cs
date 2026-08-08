@@ -44,6 +44,18 @@ public sealed class FloorPlanAssetHardeningTests(HomeOpsWebApplicationFactory fa
     }
 
     [Fact]
+    public async Task UploadValidationRejectsEmptyAndOverConfiguredByteLimit()
+    {
+        var service = Service(new FloorPlanAssetOptions { MaxUploadBytes = 8 });
+        var empty = new FormFile(new MemoryStream([]), 0, 0, "file", "empty.svg");
+        var oversizedBytes = Encoding.UTF8.GetBytes("123456789");
+        var oversized = new FormFile(new MemoryStream(oversizedBytes), 0, oversizedBytes.Length, "file", "large.svg");
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.ValidateAsync(empty, CancellationToken.None));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.ValidateAsync(oversized, CancellationToken.None));
+    }
+
+    [Fact]
     public async Task UploadWriteFailureDoesNotPersistUsableMetadata()
     {
         var floor = await CreateFloor("Write failure floor");

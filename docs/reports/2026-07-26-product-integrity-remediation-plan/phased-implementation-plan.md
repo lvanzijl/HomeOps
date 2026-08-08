@@ -31,7 +31,7 @@ Do not check a phase merely because one of its slices is complete. A phase is co
 | [x] | **Phase 2 — Truthful first run and family persistence** | **Completed** | Slices 2.1–2.6 are complete, including family administration/restore and the persisted setup checklist | Fresh install onboards correctly; family changes survive refresh with honest error handling |
 | [x] | **Phase 3 — Calendar and local-time correctness** | **Completed** | Calendar-field writes, household time zone, source lifecycle, device preferences, and truthful reminder scope are complete | Home and Agenda preserve household-local calendar intent and accurately state that notifications are not delivered |
 | [x] | **Phase 4 — Tasks and Weekly Reset completion** | **Completed 2026-08-08** | Task APIs, routines, and Weekly Reset foundation exist; Slice 4.0 interaction authority is approved | Core task controls are operable and every reset candidate can be resolved and completed |
-| [ ] | **Phase 5 — House, climate, and household settings** | **In progress** | Slices 5.1–5.4 repaired the migration/provider runtime, made Woning reachable, and completed room climate policy plus source mapping; onboarding and household-setting slices remain | Woning setup-to-runtime chain is reachable, healthy, configurable, and viewport-safe |
+| [ ] | **Phase 5 — House, climate, and household settings** | **In progress** | Slices 5.1–5.5 repaired migration/runtime, made Woning reachable, completed climate configuration/mapping, and added safe floor-plan onboarding; provider lifecycle and weather remain | Woning setup-to-runtime chain is reachable, healthy, configurable, and viewport-safe |
 | [ ] | **Phase 6 — Shopping and Motivation lifecycle completion** | **Not started** | Both domains are PostgreSQL-backed | Common create/edit/archive/restore/correction workflows are complete and cross-device |
 | [ ] | **Phase 7 — Navigation, backup, errors, and consistency** | **Not started** | Individual foundations exist | Cross-cutting behavior is routable, recoverable, consistently worded, and accurately backed up |
 | [ ] | **Phase 8 — Optional product breadth** | **Not started** | Placeholders only | Each optional feature is either deliberately implemented or deliberately removed from product expectations |
@@ -949,7 +949,7 @@ Before changing Tasks layout or action placement, write the repository-required 
 
 ### Slice 5.5 — Floor-plan upload and replacement entry
 
-- [ ] **Status: Not started**
+- [x] **Status: Completed 2026-08-08**
 
 **Audit ID:** HOUSE-02
 
@@ -961,6 +961,8 @@ Before changing Tasks layout or action placement, write the repository-required 
 4. Connect replacement uploads to the existing replacement-review UI.
 5. Keep phone limitations explicit.
 6. Test invalid media, oversize/truncated data, sanitized SVG, first activation, replacement, cancellation, and retry.
+
+**Implementation state:** Settings → Woning now uses the existing multipart floor-plan ingestion endpoint for a bounded upload workflow with immediate filename/10 MiB guidance, retained errors, upload progress, sanitized derivative preview, and server validation metadata. First plans require explicit activation and offer boundary editing; replacements remain inactive and enter the existing review lifecycle. Browser validation revised the approved composition after the full review workspace proved inoperable inside the secondary scroll region: only a compact resume card remains inline, while active review opens as a dedicated bounded Woning sub-workspace. Focused frontend 20/20, focused floor-plan backend 8/8, frontend 374/374, backend 643/643, both builds, PostgreSQL 4/4, EF list/drift/idempotent-script checks, twice-identical pinned NSwag 14.7.1 generation, and Playwright 14/14 pass. Independent browser checks confirm active/replace/resume behavior, clickable cancellation, no error logs, and zero document overflow at 1280×720. See `docs/reports/2026-08-08-floor-plan-upload-entry/` and `docs/roadmap/phase-5.md`.
 
 ### Slice 5.6 — Provider lifecycle and credential guidance
 
@@ -996,7 +998,7 @@ Before changing Tasks layout or action placement, write the repository-required 
 - [x] Provider endpoint and DB upgrades are healthy.
 - [x] House runtime is reachable through an approved viewport-safe composition.
 - [x] Climate configuration and mapping lifecycle work end to end.
-- [ ] A normal user can upload the first floor plan.
+- [x] A normal user can upload the first floor plan.
 - [ ] Provider credentials remain secret and lifecycle is manageable.
 - [ ] Weather location is household-configurable.
 
@@ -1297,7 +1299,7 @@ Every audit finding must appear exactly once as the primary responsibility of a 
 | MOT-01 | 6.3 Goal progress semantics | [ ] Not started |
 | MOT-02 | 6.4 Helpful-moment lifecycle | [ ] Not started |
 | MOT-03 | 6.4 Family-goal lifecycle | [ ] Not started |
-| HOUSE-02 | 5.5 Floor-plan upload | [ ] Not started |
+| HOUSE-02 | 5.5 Floor-plan upload | [x] Completed |
 | HOUSE-04 | 5.1 Migration/provider repair | [ ] Not started |
 | HOUSE-05 | 5.6 Provider lifecycle | [ ] Not started |
 | SETTINGS-01 | 7.4 Backup | [ ] Not started |

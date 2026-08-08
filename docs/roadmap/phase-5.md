@@ -10,7 +10,7 @@ Phase 5 completes the Woning setup-to-runtime chain: reliable schema upgrades, r
 | 5.2 House navigation and viewport analysis | Completed 2026-08-08 | Promoted Woning to primary navigation, added stable shared routes, and made every runtime availability state explicit within the approved viewport-safe composition. |
 | 5.3 Room climate configuration UI | Completed 2026-08-08 | Added generated-contract room policy editing, strict range validation, durable save states, lifecycle guidance, and bounded browser-safe composition. |
 | 5.4 Provider/source mapping management | Completed 2026-08-08 | Added the bounded room/role mapping workspace with safe source editing, priority and enablement controls, health, archive/restore, and dependency validation. |
-| 5.5 Floor-plan upload and replacement entry | Not started | Let a normal user establish and replace the first floor plan. |
+| 5.5 Floor-plan upload and replacement entry | Completed 2026-08-08 | Added safe multipart upload, derivative preview, explicit first activation, and dedicated bounded replacement-review entry. |
 | 5.6 Provider credential and lifecycle management | Not started | Make provider configuration and lifecycle safe, explicit, and operationally honest. |
 | 5.7 Household weather location | Not started | Make weather location household-configurable with visible refresh health. |
 
@@ -52,6 +52,16 @@ The approved viewport analysis was revised after isolated Chromium exposed a vis
 
 Validation: focused frontend 8/8 and mapping backend 7/7; full frontend 370/370 with the established 20-second timeout budget; full backend 642/642; solution and frontend production builds; PostgreSQL migration baseline 4/4; EF list/model-drift/idempotent-script checks; two hash-identical pinned NSwag 14.7.1 generations; and PostgreSQL-backed Playwright 13/13. Independent in-app browser checks covered create, edit/disable, archive-state presentation, restore-to-review, safe fields, both target viewports, and zero console errors. See `docs/reports/2026-08-08-climate-mapping-management/`.
 
+## Slice 5.5 implementation boundary
+
+Settings → Woning now exposes a compact selected-floor upload/replace action backed by the existing multipart asset-ingestion endpoint. The bounded dialog performs immediate filename/size checks, retains recoverable failures, and shows the server-produced safe derivative plus normalized filename, media type, dimensions, and validation summary before any activation. The server remains authoritative for real media detection, the 10 MiB limit, truncation, raster dimensions, SVG sanitization, and atomic storage.
+
+First uploads require explicit activation and then offer the existing room-boundary editor. Uploading over an active plan cannot activate directly; it starts the existing replacement-review lifecycle. Phone copy allows file upload but recommends a larger screen for boundary review/drawing.
+
+Browser validation revised the approved composition after proving that the full replacement workspace was not operable inside the secondary scroll region. That region now keeps only a compact review/resume card. Active review replaces the normal Woning management composition with its own bounded sub-workspace and named return action, matching the existing boundary-editor strategy without document scrolling.
+
+Validation: focused frontend 20/20 and floor-plan backend 8/8; full frontend 374/374; full backend 643/643; both builds; PostgreSQL migration baseline 4/4; EF list/model-drift/idempotent-script checks; two hash-identical pinned NSwag 14.7.1 generations with no generated diff; and PostgreSQL-backed Playwright 14/14. Independent browser checks confirmed the active/replace/resume flow, operable cancellation, no error logs, and zero document overflow at 1280×720; automated checks cover 1440×900 and 1366×768. See `docs/reports/2026-08-08-floor-plan-upload-entry/`.
+
 ## Fixed boundaries
 
 - Work remains one numeric slice and one commit per run.
@@ -59,6 +69,7 @@ Validation: focused frontend 8/8 and mapping backend 7/7; full frontend 370/370 
 - Slice 5.2 changes reachability, shared routing, and runtime state presentation only; configuration and provider-management workflows remain deferred.
 - Slice 5.3 edits room policy only; provider/source mapping, credentials, floor-plan ingestion, runtime control, and weather remain deferred.
 - Slice 5.4 manages typed climate source mappings only; provider credentials/lifecycle, floor-plan upload, runtime control expansion, and weather remain deferred.
+- Slice 5.5 reuses floor-plan ingestion, activation, boundary editing, and replacement review; provider credentials/lifecycle, runtime control expansion, and weather remain deferred.
 - Further primary-page layout work still requires its own approved viewport analysis.
 - Provider credentials and lifecycle remain Slice 5.6.
 - Weather location remains Slice 5.7.
@@ -68,6 +79,6 @@ Validation: focused frontend 8/8 and mapping backend 7/7; full frontend 370/370 
 - [x] Provider endpoint and DB upgrades are healthy.
 - [x] House runtime is reachable through an approved viewport-safe composition.
 - [x] Climate configuration and mapping lifecycle work end to end.
-- [ ] A normal user can upload the first floor plan.
+- [x] A normal user can upload the first floor plan.
 - [ ] Provider credentials remain secret and lifecycle is manageable.
 - [ ] Weather location is household-configurable.

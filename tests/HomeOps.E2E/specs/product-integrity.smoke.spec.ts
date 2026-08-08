@@ -588,6 +588,69 @@ test("climate mappings create, edit, archive, and restore in the bounded workspa
   await expectNoDocumentScroll(page, "Restored climate mapping at 1366x768");
 });
 
+test("floor-plan upload activates the first plan and enters cancellable replacement review", async ({ page, request }) => {
+  await resetFixture(request, "visual-full");
+  const floorName = `E2E upload ${Date.now()}`;
+  const floorResponse = await request.post("/api/floors", { data: { name: floorName } });
+  expect(floorResponse.ok(), await floorResponse.text()).toBe(true);
+  const floor = await floorResponse.json() as { id: string };
+  await page.setViewportSize({ width: 1366, height: 768 });
+  await page.goto("/");
+
+  await page.getByRole("button", { name: "Instellingen voor gezinsinstellingen" }).click();
+  await page.locator(".settings-action-rail").getByRole("button", { name: "Woning", exact: true }).click();
+  const woning = page.getByRole("dialog", { name: "Woning", exact: true });
+  await woning.getByRole("button", { name: new RegExp(floorName) }).click();
+  await woning.getByRole("button", { name: "Plattegrond uploaden" }).click();
+  let upload = page.getByRole("dialog", { name: `Plattegrond uploaden voor ${floorName}` });
+  await expect(upload).toBeVisible();
+  await expectNoDocumentScroll(page, "Floor-plan upload entry at 1366x768");
+
+  await upload.getByLabel("Plattegrondbestand").setInputFiles({ name: "geen-afbeelding.txt", mimeType: "text/plain", buffer: Buffer.from("geen afbeelding") });
+  await expect(upload.getByRole("alert")).toContainText("SVG-, PNG-, JPG- of JPEG-bestand");
+  await expect(upload.getByRole("button", { name: "Uploaden en controleren" })).toBeDisabled();
+
+  const firstSvg = "<svg viewBox='0 0 120 80' xmlns='http://www.w3.org/2000/svg' onload='bad()'><script>bad()</script><rect width='120' height='80'/></svg>";
+  await upload.getByLabel("Plattegrondbestand").setInputFiles({ name: "eerste.svg", mimeType: "image/svg+xml", buffer: Buffer.from(firstSvg) });
+  const firstUploadResponse = page.waitForResponse((response) => response.request().method() === "POST" && new URL(response.url()).pathname === `/api/floors/${floor.id}/floor-plan-assets`);
+  await upload.getByRole("button", { name: "Uploaden en controleren" }).click();
+  expect((await firstUploadResponse).ok()).toBe(true);
+  await expect(upload.getByAltText("Voorbeeld van eerste.svg")).toBeVisible();
+  await expect(upload.getByRole("heading", { name: "Veilige afgeleide afbeelding" })).toBeVisible();
+  await expectNoDocumentScroll(page, "Floor-plan derivative preview at 1366x768");
+
+  const activateResponse = page.waitForResponse((response) => response.request().method() === "POST" && new URL(response.url()).pathname.endsWith("/activate"));
+  await upload.getByRole("button", { name: "Plattegrond activeren" }).click();
+  expect((await activateResponse).ok()).toBe(true);
+  await expect(upload.getByText(/De eerste plattegrond is actief/)).toBeVisible();
+  await upload.getByRole("button", { name: "Later afronden" }).click();
+  await expect(woning.getByText(/eerste.svg is actief/)).toBeVisible();
+
+  await woning.getByRole("button", { name: "Nieuwe plattegrond uploaden" }).click();
+  upload = page.getByRole("dialog", { name: `Plattegrond uploaden voor ${floorName}` });
+  const replacementSvg = "<svg viewBox='0 0 120 80' xmlns='http://www.w3.org/2000/svg'><rect width='120' height='80'/></svg>";
+  await upload.getByLabel("Plattegrondbestand").setInputFiles({ name: "vervanging.svg", mimeType: "image/svg+xml", buffer: Buffer.from(replacementSvg) });
+  await upload.getByRole("button", { name: "Uploaden en controleren" }).click();
+  await expect(upload.getByAltText("Voorbeeld van vervanging.svg")).toBeVisible();
+  const startResponse = page.waitForResponse((response) => response.request().method() === "POST" && new URL(response.url()).pathname === `/api/floors/${floor.id}/floor-plan-replacement-reviews`);
+  await upload.getByRole("button", { name: "Verder naar vervangingscontrole" }).click();
+  expect((await startResponse).ok()).toBe(true);
+  await expect(woning.getByText(`Plattegrond vervangen · ${floorName}`)).toBeVisible();
+  await expectNoDocumentScroll(page, "Floor-plan replacement review at 1366x768");
+
+  await woning.getByRole("button", { name: "Beoordeling annuleren" }).click();
+  const cancelDialog = page.getByRole("dialog", { name: "Beoordeling annuleren" });
+  const cancelResponse = page.waitForResponse((response) => response.request().method() === "POST" && new URL(response.url()).pathname.endsWith("/cancel"));
+  await cancelDialog.getByRole("button", { name: "Annuleren" }).last().click();
+  expect((await cancelResponse).ok()).toBe(true);
+  await woning.getByRole("button", { name: "Nieuwe plattegrond beoordelen" }).click();
+  const retryDialog = page.getByRole("dialog", { name: "Beoordeling starten" });
+  const retryResponse = page.waitForResponse((response) => response.request().method() === "POST" && new URL(response.url()).pathname === `/api/floors/${floor.id}/floor-plan-replacement-reviews`);
+  await retryDialog.getByRole("button", { name: "Beoordeling starten" }).click();
+  expect((await retryResponse).ok()).toBe(true);
+  await expect(woning.getByText("Wordt beoordeeld")).toBeVisible();
+});
+
 test("primary pages do not create document-level vertical scrolling", async ({ page, request }) => {
   await resetFixture(request, "visual-full");
   await seedWoningRuntime(request);
@@ -649,6 +712,11 @@ test("primary pages do not create document-level vertical scrolling", async ({ p
     await expect(climateDialog).toBeVisible();
     await expectNoDocumentScroll(page, `Klimaatinstellingen at ${viewport.width}x${viewport.height}`);
     await climateDialog.getByRole("button", { name: "Sluiten" }).first().click();
+    await woningDialog.getByRole("button", { name: "Plattegrond uploaden" }).click();
+    const uploadDialog = page.getByRole("dialog", { name: /Plattegrond uploaden voor/ });
+    await expect(uploadDialog).toBeVisible();
+    await expectNoDocumentScroll(page, `Plattegrondupload at ${viewport.width}x${viewport.height}`);
+    await uploadDialog.getByRole("button", { name: "Sluiten" }).click();
     await woningDialog.getByRole("button", { name: "Sluiten" }).click();
 
     await page.getByLabel("Dagelijkse gezinsplekken").getByRole("button", { name: "Thuis", exact: true }).click();
