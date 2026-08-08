@@ -20,12 +20,15 @@ import {
   completeTask,
   createTask,
   createTaskTemplate,
+  deleteArchivedTask,
   deleteRecurringTaskSeries,
   keepTaskActive,
+  loadArchivedTasks,
   loadTaskTemplates,
   loadTasks,
   moveTaskToSomeday,
   reopenTask,
+  restoreArchivedTask,
   updateTask as saveTask,
   updateTaskTemplate,
 } from "./tasksApi";
@@ -52,6 +55,7 @@ type TasksPanelState =
   | { kind: "completed" }
   | { kind: "someday" }
   | { kind: "templates" }
+  | { kind: "archive" }
   | { kind: "weeklyReview" };
 
 const defaultVisibleTodayTasks = 6;
@@ -67,6 +71,7 @@ export function TasksPage({
   const todayDate = visualReviewNow ?? new Date();
   const todayIso = toDateInputValue(todayDate);
   const [tasks, setTasks] = useState<readonly HouseholdTask[]>([]);
+  const [archivedTasks, setArchivedTasks] = useState<readonly HouseholdTask[]>([]);
   const [templates, setTemplates] = useState<readonly TaskTemplate[]>([]);
   const [title, setTitle] = useState("");
   const [dueDate, setDueDate] = useState("");
@@ -81,6 +86,9 @@ export function TasksPage({
   const [taskDialogQuestion, setTaskDialogQuestion] =
     useState<TaskDialogQuestion>("title");
   const [activePanel, setActivePanel] = useState<TasksPanelState | null>(null);
+  const [deleteCandidate, setDeleteCandidate] = useState<HouseholdTask | null>(null);
+  const [pendingLifecycleTaskId, setPendingLifecycleTaskId] = useState<string | null>(null);
+  const [taskLifecycleError, setTaskLifecycleError] = useState<string | null>(null);
   const [templateName, setTemplateName] = useState("");
   const [templateDescription, setTemplateDescription] = useState("");
   const [editingTemplate, setEditingTemplate] = useState<TaskTemplate | null>(
@@ -263,9 +271,14 @@ export function TasksPage({
   }, [familyMemberId, members, ownership]);
 
   useEffect(() => {
-    if (!isTaskFormOpen && !editingTask && !activePanel) return;
+    if (!isTaskFormOpen && !editingTask && !activePanel && !deleteCandidate) return;
     const close = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
+        if (deleteCandidate) {
+          setDeleteCandidate(null);
+          setTaskLifecycleError(null);
+          return;
+        }
         if (isTaskFormOpen || editingTask) {
           resetTaskForm();
           return;
@@ -276,7 +289,7 @@ export function TasksPage({
     };
     window.addEventListener("keydown", close);
     return () => window.removeEventListener("keydown", close);
-  }, [activePanel, editingTask, isTaskFormOpen]);
+  }, [activePanel, deleteCandidate, editingTask, isTaskFormOpen]);
 
   function resetTaskForm() {
     setTitle("");
@@ -305,9 +318,18 @@ export function TasksPage({
     let ignore = false;
     async function run() {
       try {
-        setTasks(await loadTasks());
-        setTemplates(await loadTaskTemplates());
-        setKnownPeople(await listKnownPeople());
+        const [loadedTasks, loadedArchivedTasks, loadedTemplates, loadedKnownPeople] = await Promise.all([
+          loadTasks(),
+          loadArchivedTasks(),
+          loadTaskTemplates(),
+          listKnownPeople(),
+        ]);
+        if (!ignore) {
+          setTasks(loadedTasks);
+          setArchivedTasks(loadedArchivedTasks);
+          setTemplates(loadedTemplates);
+          setKnownPeople(loadedKnownPeople);
+        }
       } catch {
         if (!ignore) setError("Taken konden niet worden geladen.");
       } finally {
@@ -451,8 +473,53 @@ export function TasksPage({
       if (action === "archive") await archiveTask(taskId);
       if (action === "complete") await completeTask(taskId);
       setTasks(await loadTasks());
+      if (action === "archive") setArchivedTasks(await loadArchivedTasks());
     } catch {
       setError("Weekcheck kon niet worden opgeslagen.");
+    }
+  }
+
+  async function archiveNormalTask(taskId: string) {
+    setPendingLifecycleTaskId(taskId);
+    setTaskLifecycleError(null);
+    try {
+      await archiveTask(taskId);
+      const [active, archived] = await Promise.all([loadTasks(), loadArchivedTasks()]);
+      setTasks(active);
+      setArchivedTasks(archived);
+    } catch {
+      setError("Taak kon niet worden gearchiveerd.");
+    } finally {
+      setPendingLifecycleTaskId(null);
+    }
+  }
+
+  async function restoreNormalTask(taskId: string) {
+    setPendingLifecycleTaskId(taskId);
+    setTaskLifecycleError(null);
+    try {
+      await restoreArchivedTask(taskId);
+      const [active, archived] = await Promise.all([loadTasks(), loadArchivedTasks()]);
+      setTasks(active);
+      setArchivedTasks(archived);
+    } catch {
+      setTaskLifecycleError("Herstellen is niet gelukt. De taak blijft veilig in het archief.");
+    } finally {
+      setPendingLifecycleTaskId(null);
+    }
+  }
+
+  async function permanentlyDeleteTask(task: HouseholdTask) {
+    setPendingLifecycleTaskId(task.id);
+    setTaskLifecycleError(null);
+    try {
+      await deleteArchivedTask(task.id);
+      setArchivedTasks(await loadArchivedTasks());
+      setDeleteCandidate(null);
+    } catch {
+      setTaskLifecycleError("Permanent verwijderen is niet gelukt. De gearchiveerde taak is behouden.");
+    } finally {
+      setPendingLifecycleTaskId(null);
     }
   }
 
@@ -546,6 +613,7 @@ export function TasksPage({
           tasks={isLoading ? [] : visibleTodayTasks}
           todayDate={todayDate}
           todayIso={todayIso}
+          onArchive={archiveNormalTask}
           onDeleteSeries={deleteSeries}
           onEdit={startEditing}
           onMoveToTomorrow={moveTaskToTomorrow}
@@ -621,6 +689,16 @@ export function TasksPage({
           description="Snel opnieuw gebruiken"
           label="Routines"
           onClick={() => setActivePanel({ kind: "templates" })}
+        />
+        <TaskSecondaryActionTile
+          count={archivedTasks.length}
+          description="Herstellen of verwijderen"
+          label="Archief"
+          onClick={() => {
+            setDeleteCandidate(null);
+            setTaskLifecycleError(null);
+            setActivePanel({ kind: "archive" });
+          }}
         />
         <TaskSecondaryActionTile
           count={reviewTasks.length}
@@ -853,7 +931,9 @@ export function TasksPage({
                     ? "Ooit"
                     : activePanel.kind === "templates"
                       ? "Routines"
-                      : "Week plannen"
+                      : activePanel.kind === "archive"
+                        ? "Archief"
+                        : "Week plannen"
           }
           description={
             activePanel.kind === "planning"
@@ -866,9 +946,15 @@ export function TasksPage({
                     ? "Bewaar ideeën voor later."
                     : activePanel.kind === "templates"
                       ? "Gebruik routines opnieuw."
-                      : "Bekijk losse taken en kies wat het gezin nog helpt."
+                      : activePanel.kind === "archive"
+                        ? "Gearchiveerde taken blijven herstelbaar. Permanent verwijderen kan alleen hier."
+                        : "Bekijk losse taken en kies wat het gezin nog helpt."
           }
-          onClose={() => setActivePanel(null)}
+          onClose={() => {
+            setDeleteCandidate(null);
+            setTaskLifecycleError(null);
+            setActivePanel(null);
+          }}
         >
           {activePanel.kind === "planning" ? (
             <PlanningDetailPanel
@@ -880,6 +966,7 @@ export function TasksPage({
               todayDate={todayDate}
               todayIso={todayIso}
               tomorrowGroup={tomorrowGroup}
+              onArchive={archiveNormalTask}
               onDeleteSeries={deleteSeries}
               onEdit={startEditing}
               onMoveToTomorrow={moveTaskToTomorrow}
@@ -898,6 +985,7 @@ export function TasksPage({
               tasks={todayGroup.tasks}
               todayDate={todayDate}
               todayIso={todayIso}
+              onArchive={archiveNormalTask}
               onDeleteSeries={deleteSeries}
               onEdit={startEditing}
               onMoveToTomorrow={moveTaskToTomorrow}
@@ -914,6 +1002,7 @@ export function TasksPage({
               tasks={completedTaskGroup.tasks}
               todayDate={todayDate}
               todayIso={todayIso}
+              onArchive={archiveNormalTask}
               onDeleteSeries={deleteSeries}
               onEdit={startEditing}
               onMoveToTomorrow={moveTaskToTomorrow}
@@ -1025,6 +1114,70 @@ export function TasksPage({
                         type="button"
                       >
                         Archiveren
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          ) : null}
+          {activePanel.kind === "archive" ? (
+            <section className="task-archive-panel task-overlay-list-panel" aria-label="Gearchiveerde taken">
+              {taskLifecycleError ? <p className="shopping-empty" role="alert">{taskLifecycleError}</p> : null}
+              {deleteCandidate ? (
+                <div className="task-delete-confirmation">
+                  <p className="widget-type">Definitief verwijderen</p>
+                  <h5>{deleteCandidate.title}</h5>
+                  <p>Deze taak verdwijnt permanent. Dit kan niet ongedaan worden gemaakt.</p>
+                  <div className="task-delete-confirmation-actions">
+                    <button
+                      type="button"
+                      className="secondary-action"
+                      disabled={pendingLifecycleTaskId === deleteCandidate.id}
+                      onClick={() => {
+                        setDeleteCandidate(null);
+                        setTaskLifecycleError(null);
+                      }}
+                    >
+                      Annuleren
+                    </button>
+                    <button
+                      type="button"
+                      className="danger-button"
+                      disabled={pendingLifecycleTaskId === deleteCandidate.id}
+                      onClick={() => void permanentlyDeleteTask(deleteCandidate)}
+                    >
+                      {pendingLifecycleTaskId === deleteCandidate.id ? "Verwijderen…" : "Definitief verwijderen"}
+                    </button>
+                  </div>
+                </div>
+              ) : archivedTasks.length === 0 ? (
+                <p className="shopping-empty">Het archief is leeg.</p>
+              ) : (
+                <ul className="task-list task-list-scroll-region">
+                  {archivedTasks.map((task) => (
+                    <li className="task-item task-archive-item" key={task.id}>
+                      <div>
+                        <strong>{task.title}</strong>
+                        <span>{task.isCompleted ? "Afgerond · " : ""}{formatOwner(task, members)} · {task.dueDate ?? "Zonder datum"}</span>
+                      </div>
+                      <button
+                        type="button"
+                        disabled={pendingLifecycleTaskId === task.id}
+                        onClick={() => void restoreNormalTask(task.id)}
+                      >
+                        {pendingLifecycleTaskId === task.id ? "Bezig…" : "Herstellen"}
+                      </button>
+                      <button
+                        type="button"
+                        className="danger-button"
+                        disabled={pendingLifecycleTaskId === task.id}
+                        onClick={() => {
+                          setTaskLifecycleError(null);
+                          setDeleteCandidate(task);
+                        }}
+                      >
+                        Permanent verwijderen
                       </button>
                     </li>
                   ))}
@@ -1181,6 +1334,7 @@ function PlanningDetailPanel({
   todayDate,
   todayIso,
   tomorrowGroup,
+  onArchive,
   onDeleteSeries,
   onEdit,
   onMoveToTomorrow,
@@ -1195,6 +1349,7 @@ function PlanningDetailPanel({
   todayDate: Date;
   todayIso: string;
   tomorrowGroup: TaskTimeGroup;
+  onArchive(id: string): void;
   onDeleteSeries(id: string): void;
   onEdit(task: HouseholdTask): void;
   onMoveToTomorrow(task: HouseholdTask): void;
@@ -1251,6 +1406,7 @@ function PlanningDetailPanel({
         tasks={activeGroup.tasks}
         todayDate={todayDate}
         todayIso={todayIso}
+        onArchive={onArchive}
         onDeleteSeries={onDeleteSeries}
         onEdit={onEdit}
         onMoveToTomorrow={onMoveToTomorrow}
@@ -1337,6 +1493,7 @@ function TaskGroup({
   tasks,
   todayDate,
   todayIso,
+  onArchive,
   onDeleteSeries,
   onEdit,
   onMoveToTomorrow,
@@ -1353,6 +1510,7 @@ function TaskGroup({
   tasks: readonly HouseholdTask[];
   todayDate: Date;
   todayIso: string;
+  onArchive(id: string): void;
   onDeleteSeries(id: string): void;
   onEdit(task: HouseholdTask): void;
   onMoveToTomorrow(task: HouseholdTask): void;
@@ -1389,6 +1547,7 @@ function TaskGroup({
               task={task}
               todayDate={todayDate}
               todayIso={todayIso}
+              onArchive={onArchive}
               onDeleteSeries={onDeleteSeries}
               onEdit={onEdit}
               onMoveToTomorrow={onMoveToTomorrow}
@@ -1410,6 +1569,7 @@ function TaskCard({
   task,
   todayDate,
   todayIso,
+  onArchive,
   onDeleteSeries,
   onEdit,
   onMoveToTomorrow,
@@ -1422,6 +1582,7 @@ function TaskCard({
   task: HouseholdTask;
   todayDate: Date;
   todayIso: string;
+  onArchive(id: string): void;
   onDeleteSeries(id: string): void;
   onEdit(task: HouseholdTask): void;
   onMoveToTomorrow(task: HouseholdTask): void;
@@ -1515,6 +1676,7 @@ function TaskCard({
         ) : null}
         <TaskActionsMenu
           task={task}
+          onArchive={onArchive}
           onDeleteSeries={onDeleteSeries}
           onEdit={onEdit}
         />
@@ -1532,10 +1694,12 @@ type TaskMenuPosition = {
 
 function TaskActionsMenu({
   task,
+  onArchive,
   onDeleteSeries,
   onEdit,
 }: {
   task: HouseholdTask;
+  onArchive(id: string): void;
   onDeleteSeries(id: string): void;
   onEdit(task: HouseholdTask): void;
 }) {
@@ -1602,7 +1766,7 @@ function TaskActionsMenu({
       return;
     }
 
-    firstItemRef.current?.focus();
+    firstItemRef.current?.focus({ preventScroll: true });
   }, [isOpen, position.visibility]);
 
   useEffect(() => {
@@ -1686,6 +1850,18 @@ function TaskActionsMenu({
                 <TaskActionIcon name="edit" />
                 <span>Aanpassen</span>
               </button>
+              {!isRecurringTask(task) ? (
+                <button
+                  className="task-action-button secondary"
+                  onClick={() => closeBefore(() => onArchive(task.id))}
+                  type="button"
+                  role="menuitem"
+                  aria-label={`Archiveren: ${task.title}`}
+                >
+                  <TaskActionIcon name="more" />
+                  <span>Archiveren</span>
+                </button>
+              ) : null}
               {task.recurringTaskSeriesId ? (
                 <button
                   className="task-action-button secondary"

@@ -12,6 +12,7 @@ vi.mock("../knownPeople/knownPeopleApi", () => ({
 
 vi.mock("./tasksApi", () => ({
   loadTasks: vi.fn(),
+  loadArchivedTasks: vi.fn(),
   createTask: vi.fn(),
   completeTask: vi.fn(),
   reopenTask: vi.fn(),
@@ -25,6 +26,8 @@ vi.mock("./tasksApi", () => ({
   keepTaskActive: vi.fn(),
   moveTaskToSomeday: vi.fn(),
   archiveTask: vi.fn(),
+  restoreArchivedTask: vi.fn(),
+  deleteArchivedTask: vi.fn(),
 }));
 
 async function tasksApi() {
@@ -73,6 +76,10 @@ function task(overrides: Partial<HouseholdTask>): HouseholdTask {
 afterEach(() => {
   cleanup();
   vi.useRealTimers();
+});
+
+beforeEach(async () => {
+  vi.mocked((await tasksApi()).loadArchivedTasks).mockResolvedValue([]);
 });
 
 describe("TasksPage empty state", () => {
@@ -714,5 +721,95 @@ describe("TasksPage templates", () => {
     await user.click(screen.getByRole("button", { name: "Deze week houden" }));
 
     expect(vi.mocked(api.keepTaskActive)).toHaveBeenCalledWith("review");
+  });
+});
+
+describe("TasksPage normal-task archive", () => {
+  beforeEach(async () => {
+    vi.clearAllMocks();
+    vi.mocked((await knownPeopleApi()).listKnownPeople).mockResolvedValue(knownPeople);
+    vi.mocked((await tasksApi()).loadTaskTemplates).mockResolvedValue([]);
+  });
+
+  it("archives a normal task from More and restores it from the bounded archive", async () => {
+    const user = userEvent.setup();
+    const api = await tasksApi();
+    const active = task({ id: "archive-me", title: "Winterjassen opruimen" });
+    const archived = task({
+      ...active,
+      noDateReviewState: "Archived",
+      archivedUtc: "2026-08-08T10:00:00Z",
+    });
+    vi.mocked(api.loadTasks)
+      .mockResolvedValueOnce([active])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([active]);
+    vi.mocked(api.loadArchivedTasks)
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([archived])
+      .mockResolvedValueOnce([]);
+    vi.mocked(api.archiveTask).mockResolvedValue(archived);
+    vi.mocked(api.restoreArchivedTask).mockResolvedValue(active);
+
+    render(<TasksPage members={familyMembers} />);
+    await screen.findByText("Winterjassen opruimen");
+    await user.click(screen.getByRole("button", { name: "Meer acties voor Winterjassen opruimen" }));
+    await user.click(screen.getByRole("menuitem", { name: "Archiveren: Winterjassen opruimen" }));
+
+    expect(vi.mocked(api.archiveTask)).toHaveBeenCalledWith("archive-me");
+    await user.click(await screen.findByRole("button", { name: /Archief/ }));
+    expect(await screen.findByRole("dialog", { name: "Archief" })).not.toBeNull();
+    await user.click(screen.getByRole("button", { name: "Herstellen" }));
+
+    expect(vi.mocked(api.restoreArchivedTask)).toHaveBeenCalledWith("archive-me");
+    expect(await screen.findByText("Het archief is leeg.")).not.toBeNull();
+  });
+
+  it("keeps deletion task-specific, confirmed, and recoverable after failure", async () => {
+    const user = userEvent.setup();
+    const api = await tasksApi();
+    const archived = task({
+      id: "delete-me",
+      title: "Oude keldertaak",
+      noDateReviewState: "Archived",
+      archivedUtc: "2026-08-08T10:00:00Z",
+    });
+    vi.mocked(api.loadTasks).mockResolvedValue([]);
+    vi.mocked(api.loadArchivedTasks)
+      .mockResolvedValueOnce([archived])
+      .mockResolvedValueOnce([]);
+    vi.mocked(api.deleteArchivedTask)
+      .mockRejectedValueOnce(new Error("network"))
+      .mockResolvedValueOnce();
+
+    render(<TasksPage members={familyMembers} />);
+    await user.click(await screen.findByRole("button", { name: /Archief/ }));
+    await user.click(screen.getByRole("button", { name: "Permanent verwijderen" }));
+    expect(screen.getByText("Deze taak verdwijnt permanent. Dit kan niet ongedaan worden gemaakt.")).not.toBeNull();
+    await user.click(screen.getByRole("button", { name: "Annuleren" }));
+    expect(screen.getByText("Oude keldertaak")).not.toBeNull();
+
+    await user.click(screen.getByRole("button", { name: "Permanent verwijderen" }));
+    await user.click(screen.getByRole("button", { name: "Definitief verwijderen" }));
+    expect((await screen.findByRole("alert")).textContent).toContain("De gearchiveerde taak is behouden");
+    expect(screen.getByText("Oude keldertaak")).not.toBeNull();
+
+    await user.click(screen.getByRole("button", { name: "Definitief verwijderen" }));
+    expect(vi.mocked(api.deleteArchivedTask)).toHaveBeenCalledTimes(2);
+    expect(await screen.findByText("Het archief is leeg.")).not.toBeNull();
+  });
+
+  it("does not offer normal-task archive for a recurring task", async () => {
+    const user = userEvent.setup();
+    const api = await tasksApi();
+    vi.mocked(api.loadTasks).mockResolvedValue([
+      task({ id: "routine", title: "Vuilnisroutine", recurringTaskSeriesId: "series", recurrenceFrequency: "Weekly" }),
+    ]);
+
+    render(<TasksPage members={familyMembers} />);
+    await screen.findByText("Vuilnisroutine");
+    await user.click(screen.getByRole("button", { name: "Meer acties voor Vuilnisroutine" }));
+    expect(screen.queryByRole("menuitem", { name: "Archiveren: Vuilnisroutine" })).toBeNull();
+    expect(screen.getByRole("menuitem", { name: "Routine verwijderen: Vuilnisroutine" })).not.toBeNull();
   });
 });

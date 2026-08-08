@@ -7316,6 +7316,47 @@ export class HomeOpsApiClient {
         return Promise.resolve<HouseholdTaskDto>(null as any);
     }
 
+    getArchivedTasks(): Promise<HouseholdTaskDto[]> {
+        let url_ = this.baseUrl + "/api/tasks/archived";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetArchivedTasks(_response);
+        });
+    }
+
+    protected processGetArchivedTasks(response: Response): Promise<HouseholdTaskDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(HouseholdTaskDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<HouseholdTaskDto[]>(null as any);
+    }
+
     updateTask(taskId: string, request: UpdateHouseholdTaskRequest): Promise<HouseholdTaskDto> {
         let url_ = this.baseUrl + "/api/tasks/{taskId}";
         if (taskId === undefined || taskId === null)
@@ -7363,6 +7404,54 @@ export class HomeOpsApiClient {
             });
         }
         return Promise.resolve<HouseholdTaskDto>(null as any);
+    }
+
+    deleteArchivedTask(taskId: string, confirmed: boolean): Promise<void> {
+        let url_ = this.baseUrl + "/api/tasks/{taskId}?";
+        if (taskId === undefined || taskId === null)
+            throw new globalThis.Error("The parameter 'taskId' must be defined.");
+        url_ = url_.replace("{taskId}", encodeURIComponent("" + taskId));
+        if (confirmed === undefined || confirmed === null)
+            throw new globalThis.Error("The parameter 'confirmed' must be defined and cannot be null.");
+        else
+            url_ += "confirmed=" + encodeURIComponent("" + confirmed) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDeleteArchivedTask(_response);
+        });
+    }
+
+    protected processDeleteArchivedTask(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = HttpValidationProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
     }
 
     deleteRecurringTaskSeries(taskId: string): Promise<void> {
@@ -7594,6 +7683,51 @@ export class HomeOpsApiClient {
     }
 
     protected processArchiveTask(response: Response): Promise<HouseholdTaskDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = HouseholdTaskDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<HouseholdTaskDto>(null as any);
+    }
+
+    restoreArchivedTask(taskId: string): Promise<HouseholdTaskDto> {
+        let url_ = this.baseUrl + "/api/tasks/{taskId}/restore";
+        if (taskId === undefined || taskId === null)
+            throw new globalThis.Error("The parameter 'taskId' must be defined.");
+        url_ = url_.replace("{taskId}", encodeURIComponent("" + taskId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRestoreArchivedTask(_response);
+        });
+    }
+
+    protected processRestoreArchivedTask(response: Response): Promise<HouseholdTaskDto> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {

@@ -6605,6 +6605,29 @@
         }
       }
     },
+    "/api/tasks/archived": {
+      "get": {
+        "tags": [
+          "Tasks"
+        ],
+        "operationId": "GetArchivedTasks",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/HouseholdTaskDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/tasks/{taskId}": {
       "put": {
         "tags": [
@@ -6648,6 +6671,51 @@
           },
           "400": {
             "description": ""
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Tasks"
+        ],
+        "operationId": "DeleteArchivedTask",
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "confirmed",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
           },
           "404": {
             "description": ""
@@ -6832,6 +6900,44 @@
           "Tasks"
         ],
         "operationId": "ArchiveTask",
+        "parameters": [
+          {
+            "name": "taskId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HouseholdTaskDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          },
+          "409": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/tasks/{taskId}/restore": {
+      "post": {
+        "tags": [
+          "Tasks"
+        ],
+        "operationId": "RestoreArchivedTask",
         "parameters": [
           {
             "name": "taskId",

@@ -784,7 +784,7 @@ Before changing Tasks layout or action placement, write the repository-required 
 
 ### Slice 4.2 — Normal task archive/delete
 
-- [ ] **Status: Not started**
+- [x] **Status: Completed 2026-08-08**
 
 **Audit ID:** TASK-01
 
@@ -796,6 +796,8 @@ Before changing Tasks layout or action placement, write the repository-required 
 4. Add visible confirmation for permanent deletion.
 5. Keep completion distinct from archive.
 6. Add dependency and restore tests.
+
+**Implementation state:** normal non-recurring tasks can be archived without changing completion, due date, or ownership; archived tasks are absent from operational routes and available through a dedicated list/restore contract. Permanent deletion requires an archived normal task plus explicit confirmation. Recurring tasks are rejected and remain governed by Slice 4.4. The approved `Archief` rail tile opens an internally bounded restore/delete surface with task-specific confirmation and recoverable failure state. Pinned NSwag is idempotent, PostgreSQL migration/model-drift tests pass, and browser coverage proves archive, restore, cancellation, confirmed deletion, and no document overflow. See `docs/reports/2026-08-08-task-lifecycle/implementation.md`.
 
 ### Slice 4.3 — Routine/template lifecycle
 
@@ -1265,7 +1267,7 @@ Every audit finding must appear exactly once as the primary responsibility of a 
 | RESET-01 | 4.5 Persisted Weekly Reset | [ ] Not started |
 | TASK-UI-01 | 4.1 Task actions | [x] Completed |
 | TASK-UI-02 | 4.1 Task popup/hit targets | [x] Completed |
-| TASK-01 | 4.2 Normal task lifecycle | [ ] Not started |
+| TASK-01 | 4.2 Normal task lifecycle | [x] Completed |
 | TASK-02 | 4.3 Routine creation | [ ] Not started |
 | TASK-03 | 4.3 Routine editing | [ ] Not started |
 | TASK-04 | 4.3 Routine archive/restore | [ ] Not started |

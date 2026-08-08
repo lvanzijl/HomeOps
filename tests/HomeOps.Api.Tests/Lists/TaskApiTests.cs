@@ -53,6 +53,97 @@ public sealed class TaskApiTests(HomeOpsWebApplicationFactory factory) : IClassF
     }
 }
 
+public sealed class NormalTaskArchiveApiTests(HomeOpsWebApplicationFactory factory) : IClassFixture<HomeOpsWebApplicationFactory>
+{
+    private readonly HttpClient _client = factory.CreateClient();
+
+    [Fact]
+    public async Task ArchiveListRestoreAndConfirmedDeletePreserveTaskIntent()
+    {
+        var title = $"Archive lifecycle {Guid.NewGuid()}";
+        var dueDate = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(3);
+        var created = await CreateTask(title, dueDate, TaskOwnershipKind.FamilyMember, "riley");
+
+        var archiveResponse = await _client.PostAsync($"/api/tasks/{created.Id}/archive", null);
+        archiveResponse.EnsureSuccessStatusCode();
+        var archived = await archiveResponse.Content.ReadFromJsonAsync<HouseholdTaskDto>();
+        var activeTasks = await _client.GetFromJsonAsync<IReadOnlyCollection<HouseholdTaskDto>>("/api/tasks");
+        var archivedTasks = await _client.GetFromJsonAsync<IReadOnlyCollection<HouseholdTaskDto>>("/api/tasks/archived");
+
+        Assert.Equal(NoDateTaskReviewState.Archived, archived!.NoDateReviewState);
+        Assert.NotNull(archived.ArchivedUtc);
+        Assert.DoesNotContain(activeTasks!, task => task.Id == created.Id);
+        var archivedListItem = Assert.Single(archivedTasks!, task => task.Id == created.Id);
+        Assert.Equal("riley", archivedListItem.FamilyMemberId);
+        Assert.Equal(dueDate, archivedListItem.DueDate);
+
+        var restoreResponse = await _client.PostAsync($"/api/tasks/{created.Id}/restore", null);
+        restoreResponse.EnsureSuccessStatusCode();
+        var restored = await restoreResponse.Content.ReadFromJsonAsync<HouseholdTaskDto>();
+        Assert.Equal(NoDateTaskReviewState.Active, restored!.NoDateReviewState);
+        Assert.Null(restored.ArchivedUtc);
+        Assert.Equal("riley", restored.FamilyMemberId);
+        Assert.Contains((await _client.GetFromJsonAsync<IReadOnlyCollection<HouseholdTaskDto>>("/api/tasks"))!, task => task.Id == created.Id);
+
+        await _client.PostAsync($"/api/tasks/{created.Id}/archive", null);
+        var deleteArchived = await _client.DeleteAsync($"/api/tasks/{created.Id}?confirmed=true");
+        Assert.Equal(HttpStatusCode.NoContent, deleteArchived.StatusCode);
+        Assert.DoesNotContain((await _client.GetFromJsonAsync<IReadOnlyCollection<HouseholdTaskDto>>("/api/tasks/archived"))!, task => task.Id == created.Id);
+    }
+
+    [Fact]
+    public async Task RestorePreservesCompletionAndDeleteRequiresArchivedExplicitConfirmation()
+    {
+        var created = await CreateTask($"Completed archive {Guid.NewGuid()}", null, TaskOwnershipKind.Unassigned, null);
+        await _client.PostAsync($"/api/tasks/{created.Id}/complete", null);
+        await _client.PostAsync($"/api/tasks/{created.Id}/archive", null);
+
+        var archived = (await _client.GetFromJsonAsync<IReadOnlyCollection<HouseholdTaskDto>>("/api/tasks/archived"))!.Single(task => task.Id == created.Id);
+        Assert.True(archived.IsCompleted);
+        Assert.NotNull(archived.CompletedUtc);
+
+        var restoreResponse = await _client.PostAsync($"/api/tasks/{created.Id}/restore", null);
+        restoreResponse.EnsureSuccessStatusCode();
+        var restored = await restoreResponse.Content.ReadFromJsonAsync<HouseholdTaskDto>();
+        Assert.True(restored!.IsCompleted);
+        Assert.Equal(NoDateTaskReviewState.Completed, restored.NoDateReviewState);
+        Assert.Null(restored.ArchivedUtc);
+
+        var deleteActive = await _client.DeleteAsync($"/api/tasks/{created.Id}?confirmed=true");
+        Assert.Equal(HttpStatusCode.NotFound, deleteActive.StatusCode);
+
+        await _client.PostAsync($"/api/tasks/{created.Id}/archive", null);
+        var unconfirmed = await _client.DeleteAsync($"/api/tasks/{created.Id}?confirmed=false");
+        Assert.Equal(HttpStatusCode.BadRequest, unconfirmed.StatusCode);
+        Assert.Contains((await _client.GetFromJsonAsync<IReadOnlyCollection<HouseholdTaskDto>>("/api/tasks/archived"))!, task => task.Id == created.Id);
+
+        var confirmed = await _client.DeleteAsync($"/api/tasks/{created.Id}?confirmed=true");
+        Assert.Equal(HttpStatusCode.NoContent, confirmed.StatusCode);
+    }
+
+    [Fact]
+    public async Task RecurringTasksStayOutsideNormalArchiveLifecycle()
+    {
+        var response = await _client.PostAsJsonAsync("/api/tasks", new CreateHouseholdTaskRequest(
+            $"Recurring archive guard {Guid.NewGuid()}", DateOnly.FromDateTime(DateTime.UtcNow), TaskOwnershipKind.Unassigned, null, TaskRecurrenceFrequency.Weekly));
+        response.EnsureSuccessStatusCode();
+        var created = await response.Content.ReadFromJsonAsync<HouseholdTaskDto>();
+
+        var archive = await _client.PostAsync($"/api/tasks/{created!.Id}/archive", null);
+        var archivedTasks = await _client.GetFromJsonAsync<IReadOnlyCollection<HouseholdTaskDto>>("/api/tasks/archived");
+
+        Assert.Equal(HttpStatusCode.Conflict, archive.StatusCode);
+        Assert.DoesNotContain(archivedTasks!, task => task.Id == created.Id);
+    }
+
+    private async Task<HouseholdTaskDto> CreateTask(string title, DateOnly? dueDate, TaskOwnershipKind ownershipKind, string? familyMemberId)
+    {
+        var response = await _client.PostAsJsonAsync("/api/tasks", new CreateHouseholdTaskRequest(title, dueDate, ownershipKind, familyMemberId));
+        response.EnsureSuccessStatusCode();
+        return (await response.Content.ReadFromJsonAsync<HouseholdTaskDto>())!;
+    }
+}
+
 public sealed class RecurringTaskApiTests(HomeOpsWebApplicationFactory factory) : IClassFixture<HomeOpsWebApplicationFactory>
 {
     private readonly HttpClient _client = factory.CreateClient();

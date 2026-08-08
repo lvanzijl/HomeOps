@@ -219,6 +219,64 @@ test("task controls are direct, keyboard operable, and unclipped at 1280x720", a
   });
 });
 
+test("normal tasks archive reversibly and delete only after archive confirmation", async ({ page, request }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await resetFixture(request, "visual-marketing-tasks");
+  await page.goto("/");
+  await page.getByRole("button", { name: "Taken", exact: true }).click();
+
+  const taskCard = () => page.locator(".operational-task-card").filter({ hasText: taskTitle }).first();
+  const archiveFromCard = async () => {
+    const card = taskCard();
+    await expect(card).toBeVisible();
+    await card.getByRole("button", { name: `Meer acties voor ${taskTitle}` }).click();
+    const menu = page.getByRole("menu", { name: `Meer acties voor ${taskTitle}` });
+    await expect(menu).toBeVisible();
+    const archiveAction = menu.getByRole("menuitem", { name: `Archiveren: ${taskTitle}` });
+    await expect(archiveAction).toBeVisible();
+    const archiveResponse = page.waitForResponse((response) =>
+      response.request().method() === "POST" && new URL(response.url()).pathname.endsWith("/archive"));
+    await archiveAction.click();
+    expect((await archiveResponse).ok()).toBe(true);
+    await expect(card).toHaveCount(0);
+  };
+
+  await archiveFromCard();
+  await page.getByRole("button", { name: /Archief/ }).click();
+  const archiveDialog = page.getByRole("dialog", { name: "Archief" });
+  await expect(archiveDialog.getByText(taskTitle)).toBeVisible();
+  await expectNoDocumentOverflow(page, "Task archive at 1280x720");
+
+  const restoreResponse = page.waitForResponse((response) =>
+    response.request().method() === "POST" && new URL(response.url()).pathname.endsWith("/restore"));
+  const restoredTasksReload = page.waitForResponse((response) =>
+    response.request().method() === "GET" && new URL(response.url()).pathname === "/api/tasks");
+  const restoredArchiveReload = page.waitForResponse((response) =>
+    response.request().method() === "GET" && new URL(response.url()).pathname === "/api/tasks/archived");
+  await archiveDialog.getByRole("button", { name: "Herstellen" }).click();
+  expect((await restoreResponse).ok()).toBe(true);
+  expect((await restoredTasksReload).ok()).toBe(true);
+  expect((await restoredArchiveReload).ok()).toBe(true);
+  await expect(archiveDialog.getByText("Het archief is leeg.")).toBeVisible();
+  await archiveDialog.getByRole("button", { name: "Sluiten" }).click();
+  await expect(taskCard()).toBeVisible();
+
+  await archiveFromCard();
+  await page.getByRole("button", { name: /Archief/ }).click();
+  await archiveDialog.getByRole("button", { name: "Permanent verwijderen" }).click();
+  await expect(archiveDialog.getByText("Deze taak verdwijnt permanent. Dit kan niet ongedaan worden gemaakt.")).toBeVisible();
+  await expectNoDocumentOverflow(page, "Task permanent-delete confirmation at 1280x720");
+  await archiveDialog.getByRole("button", { name: "Annuleren" }).click();
+  await expect(archiveDialog.getByText(taskTitle)).toBeVisible();
+
+  await archiveDialog.getByRole("button", { name: "Permanent verwijderen" }).click();
+  const deleteResponse = page.waitForResponse((response) =>
+    response.request().method() === "DELETE" && new URL(response.url()).pathname.startsWith("/api/tasks/"));
+  await archiveDialog.getByRole("button", { name: "Definitief verwijderen" }).click();
+  expect((await deleteResponse).ok()).toBe(true);
+  await expect(archiveDialog.getByText("Het archief is leeg.")).toBeVisible();
+});
+
 test("primary pages do not create document-level vertical scrolling", async ({ page, request }) => {
   await resetFixture(request, "visual-full");
 

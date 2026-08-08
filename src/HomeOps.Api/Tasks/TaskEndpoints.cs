@@ -31,6 +31,21 @@ public static class TaskEndpoints
             return Results.Ok(tasks);
         }).WithName("GetTasks").Produces<IReadOnlyCollection<HouseholdTaskDto>>();
 
+        group.MapGet("/archived", async (HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        {
+            var tasks = await dbContext.HouseholdTasks.AsNoTracking()
+                .Where(task => task.HouseholdId == SeedHousehold.Id
+                    && !task.IsExpired
+                    && task.NoDateReviewState == NoDateTaskReviewState.Archived
+                    && task.RecurringTaskSeriesId == null
+                    && task.RecurrenceFrequency == TaskRecurrenceFrequency.None)
+                .OrderByDescending(task => task.ArchivedUtc)
+                .ThenBy(task => task.Title)
+                .Select(task => ToDto(task))
+                .ToListAsync(cancellationToken);
+            return Results.Ok(tasks);
+        }).WithName("GetArchivedTasks").Produces<IReadOnlyCollection<HouseholdTaskDto>>();
+
         group.MapPost("/", async (CreateHouseholdTaskRequest request, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
         {
             var validation = await ValidateTaskInput(request.Title, request.OwnershipKind, request.FamilyMemberId, dbContext, cancellationToken);
@@ -66,7 +81,7 @@ public static class TaskEndpoints
 
         group.MapPut("/{taskId:guid}", async (Guid taskId, UpdateHouseholdTaskRequest request, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
         {
-            var task = await LoadTask(dbContext, taskId, cancellationToken);
+            var task = await LoadActiveTask(dbContext, taskId, cancellationToken);
             if (task is null) return Results.NotFound();
             var validation = await ValidateTaskInput(request.Title, request.OwnershipKind, request.FamilyMemberId, dbContext, cancellationToken);
             if (validation.Error is not null) return Results.BadRequest(new { error = validation.Error });
@@ -98,7 +113,7 @@ public static class TaskEndpoints
 
         group.MapDelete("/{taskId:guid}/series", async (Guid taskId, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
         {
-            var task = await LoadTask(dbContext, taskId, cancellationToken);
+            var task = await LoadActiveTask(dbContext, taskId, cancellationToken);
             if (task?.RecurringTaskSeriesId is null) return Results.NotFound();
             var series = await dbContext.RecurringTaskSeries.FirstOrDefaultAsync(s => s.Id == task.RecurringTaskSeriesId, cancellationToken);
             if (series is null) return Results.NotFound();
@@ -124,14 +139,14 @@ public static class TaskEndpoints
 
         group.MapPost("/{taskId:guid}/keep-active", async (Guid taskId, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
         {
-            var task = await LoadTask(dbContext, taskId, cancellationToken); if (task is null) return Results.NotFound();
+            var task = await LoadActiveTask(dbContext, taskId, cancellationToken); if (task is null) return Results.NotFound();
             var now = DateTimeOffset.UtcNow; task.NoDateReviewState = NoDateTaskReviewState.Active; task.NoDateLastReviewedUtc = now; task.UpdatedUtc = now;
             await dbContext.SaveChangesAsync(cancellationToken); return Results.Ok(ToDto(task));
         }).WithName("KeepNoDateTaskActive").Produces<HouseholdTaskDto>().Produces(StatusCodes.Status404NotFound);
 
         group.MapPost("/{taskId:guid}/add-due-date", async (Guid taskId, ReviewNoDateTaskRequest request, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
         {
-            var task = await LoadTask(dbContext, taskId, cancellationToken); if (task is null) return Results.NotFound();
+            var task = await LoadActiveTask(dbContext, taskId, cancellationToken); if (task is null) return Results.NotFound();
             if (request.DueDate is null) return Results.BadRequest(new { error = "Due date is required." });
             var now = DateTimeOffset.UtcNow; task.DueDate = request.DueDate; task.NoDateReviewState = NoDateTaskReviewState.Active; task.NoDateLastReviewedUtc = now; task.UpdatedUtc = now;
             await dbContext.SaveChangesAsync(cancellationToken); return Results.Ok(ToDto(task));
@@ -139,21 +154,46 @@ public static class TaskEndpoints
 
         group.MapPost("/{taskId:guid}/move-to-someday", async (Guid taskId, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
         {
-            var task = await LoadTask(dbContext, taskId, cancellationToken); if (task is null) return Results.NotFound();
+            var task = await LoadActiveTask(dbContext, taskId, cancellationToken); if (task is null) return Results.NotFound();
             var now = DateTimeOffset.UtcNow; task.DueDate = null; task.NoDateReviewState = NoDateTaskReviewState.Someday; task.NoDateLastReviewedUtc = now; task.UpdatedUtc = now;
             await dbContext.SaveChangesAsync(cancellationToken); return Results.Ok(ToDto(task));
         }).WithName("MoveNoDateTaskToSomeday").Produces<HouseholdTaskDto>().Produces(StatusCodes.Status404NotFound);
 
         group.MapPost("/{taskId:guid}/archive", async (Guid taskId, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
         {
-            var task = await LoadTask(dbContext, taskId, cancellationToken); if (task is null) return Results.NotFound();
+            var task = await LoadActiveTask(dbContext, taskId, cancellationToken); if (task is null) return Results.NotFound();
+            if (IsRecurring(task)) return Results.Conflict(new { error = "Recurring tasks cannot be archived. Manage the routine instead." });
             var now = DateTimeOffset.UtcNow; task.NoDateReviewState = NoDateTaskReviewState.Archived; task.ArchivedUtc = now; task.UpdatedUtc = now;
             await dbContext.SaveChangesAsync(cancellationToken); return Results.Ok(ToDto(task));
-        }).WithName("ArchiveTask").Produces<HouseholdTaskDto>().Produces(StatusCodes.Status404NotFound);
+        }).WithName("ArchiveTask").Produces<HouseholdTaskDto>().Produces(StatusCodes.Status404NotFound).Produces(StatusCodes.Status409Conflict);
+
+        group.MapPost("/{taskId:guid}/restore", async (Guid taskId, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        {
+            var task = await LoadArchivedNormalTask(dbContext, taskId, cancellationToken);
+            if (task is null) return Results.NotFound();
+            var now = DateTimeOffset.UtcNow;
+            task.NoDateReviewState = task.IsCompleted ? NoDateTaskReviewState.Completed : NoDateTaskReviewState.Active;
+            task.ArchivedUtc = null;
+            if (!task.IsCompleted && task.DueDate is null) task.NoDateLastReviewedUtc = now;
+            task.UpdatedUtc = now;
+            await dbContext.SaveChangesAsync(cancellationToken);
+            return Results.Ok(ToDto(task));
+        }).WithName("RestoreArchivedTask").Produces<HouseholdTaskDto>().Produces(StatusCodes.Status404NotFound);
+
+        group.MapDelete("/{taskId:guid}", async (Guid taskId, bool confirmed, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        {
+            if (!confirmed)
+                return Results.ValidationProblem(new Dictionary<string, string[]> { ["confirmed"] = ["Explicit confirmation is required."] });
+            var task = await LoadArchivedNormalTask(dbContext, taskId, cancellationToken);
+            if (task is null) return Results.NotFound();
+            dbContext.HouseholdTasks.Remove(task);
+            await dbContext.SaveChangesAsync(cancellationToken);
+            return Results.NoContent();
+        }).WithName("DeleteArchivedTask").Produces(StatusCodes.Status204NoContent).ProducesValidationProblem().Produces(StatusCodes.Status404NotFound);
 
         group.MapPost("/{taskId:guid}/complete", async (Guid taskId, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
         {
-            var task = await LoadTask(dbContext, taskId, cancellationToken); if (task is null) return Results.NotFound();
+            var task = await LoadActiveTask(dbContext, taskId, cancellationToken); if (task is null) return Results.NotFound();
             var wasCompleted = task.IsCompleted; var now = DateTimeOffset.UtcNow; task.IsCompleted = true; task.CompletedUtc ??= now; task.NoDateReviewState = NoDateTaskReviewState.Completed; task.UpdatedUtc = now;
             if (!wasCompleted) await ApplyMotivationProgress(dbContext, task, 1, cancellationToken);
             await GenerateRecurringTasks(dbContext, DateOnly.FromDateTime(DateTime.UtcNow), cancellationToken);
@@ -163,7 +203,7 @@ public static class TaskEndpoints
 
         group.MapPost("/{taskId:guid}/reopen", async (Guid taskId, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
         {
-            var task = await LoadTask(dbContext, taskId, cancellationToken); if (task is null) return Results.NotFound();
+            var task = await LoadActiveTask(dbContext, taskId, cancellationToken); if (task is null) return Results.NotFound();
             var wasCompleted = task.IsCompleted; task.IsCompleted = false; task.CompletedUtc = null; task.NoDateReviewState = task.DueDate is null ? NoDateTaskReviewState.Active : task.NoDateReviewState; task.UpdatedUtc = DateTimeOffset.UtcNow;
             if (wasCompleted) await ApplyMotivationProgress(dbContext, task, -1, cancellationToken);
             await dbContext.SaveChangesAsync(cancellationToken);
@@ -242,7 +282,18 @@ public static class TaskEndpoints
         return (title, kind, familyMemberId, null);
     }
 
-    private static Task<HouseholdTask?> LoadTask(HomeOpsDbContext dbContext, Guid taskId, CancellationToken cancellationToken) => dbContext.HouseholdTasks.FirstOrDefaultAsync(task => task.Id == taskId && task.HouseholdId == SeedHousehold.Id, cancellationToken);
+    private static Task<HouseholdTask?> LoadActiveTask(HomeOpsDbContext dbContext, Guid taskId, CancellationToken cancellationToken) =>
+        dbContext.HouseholdTasks.FirstOrDefaultAsync(task => task.Id == taskId && task.HouseholdId == SeedHousehold.Id && task.NoDateReviewState != NoDateTaskReviewState.Archived, cancellationToken);
+
+    private static Task<HouseholdTask?> LoadArchivedNormalTask(HomeOpsDbContext dbContext, Guid taskId, CancellationToken cancellationToken) =>
+        dbContext.HouseholdTasks.FirstOrDefaultAsync(task => task.Id == taskId
+            && task.HouseholdId == SeedHousehold.Id
+            && task.NoDateReviewState == NoDateTaskReviewState.Archived
+            && task.RecurringTaskSeriesId == null
+            && task.RecurrenceFrequency == TaskRecurrenceFrequency.None, cancellationToken);
+
+    private static bool IsRecurring(HouseholdTask task) =>
+        task.RecurringTaskSeriesId is not null || task.RecurrenceFrequency != TaskRecurrenceFrequency.None;
 
     private static async Task ApplyMotivationProgress(HomeOpsDbContext dbContext, HouseholdTask task, int delta, CancellationToken cancellationToken)
     {

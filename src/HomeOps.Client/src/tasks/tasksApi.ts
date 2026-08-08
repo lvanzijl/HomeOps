@@ -17,6 +17,12 @@ export async function loadTasks(): Promise<readonly HouseholdTask[]> {
   return response.json() as Promise<HouseholdTask[]>;
 }
 
+export async function loadArchivedTasks(): Promise<readonly HouseholdTask[]> {
+  const response = await fetch(`${apiBaseUrl}/api/tasks/archived`, { headers: { Accept: 'application/json' } });
+  if (!response.ok) throw new Error('Archived tasks could not be loaded.');
+  return response.json() as Promise<HouseholdTask[]>;
+}
+
 export async function createTask(input: CreateTaskInput): Promise<HouseholdTask | null> {
   const title = input.title.trim();
   if (!title) {
@@ -127,4 +133,13 @@ export async function moveTaskToSomeday(taskId: string): Promise<HouseholdTask> 
 
 export async function archiveTask(taskId: string): Promise<HouseholdTask> {
   return readTaskResponse(await fetch(`${apiBaseUrl}/api/tasks/${taskId}/archive`, { method: 'POST', headers: { Accept: 'application/json' } }));
+}
+
+export async function restoreArchivedTask(taskId: string): Promise<HouseholdTask> {
+  return readTaskResponse(await fetch(`${apiBaseUrl}/api/tasks/${taskId}/restore`, { method: 'POST', headers: { Accept: 'application/json' } }));
+}
+
+export async function deleteArchivedTask(taskId: string): Promise<void> {
+  const response = await fetch(`${apiBaseUrl}/api/tasks/${taskId}?confirmed=true`, { method: 'DELETE', headers: { Accept: 'application/json' } });
+  if (!response.ok) throw new Error('Archived task could not be permanently deleted.');
 }

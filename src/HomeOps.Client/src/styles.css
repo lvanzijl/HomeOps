@@ -10567,6 +10567,44 @@ button {
   max-height: 100%;
 }
 
+.task-archive-panel {
+  grid-template-rows: minmax(0, 1fr);
+}
+
+.task-archive-item {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+}
+
+.task-delete-confirmation {
+  align-self: center;
+  background: rgb(255 255 255 / 92%);
+  border: 1px solid #fecaca;
+  border-radius: 1rem;
+  display: grid;
+  gap: 0.7rem;
+  justify-self: center;
+  max-width: 34rem;
+  padding: 1rem;
+  width: 100%;
+}
+
+.task-delete-confirmation h5,
+.task-delete-confirmation p {
+  margin: 0;
+}
+
+.task-delete-confirmation h5 {
+  color: var(--color-text-strong);
+  font-size: 1.1rem;
+}
+
+.task-delete-confirmation-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  justify-content: flex-end;
+}
+
 @media (max-width: 1180px) {
   .tasks-page {
     padding: 0.65rem;
