@@ -7,7 +7,7 @@ Phase 5 completes the Woning setup-to-runtime chain: reliable schema upgrades, r
 | Slice | Status | Outcome |
 | --- | --- | --- |
 | 5.1 Repair and prove the Home Assistant migration | Completed 2026-08-08 | Restored EF discovery for the existing resume-strategy migration, proved clean and active-database upgrades, added safe migration health detail, and verified the live provider endpoint after upgrade. |
-| 5.2 House navigation and viewport analysis | Not started | Make the Woning runtime reachable through an approved viewport-safe composition. |
+| 5.2 House navigation and viewport analysis | Completed 2026-08-08 | Promoted Woning to primary navigation, added stable shared routes, and made every runtime availability state explicit within the approved viewport-safe composition. |
 | 5.3 Room climate configuration UI | Not started | Provide durable room-level climate policy editing with honest state and validation. |
 | 5.4 Provider/source mapping management | Not started | Provide the complete climate mapping lifecycle and health workspace. |
 | 5.5 Floor-plan upload and replacement entry | Not started | Let a normal user establish and replace the first floor plan. |
@@ -24,18 +24,27 @@ Normal startup records pending migration count before applying migrations and re
 
 Validation: focused migration/health tests 7/7; full backend 640/640; full frontend 354/354 with the documented 20-second timeout budget; solution and frontend builds; required PostgreSQL migration tests 4/4; `dotnet ef migrations list`; no EF model drift; idempotent migration script generation; and two hash-identical pinned NSwag 14.7.1 generations. The implementation report is `docs/reports/2026-08-08-home-assistant-migration-repair/implementation.md`.
 
+## Slice 5.2 implementation boundary
+
+The approved viewport analysis promotes `Woning` to the existing primary navigation rather than adding a second entry rail or burying runtime status in Settings. One shared route map now owns `/`, `/agenda`, `/taken`, `/boodschappen`, `/motivatie`, `/woning`, `/woning/klimaat`, `/instellingen`, and `/weekritueel`; initial loads, in-app navigation, reloads, and browser history resolve through that same map.
+
+The compact Woning summary distinguishes loading, error, empty, available, and degraded states. The detailed climate view renders its established bounded three-region composition only after data loads successfully, adds explicit loading/error/empty surfaces, and preserves truthful unconfigured/provider-unavailable copy plus backend-authoritative disabled heating controls. Configuration editing, provider mapping, plan upload, credentials, and provider lifecycle remain in Slices 5.3–5.6.
+
+Validation: focused frontend tests 37/37; full frontend 360/360 with the established 20-second timeout budget; full backend 640/640; solution and frontend builds; PostgreSQL migration tests 4/4; EF list/model-drift/idempotent-script checks; two hash-identical pinned NSwag 14.7.1 generations; and PostgreSQL-backed Playwright 11/11. Real-browser inspection and the automated guard both confirm zero document-level vertical overflow for Woning summary and climate detail at 1440×900 and 1366×768. The approved analysis and implementation report are under `docs/reports/2026-08-08-house-navigation/`.
+
 ## Fixed boundaries
 
 - Work remains one numeric slice and one commit per run.
 - Slice 5.1 repairs migration discovery and diagnostics only; it does not redesign Settings or Woning.
-- Primary-page layout work starts only after the required Slice 5.2 viewport analysis is approved.
+- Slice 5.2 changes reachability, shared routing, and runtime state presentation only; configuration and provider-management workflows remain deferred.
+- Further primary-page layout work still requires its own approved viewport analysis.
 - Provider credentials and lifecycle remain Slice 5.6.
 - Weather location remains Slice 5.7.
 
 ## Phase exit criteria
 
 - [x] Provider endpoint and DB upgrades are healthy.
-- [ ] House runtime is reachable through an approved viewport-safe composition.
+- [x] House runtime is reachable through an approved viewport-safe composition.
 - [ ] Climate configuration and mapping lifecycle work end to end.
 - [ ] A normal user can upload the first floor plan.
 - [ ] Provider credentials remain secret and lifecycle is manageable.

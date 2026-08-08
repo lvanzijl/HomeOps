@@ -25,17 +25,21 @@ import { loadWorkspaceLayout } from './workspaceLayout';
 import {
   administrationWorkspaceDefinitions,
   primaryWorkspaceDefinitions,
-  WorkspaceDefinition,
   WorkspaceId,
   workspaceDefinitions,
 } from './workspaceModel';
+import { resolveWorkspaceRoute, workspacePath, type HouseView } from './workspaceRoutes';
 
-function getInitialWorkspace(): WorkspaceDefinition {
-  return workspaceDefinitions[0];
+function getInitialRoute() {
+  if (typeof window === 'undefined') {
+    return { workspaceId: workspaceDefinitions[0].id, houseView: 'summary' as HouseView };
+  }
+
+  return resolveWorkspaceRoute(window.location.pathname) ?? { workspaceId: workspaceDefinitions[0].id, houseView: 'summary' as HouseView };
 }
 
 export function WorkspaceShell() {
-  const [activeWorkspaceId, setActiveWorkspaceId] = useState<WorkspaceId>(getInitialWorkspace().id);
+  const [activeWorkspaceId, setActiveWorkspaceId] = useState<WorkspaceId>(() => getInitialRoute().workspaceId);
   const [activeFamilyMemberId, setActiveFamilyMemberId] = useState<string | null>(null);
   const [members, setMembers] = useState<FamilyMember[]>([]);
   const [isAddingMember, setIsAddingMember] = useState(false);
@@ -46,11 +50,11 @@ export function WorkspaceShell() {
   const [onboardingStatusError, setOnboardingStatusError] = useState(false);
   const [householdTimeZoneId, setHouseholdTimeZoneId] = useState('Europe/Amsterdam');
   const [settingsNeedsAttention, setSettingsNeedsAttention] = useState(false);
-  const [houseView, setHouseView] = useState<'summary' | 'climate'>('summary');
+  const [houseView, setHouseView] = useState<HouseView>(() => getInitialRoute().houseView);
   const [climateStoryContext, setClimateStoryContext] = useState<ClimateStoryDeepLink | undefined>();
 
   const activeWorkspace = useMemo(
-    () => workspaceDefinitions.find((workspace) => workspace.id === activeWorkspaceId) ?? getInitialWorkspace(),
+    () => workspaceDefinitions.find((workspace) => workspace.id === activeWorkspaceId) ?? workspaceDefinitions[0],
     [activeWorkspaceId],
   );
 
@@ -75,6 +79,28 @@ export function WorkspaceShell() {
   const activeWorkspaceIsAdministration = administrationWorkspaceDefinitions.some((workspace) => workspace.id === activeWorkspace.id);
   useEffect(() => {
     void refreshFamilyMembers();
+  }, []);
+
+  useEffect(() => {
+    function applyCurrentPath() {
+      const route = resolveWorkspaceRoute(window.location.pathname);
+      if (!route) {
+        window.history.replaceState(null, '', '/');
+        setActiveWorkspaceId('home');
+        setHouseView('summary');
+      } else {
+        setActiveWorkspaceId(route.workspaceId);
+        setHouseView(route.houseView);
+      }
+      setActiveFamilyMemberId(null);
+      setClimateStoryContext(undefined);
+    }
+
+    if (!resolveWorkspaceRoute(window.location.pathname)) {
+      applyCurrentPath();
+    }
+    window.addEventListener('popstate', applyCurrentPath);
+    return () => window.removeEventListener('popstate', applyCurrentPath);
   }, []);
 
   async function refreshFamilyMembers() {
@@ -106,7 +132,18 @@ export function WorkspaceShell() {
   function navigateWorkspace(workspaceId: WorkspaceId) {
     setActiveFamilyMemberId(null);
     setActiveWorkspaceId(workspaceId);
-    if (workspaceId !== 'house') { setHouseView('summary'); setClimateStoryContext(undefined); }
+    setHouseView('summary');
+    setClimateStoryContext(undefined);
+    const path = workspacePath(workspaceId);
+    if (window.location.pathname !== path) window.history.pushState(null, '', path);
+  }
+
+  function navigateHouseView(view: HouseView) {
+    setActiveFamilyMemberId(null);
+    setActiveWorkspaceId('house');
+    setHouseView(view);
+    const path = workspacePath('house', view);
+    if (window.location.pathname !== path) window.history.pushState(null, '', path);
   }
 
   async function updateFamilyMember(updated: FamilyMember) {
@@ -161,7 +198,7 @@ export function WorkspaceShell() {
   }
 
   if (requiresOnboarding) {
-    return <FirstRunWizard initialMembers={members} onComplete={(updatedMembers) => { setMembers([...updatedMembers]); setRequiresOnboarding(false); setActiveWorkspaceId('home'); setActiveFamilyMemberId(null); void loadOnboardingStatus().then((status) => { setSetupChecklist(status.setupChecklist); setHouseholdTimeZoneId(status.timeZoneId ?? 'Europe/Amsterdam'); }); }} />;
+    return <FirstRunWizard initialMembers={members} onComplete={(updatedMembers) => { setMembers([...updatedMembers]); setRequiresOnboarding(false); navigateWorkspace('home'); void loadOnboardingStatus().then((status) => { setSetupChecklist(status.setupChecklist); setHouseholdTimeZoneId(status.timeZoneId ?? 'Europe/Amsterdam'); }); }} />;
   }
 
   const widgetInstances = activeWorkspace.id === 'agenda'
@@ -241,7 +278,7 @@ export function WorkspaceShell() {
           ) : activeWorkspace.id === 'weeklyReset' ? (
             <WeeklyResetPage />
           ) : activeWorkspace.id === 'house' ? (
-            houseView === 'climate' ? <WoningClimatePage initialStoryContext={climateStoryContext} onBack={() => { setHouseView('summary'); setClimateStoryContext(undefined); }} onOpenClimateSettings={() => { setActiveWorkspaceId('settings'); setHouseView('summary'); }} /> : <WoningSummaryPage onOpenClimate={(context) => { setClimateStoryContext(context); setHouseView('climate'); }} />
+            houseView === 'climate' ? <WoningClimatePage initialStoryContext={climateStoryContext} onBack={() => { setClimateStoryContext(undefined); navigateHouseView('summary'); }} onOpenClimateSettings={() => navigateWorkspace('settings')} /> : <WoningSummaryPage onOpenClimate={(context) => { setClimateStoryContext(context); navigateHouseView('climate'); }} onOpenSettings={() => navigateWorkspace('settings')} />
           ) : activeWorkspace.id === 'media' ? (
             <DomainPlaceholderPage title="Media" purpose="Voor toekomstige mediaherinneringen en gezinscontext." />
           ) : activeWorkspace.id === 'gamification' ? (

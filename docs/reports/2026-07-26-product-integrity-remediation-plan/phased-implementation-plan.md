@@ -31,7 +31,7 @@ Do not check a phase merely because one of its slices is complete. A phase is co
 | [x] | **Phase 2 — Truthful first run and family persistence** | **Completed** | Slices 2.1–2.6 are complete, including family administration/restore and the persisted setup checklist | Fresh install onboards correctly; family changes survive refresh with honest error handling |
 | [x] | **Phase 3 — Calendar and local-time correctness** | **Completed** | Calendar-field writes, household time zone, source lifecycle, device preferences, and truthful reminder scope are complete | Home and Agenda preserve household-local calendar intent and accurately state that notifications are not delivered |
 | [x] | **Phase 4 — Tasks and Weekly Reset completion** | **Completed 2026-08-08** | Task APIs, routines, and Weekly Reset foundation exist; Slice 4.0 interaction authority is approved | Core task controls are operable and every reset candidate can be resolved and completed |
-| [ ] | **Phase 5 — House, climate, and household settings** | **In progress** | Slice 5.1 repaired and proved the Home Assistant migration/provider runtime; UI/configuration slices remain | Woning setup-to-runtime chain is reachable, healthy, configurable, and viewport-safe |
+| [ ] | **Phase 5 — House, climate, and household settings** | **In progress** | Slices 5.1–5.2 repaired the migration/provider runtime and made Woning reachable through stable viewport-safe routes; configuration slices remain | Woning setup-to-runtime chain is reachable, healthy, configurable, and viewport-safe |
 | [ ] | **Phase 6 — Shopping and Motivation lifecycle completion** | **Not started** | Both domains are PostgreSQL-backed | Common create/edit/archive/restore/correction workflows are complete and cross-device |
 | [ ] | **Phase 7 — Navigation, backup, errors, and consistency** | **Not started** | Individual foundations exist | Cross-cutting behavior is routable, recoverable, consistently worded, and accurately backed up |
 | [ ] | **Phase 8 — Optional product breadth** | **Not started** | Placeholders only | Each optional feature is either deliberately implemented or deliberately removed from product expectations |
@@ -897,7 +897,7 @@ Before changing Tasks layout or action placement, write the repository-required 
 
 ### Slice 5.2 — House navigation and viewport analysis
 
-- [ ] **Status: Not started**
+- [x] **Status: Completed 2026-08-08**
 
 **Audit ID:** HOUSE-01
 
@@ -909,6 +909,8 @@ Before changing Tasks layout or action placement, write the repository-required 
 4. Add loading, empty, unconfigured, degraded-provider, and error states.
 5. Add URL/deep-link support in coordination with Slice 7.1; do not create a second navigation system.
 6. Validate no document scrolling at common laptop/desktop viewports.
+
+**Implementation state:** The approved viewport analysis promotes Woning to the existing primary navigation and retains the established bounded climate composition. A single route map now resolves initial loads, in-app transitions, reloads, and browser history for all current top-level workspaces, including stable `/woning` and `/woning/klimaat` paths without introducing another navigation system. Woning summary and detail expose explicit loading, error, empty, unconfigured, and provider-degraded states; heating controls remain disabled unless backend capability says they are safe. Focused frontend tests pass 37/37, frontend 360/360, backend 640/640, both builds, PostgreSQL 4/4, EF list/drift/idempotent-script checks, twice-identical pinned NSwag 14.7.1 generation, and Playwright 11/11. Automated and real-browser checks show zero document overflow at 1440×900 and 1366×768. See `docs/reports/2026-08-08-house-navigation/` and `docs/roadmap/phase-5.md`.
 
 ### Slice 5.3 — Room climate configuration UI
 
@@ -988,7 +990,7 @@ Before changing Tasks layout or action placement, write the repository-required 
 ### Phase 5 exit criteria
 
 - [x] Provider endpoint and DB upgrades are healthy.
-- [ ] House runtime is reachable through an approved viewport-safe composition.
+- [x] House runtime is reachable through an approved viewport-safe composition.
 - [ ] Climate configuration and mapping lifecycle work end to end.
 - [ ] A normal user can upload the first floor plan.
 - [ ] Provider credentials remain secret and lifecycle is manageable.
@@ -1269,7 +1271,7 @@ Every audit finding must appear exactly once as the primary responsibility of a 
 | MEMBER-01 | 2.1 Canonical avatar contract | [x] Completed |
 | MEMBER-02 | 2.2 Honest member mutations | [x] Completed |
 | TIME-01 | 3.1–3.3 Calendar-field correction | [x] Completed |
-| HOUSE-01 | 5.2 House navigation | [ ] Not started |
+| HOUSE-01 | 5.2 House navigation | [x] Completed |
 | CLIMATE-01 | 5.3 Climate configuration UI | [ ] Not started |
 | CLIMATE-02 | 5.4 Mapping management | [ ] Not started |
 | RESET-01 | 4.5 Persisted Weekly Reset | [x] Completed |

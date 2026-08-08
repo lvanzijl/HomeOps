@@ -64,6 +64,7 @@ afterEach(() => cleanup());
 
 describe('WorkspaceShell API-backed layouts', () => {
   beforeEach(async () => {
+    window.history.replaceState(null, '', '/');
     vi.clearAllMocks();
     const workspaceLayout = await mockedWorkspaceLayout();
     const calendarSourcesApi = await mockedCalendarSourcesApi();
@@ -241,10 +242,10 @@ describe('WorkspaceShell API-backed layouts', () => {
     expect(within(dailyWork).getByRole('button', { name: 'Taken' })).not.toBeNull();
     expect(within(dailyWork).getByRole('button', { name: 'Boodschappen' })).not.toBeNull();
     expect(within(dailyWork).getByRole('button', { name: 'Motivatie' })).not.toBeNull();
+    expect(within(dailyWork).getByRole('button', { name: 'Woning' })).not.toBeNull();
     expect(within(dailyWork).queryByRole('button', { name: 'Instellingen' })).toBeNull();
     expect(within(dailyWork).queryByRole('button', { name: 'Weekritueel' })).toBeNull();
     expect(within(dailyWork).queryByRole('button', { name: 'Media' })).toBeNull();
-    expect(within(dailyWork).queryByRole('button', { name: 'House Status' })).toBeNull();
     expect(within(dailyWork).queryByRole('button', { name: 'Gamification' })).toBeNull();
   });
 
@@ -252,10 +253,28 @@ describe('WorkspaceShell API-backed layouts', () => {
     render(<WorkspaceShell />);
 
     await screen.findByText('Open Agenda');
-    expect(screen.queryByRole('button', { name: 'House Status' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Woning' })).not.toBeNull();
     expect(screen.queryByRole('button', { name: 'Media' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Gamification' })).toBeNull();
     expect(screen.queryByLabelText('Incidenteel en toekomstig werk')).toBeNull();
+  });
+
+  it('keeps Woning navigation and browser history on stable shared routes', async () => {
+    const user = userEvent.setup();
+    render(<WorkspaceShell />);
+
+    await user.click(await screen.findByRole('button', { name: 'Woning' }));
+    expect(window.location.pathname).toBe('/woning');
+    expect(screen.getByRole('button', { name: 'Woning' }).getAttribute('aria-current')).toBe('page');
+    expect(screen.getByRole('heading', { name: 'Huisstatus' })).not.toBeNull();
+
+    window.history.pushState(null, '', '/woning/klimaat');
+    window.dispatchEvent(new PopStateEvent('popstate'));
+    expect(await screen.findByRole('heading', { name: 'Klimaat per verdieping en kamer' })).not.toBeNull();
+
+    window.history.pushState(null, '', '/woning');
+    window.dispatchEvent(new PopStateEvent('popstate'));
+    expect(await screen.findByRole('heading', { name: 'Huisstatus' })).not.toBeNull();
   });
 
   it('keeps settings available as administration instead of primary navigation', async () => {

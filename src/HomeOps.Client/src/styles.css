@@ -11636,7 +11636,15 @@ button {
 @media (max-width: 640px) { .replacement-workspace { max-height: 76vh; } .replacement-plans { display: none; } .replacement-detail fieldset label { align-items: flex-start; } }
 
 .woning-story-page, .climate-workspace { height: 100%; min-height: 0; display: flex; flex-direction: column; gap: 1rem; overflow: hidden; }
-.woning-climate-entry { border: 1px solid rgba(93, 64, 55, .18); border-radius: 1.25rem; padding: 1rem; background: rgba(255, 251, 246, .78); }
+.woning-story-page > h3, .woning-story-page > p { margin: 0; }
+.woning-climate-entry { border: 1px solid rgba(93, 64, 55, .18); border-radius: 1.25rem; padding: 1rem; background: rgba(255, 251, 246, .78); min-height: 0; overflow: auto; }
+.woning-climate-entry h4, .woning-climate-entry p { margin-top: 0; }
+.woning-runtime-state, .climate-runtime-state { border: 1px dashed rgba(93,64,55,.24); border-radius: 1rem; background: rgba(255,255,255,.66); padding: .85rem; }
+.woning-runtime-state { display: grid; gap: .55rem; justify-items: start; }
+.woning-runtime-state p { margin: 0; }
+.woning-runtime-attention { color: #92400e; font-weight: 800; }
+.climate-runtime-state { flex: 1 1 auto; min-height: 0; overflow: auto; }
+.climate-runtime-state h4 { margin-top: 0; }
 .climate-summary-pills, .climate-floor-summary, .floor-tabs, .room-filters, .climate-header { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; }
 .climate-summary-pills span, .climate-floor-summary span { border-radius: 999px; background: rgba(120, 86, 62, .10); padding: .35rem .65rem; }
 .climate-header { justify-content: space-between; flex: 0 0 auto; }

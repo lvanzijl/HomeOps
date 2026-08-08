@@ -133,6 +133,7 @@ test("empty-roster family administration can add, remove, and restore across ref
   expect((await restoreResponse).ok()).toBe(true);
 
   await page.reload();
+  await page.getByLabel("Dagelijkse gezinsplekken").getByRole("button", { name: "Thuis", exact: true }).click();
   await expect(page.getByRole("button", { name: "Taylor gezinslidpagina openen" })).toBeVisible();
 });
 
@@ -400,7 +401,7 @@ test("weekly reset decisions resume after refresh and complete into read-only hi
   await resetFixture(request, "visual-weekly-reset");
 
   const openWeeklyReset = async () => {
-    await page.getByRole("button", { name: "Taken", exact: true }).click();
+    await page.getByLabel("Dagelijkse gezinsplekken").getByRole("button", { name: "Taken", exact: true }).click();
     await page.getByRole("button", { name: "Gezinsreset openen" }).click();
     await expect(page.getByRole("heading", { name: "Weekritueel" })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Kies bewust wat meegaat|Deze week is afgerond/ })).toBeVisible();
@@ -456,8 +457,33 @@ test("weekly reset decisions resume after refresh and complete into read-only hi
   await expectNoDocumentScroll(page, "Weekly Reset history at 1366x768");
 });
 
+test("Woning supports stable summary and climate deep links with browser history", async ({ page, request }) => {
+  await resetFixture(request, "visual-full");
+  await seedWoningRuntime(request);
+  await page.setViewportSize({ width: 1366, height: 768 });
+
+  await page.goto("/woning");
+  await expect(page.getByRole("button", { name: "Woning", exact: true })).toHaveAttribute("aria-current", "page");
+  await expect(page.getByRole("heading", { name: "Huisstatus" })).toBeVisible();
+  await expectNoDocumentScroll(page, "Woning summary deep link at 1366x768");
+
+  await page.getByRole("button", { name: "Klimaat bekijken" }).click();
+  await expect(page).toHaveURL(/\/woning\/klimaat$/);
+  await expect(page.getByRole("heading", { name: "Klimaat per verdieping en kamer" })).toBeVisible();
+  await expect(page.getByText("Deze kamer is nog niet gekoppeld aan een klimaatbron.").first()).toBeVisible();
+  await expect(page.getByText("De klimaatbron is niet beschikbaar.").first()).toBeVisible();
+  await expectNoDocumentScroll(page, "Woning climate route at 1366x768");
+
+  await page.reload();
+  await expect(page.getByRole("heading", { name: "Klimaat per verdieping en kamer" })).toBeVisible();
+  await page.goBack();
+  await expect(page).toHaveURL(/\/woning$/);
+  await expect(page.getByRole("heading", { name: "Huisstatus" })).toBeVisible();
+});
+
 test("primary pages do not create document-level vertical scrolling", async ({ page, request }) => {
   await resetFixture(request, "visual-full");
+  await seedWoningRuntime(request);
 
   for (const viewport of [
     { width: 1440, height: 900 },
@@ -466,12 +492,17 @@ test("primary pages do not create document-level vertical scrolling", async ({ p
     await page.setViewportSize(viewport);
     await page.goto("/");
 
-    for (const label of ["Thuis", "Agenda", "Taken", "Boodschappen", "Motivatie"]) {
-      await page.getByRole("button", { name: label, exact: true }).click();
+    for (const label of ["Thuis", "Agenda", "Taken", "Boodschappen", "Motivatie", "Woning"]) {
+      await page.getByLabel("Dagelijkse gezinsplekken").getByRole("button", { name: label, exact: true }).click();
       await expectNoDocumentScroll(page, `${label} at ${viewport.width}x${viewport.height}`);
     }
 
-    await page.getByRole("button", { name: "Taken", exact: true }).click();
+    await page.getByRole("button", { name: "Klimaat bekijken" }).click();
+    await expect(page.getByRole("heading", { name: "Klimaat per verdieping en kamer" })).toBeVisible();
+    await expectNoDocumentScroll(page, `Woning klimaat at ${viewport.width}x${viewport.height}`);
+    await page.getByRole("button", { name: "Terug naar Woning" }).click();
+
+    await page.getByLabel("Dagelijkse gezinsplekken").getByRole("button", { name: "Taken", exact: true }).click();
     await page.getByRole("button", { name: "Gezinsreset openen" }).click();
     await expectNoDocumentScroll(page, `Weekritueel at ${viewport.width}x${viewport.height}`);
     await page.getByRole("button", { name: "Eerdere weken" }).click();
@@ -495,11 +526,11 @@ test("primary pages do not create document-level vertical scrolling", async ({ p
     await expectNoDocumentScroll(page, `Gezinsledenbeheer at ${viewport.width}x${viewport.height}`);
     await page.getByRole("button", { name: "Gezinsleden sluiten" }).click();
 
-    await page.getByRole("button", { name: "Thuis", exact: true }).click();
+    await page.getByLabel("Dagelijkse gezinsplekken").getByRole("button", { name: "Thuis", exact: true }).click();
     await page.getByRole("button", { name: "Afspraak toevoegen" }).click();
     await expectNoDocumentScroll(page, `Home quick-add at ${viewport.width}x${viewport.height}`);
     await page.getByRole("button", { name: "Afspraak toevoegen sluiten" }).click();
-    await page.getByRole("button", { name: "Agenda", exact: true }).click();
+    await page.getByLabel("Dagelijkse gezinsplekken").getByRole("button", { name: "Agenda", exact: true }).click();
     await page.getByRole("button", { name: "Dit apparaat" }).click();
     await expect(page.getByRole("dialog", { name: "Agenda-instellingen voor dit apparaat" })).toBeVisible();
     await expectNoDocumentScroll(page, `Agenda-apparaatinstellingen at ${viewport.width}x${viewport.height}`);
@@ -508,14 +539,16 @@ test("primary pages do not create document-level vertical scrolling", async ({ p
     await expectNoDocumentScroll(page, `Agenda editor at ${viewport.width}x${viewport.height}`);
     const agendaEditor = page.getByRole("dialog", { name: "Afspraak toevoegen" });
     await agendaEditor.getByLabel("Wat gebeurt er?").fill("Viewport controle");
-    for (let step = 0; step < 3; step += 1) {
-      await agendaEditor.getByRole("button", { name: "Verder" }).click();
-    }
+    await agendaEditor.getByRole("button", { name: "Verder" }).click();
+    await expect(agendaEditor.getByText("Wanneer is het?")).toBeVisible();
+    await agendaEditor.getByRole("button", { name: "Verder" }).click();
+    await expect(agendaEditor.getByText("Duurt het de hele dag?")).toBeVisible();
+    await agendaEditor.getByRole("button", { name: "Verder" }).click();
     await expect(agendaEditor.getByText("HomeOps bewaart afspraken, maar stuurt geen herinneringen of notificaties.")).toBeVisible();
     await expectNoDocumentScroll(page, `Agenda details zonder herinneringen at ${viewport.width}x${viewport.height}`);
     await page.keyboard.press("Escape");
     await expect(agendaEditor).toHaveCount(0);
-    await page.getByRole("button", { name: "Thuis", exact: true }).click();
+    await page.getByLabel("Dagelijkse gezinsplekken").getByRole("button", { name: "Thuis", exact: true }).click();
     await page.getByRole("button", { name: "Alex gezinslidpagina openen" }).click();
     await expectNoDocumentScroll(page, `Mijn pagina at ${viewport.width}x${viewport.height}`);
   }
@@ -524,6 +557,43 @@ test("primary pages do not create document-level vertical scrolling", async ({ p
 async function resetFixture(request: APIRequestContext, scenario: string) {
   const response = await request.post(`/api/visual-review-fixtures/${scenario}/reset`);
   expect(response.ok(), await response.text()).toBe(true);
+}
+
+async function seedWoningRuntime(request: APIRequestContext) {
+  const floorsResponse = await request.get("/api/floors");
+  expect(floorsResponse.ok(), await floorsResponse.text()).toBe(true);
+  const floors = await floorsResponse.json() as { id: string; name: string }[];
+  if (floors.some((floor) => floor.name === "E2E Klimaat")) {
+    return;
+  }
+
+  const floorResponse = await request.post("/api/floors", {
+    data: { name: "E2E Klimaat" },
+  });
+  expect(floorResponse.ok(), await floorResponse.text()).toBe(true);
+  const floor = await floorResponse.json() as { id: string };
+
+  const configuredRoomResponse = await request.post(`/api/floors/${floor.id}/rooms`, {
+    data: { name: "Woonkamer", roomType: 2 },
+  });
+  expect(configuredRoomResponse.ok(), await configuredRoomResponse.text()).toBe(true);
+  const configuredRoom = await configuredRoomResponse.json() as { id: string };
+
+  const configurationResponse = await request.put(`/api/rooms/${configuredRoom.id}/climate-configuration`, {
+    data: {
+      heatingPolicyIntent: 1,
+      humidityRange: { maximum: 60, minimum: 40 },
+      isBedtimeRelevant: false,
+      isClimateEnabled: true,
+      temperatureRange: { maximum: 22, minimum: 18 },
+    },
+  });
+  expect(configurationResponse.ok(), await configurationResponse.text()).toBe(true);
+
+  const unconfiguredRoomResponse = await request.post(`/api/floors/${floor.id}/rooms`, {
+    data: { name: "Werkkamer", roomType: 5 },
+  });
+  expect(unconfiguredRoomResponse.ok(), await unconfiguredRoomResponse.text()).toBe(true);
 }
 
 async function openFamilyAdministration(page: Page) {

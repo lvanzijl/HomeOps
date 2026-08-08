@@ -131,16 +131,37 @@ function roomIssue(room: RoomClimateStateDto) {
   return room.issues?.[0];
 }
 
-export function WoningSummaryPage({ onOpenClimate }: { onOpenClimate: (context?: ClimateStoryDeepLink) => void }) {
+export function WoningSummaryPage({ onOpenClimate, onOpenSettings }: { onOpenClimate: (context?: ClimateStoryDeepLink) => void; onOpenSettings?: () => void }) {
   const [summary, setSummary] = useState<FloorClimateSummaryDto[]>([]);
-  const [status, setStatus] = useState('Klimaatoverzicht laden…');
-  useEffect(() => { let ignore = false; loadHouseholdClimateSummary().then((s) => { if (!ignore) { setSummary(s.floors ?? []); setStatus('Klimaatoverzicht geladen.'); } }).catch(() => { if (!ignore) setStatus('Klimaatoverzicht niet beschikbaar.'); }); return () => { ignore = true; }; }, []);
+  const [loadState, setLoadState] = useState<'loading' | 'ready' | 'error'>('loading');
+  const load = useCallback(async () => {
+    setLoadState('loading');
+    try {
+      const result = await loadHouseholdClimateSummary();
+      setSummary(result.floors ?? []);
+      setLoadState('ready');
+    } catch {
+      setLoadState('error');
+    }
+  }, []);
+  useEffect(() => { void load(); }, [load]);
   const unavailable = summary.reduce((total, floor) => total + (floor.counts?.unavailableRooms ?? 0), 0);
   const stale = summary.reduce((total, floor) => total + (floor.counts?.staleRooms ?? 0), 0);
-  const mostUnavailable = [...summary].sort((a, b) => (b.counts?.unavailableRooms ?? 0) - (a.counts?.unavailableRooms ?? 0))[0];
+  const isDegraded = unavailable > 0 || stale > 0;
+  const mostUnavailable = [...summary].sort((a, b) => ((b.counts?.unavailableRooms ?? 0) * 100 + (b.counts?.staleRooms ?? 0)) - ((a.counts?.unavailableRooms ?? 0) * 100 + (a.counts?.staleRooms ?? 0)))[0];
   return <article className="woning-story-page" aria-label="Huisstatus">
-    <p className="widget-type">Woning</p><h3>Huisstatus</h3><p>Story-first overzicht voor wonen. Klimaatdetails blijven in een rustige verdiepingsweergave.</p>
-    <section className="woning-climate-entry"><h4>Klimaat in huis</h4><p role="status">{status}</p><div className="climate-summary-pills"><span>{unavailable} niet beschikbaar</span><span>{stale} verouderd</span><span>Meeste uitval: {mostUnavailable?.floorName ?? 'geen verdieping'}</span></div><button type="button" onClick={() => onOpenClimate(unavailable > 0 || stale > 0 ? { title: 'Klimaat in huis vraagt aandacht', floorId: mostUnavailable?.floorId, contextCode: unavailable > 0 ? 'provider-unavailable' : 'room-observation-stale', explanation: unavailable > 0 ? 'Een klimaatbron was niet beschikbaar toen dit aandachtspunt werd gemaakt.' : 'Bekijk hieronder de huidige status.' } : undefined)}>Klimaat bekijken</button></section>
+    <p className="widget-type">Woning</p><h3>Huisstatus</h3><p>Bekijk de actuele klimaatstatus en open alleen bediening die veilig beschikbaar is.</p>
+    <section aria-busy={loadState === 'loading'} className={`woning-climate-entry woning-climate-entry--${loadState}`}>
+      <h4>Klimaat in huis</h4>
+      {loadState === 'loading' ? <p role="status">Klimaatoverzicht laden…</p> : null}
+      {loadState === 'error' ? <div className="woning-runtime-state"><p role="alert">Klimaatoverzicht kon niet worden geladen.</p><button type="button" onClick={() => void load()}>Opnieuw proberen</button></div> : null}
+      {loadState === 'ready' && summary.length === 0 ? <div className="woning-runtime-state"><p role="status"><strong>Nog geen woning ingesteld.</strong></p><p>Voeg eerst een verdieping en kamer toe via Instellingen. Klimaatbediening wordt pas zichtbaar nadat de backend een veilige koppeling bevestigt.</p>{onOpenSettings ? <button type="button" onClick={onOpenSettings}>Woning instellen</button> : null}</div> : null}
+      {loadState === 'ready' && summary.length > 0 ? <>
+        <p className={isDegraded ? 'woning-runtime-attention' : undefined} role="status">{isDegraded ? 'Klimaat vraagt aandacht.' : 'Klimaatstatus beschikbaar.'}</p>
+        <div className="climate-summary-pills"><span>{unavailable} niet beschikbaar</span><span>{stale} verouderd</span><span>{isDegraded ? `Meeste aandacht: ${mostUnavailable?.floorName ?? 'onbekend'}` : `${summary.length} ${summary.length === 1 ? 'verdieping' : 'verdiepingen'}`}</span></div>
+        <button type="button" onClick={() => onOpenClimate(isDegraded ? { title: 'Klimaat in huis vraagt aandacht', floorId: mostUnavailable?.floorId, contextCode: unavailable > 0 ? 'provider-unavailable' : 'room-observation-stale', explanation: unavailable > 0 ? 'Een klimaatbron was niet beschikbaar toen dit aandachtspunt werd gemaakt.' : 'Bekijk hieronder de huidige status.' } : undefined)}>Klimaat bekijken</button>
+      </> : null}
+    </section>
   </article>;
 }
 
@@ -191,7 +212,8 @@ export function WoningClimatePage({ onBack, initialStoryContext, onOpenClimateSe
     } catch { setError('Klimaatgegevens konden niet worden geladen.'); }
     finally { setLoading(false); }
   }, [client]);
-  useEffect(() => { void load(initialStoryContext?.floorId, initialStoryContext?.roomId).then(() => { if (initialStoryContext) storyHeadingRef.current?.focus(); }); }, []);
+  useEffect(() => { void load(initialStoryContext?.floorId, initialStoryContext?.roomId); }, []);
+  useEffect(() => { if (!loading && storyContext) storyHeadingRef.current?.focus(); }, [loading, storyContext]);
   async function selectFloor(floorId: string) { setSelectedFloorId(floorId); setSelectedRoomId(undefined); setStoryCollapsed(true); await load(floorId); }
 
   const rooms = floorState?.rooms ?? [];
@@ -203,7 +225,10 @@ export function WoningClimatePage({ onBack, initialStoryContext, onOpenClimateSe
 
   return <article className="climate-workspace" aria-label="Klimaat in huis">
     <header className="climate-header"><button type="button" onClick={onBack}>Terug naar Woning</button><div><p className="widget-type">Klimaat in huis</p><h3>Klimaat per verdieping en kamer</h3></div><button type="button" onClick={async () => { await load(selectedFloorId); await refreshSelectedCapability(); }}>Vernieuwen</button></header>
-    {loading ? <p role="status">Klimaatgegevens laden…</p> : null}{error ? <p role="alert">{error} <button type="button" onClick={() => load(selectedFloorId)}>Opnieuw proberen</button></p> : null}
+    {loading ? <section className="climate-runtime-state" aria-busy="true"><p role="status">Klimaatgegevens laden…</p></section> : null}
+    {!loading && error ? <section className="climate-runtime-state"><p role="alert">{error}</p><button type="button" onClick={() => void load(selectedFloorId)}>Opnieuw proberen</button></section> : null}
+    {!loading && !error && floors.length === 0 ? <section className="climate-runtime-state"><h4>Nog geen woning ingesteld</h4><p>Er zijn nog geen verdiepingen of kamers om te tonen. Stel de woning eerst in; verwarmingsbediening blijft tot die tijd verborgen.</p>{onOpenClimateSettings ? <button type="button" onClick={() => onOpenClimateSettings()}>Woning instellen</button> : null}</section> : null}
+    {!loading && !error && floors.length > 0 ? <>
     <section className="floor-tabs" aria-label="Verdiepingen">{floors.map((f) => <button key={f.floorId} aria-pressed={f.floorId === selectedFloorId} onClick={() => f.floorId && selectFloor(f.floorId)}>{f.floorName}<small>{freshnessLabel(f.overallAvailability)}</small></button>)}</section>
     <section className="climate-floor-summary" aria-label="Samenvatting verdieping"><strong>{floorState?.floorName ?? 'Geen verdieping'}</strong><span>Actueel {floorState?.counts?.freshRooms ?? 0}</span><span>Wordt ouder {floorState?.counts?.agingRooms ?? 0}</span><span>Verouderd {floorState?.counts?.staleRooms ?? 0}</span><span>Niet beschikbaar {floorState?.counts?.unavailableRooms ?? 0}</span><span>Op plan {floorState?.counts?.trustedOverlayRooms ?? 0}</span><span>Fallback {floorState?.counts?.fallbackRooms ?? 0}</span><span>{floorState?.activeAsset?.derivativeUrl ? 'Actieve plattegrond beschikbaar' : 'Geen actieve plattegrond'}</span><span>{floorState?.observedSummaryUtc ? `Laatste meting ${time(floorState.observedSummaryUtc)}` : 'Geen recente meting beschikbaar'}</span>{refreshedAt ? <span role="status">Bijgewerkt om {time(refreshedAt)}</span> : null}</section>
     <main className="climate-grid">
@@ -212,6 +237,7 @@ export function WoningClimatePage({ onBack, initialStoryContext, onOpenClimateSe
       {storyContext ? <StoryContextPanel context={storyContext} selectedRoom={selectedRoom} notice={storyNotice} collapsed={storyCollapsed} headingRef={storyHeadingRef} dismissRef={storyDismissRef} onToggle={() => setStoryCollapsed((v) => !v)} onDismiss={() => { setStoryContext(undefined); }} onOpenSettings={onOpenClimateSettings} /> : null}
       <RoomDetail room={selectedRoom} rooms={rooms} capability={capability} loading={capabilityLoading} error={capabilityError} onRetry={refreshSelectedCapability} onAfterCommand={async () => { await refreshSelectedCapability(); await load(selectedFloorId); }} client={client} />
     </main>
+    </> : null}
   </article>;
 }
 

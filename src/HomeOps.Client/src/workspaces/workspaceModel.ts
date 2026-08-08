@@ -15,7 +15,7 @@ const navigationRoles: Readonly<Record<WorkspaceId, NavigationRole>> = {
   lists: 'primary',
   motivation: 'primary',
   weeklyReset: 'contextual',
-  house: 'internal',
+  house: 'primary',
   media: 'internal',
   gamification: 'internal',
   settings: 'administration',
@@ -49,8 +49,8 @@ export const workspaceDefinitions: readonly WorkspaceDefinition[] = [
   },
   {
     id: 'house',
-    label: 'Huisstatus',
-    description: 'Voor toekomstige huisstatus, meldingen en apparaten.',
+    label: 'Woning',
+    description: 'Klimaatstatus en veilige verwarmingsbediening per kamer.',
   },
   {
     id: 'media',

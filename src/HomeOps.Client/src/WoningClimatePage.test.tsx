@@ -23,7 +23,36 @@ const overlays = [{ id: 'o1', roomId: 'r1', floorPlanAssetId: 'asset-active', st
 beforeEach(() => { cleanup(); vi.clearAllMocks(); vi.mocked(api.loadHouseholdClimateSummary).mockResolvedValue({ floors: summaries } as never); vi.mocked(api.loadFloorClimateState).mockResolvedValue(floor as never); vi.mocked(api.loadFloorRuntimeOverlays).mockResolvedValue(overlays as never); vi.mocked(api.loadRoomHeatingControlCapability).mockResolvedValue(capability as never); vi.mocked(api.submitTemporaryWarmer).mockResolvedValue({ command: { commandId: 'c1', roomId: 'r1', action: RoomHeatingCommandAction.TemporaryWarmer, status: RoomHeatingCommandStatus.Accepted, requestedTargetTemperatureCelsius: 21.5, durationMinutes: 30 }, isProviderAvailable: true } as never); vi.mocked(api.submitResumeSchedule).mockResolvedValue({ command: { commandId: 'c2', roomId: 'r1', action: RoomHeatingCommandAction.ResumeSchedule, status: RoomHeatingCommandStatus.Succeeded, scheduleResumed: true }, isProviderAvailable: true } as never); });
 
 describe('Woning climate runtime', () => {
-  it('opens from Woning summary entry', async () => { const open = vi.fn(); render(<WoningSummaryPage onOpenClimate={open} />); await screen.findByText('Klimaatoverzicht geladen.'); await userEvent.click(screen.getByRole('button', { name: 'Klimaat bekijken' })); expect(open).toHaveBeenCalled(); expect(screen.getByText('1 niet beschikbaar')).toBeTruthy(); });
+  it('opens degraded Woning summary without presenting climate as ready', async () => { const open = vi.fn(); render(<WoningSummaryPage onOpenClimate={open} />); await screen.findByText('Klimaat vraagt aandacht.'); await userEvent.click(screen.getByRole('button', { name: 'Klimaat bekijken' })); expect(open).toHaveBeenCalledWith(expect.objectContaining({ contextCode: 'provider-unavailable' })); expect(screen.getByText('1 niet beschikbaar')).toBeTruthy(); });
+  it('keeps the summary action hidden while climate status is loading', async () => {
+    let resolveSummary!: (value: unknown) => void;
+    vi.mocked(api.loadHouseholdClimateSummary).mockReturnValueOnce(new Promise((resolve) => { resolveSummary = resolve; }) as never);
+    render(<WoningSummaryPage onOpenClimate={() => undefined} />);
+    expect(screen.getByText('Klimaatoverzicht laden…')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Klimaat bekijken' })).toBeNull();
+    resolveSummary({ floors: summaries });
+    expect(await screen.findByRole('button', { name: 'Klimaat bekijken' })).toBeTruthy();
+  });
+  it('shows a recoverable summary error and an explicit empty setup state', async () => {
+    vi.mocked(api.loadHouseholdClimateSummary).mockRejectedValueOnce(new Error('offline')).mockResolvedValueOnce({ floors: [] } as never);
+    const openSettings = vi.fn();
+    render(<WoningSummaryPage onOpenClimate={() => undefined} onOpenSettings={openSettings} />);
+    expect((await screen.findByRole('alert')).textContent).toContain('Klimaatoverzicht kon niet worden geladen.');
+    await userEvent.click(screen.getByRole('button', { name: 'Opnieuw proberen' }));
+    expect(await screen.findByText('Nog geen woning ingesteld.')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Klimaat bekijken' })).toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: 'Woning instellen' }));
+    expect(openSettings).toHaveBeenCalledTimes(1);
+  });
+  it('shows a bounded empty climate runtime without heating controls', async () => {
+    vi.mocked(api.loadHouseholdClimateSummary).mockResolvedValueOnce({ floors: [] } as never);
+    const openSettings = vi.fn();
+    render(<WoningClimatePage onBack={() => undefined} onOpenClimateSettings={openSettings} />);
+    expect(await screen.findByRole('heading', { name: 'Nog geen woning ingesteld' })).toBeTruthy();
+    expect(screen.queryByText('Verwarming')).toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: 'Woning instellen' }));
+    expect(openSettings).toHaveBeenCalledWith();
+  });
   it('renders floors in order, factual summary, values and Dutch states', async () => { render(<WoningClimatePage onBack={() => undefined} />); expect(await screen.findByRole('button', { name: /Begane grond/ })).toBeTruthy(); const tabs = screen.getByLabelText('Verdiepingen'); expect(within(tabs).getAllByRole('button').map((b) => b.textContent)).toEqual(['Begane grondWordt ouder', 'BovenActueel']); expect(screen.getByText('Actueel 1')).toBeTruthy(); expect(screen.getAllByText(/20.5°C/).length).toBeGreaterThan(0); expect(screen.getAllByText(/Verwarmen/).length).toBeGreaterThan(0); expect(screen.getAllByText(/In rust/).length).toBeGreaterThan(0); expect(screen.getAllByText(/Niet beschikbaar/).length).toBeGreaterThan(0); });
   it('renders only trusted active-asset overlay and synchronizes list selection', async () => { render(<WoningClimatePage onBack={() => undefined} />); const overlay = await screen.findByRole('button', { name: /Woonkamer 20.5°C Verwarmen Actueel/ }); expect(overlay).toBeTruthy(); expect(screen.queryAllByRole('button', { name: /Hal.*Niet beschikbaar/ })).toHaveLength(1); await userEvent.click(screen.getByRole('button', { name: /Keuken/ })); expect(screen.getByLabelText('Geselecteerde kamer').textContent).toContain('Keuken'); expect(screen.getAllByText('Deze kamer is nog niet gekoppeld aan een klimaatbron.').length).toBeGreaterThan(0); });
 
