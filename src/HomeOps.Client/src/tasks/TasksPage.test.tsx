@@ -17,7 +17,7 @@ vi.mock("./tasksApi", () => ({
   completeTask: vi.fn(),
   reopenTask: vi.fn(),
   updateTask: vi.fn(),
-  deleteRecurringTaskSeries: vi.fn(),
+  deleteRecurringTask: vi.fn(),
   loadTaskTemplates: vi.fn(),
   loadArchivedTaskTemplates: vi.fn(),
   createTaskTemplate: vi.fn(),
@@ -193,7 +193,7 @@ describe("TasksPage hierarchy compaction", () => {
     await user.click(moreActions);
     expect(
       screen.getByRole("menuitem", {
-        name: /Routine verwijderen: Pack lunches/,
+        name: /Herhaling beheren: Pack lunches/,
       }),
     ).not.toBeNull();
     await user.keyboard("{Escape}");
@@ -643,6 +643,10 @@ describe("TasksPage hierarchy compaction", () => {
       within(dialog).getByRole("button", { name: "Taak opslaan" }),
     );
 
+    const scopeDialog = screen.getByRole("dialog", { name: "Welke taken aanpassen?" });
+    expect((within(scopeDialog).getByRole("radio", { name: /Alleen deze taak/ }) as HTMLInputElement).checked).toBe(true);
+    await user.click(within(scopeDialog).getByRole("button", { name: "Wijziging toepassen" }));
+
     expect(vi.mocked(api.updateTask)).toHaveBeenCalledWith(
       "recurring-decorated",
       {
@@ -652,8 +656,64 @@ describe("TasksPage hierarchy compaction", () => {
         familyMemberId: "alex",
         recurrenceFrequency: "Weekly",
         decorativeAvatar: null,
+        recurrenceScope: "Occurrence",
       },
     );
+  });
+
+  it("retains a recurring edit draft while choosing occurrence scope", async () => {
+    const user = userEvent.setup();
+    const api = await tasksApi();
+    const recurring = task({ id: "scope-edit", title: "Water plants", recurringTaskSeriesId: "series-scope", recurrenceFrequency: "Weekly" });
+    vi.mocked(api.loadTasks).mockResolvedValue([recurring]);
+    vi.mocked(api.updateTask).mockResolvedValue({ ...recurring, title: "Water all plants" });
+    render(<TasksPage members={familyMembers} />);
+
+    await user.click(await screen.findByRole("button", { name: "Details van Water plants openen" }));
+    const editor = screen.getByRole("dialog", { name: "Taak aanpassen" });
+    const titleInput = within(editor).getByLabelText("Wat moet er gebeuren?");
+    await user.clear(titleInput);
+    await user.type(titleInput, "Water all plants");
+    await user.click(within(editor).getByRole("button", { name: "Verder" }));
+    await user.click(within(editor).getByRole("button", { name: "Verder" }));
+    await user.click(within(editor).getByRole("button", { name: "Verder" }));
+    await user.click(within(editor).getByRole("button", { name: "Taak opslaan" }));
+
+    let scopeDialog = screen.getByRole("dialog", { name: "Welke taken aanpassen?" });
+    await user.click(within(scopeDialog).getByRole("button", { name: "Terug naar aanpassen" }));
+    expect(screen.getByText(/Water all plants is voor iedereen/)).not.toBeNull();
+    await user.click(screen.getByRole("button", { name: "Taak opslaan" }));
+    scopeDialog = screen.getByRole("dialog", { name: "Welke taken aanpassen?" });
+    await user.click(within(scopeDialog).getByLabelText(/Deze en volgende/));
+    await user.click(within(scopeDialog).getByRole("button", { name: "Wijziging toepassen" }));
+
+    expect(vi.mocked(api.updateTask)).toHaveBeenCalledWith("scope-edit", expect.objectContaining({ title: "Water all plants", recurrenceScope: "ThisAndFuture" }));
+  });
+
+  it("requires confirmation and retains failures when removing recurring scope", async () => {
+    const user = userEvent.setup();
+    const api = await tasksApi();
+    const recurring = task({ id: "scope-delete", title: "Weekly bins", recurringTaskSeriesId: "series-delete", recurrenceFrequency: "Weekly" });
+    vi.mocked(api.loadTasks).mockResolvedValueOnce([recurring]).mockResolvedValueOnce([]);
+    vi.mocked(api.deleteRecurringTask).mockRejectedValueOnce(new Error("network")).mockResolvedValueOnce();
+    render(<TasksPage members={familyMembers} />);
+
+    await screen.findByText("Weekly bins");
+    await user.click(screen.getByRole("button", { name: "Meer acties voor Weekly bins" }));
+    await user.click(screen.getByRole("menuitem", { name: "Herhaling beheren: Weekly bins" }));
+    const scopeDialog = screen.getByRole("dialog", { name: "Welke taken verwijderen?" });
+    const removeButton = within(scopeDialog).getByRole("button", { name: "Verwijderen" });
+    expect(removeButton.hasAttribute("disabled")).toBe(true);
+    await user.click(within(scopeDialog).getByLabelText(/Deze en volgende/));
+    await user.click(within(scopeDialog).getByLabelText(/Ik begrijp dat/));
+    await user.click(removeButton);
+    expect((await within(scopeDialog).findByRole("alert")).textContent).toContain("ongewijzigd gebleven");
+    expect((within(scopeDialog).getByLabelText(/Ik begrijp dat/) as HTMLInputElement).checked).toBe(true);
+
+    await user.click(removeButton);
+    await waitFor(() => expect(vi.mocked(api.deleteRecurringTask)).toHaveBeenCalledTimes(2));
+    expect(vi.mocked(api.deleteRecurringTask)).toHaveBeenLastCalledWith("scope-delete", "ThisAndFuture");
+    expect(screen.queryByRole("dialog", { name: "Welke taken verwijderen?" })).toBeNull();
   });
 });
 
@@ -942,6 +1002,6 @@ describe("TasksPage normal-task archive", () => {
     await screen.findByText("Vuilnisroutine");
     await user.click(screen.getByRole("button", { name: "Meer acties voor Vuilnisroutine" }));
     expect(screen.queryByRole("menuitem", { name: "Archiveren: Vuilnisroutine" })).toBeNull();
-    expect(screen.getByRole("menuitem", { name: "Routine verwijderen: Vuilnisroutine" })).not.toBeNull();
+    expect(screen.getByRole("menuitem", { name: "Herhaling beheren: Vuilnisroutine" })).not.toBeNull();
   });
 });

@@ -22,7 +22,7 @@ import {
   createTaskTemplate,
   deleteArchivedTask,
   deleteArchivedTaskTemplate,
-  deleteRecurringTaskSeries,
+  deleteRecurringTask,
   keepTaskActive,
   loadArchivedTasks,
   loadArchivedTaskTemplates,
@@ -42,9 +42,11 @@ import type { KnownPerson } from "../knownPeople/knownPeople";
 import { DecorativeAvatarPicker, resolveDecorativeAvatar } from "../avatarContacts/DecorativeAvatarPicker";
 import { useVisualReviewNow } from "../visualReviewTime";
 import type {
+  CreateTaskInput,
   HouseholdTask,
   TaskOwnershipKind,
   TaskRecurrenceFrequency,
+  TaskRecurrenceScope,
   TaskDecorativeAvatarReference,
   TaskTimeGroup,
   TaskTemplate,
@@ -53,6 +55,9 @@ import type {
 type TaskDialogQuestion = "title" | "owner" | "date" | "extras";
 type PlanningSection = "tomorrow" | "thisWeek" | "later";
 type RoutineView = "active" | "archive";
+type RecurrenceAction =
+  | { kind: "edit"; task: HouseholdTask; input: CreateTaskInput }
+  | { kind: "delete"; task: HouseholdTask };
 type RoutineItemDraft = {
   key: string;
   title: string;
@@ -102,6 +107,11 @@ export function TasksPage({
   const [deleteCandidate, setDeleteCandidate] = useState<HouseholdTask | null>(null);
   const [pendingLifecycleTaskId, setPendingLifecycleTaskId] = useState<string | null>(null);
   const [taskLifecycleError, setTaskLifecycleError] = useState<string | null>(null);
+  const [recurrenceAction, setRecurrenceAction] = useState<RecurrenceAction | null>(null);
+  const [recurrenceScope, setRecurrenceScope] = useState<TaskRecurrenceScope>("Occurrence");
+  const [recurrenceConfirmed, setRecurrenceConfirmed] = useState(false);
+  const [recurrencePending, setRecurrencePending] = useState(false);
+  const [recurrenceError, setRecurrenceError] = useState<string | null>(null);
   const [templateName, setTemplateName] = useState("");
   const [templateDescription, setTemplateDescription] = useState("");
   const [templateItems, setTemplateItems] = useState<readonly RoutineItemDraft[]>([
@@ -292,9 +302,13 @@ export function TasksPage({
   }, [familyMemberId, members, ownership]);
 
   useEffect(() => {
-    if (!isTaskFormOpen && !editingTask && !activePanel && !deleteCandidate && !templateDeleteCandidate && !isTemplateEditorOpen) return;
+    if (!isTaskFormOpen && !editingTask && !activePanel && !deleteCandidate && !templateDeleteCandidate && !isTemplateEditorOpen && !recurrenceAction) return;
     const close = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
+        if (recurrenceAction) {
+          cancelRecurrenceAction();
+          return;
+        }
         if (deleteCandidate) {
           setDeleteCandidate(null);
           setTaskLifecycleError(null);
@@ -319,7 +333,7 @@ export function TasksPage({
     };
     window.addEventListener("keydown", close);
     return () => window.removeEventListener("keydown", close);
-  }, [activePanel, deleteCandidate, editingTask, isTaskFormOpen, isTemplateEditorOpen, templateDeleteCandidate]);
+  }, [activePanel, deleteCandidate, editingTask, isTaskFormOpen, isTemplateEditorOpen, recurrenceAction, templateDeleteCandidate]);
 
   function resetTaskForm() {
     setTitle("");
@@ -377,7 +391,7 @@ export function TasksPage({
   async function onCreate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     try {
-      const payload = {
+      const payload: CreateTaskInput = {
         title,
         dueDate: dueDate || null,
         ownershipKind: ownership,
@@ -385,9 +399,16 @@ export function TasksPage({
         recurrenceFrequency,
         ...(decorativeAvatar || editingTask?.decorativeAvatar ? { decorativeAvatar } : {}),
       };
-      const saved = editingTask
-        ? await saveTask(editingTask.id, payload)
-        : await createTask(payload);
+      if (editingTask && isRecurringTask(editingTask)) {
+        const frequencyChanged = recurrenceFrequency !== (editingTask.recurrenceFrequency ?? "None");
+        setRecurrenceScope(editingTask.isCompleted ? "EntireSeries" : frequencyChanged ? "ThisAndFuture" : "Occurrence");
+        setRecurrenceConfirmed(false);
+        setRecurrenceError(null);
+        setRecurrenceAction({ kind: "edit", task: editingTask, input: payload });
+        setIsTaskFormOpen(false);
+        return;
+      }
+      const saved = editingTask ? await saveTask(editingTask.id, payload) : await createTask(payload);
       if (saved) setTasks(await loadTasks());
       resetTaskForm();
     } catch {
@@ -542,12 +563,43 @@ export function TasksPage({
     setIsTaskFormOpen(true);
   }
 
-  async function deleteSeries(taskId: string) {
+  function openRecurringDelete(task: HouseholdTask) {
+    setRecurrenceAction({ kind: "delete", task });
+    setRecurrenceScope(task.isCompleted ? "EntireSeries" : "Occurrence");
+    setRecurrenceConfirmed(false);
+    setRecurrenceError(null);
+  }
+
+  function cancelRecurrenceAction() {
+    const action = recurrenceAction;
+    setRecurrenceAction(null);
+    setRecurrenceConfirmed(false);
+    setRecurrenceError(null);
+    if (action?.kind === "edit") setIsTaskFormOpen(true);
+  }
+
+  async function applyRecurrenceAction() {
+    if (!recurrenceAction || (recurrenceAction.kind === "delete" && !recurrenceConfirmed)) return;
+    setRecurrencePending(true);
+    setRecurrenceError(null);
     try {
-      await deleteRecurringTaskSeries(taskId);
+      if (recurrenceAction.kind === "edit") {
+        await saveTask(recurrenceAction.task.id, { ...recurrenceAction.input, recurrenceScope });
+        resetTaskForm();
+      } else {
+        await deleteRecurringTask(recurrenceAction.task.id, recurrenceScope);
+      }
       setTasks(await loadTasks());
+      setRecurrenceAction(null);
+      setRecurrenceConfirmed(false);
     } catch {
-      setError("Terugkerende routine kon niet worden verwijderd.");
+      setRecurrenceError(
+        recurrenceAction.kind === "edit"
+          ? "De wijziging is niet toegepast. Kies een andere reikwijdte of pas de taak aan."
+          : "Verwijderen is niet gelukt. De terugkerende taak is ongewijzigd gebleven.",
+      );
+    } finally {
+      setRecurrencePending(false);
     }
   }
 
@@ -702,7 +754,7 @@ export function TasksPage({
           todayDate={todayDate}
           todayIso={todayIso}
           onArchive={archiveNormalTask}
-          onDeleteSeries={deleteSeries}
+          onDeleteSeries={openRecurringDelete}
           onEdit={startEditing}
           onMoveToTomorrow={moveTaskToTomorrow}
           onUpdate={updateTask}
@@ -813,7 +865,7 @@ export function TasksPage({
         ) : null}
       </div>
 
-      {isTaskFormOpen || editingTask ? (
+      {isTaskFormOpen ? (
         <div
           className="avatar-editor-backdrop"
           role="presentation"
@@ -1011,6 +1063,84 @@ export function TasksPage({
           </section>
         </div>
       ) : null}
+      {recurrenceAction ? (
+        <div className="task-scope-dialog-overlay" role="presentation">
+          <section
+            aria-describedby="task-recurrence-scope-description"
+            aria-labelledby="task-recurrence-scope-title"
+            aria-modal="true"
+            className="task-scope-dialog"
+            role="dialog"
+          >
+            <header>
+              <p className="widget-type">Terugkerende taak</p>
+              <h4 id="task-recurrence-scope-title">
+                {recurrenceAction.kind === "edit" ? "Welke taken aanpassen?" : "Welke taken verwijderen?"}
+              </h4>
+              <p id="task-recurrence-scope-description">
+                <strong>{recurrenceAction.task.title}</strong>
+                {recurrenceAction.kind === "edit"
+                  ? " blijft buiten de gekozen reikwijdte ongewijzigd."
+                  : " wordt alleen binnen de gekozen reikwijdte verwijderd."}
+              </p>
+            </header>
+            <div className="task-scope-dialog-body">
+              {recurrenceError ? <p className="task-scope-error" role="alert">{recurrenceError}</p> : null}
+              <fieldset className="task-scope-options">
+                <legend>Kies de reikwijdte</legend>
+                <label className={recurrenceAction.task.isCompleted || (recurrenceAction.kind === "edit" && recurrenceAction.input.recurrenceFrequency !== (recurrenceAction.task.recurrenceFrequency ?? "None")) ? "is-disabled" : ""}>
+                  <input
+                    checked={recurrenceScope === "Occurrence"}
+                    disabled={recurrenceAction.task.isCompleted || (recurrenceAction.kind === "edit" && recurrenceAction.input.recurrenceFrequency !== (recurrenceAction.task.recurrenceFrequency ?? "None"))}
+                    name="recurrence-scope"
+                    onChange={() => setRecurrenceScope("Occurrence")}
+                    type="radio"
+                  />
+                  <span><strong>Alleen deze taak</strong><small>De andere taken in de reeks blijven zoals ze zijn.</small></span>
+                </label>
+                <label className={recurrenceAction.task.isCompleted ? "is-disabled" : ""}>
+                  <input
+                    checked={recurrenceScope === "ThisAndFuture"}
+                    disabled={recurrenceAction.task.isCompleted}
+                    name="recurrence-scope"
+                    onChange={() => setRecurrenceScope("ThisAndFuture")}
+                    type="radio"
+                  />
+                  <span><strong>Deze en volgende</strong><small>Eerdere taken en afgeronde geschiedenis blijven behouden.</small></span>
+                </label>
+                <label>
+                  <input
+                    checked={recurrenceScope === "EntireSeries"}
+                    name="recurrence-scope"
+                    onChange={() => setRecurrenceScope("EntireSeries")}
+                    type="radio"
+                  />
+                  <span><strong>Hele reeks</strong><small>Afgeronde taken blijven als geschiedenis bewaard.</small></span>
+                </label>
+              </fieldset>
+              {recurrenceAction.kind === "delete" ? (
+                <label className="task-scope-confirmation">
+                  <input checked={recurrenceConfirmed} onChange={(event) => setRecurrenceConfirmed(event.target.checked)} type="checkbox" />
+                  <span>Ik begrijp dat <strong>{recurrenceAction.task.title}</strong> volgens deze keuze wordt verwijderd.</span>
+                </label>
+              ) : null}
+            </div>
+            <div className="task-scope-dialog-actions">
+              <button className="secondary-action" disabled={recurrencePending} onClick={cancelRecurrenceAction} type="button">
+                {recurrenceAction.kind === "edit" ? "Terug naar aanpassen" : "Annuleren"}
+              </button>
+              <button
+                className={recurrenceAction.kind === "delete" ? "danger-action" : undefined}
+                disabled={recurrencePending || (recurrenceAction.kind === "delete" && !recurrenceConfirmed)}
+                onClick={() => void applyRecurrenceAction()}
+                type="button"
+              >
+                {recurrencePending ? "Bezig…" : recurrenceAction.kind === "edit" ? "Wijziging toepassen" : "Verwijderen"}
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
       {activePanel ? (
         <TaskSurfaceDialog
           title={
@@ -1063,7 +1193,7 @@ export function TasksPage({
               todayIso={todayIso}
               tomorrowGroup={tomorrowGroup}
               onArchive={archiveNormalTask}
-              onDeleteSeries={deleteSeries}
+              onDeleteSeries={openRecurringDelete}
               onEdit={startEditing}
               onMoveToTomorrow={moveTaskToTomorrow}
               onOpenSection={(section) =>
@@ -1082,7 +1212,7 @@ export function TasksPage({
               todayDate={todayDate}
               todayIso={todayIso}
               onArchive={archiveNormalTask}
-              onDeleteSeries={deleteSeries}
+              onDeleteSeries={openRecurringDelete}
               onEdit={startEditing}
               onMoveToTomorrow={moveTaskToTomorrow}
               onUpdate={updateTask}
@@ -1099,7 +1229,7 @@ export function TasksPage({
               todayDate={todayDate}
               todayIso={todayIso}
               onArchive={archiveNormalTask}
-              onDeleteSeries={deleteSeries}
+              onDeleteSeries={openRecurringDelete}
               onEdit={startEditing}
               onMoveToTomorrow={moveTaskToTomorrow}
               onUpdate={updateTask}
@@ -1546,7 +1676,7 @@ function PlanningDetailPanel({
   todayIso: string;
   tomorrowGroup: TaskTimeGroup;
   onArchive(id: string): void;
-  onDeleteSeries(id: string): void;
+  onDeleteSeries(task: HouseholdTask): void;
   onEdit(task: HouseholdTask): void;
   onMoveToTomorrow(task: HouseholdTask): void;
   onOpenSection(section: PlanningSection): void;
@@ -1707,7 +1837,7 @@ function TaskGroup({
   todayDate: Date;
   todayIso: string;
   onArchive(id: string): void;
-  onDeleteSeries(id: string): void;
+  onDeleteSeries(task: HouseholdTask): void;
   onEdit(task: HouseholdTask): void;
   onMoveToTomorrow(task: HouseholdTask): void;
   onUpdate(id: string, action: "complete" | "reopen"): void;
@@ -1779,7 +1909,7 @@ function TaskCard({
   todayDate: Date;
   todayIso: string;
   onArchive(id: string): void;
-  onDeleteSeries(id: string): void;
+  onDeleteSeries(task: HouseholdTask): void;
   onEdit(task: HouseholdTask): void;
   onMoveToTomorrow(task: HouseholdTask): void;
   onUpdate(id: string, action: "complete" | "reopen"): void;
@@ -1896,7 +2026,7 @@ function TaskActionsMenu({
 }: {
   task: HouseholdTask;
   onArchive(id: string): void;
-  onDeleteSeries(id: string): void;
+  onDeleteSeries(task: HouseholdTask): void;
   onEdit(task: HouseholdTask): void;
 }) {
   const menuId = useId();
@@ -2063,13 +2193,13 @@ function TaskActionsMenu({
               {task.recurringTaskSeriesId ? (
                 <button
                   className="task-action-button secondary"
-                  onClick={() => closeBefore(() => onDeleteSeries(task.id))}
+                  onClick={() => closeBefore(() => onDeleteSeries(task))}
                   type="button"
                   role="menuitem"
-                  aria-label={`Routine verwijderen: ${task.title}`}
+                  aria-label={`Herhaling beheren: ${task.title}`}
                 >
                   <TaskActionIcon name="more" />
-                  <span>Routine verwijderen</span>
+                  <span>Herhaling beheren</span>
                 </button>
               ) : null}
             </div>,

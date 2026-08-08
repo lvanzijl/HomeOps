@@ -7454,32 +7454,47 @@ export class HomeOpsApiClient {
         return Promise.resolve<void>(null as any);
     }
 
-    deleteRecurringTaskSeries(taskId: string): Promise<void> {
-        let url_ = this.baseUrl + "/api/tasks/{taskId}/series";
+    deleteRecurringTaskRecurrence(taskId: string, request: DeleteRecurringTaskRequest): Promise<void> {
+        let url_ = this.baseUrl + "/api/tasks/{taskId}/recurrence/delete";
         if (taskId === undefined || taskId === null)
             throw new globalThis.Error("The parameter 'taskId' must be defined.");
         url_ = url_.replace("{taskId}", encodeURIComponent("" + taskId));
         url_ = url_.replace(/[?&]$/, "");
 
+        const content_ = JSON.stringify(request);
+
         let options_: RequestInit = {
-            method: "DELETE",
+            body: content_,
+            method: "POST",
             headers: {
+                "Content-Type": "application/json",
             }
         };
 
         return this.http.fetch(url_, options_).then((_response: Response) => {
-            return this.processDeleteRecurringTaskSeries(_response);
+            return this.processDeleteRecurringTaskRecurrence(_response);
         });
     }
 
-    protected processDeleteRecurringTaskSeries(response: Response): Promise<void> {
+    protected processDeleteRecurringTaskRecurrence(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 204) {
             return response.text().then((_responseText) => {
             return;
             });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = HttpValidationProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
         } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
             return response.text().then((_responseText) => {
             return throwException("A server side error occurred.", status, _responseText, _headers);
             });
@@ -18862,6 +18877,7 @@ export class UpdateHouseholdTaskRequest implements IUpdateHouseholdTaskRequest {
     familyMemberId?: string | undefined;
     recurrenceFrequency?: TaskRecurrenceFrequency | undefined;
     decorativeAvatar?: DecorativeAvatarReferenceDto | undefined;
+    recurrenceScope?: TaskRecurrenceScope | undefined;
 
     constructor(data?: IUpdateHouseholdTaskRequest) {
         if (data) {
@@ -18880,6 +18896,7 @@ export class UpdateHouseholdTaskRequest implements IUpdateHouseholdTaskRequest {
             this.familyMemberId = _data["familyMemberId"];
             this.recurrenceFrequency = _data["recurrenceFrequency"];
             this.decorativeAvatar = _data["decorativeAvatar"] ? DecorativeAvatarReferenceDto.fromJS(_data["decorativeAvatar"]) : undefined as any;
+            this.recurrenceScope = _data["recurrenceScope"];
         }
     }
 
@@ -18898,6 +18915,7 @@ export class UpdateHouseholdTaskRequest implements IUpdateHouseholdTaskRequest {
         data["familyMemberId"] = this.familyMemberId;
         data["recurrenceFrequency"] = this.recurrenceFrequency;
         data["decorativeAvatar"] = this.decorativeAvatar ? this.decorativeAvatar.toJSON() : undefined as any;
+        data["recurrenceScope"] = this.recurrenceScope;
         return data;
     }
 }
@@ -18909,6 +18927,53 @@ export interface IUpdateHouseholdTaskRequest {
     familyMemberId?: string | undefined;
     recurrenceFrequency?: TaskRecurrenceFrequency | undefined;
     decorativeAvatar?: DecorativeAvatarReferenceDto | undefined;
+    recurrenceScope?: TaskRecurrenceScope | undefined;
+}
+
+export enum TaskRecurrenceScope {
+    Occurrence = "Occurrence",
+    ThisAndFuture = "ThisAndFuture",
+    EntireSeries = "EntireSeries",
+}
+
+export class DeleteRecurringTaskRequest implements IDeleteRecurringTaskRequest {
+    scope?: TaskRecurrenceScope;
+    confirmed?: boolean;
+
+    constructor(data?: IDeleteRecurringTaskRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.scope = _data["scope"];
+            this.confirmed = _data["confirmed"];
+        }
+    }
+
+    static fromJS(data: any): DeleteRecurringTaskRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new DeleteRecurringTaskRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["scope"] = this.scope;
+        data["confirmed"] = this.confirmed;
+        return data;
+    }
+}
+
+export interface IDeleteRecurringTaskRequest {
+    scope?: TaskRecurrenceScope;
+    confirmed?: boolean;
 }
 
 export class ReviewNoDateTaskRequest implements IReviewNoDateTaskRequest {

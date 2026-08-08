@@ -88,6 +88,7 @@ public static class VisualReviewFixtureService
         db.MotivationIndividualGoals.RemoveRange(await db.MotivationIndividualGoals.ToListAsync(ct));
         db.MotivationFamilyGoals.RemoveRange(await db.MotivationFamilyGoals.ToListAsync(ct));
         db.HouseholdTasks.RemoveRange(await db.HouseholdTasks.ToListAsync(ct));
+        db.RecurringTaskExceptions.RemoveRange(await db.RecurringTaskExceptions.ToListAsync(ct));
         db.RecurringTaskSeries.RemoveRange(await db.RecurringTaskSeries.ToListAsync(ct));
         db.TaskTemplateItems.RemoveRange(await db.TaskTemplateItems.ToListAsync(ct));
         db.TaskTemplates.RemoveRange(await db.TaskTemplates.ToListAsync(ct));

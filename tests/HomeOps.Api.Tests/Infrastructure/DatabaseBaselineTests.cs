@@ -6,7 +6,7 @@ namespace HomeOps.Api.Tests.Infrastructure;
 
 public sealed class DatabaseBaselineTests
 {
-    private const string LatestDiscoverableMigration = "20260807220025_StableDeviceSettingsIdentity";
+    private const string LatestDiscoverableMigration = "20260808080048_AddRecurringTaskOccurrenceControl";
 
     private static readonly string[] ResumeStrategyColumns =
     [
@@ -90,16 +90,18 @@ public sealed class DatabaseBaselineTests
         await using (var legacyConnection = new NpgsqlConnection(database.ConnectionString))
         {
             await legacyConnection.OpenAsync();
-            await using var insertLegacyDeviceSetting = new NpgsqlCommand(
+            await using var insertDeviceSetting = new NpgsqlCommand(
                 """
-                INSERT INTO "AgendaLayerSettings" ("Id", "DeviceKey", "ViewType", "SourceId", "IsEnabled", "CreatedUtc", "UpdatedUtc")
-                VALUES (@id, 'legacy-device', 'Week', 'manual-source', FALSE, @created, @updated)
+                INSERT INTO "DeviceSettingsIdentities" ("DeviceId", "SchemaVersion", "CreatedUtc", "LastSeenUtc")
+                VALUES ('legacy-device', 1, @created, @updated);
+                INSERT INTO "AgendaLayerSettings" ("Id", "DeviceId", "ViewType", "SourceId", "IsEnabled", "CreatedUtc", "UpdatedUtc")
+                VALUES (@id, 'legacy-device', 'Week', 'manual-source', FALSE, @created, @updated);
                 """,
                 legacyConnection);
-            insertLegacyDeviceSetting.Parameters.AddWithValue("id", Guid.NewGuid());
-            insertLegacyDeviceSetting.Parameters.AddWithValue("created", DateTimeOffset.Parse("2026-01-01T10:00:00Z"));
-            insertLegacyDeviceSetting.Parameters.AddWithValue("updated", DateTimeOffset.Parse("2026-02-01T10:00:00Z"));
-            await insertLegacyDeviceSetting.ExecuteNonQueryAsync();
+            insertDeviceSetting.Parameters.AddWithValue("id", Guid.NewGuid());
+            insertDeviceSetting.Parameters.AddWithValue("created", DateTimeOffset.Parse("2026-01-01T10:00:00Z"));
+            insertDeviceSetting.Parameters.AddWithValue("updated", DateTimeOffset.Parse("2026-02-01T10:00:00Z"));
+            await insertDeviceSetting.ExecuteNonQueryAsync();
         }
 
         await database.MigrateAsync();

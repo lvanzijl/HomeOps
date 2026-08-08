@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using HomeOps.Api.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HomeOps.Api.Tests.Lists;
@@ -147,6 +148,7 @@ public sealed class NormalTaskArchiveApiTests(HomeOpsWebApplicationFactory facto
 public sealed class RecurringTaskApiTests(HomeOpsWebApplicationFactory factory) : IClassFixture<HomeOpsWebApplicationFactory>
 {
     private readonly HttpClient _client = factory.CreateClient();
+    private readonly HomeOpsWebApplicationFactory _factory = factory;
 
     [Theory]
     [InlineData(TaskRecurrenceFrequency.Daily, 1)]
@@ -187,7 +189,7 @@ public sealed class RecurringTaskApiTests(HomeOpsWebApplicationFactory factory) 
     {
         var created = await CreateRecurringTask("Feed pet", new DateOnly(2026, 6, 20), TaskRecurrenceFrequency.Daily, TaskOwnershipKind.Unassigned, null);
 
-        var update = await _client.PutAsJsonAsync($"/api/tasks/{created.Id}", new UpdateHouseholdTaskRequest("Feed fish", new DateOnly(2026, 6, 22), TaskOwnershipKind.FamilyMember, "riley", TaskRecurrenceFrequency.Weekly));
+        var update = await _client.PutAsJsonAsync($"/api/tasks/{created.Id}", new UpdateHouseholdTaskRequest("Feed fish", new DateOnly(2026, 6, 22), TaskOwnershipKind.FamilyMember, "riley", TaskRecurrenceFrequency.Weekly, null, TaskRecurrenceScope.EntireSeries));
         update.EnsureSuccessStatusCode();
 
         var tasks = await _client.GetFromJsonAsync<IReadOnlyCollection<HouseholdTaskDto>>("/api/tasks");
@@ -243,12 +245,115 @@ public sealed class RecurringTaskApiTests(HomeOpsWebApplicationFactory factory) 
         var created = await CreateRecurringTask("Change bedding", DateOnly.FromDateTime(DateTime.UtcNow), TaskRecurrenceFrequency.Monthly, TaskOwnershipKind.Unassigned, null);
         await _client.PostAsync($"/api/tasks/{created.Id}/complete", null);
 
-        var delete = await _client.DeleteAsync($"/api/tasks/{created.Id}/series");
+        var delete = await _client.PostAsJsonAsync($"/api/tasks/{created.Id}/recurrence/delete", new DeleteRecurringTaskRequest(TaskRecurrenceScope.EntireSeries, true));
         Assert.Equal(HttpStatusCode.NoContent, delete.StatusCode);
 
         var tasks = await _client.GetFromJsonAsync<IReadOnlyCollection<HouseholdTaskDto>>("/api/tasks");
         Assert.Contains(tasks!, task => task.Id == created.Id && task.IsCompleted);
         Assert.DoesNotContain(tasks!, task => task.RecurringTaskSeriesId == created.RecurringTaskSeriesId && !task.IsCompleted);
+    }
+
+    [Fact]
+    public async Task EditingOneOccurrencePersistsAnExceptionWithoutChangingSeriesDefaults()
+    {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var created = await CreateRecurringTask($"Occurrence edit {Guid.NewGuid()}", today, TaskRecurrenceFrequency.Daily, TaskOwnershipKind.Unassigned, null);
+        var movedDate = today.AddDays(90);
+
+        var response = await _client.PutAsJsonAsync($"/api/tasks/{created.Id}", new UpdateHouseholdTaskRequest(
+            "Only this one", movedDate, TaskOwnershipKind.FamilyMember, "riley", TaskRecurrenceFrequency.Daily, null, TaskRecurrenceScope.Occurrence));
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var tasks = await _client.GetFromJsonAsync<IReadOnlyCollection<HouseholdTaskDto>>("/api/tasks");
+        Assert.Contains(tasks!, task => task.Id == created.Id && task.Title == "Only this one" && task.DueDate == movedDate && task.FamilyMemberId == "riley");
+        Assert.Contains(tasks!, task => task.RecurringTaskSeriesId == created.RecurringTaskSeriesId && task.Id != created.Id && task.Title == created.Title);
+
+        using var scope = _factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<HomeOps.Api.Data.HomeOpsDbContext>();
+        var exception = await dbContext.RecurringTaskExceptions.SingleAsync(candidate => candidate.ReplacementTaskId == created.Id);
+        var series = await dbContext.RecurringTaskSeries.SingleAsync(candidate => candidate.Id == created.RecurringTaskSeriesId);
+        Assert.Equal(RecurringTaskExceptionType.Modified, exception.ExceptionType);
+        Assert.Equal(today, exception.OriginalDueDate);
+        Assert.Equal(created.Title, series.Title);
+    }
+
+    [Fact]
+    public async Task EditingThisAndFutureSplitsSeriesAtSelectedOccurrence()
+    {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var created = await CreateRecurringTask($"Split source {Guid.NewGuid()}", today, TaskRecurrenceFrequency.Daily, TaskOwnershipKind.Unassigned, null);
+        var before = await _client.GetFromJsonAsync<IReadOnlyCollection<HouseholdTaskDto>>("/api/tasks");
+        var selected = before!.Where(task => task.RecurringTaskSeriesId == created.RecurringTaskSeriesId).OrderBy(task => task.DueDate).Skip(2).First();
+        var newStart = selected.DueDate!.Value.AddDays(1);
+
+        var response = await _client.PutAsJsonAsync($"/api/tasks/{selected.Id}", new UpdateHouseholdTaskRequest(
+            "Split future", newStart, TaskOwnershipKind.SharedHousehold, null, TaskRecurrenceFrequency.Weekly, null, TaskRecurrenceScope.ThisAndFuture));
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var updated = await response.Content.ReadFromJsonAsync<HouseholdTaskDto>();
+        Assert.NotNull(updated);
+        Assert.NotEqual(created.RecurringTaskSeriesId, updated.RecurringTaskSeriesId);
+        var tasks = await _client.GetFromJsonAsync<IReadOnlyCollection<HouseholdTaskDto>>("/api/tasks");
+        Assert.All(tasks!.Where(task => task.RecurringTaskSeriesId == created.RecurringTaskSeriesId), task => Assert.True(task.DueDate < selected.DueDate));
+        var future = tasks!.Where(task => task.RecurringTaskSeriesId == updated.RecurringTaskSeriesId).OrderBy(task => task.DueDate).ToList();
+        Assert.True(future.Count >= 2);
+        Assert.All(future, task => Assert.Equal("Split future", task.Title));
+        Assert.Equal(7, future[1].DueDate!.Value.DayNumber - future[0].DueDate!.Value.DayNumber);
+
+        using var scope = _factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<HomeOps.Api.Data.HomeOpsDbContext>();
+        var originalSeries = await dbContext.RecurringTaskSeries.SingleAsync(candidate => candidate.Id == created.RecurringTaskSeriesId);
+        Assert.Equal(selected.DueDate.Value.AddDays(-1), originalSeries.EndDate);
+    }
+
+    [Fact]
+    public async Task DeletingOneOccurrenceCreatesSkipExceptionAndDoesNotRegenerateIt()
+    {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var created = await CreateRecurringTask($"Skip occurrence {Guid.NewGuid()}", today, TaskRecurrenceFrequency.Daily, TaskOwnershipKind.Unassigned, null);
+
+        var response = await _client.PostAsJsonAsync($"/api/tasks/{created.Id}/recurrence/delete", new DeleteRecurringTaskRequest(TaskRecurrenceScope.Occurrence, true));
+
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+        var tasks = await _client.GetFromJsonAsync<IReadOnlyCollection<HouseholdTaskDto>>("/api/tasks");
+        Assert.DoesNotContain(tasks!, task => task.RecurringTaskSeriesId == created.RecurringTaskSeriesId && task.DueDate == today);
+        Assert.Contains(tasks!, task => task.RecurringTaskSeriesId == created.RecurringTaskSeriesId && task.DueDate > today);
+        using var scope = _factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<HomeOps.Api.Data.HomeOpsDbContext>();
+        Assert.True(await dbContext.RecurringTaskExceptions.AnyAsync(exception => exception.RecurringTaskSeriesId == created.RecurringTaskSeriesId && exception.OriginalDueDate == today && exception.ExceptionType == RecurringTaskExceptionType.Skipped));
+    }
+
+    [Fact]
+    public async Task DeletingThisAndFutureKeepsEarlierOccurrencesAndEndsSeries()
+    {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var created = await CreateRecurringTask($"End future {Guid.NewGuid()}", today, TaskRecurrenceFrequency.Daily, TaskOwnershipKind.Unassigned, null);
+        var before = await _client.GetFromJsonAsync<IReadOnlyCollection<HouseholdTaskDto>>("/api/tasks");
+        var selected = before!.Where(task => task.RecurringTaskSeriesId == created.RecurringTaskSeriesId).OrderBy(task => task.DueDate).Skip(2).First();
+
+        var response = await _client.PostAsJsonAsync($"/api/tasks/{selected.Id}/recurrence/delete", new DeleteRecurringTaskRequest(TaskRecurrenceScope.ThisAndFuture, true));
+
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+        var tasks = await _client.GetFromJsonAsync<IReadOnlyCollection<HouseholdTaskDto>>("/api/tasks");
+        var remaining = tasks!.Where(task => task.RecurringTaskSeriesId == created.RecurringTaskSeriesId).ToList();
+        Assert.NotEmpty(remaining);
+        Assert.All(remaining, task => Assert.True(task.DueDate < selected.DueDate));
+        using var scope = _factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<HomeOps.Api.Data.HomeOpsDbContext>();
+        var series = await dbContext.RecurringTaskSeries.SingleAsync(candidate => candidate.Id == created.RecurringTaskSeriesId);
+        Assert.Equal(selected.DueDate!.Value.AddDays(-1), series.EndDate);
+    }
+
+    [Fact]
+    public async Task DestructiveRecurringChangeRequiresExplicitConfirmation()
+    {
+        var created = await CreateRecurringTask($"Confirm scope {Guid.NewGuid()}", DateOnly.FromDateTime(DateTime.UtcNow), TaskRecurrenceFrequency.Weekly, TaskOwnershipKind.Unassigned, null);
+
+        var response = await _client.PostAsJsonAsync($"/api/tasks/{created.Id}/recurrence/delete", new DeleteRecurringTaskRequest(TaskRecurrenceScope.EntireSeries, false));
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var tasks = await _client.GetFromJsonAsync<IReadOnlyCollection<HouseholdTaskDto>>("/api/tasks");
+        Assert.Contains(tasks!, task => task.Id == created.Id);
     }
 
     private async Task<HouseholdTaskDto> CreateRecurringTask(string title, DateOnly dueDate, TaskRecurrenceFrequency frequency, TaskOwnershipKind ownershipKind, string? familyMemberId)
@@ -459,7 +564,7 @@ public sealed class TaskDecorativeAvatarApiTests(HomeOpsWebApplicationFactory fa
         var known = await CreateKnownPerson($"Series Update Grandma {Guid.NewGuid()}");
         var created = await CreateRecurringTask($"Update recurring decoration {Guid.NewGuid()}", TaskRecurrenceFrequency.Weekly, new HomeOps.Api.Lists.DecorativeAvatarReferenceDto(HomeOps.Api.Lists.DecorativeAvatarReferenceType.KnownPerson, known.Id.ToString()));
 
-        var update = await _client.PutAsJsonAsync($"/api/tasks/{created.Id}", new UpdateHouseholdTaskRequest(created.Title, created.DueDate, created.OwnershipKind, created.FamilyMemberId, TaskRecurrenceFrequency.Weekly, new HomeOps.Api.Lists.DecorativeAvatarReferenceDto(HomeOps.Api.Lists.DecorativeAvatarReferenceType.FamilyMember, "alex")));
+        var update = await _client.PutAsJsonAsync($"/api/tasks/{created.Id}", new UpdateHouseholdTaskRequest(created.Title, created.DueDate, created.OwnershipKind, created.FamilyMemberId, TaskRecurrenceFrequency.Weekly, new HomeOps.Api.Lists.DecorativeAvatarReferenceDto(HomeOps.Api.Lists.DecorativeAvatarReferenceType.FamilyMember, "alex"), TaskRecurrenceScope.EntireSeries));
         update.EnsureSuccessStatusCode();
         var afterUpdate = await _client.GetFromJsonAsync<IReadOnlyCollection<HouseholdTaskDto>>("/api/tasks");
         var updatedSeriesTasks = afterUpdate!.Where(task => task.RecurringTaskSeriesId == created.RecurringTaskSeriesId).ToList();
@@ -467,7 +572,7 @@ public sealed class TaskDecorativeAvatarApiTests(HomeOpsWebApplicationFactory fa
         Assert.All(updatedSeriesTasks, task => Assert.Equal(TaskRecurrenceFrequency.Weekly, task.RecurrenceFrequency));
 
         var first = updatedSeriesTasks.OrderBy(task => task.DueDate).First();
-        var clear = await _client.PutAsJsonAsync($"/api/tasks/{first.Id}", new UpdateHouseholdTaskRequest(first.Title, first.DueDate, first.OwnershipKind, first.FamilyMemberId, TaskRecurrenceFrequency.Weekly, null));
+        var clear = await _client.PutAsJsonAsync($"/api/tasks/{first.Id}", new UpdateHouseholdTaskRequest(first.Title, first.DueDate, first.OwnershipKind, first.FamilyMemberId, TaskRecurrenceFrequency.Weekly, null, TaskRecurrenceScope.EntireSeries));
         clear.EnsureSuccessStatusCode();
         var afterClear = await _client.GetFromJsonAsync<IReadOnlyCollection<HouseholdTaskDto>>("/api/tasks");
         var clearedSeriesTasks = afterClear!.Where(task => task.RecurringTaskSeriesId == created.RecurringTaskSeriesId).ToList();

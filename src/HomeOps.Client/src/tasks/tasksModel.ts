@@ -2,6 +2,7 @@ import type { DecorativeAvatarReference } from '../avatarContacts/DecorativeAvat
 
 export type TaskOwnershipKind = 'Unassigned' | 'FamilyMember' | 'SharedHousehold';
 export type TaskRecurrenceFrequency = 'None' | 'Daily' | 'Weekly' | 'Monthly';
+export type TaskRecurrenceScope = 'Occurrence' | 'ThisAndFuture' | 'EntireSeries';
 export type NoDateTaskReviewState = 'Active' | 'NeedsReview' | 'Someday' | 'Completed' | 'Archived';
 
 export type TaskDecorativeAvatarReference = DecorativeAvatarReference;
@@ -34,6 +35,7 @@ export interface CreateTaskInput {
   noDateLastReviewedUtc?: string | null;
   archivedUtc?: string | null;
   decorativeAvatar?: TaskDecorativeAvatarReference | null;
+  recurrenceScope?: TaskRecurrenceScope;
 }
 
 export type TaskTimeGroupId = 'today' | 'tomorrow' | 'thisWeek' | 'nextWeek' | 'later' | 'completedRecently';

@@ -31,6 +31,7 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
     public DbSet<WidgetPlacement> WidgetPlacements => Set<WidgetPlacement>();
     public DbSet<HouseholdTask> HouseholdTasks => Set<HouseholdTask>();
     public DbSet<RecurringTaskSeries> RecurringTaskSeries => Set<RecurringTaskSeries>();
+    public DbSet<RecurringTaskException> RecurringTaskExceptions => Set<RecurringTaskException>();
     public DbSet<TaskTemplate> TaskTemplates => Set<TaskTemplate>();
     public DbSet<TaskTemplateItem> TaskTemplateItems => Set<TaskTemplateItem>();
     public DbSet<FamilyMember> FamilyMembers => Set<FamilyMember>();
@@ -658,6 +659,7 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             entity.HasKey(series => series.Id);
             entity.Property(series => series.Title).HasMaxLength(240).IsRequired();
             entity.Property(series => series.StartDate).HasColumnType("date").IsRequired();
+            entity.Property(series => series.EndDate).HasColumnType("date");
             entity.Property(series => series.Frequency).HasConversion<string>().HasMaxLength(16).IsRequired();
             entity.Property(series => series.OwnershipKind).HasConversion<string>().HasMaxLength(32).IsRequired();
             entity.Property(series => series.FamilyMemberId).HasMaxLength(120);
@@ -676,6 +678,37 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
                 .OnDelete(DeleteBehavior.Restrict);
             entity.HasIndex(series => new { series.HouseholdId, series.IsDeleted, series.StartDate });
             entity.HasIndex(series => new { series.DecorativeAvatarReferenceType, series.DecorativeAvatarReferenceId });
+        });
+
+        modelBuilder.Entity<RecurringTaskException>(entity =>
+        {
+            entity.ToTable("RecurringTaskExceptions", table =>
+            {
+                table.HasCheckConstraint("CK_RecurringTaskExceptions_ModifiedFields", "(\"ExceptionType\" = 'Skipped' AND \"ReplacementTaskId\" IS NULL AND \"Title\" IS NULL AND \"DueDate\" IS NULL AND \"OwnershipKind\" IS NULL) OR (\"ExceptionType\" = 'Modified' AND \"ReplacementTaskId\" IS NOT NULL AND \"Title\" IS NOT NULL AND \"DueDate\" IS NOT NULL AND \"OwnershipKind\" IS NOT NULL)");
+                table.HasCheckConstraint("CK_RecurringTaskExceptions_DecorativeAvatar_NullablePair", "(\"DecorativeAvatarReferenceType\" IS NULL AND \"DecorativeAvatarReferenceId\" IS NULL) OR (\"DecorativeAvatarReferenceType\" IS NOT NULL AND \"DecorativeAvatarReferenceId\" IS NOT NULL)");
+            });
+            entity.HasKey(exception => exception.Id);
+            entity.Property(exception => exception.OriginalDueDate).HasColumnType("date").IsRequired();
+            entity.Property(exception => exception.ExceptionType).HasConversion<string>().HasMaxLength(16).IsRequired();
+            entity.Property(exception => exception.Title).HasMaxLength(240);
+            entity.Property(exception => exception.DueDate).HasColumnType("date");
+            entity.Property(exception => exception.OwnershipKind).HasConversion<string>().HasMaxLength(32);
+            entity.Property(exception => exception.FamilyMemberId).HasMaxLength(120);
+            entity.Property(exception => exception.DecorativeAvatarReferenceType).HasConversion<string>().HasMaxLength(32);
+            entity.Property(exception => exception.DecorativeAvatarReferenceId).HasMaxLength(120);
+            entity.Property(exception => exception.CreatedUtc).IsRequired();
+            entity.Property(exception => exception.UpdatedUtc).IsRequired();
+            entity.HasOne(exception => exception.RecurringTaskSeries)
+                .WithMany(series => series.Exceptions)
+                .HasForeignKey(exception => exception.RecurringTaskSeriesId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<FamilyMember>()
+                .WithMany()
+                .HasForeignKey(exception => exception.FamilyMemberId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(exception => new { exception.RecurringTaskSeriesId, exception.OriginalDueDate }).IsUnique();
+            entity.HasIndex(exception => exception.ReplacementTaskId).IsUnique();
+            entity.HasIndex(exception => new { exception.DecorativeAvatarReferenceType, exception.DecorativeAvatarReferenceId });
         });
 
 

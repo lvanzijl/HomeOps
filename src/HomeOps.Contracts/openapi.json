@@ -6723,12 +6723,12 @@
         }
       }
     },
-    "/api/tasks/{taskId}/series": {
-      "delete": {
+    "/api/tasks/{taskId}/recurrence/delete": {
+      "post": {
         "tags": [
           "Tasks"
         ],
-        "operationId": "DeleteRecurringTaskSeries",
+        "operationId": "DeleteRecurringTaskRecurrence",
         "parameters": [
           {
             "name": "taskId",
@@ -6741,11 +6741,36 @@
             "x-position": 1
           }
         ],
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteRecurringTaskRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
         "responses": {
           "204": {
             "description": ""
           },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
           "404": {
+            "description": ""
+          },
+          "409": {
             "description": ""
           }
         }
@@ -13531,6 +13556,40 @@
                 "$ref": "#/components/schemas/DecorativeAvatarReferenceDto"
               }
             ]
+          },
+          "recurrenceScope": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/TaskRecurrenceScope"
+              }
+            ]
+          }
+        }
+      },
+      "TaskRecurrenceScope": {
+        "type": "string",
+        "description": "",
+        "x-enumNames": [
+          "Occurrence",
+          "ThisAndFuture",
+          "EntireSeries"
+        ],
+        "enum": [
+          "Occurrence",
+          "ThisAndFuture",
+          "EntireSeries"
+        ]
+      },
+      "DeleteRecurringTaskRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "scope": {
+            "$ref": "#/components/schemas/TaskRecurrenceScope"
+          },
+          "confirmed": {
+            "type": "boolean"
           }
         }
       },

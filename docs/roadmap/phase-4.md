@@ -10,7 +10,7 @@ Phase 4 makes task actions directly operable, gives normal tasks and routines co
 | 4.1 Directly operable task actions | Completed 2026-08-08 | Replaced selection-only cards with semantic direct actions and a keyboard-safe viewport-clamped portalled menu. |
 | 4.2 Normal task archive/delete | Completed 2026-08-08 | Added reversible normal-task archive/restore and task-specific confirmed permanent deletion from a bounded archive surface. |
 | 4.3 Routine/template lifecycle | Completed 2026-08-08 | Added a dedicated ordered-item editor and reversible archive/restore/confirmed-delete lifecycle for routines. |
-| 4.4 Recurring occurrence control | Not started | Define and implement occurrence, future, and entire-series scopes. |
+| 4.4 Recurring occurrence control | Completed 2026-08-08 | Added exception-backed occurrence, future, and entire-series edit/removal scopes with explicit destructive confirmation. |
 | 4.5 Persisted Weekly Reset | Not started | Persist candidate decisions, completion, resume, and history. |
 
 ## Slice 4.0 implementation authority
@@ -51,6 +51,14 @@ The existing `Routines` secondary-rail tile still opens the bounded Tasks surfac
 
 Validation: focused routine API 8/8 and Tasks frontend 19/19; full frontend 349/349; backend 628/628; frontend and solution builds; pinned NSwag 14.7.1 twice with an idempotent second run; PostgreSQL migration/model-drift 3/3; and PostgreSQL-backed Playwright 8/8, including ordered editing, prospective-change copy, archive, restore, cancellation, confirmed deletion, and no document overflow at 1280×720 plus established 1440×900 and 1366×768 checks. The implementation report is `docs/reports/2026-08-08-routine-lifecycle/implementation.md`.
 
+## Slice 4.4 implementation boundary
+
+Recurring task mutations now use explicit `Occurrence`, `ThisAndFuture`, or `EntireSeries` scope. Modified and skipped original due dates are persisted as exceptions so generation cannot overwrite an occurrence edit or recreate a removed occurrence. An inclusive series end date makes future removal deterministic; future edits split the definition at the selected original occurrence. Entire-series changes replace only incomplete projections. Completed occurrences remain historical records and retain motivation meaning.
+
+The approved `docs/reports/2026-08-08-recurring-task-occurrence-control/viewport-analysis.md` preserves the default Tasks composition. Recurring edit and `Herhaling beheren` flow into one bounded, internally scrolling scope dialog. Destructive actions require a task-specific confirmation checkbox, failures retain the selected scope, edit cancellation returns to the populated editor, and completed occurrences expose only whole-series management.
+
+Validation: focused recurring API 15/15 and Tasks frontend 21/21; full frontend 351/351; backend 633/633; frontend and solution builds; pinned NSwag 14.7.1 twice with an idempotent second run; EF model-drift check; PostgreSQL migration baseline 3/3; and PostgreSQL-backed Playwright 9/9, including scoped occurrence editing, confirmed entire-series removal, 1280×720 dialog containment, and established 1440×900 and 1366×768 page checks. The implementation report is `docs/reports/2026-08-08-recurring-task-occurrence-control/implementation.md`.
+
 ## Fixed boundaries
 
 - Slice 4.0 changes documentation only.
@@ -65,5 +73,5 @@ Validation: focused routine API 8/8 and Tasks frontend 19/19; full frontend 349/
 - [x] Task actions are discoverable and accessible.
 - [x] Edit menu is never clipped at supported viewports.
 - [x] Normal tasks and routines have coherent archive/restore lifecycle.
-- [ ] Recurring scope is explicit.
+- [x] Recurring scope is explicit.
 - [ ] Weekly Reset can be completed and reviewed after refresh.

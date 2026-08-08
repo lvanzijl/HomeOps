@@ -33,6 +33,9 @@ public sealed record UpdateHouseholdTaskRequest(
     TaskOwnershipKind? OwnershipKind,
     string? FamilyMemberId,
     TaskRecurrenceFrequency? RecurrenceFrequency = null,
-    DecorativeAvatarReferenceDto? DecorativeAvatar = null);
+    DecorativeAvatarReferenceDto? DecorativeAvatar = null,
+    TaskRecurrenceScope? RecurrenceScope = null);
+
+public sealed record DeleteRecurringTaskRequest(TaskRecurrenceScope Scope, bool Confirmed);
 
 public sealed record ReviewNoDateTaskRequest(DateOnly? DueDate = null);

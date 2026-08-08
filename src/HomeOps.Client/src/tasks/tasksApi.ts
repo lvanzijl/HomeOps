@@ -1,4 +1,4 @@
-import type { CreateTaskInput, HouseholdTask, TaskTemplate, TaskTemplateInput } from './tasksModel';
+import type { CreateTaskInput, HouseholdTask, TaskRecurrenceScope, TaskTemplate, TaskTemplateInput } from './tasksModel';
 
 const apiBaseUrl = import.meta.env.VITE_HOMEOPS_API_BASE_URL ?? '';
 
@@ -64,12 +64,17 @@ export async function updateTask(taskId: string, input: CreateTaskInput): Promis
       familyMemberId: input.familyMemberId || null,
       recurrenceFrequency: input.recurrenceFrequency ?? 'None',
       decorativeAvatar: input.decorativeAvatar ?? null,
+      recurrenceScope: input.recurrenceScope ?? null,
     }),
   }));
 }
 
-export async function deleteRecurringTaskSeries(taskId: string): Promise<void> {
-  const response = await fetch(`${apiBaseUrl}/api/tasks/${taskId}/series`, { method: 'DELETE', headers: { Accept: 'application/json' } });
+export async function deleteRecurringTask(taskId: string, scope: TaskRecurrenceScope): Promise<void> {
+  const response = await fetch(`${apiBaseUrl}/api/tasks/${taskId}/recurrence/delete`, {
+    method: 'POST',
+    headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+    body: JSON.stringify({ scope, confirmed: true }),
+  });
   if (!response.ok) throw new Error('Recurring task series could not be deleted.');
 }
 

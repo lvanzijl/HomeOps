@@ -114,6 +114,15 @@ public static class KnownPersonEndpoints
                 series.DecorativeAvatarReferenceId = null;
                 series.UpdatedUtc = person.UpdatedUtc;
             }
+            var decoratedTaskExceptions = await dbContext.RecurringTaskExceptions
+                .Where(exception => exception.DecorativeAvatarReferenceType == Lists.DecorativeAvatarReferenceType.KnownPerson && exception.DecorativeAvatarReferenceId == knownPersonId.ToString())
+                .ToListAsync(cancellationToken);
+            foreach (var exception in decoratedTaskExceptions)
+            {
+                exception.DecorativeAvatarReferenceType = null;
+                exception.DecorativeAvatarReferenceId = null;
+                exception.UpdatedUtc = person.UpdatedUtc;
+            }
             var decoratedEventSeries = await dbContext.EventSeries
                 .Where(series => series.DecorativeAvatarReferenceType == Lists.DecorativeAvatarReferenceType.KnownPerson && series.DecorativeAvatarReferenceId == knownPersonId.ToString())
                 .ToListAsync(cancellationToken);

@@ -136,6 +136,15 @@ public static class FamilyMemberEndpoints
                     series.DecorativeAvatarReferenceId = null;
                     series.UpdatedUtc = member.UpdatedUtc;
                 }
+                var decoratedTaskExceptions = await dbContext.RecurringTaskExceptions
+                    .Where(exception => exception.DecorativeAvatarReferenceType == Lists.DecorativeAvatarReferenceType.FamilyMember && exception.DecorativeAvatarReferenceId == memberId)
+                    .ToListAsync(cancellationToken);
+                foreach (var exception in decoratedTaskExceptions)
+                {
+                    exception.DecorativeAvatarReferenceType = null;
+                    exception.DecorativeAvatarReferenceId = null;
+                    exception.UpdatedUtc = member.UpdatedUtc;
+                }
                 var decoratedEventSeries = await dbContext.EventSeries
                     .Where(series => series.DecorativeAvatarReferenceType == Lists.DecorativeAvatarReferenceType.FamilyMember && series.DecorativeAvatarReferenceId == memberId)
                     .ToListAsync(cancellationToken);

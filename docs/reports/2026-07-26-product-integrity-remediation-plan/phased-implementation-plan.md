@@ -818,7 +818,7 @@ Before changing Tasks layout or action placement, write the repository-required 
 
 ### Slice 4.4 — Recurring task occurrence control
 
-- [ ] **Status: Not started**
+- [x] **Status: Completed 2026-08-08**
 
 **Audit ID:** TASK-05
 
@@ -829,6 +829,8 @@ Before changing Tasks layout or action placement, write the repository-required 
 3. Reuse Agenda wording/patterns where semantics match.
 4. Require scope confirmation for destructive changes.
 5. Add backend recurrence and browser workflow tests.
+
+**Implementation state:** recurring task updates and removals require explicit `Occurrence`, `ThisAndFuture`, or `EntireSeries` scope. Modified/skipped original due dates are exception records, future changes use an inclusive boundary and series split, and entire-series operations preserve completed history while replacing or removing only incomplete projections. The bounded scope dialog uses Agenda-aligned meanings, retains failed/cancelled edit state, and requires task-specific confirmation for every destructive scope. Focused recurring API 15/15, focused Tasks 21/21, backend 633/633, frontend 351/351, both builds, PostgreSQL migration baseline 3/3, EF drift, twice-idempotent pinned NSwag, and Playwright 9/9 pass. See `docs/reports/2026-08-08-recurring-task-occurrence-control/implementation.md`.
 
 ### Slice 4.5 — Persisted Weekly Reset aggregate
 
@@ -856,7 +858,7 @@ Before changing Tasks layout or action placement, write the repository-required 
 - [x] Task actions are discoverable and accessible.
 - [x] Edit menu is never clipped at supported viewports.
 - [x] Normal tasks and routines have coherent archive/restore lifecycle.
-- [ ] Recurring scope is explicit.
+- [x] Recurring scope is explicit.
 - [ ] Weekly Reset can be completed and reviewed after refresh.
 
 ## Phase 5 — House, climate, and household settings
@@ -1273,6 +1275,7 @@ Every audit finding must appear exactly once as the primary responsibility of a 
 | TASK-02 | 4.3 Routine creation | [x] Completed |
 | TASK-03 | 4.3 Routine editing | [x] Completed |
 | TASK-04 | 4.3 Routine archive/restore | [x] Completed |
+| TASK-05 | 4.4 Recurring occurrence control | [x] Completed |
 | TEST-01 | Phase 0 | [x] Completed |
 | ONB-01 | 2.4 Atomic onboarding/review | [x] Completed |
 | ONB-02 | 2.4 Onboarding fail-safe | [x] Completed |
@@ -1293,7 +1296,6 @@ Every audit finding must appear exactly once as the primary responsibility of a 
 | SHOP-DATA-01 | 6.2 Unified shopping history | [ ] Not started |
 | SHOP-02 | 6.2 Item editing | [ ] Not started |
 | SHOP-04 | 6.1 Destructive shopping actions | [ ] Not started |
-| TASK-05 | 4.4 Recurring occurrence control | [ ] Not started |
 | CAL-01 | 3.7 Reminder decision | [x] Completed |
 | CAL-03 | 3.5 Source lifecycle | [x] Completed |
 | NAV-02 | 7.1 Routing | [ ] Not started |

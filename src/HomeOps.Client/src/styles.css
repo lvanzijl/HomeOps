@@ -10605,6 +10605,147 @@ button {
   justify-content: flex-end;
 }
 
+.task-scope-dialog-overlay {
+  align-items: center;
+  background: rgb(15 23 42 / 44%);
+  backdrop-filter: blur(8px);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 1rem;
+  position: fixed;
+  z-index: 18;
+}
+
+.task-scope-dialog {
+  background: linear-gradient(160deg, rgb(255 255 255 / 99%), rgb(240 253 250 / 97%));
+  border: 1px solid color-mix(in srgb, var(--domain-border, #99f6e4) 74%, white);
+  border-radius: 1.35rem;
+  box-shadow: 0 1.5rem 4rem rgb(15 23 42 / 24%);
+  display: grid;
+  gap: 0.85rem;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  max-height: min(42rem, calc(100dvh - 2rem));
+  overflow: hidden;
+  padding: 1rem;
+  width: min(36rem, calc(100vw - 2rem));
+}
+
+.task-scope-dialog header {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.task-scope-dialog h4,
+.task-scope-dialog header p {
+  margin: 0;
+}
+
+.task-scope-dialog h4 {
+  color: var(--color-text-strong);
+  font-size: 1.3rem;
+  letter-spacing: -0.03em;
+}
+
+.task-scope-dialog-body {
+  display: grid;
+  gap: 0.75rem;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 0.15rem;
+}
+
+.task-scope-options {
+  border: 0;
+  display: grid;
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0;
+}
+
+.task-scope-options legend {
+  color: var(--color-text-strong);
+  font-weight: 800;
+  margin-bottom: 0.45rem;
+}
+
+.task-scope-options label {
+  align-items: start;
+  background: rgb(255 255 255 / 90%);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 0.9rem;
+  cursor: pointer;
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: auto minmax(0, 1fr);
+  padding: 0.7rem 0.8rem;
+}
+
+.task-scope-options label:has(input:checked) {
+  border-color: var(--color-accent);
+  box-shadow: inset 0 0 0 1px var(--color-accent);
+}
+
+.task-scope-options label.is-disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.task-scope-options input,
+.task-scope-confirmation input {
+  margin-top: 0.2rem;
+}
+
+.task-scope-options span {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.task-scope-options small {
+  color: var(--color-text-muted);
+  line-height: 1.35;
+}
+
+.task-scope-confirmation {
+  align-items: start;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 0.9rem;
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: auto minmax(0, 1fr);
+  padding: 0.75rem 0.8rem;
+}
+
+.task-scope-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 0.8rem;
+  color: #991b1b;
+  margin: 0;
+  padding: 0.65rem 0.75rem;
+}
+
+.task-scope-dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  justify-content: flex-end;
+}
+
+@media (max-height: 760px) {
+  .task-scope-dialog {
+    gap: 0.6rem;
+    max-height: calc(100dvh - 1rem);
+    padding: 0.75rem;
+  }
+
+  .task-scope-options label {
+    padding: 0.55rem 0.65rem;
+  }
+}
+
 .task-routine-toolbar,
 .task-routine-editor-actions {
   align-items: center;

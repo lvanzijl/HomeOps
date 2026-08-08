@@ -342,6 +342,59 @@ test("routines use an ordered editor and bounded archive lifecycle", async ({ pa
   await expect(routinesDialog.getByText("Het routinearchief is leeg.")).toBeVisible();
 });
 
+test("recurring tasks require explicit occurrence scope and destructive confirmation", async ({ page, request }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await resetFixture(request, "visual-marketing-tasks");
+  const title = `E2E terugkeer ${Date.now()}`;
+  const dueDate = new Date().toISOString().slice(0, 10);
+  const createResponse = await request.post("/api/tasks", {
+    data: { title, dueDate, ownershipKind: "Unassigned", familyMemberId: null, recurrenceFrequency: "Weekly" },
+  });
+  expect(createResponse.ok(), await createResponse.text()).toBe(true);
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Taken", exact: true }).click();
+  await page.locator(".task-summary-link").filter({ hasText: "Later" }).click();
+  const card = () => page.locator(".operational-task-card").filter({ hasText: title }).first();
+  await expect(card()).toBeVisible();
+  await card().getByRole("button", { name: `Details van ${title} openen` }).click();
+  const editor = page.getByRole("dialog", { name: "Taak aanpassen" });
+  await editor.getByLabel("Wat moet er gebeuren?").fill(`${title} aangepast`);
+  await editor.getByRole("button", { name: "Verder" }).click();
+  await editor.getByRole("button", { name: "Verder" }).click();
+  await editor.getByRole("button", { name: "Verder" }).click();
+  await page.evaluate(() => {
+    const form = document.querySelector<HTMLElement>('[aria-label="Taak aanpassen"] form') as HTMLFormElement | null;
+    form?.requestSubmit();
+  });
+
+  const editScope = page.getByRole("dialog", { name: "Welke taken aanpassen?" });
+  await expect(editScope.getByRole("radio", { name: /Alleen deze taak/ })).toBeChecked();
+  await expectNoDocumentOverflow(page, "Recurring edit scope at 1280x720");
+  const updateResponse = page.waitForResponse((response) =>
+    response.request().method() === "PUT" && new URL(response.url()).pathname.startsWith("/api/tasks/"));
+  await editScope.getByRole("button", { name: "Wijziging toepassen" }).click();
+  const occurrenceUpdate = await updateResponse;
+  expect(occurrenceUpdate.status()).toBe(200);
+
+  const editedTitle = `${title} aangepast`;
+  const editedCard = page.locator(".operational-task-card").filter({ hasText: editedTitle }).first();
+  await expect(editedCard).toBeVisible();
+  await editedCard.getByRole("button", { name: `Meer acties voor ${editedTitle}` }).click();
+  await page.getByRole("menuitem", { name: `Herhaling beheren: ${editedTitle}` }).click();
+  const deleteScope = page.getByRole("dialog", { name: "Welke taken verwijderen?" });
+  const removeButton = deleteScope.getByRole("button", { name: "Verwijderen" });
+  await expect(removeButton).toBeDisabled();
+  await deleteScope.getByRole("radio", { name: /Hele reeks/ }).check();
+  await deleteScope.getByLabel(/Ik begrijp dat/).check();
+  await expectNoDocumentOverflow(page, "Recurring delete scope at 1280x720");
+  const deleteResponse = page.waitForResponse((response) =>
+    response.request().method() === "POST" && new URL(response.url()).pathname.endsWith("/recurrence/delete"));
+  await removeButton.click();
+  expect((await deleteResponse).ok()).toBe(true);
+  await expect(editedCard).toHaveCount(0);
+});
+
 test("primary pages do not create document-level vertical scrolling", async ({ page, request }) => {
   await resetFixture(request, "visual-full");
 
