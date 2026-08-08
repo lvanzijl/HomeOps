@@ -8,7 +8,7 @@ Phase 5 completes the Woning setup-to-runtime chain: reliable schema upgrades, r
 | --- | --- | --- |
 | 5.1 Repair and prove the Home Assistant migration | Completed 2026-08-08 | Restored EF discovery for the existing resume-strategy migration, proved clean and active-database upgrades, added safe migration health detail, and verified the live provider endpoint after upgrade. |
 | 5.2 House navigation and viewport analysis | Completed 2026-08-08 | Promoted Woning to primary navigation, added stable shared routes, and made every runtime availability state explicit within the approved viewport-safe composition. |
-| 5.3 Room climate configuration UI | Not started | Provide durable room-level climate policy editing with honest state and validation. |
+| 5.3 Room climate configuration UI | Completed 2026-08-08 | Added generated-contract room policy editing, strict range validation, durable save states, lifecycle guidance, and bounded browser-safe composition. |
 | 5.4 Provider/source mapping management | Not started | Provide the complete climate mapping lifecycle and health workspace. |
 | 5.5 Floor-plan upload and replacement entry | Not started | Let a normal user establish and replace the first floor plan. |
 | 5.6 Provider credential and lifecycle management | Not started | Make provider configuration and lifecycle safe, explicit, and operationally honest. |
@@ -32,11 +32,22 @@ The compact Woning summary distinguishes loading, error, empty, available, and d
 
 Validation: focused frontend tests 37/37; full frontend 360/360 with the established 20-second timeout budget; full backend 640/640; solution and frontend builds; PostgreSQL migration tests 4/4; EF list/model-drift/idempotent-script checks; two hash-identical pinned NSwag 14.7.1 generations; and PostgreSQL-backed Playwright 11/11. Real-browser inspection and the automated guard both confirm zero document-level vertical overflow for Woning summary and climate detail at 1440×900 and 1366×768. The approved analysis and implementation report are under `docs/reports/2026-08-08-house-navigation/`.
 
+## Slice 5.3 implementation boundary
+
+Settings → Woning now gives every active room one compact generated-contract action: `Klimaat instellen` for a missing configuration and `Klimaat bewerken` for a persisted configuration. The nested bounded editor exposes explicit climate enablement, bedtime relevance, optional temperature and relative-humidity ranges, and `HeatingPolicyIntent`. It constructs `UpsertRoomClimateConfigurationRequest` and nested `ClimateRangeDto` instances from the generated client, enforces the backend's strict minimum/maximum and supported bounds before submission, and keeps user input through backend failures.
+
+The editor distinguishes new/unsaved, saving, saved, unchanged, validation, and backend-error states. Disabling climate also clears bedtime relevance in the submitted request. Archived rooms remain outside editable configuration and the existing restore region now explains that restoration is required first. Configuration load failures are surfaced instead of being silently represented as an unconfigured room.
+
+The approved viewport analysis was revised after real Chromium revealed an existing right-panel sibling-overlap defect. The selected-floor header and summary remain fixed; the active room list and existing Home Assistant/floor-plan/archive content now own separate primary and secondary internal-scroll regions. The editor has its own internally scrolling body and fixed footer. Provider mappings, credentials, provider lifecycle, floor-plan upload, runtime heating authority, and weather configuration remain deferred.
+
+Validation: focused frontend 18/18 and climate API/persistence 5/5; full frontend 366/366; full backend 641/641; solution and frontend production builds; PostgreSQL migration baseline 4/4; EF list/model-drift/idempotent-script checks; two hash-identical pinned NSwag 14.7.1 generations; and PostgreSQL-backed Playwright 12/12. Automated and independent in-app browser checks confirm create/validate/edit/disable behavior, refresh persistence, archived-room guidance, visible fixed actions, no browser console errors, and zero body/document overflow at 1440×900 and 1366×768. See `docs/reports/2026-08-08-room-climate-configuration/`.
+
 ## Fixed boundaries
 
 - Work remains one numeric slice and one commit per run.
 - Slice 5.1 repairs migration discovery and diagnostics only; it does not redesign Settings or Woning.
 - Slice 5.2 changes reachability, shared routing, and runtime state presentation only; configuration and provider-management workflows remain deferred.
+- Slice 5.3 edits room policy only; provider/source mapping, credentials, floor-plan ingestion, runtime control, and weather remain deferred.
 - Further primary-page layout work still requires its own approved viewport analysis.
 - Provider credentials and lifecycle remain Slice 5.6.
 - Weather location remains Slice 5.7.

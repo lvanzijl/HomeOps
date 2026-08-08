@@ -91,6 +91,46 @@ public sealed class RoomClimateConfigurationApiTests(HomeOpsWebApplicationFactor
     }
 
     [Fact]
+    public async Task EditableUiContractPersistsEveryFieldAndRoundTripsThroughTheApi()
+    {
+        var floor = await CreateFloor("Climate UI persistence floor");
+        var room = await CreateRoom(floor.Id, "Climate UI persistence room", RoomType.LivingRoom);
+        var request = new UpsertRoomClimateConfigurationRequest(
+            true,
+            true,
+            new ClimateRangeDto(18.5m, 22.5m),
+            new ClimateRangeDto(35m, 65m),
+            HeatingPolicyIntent.BoundedControl);
+
+        var response = await _client.PutAsJsonAsync($"/api/rooms/{room.Id}/climate-configuration", request);
+        response.EnsureSuccessStatusCode();
+
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<HomeOpsDbContext>();
+            var persisted = await db.RoomClimateConfigurations.AsNoTracking().SingleAsync(config => config.RoomId == room.Id);
+            Assert.True(persisted.IsClimateEnabled);
+            Assert.True(persisted.IsBedtimeRelevant);
+            Assert.Equal(18.5m, persisted.MinimumPreferredTemperatureCelsius);
+            Assert.Equal(22.5m, persisted.MaximumPreferredTemperatureCelsius);
+            Assert.Equal(35m, persisted.MinimumPreferredRelativeHumidity);
+            Assert.Equal(65m, persisted.MaximumPreferredRelativeHumidity);
+            Assert.Equal(HeatingPolicyIntent.BoundedControl, persisted.HeatingPolicyIntent);
+        }
+
+        var roundTrip = await _client.GetFromJsonAsync<RoomClimateConfigurationDto>($"/api/rooms/{room.Id}/climate-configuration");
+        Assert.True(roundTrip!.IsConfigured);
+        Assert.True(roundTrip.IsClimateEnabled);
+        Assert.True(roundTrip.IsBedtimeRelevant);
+        Assert.Equal(new ClimateRangeDto(18.5m, 22.5m), roundTrip.TemperatureRange);
+        Assert.Equal(new ClimateRangeDto(35m, 65m), roundTrip.HumidityRange);
+        Assert.Equal(HeatingPolicyIntent.BoundedControl, roundTrip.HeatingPolicyIntent);
+
+        var cleanup = await _client.DeleteAsync($"/api/rooms/{room.Id}/climate-configuration");
+        Assert.Equal(HttpStatusCode.NoContent, cleanup.StatusCode);
+    }
+
+    [Fact]
     public async Task BackupRestoreExportsValidatesAndAtomicallyReplacesClimateConfiguration()
     {
         var floor = await CreateFloor("Climate portability floor");

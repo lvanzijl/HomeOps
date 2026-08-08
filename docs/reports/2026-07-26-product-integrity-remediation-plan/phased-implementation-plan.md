@@ -31,7 +31,7 @@ Do not check a phase merely because one of its slices is complete. A phase is co
 | [x] | **Phase 2 — Truthful first run and family persistence** | **Completed** | Slices 2.1–2.6 are complete, including family administration/restore and the persisted setup checklist | Fresh install onboards correctly; family changes survive refresh with honest error handling |
 | [x] | **Phase 3 — Calendar and local-time correctness** | **Completed** | Calendar-field writes, household time zone, source lifecycle, device preferences, and truthful reminder scope are complete | Home and Agenda preserve household-local calendar intent and accurately state that notifications are not delivered |
 | [x] | **Phase 4 — Tasks and Weekly Reset completion** | **Completed 2026-08-08** | Task APIs, routines, and Weekly Reset foundation exist; Slice 4.0 interaction authority is approved | Core task controls are operable and every reset candidate can be resolved and completed |
-| [ ] | **Phase 5 — House, climate, and household settings** | **In progress** | Slices 5.1–5.2 repaired the migration/provider runtime and made Woning reachable through stable viewport-safe routes; configuration slices remain | Woning setup-to-runtime chain is reachable, healthy, configurable, and viewport-safe |
+| [ ] | **Phase 5 — House, climate, and household settings** | **In progress** | Slices 5.1–5.3 repaired the migration/provider runtime, made Woning reachable, and added durable room climate policy editing; mapping and onboarding slices remain | Woning setup-to-runtime chain is reachable, healthy, configurable, and viewport-safe |
 | [ ] | **Phase 6 — Shopping and Motivation lifecycle completion** | **Not started** | Both domains are PostgreSQL-backed | Common create/edit/archive/restore/correction workflows are complete and cross-device |
 | [ ] | **Phase 7 — Navigation, backup, errors, and consistency** | **Not started** | Individual foundations exist | Cross-cutting behavior is routable, recoverable, consistently worded, and accurately backed up |
 | [ ] | **Phase 8 — Optional product breadth** | **Not started** | Placeholders only | Each optional feature is either deliberately implemented or deliberately removed from product expectations |
@@ -914,7 +914,7 @@ Before changing Tasks layout or action placement, write the repository-required 
 
 ### Slice 5.3 — Room climate configuration UI
 
-- [ ] **Status: Not started**
+- [x] **Status: Completed 2026-08-08**
 
 **Audit ID:** CLIMATE-01
 
@@ -926,6 +926,8 @@ Before changing Tasks layout or action placement, write the repository-required 
 4. Show unsaved, saving, saved, and backend error states.
 5. Disable or explain controls when a room is archived.
 6. Add component, API, persistence, and browser tests.
+
+**Implementation state:** Settings → Woning now exposes compact create/edit actions backed directly by the generated Room climate DTO, range, enum, and upsert contracts. The bounded nested editor covers enablement, bedtime relevance, optional temperature/humidity ranges, and heating-policy intent with strict supported-range validation plus unsaved/saving/saved/backend-error state; failures retain the draft and successful saves update the room summary. Archived rooms explain the restore prerequisite, and climate load errors no longer masquerade as missing configuration. Real-browser discovery required an approved viewport-analysis revision: the fixed selected-floor header/summary now sits above separate primary room-list and secondary integration/archive internal-scroll regions, eliminating sibling overlap without document scrolling. Focused frontend 18/18, focused API/persistence 5/5, frontend 366/366, backend 641/641, both builds, PostgreSQL 4/4, EF list/drift/idempotent-script checks, twice-identical pinned NSwag 14.7.1 generation, and Playwright 12/12 pass. Automated and in-app browser checks cover create/validate/edit/disable, refresh persistence, archived-room guidance, fixed actions, no console errors, and zero body/document overflow at 1440×900 and 1366×768. See `docs/reports/2026-08-08-room-climate-configuration/` and `docs/roadmap/phase-5.md`.
 
 ### Slice 5.4 — Provider/source mapping management
 
@@ -1272,7 +1274,7 @@ Every audit finding must appear exactly once as the primary responsibility of a 
 | MEMBER-02 | 2.2 Honest member mutations | [x] Completed |
 | TIME-01 | 3.1–3.3 Calendar-field correction | [x] Completed |
 | HOUSE-01 | 5.2 House navigation | [x] Completed |
-| CLIMATE-01 | 5.3 Climate configuration UI | [ ] Not started |
+| CLIMATE-01 | 5.3 Climate configuration UI | [x] Completed |
 | CLIMATE-02 | 5.4 Mapping management | [ ] Not started |
 | RESET-01 | 4.5 Persisted Weekly Reset | [x] Completed |
 | TASK-UI-01 | 4.1 Task actions | [x] Completed |

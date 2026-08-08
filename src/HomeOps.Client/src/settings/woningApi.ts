@@ -23,6 +23,7 @@ import {
   type HomeAssistantResumeStrategyConfigurationDto,
   type RoomClimateConfigurationDto,
   type RoomDto,
+  type UpsertRoomClimateConfigurationRequest,
 } from "../api/homeOpsApiClient";
 
 export type ClimateProvider = ClimateProviderDto;
@@ -115,11 +116,11 @@ export function createHomeAssistantResumeStrategyRequest(strategyType: HomeAssis
 }
 
 export async function loadClimateConfiguration(roomId: string) {
-  try {
-    return await createWoningClient().getRoomClimateConfiguration(roomId);
-  } catch {
-    return null;
-  }
+  return createWoningClient().getRoomClimateConfiguration(roomId);
+}
+
+export function saveClimateConfiguration(roomId: string, request: UpsertRoomClimateConfigurationRequest) {
+  return createWoningClient().upsertRoomClimateConfiguration(roomId, request);
 }
 
 export function createFloor(name: string) {

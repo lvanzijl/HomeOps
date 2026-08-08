@@ -481,6 +481,59 @@ test("Woning supports stable summary and climate deep links with browser history
   await expect(page.getByRole("heading", { name: "Huisstatus" })).toBeVisible();
 });
 
+test("room climate settings create, validate, persist, edit, and disable", async ({ page, request }) => {
+  await resetFixture(request, "visual-full");
+  await seedWoningRuntime(request);
+  await page.setViewportSize({ width: 1366, height: 768 });
+  await page.goto("/");
+
+  await page.getByRole("button", { name: "Instellingen voor gezinsinstellingen" }).click();
+  await page.locator(".settings-action-rail").getByRole("button", { name: "Woning", exact: true }).click();
+  let woning = page.getByRole("dialog", { name: "Woning", exact: true });
+  await expect(woning.getByText("Herstel een kamer voordat je de klimaatinstellingen kunt wijzigen.")).toBeVisible();
+
+  const rooms = woning.getByRole("list", { name: "Kamers op geselecteerde verdieping" });
+  const workRoom = rooms.locator("article").filter({ hasText: "Werkkamer" });
+  await workRoom.getByRole("button", { name: "Klimaat instellen" }).click();
+  let climateDialog = page.getByRole("dialog", { name: "Klimaatinstellingen voor Werkkamer" });
+  await expectNoDocumentScroll(page, "New room climate settings at 1366x768");
+  await climateDialog.getByRole("checkbox", { name: /Voorkeurstemperatuur instellen/ }).click();
+  await climateDialog.getByLabel("Voorkeurstemperatuur minimum").fill("23");
+  await climateDialog.getByLabel("Voorkeurstemperatuur maximum").fill("23");
+  await expect(climateDialog.getByRole("alert")).toContainText("het minimum moet lager zijn dan het maximum");
+  await expect(climateDialog.getByRole("button", { name: "Klimaat opslaan" })).toBeDisabled();
+  await climateDialog.getByLabel("Voorkeurstemperatuur minimum").fill("19");
+  await climateDialog.getByRole("checkbox", { name: /Voorkeursluchtvochtigheid instellen/ }).click();
+  await climateDialog.getByLabel("Gewenste verwarmingsbediening").selectOption("2");
+  await climateDialog.getByRole("button", { name: "Klimaat opslaan" }).click();
+  await expect(climateDialog.getByRole("status")).toContainText("zijn opgeslagen");
+  await climateDialog.getByRole("button", { name: "Sluiten" }).first().click();
+  await expect(workRoom).toContainText("Tijdelijke bediening gewenst");
+
+  const livingRoom = rooms.locator("article").filter({ hasText: "Woonkamer" });
+  await livingRoom.getByRole("button", { name: "Klimaat bewerken" }).click();
+  climateDialog = page.getByRole("dialog", { name: "Klimaatinstellingen voor Woonkamer" });
+  await climateDialog.getByLabel("Voorkeurstemperatuur maximum").fill("23");
+  await climateDialog.getByRole("button", { name: "Klimaat opslaan" }).click();
+  await expect(climateDialog.getByRole("status")).toContainText("zijn opgeslagen");
+  await climateDialog.getByRole("button", { name: "Sluiten" }).first().click();
+  await woning.getByRole("button", { name: "Sluiten" }).click();
+
+  await page.reload();
+  await page.getByRole("button", { name: "Instellingen voor gezinsinstellingen" }).click();
+  await page.locator(".settings-action-rail").getByRole("button", { name: "Woning", exact: true }).click();
+  woning = page.getByRole("dialog", { name: "Woning", exact: true });
+  const persistedLivingRoom = woning.getByRole("list", { name: "Kamers op geselecteerde verdieping" }).locator("article").filter({ hasText: "Woonkamer" });
+  await persistedLivingRoom.getByRole("button", { name: "Klimaat bewerken" }).click();
+  climateDialog = page.getByRole("dialog", { name: "Klimaatinstellingen voor Woonkamer" });
+  await expect(climateDialog.getByLabel("Voorkeurstemperatuur maximum")).toHaveValue("23");
+  await climateDialog.getByRole("checkbox", { name: /Klimaat voor deze kamer gebruiken/ }).click();
+  await climateDialog.getByRole("button", { name: "Klimaat opslaan" }).click();
+  await expect(climateDialog.getByRole("status")).toContainText("zijn opgeslagen");
+  await climateDialog.getByRole("button", { name: "Sluiten" }).first().click();
+  await expect(persistedLivingRoom).toContainText("Klimaat uitgeschakeld");
+});
+
 test("primary pages do not create document-level vertical scrolling", async ({ page, request }) => {
   await resetFixture(request, "visual-full");
   await seedWoningRuntime(request);
@@ -525,6 +578,17 @@ test("primary pages do not create document-level vertical scrolling", async ({ p
     await expect(page.getByRole("dialog", { name: "Gezinsleden" })).toBeVisible();
     await expectNoDocumentScroll(page, `Gezinsledenbeheer at ${viewport.width}x${viewport.height}`);
     await page.getByRole("button", { name: "Gezinsleden sluiten" }).click();
+    await page.locator(".settings-action-rail").getByRole("button", { name: "Woning", exact: true }).click();
+    const woningDialog = page.getByRole("dialog", { name: "Woning", exact: true });
+    await expect(woningDialog).toBeVisible();
+    await expectNoDocumentScroll(page, `Woningbeheer at ${viewport.width}x${viewport.height}`);
+    const livingRoom = woningDialog.getByRole("list", { name: "Kamers op geselecteerde verdieping" }).locator("article").filter({ hasText: "Woonkamer" });
+    await livingRoom.getByRole("button", { name: "Klimaat bewerken" }).click();
+    const climateDialog = page.getByRole("dialog", { name: "Klimaatinstellingen voor Woonkamer" });
+    await expect(climateDialog).toBeVisible();
+    await expectNoDocumentScroll(page, `Klimaatinstellingen at ${viewport.width}x${viewport.height}`);
+    await climateDialog.getByRole("button", { name: "Sluiten" }).first().click();
+    await woningDialog.getByRole("button", { name: "Sluiten" }).click();
 
     await page.getByLabel("Dagelijkse gezinsplekken").getByRole("button", { name: "Thuis", exact: true }).click();
     await page.getByRole("button", { name: "Afspraak toevoegen" }).click();
@@ -563,21 +627,27 @@ async function seedWoningRuntime(request: APIRequestContext) {
   const floorsResponse = await request.get("/api/floors");
   expect(floorsResponse.ok(), await floorsResponse.text()).toBe(true);
   const floors = await floorsResponse.json() as { id: string; name: string }[];
-  if (floors.some((floor) => floor.name === "E2E Klimaat")) {
-    return;
+  let floor = floors.find((candidate) => candidate.name === "E2E Klimaat");
+  if (!floor) {
+    const floorResponse = await request.post("/api/floors", { data: { name: "E2E Klimaat" } });
+    expect(floorResponse.ok(), await floorResponse.text()).toBe(true);
+    floor = await floorResponse.json() as { id: string; name: string };
   }
 
-  const floorResponse = await request.post("/api/floors", {
-    data: { name: "E2E Klimaat" },
-  });
-  expect(floorResponse.ok(), await floorResponse.text()).toBe(true);
-  const floor = await floorResponse.json() as { id: string };
+  const roomsResponse = await request.get(`/api/floors/${floor.id}/rooms?includeArchived=true`);
+  expect(roomsResponse.ok(), await roomsResponse.text()).toBe(true);
+  const rooms = await roomsResponse.json() as { id: string; isArchived: boolean; name: string }[];
+  const ensureRoom = async (name: string, roomType: number) => {
+    const existing = rooms.find((candidate) => candidate.name === name);
+    if (existing) return existing;
+    const response = await request.post(`/api/floors/${floor.id}/rooms`, { data: { name, roomType } });
+    expect(response.ok(), await response.text()).toBe(true);
+    const created = await response.json() as { id: string; isArchived: boolean; name: string };
+    rooms.push(created);
+    return created;
+  };
 
-  const configuredRoomResponse = await request.post(`/api/floors/${floor.id}/rooms`, {
-    data: { name: "Woonkamer", roomType: 2 },
-  });
-  expect(configuredRoomResponse.ok(), await configuredRoomResponse.text()).toBe(true);
-  const configuredRoom = await configuredRoomResponse.json() as { id: string };
+  const configuredRoom = await ensureRoom("Woonkamer", 2);
 
   const configurationResponse = await request.put(`/api/rooms/${configuredRoom.id}/climate-configuration`, {
     data: {
@@ -590,10 +660,15 @@ async function seedWoningRuntime(request: APIRequestContext) {
   });
   expect(configurationResponse.ok(), await configurationResponse.text()).toBe(true);
 
-  const unconfiguredRoomResponse = await request.post(`/api/floors/${floor.id}/rooms`, {
-    data: { name: "Werkkamer", roomType: 5 },
-  });
-  expect(unconfiguredRoomResponse.ok(), await unconfiguredRoomResponse.text()).toBe(true);
+  const unconfiguredRoom = await ensureRoom("Werkkamer", 5);
+  const clearConfigurationResponse = await request.delete(`/api/rooms/${unconfiguredRoom.id}/climate-configuration`);
+  expect([204, 404], await clearConfigurationResponse.text()).toContain(clearConfigurationResponse.status());
+
+  const archivedRoom = await ensureRoom("Archiefkamer", 6);
+  if (!archivedRoom.isArchived) {
+    const archiveResponse = await request.post(`/api/rooms/${archivedRoom.id}/archive`);
+    expect(archiveResponse.ok(), await archiveResponse.text()).toBe(true);
+  }
 }
 
 async function openFamilyAdministration(page: Page) {

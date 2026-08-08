@@ -11578,6 +11578,8 @@ button {
 .woning-item.selected { border-color: rgba(37, 99, 235, 0.65); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12); }
 .woning-select { width: 100%; text-align: left; display: flex; justify-content: space-between; gap: 0.5rem; background: transparent; color: inherit; padding: 0; }
 .woning-room { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0.75rem; align-items: start; }
+.woning-room-regions { display: grid; grid-template-rows: minmax(8rem, 1.2fr) minmax(6rem, .8fr); gap: .65rem; min-height: 0; overflow: hidden; }
+.woning-room-secondary { display: grid; gap: .65rem; min-height: 0; overflow-y: auto; padding-right: .25rem; }
 .woning-room h5, .woning-room p { margin: 0 0 0.25rem; }
 .woning-actions { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.6rem; }
 .woning-actions button, .woning-archived button { font-size: 0.82rem; padding: 0.42rem 0.55rem; }
@@ -11585,9 +11587,26 @@ button {
 .woning-summary-strip { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 .woning-summary-strip span { border-radius: 999px; background: rgba(14, 116, 144, 0.12); color: #164e63; padding: 0.35rem 0.65rem; font-weight: 700; }
 .woning-archived { border-top: 1px solid rgba(15,23,42,0.12); padding-top: 0.75rem; display: flex; flex-wrap: wrap; gap: 0.5rem; }
-.woning-archived h5 { width: 100%; margin: 0; }
+.woning-archived h5, .woning-archived p { width: 100%; margin: 0; }
 .woning-dialog form { display: grid; gap: 0.85rem; }
+.woning-climate-dialog { width: min(44rem, calc(100% - .4rem)); }
+.woning-climate-dialog .settings-surface-header { align-items: flex-start; }
+.woning-climate-dialog .settings-surface-header p { margin-top: .2rem; }
+.woning-climate-form { display: grid; grid-template-rows: minmax(0, 1fr) auto; min-height: 0; overflow: hidden; }
+.woning-climate-form-body { display: grid; gap: .7rem; min-height: 0; overflow-y: auto; padding-right: .2rem; }
+.woning-climate-form fieldset { border: 1px solid rgba(15,23,42,.12); border-radius: 1rem; display: grid; gap: .6rem; margin: 0; padding: .75rem; }
+.woning-climate-form legend { color: var(--color-text-strong); font-weight: 850; padding: 0 .25rem; }
+.woning-climate-check { align-items: start; display: grid; gap: .55rem; grid-template-columns: auto minmax(0, 1fr); }
+.woning-climate-check input { margin-top: .18rem; }
+.woning-climate-check span { display: grid; gap: .12rem; }
+.woning-climate-check small, .woning-climate-policy-note { color: var(--color-text-muted); line-height: 1.35; }
+.woning-climate-range { display: grid; gap: .55rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.woning-climate-range label { display: grid; gap: .3rem; }
+.woning-climate-validation, .woning-climate-save-error { background: #fff7ed; border: 1px solid #fdba74; border-radius: .85rem; color: #9a3412; padding: .65rem .75rem; }
+.woning-climate-validation ul { margin: .35rem 0 0; padding-left: 1.15rem; }
+.woning-climate-actions { background: rgba(255,255,255,.94); border-top: 1px solid rgba(15,23,42,.1); margin-top: .2rem; padding-top: .7rem; }
 @media (max-width: 880px) { .woning-workspace { max-height: 78vh; } .woning-grid { grid-template-columns: 1fr; } .woning-room { grid-template-columns: 1fr; } }
+@media (max-width: 640px) { .woning-climate-range { grid-template-columns: 1fr; } }
 .woning-plan-action { border: 1px dashed rgba(14,116,144,.28); border-radius: 1rem; padding: .75rem; background: rgba(236,254,255,.55); }
 .overlay-editor { display: flex; flex-direction: column; gap: .75rem; max-height: min(76vh, 820px); overflow: hidden; }
 .overlay-editor-head { display:flex; align-items:center; justify-content:space-between; gap:1rem; }

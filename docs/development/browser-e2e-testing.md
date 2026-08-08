@@ -36,15 +36,11 @@ The runner:
 
 Use `-KeepDatabase` only while diagnosing a failing test. The generated name is printed before startup and must never be replaced with `homeops`. Use `-StopPostgresOnExit` if the test command should also stop the shared development PostgreSQL container.
 
-## Expected-failure baseline
+## Regression baseline
 
-One product-integrity scenario deliberately uses Playwright's expected-failure marker while its defects remain open:
+All product-integrity scenarios are normal passing regressions; no expected-failure marker remains. The suite covers fresh-install onboarding (`BOOT-01`), family-member avatar persistence (`MEMBER-01`), Home household-local event placement (`TIME-01`), task/routine/Weekly Reset lifecycle, Woning routes, room climate configuration (`CLIMATE-01`), and primary-page document containment.
 
-- Tasks Complete/Tomorrow/Edit hit targets (`TASK-UI-01`, `TASK-UI-02`).
-
-Expected failures keep the baseline command green while preserving executable evidence. Playwright treats an unexpected pass as a failure. When a remediation slice fixes one of these defects, remove its expected-failure marker and keep the passing regression test.
-
-Fresh-install onboarding (`BOOT-01`), family-member avatar persistence (`MEMBER-01`), Home household-local event placement (`TIME-01`), and the primary-page no-document-scroll scenario are normal passing regressions. The viewport scenario covers 1440x900 and 1366x768, including the Home quick-add, Agenda editor, and Kalendercontrole dialogs.
+The viewport scenario covers 1440x900 and 1366x768, including Home quick-add, Agenda editor, Kalendercontrole, Woning management, and the room climate editor. The climate lifecycle scenario additionally covers strict validation, create/edit/disable, refresh persistence, and archived-room guidance.
 
 ## Artifacts
 
