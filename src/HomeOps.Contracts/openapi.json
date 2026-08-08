@@ -11,7 +11,24 @@
         "operationId": "Health",
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HomeOpsHealthResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HomeOpsHealthResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -7766,6 +7783,39 @@
   },
   "components": {
     "schemas": {
+      "HomeOpsHealthResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "databaseMigrations": {
+            "$ref": "#/components/schemas/DatabaseMigrationHealthDetail"
+          }
+        }
+      },
+      "DatabaseMigrationHealthDetail": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "pendingMigrationCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "failureCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "checkedUtc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "RoomOverlayDto": {
         "type": "object",
         "additionalProperties": false,

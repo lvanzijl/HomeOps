@@ -38,8 +38,8 @@ Do not put real passwords in committed scripts, documentation, test output, or c
 
 When PostgreSQL is reachable, the baseline tests execute as part of the normal backend suite. When it is unavailable, the tests return without touching external state unless `HOMEOPS_REQUIRE_POSTGRES_TESTS=true`. The dedicated script sets that flag so a missing server is a visible failure rather than a silent omission.
 
-## Current characterized schema gap
+## Home Assistant migration regression
 
-The baseline intentionally records the confirmed `HOUSE-04` defect: the model contains five Home Assistant resume-strategy properties, while the latest migration discoverable by EF is currently `20260715205518_AddRoomHeatingCommands` and a freshly migrated database lacks those five columns.
+Phase 5 Slice 5.1 repaired `HOUSE-04` by restoring designer metadata for the existing `20260717124500_AddHomeAssistantResumeStrategyConfiguration` migration. The baseline now requires a clean schema to contain all five resume-strategy columns.
 
-Phase 5 Slice 5.1 must register and validate the existing `20260717124500_AddHomeAssistantResumeStrategyConfiguration` migration. At that point, update the characterization assertion to require no missing columns.
+The active-database fixture migrates to the immediately preceding migration, inserts a representative enabled Home Assistant provider, applies the repaired migration, verifies its backfill, upgrades to latest, and confirms the provider endpoint through a real Npgsql-backed test host. Keep this regression whenever migrations are added or consolidated.

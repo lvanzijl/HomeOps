@@ -29,6 +29,7 @@ CalendarPortabilityService.ConfigureFloorPlanAssetStorage(
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApiDocument();
+builder.Services.AddSingleton<DatabaseMigrationHealthState>();
 builder.Services.AddSingleton<VisualReviewMarketingTimeProvider>();
 builder.Services.AddSingleton<IAvatarCatalogSource, SharedAvatarCatalogSource>();
 builder.Services.AddSingleton<AvatarCatalogService>();
@@ -121,19 +122,47 @@ else
 
 var app = builder.Build();
 _ = app.Services.GetRequiredService<AvatarCatalogService>();
+var migrationHealth = app.Services.GetRequiredService<DatabaseMigrationHealthState>();
 
 if (!app.Environment.IsEnvironment("Testing") && !app.Environment.IsEnvironment("VisualReview"))
 {
-    using var scope = app.Services.CreateScope();
-    var dbContext = scope.ServiceProvider.GetRequiredService<HomeOpsDbContext>();
-    dbContext.Database.Migrate();
-    if (app.Environment.IsEnvironment("Demo") &&
-        !await dbContext.FamilyMembers.AnyAsync() &&
-        !await dbContext.Lists.AnyAsync() &&
-        !await dbContext.EventSeries.AnyAsync())
+    var pendingMigrationCount = 0;
+    try
     {
-        await VisualReviewFixtureService.ApplyScenario(dbContext, "visual-full", CancellationToken.None);
+        using var scope = app.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<HomeOpsDbContext>();
+        var pendingMigrations = (await dbContext.Database.GetPendingMigrationsAsync()).ToArray();
+        pendingMigrationCount = pendingMigrations.Length;
+        migrationHealth.MarkPending(pendingMigrationCount);
+
+        await dbContext.Database.MigrateAsync();
+        var remainingMigrationCount = (await dbContext.Database.GetPendingMigrationsAsync()).Count();
+        if (remainingMigrationCount != 0)
+        {
+            migrationHealth.MarkPending(remainingMigrationCount);
+        }
+        else
+        {
+            migrationHealth.MarkHealthy();
+        }
+
+        if (app.Environment.IsEnvironment("Demo") &&
+            !await dbContext.FamilyMembers.AnyAsync() &&
+            !await dbContext.Lists.AnyAsync() &&
+            !await dbContext.EventSeries.AnyAsync())
+        {
+            await VisualReviewFixtureService.ApplyScenario(dbContext, "visual-full", CancellationToken.None);
+        }
     }
+    catch (Exception exception)
+    {
+        migrationHealth.MarkFailed(pendingMigrationCount);
+        app.Logger.LogCritical(exception, "Database migration startup check failed.");
+    }
+}
+else
+{
+    migrationHealth.MarkNotRequired();
 }
 
 if (app.Environment.IsDevelopment())
@@ -146,8 +175,16 @@ if (app.Environment.IsEnvironment("VisualReview"))
     app.UseCors("VisualReviewCors");
 }
 
-app.MapGet("/health", () => Results.Ok(new { status = "Healthy" }))
-    .WithName("Health");
+app.MapGet("/health", (DatabaseMigrationHealthState state) =>
+    {
+        var detail = state.GetDetail();
+        var isHealthy = detail.Status is DatabaseMigrationHealthStatuses.Healthy or DatabaseMigrationHealthStatuses.NotRequired;
+        var response = new HomeOpsHealthResponse(isHealthy ? "Healthy" : "Degraded", detail);
+        return Results.Json(response, statusCode: isHealthy ? StatusCodes.Status200OK : StatusCodes.Status503ServiceUnavailable);
+    })
+    .WithName("Health")
+    .Produces<HomeOpsHealthResponse>(StatusCodes.Status200OK)
+    .Produces<HomeOpsHealthResponse>(StatusCodes.Status503ServiceUnavailable);
 
 app.MapAgendaLayerSettingsEndpoints();
 app.MapListEndpoints();

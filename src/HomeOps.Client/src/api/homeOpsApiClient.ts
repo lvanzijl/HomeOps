@@ -17,13 +17,14 @@ export class HomeOpsApiClient {
         this.baseUrl = baseUrl ?? "";
     }
 
-    health(): Promise<void> {
+    health(): Promise<HomeOpsHealthResponse> {
         let url_ = this.baseUrl + "/health";
         url_ = url_.replace(/[?&]$/, "");
 
         let options_: RequestInit = {
             method: "GET",
             headers: {
+                "Accept": "application/json"
             }
         };
 
@@ -32,19 +33,29 @@ export class HomeOpsApiClient {
         });
     }
 
-    protected processHealth(response: Response): Promise<void> {
+    protected processHealth(response: Response): Promise<HomeOpsHealthResponse> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 200) {
             return response.text().then((_responseText) => {
-            return;
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = HomeOpsHealthResponse.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 503) {
+            return response.text().then((_responseText) => {
+            let result503: any = null;
+            let resultData503 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result503 = HomeOpsHealthResponse.fromJS(resultData503);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result503);
             });
         } else if (status !== 200 && status !== 204) {
             return response.text().then((_responseText) => {
             return throwException("An unexpected server error occurred.", status, _responseText, _headers);
             });
         }
-        return Promise.resolve<void>(null as any);
+        return Promise.resolve<HomeOpsHealthResponse>(null as any);
     }
 
     getFloorRoomOverlays(floorId: string, includeArchived: boolean | null | undefined): Promise<RoomOverlayDto[]> {
@@ -8745,6 +8756,94 @@ export class HomeOpsApiClient {
         }
         return Promise.resolve<ApplyVisualReviewScenarioResponse>(null as any);
     }
+}
+
+export class HomeOpsHealthResponse implements IHomeOpsHealthResponse {
+    status?: string;
+    databaseMigrations?: DatabaseMigrationHealthDetail;
+
+    constructor(data?: IHomeOpsHealthResponse) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.status = _data["status"];
+            this.databaseMigrations = _data["databaseMigrations"] ? DatabaseMigrationHealthDetail.fromJS(_data["databaseMigrations"]) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): HomeOpsHealthResponse {
+        data = typeof data === 'object' ? data : {};
+        let result = new HomeOpsHealthResponse();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["status"] = this.status;
+        data["databaseMigrations"] = this.databaseMigrations ? this.databaseMigrations.toJSON() : undefined as any;
+        return data;
+    }
+}
+
+export interface IHomeOpsHealthResponse {
+    status?: string;
+    databaseMigrations?: DatabaseMigrationHealthDetail;
+}
+
+export class DatabaseMigrationHealthDetail implements IDatabaseMigrationHealthDetail {
+    status?: string;
+    pendingMigrationCount?: number;
+    failureCode?: string | undefined;
+    checkedUtc?: Date;
+
+    constructor(data?: IDatabaseMigrationHealthDetail) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.status = _data["status"];
+            this.pendingMigrationCount = _data["pendingMigrationCount"];
+            this.failureCode = _data["failureCode"];
+            this.checkedUtc = _data["checkedUtc"] ? new Date(_data["checkedUtc"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): DatabaseMigrationHealthDetail {
+        data = typeof data === 'object' ? data : {};
+        let result = new DatabaseMigrationHealthDetail();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["status"] = this.status;
+        data["pendingMigrationCount"] = this.pendingMigrationCount;
+        data["failureCode"] = this.failureCode;
+        data["checkedUtc"] = this.checkedUtc ? this.checkedUtc.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface IDatabaseMigrationHealthDetail {
+    status?: string;
+    pendingMigrationCount?: number;
+    failureCode?: string | undefined;
+    checkedUtc?: Date;
 }
 
 export class RoomOverlayDto implements IRoomOverlayDto {

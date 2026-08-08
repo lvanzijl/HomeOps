@@ -1,5 +1,13 @@
+using System.Net;
+using System.Net.Http.Json;
+using HomeOps.Api.Data;
 using HomeOps.Api.FloorPlans;
+using HomeOps.Api.Households;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Npgsql;
 
 namespace HomeOps.Api.Tests.Infrastructure;
@@ -61,10 +69,89 @@ public sealed class DatabaseBaselineTests
 
         var missingColumns = await database.FindMissingColumnsAsync("ClimateProviders", ResumeStrategyColumns);
 
-        // This is a characterization baseline for HOUSE-04. Phase 5 Slice 5.1 must
-        // register the existing resume-strategy migration and change this assertion
-        // to Assert.Empty(missingColumns).
-        Assert.Equal(ResumeStrategyColumns.Order(StringComparer.Ordinal), missingColumns);
+        Assert.Empty(missingColumns);
+    }
+
+    [Fact]
+    public async Task Resume_strategy_migration_upgrades_active_provider_and_provider_endpoint_loads()
+    {
+        await using var database = await PostgresTestDatabase.TryCreateAsync();
+        if (database is null)
+        {
+            return;
+        }
+
+        const string targetMigration = "20260717124500_AddHomeAssistantResumeStrategyConfiguration";
+        string previousMigration;
+        await using (var context = database.CreateContext())
+        {
+            var migrations = context.Database.GetMigrations().ToArray();
+            var targetIndex = Array.IndexOf(migrations, targetMigration);
+            Assert.True(targetIndex > 0);
+            previousMigration = migrations[targetIndex - 1];
+            Assert.Equal("20260715205518_AddRoomHeatingCommands", previousMigration);
+        }
+
+        await database.MigrateAsync(previousMigration);
+        Assert.Equal(
+            ResumeStrategyColumns.Order(StringComparer.Ordinal),
+            await database.FindMissingColumnsAsync("ClimateProviders", ResumeStrategyColumns));
+
+        var providerId = Guid.NewGuid();
+        var updatedUtc = DateTimeOffset.Parse("2026-07-17T10:30:00Z");
+        await using (var connection = new NpgsqlConnection(database.ConnectionString))
+        {
+            await connection.OpenAsync();
+            await using var insertProvider = new NpgsqlCommand(
+                """
+                INSERT INTO "ClimateProviders"
+                    ("Id", "HouseholdId", "ProviderType", "DisplayName", "IsEnabled", "IsArchived",
+                     "ArchivedUtc", "ExternalInstanceReference", "DiagnosticMetadata", "CreatedUtc", "UpdatedUtc")
+                VALUES
+                    (@id, @household, 'HomeAssistant', 'Active Home Assistant', TRUE, FALSE,
+                     NULL, 'home-assistant', 'ha-resume:script:turn_on:script.resume_heating', @updated, @updated)
+                """,
+                connection);
+            insertProvider.Parameters.AddWithValue("id", providerId);
+            insertProvider.Parameters.AddWithValue("household", SeedHousehold.Id);
+            insertProvider.Parameters.AddWithValue("updated", updatedUtc);
+            Assert.Equal(1, await insertProvider.ExecuteNonQueryAsync());
+        }
+
+        await database.MigrateAsync(targetMigration);
+
+        Assert.Empty(await database.FindMissingColumnsAsync("ClimateProviders", ResumeStrategyColumns));
+        await using (var upgradedConnection = new NpgsqlConnection(database.ConnectionString))
+        {
+            await upgradedConnection.OpenAsync();
+            Assert.Equal(
+                "Script",
+                await ScalarAsync<string>(
+                    upgradedConnection,
+                    """SELECT "HomeAssistantResumeStrategyType" FROM "ClimateProviders" WHERE "Id" = @id""",
+                    new NpgsqlParameter("id", providerId)));
+            Assert.Equal(
+                "script.resume_heating",
+                await ScalarAsync<string>(
+                    upgradedConnection,
+                    """SELECT "HomeAssistantResumeScriptEntityReference" FROM "ClimateProviders" WHERE "Id" = @id""",
+                    new NpgsqlParameter("id", providerId)));
+            Assert.Equal(
+                updatedUtc.UtcDateTime,
+                await ScalarAsync<DateTime>(
+                    upgradedConnection,
+                    """SELECT "HomeAssistantResumeStrategyUpdatedUtc" FROM "ClimateProviders" WHERE "Id" = @id""",
+                    new NpgsqlParameter("id", providerId)));
+        }
+
+        await database.MigrateAsync();
+        await using var factory = new PostgreSqlApiFactory(database.ConnectionString);
+        using var client = factory.CreateClient();
+        var response = await client.GetAsync("/api/climate-providers/");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        var providers = await response.Content.ReadFromJsonAsync<IReadOnlyCollection<ClimateProviderDto>>();
+        Assert.Contains(providers!, provider => provider.Id == providerId && provider.DisplayName == "Active Home Assistant");
     }
 
     [Fact]
@@ -259,6 +346,19 @@ public sealed class DatabaseBaselineTests
         command.Parameters.AddRange(parameters);
         var result = await command.ExecuteScalarAsync();
         return Assert.IsType<T>(result);
+    }
+
+    private sealed class PostgreSqlApiFactory(string connectionString) : WebApplicationFactory<Program>
+    {
+        protected override void ConfigureWebHost(IWebHostBuilder builder)
+        {
+            builder.UseEnvironment("Testing");
+            builder.ConfigureServices(services =>
+            {
+                services.RemoveAll<DbContextOptions<HomeOpsDbContext>>();
+                services.AddDbContext<HomeOpsDbContext>(options => options.UseNpgsql(connectionString));
+            });
+        }
     }
 
 }

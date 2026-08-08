@@ -31,7 +31,7 @@ Do not check a phase merely because one of its slices is complete. A phase is co
 | [x] | **Phase 2 — Truthful first run and family persistence** | **Completed** | Slices 2.1–2.6 are complete, including family administration/restore and the persisted setup checklist | Fresh install onboards correctly; family changes survive refresh with honest error handling |
 | [x] | **Phase 3 — Calendar and local-time correctness** | **Completed** | Calendar-field writes, household time zone, source lifecycle, device preferences, and truthful reminder scope are complete | Home and Agenda preserve household-local calendar intent and accurately state that notifications are not delivered |
 | [x] | **Phase 4 — Tasks and Weekly Reset completion** | **Completed 2026-08-08** | Task APIs, routines, and Weekly Reset foundation exist; Slice 4.0 interaction authority is approved | Core task controls are operable and every reset candidate can be resolved and completed |
-| [ ] | **Phase 5 — House, climate, and household settings** | **Not started** | Substantial backend and partial Settings foundation exist | Woning setup-to-runtime chain is reachable, healthy, configurable, and viewport-safe |
+| [ ] | **Phase 5 — House, climate, and household settings** | **In progress** | Slice 5.1 repaired and proved the Home Assistant migration/provider runtime; UI/configuration slices remain | Woning setup-to-runtime chain is reachable, healthy, configurable, and viewport-safe |
 | [ ] | **Phase 6 — Shopping and Motivation lifecycle completion** | **Not started** | Both domains are PostgreSQL-backed | Common create/edit/archive/restore/correction workflows are complete and cross-device |
 | [ ] | **Phase 7 — Navigation, backup, errors, and consistency** | **Not started** | Individual foundations exist | Cross-cutting behavior is routable, recoverable, consistently worded, and accurately backed up |
 | [ ] | **Phase 8 — Optional product breadth** | **Not started** | Placeholders only | Each optional feature is either deliberately implemented or deliberately removed from product expectations |
@@ -865,7 +865,7 @@ Before changing Tasks layout or action placement, write the repository-required 
 
 ## Phase 5 — House, climate, and household settings
 
-- [ ] **Phase status: Not started**
+- [ ] **Phase status: In progress**
 
 **Priority:** P0/P1.  
 **Audit coverage:** HOUSE-01, CLIMATE-01, CLIMATE-02, HOUSE-02, HOUSE-04, HOUSE-05, HOUSE-06, WEATHER-01.  
@@ -873,7 +873,7 @@ Before changing Tasks layout or action placement, write the repository-required 
 
 ### Slice 5.1 — Repair and prove the Home Assistant migration
 
-- [ ] **Status: Not started**
+- [x] **Status: Completed 2026-08-08**
 
 **Audit ID:** HOUSE-04
 
@@ -892,6 +892,8 @@ Before changing Tasks layout or action placement, write the repository-required 
 **Done when**
 
 - The live provider endpoint loads and migration tests prevent recurrence.
+
+**Implementation state:** EF now discovers `20260717124500_AddHomeAssistantResumeStrategyConfiguration` in its original position through restored designer metadata, without a second migration or snapshot change. Clean PostgreSQL, immediately-preceding upgrade, and representative active-provider paths pass; the legacy resume diagnostic is safely backfilled and the real Npgsql-backed `GET /api/climate-providers/` returns 200 after the database reaches latest. Startup health reports only safe migration state/count/time/fixed failure code and returns 503 for pending or failed state. Focused tests pass 7/7, backend 640/640, frontend 354/354, both builds, required PostgreSQL 4/4, EF list/drift/idempotent-script checks, and twice-identical pinned NSwag 14.7.1 generation pass. See [`2026-08-08-home-assistant-migration-repair/implementation.md`](../2026-08-08-home-assistant-migration-repair/implementation.md) and `docs/roadmap/phase-5.md`.
 
 ### Slice 5.2 — House navigation and viewport analysis
 
@@ -985,7 +987,7 @@ Before changing Tasks layout or action placement, write the repository-required 
 
 ### Phase 5 exit criteria
 
-- [ ] Provider endpoint and DB upgrades are healthy.
+- [x] Provider endpoint and DB upgrades are healthy.
 - [ ] House runtime is reachable through an approved viewport-safe composition.
 - [ ] Climate configuration and mapping lifecycle work end to end.
 - [ ] A normal user can upload the first floor plan.
