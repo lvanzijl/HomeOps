@@ -1126,6 +1126,47 @@ export class HomeOpsApiClient {
         return Promise.resolve<void>(null as any);
     }
 
+    getMotivationFamilyGoalHistory(): Promise<MotivationFamilyGoalHistoryDto[]> {
+        let url_ = this.baseUrl + "/api/motivation/family-goals/history";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetMotivationFamilyGoalHistory(_response);
+        });
+    }
+
+    protected processGetMotivationFamilyGoalHistory(response: Response): Promise<MotivationFamilyGoalHistoryDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(MotivationFamilyGoalHistoryDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<MotivationFamilyGoalHistoryDto[]>(null as any);
+    }
+
     createMotivationFamilyGoal(request: UpsertMotivationFamilyGoalRequest): Promise<MotivationFamilyGoalDto> {
         let url_ = this.baseUrl + "/api/motivation/family-goals";
         url_ = url_.replace(/[?&]$/, "");
@@ -1212,6 +1253,88 @@ export class HomeOpsApiClient {
             return throwException("A server side error occurred.", status, _responseText, _headers, result400);
             });
         } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<MotivationFamilyGoalDto>(null as any);
+    }
+
+    archiveMotivationFamilyGoal(id: string): Promise<void> {
+        let url_ = this.baseUrl + "/api/motivation/family-goals/{id}/archive";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processArchiveMotivationFamilyGoal(_response);
+        });
+    }
+
+    protected processArchiveMotivationFamilyGoal(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    restoreMotivationFamilyGoal(id: string): Promise<MotivationFamilyGoalDto> {
+        let url_ = this.baseUrl + "/api/motivation/family-goals/{id}/restore";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRestoreMotivationFamilyGoal(_response);
+        });
+    }
+
+    protected processRestoreMotivationFamilyGoal(response: Response): Promise<MotivationFamilyGoalDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = MotivationFamilyGoalDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
             return response.text().then((_responseText) => {
             return throwException("A server side error occurred.", status, _responseText, _headers);
             });
@@ -8832,6 +8955,99 @@ export class HomeOpsApiClient {
         return Promise.resolve<HelpfulMomentDto>(null as any);
     }
 
+    updateHelpfulMoment(id: string, request: UpdateHelpfulMomentRequest): Promise<HelpfulMomentDto> {
+        let url_ = this.baseUrl + "/api/helpful-moments/{id}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processUpdateHelpfulMoment(_response);
+        });
+    }
+
+    protected processUpdateHelpfulMoment(response: Response): Promise<HelpfulMomentDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = HelpfulMomentDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = HttpValidationProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status === 409) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<HelpfulMomentDto>(null as any);
+    }
+
+    deleteHelpfulMoment(id: string): Promise<void> {
+        let url_ = this.baseUrl + "/api/helpful-moments/{id}";
+        if (id === undefined || id === null)
+            throw new globalThis.Error("The parameter 'id' must be defined.");
+        url_ = url_.replace("{id}", encodeURIComponent("" + id));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDeleteHelpfulMoment(_response);
+        });
+    }
+
+    protected processDeleteHelpfulMoment(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
     getWeeklyReset(): Promise<WeeklyResetDto> {
         let url_ = this.baseUrl + "/api/weekly-reset";
         url_ = url_.replace(/[?&]$/, "");
@@ -10936,6 +11152,46 @@ export interface IUpsertMotivationIndividualGoalRequest {
     title?: string;
     targetCount?: number;
     unitLabel?: string;
+}
+
+export class MotivationFamilyGoalHistoryDto implements IMotivationFamilyGoalHistoryDto {
+    goal?: MotivationFamilyGoalDto;
+    archivedUtc?: Date | undefined;
+
+    constructor(data?: IMotivationFamilyGoalHistoryDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.goal = _data["goal"] ? MotivationFamilyGoalDto.fromJS(_data["goal"]) : undefined as any;
+            this.archivedUtc = _data["archivedUtc"] ? new Date(_data["archivedUtc"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): MotivationFamilyGoalHistoryDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new MotivationFamilyGoalHistoryDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["goal"] = this.goal ? this.goal.toJSON() : undefined as any;
+        data["archivedUtc"] = this.archivedUtc ? this.archivedUtc.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface IMotivationFamilyGoalHistoryDto {
+    goal?: MotivationFamilyGoalDto;
+    archivedUtc?: Date | undefined;
 }
 
 export class UpsertMotivationFamilyGoalRequest implements IUpsertMotivationFamilyGoalRequest {
@@ -20962,10 +21218,12 @@ export class HelpfulMomentDto implements IHelpfulMomentDto {
     familyMemberName?: string;
     familyMemberDisplayColor?: string;
     familyMemberInitials?: string;
+    familyMemberIsRemoved?: boolean;
     title?: string;
     description?: string | undefined;
     recognitionTag?: string;
     createdUtc?: Date;
+    updatedUtc?: Date;
 
     constructor(data?: IHelpfulMomentDto) {
         if (data) {
@@ -20984,10 +21242,12 @@ export class HelpfulMomentDto implements IHelpfulMomentDto {
             this.familyMemberName = _data["familyMemberName"];
             this.familyMemberDisplayColor = _data["familyMemberDisplayColor"];
             this.familyMemberInitials = _data["familyMemberInitials"];
+            this.familyMemberIsRemoved = _data["familyMemberIsRemoved"];
             this.title = _data["title"];
             this.description = _data["description"];
             this.recognitionTag = _data["recognitionTag"];
             this.createdUtc = _data["createdUtc"] ? new Date(_data["createdUtc"].toString()) : undefined as any;
+            this.updatedUtc = _data["updatedUtc"] ? new Date(_data["updatedUtc"].toString()) : undefined as any;
         }
     }
 
@@ -21006,10 +21266,12 @@ export class HelpfulMomentDto implements IHelpfulMomentDto {
         data["familyMemberName"] = this.familyMemberName;
         data["familyMemberDisplayColor"] = this.familyMemberDisplayColor;
         data["familyMemberInitials"] = this.familyMemberInitials;
+        data["familyMemberIsRemoved"] = this.familyMemberIsRemoved;
         data["title"] = this.title;
         data["description"] = this.description;
         data["recognitionTag"] = this.recognitionTag;
         data["createdUtc"] = this.createdUtc ? this.createdUtc.toISOString() : undefined as any;
+        data["updatedUtc"] = this.updatedUtc ? this.updatedUtc.toISOString() : undefined as any;
         return data;
     }
 }
@@ -21021,10 +21283,12 @@ export interface IHelpfulMomentDto {
     familyMemberName?: string;
     familyMemberDisplayColor?: string;
     familyMemberInitials?: string;
+    familyMemberIsRemoved?: boolean;
     title?: string;
     description?: string | undefined;
     recognitionTag?: string;
     createdUtc?: Date;
+    updatedUtc?: Date;
 }
 
 export class CreateHelpfulMomentRequest implements ICreateHelpfulMomentRequest {
@@ -21073,6 +21337,58 @@ export interface ICreateHelpfulMomentRequest {
     title?: string;
     description?: string | undefined;
     recognitionTag?: string | undefined;
+}
+
+export class UpdateHelpfulMomentRequest implements IUpdateHelpfulMomentRequest {
+    familyMemberId?: string;
+    title?: string;
+    description?: string | undefined;
+    recognitionTag?: string | undefined;
+    expectedUpdatedUtc?: Date;
+
+    constructor(data?: IUpdateHelpfulMomentRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.familyMemberId = _data["familyMemberId"];
+            this.title = _data["title"];
+            this.description = _data["description"];
+            this.recognitionTag = _data["recognitionTag"];
+            this.expectedUpdatedUtc = _data["expectedUpdatedUtc"] ? new Date(_data["expectedUpdatedUtc"].toString()) : undefined as any;
+        }
+    }
+
+    static fromJS(data: any): UpdateHelpfulMomentRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new UpdateHelpfulMomentRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["familyMemberId"] = this.familyMemberId;
+        data["title"] = this.title;
+        data["description"] = this.description;
+        data["recognitionTag"] = this.recognitionTag;
+        data["expectedUpdatedUtc"] = this.expectedUpdatedUtc ? this.expectedUpdatedUtc.toISOString() : undefined as any;
+        return data;
+    }
+}
+
+export interface IUpdateHelpfulMomentRequest {
+    familyMemberId?: string;
+    title?: string;
+    description?: string | undefined;
+    recognitionTag?: string | undefined;
+    expectedUpdatedUtc?: Date;
 }
 
 export class WeeklyResetDto implements IWeeklyResetDto {

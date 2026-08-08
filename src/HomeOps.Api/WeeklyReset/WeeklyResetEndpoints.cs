@@ -349,10 +349,10 @@ public static class WeeklyResetEndpoints
             .CountAsync(item => item.HouseholdId == SeedHousehold.Id && item.IsCompleted && item.CompletedUtc >= weekStartUtc, cancellationToken);
         var helpfulMoments = await dbContext.HelpfulMoments.AsNoTracking()
             .Include(item => item.FamilyMember)
-            .Where(item => item.HouseholdId == SeedHousehold.Id && item.CreatedUtc >= weekStartUtc && item.FamilyMember != null && !item.FamilyMember.IsDeleted)
+            .Where(item => item.HouseholdId == SeedHousehold.Id && !item.IsDeleted && item.CreatedUtc >= weekStartUtc && item.FamilyMember != null)
             .OrderByDescending(item => item.CreatedUtc)
             .Take(8)
-            .Select(item => new HelpfulMomentDto(item.Id, item.HouseholdId.ToString(), item.FamilyMemberId, item.FamilyMember!.Name, item.FamilyMember.DisplayColor, item.FamilyMember.Initials, item.Title, item.Description, item.RecognitionTag, item.CreatedUtc))
+            .Select(item => new HelpfulMomentDto(item.Id, item.HouseholdId.ToString(), item.FamilyMemberId, item.FamilyMember!.Name, item.FamilyMember.DisplayColor, item.FamilyMember.Initials, item.FamilyMember.IsDeleted, item.Title, item.Description, item.RecognitionTag, item.CreatedUtc, item.UpdatedUtc))
             .ToListAsync(cancellationToken);
         var memories = await dbContext.MotivationFamilyGoals.AsNoTracking()
             .Where(item => item.HouseholdId == SeedHousehold.Id && item.CelebrationStatus == FamilyCelebrationStatus.Celebrated && item.CelebrationCelebratedUtc >= weekStartUtc && item.CelebrationTitle != null)

@@ -983,6 +983,26 @@
         }
       }
     },
+    "/api/motivation/family-goals/history": {
+      "get": {
+        "operationId": "GetMotivationFamilyGoalHistory",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MotivationFamilyGoalHistoryDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/motivation/family-goals": {
       "post": {
         "operationId": "CreateMotivationFamilyGoal",
@@ -1072,6 +1092,66 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/motivation/family-goals/{id}/archive": {
+      "post": {
+        "operationId": "ArchiveMotivationFamilyGoal",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/motivation/family-goals/{id}/restore": {
+      "post": {
+        "operationId": "RestoreMotivationFamilyGoal",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MotivationFamilyGoalDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          },
+          "409": {
+            "description": ""
           }
         }
       }
@@ -7970,6 +8050,92 @@
         }
       }
     },
+    "/api/helpful-moments/{id}": {
+      "put": {
+        "tags": [
+          "Helpful Moments"
+        ],
+        "operationId": "UpdateHelpfulMoment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateHelpfulMomentRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 2
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HelpfulMomentDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          },
+          "409": {
+            "description": ""
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Helpful Moments"
+        ],
+        "operationId": "DeleteHelpfulMoment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
     "/api/weekly-reset": {
       "get": {
         "tags": [
@@ -9087,6 +9253,20 @@
           },
           "unitLabel": {
             "type": "string"
+          }
+        }
+      },
+      "MotivationFamilyGoalHistoryDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "goal": {
+            "$ref": "#/components/schemas/MotivationFamilyGoalDto"
+          },
+          "archivedUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
           }
         }
       },
@@ -14932,6 +15112,9 @@
           "familyMemberInitials": {
             "type": "string"
           },
+          "familyMemberIsRemoved": {
+            "type": "boolean"
+          },
           "title": {
             "type": "string"
           },
@@ -14943,6 +15126,10 @@
             "type": "string"
           },
           "createdUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedUtc": {
             "type": "string",
             "format": "date-time"
           }
@@ -14965,6 +15152,30 @@
           "recognitionTag": {
             "type": "string",
             "nullable": true
+          }
+        }
+      },
+      "UpdateHelpfulMomentRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "familyMemberId": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "recognitionTag": {
+            "type": "string",
+            "nullable": true
+          },
+          "expectedUpdatedUtc": {
+            "type": "string",
+            "format": "date-time"
           }
         }
       },

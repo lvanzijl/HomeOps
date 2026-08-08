@@ -1008,7 +1008,7 @@ Before changing Tasks layout or action placement, write the repository-required 
 
 ## Phase 6 — Shopping and Motivation lifecycle completion
 
-- [ ] **Phase status: In progress**
+- [x] **Phase status: Completed 2026-08-08**
 
 **Priority:** P1/P2.  
 **Audit coverage:** SHOP-01, SHOP-02, SHOP-03, SHOP-04, SHOP-DATA-01, MOT-01, MOT-02, MOT-03, MOT-04.  
@@ -1075,7 +1075,7 @@ Before modifying Shopping or Motivation layouts, produce separate Viewport-First
 
 ### Slice 6.4 — Helpful-moment and family-goal lifecycle
 
-- [ ] **Status: Not started**
+- [x] **Status: Completed 2026-08-08**
 
 **Audit IDs:** MOT-02, MOT-03
 
@@ -1087,13 +1087,15 @@ Before modifying Shopping or Motivation layouts, produce separate Viewport-First
 4. Provide archived history and optional restore only if goal semantics allow it.
 5. Use explicit confirmation and honest success/error states.
 
+**Implementation state:** Helpful moments now expose generated-contract update and soft-delete operations. Updates use millisecond-safe optimistic concurrency, retain failed drafts, and allow a removed historical member to remain attached without allowing new assignment to removed members. Soft-deleted moments disappear from normal and Weekly Reset reads while the record and attribution remain stored. Family goals expose archive, bounded archived history, and restore; archive preserves projected progress, the immutable ledger, and celebration state, while restore is accepted only when no active family goal exists. The approved three-region Motivation composition is unchanged: appreciation edit/delete, named stop confirmation, and goal history replace or scroll inside existing dialogs. Migration `20260808185514_CompleteMotivationLifecycle` adds lifecycle timestamps/state and safely backfills appreciation update timestamps. Backend 661/661, frontend 390/390, PostgreSQL 5/5, builds, twice-identical pinned NSwag 14.7.1, Playwright 20/20, and independent 1280×720 containment inspection pass. See `docs/reports/2026-08-08-motivation-lifecycle/implementation.md` and `docs/roadmap/phase-6.md`.
+
 ### Phase 6 exit criteria
 
 - [x] Multiple shopping lists can be created, archived, restored, and intentionally deleted.
 - [x] Shopping items can be corrected in place.
 - [x] Home/Shopping suggestions use one server source.
 - [x] Goal progress is explainable and correctable.
-- [ ] Helpful moments and family goals have complete user lifecycles.
+- [x] Helpful moments and family goals have complete user lifecycles.
 
 ## Phase 7 — Navigation, backup, errors, and consistency
 
@@ -1308,9 +1310,9 @@ Every audit finding must appear exactly once as the primary responsibility of a 
 | CAL-02 | 3.5 Calendar file upload | [x] Completed |
 | SHOP-01 | 6.1 Create lists | [x] Completed |
 | SHOP-03 | 6.1 Archive/restore lists | [x] Completed |
-| MOT-01 | 6.3 Goal progress semantics | [ ] Not started |
-| MOT-02 | 6.4 Helpful-moment lifecycle | [ ] Not started |
-| MOT-03 | 6.4 Family-goal lifecycle | [ ] Not started |
+| MOT-01 | 6.3 Goal progress semantics | [x] Completed |
+| MOT-02 | 6.4 Helpful-moment lifecycle | [x] Completed |
+| MOT-03 | 6.4 Family-goal lifecycle | [x] Completed |
 | HOUSE-02 | 5.5 Floor-plan upload | [x] Completed |
 | HOUSE-04 | 5.1 Migration/provider repair | [ ] Not started |
 | HOUSE-05 | 5.6 Provider lifecycle | [x] Completed |
@@ -1331,7 +1333,7 @@ Every audit finding must appear exactly once as the primary responsibility of a 
 | HOUSE-06 | 5.6 Credential guidance | [x] Completed |
 | RESET-02 | 4.5 Persisted reset decisions | [x] Completed |
 | RESET-03 | 4.5 Reset completion/history | [x] Completed |
-| MOT-04 | 6.3 Progress ledger | [ ] Not started |
+| MOT-04 | 6.3 Progress ledger | [x] Completed |
 | WIDGET-01 | 7.6 Widget customization | [ ] Not started |
 | DATA-01 | 7.2 Shared error handling | [ ] Not started |
 | SEC-03 | 7.3 Destructive policy | [ ] Not started |

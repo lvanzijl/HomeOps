@@ -862,6 +862,55 @@ test("motivation progress uses a bounded immutable ledger and compensating corre
   await expectNoDocumentScroll(page, "Motivation corrected ledger at 1366x768");
 });
 
+test("motivation appreciation and family goals complete their bounded lifecycle", async ({ page, request }) => {
+  await resetFixture(request, "visual-full");
+  await page.setViewportSize({ width: 1366, height: 768 });
+  await page.goto("/");
+  await page.getByLabel("Dagelijkse gezinsplekken").getByRole("button", { name: "Motivatie", exact: true }).click();
+
+  const appreciation = page.getByLabel("Aanmoediging en waardering");
+  await appreciation.getByRole("button", { name: /meer|Alles bekijken/ }).click();
+  const appreciationHistory = page.getByRole("dialog", { name: "Aanmoediging en waardering geschiedenis" });
+  const firstMoment = appreciationHistory.locator(".helpful-moment-card").first();
+  await firstMoment.getByRole("button", { name: "Aanpassen" }).click();
+  const appreciationForm = appreciationHistory.getByLabel("Waardering aanpassen formulier");
+  const correctedTitle = "Samen de jassen netjes opgehangen";
+  await appreciationForm.getByLabel("Wat gebeurde er?").fill(correctedTitle);
+  const updateResponse = page.waitForResponse((response) => response.request().method() === "PUT" && /\/api\/helpful-moments\/[^/]+$/.test(new URL(response.url()).pathname));
+  await appreciationForm.getByRole("button", { name: "Waardering bewaren" }).click();
+  const updateResult = await updateResponse;
+  expect(updateResult.ok(), await updateResult.text()).toBe(true);
+  const correctedMoment = appreciationHistory.locator(".helpful-moment-card").filter({ hasText: correctedTitle });
+  await correctedMoment.getByRole("button", { name: "Verwijderen" }).click();
+  await expect(appreciationHistory.getByLabel("Waardering verwijderen bevestigen")).toContainText(correctedTitle);
+  const deleteResponse = page.waitForResponse((response) => response.request().method() === "DELETE" && /\/api\/helpful-moments\/[^/]+$/.test(new URL(response.url()).pathname));
+  await appreciationHistory.getByRole("button", { name: "Waardering verwijderen" }).click();
+  expect((await deleteResponse).status()).toBe(204);
+  await expect(appreciationHistory.getByText(correctedTitle)).toHaveCount(0);
+  await appreciationHistory.getByRole("button", { name: "Waarderingsgeschiedenis sluiten" }).click();
+
+  const goalCard = page.getByLabel("Gedeeld familiedoel");
+  const goalTitle = (await goalCard.getByRole("heading", { level: 3 }).textContent())!;
+  await goalCard.getByRole("button", { name: "Familiedoel aanpassen" }).click();
+  await page.getByRole("button", { name: "Familiedoel stoppen" }).click();
+  const stopConfirmation = page.getByLabel("Familiedoel stoppen bevestigen");
+  await expect(stopConfirmation).toContainText("voortgang, het logboek en een eventuele viering blijven");
+  const archiveResponse = page.waitForResponse((response) => response.request().method() === "POST" && new URL(response.url()).pathname.endsWith("/archive"));
+  await stopConfirmation.getByRole("button", { name: "Familiedoel stoppen" }).click();
+  expect((await archiveResponse).status()).toBe(204);
+  await expect(goalCard.getByText("Nog geen familiedoel.")).toBeVisible();
+
+  await page.getByRole("button", { name: "Historie bekijken" }).click();
+  const familyHistory = page.getByRole("dialog", { name: "Gezinsverhaal en doelgeschiedenis" });
+  const archivedGoal = familyHistory.locator(".family-goal-history-card").filter({ hasText: goalTitle });
+  await expect(archivedGoal).toContainText("Voortgang en logboek zijn bewaard");
+  const restoreResponse = page.waitForResponse((response) => response.request().method() === "POST" && new URL(response.url()).pathname.endsWith("/restore"));
+  await archivedGoal.getByRole("button", { name: "Doel hervatten" }).click();
+  expect((await restoreResponse).ok()).toBe(true);
+  await expect(familyHistory).toContainText("is weer het actieve familiedoel");
+  await expectNoDocumentScroll(page, "Motivation lifecycle dialogs at 1366x768");
+});
+
 test("primary pages do not create document-level vertical scrolling", async ({ page, request }) => {
   await resetFixture(request, "visual-full");
   await seedWoningRuntime(request);

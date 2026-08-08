@@ -1,4 +1,4 @@
-import { CreateMotivationProgressCorrectionRequest, FamilyCelebrationStatus, HomeOpsApiClient, MotivationGoalType, type MotivationProgressSourceType, UpsertMotivationFamilyGoalRequest, UpsertMotivationIndividualGoalRequest, type MotivationFamilyCelebrationMemoryDto, type MotivationFamilyGoalDto, type MotivationIndividualGoalDto, type MotivationProgressLedgerDto, type MotivationSnapshotDto } from './api/homeOpsApiClient';
+import { CreateMotivationProgressCorrectionRequest, FamilyCelebrationStatus, HomeOpsApiClient, MotivationGoalType, type MotivationProgressSourceType, UpsertMotivationFamilyGoalRequest, UpsertMotivationIndividualGoalRequest, type MotivationFamilyCelebrationMemoryDto, type MotivationFamilyGoalDto, type MotivationFamilyGoalHistoryDto, type MotivationIndividualGoalDto, type MotivationProgressLedgerDto, type MotivationSnapshotDto } from './api/homeOpsApiClient';
 import type { FamilyMember } from './home/familyMembers';
 
 export interface MotivationFamilyCelebration {
@@ -39,6 +39,11 @@ export interface MotivationSnapshot {
   familyGoal?: MotivationFamilyGoal;
   individualGoals: readonly MotivationIndividualGoal[];
   celebrationMemories?: readonly MotivationCelebrationMemory[];
+}
+
+export interface MotivationFamilyGoalHistoryItem {
+  goal: MotivationFamilyGoal;
+  archivedUtc?: string;
 }
 
 export interface MotivationProgressLedgerEntry {
@@ -155,6 +160,25 @@ export async function archiveIndividualGoal(id: string): Promise<void> {
 
 export async function markFamilyGoalCelebrated(id: string): Promise<MotivationFamilyGoal> {
   return familyGoalFromApi(await client.markFamilyGoalCelebrated(id))!;
+}
+
+function familyGoalHistoryFromApi(item: MotivationFamilyGoalHistoryDto): MotivationFamilyGoalHistoryItem {
+  return {
+    goal: familyGoalFromApi(item.goal)!,
+    archivedUtc: item.archivedUtc ? String(item.archivedUtc) : undefined,
+  };
+}
+
+export async function loadFamilyGoalHistory(): Promise<MotivationFamilyGoalHistoryItem[]> {
+  return (await client.getMotivationFamilyGoalHistory()).map(familyGoalHistoryFromApi);
+}
+
+export async function archiveFamilyGoal(id: string): Promise<void> {
+  await client.archiveMotivationFamilyGoal(id);
+}
+
+export async function restoreFamilyGoal(id: string): Promise<MotivationFamilyGoal> {
+  return familyGoalFromApi(await client.restoreMotivationFamilyGoal(id))!;
 }
 
 function progressLedgerFromApi(ledger: MotivationProgressLedgerDto): MotivationProgressLedger {

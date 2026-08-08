@@ -9757,6 +9757,40 @@ button {
   padding-right: 0.25rem;
 }
 
+.helpful-moment-history-dialog,
+.motivation-family-history-dialog {
+  grid-template-rows: auto minmax(0, 1fr);
+  height: min(42rem, calc(100vh - 2.5rem));
+  overflow: hidden;
+}
+
+.helpful-moment-history-dialog > .helpful-moment-feed,
+.helpful-moment-edit-form,
+.motivation-confirmation {
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.helpful-moment-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.55rem;
+}
+
+.helpful-moment-edit-form,
+.motivation-confirmation {
+  display: grid;
+  gap: 0.8rem;
+  padding-right: 0.25rem;
+}
+
+.helpful-moment-edit-form label {
+  display: grid;
+  font-weight: 800;
+  gap: 0.35rem;
+}
+
 .celebration-story-card {
   display: grid;
   gap: 0.7rem;
@@ -9877,6 +9911,45 @@ button {
   display: grid;
   gap: 0.85rem;
   min-height: 0;
+}
+
+.motivation-family-history-dialog .motivation-detail-content {
+  overflow: hidden;
+}
+
+.family-story-history-content {
+  display: grid;
+  gap: 1rem;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.family-story-history-content > section,
+.family-goal-history-list {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.family-goal-history-card {
+  align-items: center;
+  background: rgb(255 251 235 / 76%);
+  border: 1px solid color-mix(in srgb, var(--domain-border, #fed7aa) 72%, white);
+  border-radius: 1rem;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+  padding: 0.75rem 0.85rem;
+}
+
+.family-goal-history-card > div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.family-goal-history-card span,
+.family-goal-history-card small {
+  color: var(--color-text-muted);
 }
 
 .motivation-progress-dialog {

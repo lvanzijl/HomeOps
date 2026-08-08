@@ -179,6 +179,22 @@ public static class MotivationEndpoints
             return Results.NoContent();
         }).WithName("ArchiveMotivationIndividualGoal").Produces(StatusCodes.Status204NoContent).Produces(StatusCodes.Status404NotFound);
 
+        app.MapGet("/api/motivation/family-goals/history", async (HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        {
+            var goals = await dbContext.MotivationFamilyGoals.AsNoTracking()
+                .Where(goal => goal.HouseholdId == SeedHousehold.Id && !goal.IsActive)
+                .OrderByDescending(goal => goal.ArchivedUtc)
+                .ThenByDescending(goal => goal.Id)
+                .ToListAsync(cancellationToken);
+            var history = new List<MotivationFamilyGoalHistoryDto>(goals.Count);
+            foreach (var goal in goals)
+            {
+                var progress = await MotivationProgress.GetProjectedAsync(dbContext, MotivationGoalType.Family, goal.Id, goal.TargetCount, goal.CurrentProgress, cancellationToken);
+                history.Add(new MotivationFamilyGoalHistoryDto(ToDto(goal, progress), goal.ArchivedUtc));
+            }
+            return Results.Ok(history);
+        }).WithName("GetMotivationFamilyGoalHistory").Produces<IReadOnlyCollection<MotivationFamilyGoalHistoryDto>>();
+
         app.MapPost("/api/motivation/family-goals", async (UpsertMotivationFamilyGoalRequest request, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
         {
             var validation = ValidateFamilyGoalRequest(request);
@@ -190,6 +206,7 @@ public static class MotivationEndpoints
             foreach (var existingGoal in existingActiveGoals)
             {
                 existingGoal.IsActive = false;
+                existingGoal.ArchivedUtc = DateTimeOffset.UtcNow;
             }
 
             var goal = new MotivationFamilyGoal
@@ -244,6 +261,38 @@ public static class MotivationEndpoints
             return Results.Ok(ToDto(goal));
         }).WithName("UpdateMotivationFamilyGoal").Produces<MotivationFamilyGoalDto>().Produces(StatusCodes.Status404NotFound).ProducesValidationProblem();
 
+        app.MapPost("/api/motivation/family-goals/{id:guid}/archive", async (Guid id, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        {
+            var goal = await dbContext.MotivationFamilyGoals
+                .FirstOrDefaultAsync(item => item.HouseholdId == SeedHousehold.Id && item.Id == id && item.IsActive, cancellationToken);
+            if (goal is null) return Results.NotFound();
+            goal.CurrentProgress = await MotivationProgress.GetProjectedAsync(dbContext, MotivationGoalType.Family, goal.Id, goal.TargetCount, goal.CurrentProgress, cancellationToken);
+            goal.IsActive = false;
+            goal.ArchivedUtc = DateTimeOffset.UtcNow;
+            await dbContext.SaveChangesAsync(cancellationToken);
+            return Results.NoContent();
+        }).WithName("ArchiveMotivationFamilyGoal").Produces(StatusCodes.Status204NoContent).Produces(StatusCodes.Status404NotFound);
+
+        app.MapPost("/api/motivation/family-goals/{id:guid}/restore", async (Guid id, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        {
+            var goal = await dbContext.MotivationFamilyGoals
+                .FirstOrDefaultAsync(item => item.HouseholdId == SeedHousehold.Id && item.Id == id && !item.IsActive, cancellationToken);
+            if (goal is null) return Results.NotFound();
+            if (await dbContext.MotivationFamilyGoals.AnyAsync(item => item.HouseholdId == SeedHousehold.Id && item.IsActive, cancellationToken))
+            {
+                return Results.Conflict(new { message = "Stop the active family goal before restoring an archived goal." });
+            }
+            goal.CurrentProgress = await MotivationProgress.GetProjectedAsync(dbContext, MotivationGoalType.Family, goal.Id, goal.TargetCount, goal.CurrentProgress, cancellationToken);
+            goal.IsActive = true;
+            goal.ArchivedUtc = null;
+            if (!string.IsNullOrWhiteSpace(goal.CelebrationTitle) && goal.CelebrationStatus != FamilyCelebrationStatus.Celebrated)
+            {
+                goal.CelebrationStatus = goal.CurrentProgress >= goal.TargetCount ? FamilyCelebrationStatus.ReadyToCelebrate : FamilyCelebrationStatus.Planned;
+            }
+            await dbContext.SaveChangesAsync(cancellationToken);
+            return Results.Ok(ToDto(goal));
+        }).WithName("RestoreMotivationFamilyGoal").Produces<MotivationFamilyGoalDto>().Produces(StatusCodes.Status404NotFound).Produces(StatusCodes.Status409Conflict);
+
         app.MapPost("/api/motivation/family-goals/{id:guid}/celebration/celebrated", async (Guid id, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
         {
             var goal = await dbContext.MotivationFamilyGoals
@@ -272,6 +321,7 @@ public static class MotivationEndpoints
         foreach (var activeGoal in activeGoals)
         {
             activeGoal.IsActive = false;
+            activeGoal.ArchivedUtc = DateTimeOffset.UtcNow;
         }
     }
 

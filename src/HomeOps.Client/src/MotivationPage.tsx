@@ -15,18 +15,22 @@ import {
 } from "./api/homeOpsApiClient";
 import {
   archiveIndividualGoal,
+  archiveFamilyGoal,
   clampProgress,
   createFamilyGoalProgressCorrection,
   createFamilyGoal,
   createIndividualGoal,
   goalsForMembers,
   loadMotivationSnapshot,
+  loadFamilyGoalHistory,
   loadFamilyGoalProgress,
   markFamilyGoalCelebrated,
+  restoreFamilyGoal,
   updateFamilyGoal,
   updateIndividualGoal,
   type MotivationCelebrationMemory,
   type MotivationFamilyGoal,
+  type MotivationFamilyGoalHistoryItem,
   type MotivationIndividualGoal,
   type MotivationProgressLedger,
   type MotivationSnapshot,
@@ -43,7 +47,7 @@ export function MotivationPage({ members }: MotivationPageProps) {
   const [status, setStatus] = useState<"loading" | "ready" | "error">(
     "loading",
   );
-  const [formMode, setFormMode] = useState<"closed" | "create" | "edit">(
+  const [formMode, setFormMode] = useState<"closed" | "create" | "edit" | "stop">(
     "closed",
   );
   const [individualFormGoal, setIndividualFormGoal] = useState<
@@ -51,6 +55,8 @@ export function MotivationPage({ members }: MotivationPageProps) {
   >();
   const [formError, setFormError] = useState<string | null>(null);
   const [showMemoriesDetail, setShowMemoriesDetail] = useState(false);
+  const [familyGoalHistory, setFamilyGoalHistory] = useState<MotivationFamilyGoalHistoryItem[]>([]);
+  const [familyGoalHistoryStatus, setFamilyGoalHistoryStatus] = useState<"loading" | "ready" | "error">("loading");
   const [showPersonalGoalsDetail, setShowPersonalGoalsDetail] = useState(false);
   const [showStatsDetail, setShowStatsDetail] = useState(false);
   const [progressDetailMode, setProgressDetailMode] = useState<"ledger" | "correction">("ledger");
@@ -126,6 +132,17 @@ export function MotivationPage({ members }: MotivationPageProps) {
       setProgressLedgerStatus("ready");
     } catch {
       setProgressLedgerStatus("error");
+    }
+  }
+
+  async function openFamilyStoryHistory() {
+    setShowMemoriesDetail(true);
+    setFamilyGoalHistoryStatus("loading");
+    try {
+      setFamilyGoalHistory(await loadFamilyGoalHistory());
+      setFamilyGoalHistoryStatus("ready");
+    } catch {
+      setFamilyGoalHistoryStatus("error");
     }
   }
 
@@ -237,7 +254,7 @@ export function MotivationPage({ members }: MotivationPageProps) {
           familyGoal={familyGoal}
           memories={memories}
           individualGoals={individualGoals}
-          onOpenMemories={() => setShowMemoriesDetail(true)}
+          onOpenMemories={openFamilyStoryHistory}
           onOpenPersonalGoals={() => setShowPersonalGoalsDetail(true)}
           onOpenStats={openProgressDetail}
           onCelebrated={handleFormSaved}
@@ -258,45 +275,100 @@ export function MotivationPage({ members }: MotivationPageProps) {
             role="dialog"
             aria-modal="true"
             aria-label={
-              formMode === "edit"
+              formMode === "stop"
+                ? "Familiedoel stoppen"
+                : formMode === "edit"
                 ? "Familiedoel aanpassen"
                 : "Familiedoel maken"
             }
             onClick={(event) => event.stopPropagation()}
           >
-            <FamilyGoalForm
-              familyGoal={formMode === "edit" ? familyGoal : undefined}
-              error={formError}
-              onAnnuleren={() => {
-                setFormMode("closed");
-                setFormError(null);
-              }}
-              onSubmit={async (values) => {
-                try {
-                  const saved =
-                    formMode === "edit" && familyGoal
-                      ? await updateFamilyGoal(familyGoal.id, values)
-                      : await createFamilyGoal(values);
-                  handleFormSaved(saved);
-                } catch {
-                  setFormError(
-                    "We konden dit familiedoel niet bewaren. Probeer het opnieuw.",
-                  );
-                }
-              }}
-            />
+            {formMode === "stop" && familyGoal ? (
+              <section className="motivation-confirmation" aria-label="Familiedoel stoppen bevestigen">
+                <div>
+                  <p className="eyebrow">Familiedoel stoppen</p>
+                  <h3>‘{familyGoal.title}’ stoppen?</h3>
+                  <p>
+                    Nieuwe gedeelde taken tellen niet meer mee. De voortgang, het logboek en een eventuele viering blijven in de doelgeschiedenis bewaard.
+                  </p>
+                </div>
+                {formError ? <p className="form-error">{formError}</p> : null}
+                <div className="form-actions">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        await archiveFamilyGoal(familyGoal.id);
+                        setSnapshot((current) => ({ ...current, familyGoal: undefined }));
+                        setFamilyGoalHistory((current) => [
+                          { goal: familyGoal, archivedUtc: new Date().toISOString() },
+                          ...current.filter((item) => item.goal.id !== familyGoal.id),
+                        ]);
+                        setFormMode("closed");
+                        setFormError(null);
+                      } catch {
+                        setFormError("We konden dit familiedoel niet stoppen. Probeer het opnieuw.");
+                      }
+                    }}
+                  >
+                    Familiedoel stoppen
+                  </button>
+                  <button type="button" className="secondary-action" onClick={() => setFormMode("edit")}>
+                    Doorgaan met doel
+                  </button>
+                </div>
+              </section>
+            ) : (
+              <FamilyGoalForm
+                familyGoal={formMode === "edit" ? familyGoal : undefined}
+                error={formError}
+                onAnnuleren={() => {
+                  setFormMode("closed");
+                  setFormError(null);
+                }}
+                onArchive={formMode === "edit" && familyGoal ? () => {
+                  setFormMode("stop");
+                  setFormError(null);
+                } : undefined}
+                onSubmit={async (values) => {
+                  try {
+                    const saved =
+                      formMode === "edit" && familyGoal
+                        ? await updateFamilyGoal(familyGoal.id, values)
+                        : await createFamilyGoal(values);
+                    handleFormSaved(saved);
+                  } catch {
+                    setFormError(
+                      "We konden dit familiedoel niet bewaren. Probeer het opnieuw.",
+                    );
+                  }
+                }}
+              />
+            )}
           </section>
         </div>
       ) : null}
 
       {showMemoriesDetail ? (
         <MotivationDetailDialog
-          label="Vieringsherinneringen"
-          title="Vieringen die we onthouden"
-          description={`${memories.length} herinneringen om later samen terug te lezen.`}
+          label="Gezinsverhaal en doelgeschiedenis"
+          title="Wat we samen hebben opgebouwd"
+          description={`${memories.length} vieringen en ${familyGoalHistory.length} gestopte doelen om later samen terug te lezen.`}
           onClose={() => setShowMemoriesDetail(false)}
+          className="motivation-family-history-dialog"
         >
-          <CelebrationMemorySection memories={memories} />
+          <FamilyStoryHistory
+            memories={memories}
+            history={familyGoalHistory}
+            historyStatus={familyGoalHistoryStatus}
+            canRestore={!familyGoal}
+            onRetry={openFamilyStoryHistory}
+            onRestore={async (item) => {
+              const restored = await restoreFamilyGoal(item.goal.id);
+              setSnapshot((current) => ({ ...current, familyGoal: restored }));
+              setFamilyGoalHistory((current) => current.filter((historyItem) => historyItem.goal.id !== restored.id));
+            }}
+          />
         </MotivationDetailDialog>
       ) : null}
 
@@ -819,6 +891,7 @@ interface FamilyGoalFormProps {
   familyGoal?: MotivationFamilyGoal;
   error: string | null;
   onAnnuleren: () => void;
+  onArchive?: () => void;
   onSubmit: (values: {
     title: string;
     targetCount: number;
@@ -832,6 +905,7 @@ function FamilyGoalForm({
   familyGoal,
   error,
   onAnnuleren,
+  onArchive,
   onSubmit,
 }: FamilyGoalFormProps) {
   const [step, setStep] = useState<
@@ -1028,6 +1102,11 @@ function FamilyGoalForm({
 
       {error ? <p className="form-error">{error}</p> : null}
       <div className="form-actions">
+        {familyGoal && step === "title" && onArchive ? (
+          <button type="button" className="secondary-action" onClick={onArchive}>
+            Familiedoel stoppen
+          </button>
+        ) : null}
         {step !== "title" ? (
           <button type="button" className="secondary-action" onClick={goBack}>
             Terug
@@ -1343,5 +1422,96 @@ function CelebrationMemorySection({
         ))}
       </div>
     </section>
+  );
+}
+
+function FamilyStoryHistory({
+  memories,
+  history,
+  historyStatus,
+  canRestore,
+  onRetry,
+  onRestore,
+}: {
+  memories: readonly MotivationCelebrationMemory[];
+  history: readonly MotivationFamilyGoalHistoryItem[];
+  historyStatus: "loading" | "ready" | "error";
+  canRestore: boolean;
+  onRetry: () => void;
+  onRestore: (item: MotivationFamilyGoalHistoryItem) => Promise<void>;
+}) {
+  const [restoringId, setRestoringId] = useState<string>();
+  const [restoreError, setRestoreError] = useState<string | null>(null);
+  const [restoredTitle, setRestoredTitle] = useState<string | null>(null);
+
+  return (
+    <div className="family-story-history-content">
+      {restoredTitle ? <p className="form-success">‘{restoredTitle}’ is weer het actieve familiedoel.</p> : null}
+      <section aria-label="Gestopte familiedoelen">
+        <div className="dashboard-card-heading">
+          <div>
+            <p className="eyebrow">Doelgeschiedenis</p>
+            <h4>Gestopte familiedoelen</h4>
+          </div>
+        </div>
+        {historyStatus === "loading" ? <p className="motivation-copy">Doelgeschiedenis laden…</p> : null}
+        {historyStatus === "error" ? (
+          <div className="inline-error-state">
+            <p>De doelgeschiedenis kon niet worden geladen.</p>
+            <button type="button" className="secondary-action compact-action" onClick={onRetry}>Opnieuw proberen</button>
+          </div>
+        ) : null}
+        {historyStatus === "ready" && history.length === 0 ? (
+          <p className="motivation-copy">Nog geen gestopte familiedoelen.</p>
+        ) : null}
+        <div className="family-goal-history-list">
+          {history.map((item) => (
+            <article className="family-goal-history-card" key={item.goal.id}>
+              <div>
+                <strong>{item.goal.title}</strong>
+                <span>{item.goal.currentProgress} van {item.goal.targetCount} {item.goal.unitLabel}</span>
+                <small>
+                  Gestopt {item.archivedUtc ? new Intl.DateTimeFormat("nl-NL").format(new Date(item.archivedUtc)) : "(datum niet vastgelegd)"}. Voortgang en logboek zijn bewaard.
+                </small>
+              </div>
+              {canRestore ? (
+                <button
+                  type="button"
+                  className="secondary-action compact-action"
+                  disabled={restoringId === item.goal.id}
+                  onClick={async () => {
+                    setRestoringId(item.goal.id);
+                    setRestoreError(null);
+                    try {
+                      await onRestore(item);
+                      setRestoredTitle(item.goal.title);
+                    } catch {
+                      setRestoreError("Dit doel kon niet worden hervat. Controleer of er al een actief familiedoel is en probeer opnieuw.");
+                    } finally {
+                      setRestoringId(undefined);
+                    }
+                  }}
+                >
+                  {restoringId === item.goal.id ? "Hervatten…" : "Doel hervatten"}
+                </button>
+              ) : null}
+            </article>
+          ))}
+        </div>
+        {!canRestore && history.length > 0 ? (
+          <p className="motivation-copy">Stop eerst het actieve familiedoel als je een oud doel wilt hervatten.</p>
+        ) : null}
+        {restoreError ? <p className="form-error">{restoreError}</p> : null}
+      </section>
+      <section aria-label="Vieringsherinneringen">
+        <div className="dashboard-card-heading">
+          <div>
+            <p className="eyebrow">Vieringen</p>
+            <h4>Vieringen die we onthouden</h4>
+          </div>
+        </div>
+        <CelebrationMemorySection memories={memories} />
+      </section>
+    </div>
   );
 }

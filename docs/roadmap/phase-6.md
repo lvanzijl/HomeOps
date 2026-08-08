@@ -2,7 +2,7 @@
 
 Phase 6 completes the normal user lifecycle for Shopping lists/items and Motivation goals/helpful moments without weakening the fixed-height FamilyBoard dashboard model.
 
-**Phase status:** In progress.
+**Phase status:** Completed 2026-08-08.
 
 | Slice | Status | Outcome |
 | --- | --- | --- |
@@ -10,7 +10,7 @@ Phase 6 completes the normal user lifecycle for Shopping lists/items and Motivat
 | 6.1 Shopping list lifecycle | Completed 2026-08-08 | Added bounded multi-list creation plus explicit archive, restore, and permanent-delete lifecycle. |
 | 6.2 Shopping item editing and unified history | Completed 2026-08-08 | Correct items atomically and make Home/Shopping use one server-backed history/suggestion source. |
 | 6.3 Goal progress definition and audit ledger | Completed 2026-08-08 | Task-derived progress now uses an immutable ledger with labelled backfill and explicit compensating corrections. |
-| 6.4 Helpful-moment and family-goal lifecycle | Not started | Add helpful-moment correction/removal and family-goal stop/archive/history behavior. |
+| 6.4 Helpful-moment and family-goal lifecycle | Completed 2026-08-08 | Helpful moments can be corrected or softly removed with retained attribution; family goals can be stopped, reviewed, and conditionally restored without losing ledger history. |
 
 ## Slice 6.0 implementation boundary
 
@@ -48,6 +48,14 @@ Migration `20260808181329_AddMotivationProgressLedger` backfills every existing 
 
 The approved Motivation composition is now realized. The primary goal card contains identity/anticipation, one compact progress block, one source sentence, and fixed actions; duplicate proof, celebration, and next-step content no longer clips inside the card. Ledger and correction states share one fixed-header dialog with internal body scrolling. Backend 658/658, frontend 388/388, PostgreSQL 5/5, builds, EF checks, twice-identical pinned NSwag, and Playwright 19/19 pass. Independent 1280×720 inspection measured equal 331 px card client/scroll heights and zero document overflow. See `docs/reports/2026-08-08-motivation-progress-ledger/implementation.md`.
 
+## Slice 6.4 outcome
+
+Helpful moments now support concurrency-checked correction and soft removal. Removed family members remain visible as historical attribution, while new reattribution is limited to active members. Weekly Reset uses the same retained-attribution and soft-delete rules. Browser-safe millisecond update timestamps keep optimistic concurrency stable through the generated TypeScript client.
+
+Family goals now have an explicit stop/archive contract. Stopping freezes new task contributions while retaining the immutable ledger, projected progress, and celebration history. The existing story-history destination lists archived goals; restoration is intentionally available only when no other family goal is active, preventing silent replacement.
+
+All lifecycle controls remain inside the approved Motivation dialogs. Appreciation edit/delete replaces the history body, family-goal stop replaces the edit body with named confirmation, and archived history owns its internal scroller. Backend 661/661, frontend 390/390, PostgreSQL 5/5, builds, twice-identical pinned NSwag 14.7.1, and Playwright 20/20 pass. Independent 1280×720 inspection measured zero document overflow, equal 331 px goal-card client/scroll heights, a bounded 706 px appreciation-history dialog, a 570 px non-overflowing editor, and a fully visible 211 px stop confirmation. See `docs/reports/2026-08-08-motivation-lifecycle/implementation.md`.
+
 ## Fixed boundaries
 
 - Work remains one numeric slice and one commit per run.
@@ -64,4 +72,4 @@ The approved Motivation composition is now realized. The primary goal card conta
 - [x] Shopping items can be corrected in place.
 - [x] Home/Shopping suggestions use one server source.
 - [x] Goal progress is explainable and correctable.
-- [ ] Helpful moments and family goals have complete user lifecycles.
+- [x] Helpful moments and family goals have complete user lifecycles.

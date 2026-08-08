@@ -3,9 +3,11 @@ import { FamilyAvatar } from "./home/FamilyAvatar";
 import type { FamilyMember } from "./home/familyMembers";
 import {
   createHelpfulMoment,
+  deleteHelpfulMoment,
   getRecognitionTagLabel,
   loadHelpfulMoments,
   recognitionTags,
+  updateHelpfulMoment,
   type HelpfulMoment,
   type RecognitionTag,
 } from "./helpfulMomentsData";
@@ -35,10 +37,13 @@ export function HelpfulMomentsSection({
   const [expanded, setExpanded] = useState(!compact);
   const [creating, setCreating] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [editingMoment, setEditingMoment] = useState<HelpfulMoment>();
+  const [deletingMoment, setDeletingMoment] = useState<HelpfulMoment>();
+  const [lifecycleError, setLifecycleError] = useState<string | null>(null);
   useEffect(() => {
     let ignore = false;
     setStatus("loading");
-    loadHelpfulMoments(familyMemberId, 8)
+    loadHelpfulMoments(familyMemberId, contextualHistory ? 50 : 8)
       .then((loaded) => {
         if (!ignore) {
           setMoments(loaded);
@@ -51,7 +56,7 @@ export function HelpfulMomentsSection({
     return () => {
       ignore = true;
     };
-  }, [familyMemberId]);
+  }, [contextualHistory, familyMemberId]);
   const previewMoments = moments.slice(0, previewCount);
   const hiddenMoments = Math.max(0, moments.length - previewMoments.length);
   const visibleMoments =
@@ -59,7 +64,7 @@ export function HelpfulMomentsSection({
 
   function renderMomentCard(
     moment: HelpfulMoment,
-    options?: { showDescription?: boolean },
+    options?: { showDescription?: boolean; showActions?: boolean },
   ) {
     const iconName = getHelpfulMomentIconName(moment.recognitionTag);
     return (
@@ -85,7 +90,10 @@ export function HelpfulMomentsSection({
         </div>
         <div>
           <div className="moment-card-heading">
-            <strong>{moment.familyMemberName}</strong>
+            <strong>
+              {moment.familyMemberName}
+              {moment.familyMemberIsRemoved ? " (voormalig gezinslid)" : ""}
+            </strong>
             <span>
               <HomeOpsIcon name={iconName} />
               {getRecognitionTagLabel(moment.recognitionTag)}
@@ -96,6 +104,30 @@ export function HelpfulMomentsSection({
             <p>{moment.description}</p>
           ) : null}
           <p className="moment-bridge">Dank je wel.</p>
+          {options?.showActions ? (
+            <div className="helpful-moment-actions">
+              <button
+                type="button"
+                className="secondary-action compact-action"
+                onClick={() => {
+                  setLifecycleError(null);
+                  setEditingMoment(moment);
+                }}
+              >
+                Aanpassen
+              </button>
+              <button
+                type="button"
+                className="secondary-action compact-action"
+                onClick={() => {
+                  setLifecycleError(null);
+                  setDeletingMoment(moment);
+                }}
+              >
+                Verwijderen
+              </button>
+            </div>
+          ) : null}
         </div>
       </article>
     );
@@ -201,11 +233,16 @@ export function HelpfulMomentsSection({
         </div>
       ) : null}
       {showHistory && contextualHistory ? (
-      <div
-        className="avatar-editor-backdrop"
-        role="presentation"
-        onClick={() => setShowHistory(false)}
-      >
+        <div
+          className="avatar-editor-backdrop"
+          role="presentation"
+          onClick={() => {
+            setShowHistory(false);
+            setEditingMoment(undefined);
+            setDeletingMoment(undefined);
+            setLifecycleError(null);
+          }}
+        >
         <section
           className="motivation-dialog helpful-moment-history-dialog"
           role="dialog"
@@ -229,19 +266,83 @@ export function HelpfulMomentsSection({
             <button
               type="button"
               className="icon-button"
-              onClick={() => setShowHistory(false)}
+              onClick={() => {
+                setShowHistory(false);
+                setEditingMoment(undefined);
+                setDeletingMoment(undefined);
+                setLifecycleError(null);
+              }}
               aria-label="Waarderingsgeschiedenis sluiten"
             >
               <HomeOpsIcon name="close" />
             </button>
           </header>
-          <div className="helpful-moment-feed helpful-moment-history-feed">
-            {moments.map((moment) =>
-              renderMomentCard(moment, { showDescription: true }),
-            )}
-          </div>
+          {editingMoment ? (
+            <HelpfulMomentEditForm
+              moment={editingMoment}
+              members={members}
+              error={lifecycleError}
+              onCancel={() => {
+                setEditingMoment(undefined);
+                setLifecycleError(null);
+              }}
+              onSaved={(saved) => {
+                setMoments((current) =>
+                  current.map((moment) => (moment.id === saved.id ? saved : moment)),
+                );
+                setEditingMoment(undefined);
+                setLifecycleError(null);
+              }}
+              onError={() =>
+                setLifecycleError(
+                  "Deze waardering kon niet worden aangepast. Je invoer is behouden; vernieuw de geschiedenis en probeer opnieuw.",
+                )
+              }
+            />
+          ) : deletingMoment ? (
+            <section className="motivation-confirmation" aria-label="Waardering verwijderen bevestigen">
+              <h4>‘{deletingMoment.title}’ verwijderen?</h4>
+              <p>
+                Deze waardering verdwijnt uit het overzicht. De historische verwijzing blijft veilig bewaard.
+              </p>
+              {lifecycleError ? <p className="form-error">{lifecycleError}</p> : null}
+              <div className="form-actions">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      await deleteHelpfulMoment(deletingMoment.id);
+                      setMoments((current) => current.filter((moment) => moment.id !== deletingMoment.id));
+                      setDeletingMoment(undefined);
+                      setLifecycleError(null);
+                    } catch {
+                      setLifecycleError("Deze waardering kon niet worden verwijderd. Probeer het opnieuw.");
+                    }
+                  }}
+                >
+                  Waardering verwijderen
+                </button>
+                <button
+                  type="button"
+                  className="secondary-action"
+                  onClick={() => {
+                    setDeletingMoment(undefined);
+                    setLifecycleError(null);
+                  }}
+                >
+                  Behouden
+                </button>
+              </div>
+            </section>
+          ) : (
+            <div className="helpful-moment-feed helpful-moment-history-feed">
+              {moments.map((moment) =>
+                renderMomentCard(moment, { showDescription: true, showActions: true }),
+              )}
+            </div>
+          )}
         </section>
-      </div>
+        </div>
       ) : null}
       {status === "loading" ? <p>Waarderingen ophalen…</p> : null}
       {status === "error" ? (
@@ -458,6 +559,94 @@ function HelpfulMomentForm({
         {question === "review" ? (
           <button type="submit">Waardering delen</button>
         ) : null}
+      </div>
+    </form>
+  );
+}
+
+function HelpfulMomentEditForm({
+  moment,
+  members,
+  error,
+  onCancel,
+  onSaved,
+  onError,
+}: {
+  moment: HelpfulMoment;
+  members: readonly FamilyMember[];
+  error: string | null;
+  onCancel: () => void;
+  onSaved: (moment: HelpfulMoment) => void;
+  onError: () => void;
+}) {
+  const [familyMemberId, setFamilyMemberId] = useState(moment.familyMemberId);
+  const [title, setTitle] = useState(moment.title);
+  const [description, setDescription] = useState(moment.description ?? "");
+  const [recognitionTag, setRecognitionTag] = useState(moment.recognitionTag);
+  const [saving, setSaving] = useState(false);
+  const currentMemberIsMissing = !members.some((member) => member.id === moment.familyMemberId);
+
+  return (
+    <form
+      className="helpful-moment-edit-form"
+      aria-label="Waardering aanpassen formulier"
+      onSubmit={async (event) => {
+        event.preventDefault();
+        if (!familyMemberId || !title.trim()) return;
+        setSaving(true);
+        try {
+          onSaved(
+            await updateHelpfulMoment(moment.id, {
+              familyMemberId,
+              title: title.trim(),
+              description: description.trim() || undefined,
+              recognitionTag,
+              expectedUpdatedUtc: moment.updatedUtc ?? moment.createdUtc,
+            }),
+          );
+        } catch {
+          onError();
+        } finally {
+          setSaving(false);
+        }
+      }}
+    >
+      <div>
+        <p className="eyebrow">Correctie</p>
+        <h4>Waardering aanpassen</h4>
+        <p>Pas alleen aan wat niet klopt; de waardering blijft aan hetzelfde moment gekoppeld.</p>
+      </div>
+      <label>
+        Gezinslid
+        <select value={familyMemberId} onChange={(event) => setFamilyMemberId(event.target.value)}>
+          {currentMemberIsMissing ? (
+            <option value={moment.familyMemberId}>{moment.familyMemberName} (voormalig gezinslid)</option>
+          ) : null}
+          {members.map((member) => (
+            <option key={member.id} value={member.id}>{member.name}</option>
+          ))}
+        </select>
+      </label>
+      <label>
+        Wat gebeurde er?
+        <textarea value={title} maxLength={160} required onChange={(event) => setTitle(event.target.value)} />
+      </label>
+      <label>
+        Soort waardering
+        <select value={recognitionTag} onChange={(event) => setRecognitionTag(event.target.value as RecognitionTag)}>
+          {recognitionTags.map((tag) => (
+            <option key={tag} value={tag}>{getRecognitionTagLabel(tag)}</option>
+          ))}
+        </select>
+      </label>
+      <label>
+        Persoonlijk bericht
+        <textarea value={description} maxLength={500} onChange={(event) => setDescription(event.target.value)} />
+      </label>
+      {error ? <p className="form-error">{error}</p> : null}
+      <div className="form-actions">
+        <button type="submit" disabled={saving || !title.trim()}>{saving ? "Opslaan…" : "Waardering bewaren"}</button>
+        <button type="button" className="secondary-action" onClick={onCancel}>Annuleren</button>
       </div>
     </form>
   );

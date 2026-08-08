@@ -1,4 +1,4 @@
-import { CreateHelpfulMomentRequest, HomeOpsApiClient, type HelpfulMomentDto } from './api/homeOpsApiClient';
+import { CreateHelpfulMomentRequest, HomeOpsApiClient, UpdateHelpfulMomentRequest, type HelpfulMomentDto } from './api/homeOpsApiClient';
 
 export const recognitionTags = ['Kindness', 'Initiative', 'Teamwork', 'Responsibility', 'Routine'] as const;
 export type RecognitionTag = typeof recognitionTags[number];
@@ -17,10 +17,12 @@ export interface HelpfulMoment {
   familyMemberName: string;
   familyMemberDisplayColor: string;
   familyMemberInitials: string;
+  familyMemberIsRemoved?: boolean;
   title: string;
   description?: string;
   recognitionTag: RecognitionTag;
   createdUtc: string;
+  updatedUtc?: string;
 }
 
 export interface CreateHelpfulMomentInput {
@@ -28,6 +30,10 @@ export interface CreateHelpfulMomentInput {
   title: string;
   description?: string;
   recognitionTag?: RecognitionTag;
+}
+
+export interface UpdateHelpfulMomentInput extends CreateHelpfulMomentInput {
+  expectedUpdatedUtc: string;
 }
 
 const apiBaseUrl = import.meta.env.VITE_HOMEOPS_API_BASE_URL ?? '';
@@ -41,10 +47,12 @@ function helpfulMomentFromApi(moment: HelpfulMomentDto): HelpfulMoment {
     familyMemberName: moment.familyMemberName ?? '',
     familyMemberDisplayColor: moment.familyMemberDisplayColor ?? '#f8c8dc',
     familyMemberInitials: moment.familyMemberInitials ?? '?',
+    familyMemberIsRemoved: moment.familyMemberIsRemoved ?? false,
     title: moment.title ?? '',
     description: moment.description,
     recognitionTag: (recognitionTags as readonly string[]).includes(moment.recognitionTag ?? '') ? moment.recognitionTag as RecognitionTag : 'Kindness',
     createdUtc: moment.createdUtc ? moment.createdUtc.toISOString() : '',
+    updatedUtc: moment.updatedUtc ? moment.updatedUtc.toISOString() : '',
   };
 }
 
@@ -58,4 +66,12 @@ export async function loadHelpfulMoments(familyMemberId?: string, limit = 12): P
 
 export async function createHelpfulMoment(input: CreateHelpfulMomentInput): Promise<HelpfulMoment> {
   return helpfulMomentFromApi(await client.createHelpfulMoment(CreateHelpfulMomentRequest.fromJS(input)));
+}
+
+export async function updateHelpfulMoment(id: string, input: UpdateHelpfulMomentInput): Promise<HelpfulMoment> {
+  return helpfulMomentFromApi(await client.updateHelpfulMoment(id, UpdateHelpfulMomentRequest.fromJS(input)));
+}
+
+export async function deleteHelpfulMoment(id: string): Promise<void> {
+  await client.deleteHelpfulMoment(id);
 }

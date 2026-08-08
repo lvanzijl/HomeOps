@@ -12,6 +12,9 @@ public sealed class HelpfulMoment
     public string? Description { get; set; }
     public string RecognitionTag { get; set; } = HelpfulMomentTags.Kindness;
     public DateTimeOffset CreatedUtc { get; set; }
+    public DateTimeOffset UpdatedUtc { get; set; }
+    public bool IsDeleted { get; set; }
+    public DateTimeOffset? DeletedUtc { get; set; }
     public Household? Household { get; set; }
     public FamilyMember? FamilyMember { get; set; }
 }

@@ -4,6 +4,7 @@ public sealed record MotivationSnapshotDto(MotivationFamilyGoalDto? FamilyGoal, 
 public sealed record MotivationFamilyCelebrationDto(string Title, string? Description, FamilyCelebrationStatus Status, DateTimeOffset? CelebratedUtc);
 public sealed record MotivationFamilyCelebrationMemoryDto(Guid FamilyGoalId, string Title, string? Description, DateTimeOffset CelebratedUtc);
 public sealed record MotivationFamilyGoalDto(Guid Id, string Title, int TargetCount, int CurrentProgress, string UnitLabel, MotivationFamilyCelebrationDto? Celebration);
+public sealed record MotivationFamilyGoalHistoryDto(MotivationFamilyGoalDto Goal, DateTimeOffset? ArchivedUtc);
 public sealed record MotivationIndividualGoalDto(Guid Id, string FamilyMemberId, string FamilyMemberName, string Title, int TargetCount, int CurrentProgress, string UnitLabel, string VisualKind);
 
 public sealed record UpsertMotivationIndividualGoalRequest(string FamilyMemberId, string Title, int TargetCount, string UnitLabel);

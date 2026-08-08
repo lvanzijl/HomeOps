@@ -364,6 +364,41 @@ public sealed class MotivationApiTests(HomeOpsWebApplicationFactory factory) : I
     }
 
     [Fact]
+    public async Task FamilyGoalCanBeArchivedReviewedAndRestoredWithoutLosingProgress()
+    {
+        await using var isolatedFactory = new HomeOpsWebApplicationFactory();
+        var client = isolatedFactory.CreateClient();
+        var before = await client.GetFromJsonAsync<MotivationSnapshotDto>("/api/motivation");
+        var active = Assert.IsType<MotivationFamilyGoalDto>(before!.FamilyGoal);
+
+        var archiveResponse = await client.PostAsync($"/api/motivation/family-goals/{active.Id}/archive", null);
+
+        Assert.Equal(HttpStatusCode.NoContent, archiveResponse.StatusCode);
+        var afterArchive = await client.GetFromJsonAsync<MotivationSnapshotDto>("/api/motivation");
+        Assert.Null(afterArchive!.FamilyGoal);
+        var history = await client.GetFromJsonAsync<IReadOnlyCollection<MotivationFamilyGoalHistoryDto>>("/api/motivation/family-goals/history");
+        var archived = Assert.Single(history!, item => item.Goal.Id == active.Id);
+        Assert.Equal(active.CurrentProgress, archived.Goal.CurrentProgress);
+        Assert.NotNull(archived.ArchivedUtc);
+
+        var ledger = await client.GetFromJsonAsync<MotivationProgressLedgerDto>($"/api/motivation/goals/Family/{active.Id}/progress");
+        Assert.NotNull(ledger);
+        Assert.Equal(active.CurrentProgress, ledger.CurrentProgress);
+
+        var restoreResponse = await client.PostAsync($"/api/motivation/family-goals/{active.Id}/restore", null);
+        restoreResponse.EnsureSuccessStatusCode();
+        var restored = await restoreResponse.Content.ReadFromJsonAsync<MotivationFamilyGoalDto>();
+        Assert.NotNull(restored);
+        Assert.Equal(active.CurrentProgress, restored.CurrentProgress);
+
+        await client.PostAsync($"/api/motivation/family-goals/{active.Id}/archive", null);
+        var newGoalResponse = await client.PostAsJsonAsync("/api/motivation/family-goals", new UpsertMotivationFamilyGoalRequest("A new shared focus", 4, "steps", null, null));
+        newGoalResponse.EnsureSuccessStatusCode();
+        var conflict = await client.PostAsync($"/api/motivation/family-goals/{active.Id}/restore", null);
+        Assert.Equal(HttpStatusCode.Conflict, conflict.StatusCode);
+    }
+
+    [Fact]
     public async Task CreateIndividualGoalReplacesExistingActiveGoalForSameMemberOnly()
     {
         await using var isolatedFactory = new HomeOpsWebApplicationFactory();

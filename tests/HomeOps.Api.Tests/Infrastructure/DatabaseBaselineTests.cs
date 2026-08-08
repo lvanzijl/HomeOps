@@ -16,7 +16,7 @@ namespace HomeOps.Api.Tests.Infrastructure;
 
 public sealed class DatabaseBaselineTests
 {
-    private const string LatestDiscoverableMigration = "20260808181329_AddMotivationProgressLedger";
+    private const string LatestDiscoverableMigration = "20260808185514_CompleteMotivationLifecycle";
 
     private static readonly string[] ResumeStrategyColumns =
     [
@@ -90,19 +90,20 @@ public sealed class DatabaseBaselineTests
         const string previousMigration = "20260808172019_AddShoppingItemEditingAndHistory";
         await database.MigrateAsync(previousMigration);
         var goalId = Guid.NewGuid();
-        await using (var context = database.CreateContext())
+        await using (var connection = new NpgsqlConnection(database.ConnectionString))
         {
-            context.MotivationFamilyGoals.Add(new MotivationFamilyGoal
-            {
-                Id = goalId,
-                HouseholdId = SeedHousehold.Id,
-                Title = "Backfill me",
-                TargetCount = 10,
-                CurrentProgress = 6,
-                UnitLabel = "taken",
-                IsActive = true,
-            });
-            await context.SaveChangesAsync();
+            await connection.OpenAsync();
+            await using var command = new NpgsqlCommand(
+                """
+                INSERT INTO "MotivationFamilyGoals"
+                    ("Id", "HouseholdId", "Title", "TargetCount", "CurrentProgress", "UnitLabel", "CelebrationStatus", "IsActive")
+                VALUES
+                    (@id, @householdId, 'Backfill me', 10, 6, 'taken', 'Planned', TRUE);
+                """,
+                connection);
+            command.Parameters.AddWithValue("id", goalId);
+            command.Parameters.AddWithValue("householdId", SeedHousehold.Id);
+            await command.ExecuteNonQueryAsync();
         }
 
         await database.MigrateAsync();

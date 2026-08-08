@@ -6,12 +6,15 @@ import { FamilyCelebrationStatus } from "./api/homeOpsApiClient";
 import { MotivationPage } from "./MotivationPage";
 import {
   archiveIndividualGoal,
+  archiveFamilyGoal,
   createFamilyGoalProgressCorrection,
   createFamilyGoal,
   createIndividualGoal,
   loadMotivationSnapshot,
+  loadFamilyGoalHistory,
   loadFamilyGoalProgress,
   markFamilyGoalCelebrated,
+  restoreFamilyGoal,
   updateFamilyGoal,
   updateIndividualGoal,
 } from "./motivationData";
@@ -24,7 +27,10 @@ vi.mock("./motivationData", async (importOriginal) => ({
   createIndividualGoal: vi.fn(),
   updateIndividualGoal: vi.fn(),
   archiveIndividualGoal: vi.fn(),
+  archiveFamilyGoal: vi.fn(),
   markFamilyGoalCelebrated: vi.fn(),
+  loadFamilyGoalHistory: vi.fn(),
+  restoreFamilyGoal: vi.fn(),
   loadFamilyGoalProgress: vi.fn(),
   createFamilyGoalProgressCorrection: vi.fn(),
 }));
@@ -39,8 +45,12 @@ describe("MotivationPage", () => {
     vi.mocked(createIndividualGoal).mockReset();
     vi.mocked(updateIndividualGoal).mockReset();
     vi.mocked(archiveIndividualGoal).mockReset();
+    vi.mocked(archiveFamilyGoal).mockReset();
     vi.mocked(loadFamilyGoalProgress).mockReset();
     vi.mocked(createFamilyGoalProgressCorrection).mockReset();
+    vi.mocked(loadFamilyGoalHistory).mockReset();
+    vi.mocked(restoreFamilyGoal).mockReset();
+    vi.mocked(loadFamilyGoalHistory).mockResolvedValue([]);
     vi.mocked(loadFamilyGoalProgress).mockResolvedValue({
       goalId: "family-goal",
       currentProgress: 13,
@@ -145,8 +155,8 @@ describe("MotivationPage", () => {
     ).not.toBeNull();
     expect(screen.queryByText("Vieringsverhaal")).toBeNull();
     await userEvent.setup().click(screen.getByRole("button", { name: "Historie bekijken" }));
-    expect(await screen.findByLabelText("Vieringsherinneringen")).not.toBeNull();
-    expect(screen.getByText("Vieringen die we onthouden")).not.toBeNull();
+    expect(await screen.findByLabelText("Gezinsverhaal en doelgeschiedenis")).not.toBeNull();
+    expect(screen.getByText("Wat we samen hebben opgebouwd")).not.toBeNull();
     expect(screen.getAllByText("Ice Cream").length).toBeGreaterThan(0);
     expect(screen.getByText(/Dit hebben we samen/)).not.toBeNull();
     expect(
@@ -394,6 +404,54 @@ describe("MotivationPage", () => {
     expect(
       screen.queryByText(/coins?|tokens?|shop|leaderboard|negative points/i),
     ).toBeNull();
+  });
+
+  it("stops a family goal with confirmation and restores it from bounded history", async () => {
+    const user = userEvent.setup();
+    vi.mocked(archiveFamilyGoal).mockResolvedValueOnce();
+    vi.mocked(loadFamilyGoalHistory).mockResolvedValueOnce([{
+      goal: {
+        id: "family-goal",
+        title: "Fill the family helper path",
+        targetCount: 20,
+        currentProgress: 13,
+        unitLabel: "helpful actions",
+        celebration: {
+          title: "Board game night together",
+          status: FamilyCelebrationStatus.Planned,
+        },
+      },
+      archivedUtc: "2026-08-08T12:00:00Z",
+    }]);
+    vi.mocked(restoreFamilyGoal).mockResolvedValueOnce({
+      id: "family-goal",
+      title: "Fill the family helper path",
+      targetCount: 20,
+      currentProgress: 13,
+      unitLabel: "helpful actions",
+      celebration: {
+        title: "Board game night together",
+        status: FamilyCelebrationStatus.Planned,
+      },
+    });
+
+    render(<MotivationPage members={familyMembers} />);
+    await screen.findByText("Fill the family helper path");
+    await user.click(screen.getByRole("button", { name: "Familiedoel aanpassen" }));
+    await user.click(screen.getByRole("button", { name: "Familiedoel stoppen" }));
+    const confirmation = screen.getByLabelText("Familiedoel stoppen bevestigen");
+    expect(within(confirmation).getByText(/voortgang, het logboek en een eventuele viering blijven/)).not.toBeNull();
+    await user.click(within(confirmation).getByRole("button", { name: "Familiedoel stoppen" }));
+    expect(archiveFamilyGoal).toHaveBeenCalledWith("family-goal");
+    expect(await screen.findByText("Nog geen familiedoel.")).not.toBeNull();
+
+    await user.click(screen.getByRole("button", { name: "Historie bekijken" }));
+    const history = await screen.findByLabelText("Gezinsverhaal en doelgeschiedenis");
+    expect(within(history).getByText("Gestopte familiedoelen")).not.toBeNull();
+    expect(within(history).getByText("13 van 20 helpful actions")).not.toBeNull();
+    await user.click(within(history).getByRole("button", { name: "Doel hervatten" }));
+    expect(restoreFamilyGoal).toHaveBeenCalledWith("family-goal");
+    expect(await screen.findByText("‘Fill the family helper path’ is weer het actieve familiedoel.")).not.toBeNull();
   });
 
 

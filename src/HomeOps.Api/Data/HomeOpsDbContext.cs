@@ -829,6 +829,7 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             entity.Property(goal => goal.CelebrationStatus).HasConversion<string>().HasMaxLength(40).IsRequired();
             entity.Property(goal => goal.CelebrationCelebratedUtc);
             entity.Property(goal => goal.IsActive).IsRequired();
+            entity.Property(goal => goal.ArchivedUtc);
             entity.HasOne(goal => goal.Household)
                 .WithMany()
                 .HasForeignKey(goal => goal.HouseholdId)
@@ -870,6 +871,9 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             entity.Property(moment => moment.Description).HasMaxLength(500);
             entity.Property(moment => moment.RecognitionTag).HasMaxLength(40).IsRequired();
             entity.Property(moment => moment.CreatedUtc).IsRequired();
+            entity.Property(moment => moment.UpdatedUtc).IsRequired();
+            entity.Property(moment => moment.IsDeleted).IsRequired();
+            entity.Property(moment => moment.DeletedUtc);
             entity.HasOne(moment => moment.Household)
                 .WithMany()
                 .HasForeignKey(moment => moment.HouseholdId)
@@ -878,7 +882,7 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
                 .WithMany()
                 .HasForeignKey(moment => moment.FamilyMemberId)
                 .OnDelete(DeleteBehavior.Restrict);
-            entity.HasIndex(moment => new { moment.HouseholdId, moment.CreatedUtc });
+            entity.HasIndex(moment => new { moment.HouseholdId, moment.IsDeleted, moment.CreatedUtc });
             entity.HasIndex(moment => new { moment.HouseholdId, moment.FamilyMemberId, moment.CreatedUtc });
         });
 

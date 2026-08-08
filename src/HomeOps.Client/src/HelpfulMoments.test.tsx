@@ -3,12 +3,14 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { familyMembers } from "./home/familyMembers";
 import { HelpfulMomentsSection } from "./HelpfulMoments";
-import { createHelpfulMoment, loadHelpfulMoments } from "./helpfulMomentsData";
+import { createHelpfulMoment, deleteHelpfulMoment, loadHelpfulMoments, updateHelpfulMoment } from "./helpfulMomentsData";
 
 vi.mock("./helpfulMomentsData", async (importOriginal) => ({
   ...(await importOriginal<typeof import("./helpfulMomentsData")>()),
   loadHelpfulMoments: vi.fn(),
   createHelpfulMoment: vi.fn(),
+  updateHelpfulMoment: vi.fn(),
+  deleteHelpfulMoment: vi.fn(),
 }));
 
 afterEach(() => cleanup());
@@ -16,6 +18,8 @@ afterEach(() => cleanup());
 describe("HelpfulMomentsSection", () => {
   beforeEach(() => {
     vi.mocked(createHelpfulMoment).mockReset();
+    vi.mocked(updateHelpfulMoment).mockReset();
+    vi.mocked(deleteHelpfulMoment).mockReset();
     vi.mocked(loadHelpfulMoments).mockResolvedValue([
       {
         id: "moment-1",
@@ -258,5 +262,62 @@ describe("HelpfulMomentsSection", () => {
     expect(
       within(dialog).getByText("A little reset that helped everyone."),
     ).not.toBeNull();
+  });
+
+  it("corrects and explicitly removes appreciation from the bounded history dialog", async () => {
+    const user = userEvent.setup();
+    vi.mocked(loadHelpfulMoments).mockResolvedValueOnce([{
+      id: "moment-removed-member",
+      householdId: "household",
+      familyMemberId: "former-member",
+      familyMemberName: "Robin",
+      familyMemberDisplayColor: "#fbcfe8",
+      familyMemberInitials: "R",
+      familyMemberIsRemoved: true,
+      title: "Helped with coats",
+      description: "A warm moment.",
+      recognitionTag: "Teamwork",
+      createdUtc: "2026-08-08T10:00:00Z",
+      updatedUtc: "2026-08-08T10:00:00Z",
+    }]);
+    vi.mocked(updateHelpfulMoment).mockResolvedValueOnce({
+      id: "moment-removed-member",
+      householdId: "household",
+      familyMemberId: "former-member",
+      familyMemberName: "Robin",
+      familyMemberDisplayColor: "#fbcfe8",
+      familyMemberInitials: "R",
+      familyMemberIsRemoved: true,
+      title: "Helped with all the coats",
+      description: "A warm moment.",
+      recognitionTag: "Teamwork",
+      createdUtc: "2026-08-08T10:00:00Z",
+      updatedUtc: "2026-08-08T10:05:00Z",
+    });
+    vi.mocked(deleteHelpfulMoment).mockResolvedValueOnce();
+
+    render(<HelpfulMomentsSection members={familyMembers} title="Waardering" compact contextualHistory />);
+    const section = await screen.findByLabelText("Waardering");
+    expect(within(section).getByText(/Robin \(voormalig gezinslid\)/)).not.toBeNull();
+    await user.click(within(section).getByRole("button", { name: "Alles bekijken" }));
+    const history = screen.getByRole("dialog", { name: "Waardering geschiedenis" });
+    await user.click(within(history).getByRole("button", { name: "Aanpassen" }));
+    const editForm = within(history).getByLabelText("Waardering aanpassen formulier");
+    const title = within(editForm).getByLabelText("Wat gebeurde er?");
+    await user.clear(title);
+    await user.type(title, "Helped with all the coats");
+    await user.click(within(editForm).getByRole("button", { name: "Waardering bewaren" }));
+    expect(updateHelpfulMoment).toHaveBeenCalledWith("moment-removed-member", expect.objectContaining({
+      familyMemberId: "former-member",
+      title: "Helped with all the coats",
+      expectedUpdatedUtc: "2026-08-08T10:00:00Z",
+    }));
+    expect(await within(history).findByText("Helped with all the coats")).not.toBeNull();
+
+    await user.click(within(history).getByRole("button", { name: "Verwijderen" }));
+    expect(within(history).getByText(/‘Helped with all the coats’ verwijderen/)).not.toBeNull();
+    await user.click(within(history).getByRole("button", { name: "Waardering verwijderen" }));
+    expect(deleteHelpfulMoment).toHaveBeenCalledWith("moment-removed-member");
+    expect(within(history).queryByText("Helped with all the coats")).toBeNull();
   });
 });
