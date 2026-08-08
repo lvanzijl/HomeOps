@@ -1,10 +1,12 @@
 import {
   ClimateSourceRole,
+  CreateClimateMappingRequest,
   CreateClimateProviderRequest,
   CreateFloorRequest,
   CreateRoomRequest,
   HomeAssistantResumeStrategyType,
   HomeOpsApiClient,
+  ExternalSourceReferenceDto,
   MappingHealth,
   MoveRoomRequest,
   ProviderType,
@@ -12,10 +14,12 @@ import {
   ReorderRoomsRequest,
   RoomType,
   UpdateClimateProviderRequest,
+  UpdateClimateMappingRequest,
   UpdateHomeAssistantResumeStrategyRequest,
   UpdateFloorRequest,
   UpdateRoomRequest,
   type ClimateMappingDto,
+  type ClimateCapabilitySummaryDto,
   type ClimateProviderDto,
   type FloorDto,
   type HomeAssistantClimateRefreshDiagnosticsDto,
@@ -28,6 +32,7 @@ import {
 
 export type ClimateProvider = ClimateProviderDto;
 export type ClimateMapping = ClimateMappingDto;
+export type ClimateCapabilitySummary = ClimateCapabilitySummaryDto;
 export type HomeAssistantDiagnostics = HomeAssistantClimateRefreshDiagnosticsDto;
 export type HomeAssistantRefreshSummary = HomeAssistantClimateRefreshSummary;
 export type HomeAssistantResumeStrategyConfiguration = HomeAssistantResumeStrategyConfigurationDto;
@@ -85,6 +90,48 @@ export async function saveHomeAssistantProvider(provider: ClimateProvider | null
 
 export async function loadRoomClimateMappings(roomId: string) {
   return createWoningClient().getRoomClimateMappings(roomId, true);
+}
+
+export async function loadRoomClimateCapabilities(roomId: string) {
+  return createWoningClient().getRoomClimateCapabilities(roomId);
+}
+
+export interface ClimateMappingDraft {
+  providerId: string;
+  sourceRole: ClimateSourceRole;
+  externalSourceId: string;
+  externalDisplayName?: string;
+  externalSourceKind?: string;
+  externalAreaName?: string;
+  externalDeviceName?: string;
+  priority: number;
+  isEnabled: boolean;
+}
+
+function sourceReference(draft: ClimateMappingDraft) {
+  return new ExternalSourceReferenceDto({
+    externalSourceId: draft.externalSourceId.trim(),
+    externalDisplayName: draft.externalDisplayName?.trim() || undefined,
+    externalSourceKind: draft.externalSourceKind?.trim() || undefined,
+    externalAreaName: draft.externalAreaName?.trim() || undefined,
+    externalDeviceName: draft.externalDeviceName?.trim() || undefined,
+  });
+}
+
+export function createClimateMapping(roomId: string, draft: ClimateMappingDraft) {
+  return createWoningClient().createRoomClimateMapping(roomId, new CreateClimateMappingRequest({ providerId: draft.providerId, sourceRole: draft.sourceRole, source: sourceReference(draft), priority: draft.priority, isEnabled: draft.isEnabled }));
+}
+
+export function updateClimateMapping(mappingId: string, draft: ClimateMappingDraft) {
+  return createWoningClient().updateClimateMapping(mappingId, new UpdateClimateMappingRequest({ source: sourceReference(draft), priority: draft.priority, isEnabled: draft.isEnabled }));
+}
+
+export function archiveClimateMapping(mappingId: string) {
+  return createWoningClient().archiveClimateMapping(mappingId);
+}
+
+export function restoreClimateMapping(mappingId: string) {
+  return createWoningClient().restoreClimateMapping(mappingId);
 }
 
 export async function refreshHomeAssistantProvider(providerId: string) {

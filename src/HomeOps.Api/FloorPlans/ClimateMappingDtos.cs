@@ -6,7 +6,7 @@ public sealed record UpdateClimateProviderRequest(string DisplayName, bool? IsEn
 
 public sealed record ExternalSourceReferenceDto(string ExternalSourceId, string? ExternalDisplayName = null, string? ExternalSourceKind = null, string? ExternalAreaId = null, string? ExternalAreaName = null, string? ExternalDeviceId = null, string? ExternalDeviceName = null);
 public sealed record CreateClimateMappingRequest(Guid ProviderId, ClimateSourceRole SourceRole, ExternalSourceReferenceDto Source, int? Priority = null, bool IsEnabled = true);
-public sealed record UpdateClimateMappingRequest(ExternalSourceReferenceDto? Source = null, int? Priority = null, bool? IsEnabled = null, string? DiagnosticSummary = null);
+public sealed record UpdateClimateMappingRequest(ExternalSourceReferenceDto? Source = null, int? Priority = null, bool? IsEnabled = null);
 public sealed record ReorderClimateMappingsRequest(IReadOnlyList<Guid> MappingIds);
 public sealed record ClimateMappingDto(Guid Id, Guid RoomId, Guid ProviderId, ClimateSourceRole SourceRole, ExternalSourceReferenceDto Source, int Priority, bool IsEnabled, bool IsArchived, DateTimeOffset? ArchivedUtc, MappingHealth Health, DateTimeOffset? LastCheckedUtc, DateTimeOffset? LastSuccessfulUtc, string? DiagnosticSummary, bool IsSharedSource, IReadOnlyCollection<Guid> SharedRoomIds, DateTimeOffset CreatedUtc, DateTimeOffset UpdatedUtc);
 public sealed record ClimateCapabilitySummaryDto(Guid RoomId, bool HasClimateConfiguration, bool IsClimateEnabled, IReadOnlyCollection<ClimateCapabilityRoleSummaryDto> Roles);

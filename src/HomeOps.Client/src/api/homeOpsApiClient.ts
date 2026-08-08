@@ -17086,7 +17086,6 @@ export class UpdateClimateMappingRequest implements IUpdateClimateMappingRequest
     source?: ExternalSourceReferenceDto | undefined;
     priority?: number | undefined;
     isEnabled?: boolean | undefined;
-    diagnosticSummary?: string | undefined;
 
     constructor(data?: IUpdateClimateMappingRequest) {
         if (data) {
@@ -17102,7 +17101,6 @@ export class UpdateClimateMappingRequest implements IUpdateClimateMappingRequest
             this.source = _data["source"] ? ExternalSourceReferenceDto.fromJS(_data["source"]) : undefined as any;
             this.priority = _data["priority"];
             this.isEnabled = _data["isEnabled"];
-            this.diagnosticSummary = _data["diagnosticSummary"];
         }
     }
 
@@ -17118,7 +17116,6 @@ export class UpdateClimateMappingRequest implements IUpdateClimateMappingRequest
         data["source"] = this.source ? this.source.toJSON() : undefined as any;
         data["priority"] = this.priority;
         data["isEnabled"] = this.isEnabled;
-        data["diagnosticSummary"] = this.diagnosticSummary;
         return data;
     }
 }
@@ -17127,7 +17124,6 @@ export interface IUpdateClimateMappingRequest {
     source?: ExternalSourceReferenceDto | undefined;
     priority?: number | undefined;
     isEnabled?: boolean | undefined;
-    diagnosticSummary?: string | undefined;
 }
 
 export class RoomClimateStateDto implements IRoomClimateStateDto {

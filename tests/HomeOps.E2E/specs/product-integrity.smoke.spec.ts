@@ -534,9 +534,64 @@ test("room climate settings create, validate, persist, edit, and disable", async
   await expect(persistedLivingRoom).toContainText("Klimaat uitgeschakeld");
 });
 
+test("climate mappings create, edit, archive, and restore in the bounded workspace", async ({ page, request }) => {
+  await resetFixture(request, "visual-full");
+  const { configuredRoom } = await seedWoningRuntime(request);
+  await ensureClimateProvider(request);
+  const existingMappings = await request.get(`/api/rooms/${configuredRoom.id}/climate-mappings?includeArchived=true`);
+  expect(existingMappings.ok(), await existingMappings.text()).toBe(true);
+  for (const mapping of await existingMappings.json() as { id: string }[]) {
+    const remove = await request.delete(`/api/climate-mappings/${mapping.id}`);
+    expect(remove.ok(), await remove.text()).toBe(true);
+  }
+
+  await page.setViewportSize({ width: 1366, height: 768 });
+  await page.goto("/");
+  await page.getByRole("button", { name: "Instellingen voor gezinsinstellingen" }).click();
+  await page.locator(".settings-action-rail").getByRole("button", { name: "Woning", exact: true }).click();
+  const woning = page.getByRole("dialog", { name: "Woning", exact: true });
+  const roomMappingCard = woning.locator(".ha-room").filter({ hasText: "Woonkamer" });
+  await roomMappingCard.getByRole("button", { name: "Koppelingen beheren" }).click();
+  const mappings = page.getByRole("dialog", { name: "Klimaatkoppelingen voor Woonkamer" });
+  await expect(mappings).toBeVisible();
+  await expectNoDocumentScroll(page, "Climate mappings at 1366x768");
+  await expect(mappings.getByText("Deze werkruimte voert geen vrije Home Assistant-services uit.")).toBeVisible();
+  await expect(mappings.getByLabel(/service/i)).toHaveCount(0);
+  await expect(mappings.getByLabel(/json/i)).toHaveCount(0);
+
+  await mappings.getByRole("button", { name: "Koppeling toevoegen" }).click();
+  await mappings.getByLabel("Entiteits-ID").fill("sensor.e2e_woonkamer");
+  await mappings.getByLabel("Weergavenaam (optioneel)").fill("E2E woonkamer temperatuur");
+  const createResponse = page.waitForResponse((response) => response.request().method() === "POST" && new URL(response.url()).pathname === `/api/rooms/${configuredRoom.id}/climate-mappings`);
+  await mappings.getByRole("button", { name: "Opslaan" }).click();
+  expect((await createResponse).ok()).toBe(true);
+  await expect(mappings.getByText("Prioriteit 0 · Ingeschakeld · Nog niet gecontroleerd")).toBeVisible();
+  await expect(mappings.getByText("Geen extra veilige diagnose.")).toBeVisible();
+
+  await mappings.getByRole("button", { name: "Bewerken" }).click();
+  await mappings.getByRole("checkbox", { name: /Ingeschakeld/ }).uncheck();
+  const updateResponse = page.waitForResponse((response) => response.request().method() === "PUT" && new URL(response.url()).pathname.startsWith("/api/climate-mappings/"));
+  await mappings.getByRole("button", { name: "Opslaan" }).click();
+  expect((await updateResponse).ok()).toBe(true);
+  await expect(mappings.getByText("Prioriteit 0 · Uitgeschakeld · Nog niet gecontroleerd")).toBeVisible();
+
+  page.once("dialog", (dialog) => dialog.accept());
+  const archiveResponse = page.waitForResponse((response) => response.request().method() === "POST" && new URL(response.url()).pathname.endsWith("/archive"));
+  await mappings.getByRole("button", { name: "Archiveren" }).click();
+  expect((await archiveResponse).ok()).toBe(true);
+  await mappings.getByText("Gearchiveerd (1)").click();
+  await expect(mappings.getByRole("button", { name: "Herstellen" })).toBeVisible();
+  const restoreResponse = page.waitForResponse((response) => response.request().method() === "POST" && new URL(response.url()).pathname.endsWith("/restore"));
+  await mappings.getByRole("button", { name: "Herstellen" }).click();
+  expect((await restoreResponse).ok()).toBe(true);
+  await expect(mappings.getByText("Prioriteit 0 · Ingeschakeld · Controle nodig")).toBeVisible();
+  await expectNoDocumentScroll(page, "Restored climate mapping at 1366x768");
+});
+
 test("primary pages do not create document-level vertical scrolling", async ({ page, request }) => {
   await resetFixture(request, "visual-full");
   await seedWoningRuntime(request);
+  await ensureClimateProvider(request);
 
   for (const viewport of [
     { width: 1440, height: 900 },
@@ -582,6 +637,12 @@ test("primary pages do not create document-level vertical scrolling", async ({ p
     const woningDialog = page.getByRole("dialog", { name: "Woning", exact: true });
     await expect(woningDialog).toBeVisible();
     await expectNoDocumentScroll(page, `Woningbeheer at ${viewport.width}x${viewport.height}`);
+    const mappingRoom = woningDialog.locator(".ha-room").filter({ hasText: "Woonkamer" });
+    await mappingRoom.getByRole("button", { name: "Koppelingen beheren" }).click();
+    const mappingDialog = page.getByRole("dialog", { name: "Klimaatkoppelingen voor Woonkamer" });
+    await expect(mappingDialog).toBeVisible();
+    await expectNoDocumentScroll(page, `Klimaatkoppelingen at ${viewport.width}x${viewport.height}`);
+    await mappingDialog.getByRole("button", { name: "Sluiten" }).click();
     const livingRoom = woningDialog.getByRole("list", { name: "Kamers op geselecteerde verdieping" }).locator("article").filter({ hasText: "Woonkamer" });
     await livingRoom.getByRole("button", { name: "Klimaat bewerken" }).click();
     const climateDialog = page.getByRole("dialog", { name: "Klimaatinstellingen voor Woonkamer" });
@@ -669,6 +730,19 @@ async function seedWoningRuntime(request: APIRequestContext) {
     const archiveResponse = await request.post(`/api/rooms/${archivedRoom.id}/archive`);
     expect(archiveResponse.ok(), await archiveResponse.text()).toBe(true);
   }
+
+  return { configuredRoom, floor, unconfiguredRoom };
+}
+
+async function ensureClimateProvider(request: APIRequestContext) {
+  const response = await request.get("/api/climate-providers?includeArchived=true");
+  expect(response.ok(), await response.text()).toBe(true);
+  const providers = await response.json() as { id: string; isArchived: boolean; isEnabled: boolean; displayName: string; providerType: number }[];
+  const active = providers.find((provider) => provider.providerType === 0 && !provider.isArchived && provider.isEnabled);
+  if (active) return active;
+  const create = await request.post("/api/climate-providers", { data: { displayName: `E2E Home Assistant ${Date.now()}`, providerType: 0, externalInstanceReference: "http://127.0.0.1:8123" } });
+  expect(create.ok(), await create.text()).toBe(true);
+  return await create.json() as { id: string };
 }
 
 async function openFamilyAdministration(page: Page) {

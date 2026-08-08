@@ -12332,10 +12332,6 @@
           "isEnabled": {
             "type": "boolean",
             "nullable": true
-          },
-          "diagnosticSummary": {
-            "type": "string",
-            "nullable": true
           }
         }
       },

@@ -1,12 +1,16 @@
 using System.Net;
 using System.Net.Http.Json;
+using HomeOps.Api.Data;
 using HomeOps.Api.FloorPlans;
 using HomeOps.Api.Tests.Lists;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HomeOps.Api.Tests.FloorPlans;
 
 public sealed class ClimateProviderMappingApiTests(HomeOpsWebApplicationFactory factory) : IClassFixture<HomeOpsWebApplicationFactory>
 {
+    private readonly HomeOpsWebApplicationFactory _factory = factory;
     private readonly HttpClient _client = factory.CreateClient();
 
     [Fact]
@@ -44,6 +48,52 @@ public sealed class ClimateProviderMappingApiTests(HomeOpsWebApplicationFactory 
 
         var deleteClimate = await _client.DeleteAsync($"/api/rooms/{room.Id}/climate-configuration");
         Assert.Equal(HttpStatusCode.BadRequest, deleteClimate.StatusCode);
+    }
+
+    [Fact]
+    public async Task MappingLifecyclePreservesDiagnosticsAndEnforcesPriorityAndRestoreDependencies()
+    {
+        var suffix = Guid.NewGuid().ToString("N")[..8];
+        var floor = await CreateFloor($"Lifecycle floor {suffix}");
+        var room = await CreateRoom(floor.Id, $"Lifecycle room {suffix}");
+        await ConfigureClimate(room.Id, HeatingPolicyIntent.None);
+        var provider = await CreateProvider($"Lifecycle HA {suffix}");
+        var primary = await CreateMapping(room.Id, provider.Id, ClimateSourceRole.ComfortTemperature, $"sensor.primary_{suffix}", 0);
+        var secondary = await CreateMapping(room.Id, provider.Id, ClimateSourceRole.ComfortTemperature, $"sensor.secondary_{suffix}", 1);
+
+        await using (var scope = _factory.Services.CreateAsyncScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<HomeOpsDbContext>();
+            var stored = await db.RoomClimateSourceMappings.SingleAsync(mapping => mapping.Id == primary.Id);
+            stored.DiagnosticSummary = "Provider-owned safe diagnostic";
+            await db.SaveChangesAsync();
+        }
+
+        var conflict = await _client.PutAsJsonAsync($"/api/climate-mappings/{secondary.Id}", new UpdateClimateMappingRequest(Priority: 0));
+        Assert.Equal(HttpStatusCode.BadRequest, conflict.StatusCode);
+
+        var update = await _client.PutAsJsonAsync($"/api/climate-mappings/{primary.Id}", new UpdateClimateMappingRequest(new ExternalSourceReferenceDto($"sensor.updated_{suffix}", "Updated sensor"), 0, false));
+        Assert.Equal(HttpStatusCode.OK, update.StatusCode);
+        var updated = (await update.Content.ReadFromJsonAsync<ClimateMappingDto>())!;
+        Assert.False(updated.IsEnabled);
+        Assert.Equal("Provider-owned safe diagnostic", updated.DiagnosticSummary);
+        Assert.Equal(MappingHealth.NeedsReview, updated.Health);
+
+        Assert.Equal(HttpStatusCode.NoContent, (await _client.PostAsync($"/api/climate-mappings/{primary.Id}/archive", null)).StatusCode);
+        var reprioritize = await _client.PutAsJsonAsync($"/api/climate-mappings/{secondary.Id}", new UpdateClimateMappingRequest(Priority: 0));
+        Assert.Equal(HttpStatusCode.OK, reprioritize.StatusCode);
+
+        Assert.Equal(HttpStatusCode.NoContent, (await _client.PostAsync($"/api/climate-providers/{provider.Id}/archive", null)).StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, (await _client.PostAsync($"/api/climate-mappings/{primary.Id}/restore", null)).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await _client.PostAsync($"/api/climate-providers/{provider.Id}/restore", null)).StatusCode);
+
+        var restore = await _client.PostAsync($"/api/climate-mappings/{primary.Id}/restore", null);
+        Assert.Equal(HttpStatusCode.OK, restore.StatusCode);
+        var restored = (await restore.Content.ReadFromJsonAsync<ClimateMappingDto>())!;
+        Assert.True(restored.IsEnabled);
+        Assert.False(restored.IsArchived);
+        Assert.Equal(1, restored.Priority);
+        Assert.Equal(MappingHealth.NeedsReview, restored.Health);
     }
 
     private async Task<FloorDto> CreateFloor(string name)

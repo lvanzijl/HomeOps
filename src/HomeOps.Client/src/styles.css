@@ -11716,7 +11716,7 @@ button {
 .target-stepper output { font-size: 1.35rem; font-weight: 800; min-width: 6rem; text-align: center; }
 @media (max-width: 640px) { .heating-dialog-backdrop { align-items: end; padding: .5rem; } .heating-dialog { width: 100%; max-height: 86vh; border-radius: 1.25rem 1.25rem .75rem .75rem; } }
 @media (prefers-reduced-motion: reduce) { .heating-dialog, .heating-dialog-backdrop { animation: none; } }
-.ha-climate { border: 1px solid rgba(14,116,144,.18); border-radius: 1rem; background: rgba(236,254,255,.45); padding: .85rem; display: flex; flex-direction: column; gap: .7rem; min-height: 0; }
+.ha-climate { border: 1px solid rgba(14,116,144,.18); border-radius: 1rem; background: rgba(236,254,255,.45); padding: .85rem; display: flex; flex-direction: column; gap: .7rem; min-height: 24rem; }
 .ha-climate__header { display: flex; align-items: start; justify-content: space-between; gap: 1rem; }
 .ha-climate__header h4, .ha-climate__header p { margin: 0 0 .25rem; }
 .ha-climate__grid { display: grid; grid-template-columns: minmax(16rem,.85fr) minmax(18rem,1.15fr); gap: .75rem; min-height: 18rem; overflow: hidden; }
@@ -11734,3 +11734,28 @@ button {
 .ha-resume { border-radius: .8rem; background: rgba(255,255,255,.62); border: 1px solid rgba(15,23,42,.1); padding: .65rem; display: grid; gap: .5rem; }
 .ha-resume fieldset { border: 1px solid rgba(15,23,42,.14); border-radius: .75rem; display: grid; gap: .3rem; }
 .ha-resume h6, .ha-resume p { margin: .1rem 0; }
+.klimaat-mapping-dialog { width: min(52rem, calc(100% - .4rem)); }
+.klimaat-mapping-dialog .settings-surface-header { align-items: flex-start; }
+.klimaat-mapping-dialog .settings-surface-header p { margin-top: .2rem; }
+.klimaat-mapping-layout { display: grid; grid-template-rows: auto auto auto minmax(0,1fr); gap: .65rem; min-height: 0; overflow: hidden; }
+.klimaat-mapping-capabilities { align-items: center; background: rgba(14,116,144,.08); border: 1px solid rgba(14,116,144,.16); border-radius: .9rem; display: flex; flex-wrap: wrap; gap: .55rem; padding: .65rem .75rem; }
+.klimaat-mapping-capabilities button { margin-left: auto; }
+.klimaat-mapping-guidance { background: #fff7ed; border: 1px solid #fed7aa; border-radius: .8rem; color: #9a3412; margin: 0; padding: .55rem .7rem; }
+.klimaat-mapping-scroll { display: grid; gap: .7rem; min-height: 0; overflow-y: auto; padding-right: .2rem; }
+.klimaat-mapping-role { border: 1px solid rgba(15,23,42,.12); border-radius: .95rem; display: grid; gap: .5rem; padding: .7rem; }
+.klimaat-mapping-role > header { align-items: start; display: flex; justify-content: space-between; gap: .6rem; }
+.klimaat-mapping-role h4, .klimaat-mapping-role p { margin: 0; }
+.klimaat-mapping-role details { border-top: 1px solid rgba(15,23,42,.1); padding-top: .5rem; }
+.klimaat-mapping-role summary { cursor: pointer; font-weight: 800; }
+.klimaat-mapping-empty { color: var(--color-text-muted); }
+.klimaat-mapping-row { align-items: start; background: rgba(255,255,255,.76); border: 1px solid rgba(15,23,42,.1); border-radius: .8rem; display: grid; gap: .6rem; grid-template-columns: minmax(0,1fr) auto; padding: .65rem; }
+.klimaat-mapping-row p { margin: .15rem 0; overflow-wrap: anywhere; }
+.klimaat-mapping-row .woning-actions { margin-top: 0; }
+.klimaat-mapping-editor { display: grid !important; grid-template-rows: minmax(0,1fr) auto; min-height: 0; overflow: hidden; }
+.klimaat-mapping-editor-scroll { display: grid; gap: .7rem; min-height: 0; overflow-y: auto; padding-right: .2rem; }
+.klimaat-mapping-editor-scroll h4, .klimaat-mapping-editor-scroll p { margin: 0; }
+.klimaat-mapping-fields { display: grid; gap: .65rem; grid-template-columns: repeat(2,minmax(0,1fr)); }
+.klimaat-mapping-fields label { display: grid; gap: .25rem; }
+.klimaat-mapping-fields small { color: var(--color-text-muted); }
+.klimaat-mapping-actions { background: rgba(255,255,255,.96); border-top: 1px solid rgba(15,23,42,.1); margin-top: .2rem; padding-top: .7rem; }
+@media (max-width: 640px) { .klimaat-mapping-fields, .klimaat-mapping-row { grid-template-columns: 1fr; } .klimaat-mapping-capabilities button { margin-left: 0; } }

@@ -31,7 +31,7 @@ Do not check a phase merely because one of its slices is complete. A phase is co
 | [x] | **Phase 2 — Truthful first run and family persistence** | **Completed** | Slices 2.1–2.6 are complete, including family administration/restore and the persisted setup checklist | Fresh install onboards correctly; family changes survive refresh with honest error handling |
 | [x] | **Phase 3 — Calendar and local-time correctness** | **Completed** | Calendar-field writes, household time zone, source lifecycle, device preferences, and truthful reminder scope are complete | Home and Agenda preserve household-local calendar intent and accurately state that notifications are not delivered |
 | [x] | **Phase 4 — Tasks and Weekly Reset completion** | **Completed 2026-08-08** | Task APIs, routines, and Weekly Reset foundation exist; Slice 4.0 interaction authority is approved | Core task controls are operable and every reset candidate can be resolved and completed |
-| [ ] | **Phase 5 — House, climate, and household settings** | **In progress** | Slices 5.1–5.3 repaired the migration/provider runtime, made Woning reachable, and added durable room climate policy editing; mapping and onboarding slices remain | Woning setup-to-runtime chain is reachable, healthy, configurable, and viewport-safe |
+| [ ] | **Phase 5 — House, climate, and household settings** | **In progress** | Slices 5.1–5.4 repaired the migration/provider runtime, made Woning reachable, and completed room climate policy plus source mapping; onboarding and household-setting slices remain | Woning setup-to-runtime chain is reachable, healthy, configurable, and viewport-safe |
 | [ ] | **Phase 6 — Shopping and Motivation lifecycle completion** | **Not started** | Both domains are PostgreSQL-backed | Common create/edit/archive/restore/correction workflows are complete and cross-device |
 | [ ] | **Phase 7 — Navigation, backup, errors, and consistency** | **Not started** | Individual foundations exist | Cross-cutting behavior is routable, recoverable, consistently worded, and accurately backed up |
 | [ ] | **Phase 8 — Optional product breadth** | **Not started** | Placeholders only | Each optional feature is either deliberately implemented or deliberately removed from product expectations |
@@ -931,7 +931,7 @@ Before changing Tasks layout or action placement, write the repository-required 
 
 ### Slice 5.4 — Provider/source mapping management
 
-- [ ] **Status: Not started**
+- [x] **Status: Completed 2026-08-08**
 
 **Audit ID:** CLIMATE-02
 
@@ -944,6 +944,8 @@ Before changing Tasks layout or action placement, write the repository-required 
 5. Show health, last check, last success, and safe diagnostic summary.
 6. Block duplicate active priority conflicts.
 7. Test shared heating-zone behavior and provider/archive dependencies.
+
+**Implementation state:** Settings → Woning now opens a viewport-bounded room mapping workspace instead of refocusing the room row. It groups active and archived sources by semantic role, supports generated-contract create/edit/priority/enable/archive/restore, shows health and safe provider diagnostics, prevents duplicate active priorities and source pairs, and revalidates provider/room/configuration dependencies on restore. Provider-owned diagnostics are read-only on the API write contract, and no free Home Assistant service or JSON execution surface exists. Browser validation revised the approved layout contract so the Home Assistant card cannot shrink underneath later archived content in the existing secondary scroll region. Focused frontend 8/8, focused backend 7/7, frontend 370/370, backend 642/642, both builds, PostgreSQL 4/4, EF list/drift/idempotent-script checks, twice-identical pinned NSwag 14.7.1 generation, and Playwright 13/13 pass. In-app browser checks cover create, edit/disable, archive presentation, restore, safe diagnostics, no console errors, and zero document overflow at 1440×900 and 1366×768. See `docs/reports/2026-08-08-climate-mapping-management/` and `docs/roadmap/phase-5.md`.
 
 ### Slice 5.5 — Floor-plan upload and replacement entry
 
@@ -993,7 +995,7 @@ Before changing Tasks layout or action placement, write the repository-required 
 
 - [x] Provider endpoint and DB upgrades are healthy.
 - [x] House runtime is reachable through an approved viewport-safe composition.
-- [ ] Climate configuration and mapping lifecycle work end to end.
+- [x] Climate configuration and mapping lifecycle work end to end.
 - [ ] A normal user can upload the first floor plan.
 - [ ] Provider credentials remain secret and lifecycle is manageable.
 - [ ] Weather location is household-configurable.
@@ -1275,7 +1277,7 @@ Every audit finding must appear exactly once as the primary responsibility of a 
 | TIME-01 | 3.1–3.3 Calendar-field correction | [x] Completed |
 | HOUSE-01 | 5.2 House navigation | [x] Completed |
 | CLIMATE-01 | 5.3 Climate configuration UI | [x] Completed |
-| CLIMATE-02 | 5.4 Mapping management | [ ] Not started |
+| CLIMATE-02 | 5.4 Mapping management | [x] Completed |
 | RESET-01 | 4.5 Persisted Weekly Reset | [x] Completed |
 | TASK-UI-01 | 4.1 Task actions | [x] Completed |
 | TASK-UI-02 | 4.1 Task popup/hit targets | [x] Completed |
