@@ -801,7 +801,7 @@ Before changing Tasks layout or action placement, write the repository-required 
 
 ### Slice 4.3 — Routine/template lifecycle
 
-- [ ] **Status: Not started**
+- [x] **Status: Completed 2026-08-08**
 
 **Audit IDs:** TASK-02, TASK-03, TASK-04
 
@@ -813,6 +813,8 @@ Before changing Tasks layout or action placement, write the repository-required 
 4. Add archived-template view, restore, and confirmed permanent delete.
 5. Define how applying an edited template affects already-created tasks: default to future applications only.
 6. Test zero items, duplicate titles, invalid assignee, recurring item, archive/restore, and apply.
+
+**Implementation state:** the bounded `Routines` surface now owns a dedicated ordered non-empty step editor with add, edit, remove, and reorder controls; it no longer reuses the single-task conversation. Step validation covers empty collections, duplicate trimmed titles, invalid assignees, recurrence, and due offsets. Active and archived routine views support reversible archive/restore and task-specific confirmed permanent deletion; archived routines cannot be edited or applied. Editing affects future applications only, leaving already-created tasks unchanged. See `docs/reports/2026-08-08-routine-lifecycle/implementation.md`.
 
 ### Slice 4.4 — Recurring task occurrence control
 
@@ -853,7 +855,7 @@ Before changing Tasks layout or action placement, write the repository-required 
 
 - [x] Task actions are discoverable and accessible.
 - [x] Edit menu is never clipped at supported viewports.
-- [ ] Normal tasks and routines have coherent archive/restore lifecycle.
+- [x] Normal tasks and routines have coherent archive/restore lifecycle.
 - [ ] Recurring scope is explicit.
 - [ ] Weekly Reset can be completed and reviewed after refresh.
 
@@ -1268,9 +1270,9 @@ Every audit finding must appear exactly once as the primary responsibility of a 
 | TASK-UI-01 | 4.1 Task actions | [x] Completed |
 | TASK-UI-02 | 4.1 Task popup/hit targets | [x] Completed |
 | TASK-01 | 4.2 Normal task lifecycle | [x] Completed |
-| TASK-02 | 4.3 Routine creation | [ ] Not started |
-| TASK-03 | 4.3 Routine editing | [ ] Not started |
-| TASK-04 | 4.3 Routine archive/restore | [ ] Not started |
+| TASK-02 | 4.3 Routine creation | [x] Completed |
+| TASK-03 | 4.3 Routine editing | [x] Completed |
+| TASK-04 | 4.3 Routine archive/restore | [x] Completed |
 | TEST-01 | Phase 0 | [x] Completed |
 | ONB-01 | 2.4 Atomic onboarding/review | [x] Completed |
 | ONB-02 | 2.4 Onboarding fail-safe | [x] Completed |

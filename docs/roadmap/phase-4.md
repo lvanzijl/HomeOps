@@ -9,7 +9,7 @@ Phase 4 makes task actions directly operable, gives normal tasks and routines co
 | 4.0 Tasks viewport/interaction analysis | Completed 2026-08-08 | Approved the existing fixed dashboard composition and defined semantic task actions, portalled menu behavior, and bounded archive/routine placement. |
 | 4.1 Directly operable task actions | Completed 2026-08-08 | Replaced selection-only cards with semantic direct actions and a keyboard-safe viewport-clamped portalled menu. |
 | 4.2 Normal task archive/delete | Completed 2026-08-08 | Added reversible normal-task archive/restore and task-specific confirmed permanent deletion from a bounded archive surface. |
-| 4.3 Routine/template lifecycle | Not started | Add a dedicated ordered-item routine editor and archive/restore/delete lifecycle. |
+| 4.3 Routine/template lifecycle | Completed 2026-08-08 | Added a dedicated ordered-item editor and reversible archive/restore/confirmed-delete lifecycle for routines. |
 | 4.4 Recurring occurrence control | Not started | Define and implement occurrence, future, and entire-series scopes. |
 | 4.5 Persisted Weekly Reset | Not started | Persist candidate decisions, completion, resume, and history. |
 
@@ -43,6 +43,14 @@ The Tasks page adds the approved compact `Archief` secondary-rail tile. Its inte
 
 Validation: focused archive API 3/3 and Tasks frontend 15/15; full frontend 345/345; backend 625/625; frontend and solution builds; pinned NSwag 14.7.1 twice with an idempotent second run; PostgreSQL migration/model-drift 3/3; and PostgreSQL-backed Playwright 7/7, including archive, restore, cancellation, confirmed deletion, and no document overflow at 1280×720 plus established 1440×900 and 1366×768 checks. The implementation report is `docs/reports/2026-08-08-task-lifecycle/implementation.md`.
 
+## Slice 4.3 implementation boundary
+
+Routines now use a dedicated editor rather than the single-task conversation. A routine has a name, optional description, and an ordered non-empty collection of steps. Each step independently carries title, owner, optional family member, recurrence, and optional 0–365-day start offset. The editor supports add, edit, remove, and reorder before one save; duplicate trimmed titles are rejected case-insensitively. Applying an edited routine is prospective: previously created tasks and series are unchanged, while future applications use the new definition.
+
+The existing `Routines` secondary-rail tile still opens the bounded Tasks surface. Active and archived tabs, the editor, lists, and task-specific permanent-delete confirmation all remain inside that internally scrolling dialog. Archive preserves the routine definition; restore re-exposes it; permanent deletion is accepted only from archive with explicit confirmation and removes its managed steps. Applying or editing an archived routine is not allowed. Recurring steps may create series when a routine is applied, but occurrence-level destructive scope remains Slice 4.4.
+
+Validation: focused routine API 8/8 and Tasks frontend 19/19; full frontend 349/349; backend 628/628; frontend and solution builds; pinned NSwag 14.7.1 twice with an idempotent second run; PostgreSQL migration/model-drift 3/3; and PostgreSQL-backed Playwright 8/8, including ordered editing, prospective-change copy, archive, restore, cancellation, confirmed deletion, and no document overflow at 1280×720 plus established 1440×900 and 1366×768 checks. The implementation report is `docs/reports/2026-08-08-routine-lifecycle/implementation.md`.
+
 ## Fixed boundaries
 
 - Slice 4.0 changes documentation only.
@@ -56,6 +64,6 @@ Validation: focused archive API 3/3 and Tasks frontend 15/15; full frontend 345/
 
 - [x] Task actions are discoverable and accessible.
 - [x] Edit menu is never clipped at supported viewports.
-- [ ] Normal tasks and routines have coherent archive/restore lifecycle.
+- [x] Normal tasks and routines have coherent archive/restore lifecycle.
 - [ ] Recurring scope is explicit.
 - [ ] Weekly Reset can be completed and reviewed after refresh.

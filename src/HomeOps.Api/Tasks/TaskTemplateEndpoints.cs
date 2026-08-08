@@ -20,13 +20,21 @@ public static class TaskTemplateEndpoints
             return Results.Ok(templates);
         }).WithName("GetTaskTemplates").Produces<IReadOnlyCollection<TaskTemplateDto>>();
 
+        group.MapGet("/archived", async (HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        {
+            var templates = await dbContext.TaskTemplates.AsNoTracking().Include(template => template.Items)
+                .Where(template => template.HouseholdId == SeedHousehold.Id && template.IsArchived)
+                .OrderBy(template => template.Name).Select(template => ToDto(template)).ToListAsync(cancellationToken);
+            return Results.Ok(templates);
+        }).WithName("GetArchivedTaskTemplates").Produces<IReadOnlyCollection<TaskTemplateDto>>();
+
         group.MapPost("/", async (CreateTaskTemplateRequest request, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
         {
             var validation = await ValidateTemplate(request.Name, request.Items, dbContext, cancellationToken);
             if (validation.Error is not null) return Results.BadRequest(new { error = validation.Error });
             var now = DateTimeOffset.UtcNow;
             var template = new TaskTemplate { Id = Guid.NewGuid(), HouseholdId = SeedHousehold.Id, Name = validation.Name, Description = Clean(request.Description), CreatedUtc = now, UpdatedUtc = now };
-            AddItems(template, validation.Items, now);
+            AddItems(template, validation.Items);
             dbContext.TaskTemplates.Add(template);
             await dbContext.SaveChangesAsync(cancellationToken);
             return Results.Created($"/api/task-templates/{template.Id}", ToDto(template));
@@ -34,11 +42,11 @@ public static class TaskTemplateEndpoints
 
         group.MapPut("/{templateId:guid}", async (Guid templateId, UpdateTaskTemplateRequest request, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
         {
-            var template = await dbContext.TaskTemplates.Include(t => t.Items).FirstOrDefaultAsync(t => t.Id == templateId && t.HouseholdId == SeedHousehold.Id, cancellationToken);
+            var template = await dbContext.TaskTemplates.Include(t => t.Items).FirstOrDefaultAsync(t => t.Id == templateId && t.HouseholdId == SeedHousehold.Id && !t.IsArchived, cancellationToken);
             if (template is null) return Results.NotFound();
             var validation = await ValidateTemplate(request.Name, request.Items, dbContext, cancellationToken);
             if (validation.Error is not null) return Results.BadRequest(new { error = validation.Error });
-            template.Name = validation.Name; template.Description = Clean(request.Description); template.IsArchived = request.Active == false; template.UpdatedUtc = DateTimeOffset.UtcNow;
+            template.Name = validation.Name; template.Description = Clean(request.Description); template.UpdatedUtc = DateTimeOffset.UtcNow;
             var existingItems = template.Items.OrderBy(item => item.Position).ToList();
             var requestedItems = validation.Items.ToList();
             for (var index = 0; index < requestedItems.Count; index++)
@@ -55,12 +63,35 @@ public static class TaskTemplateEndpoints
 
         group.MapPost("/{templateId:guid}/archive", async (Guid templateId, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
         {
-            var template = await dbContext.TaskTemplates.FirstOrDefaultAsync(t => t.Id == templateId && t.HouseholdId == SeedHousehold.Id, cancellationToken);
+            var template = await dbContext.TaskTemplates.FirstOrDefaultAsync(t => t.Id == templateId && t.HouseholdId == SeedHousehold.Id && !t.IsArchived, cancellationToken);
             if (template is null) return Results.NotFound();
             template.IsArchived = true; template.UpdatedUtc = DateTimeOffset.UtcNow;
             await dbContext.SaveChangesAsync(cancellationToken);
             return Results.NoContent();
         }).WithName("ArchiveTaskTemplate").Produces(StatusCodes.Status204NoContent).Produces(StatusCodes.Status404NotFound);
+
+        group.MapPost("/{templateId:guid}/restore", async (Guid templateId, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        {
+            var template = await dbContext.TaskTemplates.FirstOrDefaultAsync(t => t.Id == templateId && t.HouseholdId == SeedHousehold.Id && t.IsArchived, cancellationToken);
+            if (template is null) return Results.NotFound();
+            template.IsArchived = false; template.UpdatedUtc = DateTimeOffset.UtcNow;
+            await dbContext.SaveChangesAsync(cancellationToken);
+            return Results.NoContent();
+        }).WithName("RestoreTaskTemplate").Produces(StatusCodes.Status204NoContent).Produces(StatusCodes.Status404NotFound);
+
+        group.MapDelete("/{templateId:guid}", async (Guid templateId, bool confirmed, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        {
+            if (!confirmed)
+                return Results.ValidationProblem(new Dictionary<string, string[]> { ["confirmed"] = ["Explicit confirmation is required."] });
+            var template = await dbContext.TaskTemplates
+                .Include(t => t.Items)
+                .FirstOrDefaultAsync(t => t.Id == templateId && t.HouseholdId == SeedHousehold.Id && t.IsArchived, cancellationToken);
+            if (template is null) return Results.NotFound();
+            dbContext.TaskTemplateItems.RemoveRange(template.Items);
+            dbContext.TaskTemplates.Remove(template);
+            await dbContext.SaveChangesAsync(cancellationToken);
+            return Results.NoContent();
+        }).WithName("DeleteArchivedTaskTemplate").Produces(StatusCodes.Status204NoContent).ProducesValidationProblem().Produces(StatusCodes.Status404NotFound);
 
         group.MapPost("/{templateId:guid}/apply", async (Guid templateId, ApplyTaskTemplateRequest request, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
         {
@@ -92,7 +123,7 @@ public static class TaskTemplateEndpoints
         return app;
     }
 
-    private static void AddItems(TaskTemplate template, IReadOnlyCollection<TaskTemplateItemRequest> items, DateTimeOffset now)
+    private static void AddItems(TaskTemplate template, IReadOnlyCollection<TaskTemplateItemRequest> items)
     {
         var position = 0;
         foreach (var item in items) template.Items.Add(new TaskTemplateItem { Id = Guid.NewGuid(), TaskTemplateId = template.Id, Title = item.Title.Trim(), OwnershipKind = item.OwnershipKind ?? TaskOwnershipKind.Unassigned, FamilyMemberId = item.OwnershipKind == TaskOwnershipKind.FamilyMember ? Clean(item.FamilyMemberId) : null, RecurrenceFrequency = item.RecurrenceFrequency ?? TaskRecurrenceFrequency.None, DueOffsetDays = item.DueOffsetDays, Position = position++ });
@@ -102,9 +133,11 @@ public static class TaskTemplateEndpoints
     {
         var name = nameInput.Trim(); if (name.Length == 0) return (name, items, "Template name is required.");
         if (items.Count == 0) return (name, items, "Template must contain at least one task.");
+        var itemTitles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var item in items)
         {
             if (string.IsNullOrWhiteSpace(item.Title)) return (name, items, "Template task title is required.");
+            if (!itemTitles.Add(item.Title.Trim())) return (name, items, "Template task titles must be unique.");
             var member = Clean(item.FamilyMemberId); var kind = item.OwnershipKind ?? TaskOwnershipKind.Unassigned;
             if (kind == TaskOwnershipKind.FamilyMember && member is null) return (name, items, "Family member id is required for assigned template tasks.");
             if (kind == TaskOwnershipKind.FamilyMember && !await dbContext.FamilyMembers.AnyAsync(m => m.Id == member && m.HouseholdId == SeedHousehold.Id && !m.IsDeleted, cancellationToken)) return (name, items, "Family member id must reference an existing family member.");

@@ -7914,6 +7914,47 @@ export class HomeOpsApiClient {
         return Promise.resolve<TaskTemplateDto>(null as any);
     }
 
+    getArchivedTaskTemplates(): Promise<TaskTemplateDto[]> {
+        let url_ = this.baseUrl + "/api/task-templates/archived";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetArchivedTaskTemplates(_response);
+        });
+    }
+
+    protected processGetArchivedTaskTemplates(response: Response): Promise<TaskTemplateDto[]> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            if (Array.isArray(resultData200)) {
+                result200 = [] as any;
+                for (let item of resultData200)
+                    result200!.push(TaskTemplateDto.fromJS(item));
+            }
+            else {
+                result200 = null as any;
+            }
+            return result200;
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<TaskTemplateDto[]>(null as any);
+    }
+
     updateTaskTemplate(templateId: string, request: UpdateTaskTemplateRequest): Promise<TaskTemplateDto> {
         let url_ = this.baseUrl + "/api/task-templates/{templateId}";
         if (templateId === undefined || templateId === null)
@@ -7963,6 +8004,54 @@ export class HomeOpsApiClient {
         return Promise.resolve<TaskTemplateDto>(null as any);
     }
 
+    deleteArchivedTaskTemplate(templateId: string, confirmed: boolean): Promise<void> {
+        let url_ = this.baseUrl + "/api/task-templates/{templateId}?";
+        if (templateId === undefined || templateId === null)
+            throw new globalThis.Error("The parameter 'templateId' must be defined.");
+        url_ = url_.replace("{templateId}", encodeURIComponent("" + templateId));
+        if (confirmed === undefined || confirmed === null)
+            throw new globalThis.Error("The parameter 'confirmed' must be defined and cannot be null.");
+        else
+            url_ += "confirmed=" + encodeURIComponent("" + confirmed) + "&";
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "DELETE",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processDeleteArchivedTaskTemplate(_response);
+        });
+    }
+
+    protected processDeleteArchivedTaskTemplate(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = HttpValidationProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
     archiveTaskTemplate(templateId: string): Promise<void> {
         let url_ = this.baseUrl + "/api/task-templates/{templateId}/archive";
         if (templateId === undefined || templateId === null)
@@ -7982,6 +8071,43 @@ export class HomeOpsApiClient {
     }
 
     protected processArchiveTaskTemplate(response: Response): Promise<void> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 204) {
+            return response.text().then((_responseText) => {
+            return;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<void>(null as any);
+    }
+
+    restoreTaskTemplate(templateId: string): Promise<void> {
+        let url_ = this.baseUrl + "/api/task-templates/{templateId}/restore";
+        if (templateId === undefined || templateId === null)
+            throw new globalThis.Error("The parameter 'templateId' must be defined.");
+        url_ = url_.replace("{templateId}", encodeURIComponent("" + templateId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "POST",
+            headers: {
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processRestoreTaskTemplate(_response);
+        });
+    }
+
+    protected processRestoreTaskTemplate(response: Response): Promise<void> {
         const status = response.status;
         let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
         if (status === 204) {
@@ -19056,7 +19182,6 @@ export interface ITaskTemplateItemRequest {
 export class UpdateTaskTemplateRequest implements IUpdateTaskTemplateRequest {
     name?: string;
     description?: string | undefined;
-    active?: boolean | undefined;
     items?: TaskTemplateItemRequest[];
 
     constructor(data?: IUpdateTaskTemplateRequest) {
@@ -19072,7 +19197,6 @@ export class UpdateTaskTemplateRequest implements IUpdateTaskTemplateRequest {
         if (_data) {
             this.name = _data["name"];
             this.description = _data["description"];
-            this.active = _data["active"];
             if (Array.isArray(_data["items"])) {
                 this.items = [] as any;
                 for (let item of _data["items"])
@@ -19092,7 +19216,6 @@ export class UpdateTaskTemplateRequest implements IUpdateTaskTemplateRequest {
         data = typeof data === 'object' ? data : {};
         data["name"] = this.name;
         data["description"] = this.description;
-        data["active"] = this.active;
         if (Array.isArray(this.items)) {
             data["items"] = [];
             for (let item of this.items)
@@ -19105,7 +19228,6 @@ export class UpdateTaskTemplateRequest implements IUpdateTaskTemplateRequest {
 export interface IUpdateTaskTemplateRequest {
     name?: string;
     description?: string | undefined;
-    active?: boolean | undefined;
     items?: TaskTemplateItemRequest[];
 }
 

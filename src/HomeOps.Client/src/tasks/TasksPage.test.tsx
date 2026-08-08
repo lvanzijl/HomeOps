@@ -1,4 +1,4 @@
-import { cleanup, render, screen, within } from "@testing-library/react";
+import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { familyMembers } from "../home/familyMembers";
@@ -19,9 +19,12 @@ vi.mock("./tasksApi", () => ({
   updateTask: vi.fn(),
   deleteRecurringTaskSeries: vi.fn(),
   loadTaskTemplates: vi.fn(),
+  loadArchivedTaskTemplates: vi.fn(),
   createTaskTemplate: vi.fn(),
   updateTaskTemplate: vi.fn(),
   archiveTaskTemplate: vi.fn(),
+  restoreTaskTemplate: vi.fn(),
+  deleteArchivedTaskTemplate: vi.fn(),
   applyTaskTemplate: vi.fn(),
   keepTaskActive: vi.fn(),
   moveTaskToSomeday: vi.fn(),
@@ -79,7 +82,9 @@ afterEach(() => {
 });
 
 beforeEach(async () => {
-  vi.mocked((await tasksApi()).loadArchivedTasks).mockResolvedValue([]);
+  const api = await tasksApi();
+  vi.mocked(api.loadArchivedTasks).mockResolvedValue([]);
+  vi.mocked(api.loadArchivedTaskTemplates).mockResolvedValue([]);
 });
 
 describe("TasksPage empty state", () => {
@@ -374,6 +379,12 @@ describe("TasksPage hierarchy compaction", () => {
       screen.getByRole("heading", { name: "Taken voor het gezin" }),
     );
     expect(screen.queryByRole("menu")).toBeNull();
+
+    await user.click(more);
+    window.dispatchEvent(new Event("scroll"));
+    expect(screen.getByRole("menu")).not.toBeNull();
+    window.dispatchEvent(new WheelEvent("wheel"));
+    await waitFor(() => expect(screen.queryByRole("menu")).toBeNull());
   });
 
   it("keeps Reopen directly available for completed tasks", async () => {
@@ -672,6 +683,15 @@ describe("TasksPage templates", () => {
             dueOffsetDays: null,
             position: 0,
           },
+          {
+            id: "item-2",
+            title: "Pack school bag",
+            ownershipKind: "FamilyMember",
+            familyMemberId: "riley",
+            recurrenceFrequency: "Weekly",
+            dueOffsetDays: 1,
+            position: 1,
+          },
         ],
       },
     ]);
@@ -692,6 +712,118 @@ describe("TasksPage templates", () => {
     await user.click(screen.getByRole("button", { name: "Toepassen" }));
 
     expect(vi.mocked(api.applyTaskTemplate)).toHaveBeenCalledWith("template-1");
+  });
+
+  it("uses a dedicated ordered-item editor for routine creation", async () => {
+    const user = userEvent.setup();
+    const api = await tasksApi();
+    vi.mocked(api.createTaskTemplate).mockResolvedValue({
+      id: "created-routine",
+      name: "Schoolstart",
+      description: "Rustige ochtend",
+      active: true,
+      createdUtc: "2026-08-08T00:00:00Z",
+      updatedUtc: "2026-08-08T00:00:00Z",
+      items: [],
+    });
+    render(<TasksPage members={familyMembers} />);
+
+    await user.click(await screen.findByRole("button", { name: /Routines/ }));
+    await user.click(screen.getByRole("button", { name: "Nieuwe routine" }));
+    const editor = screen.getByRole("form", { name: "Nieuwe routine maken" });
+    expect(screen.queryByRole("dialog", { name: "Gezinstaak toevoegen" })).toBeNull();
+    await user.type(within(editor).getByLabelText("Routinenaam"), "Schoolstart");
+    await user.type(within(editor).getByLabelText("Beschrijving"), "Rustige ochtend");
+    await user.type(within(editor).getByLabelText("Titel stap 1"), "Tanden poetsen");
+    await user.click(within(editor).getByRole("button", { name: "Stap toevoegen" }));
+    await user.type(within(editor).getByLabelText("Titel stap 2"), "Tas inpakken");
+    await user.selectOptions(within(editor).getByLabelText("Herhaling stap 2"), "Weekly");
+    await user.click(within(editor).getByRole("button", { name: "Stap 2 omhoog" }));
+    await user.click(within(editor).getByRole("button", { name: "Routine maken" }));
+
+    expect(vi.mocked(api.createTaskTemplate)).toHaveBeenCalledWith({
+      name: "Schoolstart",
+      description: "Rustige ochtend",
+      items: [
+        { title: "Tas inpakken", ownershipKind: "Unassigned", familyMemberId: null, recurrenceFrequency: "Weekly", dueOffsetDays: null },
+        { title: "Tanden poetsen", ownershipKind: "Unassigned", familyMemberId: null, recurrenceFrequency: "None", dueOffsetDays: null },
+      ],
+    });
+  });
+
+  it("loads every routine item for editing and keeps prospective-change copy visible", async () => {
+    const user = userEvent.setup();
+    const api = await tasksApi();
+    vi.mocked(api.updateTaskTemplate).mockResolvedValue((await api.loadTaskTemplates())[0]);
+    render(<TasksPage members={familyMembers} />);
+
+    await user.click(await screen.findByRole("button", { name: /Routines/ }));
+    await user.click(screen.getByRole("button", { name: "Aanpassen" }));
+    const editor = screen.getByRole("form", { name: "Routine Morning Routine aanpassen" });
+    expect(within(editor).getByDisplayValue("Brush teeth")).not.toBeNull();
+    expect(within(editor).getByDisplayValue("Pack school bag")).not.toBeNull();
+    expect(within(editor).getByText("Wijzigingen gelden alleen voor toekomstige toepassingen.")).not.toBeNull();
+    await user.click(within(editor).getByRole("button", { name: "Stap 1 omlaag" }));
+    await user.click(within(editor).getByRole("button", { name: "Stap 2 verwijderen" }));
+    await user.click(within(editor).getByRole("button", { name: "Routine opslaan" }));
+
+    expect(vi.mocked(api.updateTaskTemplate)).toHaveBeenCalledWith("template-1", expect.objectContaining({
+      items: [expect.objectContaining({ title: "Pack school bag", recurrenceFrequency: "Weekly" })],
+    }));
+  });
+
+  it("archives and restores routines through the bounded routine archive", async () => {
+    const user = userEvent.setup();
+    const api = await tasksApi();
+    const active = (await api.loadTaskTemplates())[0];
+    const archived = { ...active, active: false };
+    vi.mocked(api.loadTaskTemplates).mockReset()
+      .mockResolvedValueOnce([active])
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([active]);
+    vi.mocked(api.loadArchivedTaskTemplates).mockReset()
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([archived])
+      .mockResolvedValueOnce([]);
+    vi.mocked(api.archiveTaskTemplate).mockResolvedValue();
+    vi.mocked(api.restoreTaskTemplate).mockResolvedValue();
+    render(<TasksPage members={familyMembers} />);
+
+    await user.click(await screen.findByRole("button", { name: /Routines/ }));
+    await user.click(screen.getByRole("button", { name: "Archiveren" }));
+    await user.click(await screen.findByRole("tab", { name: "Archief (1)" }));
+    await user.click(screen.getByRole("button", { name: "Herstellen" }));
+
+    expect(vi.mocked(api.archiveTaskTemplate)).toHaveBeenCalledWith("template-1");
+    expect(vi.mocked(api.restoreTaskTemplate)).toHaveBeenCalledWith("template-1");
+    expect(await screen.findByText("Het routinearchief is leeg.")).not.toBeNull();
+  });
+
+  it("requires task-specific confirmation and retains archived routine on deletion failure", async () => {
+    const user = userEvent.setup();
+    const api = await tasksApi();
+    const archived = { ...(await api.loadTaskTemplates())[0], active: false };
+    vi.mocked(api.loadTaskTemplates).mockReset().mockResolvedValue([]);
+    vi.mocked(api.loadArchivedTaskTemplates).mockReset()
+      .mockResolvedValueOnce([archived])
+      .mockResolvedValueOnce([]);
+    vi.mocked(api.deleteArchivedTaskTemplate)
+      .mockRejectedValueOnce(new Error("network"))
+      .mockResolvedValueOnce();
+    render(<TasksPage members={familyMembers} />);
+
+    await user.click(await screen.findByRole("button", { name: /Routines/ }));
+    await user.click(screen.getByRole("tab", { name: "Archief (1)" }));
+    await user.click(screen.getByRole("button", { name: "Permanent verwijderen" }));
+    expect(screen.getByText("De routine en haar stappen verdwijnen permanent. Eerder aangemaakte taken blijven bestaan.")).not.toBeNull();
+    await user.click(screen.getByRole("button", { name: "Annuleren" }));
+    expect(screen.getByText("Morning Routine")).not.toBeNull();
+    await user.click(screen.getByRole("button", { name: "Permanent verwijderen" }));
+    await user.click(screen.getByRole("button", { name: "Definitief verwijderen" }));
+    expect((await screen.findByRole("alert")).textContent).toContain("routine is behouden");
+    await user.click(screen.getByRole("button", { name: "Definitief verwijderen" }));
+    expect(vi.mocked(api.deleteArchivedTaskTemplate)).toHaveBeenCalledTimes(2);
+    expect(await screen.findByText("Het routinearchief is leeg.")).not.toBeNull();
   });
 
   it("keeps Weekly Reset secondary while preserving review actions", async () => {

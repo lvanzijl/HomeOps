@@ -1,12 +1,15 @@
 using System.Net;
 using System.Net.Http.Json;
 using HomeOps.Api.Tasks;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HomeOps.Api.Tests.Lists;
 
 public sealed class TaskTemplateApiTests(HomeOpsWebApplicationFactory factory) : IClassFixture<HomeOpsWebApplicationFactory>
 {
     private readonly HttpClient _client = factory.CreateClient();
+    private readonly HomeOpsWebApplicationFactory _factory = factory;
 
     [Fact]
     public async Task StarterTemplatesAreAvailable()
@@ -29,7 +32,7 @@ public sealed class TaskTemplateApiTests(HomeOpsWebApplicationFactory factory) :
         var created = await createResponse.Content.ReadFromJsonAsync<TaskTemplateDto>();
         Assert.NotNull(created);
 
-        var updateResponse = await _client.PutAsJsonAsync($"/api/task-templates/{created.Id}", new UpdateTaskTemplateRequest("Weekend Reset Updated", null, true, new[]
+        var updateResponse = await _client.PutAsJsonAsync($"/api/task-templates/{created.Id}", new UpdateTaskTemplateRequest("Weekend Reset Updated", null, new[]
         {
             new TaskTemplateItemRequest("Vacuum downstairs", TaskOwnershipKind.FamilyMember, "riley", TaskRecurrenceFrequency.Weekly, 1),
             new TaskTemplateItemRequest("Take out trash", TaskOwnershipKind.Unassigned, null, TaskRecurrenceFrequency.None, null),
@@ -40,6 +43,7 @@ public sealed class TaskTemplateApiTests(HomeOpsWebApplicationFactory factory) :
         Assert.NotNull(updated);
         Assert.Equal("Weekend Reset Updated", updated.Name);
         Assert.Equal(2, updated.Items.Count);
+        Assert.Equal(["Vacuum downstairs", "Take out trash"], updated.Items.OrderBy(item => item.Position).Select(item => item.Title));
         Assert.Contains(updated.Items, item => item.Title == "Vacuum downstairs" && item.FamilyMemberId == "riley" && item.RecurrenceFrequency == TaskRecurrenceFrequency.Weekly && item.DueOffsetDays == 1);
     }
 
@@ -53,6 +57,55 @@ public sealed class TaskTemplateApiTests(HomeOpsWebApplicationFactory factory) :
 
         var templates = await _client.GetFromJsonAsync<IReadOnlyCollection<TaskTemplateDto>>("/api/task-templates");
         Assert.DoesNotContain(templates!, template => template.Id == created.Id);
+    }
+
+    [Fact]
+    public async Task ArchivedTemplateCanBeReviewedRestoredAndPermanentlyDeletedOnlyWithConfirmation()
+    {
+        var created = await CreateTemplate($"Lifecycle {Guid.NewGuid()}",
+            new TaskTemplateItemRequest("First step", TaskOwnershipKind.Unassigned, null, TaskRecurrenceFrequency.None, 0),
+            new TaskTemplateItemRequest("Second step", TaskOwnershipKind.SharedHousehold, null, TaskRecurrenceFrequency.None, 1));
+
+        (await _client.PostAsync($"/api/task-templates/{created.Id}/archive", null)).EnsureSuccessStatusCode();
+        var active = await _client.GetFromJsonAsync<IReadOnlyCollection<TaskTemplateDto>>("/api/task-templates");
+        var archived = await _client.GetFromJsonAsync<IReadOnlyCollection<TaskTemplateDto>>("/api/task-templates/archived");
+        Assert.DoesNotContain(active!, template => template.Id == created.Id);
+        var archivedTemplate = Assert.Single(archived!, template => template.Id == created.Id);
+        Assert.False(archivedTemplate.Active);
+        Assert.Equal(["First step", "Second step"], archivedTemplate.Items.OrderBy(item => item.Position).Select(item => item.Title));
+
+        var restore = await _client.PostAsync($"/api/task-templates/{created.Id}/restore", null);
+        Assert.Equal(HttpStatusCode.NoContent, restore.StatusCode);
+        Assert.Contains((await _client.GetFromJsonAsync<IReadOnlyCollection<TaskTemplateDto>>("/api/task-templates"))!, template => template.Id == created.Id);
+        Assert.Equal(HttpStatusCode.NotFound, (await _client.DeleteAsync($"/api/task-templates/{created.Id}?confirmed=true")).StatusCode);
+
+        await _client.PostAsync($"/api/task-templates/{created.Id}/archive", null);
+        Assert.Equal(HttpStatusCode.BadRequest, (await _client.DeleteAsync($"/api/task-templates/{created.Id}?confirmed=false")).StatusCode);
+        Assert.Contains((await _client.GetFromJsonAsync<IReadOnlyCollection<TaskTemplateDto>>("/api/task-templates/archived"))!, template => template.Id == created.Id);
+        Assert.Equal(HttpStatusCode.NoContent, (await _client.DeleteAsync($"/api/task-templates/{created.Id}?confirmed=true")).StatusCode);
+        Assert.DoesNotContain((await _client.GetFromJsonAsync<IReadOnlyCollection<TaskTemplateDto>>("/api/task-templates/archived"))!, template => template.Id == created.Id);
+
+        using var scope = _factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<HomeOps.Api.Data.HomeOpsDbContext>();
+        Assert.False(await dbContext.TaskTemplates.AnyAsync(template => template.Id == created.Id));
+        Assert.False(await dbContext.TaskTemplateItems.AnyAsync(item => item.TaskTemplateId == created.Id));
+    }
+
+    [Fact]
+    public async Task TemplateValidationRejectsEmptyDuplicateAndInvalidAssignedItems()
+    {
+        var empty = await _client.PostAsJsonAsync("/api/task-templates", new CreateTaskTemplateRequest("Empty", null, []));
+        var duplicate = await _client.PostAsJsonAsync("/api/task-templates", new CreateTaskTemplateRequest("Duplicate", null,
+        [
+            new TaskTemplateItemRequest("Pack bag", null, null, null, null),
+            new TaskTemplateItemRequest(" pack bag ", null, null, null, null),
+        ]));
+        var invalidAssignee = await _client.PostAsJsonAsync("/api/task-templates", new CreateTaskTemplateRequest("Invalid owner", null,
+        [new TaskTemplateItemRequest("Assigned item", TaskOwnershipKind.FamilyMember, "missing-member", TaskRecurrenceFrequency.None, null)]));
+
+        Assert.Equal(HttpStatusCode.BadRequest, empty.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, duplicate.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, invalidAssignee.StatusCode);
     }
 
     [Fact]
@@ -82,6 +135,24 @@ public sealed class TaskTemplateApiTests(HomeOpsWebApplicationFactory factory) :
         Assert.NotNull(seriesId);
         Assert.Contains(tasks!, task => task.RecurringTaskSeriesId == seriesId && task.RecurrenceFrequency == TaskRecurrenceFrequency.Daily && task.FamilyMemberId == "riley");
         Assert.True(tasks!.Count(task => task.RecurringTaskSeriesId == seriesId) > 1);
+    }
+
+    [Fact]
+    public async Task EditingTemplateAffectsFutureApplicationsOnly()
+    {
+        var originalTitle = $"Original routine item {Guid.NewGuid()}";
+        var updatedTitle = $"Updated routine item {Guid.NewGuid()}";
+        var created = await CreateTemplate($"Prospective edit {Guid.NewGuid()}", new TaskTemplateItemRequest(originalTitle, TaskOwnershipKind.Unassigned, null, TaskRecurrenceFrequency.None, 0));
+        (await _client.PostAsJsonAsync($"/api/task-templates/{created.Id}/apply", new ApplyTaskTemplateRequest(new DateOnly(2026, 8, 8)))).EnsureSuccessStatusCode();
+
+        var update = await _client.PutAsJsonAsync($"/api/task-templates/{created.Id}", new UpdateTaskTemplateRequest(created.Name, created.Description,
+        [new TaskTemplateItemRequest(updatedTitle, TaskOwnershipKind.Unassigned, null, TaskRecurrenceFrequency.None, 0)]));
+        update.EnsureSuccessStatusCode();
+        (await _client.PostAsJsonAsync($"/api/task-templates/{created.Id}/apply", new ApplyTaskTemplateRequest(new DateOnly(2026, 8, 9)))).EnsureSuccessStatusCode();
+
+        var tasks = await _client.GetFromJsonAsync<IReadOnlyCollection<HouseholdTaskDto>>("/api/tasks");
+        Assert.Single(tasks!, task => task.Title == originalTitle);
+        Assert.Single(tasks!, task => task.Title == updatedTitle);
     }
 
     private async Task<TaskTemplateDto> CreateTemplate(string name, params TaskTemplateItemRequest[] items)

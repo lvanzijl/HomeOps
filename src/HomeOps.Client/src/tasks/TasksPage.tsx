@@ -21,14 +21,17 @@ import {
   createTask,
   createTaskTemplate,
   deleteArchivedTask,
+  deleteArchivedTaskTemplate,
   deleteRecurringTaskSeries,
   keepTaskActive,
   loadArchivedTasks,
+  loadArchivedTaskTemplates,
   loadTaskTemplates,
   loadTasks,
   moveTaskToSomeday,
   reopenTask,
   restoreArchivedTask,
+  restoreTaskTemplate,
   updateTask as saveTask,
   updateTaskTemplate,
 } from "./tasksApi";
@@ -49,6 +52,15 @@ import type {
 
 type TaskDialogQuestion = "title" | "owner" | "date" | "extras";
 type PlanningSection = "tomorrow" | "thisWeek" | "later";
+type RoutineView = "active" | "archive";
+type RoutineItemDraft = {
+  key: string;
+  title: string;
+  ownershipKind: TaskOwnershipKind;
+  familyMemberId: string;
+  recurrenceFrequency: TaskRecurrenceFrequency;
+  dueOffsetDays: string;
+};
 type TasksPanelState =
   | { kind: "planning"; section: PlanningSection }
   | { kind: "today" }
@@ -73,6 +85,7 @@ export function TasksPage({
   const [tasks, setTasks] = useState<readonly HouseholdTask[]>([]);
   const [archivedTasks, setArchivedTasks] = useState<readonly HouseholdTask[]>([]);
   const [templates, setTemplates] = useState<readonly TaskTemplate[]>([]);
+  const [archivedTemplates, setArchivedTemplates] = useState<readonly TaskTemplate[]>([]);
   const [title, setTitle] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [ownership, setOwnership] = useState<TaskOwnershipKind>("Unassigned");
@@ -91,9 +104,17 @@ export function TasksPage({
   const [taskLifecycleError, setTaskLifecycleError] = useState<string | null>(null);
   const [templateName, setTemplateName] = useState("");
   const [templateDescription, setTemplateDescription] = useState("");
+  const [templateItems, setTemplateItems] = useState<readonly RoutineItemDraft[]>([
+    createRoutineItemDraft(),
+  ]);
   const [editingTemplate, setEditingTemplate] = useState<TaskTemplate | null>(
     null,
   );
+  const [isTemplateEditorOpen, setIsTemplateEditorOpen] = useState(false);
+  const [routineView, setRoutineView] = useState<RoutineView>("active");
+  const [templateDeleteCandidate, setTemplateDeleteCandidate] = useState<TaskTemplate | null>(null);
+  const [pendingTemplateId, setPendingTemplateId] = useState<string | null>(null);
+  const [templateLifecycleError, setTemplateLifecycleError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const reviewTasks = useMemo(
@@ -271,12 +292,21 @@ export function TasksPage({
   }, [familyMemberId, members, ownership]);
 
   useEffect(() => {
-    if (!isTaskFormOpen && !editingTask && !activePanel && !deleteCandidate) return;
+    if (!isTaskFormOpen && !editingTask && !activePanel && !deleteCandidate && !templateDeleteCandidate && !isTemplateEditorOpen) return;
     const close = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         if (deleteCandidate) {
           setDeleteCandidate(null);
           setTaskLifecycleError(null);
+          return;
+        }
+        if (templateDeleteCandidate) {
+          setTemplateDeleteCandidate(null);
+          setTemplateLifecycleError(null);
+          return;
+        }
+        if (isTemplateEditorOpen) {
+          resetTemplateEditor();
           return;
         }
         if (isTaskFormOpen || editingTask) {
@@ -289,7 +319,7 @@ export function TasksPage({
     };
     window.addEventListener("keydown", close);
     return () => window.removeEventListener("keydown", close);
-  }, [activePanel, deleteCandidate, editingTask, isTaskFormOpen]);
+  }, [activePanel, deleteCandidate, editingTask, isTaskFormOpen, isTemplateEditorOpen, templateDeleteCandidate]);
 
   function resetTaskForm() {
     setTitle("");
@@ -318,16 +348,18 @@ export function TasksPage({
     let ignore = false;
     async function run() {
       try {
-        const [loadedTasks, loadedArchivedTasks, loadedTemplates, loadedKnownPeople] = await Promise.all([
+        const [loadedTasks, loadedArchivedTasks, loadedTemplates, loadedArchivedTemplates, loadedKnownPeople] = await Promise.all([
           loadTasks(),
           loadArchivedTasks(),
           loadTaskTemplates(),
+          loadArchivedTaskTemplates(),
           listKnownPeople(),
         ]);
         if (!ignore) {
           setTasks(loadedTasks);
           setArchivedTasks(loadedArchivedTasks);
           setTemplates(loadedTemplates);
+          setArchivedTemplates(loadedArchivedTemplates);
           setKnownPeople(loadedKnownPeople);
         }
       } catch {
@@ -365,47 +397,68 @@ export function TasksPage({
 
   async function onSaveTemplate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setTemplateLifecycleError(null);
     try {
       const input = {
         name: templateName,
         description: templateDescription || null,
-        items: [
-          {
-            title,
-            dueDate: dueDate || null,
-            ownershipKind: ownership,
-            familyMemberId:
-              ownership === "FamilyMember" ? familyMemberId : null,
-            recurrenceFrequency,
-            dueOffsetDays: dueDate ? 0 : null,
-          },
-        ],
+        items: templateItems.map((item) => ({
+          title: item.title,
+          ownershipKind: item.ownershipKind,
+          familyMemberId: item.ownershipKind === "FamilyMember" ? item.familyMemberId : null,
+          recurrenceFrequency: item.recurrenceFrequency,
+          dueOffsetDays: item.dueOffsetDays === "" ? null : Number(item.dueOffsetDays),
+        })),
       };
       if (editingTemplate) await updateTaskTemplate(editingTemplate.id, input);
       else await createTaskTemplate(input);
       setTemplates(await loadTaskTemplates());
-      setTemplateName("");
-      setTemplateDescription("");
-      setEditingTemplate(null);
+      resetTemplateEditor();
     } catch {
-      setError("Routine kon niet worden opgeslagen.");
+      setTemplateLifecycleError("Routine kon niet worden opgeslagen. Controleer unieke titels, eigenaars en planning.");
     }
   }
 
+  function resetTemplateEditor() {
+    setTemplateName("");
+    setTemplateDescription("");
+    setTemplateItems([createRoutineItemDraft()]);
+    setEditingTemplate(null);
+    setIsTemplateEditorOpen(false);
+    setTemplateLifecycleError(null);
+  }
+
+  function openNewTemplateEditor() {
+    setEditingTemplate(null);
+    setTemplateName("");
+    setTemplateDescription("");
+    setTemplateItems([createRoutineItemDraft()]);
+    setTemplateLifecycleError(null);
+    setIsTemplateEditorOpen(true);
+  }
+
   function startEditingTemplate(template: TaskTemplate) {
-    const first = template.items[0];
     setEditingTemplate(template);
     setTemplateName(template.name);
     setTemplateDescription(template.description ?? "");
     setActivePanel({ kind: "templates" });
-    if (first) {
-      setTitle(first.title);
-      setOwnership(first.ownershipKind);
-      setFamilyMemberId(first.familyMemberId ?? members[0]?.id ?? "");
-      setRecurrenceFrequency(first.recurrenceFrequency ?? "None");
-      setTaskDialogQuestion("title");
-      setIsTaskFormOpen(true);
-    }
+    setTemplateItems(template.items.map((item) => createRoutineItemDraft(item)));
+    setTemplateLifecycleError(null);
+    setIsTemplateEditorOpen(true);
+  }
+
+  function updateTemplateItem(key: string, patch: Partial<RoutineItemDraft>) {
+    setTemplateItems((current) => current.map((item) => item.key === key ? { ...item, ...patch } : item));
+  }
+
+  function moveTemplateItem(index: number, direction: -1 | 1) {
+    const target = index + direction;
+    if (target < 0 || target >= templateItems.length) return;
+    setTemplateItems((current) => {
+      const next = [...current];
+      [next[index], next[target]] = [next[target], next[index]];
+      return next;
+    });
   }
 
   async function applyTemplate(templateId: string) {
@@ -418,11 +471,46 @@ export function TasksPage({
   }
 
   async function archiveTemplate(templateId: string) {
+    setPendingTemplateId(templateId);
+    setTemplateLifecycleError(null);
     try {
       await archiveTaskTemplate(templateId);
-      setTemplates(await loadTaskTemplates());
+      const [active, archived] = await Promise.all([loadTaskTemplates(), loadArchivedTaskTemplates()]);
+      setTemplates(active);
+      setArchivedTemplates(archived);
     } catch {
-      setError("Routine kon niet worden gearchiveerd.");
+      setTemplateLifecycleError("Routine kon niet worden gearchiveerd.");
+    } finally {
+      setPendingTemplateId(null);
+    }
+  }
+
+  async function restoreTemplate(templateId: string) {
+    setPendingTemplateId(templateId);
+    setTemplateLifecycleError(null);
+    try {
+      await restoreTaskTemplate(templateId);
+      const [active, archived] = await Promise.all([loadTaskTemplates(), loadArchivedTaskTemplates()]);
+      setTemplates(active);
+      setArchivedTemplates(archived);
+    } catch {
+      setTemplateLifecycleError("Herstellen is niet gelukt. De routine blijft veilig in het archief.");
+    } finally {
+      setPendingTemplateId(null);
+    }
+  }
+
+  async function permanentlyDeleteTemplate(template: TaskTemplate) {
+    setPendingTemplateId(template.id);
+    setTemplateLifecycleError(null);
+    try {
+      await deleteArchivedTaskTemplate(template.id);
+      setArchivedTemplates(await loadArchivedTaskTemplates());
+      setTemplateDeleteCandidate(null);
+    } catch {
+      setTemplateLifecycleError("Permanent verwijderen is niet gelukt. De gearchiveerde routine is behouden.");
+    } finally {
+      setPendingTemplateId(null);
     }
   }
 
@@ -688,7 +776,12 @@ export function TasksPage({
           count={templates.length}
           description="Snel opnieuw gebruiken"
           label="Routines"
-          onClick={() => setActivePanel({ kind: "templates" })}
+          onClick={() => {
+            setRoutineView("active");
+            setTemplateDeleteCandidate(null);
+            setTemplateLifecycleError(null);
+            setActivePanel({ kind: "templates" });
+          }}
         />
         <TaskSecondaryActionTile
           count={archivedTasks.length}
@@ -953,6 +1046,9 @@ export function TasksPage({
           onClose={() => {
             setDeleteCandidate(null);
             setTaskLifecycleError(null);
+            resetTemplateEditor();
+            setTemplateDeleteCandidate(null);
+            setTemplateLifecycleError(null);
             setActivePanel(null);
           }}
         >
@@ -1051,11 +1147,30 @@ export function TasksPage({
             </section>
           ) : null}
           {activePanel.kind === "templates" ? (
-            <section className="task-templates-panel task-overlay-list-panel">
+            <section className="task-templates-panel task-overlay-list-panel" aria-label="Routines beheren">
+              <div className="task-routine-toolbar">
+                <div className="task-planning-segments" role="tablist" aria-label="Routineweergave">
+                  <button type="button" role="tab" aria-selected={routineView === "active"} className={routineView === "active" ? "selected" : ""} onClick={() => {
+                    resetTemplateEditor();
+                    setTemplateDeleteCandidate(null);
+                    setRoutineView("active");
+                  }}>Actief ({templates.length})</button>
+                  <button type="button" role="tab" aria-selected={routineView === "archive"} className={routineView === "archive" ? "selected" : ""} onClick={() => {
+                    resetTemplateEditor();
+                    setTemplateDeleteCandidate(null);
+                    setRoutineView("archive");
+                  }}>Archief ({archivedTemplates.length})</button>
+                </div>
+                {routineView === "active" && !isTemplateEditorOpen ? <button type="button" onClick={openNewTemplateEditor}>Nieuwe routine</button> : null}
+              </div>
+              {templateLifecycleError ? <p className="shopping-empty" role="alert">{templateLifecycleError}</p> : null}
+              {isTemplateEditorOpen ? (
               <form
-                className="task-create-form compact-task-form"
+                className="task-routine-editor"
+                aria-label={editingTemplate ? `Routine ${editingTemplate.name} aanpassen` : "Nieuwe routine maken"}
                 onSubmit={onSaveTemplate}
               >
+                <div className="task-routine-editor-meta">
                 <label>
                   <span>Routinenaam</span>
                   <input
@@ -1077,24 +1192,104 @@ export function TasksPage({
                     value={templateDescription}
                   />
                 </label>
-                <button type="submit">
-                  {editingTemplate
-                    ? "Routine opslaan"
-                    : "Opslaan als routine"}
-                </button>
+                </div>
+                <ol className="task-routine-items-editor task-list-scroll-region" aria-label="Geordende routinestappen">
+                  {templateItems.map((item, index) => (
+                    <li className="task-routine-item-editor" key={item.key}>
+                      <span className="task-routine-position">{index + 1}</span>
+                      <label className="task-routine-title-field">
+                        <span>Titel stap {index + 1}</span>
+                        <input required value={item.title} onChange={(event) => updateTemplateItem(item.key, { title: event.target.value })} />
+                      </label>
+                      <label>
+                        <span>Eigenaar stap {index + 1}</span>
+                        <select value={item.ownershipKind} onChange={(event) => updateTemplateItem(item.key, { ownershipKind: event.target.value as TaskOwnershipKind, familyMemberId: event.target.value === "FamilyMember" ? item.familyMemberId || members[0]?.id || "" : "" })}>
+                          <option value="Unassigned">Iedereen</option>
+                          <option value="SharedHousehold">Hele gezin</option>
+                          <option value="FamilyMember">Eén persoon</option>
+                        </select>
+                      </label>
+                      {item.ownershipKind === "FamilyMember" ? (
+                        <label>
+                          <span>Gezinslid stap {index + 1}</span>
+                          <select required value={item.familyMemberId} onChange={(event) => updateTemplateItem(item.key, { familyMemberId: event.target.value })}>
+                            {members.map((member) => <option key={member.id} value={member.id}>{member.name}</option>)}
+                          </select>
+                        </label>
+                      ) : null}
+                      <label>
+                        <span>Herhaling stap {index + 1}</span>
+                        <select value={item.recurrenceFrequency} onChange={(event) => updateTemplateItem(item.key, { recurrenceFrequency: event.target.value as TaskRecurrenceFrequency })}>
+                          <option value="None">Niet herhalen</option>
+                          <option value="Daily">Dagelijks</option>
+                          <option value="Weekly">Wekelijks</option>
+                          <option value="Monthly">Maandelijks</option>
+                        </select>
+                      </label>
+                      <label>
+                        <span>Startoffset stap {index + 1}</span>
+                        <input min="0" max="365" type="number" value={item.dueOffsetDays} onChange={(event) => updateTemplateItem(item.key, { dueOffsetDays: event.target.value })} placeholder="Geen datum" />
+                      </label>
+                      <div className="task-routine-item-actions">
+                        <button type="button" disabled={index === 0} aria-label={`Stap ${index + 1} omhoog`} onClick={() => moveTemplateItem(index, -1)}>Omhoog</button>
+                        <button type="button" disabled={index === templateItems.length - 1} aria-label={`Stap ${index + 1} omlaag`} onClick={() => moveTemplateItem(index, 1)}>Omlaag</button>
+                        <button type="button" disabled={templateItems.length === 1} aria-label={`Stap ${index + 1} verwijderen`} onClick={() => setTemplateItems((current) => current.filter((candidate) => candidate.key !== item.key))}>Verwijderen</button>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+                <div className="task-routine-editor-actions">
+                  <button type="button" className="secondary-action" onClick={() => setTemplateItems((current) => [...current, createRoutineItemDraft()])}>Stap toevoegen</button>
+                  <span>Wijzigingen gelden alleen voor toekomstige toepassingen.</span>
+                  <button type="button" className="secondary-action" onClick={resetTemplateEditor}>Annuleren</button>
+                  <button type="submit">{editingTemplate ? "Routine opslaan" : "Routine maken"}</button>
+                </div>
               </form>
-              {templates.length === 0 ? (
+              ) : null}
+              {!isTemplateEditorOpen && templateDeleteCandidate ? (
+                <div className="task-delete-confirmation">
+                  <p className="widget-type">Routine definitief verwijderen</p>
+                  <h5>{templateDeleteCandidate.name}</h5>
+                  <p>De routine en haar stappen verdwijnen permanent. Eerder aangemaakte taken blijven bestaan.</p>
+                  <div className="task-delete-confirmation-actions">
+                    <button type="button" className="secondary-action" disabled={pendingTemplateId === templateDeleteCandidate.id} onClick={() => {
+                      setTemplateDeleteCandidate(null);
+                      setTemplateLifecycleError(null);
+                    }}>Annuleren</button>
+                    <button type="button" className="danger-button" disabled={pendingTemplateId === templateDeleteCandidate.id} onClick={() => void permanentlyDeleteTemplate(templateDeleteCandidate)}>
+                      {pendingTemplateId === templateDeleteCandidate.id ? "Verwijderen…" : "Definitief verwijderen"}
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+              {!isTemplateEditorOpen && !templateDeleteCandidate && routineView === "archive" ? (
+                archivedTemplates.length === 0 ? <p className="shopping-empty">Het routinearchief is leeg.</p> : (
+                  <ul className="task-list task-list-scroll-region">
+                    {archivedTemplates.map((template) => (
+                      <li className="task-item task-routine-list-item" key={template.id}>
+                        <div><strong>{template.name}</strong><span>{template.items.length} {template.items.length === 1 ? "stap" : "stappen"}</span></div>
+                        <button type="button" disabled={pendingTemplateId === template.id} onClick={() => void restoreTemplate(template.id)}>Herstellen</button>
+                        <button type="button" className="danger-button" disabled={pendingTemplateId === template.id} onClick={() => {
+                          setTemplateLifecycleError(null);
+                          setTemplateDeleteCandidate(template);
+                        }}>Permanent verwijderen</button>
+                      </li>
+                    ))}
+                  </ul>
+                )
+              ) : null}
+              {!isTemplateEditorOpen && !templateDeleteCandidate && routineView === "active" && (templates.length === 0 ? (
                 <p className="shopping-empty">Nog geen opgeslagen routines.</p>
               ) : (
                 <ul className="task-list task-list-scroll-region">
                   {templates.map((template) => (
-                    <li className="task-item" key={template.id}>
+                    <li className="task-item task-routine-list-item" key={template.id}>
                       <div>
                         <strong>{template.name}</strong>
                         <span>
                           {template.description ?? "Herbruikbare gezinsroutine"} ·{" "}
                           {template.items.length}{" "}
-                          {template.items.length === 1 ? "taak" : "taken"}
+                          {template.items.length === 1 ? "stap" : "stappen"}
                         </span>
                       </div>
                       <button
@@ -1110,7 +1305,8 @@ export function TasksPage({
                         Aanpassen
                       </button>
                       <button
-                        onClick={() => archiveTemplate(template.id)}
+                        disabled={pendingTemplateId === template.id}
+                        onClick={() => void archiveTemplate(template.id)}
                         type="button"
                       >
                         Archiveren
@@ -1118,7 +1314,7 @@ export function TasksPage({
                     </li>
                   ))}
                 </ul>
-              )}
+              ))}
             </section>
           ) : null}
           {activePanel.kind === "archive" ? (
@@ -1794,15 +1990,17 @@ function TaskActionsMenu({
       setIsOpen(false);
       triggerRef.current?.focus();
     };
-    const handleScroll = () => setIsOpen(false);
+    const handleUserScroll = () => setIsOpen(false);
 
     document.addEventListener("pointerdown", handlePointerDown);
     document.addEventListener("keydown", handleKeyDown);
-    window.addEventListener("scroll", handleScroll, true);
+    window.addEventListener("wheel", handleUserScroll, true);
+    window.addEventListener("touchmove", handleUserScroll, true);
     return () => {
       document.removeEventListener("pointerdown", handlePointerDown);
       document.removeEventListener("keydown", handleKeyDown);
-      window.removeEventListener("scroll", handleScroll, true);
+      window.removeEventListener("wheel", handleUserScroll, true);
+      window.removeEventListener("touchmove", handleUserScroll, true);
     };
   }, [isOpen]);
 
@@ -2057,4 +2255,18 @@ function formatRecurrence(frequency: TaskRecurrenceFrequency): string {
   if (frequency === "Weekly") return "Herhaalt wekelijks";
   if (frequency === "Monthly") return "Herhaalt maandelijks";
   return "Herhaalt niet";
+}
+
+let routineDraftSequence = 0;
+
+function createRoutineItemDraft(item?: TaskTemplate["items"][number]): RoutineItemDraft {
+  routineDraftSequence += 1;
+  return {
+    key: item?.id ?? `routine-draft-${routineDraftSequence}`,
+    title: item?.title ?? "",
+    ownershipKind: item?.ownershipKind ?? "Unassigned",
+    familyMemberId: item?.familyMemberId ?? "",
+    recurrenceFrequency: item?.recurrenceFrequency ?? "None",
+    dueOffsetDays: item?.dueOffsetDays === null || item?.dueOffsetDays === undefined ? "" : String(item.dueOffsetDays),
+  };
 }

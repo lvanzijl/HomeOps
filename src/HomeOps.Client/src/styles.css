@@ -10605,6 +10605,93 @@ button {
   justify-content: flex-end;
 }
 
+.task-routine-toolbar,
+.task-routine-editor-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  justify-content: space-between;
+}
+
+.task-routine-editor {
+  display: grid;
+  gap: 0.7rem;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.task-routine-editor-meta {
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.task-routine-editor label {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.task-routine-editor label > span,
+.task-routine-editor-actions > span {
+  color: var(--color-text-muted);
+  font-size: 0.76rem;
+  font-weight: 750;
+}
+
+.task-routine-editor input,
+.task-routine-editor select {
+  min-width: 0;
+  width: 100%;
+}
+
+.task-routine-items-editor {
+  display: grid;
+  gap: 0.55rem;
+  list-style: none;
+  margin: 0;
+  padding: 0 0.2rem 0 0;
+}
+
+.task-routine-item-editor {
+  align-items: end;
+  background: rgb(255 255 255 / 88%);
+  border: 1px solid color-mix(in srgb, var(--domain-border, #99f6e4) 66%, white);
+  border-radius: 0.9rem;
+  display: grid;
+  gap: 0.45rem;
+  grid-template-columns: auto minmax(10rem, 1.6fr) repeat(3, minmax(7rem, 1fr)) auto;
+  padding: 0.65rem;
+}
+
+.task-routine-position {
+  align-self: center;
+  color: var(--domain-accent-strong, #0f766e);
+  font-weight: 900;
+}
+
+.task-routine-item-actions {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.task-routine-item-actions button {
+  min-height: 2.4rem;
+  padding-inline: 0.55rem;
+}
+
+@media (max-width: 1180px), (max-height: 760px) {
+  .task-routine-item-editor {
+    grid-template-columns: auto minmax(10rem, 1.5fr) repeat(2, minmax(7rem, 1fr));
+  }
+
+  .task-routine-item-actions {
+    grid-column: 2 / -1;
+  }
+}
+
 @media (max-width: 1180px) {
   .tasks-page {
     padding: 0.65rem;

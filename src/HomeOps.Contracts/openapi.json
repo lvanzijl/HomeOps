@@ -7093,6 +7093,29 @@
         }
       }
     },
+    "/api/task-templates/archived": {
+      "get": {
+        "tags": [
+          "Task Templates"
+        ],
+        "operationId": "GetArchivedTaskTemplates",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TaskTemplateDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/task-templates/{templateId}": {
       "put": {
         "tags": [
@@ -7141,6 +7164,51 @@
             "description": ""
           }
         }
+      },
+      "delete": {
+        "tags": [
+          "Task Templates"
+        ],
+        "operationId": "DeleteArchivedTaskTemplate",
+        "parameters": [
+          {
+            "name": "templateId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "confirmed",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
       }
     },
     "/api/task-templates/{templateId}/archive": {
@@ -7149,6 +7217,34 @@
           "Task Templates"
         ],
         "operationId": "ArchiveTaskTemplate",
+        "parameters": [
+          {
+            "name": "templateId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/task-templates/{templateId}/restore": {
+      "post": {
+        "tags": [
+          "Task Templates"
+        ],
+        "operationId": "RestoreTaskTemplate",
         "parameters": [
           {
             "name": "templateId",
@@ -13577,10 +13673,6 @@
           },
           "description": {
             "type": "string",
-            "nullable": true
-          },
-          "active": {
-            "type": "boolean",
             "nullable": true
           },
           "items": {

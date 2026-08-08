@@ -85,6 +85,12 @@ export async function loadTaskTemplates(): Promise<readonly TaskTemplate[]> {
   return response.json() as Promise<TaskTemplate[]>;
 }
 
+export async function loadArchivedTaskTemplates(): Promise<readonly TaskTemplate[]> {
+  const response = await fetch(`${apiBaseUrl}/api/task-templates/archived`, { headers: { Accept: 'application/json' } });
+  if (!response.ok) throw new Error('Archived task templates could not be loaded.');
+  return response.json() as Promise<TaskTemplate[]>;
+}
+
 function templateBody(input: TaskTemplateInput) {
   return JSON.stringify({
     name: input.name.trim(),
@@ -114,6 +120,16 @@ export async function updateTaskTemplate(templateId: string, input: TaskTemplate
 export async function archiveTaskTemplate(templateId: string): Promise<void> {
   const response = await fetch(`${apiBaseUrl}/api/task-templates/${templateId}/archive`, { method: 'POST', headers: { Accept: 'application/json' } });
   if (!response.ok) throw new Error('Task template could not be archived.');
+}
+
+export async function restoreTaskTemplate(templateId: string): Promise<void> {
+  const response = await fetch(`${apiBaseUrl}/api/task-templates/${templateId}/restore`, { method: 'POST', headers: { Accept: 'application/json' } });
+  if (!response.ok) throw new Error('Task template could not be restored.');
+}
+
+export async function deleteArchivedTaskTemplate(templateId: string): Promise<void> {
+  const response = await fetch(`${apiBaseUrl}/api/task-templates/${templateId}?confirmed=true`, { method: 'DELETE', headers: { Accept: 'application/json' } });
+  if (!response.ok) throw new Error('Archived task template could not be permanently deleted.');
 }
 
 export async function applyTaskTemplate(templateId: string): Promise<void> {

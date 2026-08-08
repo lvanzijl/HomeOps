@@ -277,6 +277,71 @@ test("normal tasks archive reversibly and delete only after archive confirmation
   await expect(archiveDialog.getByText("Het archief is leeg.")).toBeVisible();
 });
 
+test("routines use an ordered editor and bounded archive lifecycle", async ({ page, request }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await resetFixture(request, "visual-marketing-tasks");
+  await page.goto("/");
+  await page.getByRole("button", { name: "Taken", exact: true }).click();
+  await page.getByRole("button", { name: /Routines/ }).click();
+  const routinesDialog = page.getByRole("dialog", { name: "Routines" });
+
+  await routinesDialog.getByRole("button", { name: "Nieuwe routine" }).click();
+  const createEditor = routinesDialog.getByRole("form", { name: "Nieuwe routine maken" });
+  await createEditor.getByLabel("Routinenaam").fill("E2E schoolstart");
+  await createEditor.getByLabel("Beschrijving").fill("Voor school");
+  await createEditor.getByLabel("Titel stap 1").fill("Drinkbeker vullen");
+  await createEditor.getByRole("button", { name: "Stap toevoegen" }).click();
+  await createEditor.getByLabel("Titel stap 2").fill("Schooltas controleren");
+  await createEditor.getByLabel("Herhaling stap 2").selectOption("Weekly");
+  await createEditor.getByRole("button", { name: "Stap 2 omhoog" }).click();
+  await expectNoDocumentOverflow(page, "Routine editor at 1280x720");
+  const createResponse = page.waitForResponse((response) =>
+    response.request().method() === "POST" && new URL(response.url()).pathname === "/api/task-templates");
+  await createEditor.getByRole("button", { name: "Routine maken" }).click();
+  expect((await createResponse).ok()).toBe(true);
+
+  const routineRow = () => routinesDialog.locator(".task-routine-list-item").filter({ hasText: "E2E schoolstart" });
+  await expect(routineRow()).toBeVisible();
+  await routineRow().getByRole("button", { name: "Aanpassen" }).click();
+  const editEditor = routinesDialog.getByRole("form", { name: "Routine E2E schoolstart aanpassen" });
+  await expect(editEditor.getByLabel("Titel stap 1")).toHaveValue("Schooltas controleren");
+  await expect(editEditor.getByLabel("Titel stap 2")).toHaveValue("Drinkbeker vullen");
+  await editEditor.getByLabel("Titel stap 1").fill("Schooltas en fruit controleren");
+  const updateResponse = page.waitForResponse((response) =>
+    response.request().method() === "PUT" && new URL(response.url()).pathname.startsWith("/api/task-templates/"));
+  await editEditor.getByRole("button", { name: "Routine opslaan" }).click();
+  expect((await updateResponse).ok()).toBe(true);
+
+  const archiveResponse = page.waitForResponse((response) =>
+    response.request().method() === "POST" && new URL(response.url()).pathname.endsWith("/archive"));
+  await routineRow().getByRole("button", { name: "Archiveren" }).click();
+  expect((await archiveResponse).ok()).toBe(true);
+  await routinesDialog.getByRole("tab", { name: "Archief (1)" }).click();
+  await expect(routineRow()).toBeVisible();
+  const restoreResponse = page.waitForResponse((response) =>
+    response.request().method() === "POST" && new URL(response.url()).pathname.endsWith("/restore"));
+  await routineRow().getByRole("button", { name: "Herstellen" }).click();
+  expect((await restoreResponse).ok()).toBe(true);
+  await expect(routinesDialog.getByText("Het routinearchief is leeg.")).toBeVisible();
+
+  await routinesDialog.getByRole("tab", { name: /Actief/ }).click();
+  await expect(routineRow()).toBeVisible();
+  await routineRow().getByRole("button", { name: "Archiveren" }).click();
+  await routinesDialog.getByRole("tab", { name: "Archief (1)" }).click();
+  await routineRow().getByRole("button", { name: "Permanent verwijderen" }).click();
+  await expect(routinesDialog.getByText("De routine en haar stappen verdwijnen permanent. Eerder aangemaakte taken blijven bestaan.")).toBeVisible();
+  await expectNoDocumentOverflow(page, "Routine delete confirmation at 1280x720");
+  await routinesDialog.getByRole("button", { name: "Annuleren" }).click();
+  await expect(routineRow()).toBeVisible();
+
+  await routineRow().getByRole("button", { name: "Permanent verwijderen" }).click();
+  const deleteResponse = page.waitForResponse((response) =>
+    response.request().method() === "DELETE" && new URL(response.url()).pathname.startsWith("/api/task-templates/"));
+  await routinesDialog.getByRole("button", { name: "Definitief verwijderen" }).click();
+  expect((await deleteResponse).ok()).toBe(true);
+  await expect(routinesDialog.getByText("Het routinearchief is leeg.")).toBeVisible();
+});
+
 test("primary pages do not create document-level vertical scrolling", async ({ page, request }) => {
   await resetFixture(request, "visual-full");
 
