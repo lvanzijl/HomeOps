@@ -554,12 +554,14 @@ public static class TaskEndpoints
 
     private static async Task ApplyMotivationProgress(HomeOpsDbContext dbContext, HouseholdTask task, int delta, CancellationToken cancellationToken)
     {
+        var now = DateTimeOffset.UtcNow;
         if (task.OwnershipKind == TaskOwnershipKind.SharedHousehold)
         {
             var familyGoal = await dbContext.MotivationFamilyGoals.Where(goal => goal.HouseholdId == SeedHousehold.Id && goal.IsActive).OrderBy(goal => goal.Id).FirstOrDefaultAsync(cancellationToken);
             if (familyGoal is not null)
             {
-                familyGoal.CurrentProgress = ClampProgress(familyGoal.CurrentProgress + delta, familyGoal.TargetCount);
+                await AppendTaskProgressEntry(dbContext, MotivationGoalType.Family, familyGoal.Id, familyGoal.CurrentProgress, task, delta, now, cancellationToken);
+                familyGoal.CurrentProgress = await MotivationProgress.GetProjectedIncludingPendingAsync(dbContext, MotivationGoalType.Family, familyGoal.Id, familyGoal.TargetCount, cancellationToken);
                 if (!string.IsNullOrWhiteSpace(familyGoal.CelebrationTitle) && familyGoal.CelebrationStatus != FamilyCelebrationStatus.Celebrated)
                     familyGoal.CelebrationStatus = familyGoal.CurrentProgress >= familyGoal.TargetCount ? FamilyCelebrationStatus.ReadyToCelebrate : FamilyCelebrationStatus.Planned;
             }
@@ -568,11 +570,51 @@ public static class TaskEndpoints
         if (task.OwnershipKind == TaskOwnershipKind.FamilyMember && task.FamilyMemberId is not null)
         {
             var goals = await dbContext.MotivationIndividualGoals.Where(goal => goal.HouseholdId == SeedHousehold.Id && goal.IsActive && goal.FamilyMemberId == task.FamilyMemberId).ToListAsync(cancellationToken);
-            foreach (var goal in goals) goal.CurrentProgress = ClampProgress(goal.CurrentProgress + delta, goal.TargetCount);
+            foreach (var goal in goals)
+            {
+                await AppendTaskProgressEntry(dbContext, MotivationGoalType.Individual, goal.Id, goal.CurrentProgress, task, delta, now, cancellationToken);
+                goal.CurrentProgress = await MotivationProgress.GetProjectedIncludingPendingAsync(dbContext, MotivationGoalType.Individual, goal.Id, goal.TargetCount, cancellationToken);
+            }
         }
     }
 
-    private static int ClampProgress(int progress, int targetCount) => Math.Min(Math.Max(progress, 0), targetCount);
+    private static async Task AppendTaskProgressEntry(
+        HomeOpsDbContext dbContext,
+        MotivationGoalType goalType,
+        Guid goalId,
+        int currentProgress,
+        HouseholdTask task,
+        int delta,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        await MotivationProgress.EnsureBaselineAsync(dbContext, goalType, goalId, currentProgress, now, cancellationToken);
+        Guid? correctionOfEntryId = null;
+        if (delta < 0)
+        {
+            correctionOfEntryId = await dbContext.MotivationProgressLedgerEntries.AsNoTracking()
+                .Where(entry => entry.HouseholdId == SeedHousehold.Id
+                    && entry.GoalType == goalType
+                    && entry.GoalId == goalId
+                    && entry.SourceType == MotivationProgressSourceType.TaskCompletion
+                    && entry.SourceId == task.Id.ToString("D"))
+                .OrderByDescending(entry => entry.OccurredUtc)
+                .ThenByDescending(entry => entry.Id)
+                .Select(entry => (Guid?)entry.Id)
+                .FirstOrDefaultAsync(cancellationToken);
+        }
+
+        MotivationProgress.Append(
+            dbContext,
+            goalType,
+            goalId,
+            delta > 0 ? MotivationProgressSourceType.TaskCompletion : MotivationProgressSourceType.TaskReopen,
+            task.Id.ToString("D"),
+            delta,
+            now,
+            delta > 0 ? $"Taak voltooid: {task.Title}" : $"Taak heropend: {task.Title}",
+            correctionOfEntryId);
+    }
     private static HouseholdTaskDto ToDto(HouseholdTask task) => new(task.Id, task.Title, task.DueDate, task.OwnershipKind, task.FamilyMemberId, task.IsCompleted, task.CompletedUtc, task.CreatedUtc, task.UpdatedUtc, task.RecurringTaskSeriesId, task.RecurrenceFrequency, task.NoDateReviewState, task.NoDateLastReviewedUtc, task.ArchivedUtc, ToDecorativeAvatarDto(task));
 
     private static DecorativeAvatarReferenceDto? ToDecorativeAvatarDto(HouseholdTask task) =>

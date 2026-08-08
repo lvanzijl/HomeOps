@@ -15,21 +15,33 @@ public static class MotivationEndpoints
                 .Where(goal => goal.HouseholdId == SeedHousehold.Id && goal.IsActive)
                 .OrderBy(goal => goal.Id)
                 .FirstOrDefaultAsync(cancellationToken);
-            var familyGoal = familyGoalEntity is null ? null : ToDto(familyGoalEntity);
+            var familyGoal = familyGoalEntity is null
+                ? null
+                : ToDto(familyGoalEntity, await MotivationProgress.GetProjectedAsync(
+                    dbContext,
+                    MotivationGoalType.Family,
+                    familyGoalEntity.Id,
+                    familyGoalEntity.TargetCount,
+                    familyGoalEntity.CurrentProgress,
+                    cancellationToken));
 
-            var individualGoals = await dbContext.MotivationIndividualGoals.AsNoTracking()
+            var individualGoalEntities = await dbContext.MotivationIndividualGoals.AsNoTracking()
+                .Include(goal => goal.FamilyMember)
                 .Where(goal => goal.HouseholdId == SeedHousehold.Id && goal.IsActive && goal.FamilyMember != null && !goal.FamilyMember.IsDeleted)
                 .OrderBy(goal => goal.FamilyMemberId)
-                .Select(goal => new MotivationIndividualGoalDto(
+                .ToListAsync(cancellationToken);
+            var individualGoals = new List<MotivationIndividualGoalDto>(individualGoalEntities.Count);
+            foreach (var goal in individualGoalEntities)
+            {
+                var progress = await MotivationProgress.GetProjectedAsync(
+                    dbContext,
+                    MotivationGoalType.Individual,
                     goal.Id,
-                    goal.FamilyMemberId,
-                    goal.FamilyMember == null ? string.Empty : goal.FamilyMember.Name,
-                    goal.Title,
                     goal.TargetCount,
                     goal.CurrentProgress,
-                    goal.UnitLabel,
-                    goal.VisualKind))
-                .ToListAsync(cancellationToken);
+                    cancellationToken);
+                individualGoals.Add(ToIndividualGoalDto(goal, progress));
+            }
 
             var celebrationMemories = await dbContext.MotivationFamilyGoals.AsNoTracking()
                 .Where(goal => goal.HouseholdId == SeedHousehold.Id && goal.CelebrationStatus == FamilyCelebrationStatus.Celebrated && goal.CelebrationCelebratedUtc != null && goal.CelebrationTitle != null)
@@ -45,6 +57,61 @@ public static class MotivationEndpoints
 
             return Results.Ok(new MotivationSnapshotDto(familyGoal, individualGoals, celebrationMemories));
         }).WithName("GetMotivationSnapshot").Produces<MotivationSnapshotDto>();
+
+        app.MapGet("/api/motivation/goals/{goalType}/{goalId:guid}/progress", async (MotivationGoalType goalType, Guid goalId, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        {
+            var goal = await LoadGoalProgressState(dbContext, goalType, goalId, cancellationToken);
+            if (goal is null) return Results.NotFound();
+            return Results.Ok(await ToProgressLedgerDto(dbContext, goal, cancellationToken));
+        }).WithName("GetMotivationProgressLedger").Produces<MotivationProgressLedgerDto>().Produces(StatusCodes.Status404NotFound);
+
+        app.MapPost("/api/motivation/goals/{goalType}/{goalId:guid}/progress/corrections", async (MotivationGoalType goalType, Guid goalId, CreateMotivationProgressCorrectionRequest request, HomeOpsDbContext dbContext, CancellationToken cancellationToken) =>
+        {
+            var errors = new Dictionary<string, string[]>();
+            if (request.Delta == 0 || request.Delta < -999 || request.Delta > 999)
+                errors[nameof(request.Delta)] = ["Correction delta must be between -999 and 999 and cannot be zero."];
+            if (string.IsNullOrWhiteSpace(request.Reason))
+                errors[nameof(request.Reason)] = ["A correction reason is required."];
+            else if (request.Reason.Length > 300)
+                errors[nameof(request.Reason)] = ["Correction reason must be 300 characters or fewer."];
+            if (errors.Count > 0) return Results.ValidationProblem(errors);
+
+            var goal = await LoadGoalProgressState(dbContext, goalType, goalId, cancellationToken);
+            if (goal is null) return Results.NotFound();
+
+            MotivationProgressLedgerEntry? correctedEntry = null;
+            if (request.CorrectionOfEntryId is not null)
+            {
+                correctedEntry = await dbContext.MotivationProgressLedgerEntries.AsNoTracking()
+                    .FirstOrDefaultAsync(entry => entry.Id == request.CorrectionOfEntryId
+                        && entry.HouseholdId == SeedHousehold.Id
+                        && entry.GoalType == goalType
+                        && entry.GoalId == goalId, cancellationToken);
+                if (correctedEntry is null)
+                    return Results.ValidationProblem(new Dictionary<string, string[]> { [nameof(request.CorrectionOfEntryId)] = ["Choose an entry from this goal's ledger."] });
+                if (request.Delta != -correctedEntry.Delta)
+                    return Results.ValidationProblem(new Dictionary<string, string[]> { [nameof(request.Delta)] = ["A linked correction must exactly compensate the selected entry."] });
+            }
+
+            var now = DateTimeOffset.UtcNow;
+            await MotivationProgress.EnsureBaselineAsync(dbContext, goalType, goalId, goal.LegacyProgress, now, cancellationToken);
+            MotivationProgress.Append(
+                dbContext,
+                goalType,
+                goalId,
+                MotivationProgressSourceType.Correction,
+                Guid.NewGuid().ToString("D"),
+                request.Delta,
+                now,
+                request.Reason.Trim(),
+                correctedEntry?.Id);
+            var projected = await MotivationProgress.GetProjectedIncludingPendingAsync(dbContext, goalType, goalId, goal.TargetCount, cancellationToken);
+            goal.SetCurrentProgress(projected);
+            goal.UpdateCelebrationStatus();
+            await dbContext.SaveChangesAsync(cancellationToken);
+
+            return Results.Ok(await ToProgressLedgerDto(dbContext, goal with { LegacyProgress = projected }, cancellationToken));
+        }).WithName("CreateMotivationProgressCorrection").Produces<MotivationProgressLedgerDto>().ProducesValidationProblem().Produces(StatusCodes.Status404NotFound);
 
 
 
@@ -94,7 +161,7 @@ public static class MotivationEndpoints
             goal.FamilyMemberId = newFamilyMemberId;
             goal.Title = request.Title.Trim();
             goal.TargetCount = request.TargetCount;
-            goal.CurrentProgress = Math.Min(goal.CurrentProgress, goal.TargetCount);
+            goal.CurrentProgress = await MotivationProgress.GetProjectedAsync(dbContext, MotivationGoalType.Individual, goal.Id, goal.TargetCount, goal.CurrentProgress, cancellationToken);
             goal.UnitLabel = request.UnitLabel.Trim();
             await dbContext.SaveChangesAsync(cancellationToken);
             await dbContext.Entry(goal).Reference(item => item.FamilyMember).LoadAsync(cancellationToken);
@@ -159,7 +226,7 @@ public static class MotivationEndpoints
 
             goal.Title = request.Title.Trim();
             goal.TargetCount = request.TargetCount;
-            goal.CurrentProgress = Math.Min(goal.CurrentProgress, goal.TargetCount);
+            goal.CurrentProgress = await MotivationProgress.GetProjectedAsync(dbContext, MotivationGoalType.Family, goal.Id, goal.TargetCount, goal.CurrentProgress, cancellationToken);
             goal.UnitLabel = request.UnitLabel.Trim();
             goal.CelebrationTitle = NormalizeOptionalLabel(request.CelebrationTitle);
             goal.CelebrationDescription = NormalizeOptionalLabel(request.CelebrationDescription);
@@ -219,8 +286,8 @@ public static class MotivationEndpoints
         }
     }
 
-    private static MotivationIndividualGoalDto ToIndividualGoalDto(MotivationIndividualGoal goal) =>
-        new(goal.Id, goal.FamilyMemberId, goal.FamilyMember?.Name ?? string.Empty, goal.Title, goal.TargetCount, goal.CurrentProgress, goal.UnitLabel, goal.VisualKind);
+    private static MotivationIndividualGoalDto ToIndividualGoalDto(MotivationIndividualGoal goal, int? currentProgress = null) =>
+        new(goal.Id, goal.FamilyMemberId, goal.FamilyMember?.Name ?? string.Empty, goal.Title, goal.TargetCount, currentProgress ?? goal.CurrentProgress, goal.UnitLabel, goal.VisualKind);
 
     private static async Task<IResult?> ValidateIndividualGoalRequest(UpsertMotivationIndividualGoalRequest request, HomeOpsDbContext dbContext, CancellationToken cancellationToken)
     {
@@ -240,8 +307,56 @@ public static class MotivationEndpoints
         return errors.Count == 0 ? null : Results.ValidationProblem(errors);
     }
 
-    private static MotivationFamilyGoalDto ToDto(MotivationFamilyGoal goal) =>
-        new(goal.Id, goal.Title, goal.TargetCount, goal.CurrentProgress, goal.UnitLabel, ToCelebrationDto(goal));
+    private static MotivationFamilyGoalDto ToDto(MotivationFamilyGoal goal, int? currentProgress = null) =>
+        new(goal.Id, goal.Title, goal.TargetCount, currentProgress ?? goal.CurrentProgress, goal.UnitLabel, ToCelebrationDto(goal));
+
+    private static async Task<GoalProgressState?> LoadGoalProgressState(HomeOpsDbContext dbContext, MotivationGoalType goalType, Guid goalId, CancellationToken cancellationToken)
+    {
+        if (goalType == MotivationGoalType.Family)
+        {
+            var goal = await dbContext.MotivationFamilyGoals.FirstOrDefaultAsync(item => item.Id == goalId && item.HouseholdId == SeedHousehold.Id, cancellationToken);
+            return goal is null ? null : new GoalProgressState(goalType, goal.Id, goal.TargetCount, goal.CurrentProgress, goal.UnitLabel, goal, null);
+        }
+
+        var individualGoal = await dbContext.MotivationIndividualGoals.FirstOrDefaultAsync(item => item.Id == goalId && item.HouseholdId == SeedHousehold.Id, cancellationToken);
+        return individualGoal is null ? null : new GoalProgressState(goalType, individualGoal.Id, individualGoal.TargetCount, individualGoal.CurrentProgress, individualGoal.UnitLabel, null, individualGoal);
+    }
+
+    private static async Task<MotivationProgressLedgerDto> ToProgressLedgerDto(HomeOpsDbContext dbContext, GoalProgressState goal, CancellationToken cancellationToken)
+    {
+        var currentProgress = await MotivationProgress.GetProjectedAsync(dbContext, goal.GoalType, goal.GoalId, goal.TargetCount, goal.LegacyProgress, cancellationToken);
+        var entries = await dbContext.MotivationProgressLedgerEntries.AsNoTracking()
+            .Where(entry => entry.HouseholdId == SeedHousehold.Id && entry.GoalType == goal.GoalType && entry.GoalId == goal.GoalId)
+            .OrderByDescending(entry => entry.OccurredUtc)
+            .ThenByDescending(entry => entry.Id)
+            .Select(entry => new MotivationProgressLedgerEntryDto(entry.Id, entry.SourceType, entry.SourceId, entry.Delta, entry.OccurredUtc, entry.Reason, entry.CorrectionOfEntryId))
+            .ToListAsync(cancellationToken);
+        return new MotivationProgressLedgerDto(goal.GoalType, goal.GoalId, currentProgress, goal.TargetCount, goal.UnitLabel, entries);
+    }
+
+    private sealed record GoalProgressState(
+        MotivationGoalType GoalType,
+        Guid GoalId,
+        int TargetCount,
+        int LegacyProgress,
+        string UnitLabel,
+        MotivationFamilyGoal? FamilyGoal,
+        MotivationIndividualGoal? IndividualGoal)
+    {
+        public void SetCurrentProgress(int progress)
+        {
+            if (FamilyGoal is not null) FamilyGoal.CurrentProgress = progress;
+            if (IndividualGoal is not null) IndividualGoal.CurrentProgress = progress;
+        }
+
+        public void UpdateCelebrationStatus()
+        {
+            if (FamilyGoal is null || string.IsNullOrWhiteSpace(FamilyGoal.CelebrationTitle) || FamilyGoal.CelebrationStatus == FamilyCelebrationStatus.Celebrated) return;
+            FamilyGoal.CelebrationStatus = FamilyGoal.CurrentProgress >= FamilyGoal.TargetCount
+                ? FamilyCelebrationStatus.ReadyToCelebrate
+                : FamilyCelebrationStatus.Planned;
+        }
+    }
 
     private static MotivationFamilyCelebrationDto? ToCelebrationDto(MotivationFamilyGoal goal)
     {

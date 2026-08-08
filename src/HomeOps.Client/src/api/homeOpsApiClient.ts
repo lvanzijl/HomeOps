@@ -893,6 +893,105 @@ export class HomeOpsApiClient {
         return Promise.resolve<MotivationSnapshotDto>(null as any);
     }
 
+    getMotivationProgressLedger(goalType: MotivationGoalType, goalId: string): Promise<MotivationProgressLedgerDto> {
+        let url_ = this.baseUrl + "/api/motivation/goals/{goalType}/{goalId}/progress";
+        if (goalType === undefined || goalType === null)
+            throw new globalThis.Error("The parameter 'goalType' must be defined.");
+        url_ = url_.replace("{goalType}", encodeURIComponent("" + goalType));
+        if (goalId === undefined || goalId === null)
+            throw new globalThis.Error("The parameter 'goalId' must be defined.");
+        url_ = url_.replace("{goalId}", encodeURIComponent("" + goalId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        let options_: RequestInit = {
+            method: "GET",
+            headers: {
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processGetMotivationProgressLedger(_response);
+        });
+    }
+
+    protected processGetMotivationProgressLedger(response: Response): Promise<MotivationProgressLedgerDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = MotivationProgressLedgerDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<MotivationProgressLedgerDto>(null as any);
+    }
+
+    createMotivationProgressCorrection(goalType: MotivationGoalType, goalId: string, request: CreateMotivationProgressCorrectionRequest): Promise<MotivationProgressLedgerDto> {
+        let url_ = this.baseUrl + "/api/motivation/goals/{goalType}/{goalId}/progress/corrections";
+        if (goalType === undefined || goalType === null)
+            throw new globalThis.Error("The parameter 'goalType' must be defined.");
+        url_ = url_.replace("{goalType}", encodeURIComponent("" + goalType));
+        if (goalId === undefined || goalId === null)
+            throw new globalThis.Error("The parameter 'goalId' must be defined.");
+        url_ = url_.replace("{goalId}", encodeURIComponent("" + goalId));
+        url_ = url_.replace(/[?&]$/, "");
+
+        const content_ = JSON.stringify(request);
+
+        let options_: RequestInit = {
+            body: content_,
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+        };
+
+        return this.http.fetch(url_, options_).then((_response: Response) => {
+            return this.processCreateMotivationProgressCorrection(_response);
+        });
+    }
+
+    protected processCreateMotivationProgressCorrection(response: Response): Promise<MotivationProgressLedgerDto> {
+        const status = response.status;
+        let _headers: any = {}; if (response.headers && response.headers.forEach) { response.headers.forEach((v: any, k: any) => _headers[k] = v); };
+        if (status === 200) {
+            return response.text().then((_responseText) => {
+            let result200: any = null;
+            let resultData200 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result200 = MotivationProgressLedgerDto.fromJS(resultData200);
+            return result200;
+            });
+        } else if (status === 400) {
+            return response.text().then((_responseText) => {
+            let result400: any = null;
+            let resultData400 = _responseText === "" ? null : JSON.parse(_responseText, this.jsonParseReviver);
+            result400 = HttpValidationProblemDetails.fromJS(resultData400);
+            return throwException("A server side error occurred.", status, _responseText, _headers, result400);
+            });
+        } else if (status === 404) {
+            return response.text().then((_responseText) => {
+            return throwException("A server side error occurred.", status, _responseText, _headers);
+            });
+        } else if (status !== 200 && status !== 204) {
+            return response.text().then((_responseText) => {
+            return throwException("An unexpected server error occurred.", status, _responseText, _headers);
+            });
+        }
+        return Promise.resolve<MotivationProgressLedgerDto>(null as any);
+    }
+
     createMotivationIndividualGoal(request: UpsertMotivationIndividualGoalRequest): Promise<MotivationIndividualGoalDto> {
         let url_ = this.baseUrl + "/api/motivation/individual-goals";
         url_ = url_.replace(/[?&]$/, "");
@@ -10609,6 +10708,186 @@ export interface IMotivationFamilyCelebrationMemoryDto {
     title?: string;
     description?: string | undefined;
     celebratedUtc?: Date;
+}
+
+export class MotivationProgressLedgerDto implements IMotivationProgressLedgerDto {
+    goalType?: MotivationGoalType;
+    goalId?: string;
+    currentProgress?: number;
+    targetCount?: number;
+    unitLabel?: string;
+    entries?: MotivationProgressLedgerEntryDto[];
+
+    constructor(data?: IMotivationProgressLedgerDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.goalType = _data["goalType"];
+            this.goalId = _data["goalId"];
+            this.currentProgress = _data["currentProgress"];
+            this.targetCount = _data["targetCount"];
+            this.unitLabel = _data["unitLabel"];
+            if (Array.isArray(_data["entries"])) {
+                this.entries = [] as any;
+                for (let item of _data["entries"])
+                    this.entries!.push(MotivationProgressLedgerEntryDto.fromJS(item));
+            }
+        }
+    }
+
+    static fromJS(data: any): MotivationProgressLedgerDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new MotivationProgressLedgerDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["goalType"] = this.goalType;
+        data["goalId"] = this.goalId;
+        data["currentProgress"] = this.currentProgress;
+        data["targetCount"] = this.targetCount;
+        data["unitLabel"] = this.unitLabel;
+        if (Array.isArray(this.entries)) {
+            data["entries"] = [];
+            for (let item of this.entries)
+                data["entries"].push(item ? item.toJSON() : undefined as any);
+        }
+        return data;
+    }
+}
+
+export interface IMotivationProgressLedgerDto {
+    goalType?: MotivationGoalType;
+    goalId?: string;
+    currentProgress?: number;
+    targetCount?: number;
+    unitLabel?: string;
+    entries?: MotivationProgressLedgerEntryDto[];
+}
+
+export enum MotivationGoalType {
+    Family = 0,
+    Individual = 1,
+}
+
+export class MotivationProgressLedgerEntryDto implements IMotivationProgressLedgerEntryDto {
+    id?: string;
+    sourceType?: MotivationProgressSourceType;
+    sourceId?: string;
+    delta?: number;
+    occurredUtc?: Date;
+    reason?: string;
+    correctionOfEntryId?: string | undefined;
+
+    constructor(data?: IMotivationProgressLedgerEntryDto) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.id = _data["id"];
+            this.sourceType = _data["sourceType"];
+            this.sourceId = _data["sourceId"];
+            this.delta = _data["delta"];
+            this.occurredUtc = _data["occurredUtc"] ? new Date(_data["occurredUtc"].toString()) : undefined as any;
+            this.reason = _data["reason"];
+            this.correctionOfEntryId = _data["correctionOfEntryId"];
+        }
+    }
+
+    static fromJS(data: any): MotivationProgressLedgerEntryDto {
+        data = typeof data === 'object' ? data : {};
+        let result = new MotivationProgressLedgerEntryDto();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["id"] = this.id;
+        data["sourceType"] = this.sourceType;
+        data["sourceId"] = this.sourceId;
+        data["delta"] = this.delta;
+        data["occurredUtc"] = this.occurredUtc ? this.occurredUtc.toISOString() : undefined as any;
+        data["reason"] = this.reason;
+        data["correctionOfEntryId"] = this.correctionOfEntryId;
+        return data;
+    }
+}
+
+export interface IMotivationProgressLedgerEntryDto {
+    id?: string;
+    sourceType?: MotivationProgressSourceType;
+    sourceId?: string;
+    delta?: number;
+    occurredUtc?: Date;
+    reason?: string;
+    correctionOfEntryId?: string | undefined;
+}
+
+export enum MotivationProgressSourceType {
+    MigrationBaseline = 0,
+    TaskCompletion = 1,
+    TaskReopen = 2,
+    Correction = 3,
+}
+
+export class CreateMotivationProgressCorrectionRequest implements ICreateMotivationProgressCorrectionRequest {
+    delta?: number;
+    reason?: string;
+    correctionOfEntryId?: string | undefined;
+
+    constructor(data?: ICreateMotivationProgressCorrectionRequest) {
+        if (data) {
+            for (var property in data) {
+                if (data.hasOwnProperty(property))
+                    (this as any)[property] = (data as any)[property];
+            }
+        }
+    }
+
+    init(_data?: any) {
+        if (_data) {
+            this.delta = _data["delta"];
+            this.reason = _data["reason"];
+            this.correctionOfEntryId = _data["correctionOfEntryId"];
+        }
+    }
+
+    static fromJS(data: any): CreateMotivationProgressCorrectionRequest {
+        data = typeof data === 'object' ? data : {};
+        let result = new CreateMotivationProgressCorrectionRequest();
+        result.init(data);
+        return result;
+    }
+
+    toJSON(data?: any) {
+        data = typeof data === 'object' ? data : {};
+        data["delta"] = this.delta;
+        data["reason"] = this.reason;
+        data["correctionOfEntryId"] = this.correctionOfEntryId;
+        return data;
+    }
+}
+
+export interface ICreateMotivationProgressCorrectionRequest {
+    delta?: number;
+    reason?: string;
+    correctionOfEntryId?: string | undefined;
 }
 
 export class UpsertMotivationIndividualGoalRequest implements IUpsertMotivationIndividualGoalRequest {

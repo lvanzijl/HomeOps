@@ -1,4 +1,4 @@
-import { FamilyCelebrationStatus, HomeOpsApiClient, UpsertMotivationFamilyGoalRequest, UpsertMotivationIndividualGoalRequest, type MotivationFamilyCelebrationMemoryDto, type MotivationFamilyGoalDto, type MotivationIndividualGoalDto, type MotivationSnapshotDto } from './api/homeOpsApiClient';
+import { CreateMotivationProgressCorrectionRequest, FamilyCelebrationStatus, HomeOpsApiClient, MotivationGoalType, type MotivationProgressSourceType, UpsertMotivationFamilyGoalRequest, UpsertMotivationIndividualGoalRequest, type MotivationFamilyCelebrationMemoryDto, type MotivationFamilyGoalDto, type MotivationIndividualGoalDto, type MotivationProgressLedgerDto, type MotivationSnapshotDto } from './api/homeOpsApiClient';
 import type { FamilyMember } from './home/familyMembers';
 
 export interface MotivationFamilyCelebration {
@@ -39,6 +39,24 @@ export interface MotivationSnapshot {
   familyGoal?: MotivationFamilyGoal;
   individualGoals: readonly MotivationIndividualGoal[];
   celebrationMemories?: readonly MotivationCelebrationMemory[];
+}
+
+export interface MotivationProgressLedgerEntry {
+  id: string;
+  sourceType: MotivationProgressSourceType;
+  sourceId: string;
+  delta: number;
+  occurredUtc: string;
+  reason: string;
+  correctionOfEntryId?: string;
+}
+
+export interface MotivationProgressLedger {
+  goalId: string;
+  currentProgress: number;
+  targetCount: number;
+  unitLabel: string;
+  entries: readonly MotivationProgressLedgerEntry[];
 }
 
 export interface UpsertMotivationFamilyGoalInput {
@@ -137,6 +155,36 @@ export async function archiveIndividualGoal(id: string): Promise<void> {
 
 export async function markFamilyGoalCelebrated(id: string): Promise<MotivationFamilyGoal> {
   return familyGoalFromApi(await client.markFamilyGoalCelebrated(id))!;
+}
+
+function progressLedgerFromApi(ledger: MotivationProgressLedgerDto): MotivationProgressLedger {
+  return {
+    goalId: ledger.goalId ?? '',
+    currentProgress: ledger.currentProgress ?? 0,
+    targetCount: ledger.targetCount ?? 0,
+    unitLabel: ledger.unitLabel ?? '',
+    entries: (ledger.entries ?? []).map((entry) => ({
+      id: entry.id ?? '',
+      sourceType: entry.sourceType!,
+      sourceId: entry.sourceId ?? '',
+      delta: entry.delta ?? 0,
+      occurredUtc: entry.occurredUtc?.toISOString() ?? '',
+      reason: entry.reason ?? '',
+      correctionOfEntryId: entry.correctionOfEntryId,
+    })),
+  };
+}
+
+export async function loadFamilyGoalProgress(goalId: string): Promise<MotivationProgressLedger> {
+  return progressLedgerFromApi(await client.getMotivationProgressLedger(MotivationGoalType.Family, goalId));
+}
+
+export async function createFamilyGoalProgressCorrection(goalId: string, input: { delta: number; reason: string; correctionOfEntryId?: string }): Promise<MotivationProgressLedger> {
+  return progressLedgerFromApi(await client.createMotivationProgressCorrection(
+    MotivationGoalType.Family,
+    goalId,
+    CreateMotivationProgressCorrectionRequest.fromJS(input),
+  ));
 }
 
 export function goalsForMembers(snapshot: MotivationSnapshot, members: readonly FamilyMember[]) {

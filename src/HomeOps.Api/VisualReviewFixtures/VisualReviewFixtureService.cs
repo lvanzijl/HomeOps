@@ -87,6 +87,7 @@ public static class VisualReviewFixtureService
         db.EventSeries.RemoveRange(await db.EventSeries.ToListAsync(ct));
         db.EventSources.RemoveRange(await db.EventSources.ToListAsync(ct));
         db.HelpfulMoments.RemoveRange(await db.HelpfulMoments.ToListAsync(ct));
+        db.MotivationProgressLedgerEntries.RemoveRange(await db.MotivationProgressLedgerEntries.ToListAsync(ct));
         db.MotivationIndividualGoals.RemoveRange(await db.MotivationIndividualGoals.ToListAsync(ct));
         db.MotivationFamilyGoals.RemoveRange(await db.MotivationFamilyGoals.ToListAsync(ct));
         db.HouseholdTasks.RemoveRange(await db.HouseholdTasks.ToListAsync(ct));
@@ -136,9 +137,20 @@ public static class VisualReviewFixtureService
 
     private static void AddGoals(HomeOpsDbContext db, FamilyCelebrationStatus status, string? focusMember = null)
     {
-        db.MotivationFamilyGoals.Add(new() { Id = Id(300), HouseholdId = SeedHousehold.Id, Title = "Samen helpen deze week", TargetCount = 20, CurrentProgress = status == FamilyCelebrationStatus.ReadyToCelebrate ? 20 : 14, UnitLabel = "helpende momenten", CelebrationTitle = "Pannenkoekenontbijt", CelebrationDescription = "Vier samen een week vol hulp.", CelebrationStatus = status, CelebrationCelebratedUtc = status == FamilyCelebrationStatus.Celebrated ? AnchorUtc.AddDays(-2) : null, IsActive = true });
-        foreach (var member in new[] { focusMember ?? "riley", "jordan" }.Distinct()) db.MotivationIndividualGoals.Add(new() { Id = Id(member == "riley" ? 301 : 302), HouseholdId = SeedHousehold.Id, FamilyMemberId = member, Title = member == "riley" ? "Rustige ochtendstart" : "Zelfstandig huiswerk", TargetCount = 5, CurrentProgress = member == focusMember ? 4 : 2, UnitLabel = "stappen", VisualKind = "stars", IsActive = true });
+        var familyProgress = status == FamilyCelebrationStatus.ReadyToCelebrate ? 20 : 14;
+        db.MotivationFamilyGoals.Add(new() { Id = Id(300), HouseholdId = SeedHousehold.Id, Title = "Samen helpen deze week", TargetCount = 20, CurrentProgress = familyProgress, UnitLabel = "helpende momenten", CelebrationTitle = "Pannenkoekenontbijt", CelebrationDescription = "Vier samen een week vol hulp.", CelebrationStatus = status, CelebrationCelebratedUtc = status == FamilyCelebrationStatus.Celebrated ? AnchorUtc.AddDays(-2) : null, IsActive = true });
+        db.MotivationProgressLedgerEntries.Add(Baseline(MotivationGoalType.Family, Id(300), familyProgress));
+        foreach (var member in new[] { focusMember ?? "riley", "jordan" }.Distinct())
+        {
+            var goalId = Id(member == "riley" ? 301 : 302);
+            var progress = member == focusMember ? 4 : 2;
+            db.MotivationIndividualGoals.Add(new() { Id = goalId, HouseholdId = SeedHousehold.Id, FamilyMemberId = member, Title = member == "riley" ? "Rustige ochtendstart" : "Zelfstandig huiswerk", TargetCount = 5, CurrentProgress = progress, UnitLabel = "stappen", VisualKind = "stars", IsActive = true });
+            db.MotivationProgressLedgerEntries.Add(Baseline(MotivationGoalType.Individual, goalId, progress));
+        }
     }
+
+    private static MotivationProgressLedgerEntry Baseline(MotivationGoalType goalType, Guid goalId, int progress) =>
+        new(Guid.NewGuid(), SeedHousehold.Id, goalType, goalId, MotivationProgressSourceType.MigrationBaseline, goalId.ToString("D"), progress, AnchorUtc, MotivationProgress.BaselineReason);
 
     private static void AddMoments(HomeOpsDbContext db, int count, string? member = null)
     { for (var i = 1; i <= count; i++) db.HelpfulMoments.Add(new() { Id = Id(400 + i), HouseholdId = SeedHousehold.Id, FamilyMemberId = member ?? (i % 2 == 0 ? "jordan" : "riley"), Title = i % 2 == 0 ? "Hielp uit zichzelf mee" : "Lief opruimmoment", Description = i % 2 == 0 ? "Dacht er zelf aan en hielp meteen mee." : "Bleef rustig en hielp goed mee.", RecognitionTag = i % 2 == 0 ? HelpfulMomentTags.Initiative : HelpfulMomentTags.Kindness, CreatedUtc = AnchorUtc.AddDays(-i) }); }

@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using HomeOps.Api.Data;
 using HomeOps.Api.FloorPlans;
 using HomeOps.Api.Households;
+using HomeOps.Api.Motivation;
 using HomeOps.Api.Weather;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -15,7 +16,7 @@ namespace HomeOps.Api.Tests.Infrastructure;
 
 public sealed class DatabaseBaselineTests
 {
-    private const string LatestDiscoverableMigration = "20260808172019_AddShoppingItemEditingAndHistory";
+    private const string LatestDiscoverableMigration = "20260808181329_AddMotivationProgressLedger";
 
     private static readonly string[] ResumeStrategyColumns =
     [
@@ -75,6 +76,44 @@ public sealed class DatabaseBaselineTests
         var missingColumns = await database.FindMissingColumnsAsync("ClimateProviders", ResumeStrategyColumns);
 
         Assert.Empty(missingColumns);
+    }
+
+    [Fact]
+    public async Task Progress_ledger_migration_backfills_each_existing_goal_once()
+    {
+        await using var database = await PostgresTestDatabase.TryCreateAsync();
+        if (database is null)
+        {
+            return;
+        }
+
+        const string previousMigration = "20260808172019_AddShoppingItemEditingAndHistory";
+        await database.MigrateAsync(previousMigration);
+        var goalId = Guid.NewGuid();
+        await using (var context = database.CreateContext())
+        {
+            context.MotivationFamilyGoals.Add(new MotivationFamilyGoal
+            {
+                Id = goalId,
+                HouseholdId = SeedHousehold.Id,
+                Title = "Backfill me",
+                TargetCount = 10,
+                CurrentProgress = 6,
+                UnitLabel = "taken",
+                IsActive = true,
+            });
+            await context.SaveChangesAsync();
+        }
+
+        await database.MigrateAsync();
+
+        await using var upgraded = database.CreateContext();
+        var baseline = await upgraded.MotivationProgressLedgerEntries.AsNoTracking().SingleAsync(entry => entry.GoalId == goalId);
+        Assert.Equal(MotivationGoalType.Family, baseline.GoalType);
+        Assert.Equal(MotivationProgressSourceType.MigrationBaseline, baseline.SourceType);
+        Assert.Equal(6, baseline.Delta);
+        Assert.Equal(goalId.ToString("D"), baseline.SourceId);
+        Assert.Equal(MotivationProgress.BaselineReason, baseline.Reason);
     }
 
     [Fact]

@@ -834,6 +834,34 @@ test("shopping item corrections persist and feed shared Home suggestions", async
   await expectNoDocumentScroll(page, "Home shared shopping suggestions at 1440x900");
 });
 
+test("motivation progress uses a bounded immutable ledger and compensating corrections", async ({ page, request }) => {
+  await resetFixture(request, "visual-full");
+  await page.setViewportSize({ width: 1366, height: 768 });
+  await page.goto("/");
+  await page.getByLabel("Dagelijkse gezinsplekken").getByRole("button", { name: "Motivatie", exact: true }).click();
+
+  const goalCard = page.getByLabel("Gedeeld familiedoel");
+  await expect(goalCard.getByText(/Voltooide gedeelde taken tellen automatisch mee/)).toBeVisible();
+  const cardOverflow = await goalCard.evaluate((element) => ({ clientHeight: element.clientHeight, scrollHeight: element.scrollHeight }));
+  expect(cardOverflow.scrollHeight).toBeLessThanOrEqual(cardOverflow.clientHeight);
+
+  await goalCard.getByRole("button", { name: "Meer voortgang" }).click();
+  const ledger = page.getByRole("dialog", { name: "Voortgangsdetails" });
+  await expect(ledger.getByText("Startstand")).toBeVisible();
+  await expectNoDocumentScroll(page, "Motivation ledger at 1366x768");
+  await ledger.getByRole("button", { name: "Correctie toevoegen" }).click();
+  await ledger.getByLabel("Aanpassing").fill("-1");
+  await ledger.getByLabel("Reden").fill("Playwright controle van een dubbele telling.");
+  const correctionResponse = page.waitForResponse((response) =>
+    response.request().method() === "POST"
+      && new URL(response.url()).pathname.endsWith("/progress/corrections"));
+  await ledger.getByRole("button", { name: "Correctie bewaren" }).click();
+  expect((await correctionResponse).ok()).toBe(true);
+  await expect(ledger.getByText("Correctie", { exact: true })).toBeVisible();
+  await expect(goalCard.getByLabel("13 van 20 helpende momenten")).toBeVisible();
+  await expectNoDocumentScroll(page, "Motivation corrected ledger at 1366x768");
+});
+
 test("primary pages do not create document-level vertical scrolling", async ({ page, request }) => {
   await resetFixture(request, "visual-full");
   await seedWoningRuntime(request);

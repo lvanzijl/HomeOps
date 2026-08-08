@@ -98,10 +98,15 @@ internal static class MarketingHouseholdFixtureBuilder
     private static void AddMotivation(HomeOpsDbContext db, MarketingScene scene, DateTimeOffset anchorUtc)
     {
         var complete = scene is MarketingScene.WeeklyReset;
-        db.MotivationFamilyGoals.Add(new() { Id = Id(300), HouseholdId = SeedHousehold.Id, Title = "20 helpful moments before Sunday pancake breakfast", TargetCount = 20, CurrentProgress = complete ? 20 : 12, UnitLabel = "helpful moments", CelebrationTitle = "Sunday pancake breakfast", CelebrationDescription = "Celebrate a week of helping together.", CelebrationStatus = complete ? FamilyCelebrationStatus.Celebrated : FamilyCelebrationStatus.Planned, CelebrationCelebratedUtc = complete ? new DateTimeOffset(2026, 6, 21, 10, 30, 0, TimeSpan.Zero) : null, IsActive = true });
+        var familyProgress = complete ? 20 : 12;
+        db.MotivationFamilyGoals.Add(new() { Id = Id(300), HouseholdId = SeedHousehold.Id, Title = "20 helpful moments before Sunday pancake breakfast", TargetCount = 20, CurrentProgress = familyProgress, UnitLabel = "helpful moments", CelebrationTitle = "Sunday pancake breakfast", CelebrationDescription = "Celebrate a week of helping together.", CelebrationStatus = complete ? FamilyCelebrationStatus.Celebrated : FamilyCelebrationStatus.Planned, CelebrationCelebratedUtc = complete ? new DateTimeOffset(2026, 6, 21, 10, 30, 0, TimeSpan.Zero) : null, IsActive = true });
+        db.MotivationProgressLedgerEntries.Add(Baseline(MotivationGoalType.Family, Id(300), familyProgress, anchorUtc));
         db.MotivationIndividualGoals.AddRange(
             new MotivationIndividualGoal { Id = Id(301), HouseholdId = SeedHousehold.Id, FamilyMemberId = "thomas", Title = "Read together 4 times this week", TargetCount = 4, CurrentProgress = complete ? 4 : 2, UnitLabel = "reads", VisualKind = "stars", IsActive = true },
             new MotivationIndividualGoal { Id = Id(302), HouseholdId = SeedHousehold.Id, FamilyMemberId = "robin", Title = "Smooth daycare goodbyes", TargetCount = 3, CurrentProgress = complete ? 3 : 1, UnitLabel = "calm mornings", VisualKind = "stars", IsActive = true });
+        db.MotivationProgressLedgerEntries.AddRange(
+            Baseline(MotivationGoalType.Individual, Id(301), complete ? 4 : 2, anchorUtc),
+            Baseline(MotivationGoalType.Individual, Id(302), complete ? 3 : 1, anchorUtc));
         AddMoment(db, 401, "Thomas helped Robin find bunny", "Thomas helped Robin find her bunny before daycare, even though his own shoes were still missing.", "thomas", HelpfulMomentTags.Kindness, -1, anchorUtc);
         AddMoment(db, 402, "Mom packed the daycare bag early", "Dad appreciated Mom for packing the daycare bag before breakfast when Robin had a hard morning.", "mom", HelpfulMomentTags.Teamwork, -2, anchorUtc);
         AddMoment(db, 403, "Towel and goggles by the door", "Mom appreciated Dad for keeping swimming calm by putting the towel and goggles near the door.", "dad", HelpfulMomentTags.Responsibility, -3, anchorUtc);
@@ -110,6 +115,9 @@ internal static class MarketingHouseholdFixtureBuilder
     }
 
     private static void AddMoment(HomeOpsDbContext db, int id, string title, string description, string member, string tag, int days, DateTimeOffset anchorUtc) => db.HelpfulMoments.Add(new() { Id = Id(id), HouseholdId = SeedHousehold.Id, FamilyMemberId = member, Title = title, Description = description, RecognitionTag = tag, CreatedUtc = anchorUtc.AddDays(days) });
+
+    private static MotivationProgressLedgerEntry Baseline(MotivationGoalType goalType, Guid goalId, int progress, DateTimeOffset occurredUtc) =>
+        new(Guid.NewGuid(), SeedHousehold.Id, goalType, goalId, MotivationProgressSourceType.MigrationBaseline, goalId.ToString("D"), progress, occurredUtc, MotivationProgress.BaselineReason);
 }
 
 internal enum MarketingScene { Home, Family, Agenda, Tasks, Shopping, Motivation, WeeklyReset, Settings }

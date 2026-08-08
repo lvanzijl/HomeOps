@@ -9586,7 +9586,7 @@ button {
 .family-goal-summary {
   align-content: start;
   display: grid;
-  gap: clamp(0.7rem, 1vw, 1rem);
+  gap: clamp(0.55rem, 0.8vw, 0.75rem);
   min-height: 0;
 }
 
@@ -9628,8 +9628,8 @@ button {
 
 .family-purpose-progress {
   display: grid;
-  gap: 0.75rem;
-  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.92fr);
+  gap: 0.6rem;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .family-progress {
@@ -9637,17 +9637,32 @@ button {
   border-color: color-mix(in srgb, var(--domain-accent, #f97316) 22%, white);
   border-radius: 1.2rem;
   gap: 0.65rem;
-  padding: clamp(0.8rem, 1vw, 1rem);
+  padding: clamp(0.65rem, 0.8vw, 0.8rem);
+  text-align: left;
 }
 
 .family-progress strong {
   color: #9a3412;
-  font-size: clamp(2.45rem, 4.8vw, 4.1rem);
+  font-size: clamp(1.9rem, 3.2vw, 2.75rem);
 }
 
 .family-progress .progress-bar {
   background: #ffedd5;
   height: 0.85rem;
+}
+
+.family-progress-number {
+  align-items: baseline;
+  display: flex;
+  gap: 0.25rem;
+}
+
+.family-progress-source {
+  color: #7f5539;
+  font-size: 0.88rem;
+  font-weight: 700;
+  line-height: 1.35;
+  margin: 0;
 }
 
 .family-purpose-proof-grid {
@@ -9862,6 +9877,142 @@ button {
   display: grid;
   gap: 0.85rem;
   min-height: 0;
+}
+
+.motivation-progress-dialog {
+  grid-template-rows: auto minmax(0, 1fr);
+  height: min(42rem, calc(100vh - 2.5rem));
+  overflow: hidden;
+}
+
+.motivation-progress-dialog .motivation-detail-content,
+.progress-ledger-workspace,
+.progress-correction-form {
+  min-height: 0;
+}
+
+.motivation-progress-dialog .motivation-detail-content {
+  overflow: hidden;
+}
+
+.progress-ledger-workspace {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.progress-ledger-summary {
+  align-items: center;
+  background: rgb(255 247 237 / 82%);
+  border: 1px solid color-mix(in srgb, var(--domain-accent, #f97316) 22%, white);
+  border-radius: 1rem;
+  display: grid;
+  gap: 0.4rem 1rem;
+  grid-template-columns: auto minmax(0, 1fr);
+  padding: 0.75rem 0.9rem;
+}
+
+.progress-ledger-summary strong {
+  color: #9a3412;
+  font-size: 2rem;
+}
+
+.progress-ledger-summary span {
+  color: #7c2d12;
+  font-weight: 800;
+}
+
+.progress-ledger-summary p {
+  color: #7f5539;
+  font-size: 0.86rem;
+  line-height: 1.35;
+}
+
+.progress-ledger-list {
+  display: grid;
+  gap: 0.6rem;
+  list-style: none;
+  margin: 0;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 0.25rem 0 0;
+}
+
+.progress-ledger-entry,
+.progress-ledger-empty {
+  background: rgb(255 255 255 / 78%);
+  border: 1px solid color-mix(in srgb, var(--domain-border, #fed7aa) 72%, white);
+  border-radius: 0.95rem;
+  padding: 0.7rem 0.8rem;
+}
+
+.progress-ledger-entry {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.progress-ledger-entry-heading {
+  align-items: center;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+}
+
+.progress-ledger-entry-heading span {
+  border-radius: 999px;
+  font-weight: 900;
+  padding: 0.2rem 0.55rem;
+}
+
+.progress-ledger-entry-heading .positive {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.progress-ledger-entry-heading .negative {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.progress-ledger-entry p {
+  color: var(--color-text-strong);
+}
+
+.progress-ledger-entry small {
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+}
+
+.progress-correction-form {
+  display: grid;
+  gap: 0.85rem;
+  grid-template-rows: minmax(0, 1fr) auto;
+  overflow: hidden;
+}
+
+.progress-correction-body {
+  display: grid;
+  gap: 0.75rem;
+  overflow-y: auto;
+  padding-right: 0.25rem;
+}
+
+.progress-correction-body label {
+  display: grid;
+  font-weight: 800;
+  gap: 0.35rem;
+}
+
+.progress-correction-body textarea {
+  min-height: 6rem;
+  resize: vertical;
+}
+
+.progress-correction-actions {
+  background: color-mix(in srgb, var(--domain-tint, #fff7ed) 72%, white);
+  border-top: 1px solid color-mix(in srgb, var(--domain-border, #fed7aa) 68%, white);
+  margin: 0 -0.2rem -0.2rem;
+  padding: 0.75rem 0.2rem 0.2rem;
 }
 
 .motivation-detail-stat-grid {

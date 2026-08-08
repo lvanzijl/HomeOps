@@ -60,6 +60,12 @@ public static class LegacySeedTestFixture
             DemoIndividualGoal(SeedMotivation.SamGoalId, "sam", "Help with dinner", 3, 2, "stars", "stars"),
             DemoIndividualGoal(SeedMotivation.RileyGoalId, "riley", "Tidy bedroom corner", 4, 2, "steps", "progress"),
             DemoIndividualGoal(SeedMotivation.JordanGoalId, "jordan", "Notice one helpful thing", 3, 1, "stars", "stars"));
+        dbContext.MotivationProgressLedgerEntries.AddRange(
+            Baseline(MotivationGoalType.Family, SeedMotivation.FamilyGoalId, 13),
+            Baseline(MotivationGoalType.Individual, SeedMotivation.AlexGoalId, 3),
+            Baseline(MotivationGoalType.Individual, SeedMotivation.SamGoalId, 2),
+            Baseline(MotivationGoalType.Individual, SeedMotivation.RileyGoalId, 2),
+            Baseline(MotivationGoalType.Individual, SeedMotivation.JordanGoalId, 1));
 
         dbContext.EventSeries.AddRange(
             DemoEvent(SeedCalendarEvents.DentistAppointmentId, "Dentist Appointment", "Routine check-up", new DateTimeOffset(2026, 6, 18, 9, 30, 0, TimeSpan.Zero), new DateTimeOffset(2026, 6, 18, 10, 15, 0, TimeSpan.Zero), false),
@@ -133,6 +139,9 @@ public static class LegacySeedTestFixture
         VisualKind = visualKind,
         IsActive = true,
     };
+
+    private static MotivationProgressLedgerEntry Baseline(MotivationGoalType goalType, Guid goalId, int progress) =>
+        new(Guid.NewGuid(), SeedHousehold.Id, goalType, goalId, MotivationProgressSourceType.MigrationBaseline, goalId.ToString("D"), progress, SeedMotivation.SeededUtc, MotivationProgress.BaselineReason);
 
     private static EventSeries DemoEvent(
         Guid id,

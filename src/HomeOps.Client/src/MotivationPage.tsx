@@ -9,20 +9,26 @@ import { FamilyAvatar } from "./home/FamilyAvatar";
 import { HelpfulMomentsSection } from "./HelpfulMoments";
 import { HomeOpsIcon, type HomeOpsIconName } from "./icons/homeOpsIcons";
 import type { FamilyMember } from "./home/familyMembers";
-import { FamilyCelebrationStatus } from "./api/homeOpsApiClient";
+import {
+  FamilyCelebrationStatus,
+  MotivationProgressSourceType,
+} from "./api/homeOpsApiClient";
 import {
   archiveIndividualGoal,
   clampProgress,
+  createFamilyGoalProgressCorrection,
   createFamilyGoal,
   createIndividualGoal,
   goalsForMembers,
   loadMotivationSnapshot,
+  loadFamilyGoalProgress,
   markFamilyGoalCelebrated,
   updateFamilyGoal,
   updateIndividualGoal,
   type MotivationCelebrationMemory,
   type MotivationFamilyGoal,
   type MotivationIndividualGoal,
+  type MotivationProgressLedger,
   type MotivationSnapshot,
 } from "./motivationData";
 
@@ -47,6 +53,9 @@ export function MotivationPage({ members }: MotivationPageProps) {
   const [showMemoriesDetail, setShowMemoriesDetail] = useState(false);
   const [showPersonalGoalsDetail, setShowPersonalGoalsDetail] = useState(false);
   const [showStatsDetail, setShowStatsDetail] = useState(false);
+  const [progressDetailMode, setProgressDetailMode] = useState<"ledger" | "correction">("ledger");
+  const [progressLedger, setProgressLedger] = useState<MotivationProgressLedger>();
+  const [progressLedgerStatus, setProgressLedgerStatus] = useState<"loading" | "ready" | "error">("loading");
 
   useEffect(() => {
     let ignore = false;
@@ -72,7 +81,6 @@ export function MotivationPage({ members }: MotivationPageProps) {
     : 0;
   const individualGoals = goalsForMembers(snapshot, members);
   const memories = snapshot.celebrationMemories ?? [];
-  const stats = buildFamilyStats(familyGoal, members, individualGoals, memories);
 
   function handleFormSaved(goal: MotivationFamilyGoal) {
     setSnapshot((current) => {
@@ -105,6 +113,20 @@ export function MotivationPage({ members }: MotivationPageProps) {
     setIndividualFormGoal(undefined);
     setShowPersonalGoalsDetail(true);
     setFormError(null);
+  }
+
+  async function openProgressDetail() {
+    if (!familyGoal) return;
+    setShowStatsDetail(true);
+    setProgressDetailMode("ledger");
+    setProgressLedger(undefined);
+    setProgressLedgerStatus("loading");
+    try {
+      setProgressLedger(await loadFamilyGoalProgress(familyGoal.id));
+      setProgressLedgerStatus("ready");
+    } catch {
+      setProgressLedgerStatus("error");
+    }
   }
 
   useEffect(() => {
@@ -175,35 +197,10 @@ export function MotivationPage({ members }: MotivationPageProps) {
                       <span style={{ width: `${percent}%` }} />
                     </div>
                   </div>
-                  <div className="family-purpose-proof-grid" aria-label="Voortgangsbewijs">
-                    <article className="family-purpose-proof-tile">
-                      <span>Resterend</span>
-                      <strong>
-                        {Math.max(0, familyGoal.targetCount - familyGoal.currentProgress)}
-                      </strong>
-                      <small>{familyGoal.unitLabel} tot samen vieren</small>
-                    </article>
-                    <article className="family-purpose-proof-tile">
-                      <span>Gezin helpt mee</span>
-                      <strong>{members.length}</strong>
-                      <small>
-                        {individualGoals.length} persoonlijke doelen ondersteunen mee
-                      </small>
-                    </article>
-                  </div>
                 </div>
-                <FamilyCelebrationDisplay
-                  familyGoal={familyGoal}
-                  onCelebrated={handleFormSaved}
-                />
-                <div className="family-purpose-storyline">
-                  <p className="eyebrow">Volgende stap</p>
-                  <p className="motivation-copy">
-                    {percent >= 100
-                      ? "Jullie hebben samen genoeg gedaan om dit gezinsmoment echt te laten landen."
-                      : "Elke stap brengt jullie dichter bij samen vieren."}
-                  </p>
-                </div>
+                <p className="family-progress-source">
+                  Voltooide gedeelde taken tellen automatisch mee. Correcties blijven zichtbaar in het logboek.
+                </p>
               </div>
               <div className="family-goal-primary-actions">
                 <button
@@ -217,7 +214,7 @@ export function MotivationPage({ members }: MotivationPageProps) {
                 <button
                   type="button"
                   className="secondary-action compact-action familyboard-card-action"
-                  onClick={() => setShowStatsDetail(true)}
+                  onClick={openProgressDetail}
                 >
                   <HomeOpsIcon name="childMyProgress" />
                   Meer voortgang
@@ -242,7 +239,8 @@ export function MotivationPage({ members }: MotivationPageProps) {
           individualGoals={individualGoals}
           onOpenMemories={() => setShowMemoriesDetail(true)}
           onOpenPersonalGoals={() => setShowPersonalGoalsDetail(true)}
-          onOpenStats={() => setShowStatsDetail(true)}
+          onOpenStats={openProgressDetail}
+          onCelebrated={handleFormSaved}
         />
       </div>
 
@@ -393,21 +391,57 @@ export function MotivationPage({ members }: MotivationPageProps) {
         </MotivationDetailDialog>
       ) : null}
 
-      {showStatsDetail ? (
+      {showStatsDetail && familyGoal ? (
         <MotivationDetailDialog
           label="Voortgangsdetails"
-          title="Rustige voortgang"
-          description="Voortgang per onderdeel."
+          title="Voortgangslogboek"
+          description="Elke taak en correctie blijft zichtbaar; bestaande regels veranderen nooit."
           onClose={() => setShowStatsDetail(false)}
+          className="motivation-progress-dialog"
+          actions={
+            progressDetailMode === "ledger" && progressLedgerStatus === "ready" ? (
+              <button
+                type="button"
+                className="secondary-action compact-action"
+                onClick={() => setProgressDetailMode("correction")}
+              >
+                Correctie toevoegen
+              </button>
+            ) : undefined
+          }
         >
-          <div className="family-stat-grid motivation-detail-stat-grid">
-            {stats.map((stat) => (
-              <div className="family-stat-tile" key={stat.label}>
-                <strong>{stat.value}</strong>
-                <span>{stat.label}</span>
-              </div>
-            ))}
-          </div>
+          <ProgressLedgerWorkspace
+            familyGoal={familyGoal}
+            ledger={progressLedger}
+            status={progressLedgerStatus}
+            mode={progressDetailMode}
+            onBack={() => setProgressDetailMode("ledger")}
+            onRetry={openProgressDetail}
+            onCorrected={(ledger) => {
+              setProgressLedger(ledger);
+              setProgressDetailMode("ledger");
+              setSnapshot((current) => ({
+                ...current,
+                familyGoal: current.familyGoal
+                  ? {
+                      ...current.familyGoal,
+                      currentProgress: ledger.currentProgress,
+                      celebration: current.familyGoal.celebration
+                        ? {
+                            ...current.familyGoal.celebration,
+                            status:
+                              current.familyGoal.celebration.status === FamilyCelebrationStatus.Celebrated
+                                ? FamilyCelebrationStatus.Celebrated
+                                : ledger.currentProgress >= current.familyGoal.targetCount
+                                  ? FamilyCelebrationStatus.ReadyToCelebrate
+                                  : FamilyCelebrationStatus.Planned,
+                          }
+                        : undefined,
+                    }
+                  : undefined,
+              }));
+            }}
+          />
         </MotivationDetailDialog>
       ) : null}
 
@@ -486,6 +520,7 @@ function CelebrationStoryCard({
   onOpenMemories,
   onOpenPersonalGoals,
   onOpenStats,
+  onCelebrated,
 }: {
   familyGoal?: MotivationFamilyGoal;
   memories: readonly MotivationCelebrationMemory[];
@@ -493,7 +528,9 @@ function CelebrationStoryCard({
   onOpenMemories: () => void;
   onOpenPersonalGoals: () => void;
   onOpenStats: () => void;
+  onCelebrated: (goal: MotivationFamilyGoal) => void;
 }) {
+  const [savingCelebration, setSavingCelebration] = useState(false);
   const celebration = familyGoal?.celebration;
   const latestMemory = memories[0];
   const celebrationLabel =
@@ -555,6 +592,23 @@ function CelebrationStoryCard({
         </div>
       </div>
       <div className="family-story-actions familyboard-card-actions">
+        {familyGoal?.celebration?.status === FamilyCelebrationStatus.ReadyToCelebrate ? (
+          <button
+            type="button"
+            className="secondary-action compact-action familyboard-card-action"
+            disabled={savingCelebration}
+            onClick={async () => {
+              setSavingCelebration(true);
+              try {
+                onCelebrated(await markFamilyGoalCelebrated(familyGoal.id));
+              } finally {
+                setSavingCelebration(false);
+              }
+            }}
+          >
+            {savingCelebration ? "Opslaan…" : "Als gevierd markeren"}
+          </button>
+        ) : null}
         <button
           type="button"
           className="secondary-action compact-action familyboard-card-action"
@@ -595,24 +649,6 @@ function personalGoalSummary(goals: readonly MotivationIndividualGoal[]) {
   );
   if (complete === goals.length) return "alle doelen gehaald.";
   return `${totalRemaining} stappen over voor het gezin.`;
-}
-
-function buildFamilyStats(
-  familyGoal: MotivationFamilyGoal | undefined,
-  members: readonly FamilyMember[],
-  individualGoals: readonly MotivationIndividualGoal[],
-  memories: readonly MotivationCelebrationMemory[],
-) {
-  const progress = familyGoal
-    ? clampProgress(familyGoal.currentProgress, familyGoal.targetCount)
-    : 0;
-  return [
-    { label: "Helpacties", value: familyGoal?.currentProgress ?? 0 },
-    { label: "Gezin", value: members.length },
-    { label: "Persoonlijke doelen", value: individualGoals.length },
-    { label: "Herinneringen", value: memories.length },
-    { label: "Samen op weg", value: `${progress}%` },
-  ];
 }
 
 function familyGoalAnticipationMessage(familyGoal: MotivationFamilyGoal) {
@@ -776,87 +812,6 @@ function IndividualGoalForm({
         </button>
       </div>
     </form>
-  );
-}
-
-function FamilyCelebrationDisplay({
-  familyGoal,
-  onCelebrated,
-}: {
-  familyGoal: MotivationFamilyGoal;
-  onCelebrated: (goal: MotivationFamilyGoal) => void;
-}) {
-  const [saving, setSaving] = useState(false);
-  const celebration = familyGoal.celebration;
-  if (!celebration) return null;
-
-  const remaining = Math.max(
-    0,
-    familyGoal.targetCount - familyGoal.currentProgress,
-  );
-  const label =
-    celebration.status === FamilyCelebrationStatus.ReadyToCelebrate
-      ? "Gelukt — klaar om te vieren"
-      : celebration.status === FamilyCelebrationStatus.Celebrated
-        ? "Samen gevierd"
-        : "Straks als we klaar zijn";
-  const message =
-    celebration.status === FamilyCelebrationStatus.ReadyToCelebrate
-      ? `${celebration.title} staat nu klaar.`
-      : celebration.status === FamilyCelebrationStatus.Celebrated
-        ? "Samen gevierd."
-        : remaining === 1
-          ? `Nog 1 ${familyGoal.unitLabel} tot ${celebration.title}.`
-          : `Nog ${remaining} ${familyGoal.unitLabel} tot ${celebration.title}.`;
-  const statusClass =
-    celebration.status === FamilyCelebrationStatus.ReadyToCelebrate
-      ? "ready"
-      : celebration.status === FamilyCelebrationStatus.Celebrated
-        ? "celebrated"
-        : "planned";
-
-  return (
-    <div
-      className={`celebration-surface ${statusClass}`}
-      aria-label="Viering"
-    >
-      <HomeOpsIcon
-        className="celebration-surface-icon"
-        name={
-          statusClass === "ready"
-            ? "celebrationReady"
-            : statusClass === "celebrated"
-              ? "celebrationCelebrated"
-              : "celebrationUpcoming"
-        }
-        variant={statusClass === "ready" ? "hero" : "spot"}
-      />
-      <div>
-        <p className="eyebrow">{label}</p>
-        <h4>{celebration.title}</h4>
-        <p>{message}</p>
-        {celebration.description ? (
-          <span>{celebration.description}</span>
-        ) : null}
-      </div>
-      {celebration.status === FamilyCelebrationStatus.ReadyToCelebrate ? (
-        <button
-          type="button"
-          className="secondary-action compact-action"
-          disabled={saving}
-          onClick={async () => {
-            setSaving(true);
-            try {
-              onCelebrated(await markFamilyGoalCelebrated(familyGoal.id));
-            } finally {
-              setSaving(false);
-            }
-          }}
-        >
-          {saving ? "Opslaan…" : "Als gevierd markeren"}
-        </button>
-      ) : null}
-    </div>
   );
 }
 
@@ -1133,6 +1088,174 @@ function memoryFromFamilyGoal(
   };
 }
 
+function ProgressLedgerWorkspace({
+  familyGoal,
+  ledger,
+  status,
+  mode,
+  onBack,
+  onRetry,
+  onCorrected,
+}: {
+  familyGoal: MotivationFamilyGoal;
+  ledger?: MotivationProgressLedger;
+  status: "loading" | "ready" | "error";
+  mode: "ledger" | "correction";
+  onBack: () => void;
+  onRetry: () => void;
+  onCorrected: (ledger: MotivationProgressLedger) => void;
+}) {
+  const [delta, setDelta] = useState("");
+  const [reason, setReason] = useState("");
+  const [correctionOfEntryId, setCorrectionOfEntryId] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  if (status === "loading") {
+    return <p className="motivation-copy">Voortgangslogboek laden…</p>;
+  }
+  if (status === "error" || !ledger) {
+    return (
+      <div className="progress-ledger-state" role="alert">
+        <p>We konden het voortgangslogboek niet laden.</p>
+        <button type="button" className="secondary-action" onClick={onRetry}>
+          Opnieuw proberen
+        </button>
+      </div>
+    );
+  }
+
+  if (mode === "correction") {
+    const parsedDelta = Number.parseInt(delta, 10);
+    const valid = Number.isInteger(parsedDelta) && parsedDelta !== 0 && parsedDelta >= -999 && parsedDelta <= 999 && reason.trim().length > 0;
+    return (
+      <form
+        className="progress-correction-form"
+        aria-label="Voortgangscorrectie toevoegen"
+        onSubmit={async (event) => {
+          event.preventDefault();
+          if (!valid) return;
+          setSaving(true);
+          setError(null);
+          try {
+            const updated = await createFamilyGoalProgressCorrection(familyGoal.id, {
+              delta: parsedDelta,
+              reason: reason.trim(),
+              correctionOfEntryId: correctionOfEntryId || undefined,
+            });
+            setDelta("");
+            setReason("");
+            setCorrectionOfEntryId("");
+            onCorrected(updated);
+          } catch {
+            setError("De correctie kon niet worden bewaard. Je invoer is behouden; probeer het opnieuw.");
+          } finally {
+            setSaving(false);
+          }
+        }}
+      >
+        <div className="progress-correction-body">
+          <div>
+            <p className="eyebrow">Alleen corrigeren</p>
+            <h4>Voeg een compenserende regel toe</h4>
+            <p className="motivation-copy">
+              Een correctie verandert oude regels niet. Gebruik een positief getal om toe te voegen en een negatief getal om af te trekken.
+            </p>
+          </div>
+          <label>
+            Koppel aan een bestaande regel, optioneel
+            <select
+              value={correctionOfEntryId}
+              onChange={(event) => {
+                const entryId = event.target.value;
+                setCorrectionOfEntryId(entryId);
+                const entry = ledger.entries.find((item) => item.id === entryId);
+                if (entry) setDelta(String(-entry.delta));
+              }}
+            >
+              <option value="">Geen specifieke regel</option>
+              {ledger.entries.filter((entry) => entry.delta !== 0).map((entry) => (
+                <option key={entry.id} value={entry.id}>
+                  {progressSourceLabel(entry.sourceType)} · {entry.delta > 0 ? "+" : ""}{entry.delta} · {entry.reason}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Aanpassing
+            <input
+              type="number"
+              min="-999"
+              max="999"
+              value={delta}
+              onChange={(event) => {
+                setDelta(event.target.value);
+                if (correctionOfEntryId) setCorrectionOfEntryId("");
+              }}
+              placeholder="Bijvoorbeeld -1 of 2"
+              required
+            />
+          </label>
+          <label>
+            Reden
+            <textarea
+              value={reason}
+              maxLength={300}
+              onChange={(event) => setReason(event.target.value)}
+              placeholder="Leg kort uit waarom deze correctie nodig is"
+              required
+            />
+          </label>
+          {error ? <p className="form-error" role="alert">{error}</p> : null}
+        </div>
+        <div className="form-actions progress-correction-actions">
+          <button type="submit" disabled={!valid || saving}>{saving ? "Opslaan…" : "Correctie bewaren"}</button>
+          <button type="button" className="secondary-action" onClick={onBack}>Terug naar logboek</button>
+        </div>
+      </form>
+    );
+  }
+
+  return (
+    <div className="progress-ledger-workspace">
+      <section className="progress-ledger-summary" aria-label="Huidige voortgang">
+        <div>
+          <strong>{ledger.currentProgress}</strong>
+          <span>/ {ledger.targetCount} {ledger.unitLabel}</span>
+        </div>
+        <p>Voltooide gedeelde taken tellen automatisch mee. Correcties zijn uitsluitend zichtbare, compenserende regels.</p>
+      </section>
+      <ol className="progress-ledger-list" aria-label="Voortgangsregels">
+        {ledger.entries.length === 0 ? <li className="progress-ledger-empty">Nog geen voortgangsregels.</li> : null}
+        {ledger.entries.map((entry) => (
+          <li className="progress-ledger-entry" key={entry.id}>
+            <div className="progress-ledger-entry-heading">
+              <strong>{progressSourceLabel(entry.sourceType)}</strong>
+              <span className={entry.delta >= 0 ? "positive" : "negative"}>{entry.delta > 0 ? "+" : ""}{entry.delta}</span>
+            </div>
+            <p>{entry.reason}</p>
+            <small>
+              {formatLedgerDate(entry.occurredUtc)} · bron {entry.sourceId}
+              {entry.correctionOfEntryId ? ` · corrigeert ${entry.correctionOfEntryId}` : ""}
+            </small>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
+function progressSourceLabel(sourceType: MotivationProgressSourceType) {
+  if (sourceType === MotivationProgressSourceType.TaskCompletion) return "Taak voltooid";
+  if (sourceType === MotivationProgressSourceType.TaskReopen) return "Taak heropend";
+  if (sourceType === MotivationProgressSourceType.Correction) return "Correctie";
+  return "Startstand";
+}
+
+function formatLedgerDate(value: string) {
+  return new Intl.DateTimeFormat("nl-NL", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
+}
+
 function MotivationDetailDialog({
   label,
   title,
@@ -1140,6 +1263,7 @@ function MotivationDetailDialog({
   onClose,
   children,
   actions,
+  className,
 }: {
   label: string;
   title: string;
@@ -1147,6 +1271,7 @@ function MotivationDetailDialog({
   onClose: () => void;
   children: ReactNode;
   actions?: ReactNode;
+  className?: string;
 }) {
   return (
     <div
@@ -1155,7 +1280,7 @@ function MotivationDetailDialog({
       onClick={onClose}
     >
       <section
-        className="motivation-dialog motivation-detail-dialog"
+        className={`motivation-dialog motivation-detail-dialog${className ? ` ${className}` : ""}`}
         role="dialog"
         aria-modal="true"
         aria-label={label}

@@ -6,9 +6,11 @@ import { FamilyCelebrationStatus } from "./api/homeOpsApiClient";
 import { MotivationPage } from "./MotivationPage";
 import {
   archiveIndividualGoal,
+  createFamilyGoalProgressCorrection,
   createFamilyGoal,
   createIndividualGoal,
   loadMotivationSnapshot,
+  loadFamilyGoalProgress,
   markFamilyGoalCelebrated,
   updateFamilyGoal,
   updateIndividualGoal,
@@ -23,6 +25,8 @@ vi.mock("./motivationData", async (importOriginal) => ({
   updateIndividualGoal: vi.fn(),
   archiveIndividualGoal: vi.fn(),
   markFamilyGoalCelebrated: vi.fn(),
+  loadFamilyGoalProgress: vi.fn(),
+  createFamilyGoalProgressCorrection: vi.fn(),
 }));
 
 afterEach(() => cleanup());
@@ -35,6 +39,24 @@ describe("MotivationPage", () => {
     vi.mocked(createIndividualGoal).mockReset();
     vi.mocked(updateIndividualGoal).mockReset();
     vi.mocked(archiveIndividualGoal).mockReset();
+    vi.mocked(loadFamilyGoalProgress).mockReset();
+    vi.mocked(createFamilyGoalProgressCorrection).mockReset();
+    vi.mocked(loadFamilyGoalProgress).mockResolvedValue({
+      goalId: "family-goal",
+      currentProgress: 13,
+      targetCount: 20,
+      unitLabel: "helpful actions",
+      entries: [
+        {
+          id: "baseline-entry",
+          sourceType: 0,
+          sourceId: "family-goal",
+          delta: 13,
+          occurredUtc: "2026-08-08T00:00:00Z",
+          reason: "Bestaande voortgang bij invoering van het voortgangslogboek.",
+        },
+      ],
+    });
     vi.mocked(loadMotivationSnapshot).mockResolvedValue({
       familyGoal: {
         id: "family-goal",
@@ -93,9 +115,8 @@ describe("MotivationPage", () => {
       await within(familyGoal).findByText("Fill the family helper path"),
     ).not.toBeNull();
     expect(within(familyGoal).getByText("Familiedoel")).not.toBeNull();
-    expect(within(familyGoal).getByText("Volgende stap")).not.toBeNull();
     expect(
-      within(familyGoal).getByText("Elke stap brengt jullie dichter bij samen vieren."),
+      within(familyGoal).getByText(/Voltooide gedeelde taken tellen automatisch mee/),
     ).not.toBeNull();
     expect(within(familyGoal).queryByText("Gedeeld familiekompas")).toBeNull();
     expect(
@@ -114,15 +135,6 @@ describe("MotivationPage", () => {
         "Nog 7 helpful actions tot Board game night together.",
       ).length,
     ).toBeGreaterThan(0);
-    expect(
-      within(familyGoal).getByLabelText("Viering"),
-    ).not.toBeNull();
-    expect(
-      within(familyGoal)
-        .getByLabelText("Viering")
-        .querySelector("img")
-        ?.getAttribute("src"),
-    ).toContain("data-asset-name='celebration-upcoming'");
     expect(
       within(familyGoal).getAllByText(/Board game night together/).length,
     ).toBeGreaterThan(0);
@@ -174,7 +186,8 @@ describe("MotivationPage", () => {
     ).not.toBeNull();
 
     await userEvent.setup().click(screen.getByRole("button", { name: "Meer voortgang" }));
-    expect(await screen.findByText("Voortgang per onderdeel.")).not.toBeNull();
+    expect(await screen.findByText("Voortgangslogboek")).not.toBeNull();
+    expect(screen.getByText("Startstand")).not.toBeNull();
   });
 
   it("marks a ready family celebration as celebrated", async () => {
@@ -208,8 +221,7 @@ describe("MotivationPage", () => {
 
     render(<MotivationPage members={familyMembers} />);
 
-    expect(await screen.findByLabelText("Viering")).not.toBeNull();
-    expect(screen.getByText("Gelukt — klaar om te vieren")).not.toBeNull();
+    expect(await screen.findByText("Klaar om te vieren")).not.toBeNull();
     await user.click(screen.getByRole("button", { name: "Als gevierd markeren" }));
 
     expect(markFamilyGoalCelebrated).toHaveBeenCalledWith("family-goal");
@@ -217,6 +229,50 @@ describe("MotivationPage", () => {
     expect(screen.getAllByText("Movie night").length).toBeGreaterThanOrEqual(2);
     await user.click(screen.getByRole("button", { name: "Historie bekijken" }));
     expect(await screen.findByLabelText("Vieringsherinneringen")).not.toBeNull();
+  });
+
+  it("keeps failed correction input and appends a successful correction", async () => {
+    const user = userEvent.setup();
+    vi.mocked(createFamilyGoalProgressCorrection)
+      .mockRejectedValueOnce(new Error("offline"))
+      .mockResolvedValueOnce({
+        goalId: "family-goal",
+        currentProgress: 12,
+        targetCount: 20,
+        unitLabel: "helpful actions",
+        entries: [
+          {
+            id: "correction-entry",
+            sourceType: 3,
+            sourceId: "correction-command",
+            delta: -1,
+            occurredUtc: "2026-08-08T12:00:00Z",
+            reason: "Een taak telde dubbel.",
+          },
+        ],
+      });
+
+    render(<MotivationPage members={familyMembers} />);
+    await screen.findByText("Fill the family helper path");
+    await user.click(screen.getByRole("button", { name: "Meer voortgang" }));
+    await screen.findByText("Startstand");
+    await user.click(screen.getByRole("button", { name: "Correctie toevoegen" }));
+    await user.type(screen.getByLabelText("Aanpassing"), "-1");
+    await user.type(screen.getByLabelText("Reden"), "Een taak telde dubbel.");
+    await user.click(screen.getByRole("button", { name: "Correctie bewaren" }));
+
+    expect(await screen.findByText(/invoer is behouden/)).not.toBeNull();
+    expect((screen.getByLabelText("Aanpassing") as HTMLInputElement).value).toBe("-1");
+    expect((screen.getByLabelText("Reden") as HTMLTextAreaElement).value).toBe("Een taak telde dubbel.");
+
+    await user.click(screen.getByRole("button", { name: "Correctie bewaren" }));
+    expect(await screen.findByText("Correctie")).not.toBeNull();
+    expect(screen.getByLabelText("12 van 20 helpful actions")).not.toBeNull();
+    expect(createFamilyGoalProgressCorrection).toHaveBeenLastCalledWith("family-goal", {
+      delta: -1,
+      reason: "Een taak telde dubbel.",
+      correctionOfEntryId: undefined,
+    });
   });
 
   it("does not render reward economy or competitive wording", async () => {

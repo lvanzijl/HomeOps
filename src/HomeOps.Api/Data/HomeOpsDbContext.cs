@@ -55,6 +55,7 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
     public DbSet<RoomHeatingCommand> RoomHeatingCommands => Set<RoomHeatingCommand>();
     public DbSet<WeeklyResetSession> WeeklyResetSessions => Set<WeeklyResetSession>();
     public DbSet<WeeklyResetCandidate> WeeklyResetCandidates => Set<WeeklyResetCandidate>();
+    public DbSet<MotivationProgressLedgerEntry> MotivationProgressLedgerEntries => Set<MotivationProgressLedgerEntry>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -925,6 +926,26 @@ public sealed class HomeOpsDbContext(DbContextOptions<HomeOpsDbContext> options)
             OnboardingCompleted = false,
             LegacyDemoDataReviewRequired = false,
             UpdatedUtc = SeedLists.SeededUtc,
+        });
+
+        modelBuilder.Entity<MotivationProgressLedgerEntry>(entity =>
+        {
+            entity.ToTable("MotivationProgressLedgerEntries");
+            entity.HasKey(entry => entry.Id);
+            entity.Property(entry => entry.GoalType).HasConversion<string>().HasMaxLength(24).IsRequired();
+            entity.Property(entry => entry.GoalId).IsRequired();
+            entity.Property(entry => entry.SourceType).HasConversion<string>().HasMaxLength(32).IsRequired();
+            entity.Property(entry => entry.SourceId).HasMaxLength(120).IsRequired();
+            entity.Property(entry => entry.Delta).IsRequired();
+            entity.Property(entry => entry.OccurredUtc).IsRequired();
+            entity.Property(entry => entry.Reason).HasMaxLength(300).IsRequired();
+            entity.Property(entry => entry.CorrectionOfEntryId);
+            entity.HasOne(entry => entry.Household)
+                .WithMany()
+                .HasForeignKey(entry => entry.HouseholdId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(entry => new { entry.HouseholdId, entry.GoalType, entry.GoalId, entry.OccurredUtc });
+            entity.HasIndex(entry => entry.CorrectionOfEntryId);
         });
 
         modelBuilder.Entity<WeeklyResetSession>(entity =>

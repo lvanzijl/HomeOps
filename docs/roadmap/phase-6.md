@@ -9,7 +9,7 @@ Phase 6 completes the normal user lifecycle for Shopping lists/items and Motivat
 | 6.0 Mandatory primary-page analyses | Completed 2026-08-08 | Approved separate Shopping and Motivation viewport contracts, including the required Motivation overflow repair. |
 | 6.1 Shopping list lifecycle | Completed 2026-08-08 | Added bounded multi-list creation plus explicit archive, restore, and permanent-delete lifecycle. |
 | 6.2 Shopping item editing and unified history | Completed 2026-08-08 | Correct items atomically and make Home/Shopping use one server-backed history/suggestion source. |
-| 6.3 Goal progress definition and audit ledger | Not started | Define progress semantics, derive totals from immutable ledger entries, and add compensating corrections. |
+| 6.3 Goal progress definition and audit ledger | Completed 2026-08-08 | Task-derived progress now uses an immutable ledger with labelled backfill and explicit compensating corrections. |
 | 6.4 Helpful-moment and family-goal lifecycle | Not started | Add helpful-moment correction/removal and family-goal stop/archive/history behavior. |
 
 ## Slice 6.0 implementation boundary
@@ -40,6 +40,14 @@ Home no longer reads or writes `homeops.shopping.history.v1` as a suggestion sou
 
 Validation passes with focused backend 22/22, focused frontend 41/41, full backend 655/655, full frontend 387/387, both builds, PostgreSQL migration baseline 4/4, EF list/drift/idempotent-script checks, twice-identical pinned NSwag 14.7.1 output, and Playwright 18/18. Automated viewport checks cover 1440×900 and 1366×768; independent in-app inspection at 1366×768 measured zero document overflow, no console errors, and the 585.125 px item editor ending at 730.75 px. See `docs/reports/2026-08-08-shopping-item-editing-history/implementation.md`.
 
+## Slice 6.3 outcome
+
+Goal progress is now task-derived and explicitly auditable. A completed shared-household task appends `+1` to the active family goal; a completed member-assigned task appends `+1` to that member's active individual goal. Reopening appends a linked `-1`. Repeated complete/reopen calls do not duplicate transitions. Manual progress editing is not supported; the only manual path is a reasoned signed correction, optionally linked to and exactly compensating an existing row.
+
+Migration `20260808181329_AddMotivationProgressLedger` backfills every existing goal with one labelled baseline. Displayed progress is the ledger sum bounded to the goal target, while raw history is preserved across target changes. Motivation and Weekly Reset reads derive progress from the ledger; the legacy current-progress field remains only as a refreshed compatibility projection.
+
+The approved Motivation composition is now realized. The primary goal card contains identity/anticipation, one compact progress block, one source sentence, and fixed actions; duplicate proof, celebration, and next-step content no longer clips inside the card. Ledger and correction states share one fixed-header dialog with internal body scrolling. Backend 658/658, frontend 388/388, PostgreSQL 5/5, builds, EF checks, twice-identical pinned NSwag, and Playwright 19/19 pass. Independent 1280×720 inspection measured equal 331 px card client/scroll heights and zero document overflow. See `docs/reports/2026-08-08-motivation-progress-ledger/implementation.md`.
+
 ## Fixed boundaries
 
 - Work remains one numeric slice and one commit per run.
@@ -55,5 +63,5 @@ Validation passes with focused backend 22/22, focused frontend 41/41, full backe
 - [x] Multiple shopping lists can be created, archived, restored, and intentionally deleted.
 - [x] Shopping items can be corrected in place.
 - [x] Home/Shopping suggestions use one server source.
-- [ ] Goal progress is explainable and correctable.
+- [x] Goal progress is explainable and correctable.
 - [ ] Helpful moments and family goals have complete user lifecycles.

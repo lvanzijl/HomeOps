@@ -761,6 +761,110 @@
         }
       }
     },
+    "/api/motivation/goals/{goalType}/{goalId}/progress": {
+      "get": {
+        "operationId": "GetMotivationProgressLedger",
+        "parameters": [
+          {
+            "name": "goalType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/MotivationGoalType"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "goalId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 2
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MotivationProgressLedgerDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/api/motivation/goals/{goalType}/{goalId}/progress/corrections": {
+      "post": {
+        "operationId": "CreateMotivationProgressCorrection",
+        "parameters": [
+          {
+            "name": "goalType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/MotivationGoalType"
+            },
+            "x-position": 1
+          },
+          {
+            "name": "goalId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "guid"
+            },
+            "x-position": 2
+          }
+        ],
+        "requestBody": {
+          "x-name": "request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMotivationProgressCorrectionRequest"
+              }
+            }
+          },
+          "required": true,
+          "x-position": 3
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MotivationProgressLedgerDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": ""
+          }
+        }
+      }
+    },
     "/api/motivation/individual-goals": {
       "post": {
         "operationId": "CreateMotivationIndividualGoal",
@@ -8856,6 +8960,114 @@
           "celebratedUtc": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "MotivationProgressLedgerDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "goalType": {
+            "$ref": "#/components/schemas/MotivationGoalType"
+          },
+          "goalId": {
+            "type": "string",
+            "format": "guid"
+          },
+          "currentProgress": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "targetCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "unitLabel": {
+            "type": "string"
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MotivationProgressLedgerEntryDto"
+            }
+          }
+        }
+      },
+      "MotivationGoalType": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "Family",
+          "Individual"
+        ],
+        "enum": [
+          0,
+          1
+        ]
+      },
+      "MotivationProgressLedgerEntryDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "guid"
+          },
+          "sourceType": {
+            "$ref": "#/components/schemas/MotivationProgressSourceType"
+          },
+          "sourceId": {
+            "type": "string"
+          },
+          "delta": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "occurredUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "correctionOfEntryId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
+          }
+        }
+      },
+      "MotivationProgressSourceType": {
+        "type": "integer",
+        "description": "",
+        "x-enumNames": [
+          "MigrationBaseline",
+          "TaskCompletion",
+          "TaskReopen",
+          "Correction"
+        ],
+        "enum": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "CreateMotivationProgressCorrectionRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "delta": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "correctionOfEntryId": {
+            "type": "string",
+            "format": "guid",
+            "nullable": true
           }
         }
       },

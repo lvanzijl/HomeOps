@@ -189,7 +189,10 @@ public static class WeeklyResetEndpoints
             .OrderBy(item => item.Id)
             .ToListAsync(cancellationToken);
         foreach (var goal in familyGoals)
-            session.Candidates.Add(Candidate(session.Id, WeeklyResetCandidateType.FamilyGoal, goal.Id, goal.Title, $"Gezinsdoel · {goal.CurrentProgress} / {goal.TargetCount} {goal.UnitLabel}"));
+        {
+            var progress = await MotivationProgress.GetProjectedAsync(dbContext, MotivationGoalType.Family, goal.Id, goal.TargetCount, goal.CurrentProgress, cancellationToken);
+            session.Candidates.Add(Candidate(session.Id, WeeklyResetCandidateType.FamilyGoal, goal.Id, goal.Title, $"Gezinsdoel · {progress} / {goal.TargetCount} {goal.UnitLabel}"));
+        }
 
         var individualGoals = await dbContext.MotivationIndividualGoals.AsNoTracking()
             .Include(item => item.FamilyMember)
@@ -197,7 +200,10 @@ public static class WeeklyResetEndpoints
             .OrderBy(item => item.FamilyMember!.Name)
             .ToListAsync(cancellationToken);
         foreach (var goal in individualGoals)
-            session.Candidates.Add(Candidate(session.Id, WeeklyResetCandidateType.IndividualGoal, goal.Id, goal.Title, $"{goal.FamilyMember!.Name} · {goal.CurrentProgress} / {goal.TargetCount} {goal.UnitLabel}"));
+        {
+            var progress = await MotivationProgress.GetProjectedAsync(dbContext, MotivationGoalType.Individual, goal.Id, goal.TargetCount, goal.CurrentProgress, cancellationToken);
+            session.Candidates.Add(Candidate(session.Id, WeeklyResetCandidateType.IndividualGoal, goal.Id, goal.Title, $"{goal.FamilyMember!.Name} · {progress} / {goal.TargetCount} {goal.UnitLabel}"));
+        }
 
         var duplicateNames = await dbContext.Lists.AsNoTracking()
             .Where(item => item.HouseholdId == SeedHousehold.Id && !item.IsDeleted)

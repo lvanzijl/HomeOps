@@ -128,13 +128,9 @@ public sealed class MotivationApiTests(HomeOpsWebApplicationFactory factory) : I
     {
         await using var isolatedFactory = new HomeOpsWebApplicationFactory();
         var client = isolatedFactory.CreateClient();
-        using (var scope = isolatedFactory.Services.CreateScope())
-        {
-            var dbContext = scope.ServiceProvider.GetRequiredService<HomeOpsDbContext>();
-            var familyGoal = dbContext.MotivationFamilyGoals.Single(goal => goal.HouseholdId == SeedHousehold.Id && goal.IsActive);
-            familyGoal.CurrentProgress = familyGoal.TargetCount;
-            await dbContext.SaveChangesAsync();
-        }
+        var before = await client.GetFromJsonAsync<MotivationSnapshotDto>("/api/motivation");
+        Assert.NotNull(before?.FamilyGoal);
+        await AddCorrection(client, MotivationGoalType.Family, before.FamilyGoal.Id, before.FamilyGoal.TargetCount - before.FamilyGoal.CurrentProgress, "Set up target-boundary test.");
         var task = await CreateTask(client, "Clean hallway", TaskOwnershipKind.SharedHousehold, null);
 
         await client.PostAsync($"/api/tasks/{task.Id}/complete", null);
@@ -149,15 +145,17 @@ public sealed class MotivationApiTests(HomeOpsWebApplicationFactory factory) : I
     {
         await using var isolatedFactory = new HomeOpsWebApplicationFactory();
         var client = isolatedFactory.CreateClient();
+        MotivationFamilyGoalDto familyGoal;
         using (var scope = isolatedFactory.Services.CreateScope())
         {
             var dbContext = scope.ServiceProvider.GetRequiredService<HomeOpsDbContext>();
-            var familyGoal = dbContext.MotivationFamilyGoals.Single(goal => goal.HouseholdId == SeedHousehold.Id && goal.IsActive);
-            familyGoal.CurrentProgress = familyGoal.TargetCount - 1;
-            familyGoal.CelebrationTitle = "Movie night";
-            familyGoal.CelebrationStatus = FamilyCelebrationStatus.Planned;
+            var entity = dbContext.MotivationFamilyGoals.Single(goal => goal.HouseholdId == SeedHousehold.Id && goal.IsActive);
+            entity.CelebrationTitle = "Movie night";
+            entity.CelebrationStatus = FamilyCelebrationStatus.Planned;
             await dbContext.SaveChangesAsync();
+            familyGoal = new MotivationFamilyGoalDto(entity.Id, entity.Title, entity.TargetCount, entity.CurrentProgress, entity.UnitLabel, null);
         }
+        await AddCorrection(client, MotivationGoalType.Family, familyGoal.Id, familyGoal.TargetCount - 1 - familyGoal.CurrentProgress, "Set up ready-to-celebrate test.");
 
         var task = await CreateTask(client, "Final helper step", TaskOwnershipKind.SharedHousehold, null);
         await client.PostAsync($"/api/tasks/{task.Id}/complete", null);
@@ -183,12 +181,15 @@ public sealed class MotivationApiTests(HomeOpsWebApplicationFactory factory) : I
             var dbContext = scope.ServiceProvider.GetRequiredService<HomeOpsDbContext>();
             var familyGoal = dbContext.MotivationFamilyGoals.Single(goal => goal.HouseholdId == SeedHousehold.Id && goal.IsActive);
             familyGoalId = familyGoal.Id;
-            familyGoal.CurrentProgress = familyGoal.TargetCount;
             familyGoal.CelebrationTitle = "Family picnic";
             familyGoal.CelebrationDescription = "Pack snacks and sit under the big tree.";
             familyGoal.CelebrationStatus = FamilyCelebrationStatus.ReadyToCelebrate;
             await dbContext.SaveChangesAsync();
         }
+
+        var before = await client.GetFromJsonAsync<MotivationSnapshotDto>("/api/motivation");
+        Assert.NotNull(before?.FamilyGoal);
+        await AddCorrection(client, MotivationGoalType.Family, familyGoalId, before.FamilyGoal.TargetCount - before.FamilyGoal.CurrentProgress, "Set up celebration memory test.");
 
         var response = await client.PostAsync($"/api/motivation/family-goals/{familyGoalId}/celebration/celebrated", null);
         response.EnsureSuccessStatusCode();
@@ -299,10 +300,9 @@ public sealed class MotivationApiTests(HomeOpsWebApplicationFactory factory) : I
         {
             var dbContext = scope.ServiceProvider.GetRequiredService<HomeOpsDbContext>();
             var entity = dbContext.MotivationIndividualGoals.First(goal => goal.HouseholdId == SeedHousehold.Id && goal.FamilyMemberId == "riley" && goal.IsActive);
-            entity.CurrentProgress = 3;
-            await dbContext.SaveChangesAsync();
             existing = new MotivationIndividualGoalDto(entity.Id, entity.FamilyMemberId, string.Empty, entity.Title, entity.TargetCount, entity.CurrentProgress, entity.UnitLabel, entity.VisualKind);
         }
+        await AddCorrection(client, MotivationGoalType.Individual, existing.Id, 1, "Set up individual-goal edit test.");
 
         var response = await client.PutAsJsonAsync($"/api/motivation/individual-goals/{existing.Id}", new UpsertMotivationIndividualGoalRequest("alex", "Homework sessions", 2, "sessions"));
 
@@ -439,5 +439,57 @@ public sealed class MotivationApiTests(HomeOpsWebApplicationFactory factory) : I
         Assert.NotNull(created.Celebration);
         Assert.Equal("Pancake breakfast", created.Celebration.Title);
         Assert.Equal("Cook together on Sunday", created.Celebration.Description);
+    }
+
+    [Fact]
+    public async Task TaskCompletionAndReopenAppendIdempotentLedgerEntries()
+    {
+        await using var isolatedFactory = new HomeOpsWebApplicationFactory();
+        var client = isolatedFactory.CreateClient();
+        var snapshot = await client.GetFromJsonAsync<MotivationSnapshotDto>("/api/motivation");
+        var goal = Assert.IsType<MotivationFamilyGoalDto>(snapshot!.FamilyGoal);
+        var task = await CreateTask(client, "Ledger task", TaskOwnershipKind.SharedHousehold, null);
+
+        (await client.PostAsync($"/api/tasks/{task.Id}/complete", null)).EnsureSuccessStatusCode();
+        (await client.PostAsync($"/api/tasks/{task.Id}/complete", null)).EnsureSuccessStatusCode();
+        var completedLedger = await client.GetFromJsonAsync<MotivationProgressLedgerDto>($"/api/motivation/goals/Family/{goal.Id}/progress");
+        var completion = Assert.Single(completedLedger!.Entries, entry => entry.SourceType == MotivationProgressSourceType.TaskCompletion && entry.SourceId == task.Id.ToString("D"));
+
+        (await client.PostAsync($"/api/tasks/{task.Id}/reopen", null)).EnsureSuccessStatusCode();
+        (await client.PostAsync($"/api/tasks/{task.Id}/reopen", null)).EnsureSuccessStatusCode();
+        var reopenedLedger = await client.GetFromJsonAsync<MotivationProgressLedgerDto>($"/api/motivation/goals/Family/{goal.Id}/progress");
+        var reopen = Assert.Single(reopenedLedger!.Entries, entry => entry.SourceType == MotivationProgressSourceType.TaskReopen && entry.SourceId == task.Id.ToString("D"));
+
+        Assert.Equal(completion.Id, reopen.CorrectionOfEntryId);
+        Assert.Equal(goal.CurrentProgress, reopenedLedger.CurrentProgress);
+    }
+
+    [Fact]
+    public async Task CorrectionAppendsCompensatingEntryWithoutChangingHistory()
+    {
+        await using var isolatedFactory = new HomeOpsWebApplicationFactory();
+        var client = isolatedFactory.CreateClient();
+        var snapshot = await client.GetFromJsonAsync<MotivationSnapshotDto>("/api/motivation");
+        var goal = Assert.IsType<MotivationFamilyGoalDto>(snapshot!.FamilyGoal);
+        var before = await client.GetFromJsonAsync<MotivationProgressLedgerDto>($"/api/motivation/goals/Family/{goal.Id}/progress");
+        var baseline = Assert.Single(before!.Entries, entry => entry.SourceType == MotivationProgressSourceType.MigrationBaseline);
+
+        var response = await client.PostAsJsonAsync($"/api/motivation/goals/Family/{goal.Id}/progress/corrections", new CreateMotivationProgressCorrectionRequest(-baseline.Delta, "Baseline was entered incorrectly.", baseline.Id));
+
+        response.EnsureSuccessStatusCode();
+        var after = await response.Content.ReadFromJsonAsync<MotivationProgressLedgerDto>();
+        Assert.NotNull(after);
+        Assert.Contains(after.Entries, entry => entry.Id == baseline.Id && entry.Delta == baseline.Delta);
+        var correction = Assert.Single(after.Entries, entry => entry.SourceType == MotivationProgressSourceType.Correction);
+        Assert.Equal(baseline.Id, correction.CorrectionOfEntryId);
+        Assert.Equal(-baseline.Delta, correction.Delta);
+        Assert.Equal(0, after.CurrentProgress);
+    }
+
+    private static async Task AddCorrection(HttpClient client, MotivationGoalType goalType, Guid goalId, int delta, string reason)
+    {
+        if (delta == 0) return;
+        var response = await client.PostAsJsonAsync($"/api/motivation/goals/{goalType}/{goalId}/progress/corrections", new CreateMotivationProgressCorrectionRequest(delta, reason, null));
+        response.EnsureSuccessStatusCode();
     }
 }

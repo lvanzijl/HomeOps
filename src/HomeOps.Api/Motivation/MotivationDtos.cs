@@ -9,3 +9,7 @@ public sealed record MotivationIndividualGoalDto(Guid Id, string FamilyMemberId,
 public sealed record UpsertMotivationIndividualGoalRequest(string FamilyMemberId, string Title, int TargetCount, string UnitLabel);
 
 public sealed record UpsertMotivationFamilyGoalRequest(string Title, int TargetCount, string UnitLabel, string? CelebrationTitle, string? CelebrationDescription);
+
+public sealed record MotivationProgressLedgerEntryDto(Guid Id, MotivationProgressSourceType SourceType, string SourceId, int Delta, DateTimeOffset OccurredUtc, string Reason, Guid? CorrectionOfEntryId);
+public sealed record MotivationProgressLedgerDto(MotivationGoalType GoalType, Guid GoalId, int CurrentProgress, int TargetCount, string UnitLabel, IReadOnlyCollection<MotivationProgressLedgerEntryDto> Entries);
+public sealed record CreateMotivationProgressCorrectionRequest(int Delta, string Reason, Guid? CorrectionOfEntryId);

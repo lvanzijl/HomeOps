@@ -1058,7 +1058,7 @@ Before modifying Shopping or Motivation layouts, produce separate Viewport-First
 
 ### Slice 6.3 — Define goal progress and add an audit ledger
 
-- [ ] **Status: Not started**
+- [x] **Status: Completed 2026-08-08**
 
 **Audit IDs:** MOT-01, MOT-04
 
@@ -1070,6 +1070,8 @@ Before modifying Shopping or Motivation layouts, produce separate Viewport-First
 4. Add a correction action that appends a compensating entry; do not rewrite history.
 5. Backfill existing goal totals with one labelled migration entry.
 6. Test task completion/reopen idempotency and correction.
+
+**Implementation state:** Completed attributed tasks are the normal progress source: shared tasks append to the active family goal and member-assigned tasks append to that member's active individual goal. Reopens append linked compensating entries; repeated state calls are idempotent. Explicit signed corrections require a reason and may exactly compensate a referenced row, while existing rows have no product mutation contract. Migration `20260808181329_AddMotivationProgressLedger` creates one labelled baseline per existing goal. Displayed totals and Weekly Reset projections derive from the bounded ledger sum. The approved compact goal card and single bounded ledger/correction dialog replace the previously clipped 588 px primary-card composition. Backend 658/658, frontend 388/388, PostgreSQL 5/5, builds, EF drift/script checks, twice-identical pinned NSwag 14.7.1, Playwright 19/19, and independent 1280×720 containment inspection pass. See `docs/reports/2026-08-08-motivation-progress-ledger/implementation.md` and `docs/roadmap/phase-6.md`.
 
 ### Slice 6.4 — Helpful-moment and family-goal lifecycle
 
@@ -1088,9 +1090,9 @@ Before modifying Shopping or Motivation layouts, produce separate Viewport-First
 ### Phase 6 exit criteria
 
 - [x] Multiple shopping lists can be created, archived, restored, and intentionally deleted.
-- [ ] Shopping items can be corrected in place.
-- [ ] Home/Shopping suggestions use one server source.
-- [ ] Goal progress is explainable and correctable.
+- [x] Shopping items can be corrected in place.
+- [x] Home/Shopping suggestions use one server source.
+- [x] Goal progress is explainable and correctable.
 - [ ] Helpful moments and family goals have complete user lifecycles.
 
 ## Phase 7 — Navigation, backup, errors, and consistency
